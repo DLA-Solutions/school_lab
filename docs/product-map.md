@@ -25,6 +25,8 @@ fechada em `docs/web-stack.md`; stack do app mobile ainda é intenção.
 
 - Apps mobile: escola, professor, pais.
 - Consome a mesma API; não duplica regra de negócio.
+- MVP: comunicação (mensagens com imagem), push notifications, boletos e
+  consultas acadêmicas para pais; mensagens e chamada para professor.
 
 ### docs/
 
@@ -47,8 +49,8 @@ fechada em `docs/web-stack.md`; stack do app mobile ainda é intenção.
 
 ## 4. Sequência de trabalho
 
-1. Fechar documentos âncora (vision, actors, product-map, web-stack,
-   open-questions).
+1. Documentos âncora atualizados com validação stakeholder (jul/2026) —
+   próximo passo: PRDs de domínio.
 2. Escrever PRDs de domínio (um por domínio, no template) — ordem sugerida
    abaixo.
 3. Modelagem de dados a partir dos PRDs (DSL → DER).

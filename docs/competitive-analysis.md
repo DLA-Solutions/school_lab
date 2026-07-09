@@ -17,11 +17,12 @@ resolvem dores diferentes:
 | **App de comunicação escola↔família** | Agenda digital, comunicados, chat, rotina — geralmente integra com um ERP por API | Agenda Edu, ClassApp, Olá Pais, Kix |
 | **Nicho creche/educação infantil** | Rotina diária (bebê/berçário) como produto principal | Lápis 360 Baby; referência internacional: Brightwheel, HiMama |
 
-O **School Lab** se posiciona mais perto do primeiro grupo (ERP completo,
-multi-escola), mas com um diferencial do segundo/terceiro grupo já embutido
-(rotina diária da educação infantil) — a maioria dos ERPs completos não tem
-esse recurso nativamente, e depende de integração com um app de comunicação
-separado.
+O **School Lab** se posiciona como ERP completo multi-escola, com
+**comunicação nativa** (mensagens com imagem — MVP, validado com stakeholder)
+e **Livro Ata digital** (fase 2, prioridade alta) como diferenciais que a
+maioria dos ERPs não oferece nativamente — hoje dependem de integração com
+apps de comunicação separados (Agenda Edu, ClassApp) e processos manuais para
+atas formais.
 
 ## 2. Funcionalidades por domínio
 

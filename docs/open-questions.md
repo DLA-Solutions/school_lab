@@ -26,6 +26,9 @@ em `docs/vision.md` e `docs/actors-and-surfaces.md`.
       o requisito legal é **assinatura digital** válida. Conselho de Educação
       audita esses registros com frequência.
 
+- [x] **Professor no MVP: web e app juntos** — notas e plano de aula no web;
+      mensagens e chamada no app (ambos os canais disponíveis).
+
 ## MVP e escopo
 
 - [ ] Confirmar escopo completo do MVP: comunicação + acadêmico (notas,
@@ -33,7 +36,6 @@ em `docs/vision.md` e `docs/actors-and-surfaces.md`.
       de fora neste primeiro corte?
 - [ ] Backoffice no MVP: só cadastro de escolas, ou também billing da plataforma?
 - [ ] Pais no MVP: só app, ou web também?
-- [ ] Professor no MVP: web e app juntos, ou web primeiro?
 
 ## Financeiro
 

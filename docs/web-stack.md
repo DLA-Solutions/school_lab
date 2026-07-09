@@ -85,12 +85,12 @@ não resolverem.
 
 | Camada | Ferramenta | Exemplo |
 |--------|------------|---------|
-| **Models** | ActiveRecord + validações | `Aluno`, `Nota`, `Boleto` |
-| **Services** | Plain Ruby objects | `Financeiro::GerarBoleto` |
+| **Models** | ActiveRecord + validações | `Aluno`, `Nota`, `Boleto`, `Mensagem` |
+| **Services** | Plain Ruby objects | `Financeiro::GerarBoleto`, `Comunicacao::EnviarMensagem` |
 | **Forms** | ActiveModel form objects | Cadastro de aluno com responsável |
 | **Jobs** | ActiveJob + Solid Queue | Emissão de boleto, envio de e-mail, push (FCM) |
 | **Notificações** | FCM + máquina de estado | Push confiável; eventos validados antes do envio |
-| **Uploads** | Active Storage + S3 | Arquivo digital / auditoria |
+| **Uploads** | Active Storage + S3 | Arquivo digital, imagens em mensagens |
 | **Auditoria** | `paper_trail` ou `audited` | Histórico de notas e documentos |
 | **Paginação** | Pagy | Listagens de alunos, boletos |
 | **Busca** | pg_search (MVP) | Busca por nome/CPF |
@@ -149,9 +149,10 @@ Evento (ex.: chamada registrada)
 | Superfície | MVP | Observação |
 |------------|-----|------------|
 | Backoffice DLA | Sim | Cadastro de escolas, visão da plataforma |
-| Admin da escola | Sim | Turmas, alunos, financeiro, documentos |
+| Admin da escola | Sim | Turmas, alunos, financeiro, documentos, push |
 | Professor | Sim | Notas, plano de aula, chamada, mensagens |
-| Pais | Fase 2 | Prioridade no app mobile |
+| Pais (app) | Sim | Comunicação, boletos, notas, documentos |
+| Pais (web) | Fase 2 | Prioridade no app mobile no MVP |
 
 ## 10. Convenções
 
@@ -319,3 +320,14 @@ Itens ainda em aberto — ver `docs/open-questions.md` (seção Stack web):
 
 - Push notifications: FCM + Solid Queue + máquina de estado na API.
 - Real-time (Solid Cable / Turbo Streams): fase 2 — não necessário no MVP.
+
+## 14. Fase 2 — direções técnicas (rascunho)
+
+Itens ainda não fechados — ver `docs/open-questions.md` (Livro Ata):
+
+| Componente | Direção provável | Notas |
+|------------|------------------|-------|
+| **Assinatura digital** | Própria (rabisco + e-mail + IP + hash) ou integração DocuSign/Authentique | Validação jurídica pendente |
+| **Livro Ata** | Modelo de atas por tipo + workflow de signatários | Compartilha infra de assinatura |
+| **Busca semântica** | pgvector no PostgreSQL ou serviço externo | Escopo: atas ou todo arquivo |
+| **Transcrição / IA** | Integração Meet ou upload de áudio → geração de rascunho | Posterior dentro do módulo |

@@ -11,7 +11,7 @@ completo (auditoria) e automação do financeiro.
 ## 2. Problema
 
 Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
-7 anos) por três motivos recorrentes:
+7 anos) por motivos recorrentes:
 
 - **Instabilidade**: perda de dados críticos (ex.: notas somem ao lançar) e
   notificações incorretas (ex.: push de ausência com a criança presente na
@@ -40,9 +40,9 @@ Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
   sem papel (padrão equivalente a DocuSign/Authentique — validação jurídica
   pendente).
 - **Tudo em um só lugar**: acadêmico, financeiro, documental e comunicação.
-- **Rotina da educação infantil**: professor registra alimentação, sono,
-  higiene, saúde, humor, fotos e recados da criança; pais acompanham em tempo
-  real — diferencial forte para escolas com berçário/infantil.
+- **Rotina da educação infantil** (fase 2): professor registra alimentação,
+  sono, higiene, saúde, humor e recados; pais acompanham. No MVP, educação
+  infantil é atendida pela **comunicação** (mensagens com imagem).
 - **Comunicação direta e segura**: pais falam com professor e escola dentro
   da plataforma, com histórico e privacidade por família. Diferencial:
   envio de **imagens** nas mensagens (concorrentes atuais não oferecem).
@@ -131,3 +131,6 @@ complementares.
 - Zero perda de dados de notas/financeiro.
 - % de boletos emitidos pela plataforma vs. manual.
 - % de documentos de auditoria disponíveis digitalmente.
+- % de famílias ativas na comunicação (mensagens lidas/respondidas).
+- (Fase 2) Tempo médio para fechar atas (ex.: Conselho de Classe) vs. baseline
+  manual (~1 semana).

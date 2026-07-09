@@ -41,6 +41,7 @@
 - Gerir turmas, disciplinas, matrículas.
 - Acompanhar financeiro (boletos, inadimplência).
 - Gerir arquivo digital de documentos.
+- Enviar e receber mensagens com famílias (texto + imagem).
 - Enviar push notifications para usuários da escola (paridade com sistema
   atual).
 - (Fase 2) Enviar comunicados em massa (toda a escola ou por turma) com
