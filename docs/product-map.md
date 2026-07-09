@@ -38,7 +38,8 @@ fechada em `docs/web-stack.md`; stack do app mobile ainda é intenção.
 ## 3. Princípios de organização
 
 - **Uma API, múltiplos canais**: regra de negócio vive na camada de API.
-- **`escola_id` transversal**: multi-tenancy atravessa web e app.
+- **Isolamento por escola**: dados de uma escola não se misturam com outra;
+  atravessa web e app (detalhes na modelagem).
 - **Docs guiam a implementação**: âncoras fechadas → PRDs → (depois) modelagem
   (DSL → DER) → implementação.
 

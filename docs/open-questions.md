@@ -48,7 +48,6 @@ Decisões fechadas em `docs/web-stack.md`. Pendências:
 
 - [ ] Serialização da API: `jsonapi-serializer` vs. `blueprinter`?
 - [ ] Auth web: Rails 8 Authentication Generator vs. Devise?
-- [ ] Multi-tenancy: scopes manuais vs. gem `acts_as_tenant`?
 - [ ] Real-time no MVP (Solid Cable / Turbo Streams) ou fase 2?
 - [ ] Provider de e-mail (Postmark, SES, etc.)?
 - [ ] Integração de boleto (gateway/banco)?

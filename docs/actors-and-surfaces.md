@@ -3,9 +3,9 @@
 ## 1. Atores
 
 - **Backoffice (plataforma / DLA)**: opera a plataforma; cadastra e administra
-  escolas (tenants); gestão de assinatura/comercial.
-- **Escola (administração)**: administra a própria escola dentro do tenant —
-  usuários, turmas, alunos, financeiro, documentos.
+  escolas; gestão de assinatura/comercial.
+- **Escola (administração)**: administra a própria escola — usuários, turmas,
+  alunos, financeiro, documentos.
 - **Professor**: lançamento de notas e atividades acadêmicas da sua turma/disciplina.
 - **Pais / responsáveis**: acompanham vida acadêmica, financeira e documental
   do(s) filho(s).
@@ -31,7 +31,7 @@
 
 ### Backoffice
 
-- Criar/administrar escolas (tenants).
+- Criar/administrar escolas.
 - Gerir assinatura/plano da escola.
 - Suporte e visão geral da plataforma.
 

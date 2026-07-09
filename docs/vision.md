@@ -2,7 +2,7 @@
 
 ## 1. Resumo
 
-Plataforma de gestão escolar multi-tenant (várias escolas em um único sistema),
+Plataforma de gestão escolar multi-escola (várias escolas em um único sistema),
 voltada a escolas particulares. Centraliza gestão acadêmica, financeira,
 documental e de relacionamento com as famílias, com foco em três diferenciais:
 estabilidade, arquivo digital completo (auditoria) e automação do financeiro.
@@ -35,8 +35,8 @@ Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
 
 ## 5. Princípios de produto
 
-- **Multi-escola desde o dia 1**: toda entidade de negócio carrega `escola_id`;
-  isolamento total de dados entre escolas.
+- **Multi-escola desde o dia 1**: várias escolas no mesmo sistema; isolamento
+  de dados entre escolas (estratégia de modelagem a definir).
 - **Estabilidade acima de features**: confiabilidade é requisito, não desejo.
 - **Digital-first**: reduzir/eliminar papel (boletos, contratos, arquivo).
 - **Multi-canal**: web e app compartilham as mesmas regras de negócio.
@@ -49,7 +49,7 @@ acadêmica + financeiro) e habilitar a proposta de auditoria.
 
 **Dentro do MVP**
 
-- Multi-tenancy: cadastro de escola e isolamento por `escola_id`.
+- Cadastro de escola e isolamento de dados entre escolas.
 - Identidade e papéis: backoffice, escola (admin), professor, pais.
 - Cadastro base: alunos, responsáveis, turmas, disciplinas.
 - Acadêmico: lançamento confiável de notas.

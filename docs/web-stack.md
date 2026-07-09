@@ -4,7 +4,7 @@
 > Status: decisão fechada (camada web)
 
 Monolito Rails 8 com Hotwire para superfícies web e API REST JSON versionada
-para o app mobile. Multi-tenancy por `escola_id`. Infra mínima no MVP: app +
+para o app mobile. Várias escolas no mesmo sistema. Infra mínima no MVP: app +
 PostgreSQL + S3.
 
 ## 1. Resumo
@@ -70,7 +70,7 @@ não resolverem.
 | Componente | Decisão |
 |------------|---------|
 | **Autorização** | Pundit — papéis: backoffice, escola, professor, pais |
-| **Multi-tenancy** | `escola_id` em toda query + scope default no ApplicationRecord |
+| **Isolamento por escola** | A definir na modelagem; enforcement via policies e services |
 
 ## 5. API para o app mobile
 
@@ -135,7 +135,6 @@ repetidas). Quando entrar, é **só para cache** — jobs continuam no Solid Que
 
 - Service objects em `app/services/`
 - Policies em `app/policies/`
-- Todo model com `escola_id` (exceto entidades globais de plataforma)
 - Locale default: `pt-BR`
 
 ## 11. Fora do escopo
@@ -158,7 +157,7 @@ flowchart TB
         HTML[Controllers HTML]
         API[API v1 JSON]
         Services[Service Objects]
-        Models[ActiveRecord + escola_id]
+        Models[ActiveRecord]
         Jobs[ActiveJob]
         SQ[Solid Queue]
     end
@@ -288,7 +287,6 @@ Itens ainda em aberto — ver `docs/open-questions.md` (seção Stack web):
 
 - Serialização da API (`jsonapi-serializer` vs. `blueprinter`)
 - Auth web: Rails 8 Authentication Generator vs. Devise
-- Multi-tenancy: scopes manuais vs. gem `acts_as_tenant`
 - Real-time no MVP (Action Cable / Solid Cable) ou fase 2
 - Provider de e-mail (Postmark, SES, etc.)
 - Integração de boleto (gateway/banco)
