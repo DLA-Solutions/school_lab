@@ -4,15 +4,18 @@
 
 Plataforma de gestão escolar multi-escola (várias escolas em um único sistema),
 voltada a escolas particulares. Centraliza gestão acadêmica, financeira,
-documental e de relacionamento com as famílias, com foco em três diferenciais:
-estabilidade, arquivo digital completo (auditoria) e automação do financeiro.
+documental e de relacionamento com as famílias, com foco em quatro diferenciais:
+comunicação confiável (mensagens com imagem), estabilidade, arquivo digital
+completo (auditoria) e automação do financeiro.
 
 ## 2. Problema
 
 Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
 7 anos) por três motivos recorrentes:
 
-- **Instabilidade**: perda de dados críticos (ex.: notas somem ao lançar).
+- **Instabilidade**: perda de dados críticos (ex.: notas somem ao lançar) e
+  notificações incorretas (ex.: push de ausência com a criança presente na
+  escola — caso real com impacto jurídico e conflito família↔escola).
 - **Processos manuais**: boletos e contratos feitos fora do sistema.
 - **Arquivo físico**: a auditoria do Conselho/Secretaria de Educação exige todos
   os documentos; sem sistema que armazene tudo, a escola mantém arquivos físicos
@@ -30,8 +33,9 @@ Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
   higiene, saúde, humor, fotos e recados da criança; pais acompanham em tempo
   real — diferencial forte para escolas com berçário/infantil.
 - **Comunicação direta e segura**: pais falam com professor e escola dentro
-  da plataforma, com histórico, confirmação de leitura e privacidade por
-  família.
+  da plataforma, com histórico e privacidade por família. Diferencial:
+  envio de **imagens** nas mensagens (concorrentes atuais não oferecem).
+  Áudio **fora de escopo** no MVP.
 
 ## 4. Público-alvo
 
@@ -54,28 +58,43 @@ Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
 
 ## 6. Escopo do MVP (proposta)
 
-Objetivo do MVP: entregar valor imediato nas duas maiores dores (estabilidade
-acadêmica + financeiro) e habilitar a proposta de auditoria.
+Objetivo do MVP: entregar valor imediato no início do semestre letivo —
+prioridade validada com diretor parceiro (escola NSR): **comunicação** como
+foco principal, com estabilidade acadêmica e financeiro como pilares
+complementares.
 
 **Dentro do MVP**
 
 - Cadastro de escola e isolamento de dados entre escolas.
 - Identidade e papéis: backoffice, escola (admin), professor, pais.
+- Cadastro e login de usuários (todos os papéis).
 - Cadastro base: alunos, responsáveis, turmas, disciplinas.
-- Acadêmico: lançamento confiável de notas.
+- **Comunicação**: mensagens bidirecionais pai↔professor e pai↔escola, com
+  envio de imagens. Push notification para avisar novas mensagens e eventos
+  (paridade com sistema atual — já existe hoje).
+- Acadêmico: lançamento confiável de notas [fundamental/médio]; relatório de
+  boletim; frequência (chamada) com notificação automática de ausência —
+  **deve ser estável e correta** (falha gera conflito jurídico).
+- Professor: plano de aula e envio de mensagens.
+- Educação infantil: comunicação cobre a necessidade principal no MVP; rotina
+  diária estruturada (alimentação, sono, etc.) fica para fase posterior.
 - Financeiro: geração e acompanhamento de boletos; visão dos pais.
 - Arquivo digital: repositório de documentos por aluno/escola.
+- Web e app (ambos os canais no MVP).
 
 **Fora do MVP (fases seguintes)**
 
-- Contratos + assinatura digital.
-- Comunicação avançada (mensageria, comunicados em massa).
+- Contratos + assinatura digital (proposta em avaliação: assinatura avançada
+  própria com e-mail + IP + hash — validação jurídica pendente).
+- Comunicação avançada (comunicados em massa, confirmação de leitura).
 - Landing / página de vendas.
 - Relatórios avançados e BI.
-- Rotina diária da educação infantil (a definir — ver `docs/open-questions.md`).
+- Rotina diária estruturada da educação infantil.
+- Mensagens de áudio.
 
-> As escolhas de MVP são propostas iniciais; itens em aberto estão em
-> `docs/open-questions.md`.
+> Validação com stakeholder (jul/2026): diretor parceiro priorizou comunicação,
+> notas, boletim e plano de aula para o segundo semestre. Itens ainda em aberto
+> estão em `docs/open-questions.md`.
 
 ## 7. Fora do escopo desta fase de documentação
 

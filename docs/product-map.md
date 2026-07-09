@@ -33,6 +33,8 @@ fechada em `docs/web-stack.md`; stack do app mobile ainda é intenção.
 - `product-map.md` — este documento.
 - `web-stack.md` — stack da camada web (Rails + Hotwire + API).
 - `open-questions.md` — dúvidas em aberto.
+- `competitive-analysis.md` — levantamento informativo de funcionalidades de
+  concorrentes (não é âncora de decisão).
 - `prds/` — PRDs de domínio (fase posterior) + `template.md`.
 
 ## 3. Princípios de organização
@@ -47,6 +49,24 @@ fechada em `docs/web-stack.md`; stack do app mobile ainda é intenção.
 
 1. Fechar documentos âncora (vision, actors, product-map, web-stack,
    open-questions).
-2. Escrever PRDs de domínio (um por domínio, no template).
+2. Escrever PRDs de domínio (um por domínio, no template) — ordem sugerida
+   abaixo.
 3. Modelagem de dados a partir dos PRDs (DSL → DER).
 4. Implementação (`web/` com stack definida em `web-stack.md`).
+
+## 5. Domínios de requisitos (candidatos a PRD)
+
+Ordem sugerida para amadurecer — do fundacional ao operacional. Prioridades
+ajustadas após validação com stakeholder (jul/2026 — comunicação como foco
+do MVP):
+
+1. Visão do produto & escopo — o que é / não é o MVP.
+2. Multi-tenancy & escolas — `escola_id`, isolamento, onboarding de escola.
+3. Identidade & papéis — escola, professor, pais, backoffice; cadastro e login.
+4. Alunos & matrículas — cadastro, vínculo família–aluno–turma.
+5. **Comunicação** — mensagens bidirecionais com imagem, push notification.
+6. Acadêmico — turmas, disciplinas, notas, boletim, chamada (confiabilidade).
+7. Financeiro — boletos, cobranças, status de pagamento no app.
+8. Documentos & arquivo digital — repositório para auditoria.
+9. Contratos & assinatura digital — envio, assinatura, validade (fase 2).
+10. Landing / vendas — página comercial (depois).

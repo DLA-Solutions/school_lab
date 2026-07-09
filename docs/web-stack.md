@@ -19,6 +19,7 @@ PostgreSQL + S3.
 | Background jobs | Solid Queue (PostgreSQL) |
 | Cache | Solid Cache no MVP; Redis opcional na escala |
 | Storage | Active Storage → S3 |
+| Push notifications | Firebase Cloud Messaging (FCM) |
 | Locale | pt-BR |
 
 ## 2. Dois modos de entrega
@@ -87,7 +88,8 @@ não resolverem.
 | **Models** | ActiveRecord + validações | `Aluno`, `Nota`, `Boleto` |
 | **Services** | Plain Ruby objects | `Financeiro::GerarBoleto` |
 | **Forms** | ActiveModel form objects | Cadastro de aluno com responsável |
-| **Jobs** | ActiveJob + Solid Queue | Emissão de boleto, envio de e-mail |
+| **Jobs** | ActiveJob + Solid Queue | Emissão de boleto, envio de e-mail, push (FCM) |
+| **Notificações** | FCM + máquina de estado | Push confiável; eventos validados antes do envio |
 | **Uploads** | Active Storage + S3 | Arquivo digital / auditoria |
 | **Auditoria** | `paper_trail` ou `audited` | Histórico de notas e documentos |
 | **Paginação** | Pagy | Listagens de alunos, boletos |
@@ -100,7 +102,8 @@ não resolverem.
 | **Banco** | PostgreSQL 16+ | Dados, filas (Solid Queue) e cache (Solid Cache) |
 | **Background jobs** | Solid Queue | ActiveJob; sem Redis |
 | **Cache** | Solid Cache (MVP) → Redis (escala) | Redis opcional, só cache |
-| **Real-time** | Solid Cable (fase 2) | Turbo Streams |
+| **Real-time** | Solid Cable (fase 2) | Turbo Streams — não necessário no MVP |
+| **Push** | FCM via Solid Queue | Entrega assíncrona; não exige real-time |
 | **Storage** | Active Storage → S3 | Documentos / auditoria |
 | **Servidor** | Puma | Padrão Rails |
 
@@ -112,6 +115,25 @@ Rails App  →  PostgreSQL  →  S3
 
 Redis entra quando houver evidência de necessidade (dashboard lento, leituras
 repetidas). Quando entrar, é **só para cache** — jobs continuam no Solid Queue.
+
+### Push notifications (decisão fechada)
+
+Entrega de push via **FCM** (Firebase Cloud Messaging), enfileirada no
+**Solid Queue**. Na API, eventos passam por **máquina de estado** antes de
+disparar o push — garante que notificações (ex.: ausência na chamada) só
+saem quando o estado do evento está correto e confirmado.
+
+Não exige real-time (WebSocket/Solid Cable): a informação deve chegar em
+tempo hábil, não instantaneamente. Solid Cable fica para fase 2.
+
+```
+Evento (ex.: chamada registrada)
+  → Service valida estado
+  → Máquina de estado confirma transição
+  → Job enfileirado (Solid Queue)
+  → Worker envia via FCM
+  → App recebe push
+```
 
 ## 8. Testes
 
@@ -128,7 +150,7 @@ repetidas). Quando entrar, é **só para cache** — jobs continuam no Solid Que
 |------------|-----|------------|
 | Backoffice DLA | Sim | Cadastro de escolas, visão da plataforma |
 | Admin da escola | Sim | Turmas, alunos, financeiro, documentos |
-| Professor | Sim | Lançamento de notas |
+| Professor | Sim | Notas, plano de aula, chamada, mensagens |
 | Pais | Fase 2 | Prioridade no app mobile |
 
 ## 10. Convenções
@@ -166,6 +188,7 @@ flowchart TB
         PG[(PostgreSQL)]
         Redis[(Redis — opcional)]
         S3[(S3 — documentos)]
+        FCM[FCM — push]
     end
 
     Browser -->|Turbo / Stimulus| HTML
@@ -178,6 +201,7 @@ flowchart TB
 
     Jobs --> SQ
     SQ --> PG
+    Jobs --> FCM
 
     Models --> PG
     Models --> S3
@@ -287,6 +311,11 @@ Itens ainda em aberto — ver `docs/open-questions.md` (seção Stack web):
 
 - Serialização da API (`jsonapi-serializer` vs. `blueprinter`)
 - Auth web: Rails 8 Authentication Generator vs. Devise
-- Real-time no MVP (Action Cable / Solid Cable) ou fase 2
 - Provider de e-mail (Postmark, SES, etc.)
 - Integração de boleto (gateway/banco)
+- Firebase Authentication — necessário ou auth próprio (JWT) basta?
+
+**Decisões fechadas (jul/2026):**
+
+- Push notifications: FCM + Solid Queue + máquina de estado na API.
+- Real-time (Solid Cable / Turbo Streams): fase 2 — não necessário no MVP.

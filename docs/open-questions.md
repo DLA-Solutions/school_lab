@@ -3,10 +3,31 @@
 Backlog vivo de decisões que ainda não estão fechadas. Cada item deve virar
 decisão registrada (em vision/actors) ou PRD.
 
+## Decisões recentes (validação stakeholder — jul/2026)
+
+Registradas a partir de conversa com diretor parceiro (escola NSR). Detalhes
+em `docs/vision.md` e `docs/actors-and-surfaces.md`.
+
+- [x] **Comunicação entra no MVP** — prioridade #1 para o segundo semestre.
+      Mensagens bidirecionais pai↔professor e pai↔escola, com envio de imagens.
+      Áudio fora de escopo.
+- [x] **Push notification** — já existe no sistema atual; manter paridade no
+      MVP. Entrega via FCM + fila (Solid Queue) + máquina de estado na API.
+- [x] **Real-time não é necessário** — informação deve chegar em tempo hábil,
+      não em tempo real. Solid Cable / Turbo Streams ficam para fase 2.
+- [x] **Web e app no MVP** — ambos os canais desde o início.
+- [x] **Cadastro e login** — todos os papéis precisam de registro e autenticação.
+- [x] **Educação infantil no MVP** — comunicação cobre a necessidade principal;
+      rotina diária estruturada fica para fase posterior.
+- [x] **Frequência (chamada) no MVP** — já existe no legado; notificação
+      automática de ausência é crítica e deve ser confiável (falha gera
+      conflito jurídico).
+
 ## MVP e escopo
 
-- [ ] Confirmar escopo do MVP: acadêmico (notas) + financeiro (boleto) +
-      arquivo digital. Contratos/assinatura entram em fase 2?
+- [ ] Confirmar escopo completo do MVP: comunicação + acadêmico (notas,
+      boletim, chamada) + financeiro (boleto) + arquivo digital. O que fica
+      de fora neste primeiro corte?
 - [ ] Backoffice no MVP: só cadastro de escolas, ou também billing da plataforma?
 - [ ] Pais no MVP: só app, ou web também?
 - [ ] Professor no MVP: web e app juntos, ou web primeiro?
@@ -26,17 +47,19 @@ decisão registrada (em vision/actors) ou PRD.
 ## Contratos e assinatura (fase 2)
 
 - [ ] Assinatura própria vs. terceiros (ex.: DocuSign com API)?
+      Proposta em avaliação: assinatura avançada própria com e-mail + IP +
+      hash — validação jurídica pendente (Lei 14.063/2020).
 - [ ] Requisitos legais de validade jurídica no Brasil?
 
 ## Acadêmico
 
-- [ ] Além de notas, o professor precisa de frequência (chamada) no MVP?
 - [ ] Modelo de avaliação (bimestre, trimestre, conceitos x notas)?
+- [ ] Formato do relatório de boletim — template por escola ou padrão?
+- [ ] Regras de confiabilidade da chamada: validação antes de disparar push
+      de ausência; retry/idempotência; auditoria de notificações enviadas.
 
-## Educação infantil / Rotina diária
+## Educação infantil / Rotina diária (fase 2)
 
-- [ ] Entra no MVP ou fase 2? (ainda indefinido — potencial diferencial
-      competitivo para escolas com berçário/infantil, mas aumenta escopo)
 - [ ] Campos do registro: alimentação, sono, higiene/fralda, saúde, humor,
       fotos, recados (confirmado como conjunto desejado — falta detalhar
       granularidade de cada campo, ex.: alimentação por refeição ou geral)
@@ -47,19 +70,18 @@ decisão registrada (em vision/actors) ou PRD.
       refeição)?
 - [ ] Notificação aos pais: em tempo real a cada registro, ou resumo diário
       consolidado?
-- [ ] Fotos do dia: entram nesta feature ou dependem do módulo de arquivo
-      digital (`docs/vision.md` — arquivo/auditoria)?
+- [ ] Fotos do dia: entram nesta feature ou via mensagens com imagem
+      (módulo de comunicação)?
 - [ ] Retenção/histórico: por quanto tempo o histórico de rotina fica
       disponível para os pais?
 
-## Comunicação (fase 2)
+## Comunicação
 
-- [ ] Entra no MVP ou fica fase 2? (ainda indefinido)
-- [ ] Tipos: chat 1:1 pai↔professor, chat 1:1 pai↔escola/secretaria,
-      comunicados em massa (com confirmação de leitura), comentários
-      contextuais em registros de rotina/notas — todos entram juntos ou
-      por etapas?
-- [ ] Comunicado em massa: por escola toda, por turma, ou ambos?
+Decisão de escopo fechada (entra no MVP). Pendências de detalhamento:
+
+- [ ] Tipos no MVP: chat 1:1 pai↔professor e pai↔escola — comunicados em
+      massa e comentários contextuais ficam para fase 2?
+- [ ] Comunicado em massa (fase 2): por escola toda, por turma, ou ambos?
 - [ ] Confirmação de leitura é obrigatória em comunicados? Vira registro
       auditável (`docs/vision.md` — arquivo digital)?
 - [ ] Expectativa de horário de resposta do professor — como evitar
@@ -68,9 +90,10 @@ decisão registrada (em vision/actors) ou PRD.
 - [ ] Escalonamento: se professor não responde em X tempo, mensagem sobe
       para coordenação/escola?
 - [ ] Notificações push: imediatas para tudo, ou só para urgente
-      (ex.: saúde) com resumo diário para o resto?
+      (ex.: saúde, ausência) com resumo diário para o resto?
 - [ ] Isolamento: garantir que pai nunca veja conversa/comunicado de outra
       família — enforcement via policy, igual isolamento entre escolas?
+- [ ] Limite de tamanho/resolução de imagens nas mensagens?
 
 ## LGPD / Privacidade
 
@@ -101,7 +124,7 @@ Decisões fechadas em `docs/web-stack.md`. Pendências:
 
 - [ ] Serialização da API: `jsonapi-serializer` vs. `blueprinter`?
 - [ ] Auth web: Rails 8 Authentication Generator vs. Devise?
-- [ ] Real-time no MVP (Solid Cable / Turbo Streams) ou fase 2?
 - [ ] Provider de e-mail (Postmark, SES, etc.)?
 - [ ] Integração de boleto (gateway/banco)?
 - [ ] Quando adicionar Redis (só cache) — critério de escala?
+- [ ] Firebase Authentication — necessário ou auth próprio (JWT) basta?

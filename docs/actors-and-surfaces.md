@@ -21,7 +21,7 @@
 |--------------|-------------|-------------|--------------------------------------|
 | Backoffice   | Sim         | Não (fase 2)| Operação é primariamente desktop     |
 | Escola       | Sim         | Sim         | Admin no web; consultas no app       |
-| Professor    | Sim         | Sim         | Notas no web; consulta/rápido no app |
+| Professor    | Sim         | Sim         | Notas e plano de aula no web; mensagens no app |
 | Pais         | Sim (fase 2)| Sim         | Boleto e documentos priorizados no app |
 
 > Proposta: no MVP, pais entram primeiro pelo app; web dos pais em fase 2.
@@ -41,32 +41,37 @@
 - Gerir turmas, disciplinas, matrículas.
 - Acompanhar financeiro (boletos, inadimplência).
 - Gerir arquivo digital de documentos.
+- Enviar push notifications para usuários da escola (paridade com sistema
+  atual).
 - (Fase 2) Enviar comunicados em massa (toda a escola ou por turma) com
   confirmação de leitura; moderar/auditar conversas em caso de conflito.
 
 ### Professor
 
 - Lançar e consultar notas (com persistência confiável). [ensino fundamental/médio]
-- Registrar rotina diária da criança — alimentação, sono, higiene, saúde,
-  humor, fotos e recados. [educação infantil]
+- Registrar frequência (chamada) com notificação automática de ausência —
+  deve ser confiável (falha gera conflito jurídico). [todos os segmentos]
+- Criar e consultar plano de aula.
+- Enviar e receber mensagens com pais (texto + imagem). [todos os segmentos]
 - Consultar turmas, alunos e calendário.
-- (Fase 2) frequência.
-- (Fase 2) Chat 1:1 com pais da turma; comentar em registros de rotina/notas.
+- (Fase 2) Registrar rotina diária estruturada — alimentação, sono, higiene,
+  saúde, humor. [educação infantil]
 
 ### Pais
 
-- Consultar notas e situação acadêmica do filho. [ensino fundamental/médio]
-- Acompanhar rotina diária do filho — alimentação, sono, higiene, saúde,
-  humor, fotos, recados do professor. [educação infantil]
+- Consultar notas, boletim e situação acadêmica do filho.
+  [ensino fundamental/médio]
+- Enviar e receber mensagens com professor e escola (texto + imagem).
+  [todos os segmentos — prioridade no infantil]
+- Receber push notifications (mensagens, ausência na chamada, avisos).
 - Ver e pagar boletos.
 - Acessar documentos do aluno.
-- (Fase 2) Chat 1:1 com professor e com secretaria/escola; receber
-  comunicados em massa com confirmação de leitura; comentar em registros de
-  rotina/notas.
+- (Fase 2) Receber comunicados em massa com confirmação de leitura;
+  acompanhar rotina diária estruturada do filho. [educação infantil]
 
-> Nota: capacidades de "Professor" e "Pais" variam conforme o segmento da
-> turma (educação infantil x fundamental/médio). Ver pergunta em
-> `docs/open-questions.md` sobre como modelar essa diferenciação.
+> Nota: no MVP, educação infantil prioriza **comunicação** (mensagens com
+> imagem) sobre rotina diária estruturada. Capacidades variam conforme o
+> segmento da turma — ver `docs/open-questions.md`.
 
 ## 5. Stack por canal
 
