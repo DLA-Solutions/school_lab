@@ -68,9 +68,12 @@ acadêmica + financeiro) e habilitar a proposta de auditoria.
 
 ## 7. Fora do escopo desta fase de documentação
 
-- Definição de stack (web ≈ Rails, app ≈ React Native são apenas intenções).
+- Stack do app mobile (React Native é intenção, não decisão).
 - Modelagem de banco, contratos de API e eventos.
 - Ferramentas de apoio (ex.: Mintlify, Figma MCP) — decisão posterior.
+
+> Stack da camada web fechada em `docs/web-stack.md` (Rails 8 + Hotwire +
+> Tailwind + API REST).
 
 ## 8. Métricas de sucesso (rascunho)
 

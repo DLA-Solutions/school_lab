@@ -10,8 +10,8 @@ school_lab/
 ```
 
 Monorepo por decisão de produto/organização: contexto único facilita o trabalho
-com agentes de IA e mantém web, app e docs coesos. A escolha de stack de cada
-pasta é intenção, não requisito.
+com agentes de IA e mantém web, app e docs coesos. Stack da camada web está
+fechada em `docs/web-stack.md`; stack do app mobile ainda é intenção.
 
 ## 2. Responsabilidades
 
@@ -31,6 +31,7 @@ pasta é intenção, não requisito.
 - `vision.md` — visão e MVP.
 - `actors-and-surfaces.md` — atores × canais.
 - `product-map.md` — este documento.
+- `web-stack.md` — stack da camada web (Rails + Hotwire + API).
 - `open-questions.md` — dúvidas em aberto.
 - `prds/` — PRDs de domínio (fase posterior) + `template.md`.
 
@@ -39,11 +40,12 @@ pasta é intenção, não requisito.
 - **Uma API, múltiplos canais**: regra de negócio vive na camada de API.
 - **`escola_id` transversal**: multi-tenancy atravessa web e app.
 - **Docs guiam a implementação**: âncoras fechadas → PRDs → (depois) modelagem
-  (DSL → DER) → stack.
+  (DSL → DER) → implementação.
 
 ## 4. Sequência de trabalho
 
-1. Fechar documentos âncora (vision, actors, product-map, open-questions).
+1. Fechar documentos âncora (vision, actors, product-map, web-stack,
+   open-questions).
 2. Escrever PRDs de domínio (um por domínio, no template).
 3. Modelagem de dados a partir dos PRDs (DSL → DER).
-4. Definição de stack e implementação.
+4. Implementação (`web/` com stack definida em `web-stack.md`).

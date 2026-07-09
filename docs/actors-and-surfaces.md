@@ -55,8 +55,22 @@
 - Acessar documentos do aluno.
 - (Fase 2) comunicação com escola/professor.
 
-## 5. Notas de canal (fora do escopo de requisitos)
+## 5. Stack por canal
 
-- web: provavelmente Rails (web + API) — intenção, não decisão.
-- app: provavelmente React Native — intenção, não decisão.
-- A API é o ponto único de regras de negócio para ambos os canais.
+### web (decisão fechada)
+
+Rails 8 + Hotwire (Turbo + Stimulus) + Tailwind para superfícies HTML;
+API REST JSON versionada (`/api/v1`) para o app mobile. Detalhes em
+`docs/web-stack.md`.
+
+- **Web (browser):** sessão + server-rendered HTML.
+- **API (app mobile):** JWT + JSON.
+- Regra de negócio compartilhada via service objects.
+
+### app (intenção)
+
+React Native — decisão ainda não fechada.
+
+### Princípio
+
+A API é o ponto único de regras de negócio para ambos os canais.
