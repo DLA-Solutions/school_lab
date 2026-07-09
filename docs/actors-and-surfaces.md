@@ -45,6 +45,9 @@
   atual).
 - (Fase 2) Enviar comunicados em massa (toda a escola ou por turma) com
   confirmação de leitura; moderar/auditar conversas em caso de conflito.
+- (Fase 2) Gerir **Livro Ata** digital — gerar atas formais, coletar
+  assinaturas digitais, buscar no acervo (busca semântica), exportar/imprimir
+  para arquivo físico quando necessário.
 
 ### Professor
 
@@ -54,6 +57,7 @@
 - Criar e consultar plano de aula.
 - Enviar e receber mensagens com pais (texto + imagem). [todos os segmentos]
 - Consultar turmas, alunos e calendário.
+- (Fase 2) Participar de atas (ex.: Conselho de Classe) com assinatura digital.
 - (Fase 2) Registrar rotina diária estruturada — alimentação, sono, higiene,
   saúde, humor. [educação infantil]
 
@@ -66,6 +70,7 @@
 - Receber push notifications (mensagens, ausência na chamada, avisos).
 - Ver e pagar boletos.
 - Acessar documentos do aluno.
+- (Fase 2) Assinar atas digitalmente (reuniões com família, eventos).
 - (Fase 2) Receber comunicados em massa com confirmação de leitura;
   acompanhar rotina diária estruturada do filho. [educação infantil]
 

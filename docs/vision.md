@@ -19,15 +19,26 @@ Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
 - **Processos manuais**: boletos e contratos feitos fora do sistema.
 - **Arquivo físico**: a auditoria do Conselho/Secretaria de Educação exige todos
   os documentos; sem sistema que armazene tudo, a escola mantém arquivos físicos
-  ocupando salas inteiras.
+  ocupando salas inteiras — incluindo o **Livro Ata** (livro de registro de
+  atas), alvo frequente de auditoria do Conselho de Educação.
+- **Atas e assinaturas manuais**: reuniões com famílias, Conselho de Classe e
+  eventos exigem atas assinadas; hoje o processo leva dias (ex.: ~1 semana no
+  Conselho de Classe) e passa por gravação de áudio, transcrição manual e
+  impressão para o livro físico.
 
 ## 3. Proposta de valor
 
 - **Estável e confiável**: dados críticos (notas, financeiro) nunca se perdem.
 - **Arquivo digital completo**: repositório único pronto para auditoria,
   eliminando o arquivo físico.
+- **Livro Ata digital**: atas formais (matrícula, Conselho de Classe,
+  resultados finais, reunião com pais, eventos) com assinatura digital e
+  busca semântica — o Conselho de Educação audita esses livros com frequência;
+  versão digital é permitida desde que tenha assinatura digital válida.
 - **Financeiro automatizado**: geração e acompanhamento de boletos no app.
-- **Contratos digitais**: envio e assinatura sem papel.
+- **Contratos e atas com assinatura digital**: envio e coleta de assinaturas
+  sem papel (padrão equivalente a DocuSign/Authentique — validação jurídica
+  pendente).
 - **Tudo em um só lugar**: acadêmico, financeiro, documental e comunicação.
 - **Rotina da educação infantil**: professor registra alimentação, sono,
   higiene, saúde, humor, fotos e recados da criança; pais acompanham em tempo
@@ -84,8 +95,16 @@ complementares.
 
 **Fora do MVP (fases seguintes)**
 
-- Contratos + assinatura digital (proposta em avaliação: assinatura avançada
-  própria com e-mail + IP + hash — validação jurídica pendente).
+- **Livro Ata & atas formais** (prioridade alta na fase 2 — forte entusiasmo
+  do stakeholder): geração de atas por tipo, coleta de assinaturas digitais
+  (rabisco + e-mail + IP + hash), busca semântica no acervo, impressão
+  opcional para arquivo físico. Tipos: matrícula, Conselho de Classe,
+  resultados finais, reunião com pais, eventos ocorridos na escola.
+  Geração assistida por IA a partir de transcrição de reunião (fase posterior
+  dentro do módulo).
+- Contratos + assinatura digital (compartilha infra de assinatura com Livro
+  Ata; proposta em avaliação: assinatura avançada própria — validação
+  jurídica pendente).
 - Comunicação avançada (comunicados em massa, confirmação de leitura).
 - Landing / página de vendas.
 - Relatórios avançados e BI.
@@ -93,8 +112,9 @@ complementares.
 - Mensagens de áudio.
 
 > Validação com stakeholder (jul/2026): diretor parceiro priorizou comunicação,
-> notas, boletim e plano de aula para o segundo semestre. Itens ainda em aberto
-> estão em `docs/open-questions.md`.
+> notas, boletim e plano de aula para o segundo semestre; demonstrou forte
+> interesse em Livro Ata digital com assinatura e busca semântica para fase 2.
+> Itens ainda em aberto estão em `docs/open-questions.md`.
 
 ## 7. Fora do escopo desta fase de documentação
 

@@ -22,6 +22,9 @@ em `docs/vision.md` e `docs/actors-and-surfaces.md`.
 - [x] **Frequência (chamada) no MVP** — já existe no legado; notificação
       automática de ausência é crítica e deve ser confiável (falha gera
       conflito jurídico).
+- [x] **Livro Ata pode ser 100% digital** — o livro físico não é obrigatório;
+      o requisito legal é **assinatura digital** válida. Conselho de Educação
+      audita esses registros com frequência.
 
 ## MVP e escopo
 
@@ -44,12 +47,35 @@ em `docs/vision.md` e `docs/actors-and-surfaces.md`.
 - [ ] Organização: por aluno, por turma, por ano letivo?
 - [ ] Retenção e versionamento de documentos?
 
-## Contratos e assinatura (fase 2)
+## Contratos, assinatura e Livro Ata (fase 2 — prioridade alta)
 
-- [ ] Assinatura própria vs. terceiros (ex.: DocuSign com API)?
-      Proposta em avaliação: assinatura avançada própria com e-mail + IP +
-      hash — validação jurídica pendente (Lei 14.063/2020).
-- [ ] Requisitos legais de validade jurídica no Brasil?
+Stakeholder validou forte interesse. Livro Ata compartilha infra de assinatura
+digital com contratos.
+
+- [ ] Assinatura própria vs. terceiros (DocuSign, Authentique, Clicksign)?
+      Proposta em avaliação: assinatura avançada própria com rabisco (campo
+      desenhado) + e-mail + IP + hash — precisa equivaler ao padrão aceito
+      pelo cartório (DocuSign/Authentique). Validação jurídica pendente
+      (Lei 14.063/2020).
+- [ ] Requisitos legais de validade jurídica no Brasil — confirmar com
+      advogado especializado antes de decidir própria vs. terceiro.
+- [ ] Tipos de ata no escopo inicial: matrícula, Conselho de Classe,
+      resultados finais, reunião com pais, eventos ocorridos na escola
+      (incidentes, quedas, etc.) — todos entram juntos ou por etapas?
+- [ ] Fluxo de geração da ata: template manual, formulário guiado, ou IA a
+      partir de transcrição de áudio/reunião (workflow atual do stakeholder:
+      gravação → transcrição → Claude com prompt → revisão)?
+- [ ] Integração com transcrição de reunião (Google Meet / ferramenta MCP) —
+      fase 2 ou posterior dentro do módulo?
+- [ ] Busca semântica no acervo de atas — tecnologia (pgvector, serviço
+      externo) e escopo (só atas ou todo arquivo digital)?
+- [ ] Impressão formatada para Livro Ata físico — ainda necessária mesmo com
+      versão digital válida, ou só para escolas que preferem arquivo híbrido?
+- [ ] Migração de atas históricas: escolas antigas têm volume grande no físico;
+      escolas com até ~5 anos teriam pouco backlog — oferecer serviço de
+      digitalização ou só "nascer digital"?
+- [ ] Conselho de Classe: quantos signatários por ata? Fluxo de coleta
+      paralela vs. sequencial para reduzir o prazo atual (~1 semana)?
 
 ## Acadêmico
 

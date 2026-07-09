@@ -68,5 +68,6 @@ do MVP):
 6. Acadêmico — turmas, disciplinas, notas, boletim, chamada (confiabilidade).
 7. Financeiro — boletos, cobranças, status de pagamento no app.
 8. Documentos & arquivo digital — repositório para auditoria.
-9. Contratos & assinatura digital — envio, assinatura, validade (fase 2).
+9. **Livro Ata, atas formais & assinatura digital** — geração, coleta de
+   assinaturas, busca semântica (fase 2, prioridade alta).
 10. Landing / vendas — página comercial (depois).

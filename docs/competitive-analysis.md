@@ -39,8 +39,8 @@ Recursos comuns entre Sponte, TOTVS Educacional e Gennera:
 - Portal do aluno/professor com lançamento de notas e faltas pelo app.
 
 > Nenhum destaque incomum aqui — é o núcleo esperado de qualquer ERP escolar.
-> Frequência (chamada) aparece em 100% dos concorrentes analisados; hoje é
-> item em aberto no MVP do School Lab (`docs/open-questions.md`).
+> Frequência (chamada) aparece em 100% dos concorrentes analisados; entrou
+> no MVP do School Lab após validação com stakeholder (`docs/vision.md`).
 
 ### 2.2 Financeiro
 
@@ -84,7 +84,35 @@ Diferenciais de ponta encontrados:
 > diferencial de posicionamento real para o School Lab, e não apenas uma
 > funcionalidade de commodity.
 
-### 2.4 Contratos e assinatura digital
+> Nenhum concorrente pesquisado destaca "arquivo pronto para auditoria do
+> Conselho/Secretaria" como proposta de valor central — a maioria trata isso
+> como funcionalidade de secretaria genérica. O **Livro Ata** (registro formal
+> de atas) é exigência legal que o Conselho de Educação audita com frequência;
+> nenhum player pesquisado oferece Livro Ata digital com busca semântica —
+> oportunidade de diferencial forte na fase 2 do School Lab (validado com
+> stakeholder em jul/2026).
+
+### 2.4 Livro Ata e atas formais
+
+Domínio pouco coberto pelos ERPs pesquisados — tratado como processo manual
+(secretaria) ou fora do sistema:
+
+- Escolas mantêm **Livro Ata** físico obrigatório (também comum em
+  condomínios e outras entidades).
+- Tipos recorrentes: ata de matrícula, Conselho de Classe, resultados finais,
+  reunião com pais, eventos/incidentes na escola.
+- Stakeholder (escola NSR): versão **100% digital é permitida** — livro físico
+  não é obrigatório, desde que haja **assinatura digital** válida.
+- Dor operacional: Conselho de Classe pode levar ~1 semana para fechar
+  assinaturas; workflow atual envolve gravação de áudio, transcrição e IA
+  (Claude) para gerar rascunho da ata.
+- Diferencial potencial: **busca semântica** no acervo de atas — stakeholder
+  considera que "uma galera de escola choraria de ver".
+
+> Não encontrado em Sponte, TOTVS, Gennera, Agenda Edu ou ClassApp como
+> produto nativo. Pode ser diferencial de posicionamento real, não commodity.
+
+### 2.5 Contratos e assinatura digital
 
 Não é feature nativa de a maioria dos ERPs — o mercado de assinatura
 eletrônica é um ecossistema paralelo (Clicksign, D4Sign, DocuSign) que os
@@ -105,7 +133,7 @@ ERPs integram ou replicam:
 > ERPs maiores tendem a embutir assinatura própria (retém o cliente dentro
 > da plataforma); ERPs menores/mais novos integram via API com Clicksign/D4Sign.
 
-### 2.5 Comunicação (chat, comunicados, confirmação de leitura)
+### 2.6 Comunicação (chat, comunicados, confirmação de leitura)
 
 Domínio dominado por players especializados em comunicação (Agenda Edu,
 ClassApp, Olá Pais), que os ERPs de gestão frequentemente integram via API em
@@ -138,7 +166,7 @@ vez de construir do zero:
 > lacuna do mercado, não só do School Lab (pergunta ainda em aberto no
 > `open-questions.md`).
 
-### 2.6 Rotina diária (educação infantil / berçário)
+### 2.7 Rotina diária (educação infantil / berçário)
 
 Domínio onde há dois grupos de concorrentes: apps brasileiros
 generalistas de comunicação que adicionaram rotina (Olá Pais, ClassApp,
@@ -179,7 +207,7 @@ Funcionalidades recorrentes:
 >   (documentos formais). Sugere que, no School Lab, "fotos do dia" e
 >   "arquivo digital" podem ser modelados como coisas distintas.
 
-### 2.7 Multi-escola / backoffice de plataforma
+### 2.8 Multi-escola / backoffice de plataforma
 
 Nenhum dos concorrentes pesquisados é claramente **multi-tenant desde a
 concepção** com um backoffice de operador de plataforma administrando várias
@@ -195,30 +223,34 @@ para copiar de um concorrente específico.
 | Funcionalidade | Sponte | TOTVS Educacional | Gennera | Agenda Edu / ClassApp | Brightwheel (ref. internacional) | School Lab (proposta) |
 |---|---|---|---|---|---|---|
 | Notas / diário de classe | Sim | Sim | Sim | Não (integra via API) | Não (foco creche) | Sim (MVP) |
-| Frequência/chamada | Sim | Sim | Sim | Parcial | Sim (check-in/out) | Em aberto |
+| Frequência/chamada | Sim | Sim | Sim | Parcial | Sim (check-in/out) | Sim (MVP) |
 | Boleto/PIX automatizado | Sim | Sim | Sim | Parcial (via integração) | Sim (billing) | Sim (MVP) |
 | Nota fiscal eletrônica | Sim | Sim | Sim | Não | N/A (EUA) | Não definido |
 | Arquivo digital / auditoria | Parcial (secretaria) | Parcial (secretaria) | Parcial | Não | Não | Sim (MVP) — diferencial de posicionamento |
-| Contratos + assinatura digital | Sim (própria) | Não claro | Não claro | Sim (ClassApp) | Não | Fase 2 (a decidir própria x terceiro) |
+| Livro Ata digital + busca semântica | Não | Não | Não | Não | Não | Fase 2 — prioridade alta (stakeholder) |
+| Contratos + assinatura digital | Sim (própria) | Não claro | Não claro | Sim (ClassApp) | Não | Fase 2 (compartilha infra com Livro Ata) |
 | Comunicados em massa + confirmação de leitura | Parcial (app) | Parcial (app) | Não destacado | Sim (núcleo do produto) | Parcial (mensagens) | Fase 2 |
-| Chat 1:1 pai↔professor/escola | Não (via app parceiro) | Não (via app) | Não | Sim | Sim (mensagens) | Fase 2 |
-| Rotina diária (creche/infantil) | Não | Não | Não | Sim (parcial) | Sim (núcleo do produto) | MVP em avaliação — diferencial forte se entrar |
+| Chat 1:1 pai↔professor/escola (com imagem) | Não (via app parceiro) | Não (via app) | Não | Parcial (sem imagem destacada) | Sim (mensagens) | Sim (MVP) |
+| Rotina diária estruturada (creche/infantil) | Não | Não | Não | Sim (parcial) | Sim (núcleo do produto) | Fase 2 (comunicação cobre infantil no MVP) |
 | Multi-tenant plataforma p/ várias escolas-cliente | Não (instância por escola) | Não | Não | Sim (é a própria natureza do produto) | Sim (é a própria natureza do produto) | Sim (princípio de arquitetura) |
 
 ## 4. O que isso muda nas perguntas abertas
 
-Acrescentar/atualizar em `docs/open-questions.md` com base neste levantamento
-(não alterado automaticamente — decisão do time):
+Itens incorporados em `docs/open-questions.md` e `docs/vision.md` após
+validação com stakeholder (jul/2026). Demais achados do levantamento:
 
 - **Arquivo digital como diferencial**: nenhum concorrente vende isso como
   proposta central; fortalece a tese do `vision.md`, mas também significa que
   não há um "padrão de mercado" pronto para copiar — a modelagem de
   documentos exigidos pela Secretaria/Conselho precisa ser levantada
   diretamente com escolas, não inferida de concorrentes.
-- **Assinatura de contratos**: mercado valida as duas rotas (própria vs.
-  Clicksign/D4Sign); ambas têm validade jurídica reconhecida pelo STJ sem
-  ICP-Brasil, desde que haja trilha de auditoria. Reduz o risco jurídico de
-  optar por integração via API em vez de construir assinatura própria.
+- **Livro Ata digital**: lacuna de mercado confirmada; stakeholder validou
+  que versão digital é permitida com assinatura digital; busca semântica é
+  diferencial não oferecido por concorrentes pesquisados.
+- **Assinatura de contratos/atas**: mercado valida as duas rotas (própria vs.
+  Clicksign/D4Sign/DocuSign); ambas têm validade jurídica reconhecida pelo STJ
+  sem ICP-Brasil, desde que haja trilha de auditoria. Stakeholder exige
+  equivalência ao padrão DocuSign/Authentique aceito pelo cartório.
 - **Comunicação — horário de atendimento e escalonamento**: "silenciar fora
   do expediente" já é prática comum (Agenda Edu, Olá Pais); "escalonamento
   automático se o professor não responde" não foi encontrado em nenhum
