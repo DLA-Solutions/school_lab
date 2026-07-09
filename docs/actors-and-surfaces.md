@@ -41,19 +41,32 @@
 - Gerir turmas, disciplinas, matrículas.
 - Acompanhar financeiro (boletos, inadimplência).
 - Gerir arquivo digital de documentos.
+- (Fase 2) Enviar comunicados em massa (toda a escola ou por turma) com
+  confirmação de leitura; moderar/auditar conversas em caso de conflito.
 
 ### Professor
 
-- Lançar e consultar notas (com persistência confiável).
+- Lançar e consultar notas (com persistência confiável). [ensino fundamental/médio]
+- Registrar rotina diária da criança — alimentação, sono, higiene, saúde,
+  humor, fotos e recados. [educação infantil]
 - Consultar turmas, alunos e calendário.
-- (Fase 2) frequência, diário, comunicados.
+- (Fase 2) frequência.
+- (Fase 2) Chat 1:1 com pais da turma; comentar em registros de rotina/notas.
 
 ### Pais
 
-- Consultar notas e situação acadêmica do filho.
+- Consultar notas e situação acadêmica do filho. [ensino fundamental/médio]
+- Acompanhar rotina diária do filho — alimentação, sono, higiene, saúde,
+  humor, fotos, recados do professor. [educação infantil]
 - Ver e pagar boletos.
 - Acessar documentos do aluno.
-- (Fase 2) comunicação com escola/professor.
+- (Fase 2) Chat 1:1 com professor e com secretaria/escola; receber
+  comunicados em massa com confirmação de leitura; comentar em registros de
+  rotina/notas.
+
+> Nota: capacidades de "Professor" e "Pais" variam conforme o segmento da
+> turma (educação infantil x fundamental/médio). Ver pergunta em
+> `docs/open-questions.md` sobre como modelar essa diferenciação.
 
 ## 5. Stack por canal
 

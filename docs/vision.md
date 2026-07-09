@@ -26,6 +26,12 @@ Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
 - **Financeiro automatizado**: geração e acompanhamento de boletos no app.
 - **Contratos digitais**: envio e assinatura sem papel.
 - **Tudo em um só lugar**: acadêmico, financeiro, documental e comunicação.
+- **Rotina da educação infantil**: professor registra alimentação, sono,
+  higiene, saúde, humor, fotos e recados da criança; pais acompanham em tempo
+  real — diferencial forte para escolas com berçário/infantil.
+- **Comunicação direta e segura**: pais falam com professor e escola dentro
+  da plataforma, com histórico, confirmação de leitura e privacidade por
+  família.
 
 ## 4. Público-alvo
 
@@ -41,6 +47,10 @@ Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
 - **Digital-first**: reduzir/eliminar papel (boletos, contratos, arquivo).
 - **Multi-canal**: web e app compartilham as mesmas regras de negócio.
 - **Escalável**: modelagem pensada para muitas escolas desde o início.
+- **Privacidade por padrão (LGPD)**: dados de crianças exigem cuidado
+  redobrado — consentimento do responsável, isolamento por família,
+  minimização de acesso e retenção definida. Vale para rotina diária,
+  comunicação e arquivo digital.
 
 ## 6. Escopo do MVP (proposta)
 
@@ -62,6 +72,7 @@ acadêmica + financeiro) e habilitar a proposta de auditoria.
 - Comunicação avançada (mensageria, comunicados em massa).
 - Landing / página de vendas.
 - Relatórios avançados e BI.
+- Rotina diária da educação infantil (a definir — ver `docs/open-questions.md`).
 
 > As escolhas de MVP são propostas iniciais; itens em aberto estão em
 > `docs/open-questions.md`.
