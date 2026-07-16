@@ -1,0 +1,16 @@
+---
+name: write-prd
+description: Author a domain PRD for School Lab following docs/prds/template.md and the anchor docs. Use when the user asks to write, draft, or update a PRD or domain requirements document.
+---
+
+# Write a Domain PRD
+
+## Steps
+1. Read `docs/prds/template.md` and mirror its section order exactly.
+2. Read the anchor docs (`vision.md`, `actors-and-surfaces.md`, `product-map.md`, `web-stack.md`) to ground scope, actors, and stack.
+3. Check `docs/open-questions.md` — list unresolved items in the PRD's "Fora do Escopo" or flag them; do not invent answers.
+4. Write the PRD in `docs/prds/` named `NNN-<domain>.md` using the next number in the suggested order (product-map §5).
+5. Use `pt-BR` domain terms. Keep API contracts consistent with REST `/api/v1` + JWT.
+
+## Sections (from template)
+Objetivo, Contexto, Regras de Negócio (RN-NNN), Casos de Uso, API, Erros, Banco, Eventos, Permissões, Critérios de Aceitação, Fora do Escopo.
