@@ -1,100 +1,100 @@
-# Atores e Superfícies
+# Actors and Surfaces
 
-## 1. Atores
+## 1. Actors
 
-- **Backoffice (plataforma / DLA)**: opera a plataforma; cadastra e administra
-  escolas; gestão de assinatura/comercial.
-- **Escola (administração)**: administra a própria escola — usuários, turmas,
-  alunos, financeiro, documentos.
-- **Professor**: lançamento de notas e atividades acadêmicas da sua turma/disciplina.
-- **Pais / responsáveis**: acompanham vida acadêmica, financeira e documental
-  do(s) filho(s).
+- **Backoffice (platform / DLA)**: operates the platform; registers and
+  administers schools; subscription/commercial management.
+- **School (administration)**: administers its own school — users, classes,
+  students, billing, documents.
+- **Teacher**: posts grades and academic activities for their class/subject.
+- **Parents / guardians**: follow the academic, financial, and document life of
+  their child(ren).
 
-## 2. Canais
+## 2. Channels
 
-- **web**: superfícies web + API (serve web e app).
-- **app**: aplicativos mobile.
+- **web**: web surfaces + API (serves both web and app).
+- **app**: mobile apps.
 
-## 3. Matriz papel × canal (MVP)
+## 3. Role × channel matrix (MVP)
 
-| Papel        | web         | app         | Observação                           |
+| Role         | web         | app         | Note                                 |
 |--------------|-------------|-------------|--------------------------------------|
-| Backoffice   | Sim         | Não (fase 2)| Operação é primariamente desktop     |
-| Escola       | Sim         | Sim         | Admin no web; consultas no app       |
-| Professor    | Sim         | Sim         | Notas e plano de aula no web; mensagens no app |
-| Pais         | Sim (fase 2)| Sim         | Boleto e documentos priorizados no app |
+| Backoffice   | Yes         | No (phase 2)| Operation is primarily desktop       |
+| School       | Yes         | Yes         | Admin on web; queries on app         |
+| Teacher      | Yes         | Yes         | Grades and lesson plans on web; messages on app |
+| Parents      | Yes (phase 2)| Yes        | Boleto and documents prioritized on app |
 
-> Proposta: no MVP, pais entram primeiro pelo app; web dos pais em fase 2.
-> Confirmar em `docs/open-questions.md`.
+> Proposal: in the MVP, parents enter first through the app; parents' web comes
+> in phase 2. Confirm in `docs/open-questions.md`.
 
-## 4. Capacidades de alto nível por papel
+## 4. High-level capabilities by role
 
 ### Backoffice
 
-- Criar/administrar escolas.
-- Gerir assinatura/plano da escola.
-- Suporte e visão geral da plataforma.
+- Create/administer schools.
+- Manage the school's subscription/plan.
+- Support and platform overview.
 
-### Escola (admin)
+### School (admin)
 
-- Gerir usuários da escola (professores, pais, staff).
-- Gerir turmas, disciplinas, matrículas.
-- Acompanhar financeiro (boletos, inadimplência).
-- Gerir arquivo digital de documentos.
-- Enviar e receber mensagens com famílias (texto + imagem).
-- Enviar push notifications para usuários da escola (paridade com sistema
-  atual).
-- (Fase 2) Enviar comunicados em massa (toda a escola ou por turma) com
-  confirmação de leitura; moderar/auditar conversas em caso de conflito.
-- (Fase 2) Gerir **Livro Ata** digital — gerar atas formais, coletar
-  assinaturas digitais, buscar no acervo (busca semântica), exportar/imprimir
-  para arquivo físico quando necessário.
+- Manage the school's users (teachers, parents, staff).
+- Manage classes, subjects, enrollments.
+- Track billing (boletos, delinquency).
+- Manage the digital document archive.
+- Send and receive messages with families (text + image).
+- Send push notifications to the school's users (parity with the current
+  system).
+- (Phase 2) Send mass announcements (whole school or by class) with read
+  receipts; moderate/audit conversations in case of conflict.
+- (Phase 2) Manage the digital **Livro Ata** (official minutes-record book) —
+  generate formal minutes, collect digital signatures, search the archive
+  (semantic search), export/print for the physical archive when needed.
 
-### Professor
+### Teacher
 
-- Lançar e consultar notas (com persistência confiável). [ensino fundamental/médio]
-- Registrar frequência (chamada) com notificação automática de ausência —
-  deve ser confiável (falha gera conflito jurídico). [todos os segmentos]
-- Criar e consultar plano de aula.
-- Enviar e receber mensagens com pais (texto + imagem). [todos os segmentos]
-- Consultar turmas, alunos e calendário.
-- (Fase 2) Participar de atas (ex.: Conselho de Classe) com assinatura digital.
-- (Fase 2) Registrar rotina diária estruturada — alimentação, sono, higiene,
-  saúde, humor. [educação infantil]
+- Post and view grades (with reliable persistence). [elementary/high school]
+- Record attendance with automatic absence notification — it must be reliable
+  (a failure creates legal conflict). [all segments]
+- Create and view lesson plans.
+- Send and receive messages with parents (text + image). [all segments]
+- View classes, students, and the calendar.
+- (Phase 2) Take part in minutes (e.g., Conselho de Classe — class council) with
+  a digital signature.
+- (Phase 2) Record a structured daily routine — meals, sleep, hygiene, health,
+  mood. [early childhood education]
 
-### Pais
+### Parents
 
-- Consultar notas, boletim e situação acadêmica do filho.
-  [ensino fundamental/médio]
-- Enviar e receber mensagens com professor e escola (texto + imagem).
-  [todos os segmentos — prioridade no infantil]
-- Receber push notifications (mensagens, ausência na chamada, avisos).
-- Ver e pagar boletos.
-- Acessar documentos do aluno.
-- (Fase 2) Assinar atas digitalmente (reuniões com família, eventos).
-- (Fase 2) Receber comunicados em massa com confirmação de leitura;
-  acompanhar rotina diária estruturada do filho. [educação infantil]
+- View their child's grades, report card, and academic status.
+  [elementary/high school]
+- Send and receive messages with the teacher and the school (text + image).
+  [all segments — priority in early childhood]
+- Receive push notifications (messages, attendance absence, notices).
+- View and pay boletos.
+- Access the student's documents.
+- (Phase 2) Sign minutes digitally (family meetings, events).
+- (Phase 2) Receive mass announcements with read receipts; follow the child's
+  structured daily routine. [early childhood education]
 
-> Nota: no MVP, educação infantil prioriza **comunicação** (mensagens com
-> imagem) sobre rotina diária estruturada. Capacidades variam conforme o
-> segmento da turma — ver `docs/open-questions.md`.
+> Note: in the MVP, early childhood education prioritizes **communication**
+> (messages with images) over a structured daily routine. Capabilities vary by
+> the class segment — see `docs/open-questions.md`.
 
-## 5. Stack por canal
+## 5. Stack by channel
 
-### web (decisão fechada)
+### web (finalized decision)
 
-Rails 8 + Hotwire (Turbo + Stimulus) + Tailwind para superfícies HTML;
-API REST JSON versionada (`/api/v1`) para o app mobile. Detalhes em
-`docs/web-stack.md`.
+Rails 8 + Hotwire (Turbo + Stimulus) + Tailwind for HTML surfaces; a versioned
+JSON REST API (`/api/v1`) for the mobile app. Details in `docs/web-stack.md`.
 
-- **Web (browser):** sessão + server-rendered HTML.
-- **API (app mobile):** JWT + JSON.
-- Regra de negócio compartilhada via service objects.
+- **Web (browser):** session + server-rendered HTML.
+- **API (mobile app):** JWT + JSON.
+- Business rules shared via service objects.
 
-### app (intenção)
+### app (intention)
 
-React Native — decisão ainda não fechada.
+React Native — decision not yet finalized.
 
-### Princípio
+### Principle
 
-A API é o ponto único de regras de negócio para ambos os canais.
+The API is the single point of business rules for both channels.

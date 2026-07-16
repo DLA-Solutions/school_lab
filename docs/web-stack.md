@@ -1,177 +1,177 @@
-# Stack Web — School Lab
+# Web Stack — School Lab
 
-> Pasta: `web/`
-> Status: decisão fechada (camada web)
+> Folder: `web/`
+> Status: finalized decision (web layer)
 
-Monolito Rails 8 com Hotwire para superfícies web e API REST JSON versionada
-para o app mobile. Várias escolas no mesmo sistema. Infra mínima no MVP: app +
-PostgreSQL + S3.
+A Rails 8 monolith with Hotwire for web surfaces and a versioned JSON REST API
+for the mobile app. Many schools in the same system. Minimal infrastructure in
+the MVP: app + PostgreSQL + S3.
 
-## 1. Resumo
+## 1. Summary
 
-| Camada | Tecnologia |
+| Layer | Technology |
 |--------|------------|
-| Linguagem | Ruby 3.3.x |
+| Language | Ruby 3.3.x |
 | Framework | Rails 8.x |
-| UI web | Hotwire (Turbo + Stimulus) + Tailwind CSS |
-| Componentes | ViewComponent |
-| Banco | PostgreSQL 16+ |
+| Web UI | Hotwire (Turbo + Stimulus) + Tailwind CSS |
+| Components | ViewComponent |
+| Database | PostgreSQL 16+ |
 | Background jobs | Solid Queue (PostgreSQL) |
-| Cache | Solid Cache no MVP; Redis opcional na escala |
+| Cache | Solid Cache in the MVP; Redis optional at scale |
 | Storage | Active Storage → S3 |
 | Push notifications | Firebase Cloud Messaging (FCM) |
 | Locale | pt-BR |
 
-## 2. Dois modos de entrega
+## 2. Two delivery modes
 
-A pasta `web/` entrega dois modos com a mesma base de regras de negócio:
+The `web/` folder delivers two modes from the same business-rules base:
 
-| Modo | Consumidor | Abordagem |
+| Mode | Consumer | Approach |
 |------|------------|-----------|
-| HTML + Hotwire | Browsers (backoffice, escola, professor, pais) | Server-rendered, Turbo, Stimulus |
-| JSON API | App mobile (`app/`) | REST versionada, autenticação por token |
+| HTML + Hotwire | Browsers (backoffice, school, teacher, parents) | Server-rendered, Turbo, Stimulus |
+| JSON API | Mobile app (`app/`) | Versioned REST, token authentication |
 
-Controllers HTML e API delegam para os mesmos service objects — regra de negócio
-não é duplicada.
+HTML and API controllers delegate to the same service objects — business rules
+are not duplicated.
 
-## 3. Frontend web
+## 3. Web frontend
 
 ```
 ┌─────────────────────────────────────────────────┐
 │  Views (ERB + ViewComponent) + Tailwind CSS       │
 ├─────────────────────────────────────────────────┤
-│  Stimulus — interatividade local                  │
-│  (modais, máscaras, toggles, validação inline)    │
+│  Stimulus — local interactivity                   │
+│  (modals, masks, toggles, inline validation)      │
 ├─────────────────────────────────────────────────┤
-│  Turbo Drive  — navegação SPA-like                │
-│  Turbo Frames — atualização parcial de seções     │
-│  Turbo Streams — updates em tempo real (fase 2)   │
+│  Turbo Drive  — SPA-like navigation               │
+│  Turbo Frames — partial section updates           │
+│  Turbo Streams — real-time updates (phase 2)      │
 └─────────────────────────────────────────────────┘
 ```
 
-| Componente | Papel |
+| Component | Role |
 |------------|-------|
-| **Hotwire (Turbo)** | Navegação e updates sem SPA completo |
-| **Stimulus** | JS mínimo e declarativo |
-| **Tailwind CSS** | Estilização (gem `tailwindcss-rails`) |
-| **ViewComponent** | Componentes reutilizáveis (cards, tabelas, badges) |
+| **Hotwire (Turbo)** | Navigation and updates without a full SPA |
+| **Stimulus** | Minimal, declarative JS |
+| **Tailwind CSS** | Styling (gem `tailwindcss-rails`) |
+| **ViewComponent** | Reusable components (cards, tables, badges) |
 | **Propshaft** | Asset pipeline |
-| **importmap-rails** | JS sem bundler pesado |
+| **importmap-rails** | JS without a heavy bundler |
 
-**Princípio:** HTML no servidor como default. Só adicionar JS quando Turbo/Stimulus
-não resolverem.
+**Principle:** server-side HTML as the default. Only add JS when Turbo/Stimulus
+can't solve it.
 
-## 4. Autenticação e autorização
+## 4. Authentication and authorization
 
-| Canal | Mecanismo |
+| Channel | Mechanism |
 |-------|-----------|
-| **Web** | Sessão (cookie) — Rails 8 Authentication Generator ou Devise |
-| **API (app mobile)** | JWT + refresh token |
+| **Web** | Session (cookie) — Rails 8 Authentication Generator or Devise |
+| **API (mobile app)** | JWT + refresh token |
 
-| Componente | Decisão |
+| Component | Decision |
 |------------|---------|
-| **Autorização** | Pundit — papéis: backoffice, escola, professor, pais |
-| **Isolamento por escola** | A definir na modelagem; enforcement via policies e services |
+| **Authorization** | Pundit — roles: backoffice, school, teacher, parents |
+| **Per-school isolation** | To be defined in the modeling; enforcement via policies and services |
 
-## 5. API para o app mobile
+## 5. API for the mobile app
 
-| Aspecto | Decisão |
+| Aspect | Decision |
 |---------|---------|
-| **Formato** | REST JSON, versionada (`/api/v1/...`) |
-| **Serialização** | A definir (`jsonapi-serializer` ou `blueprinter`) |
-| **Contratos** | OpenAPI em `docs/api/` (fase posterior) |
+| **Format** | REST JSON, versioned (`/api/v1/...`) |
+| **Serialization** | To be defined (`jsonapi-serializer` or `blueprinter`) |
+| **Contracts** | OpenAPI in `docs/api/` (later phase) |
 
-## 6. Camada de domínio
+## 6. Domain layer
 
-| Camada | Ferramenta | Exemplo |
+| Layer | Tool | Example |
 |--------|------------|---------|
-| **Models** | ActiveRecord + validações | `Aluno`, `Nota`, `Boleto`, `Mensagem` |
-| **Services** | Plain Ruby objects | `Financeiro::GerarBoleto`, `Comunicacao::EnviarMensagem` |
-| **Forms** | ActiveModel form objects | Cadastro de aluno com responsável |
-| **Jobs** | ActiveJob + Solid Queue | Emissão de boleto, envio de e-mail, push (FCM) |
-| **Notificações** | FCM + máquina de estado | Push confiável; eventos validados antes do envio |
-| **Uploads** | Active Storage + S3 | Arquivo digital, imagens em mensagens |
-| **Auditoria** | `paper_trail` ou `audited` | Histórico de notas e documentos |
-| **Paginação** | Pagy | Listagens de alunos, boletos |
-| **Busca** | pg_search (MVP) | Busca por nome/CPF |
+| **Models** | ActiveRecord + validations | `Student`, `Grade`, `Payment`, `Message` |
+| **Services** | Plain Ruby objects | `Billing::GenerateBoleto`, `Communication::SendMessage` |
+| **Forms** | ActiveModel form objects | Student registration with guardian |
+| **Jobs** | ActiveJob + Solid Queue | Boleto issuance, email sending, push (FCM) |
+| **Notifications** | FCM + state machine | Reliable push; events validated before sending |
+| **Uploads** | Active Storage + S3 | Digital archive, images in messages |
+| **Auditing** | `paper_trail` or `audited` | History of grades and documents |
+| **Pagination** | Pagy | Student and boleto listings |
+| **Search** | pg_search (MVP) | Search by name/CPF |
 
-## 7. Infra de suporte
+## 7. Supporting infrastructure
 
-| Componente | Tecnologia | Notas |
+| Component | Technology | Notes |
 |------------|------------|-------|
-| **Banco** | PostgreSQL 16+ | Dados, filas (Solid Queue) e cache (Solid Cache) |
-| **Background jobs** | Solid Queue | ActiveJob; sem Redis |
-| **Cache** | Solid Cache (MVP) → Redis (escala) | Redis opcional, só cache |
-| **Real-time** | Solid Cable (fase 2) | Turbo Streams — não necessário no MVP |
-| **Push** | FCM via Solid Queue | Entrega assíncrona; não exige real-time |
-| **Storage** | Active Storage → S3 | Documentos / auditoria |
-| **Servidor** | Puma | Padrão Rails |
+| **Database** | PostgreSQL 16+ | Data, queues (Solid Queue), and cache (Solid Cache) |
+| **Background jobs** | Solid Queue | ActiveJob; no Redis |
+| **Cache** | Solid Cache (MVP) → Redis (scale) | Redis optional, cache only |
+| **Real-time** | Solid Cable (phase 2) | Turbo Streams — not needed in the MVP |
+| **Push** | FCM via Solid Queue | Async delivery; does not require real-time |
+| **Storage** | Active Storage → S3 | Documents / auditing |
+| **Server** | Puma | Rails default |
 
-### Infra mínima (MVP)
+### Minimal infrastructure (MVP)
 
 ```
 Rails App  →  PostgreSQL  →  S3
 ```
 
-Redis entra quando houver evidência de necessidade (dashboard lento, leituras
-repetidas). Quando entrar, é **só para cache** — jobs continuam no Solid Queue.
+Redis comes in when there is evidence of need (slow dashboard, repeated reads).
+When it does, it is **cache only** — jobs stay on Solid Queue.
 
-### Push notifications (decisão fechada)
+### Push notifications (finalized decision)
 
-Entrega de push via **FCM** (Firebase Cloud Messaging), enfileirada no
-**Solid Queue**. Na API, eventos passam por **máquina de estado** antes de
-disparar o push — garante que notificações (ex.: ausência na chamada) só
-saem quando o estado do evento está correto e confirmado.
+Push delivery via **FCM** (Firebase Cloud Messaging), queued in **Solid Queue**.
+On the API, events pass through a **state machine** before triggering the push —
+this ensures notifications (e.g., attendance absence) only go out when the
+event's state is correct and confirmed.
 
-Não exige real-time (WebSocket/Solid Cable): a informação deve chegar em
-tempo hábil, não instantaneamente. Solid Cable fica para fase 2.
+It does not require real-time (WebSocket/Solid Cable): the information must
+arrive in a timely manner, not instantly. Solid Cable is left for phase 2.
 
 ```
-Evento (ex.: chamada registrada)
-  → Service valida estado
-  → Máquina de estado confirma transição
-  → Job enfileirado (Solid Queue)
-  → Worker envia via FCM
-  → App recebe push
+Event (e.g., attendance recorded)
+  → Service validates state
+  → State machine confirms transition
+  → Job enqueued (Solid Queue)
+  → Worker sends via FCM
+  → App receives push
 ```
 
-## 8. Testes
+## 8. Testing
 
-| Tipo | Ferramenta |
+| Type | Tool |
 |------|------------|
 | Unit / model / service | RSpec |
 | Request / API | RSpec request specs |
 | System (web) | Capybara + Cuprite |
 | Factories | FactoryBot |
 
-## 9. Superfícies web
+## 9. Web surfaces
 
-| Superfície | MVP | Observação |
+| Surface | MVP | Note |
 |------------|-----|------------|
-| Backoffice DLA | Sim | Cadastro de escolas, visão da plataforma |
-| Admin da escola | Sim | Turmas, alunos, financeiro, documentos, push |
-| Professor | Sim | Notas, plano de aula, chamada, mensagens |
-| Pais (app) | Sim | Comunicação, boletos, notas, documentos |
-| Pais (web) | Fase 2 | Prioridade no app mobile no MVP |
+| DLA backoffice | Yes | School registration, platform overview |
+| School admin | Yes | Classes, students, billing, documents, push |
+| Teacher | Yes | Grades, lesson plans, attendance, messages |
+| Parents (app) | Yes | Communication, boletos, grades, documents |
+| Parents (web) | Phase 2 | Priority on the mobile app in the MVP |
 
-## 10. Convenções
+## 10. Conventions
 
-- Service objects em `app/services/`
-- Policies em `app/policies/`
+- Service objects in `app/services/`
+- Policies in `app/policies/`
 - Locale default: `pt-BR`
 
-## 11. Fora do escopo
+## 11. Out of scope
 
-- SPA JavaScript separado (React/Vue no web)
+- A separate JavaScript SPA (React/Vue on web)
 - GraphQL
-- Microserviços
-- Redis para background jobs (Sidekiq)
+- Microservices
+- Redis for background jobs (Sidekiq)
 
-## 12. Arquitetura
+## 12. Architecture
 
 ```mermaid
 flowchart TB
-    subgraph clients [Clientes]
+    subgraph clients [Clients]
         Browser[Browser — Hotwire]
         MobileApp[App React Native]
     end
@@ -187,8 +187,8 @@ flowchart TB
 
     subgraph infra [Infra]
         PG[(PostgreSQL)]
-        Redis[(Redis — opcional)]
-        S3[(S3 — documentos)]
+        Redis[(Redis — optional)]
+        S3[(S3 — documents)]
         FCM[FCM — push]
     end
 
@@ -208,22 +208,22 @@ flowchart TB
     Models --> S3
 
     Services -.->|cache MVP| PG
-    Services -.->|cache escala| Redis
+    Services -.->|cache scale| Redis
 
     classDef optional stroke-dasharray: 5 5
     class Redis optional
 ```
 
-### Camadas detalhadas
+### Detailed layers
 
 ```mermaid
 flowchart TB
-    subgraph clients [Clientes]
+    subgraph clients [Clients]
         Browser[Browser]
         MobileApp[App React Native]
     end
 
-    subgraph presentation [Apresentação — web/]
+    subgraph presentation [Presentation — web/]
         direction TB
         Hotwire[Hotwire — Turbo + Stimulus]
         Tailwind[Tailwind CSS]
@@ -232,25 +232,25 @@ flowchart TB
         API[API REST /api/v1]
     end
 
-    subgraph domain [Domínio]
+    subgraph domain [Domain]
         Services[Service Objects]
         Policies[Pundit]
         Models[ActiveRecord]
     end
 
-    subgraph async [Assíncrono]
+    subgraph async [Async]
         ActiveJob[ActiveJob]
         SolidQueue[Solid Queue]
     end
 
-    subgraph data [Dados e storage]
+    subgraph data [Data and storage]
         PG[(PostgreSQL)]
         S3[(S3 — Active Storage)]
     end
 
-    subgraph cache [Cache — opcional]
+    subgraph cache [Cache — optional]
         SolidCache[Solid Cache — MVP]
-        RedisCache[Redis — escala]
+        RedisCache[Redis — scale]
     end
 
     Browser --> Hotwire
@@ -281,7 +281,7 @@ flowchart TB
     class SolidCache,RedisCache,Redis optional
 ```
 
-### Evolução de infra
+### Infrastructure evolution
 
 ```mermaid
 flowchart LR
@@ -293,7 +293,7 @@ flowchart LR
         App1 --> S31
     end
 
-    subgraph scale [Escala]
+    subgraph scale [Scale]
         App2[Rails App]
         PG2[(PostgreSQL)]
         Redis2[(Redis — cache)]
@@ -303,31 +303,31 @@ flowchart LR
         App2 --> S32
     end
 
-    mvp -->|quando precisar| scale
+    mvp -->|when needed| scale
 ```
 
-## 13. Decisões pendentes
+## 13. Pending decisions
 
-Itens ainda em aberto — ver `docs/open-questions.md` (seção Stack web):
+Items still open — see `docs/open-questions.md` (Web stack section):
 
-- Serialização da API (`jsonapi-serializer` vs. `blueprinter`)
-- Auth web: Rails 8 Authentication Generator vs. Devise
-- Provider de e-mail (Postmark, SES, etc.)
-- Integração de boleto (gateway/banco)
-- Firebase Authentication — necessário ou auth próprio (JWT) basta?
+- API serialization (`jsonapi-serializer` vs. `blueprinter`)
+- Web auth: Rails 8 Authentication Generator vs. Devise
+- Email provider (Postmark, SES, etc.)
+- Boleto integration (gateway/bank)
+- Firebase Authentication — needed, or is proprietary auth (JWT) enough?
 
-**Decisões fechadas (jul/2026):**
+**Finalized decisions (Jul 2026):**
 
-- Push notifications: FCM + Solid Queue + máquina de estado na API.
-- Real-time (Solid Cable / Turbo Streams): fase 2 — não necessário no MVP.
+- Push notifications: FCM + Solid Queue + state machine on the API.
+- Real-time (Solid Cable / Turbo Streams): phase 2 — not needed in the MVP.
 
-## 14. Fase 2 — direções técnicas (rascunho)
+## 14. Phase 2 — technical directions (draft)
 
-Itens ainda não fechados — ver `docs/open-questions.md` (Livro Ata):
+Items not yet finalized — see `docs/open-questions.md` (Livro Ata):
 
-| Componente | Direção provável | Notas |
+| Component | Likely direction | Notes |
 |------------|------------------|-------|
-| **Assinatura digital** | Própria (rabisco + e-mail + IP + hash) ou integração DocuSign/Authentique | Validação jurídica pendente |
-| **Livro Ata** | Modelo de atas por tipo + workflow de signatários | Compartilha infra de assinatura |
-| **Busca semântica** | pgvector no PostgreSQL ou serviço externo | Escopo: atas ou todo arquivo |
-| **Transcrição / IA** | Integração Meet ou upload de áudio → geração de rascunho | Posterior dentro do módulo |
+| **Digital signature** | Proprietary (scribble + email + IP + hash) or DocuSign/Authentique integration | Legal validation pending |
+| **Livro Ata** | Minutes model by type + signatory workflow | Shares signature infrastructure |
+| **Semantic search** | pgvector in PostgreSQL or an external service | Scope: minutes or the entire archive |
+| **Transcription / AI** | Meet integration or audio upload → draft generation | Later, within the module |

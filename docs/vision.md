@@ -1,136 +1,140 @@
-# Visão do Produto — School Lab
+# Product Vision — School Lab
 
-## 1. Resumo
+## 1. Summary
 
-Plataforma de gestão escolar multi-escola (várias escolas em um único sistema),
-voltada a escolas particulares. Centraliza gestão acadêmica, financeira,
-documental e de relacionamento com as famílias, com foco em quatro diferenciais:
-comunicação confiável (mensagens com imagem), estabilidade, arquivo digital
-completo (auditoria) e automação do financeiro.
+A multi-school management platform (many schools in a single system), aimed at
+private schools. It centralizes academic, financial, document, and family-
+relationship management, with a focus on four differentiators: reliable
+communication (messages with images), stability, a complete digital archive
+(auditing), and billing automation.
 
-## 2. Problema
+## 2. Problem
 
-Escolas particulares trocam de sistema com frequência (relato de ~5 sistemas em
-7 anos) por motivos recorrentes:
+Private schools switch systems often (reports of ~5 systems in 7 years) for
+recurring reasons:
 
-- **Instabilidade**: perda de dados críticos (ex.: notas somem ao lançar) e
-  notificações incorretas (ex.: push de ausência com a criança presente na
-  escola — caso real com impacto jurídico e conflito família↔escola).
-- **Processos manuais**: boletos e contratos feitos fora do sistema.
-- **Arquivo físico**: a auditoria do Conselho/Secretaria de Educação exige todos
-  os documentos; sem sistema que armazene tudo, a escola mantém arquivos físicos
-  ocupando salas inteiras — incluindo o **Livro Ata** (livro de registro de
-  atas), alvo frequente de auditoria do Conselho de Educação.
-- **Atas e assinaturas manuais**: reuniões com famílias, Conselho de Classe e
-  eventos exigem atas assinadas; hoje o processo leva dias (ex.: ~1 semana no
-  Conselho de Classe) e passa por gravação de áudio, transcrição manual e
-  impressão para o livro físico.
+- **Instability**: loss of critical data (e.g., grades disappearing when posted)
+  and incorrect notifications (e.g., an absence push while the child is present
+  at school — a real case with legal impact and family↔school conflict).
+- **Manual processes**: boletos (Brazilian bank payment slips) and contracts
+  handled outside the system.
+- **Physical archive**: audits by the Conselho/Secretaria de Educação (Board /
+  Secretariat of Education) require every document; without a system that stores
+  everything, the school keeps physical archives filling entire rooms —
+  including the **Livro Ata** (official minutes-record book), a frequent target
+  of Conselho de Educação (Board of Education) audits.
+- **Manual minutes and signatures**: meetings with families, the Conselho de
+  Classe (class council), and events require signed minutes; today the process
+  takes days (e.g., ~1 week for the Conselho de Classe) and goes through audio
+  recording, manual transcription, and printing for the physical book.
 
-## 3. Proposta de valor
+## 3. Value proposition
 
-- **Estável e confiável**: dados críticos (notas, financeiro) nunca se perdem.
-- **Arquivo digital completo**: repositório único pronto para auditoria,
-  eliminando o arquivo físico.
-- **Livro Ata digital**: atas formais (matrícula, Conselho de Classe,
-  resultados finais, reunião com pais, eventos) com assinatura digital e
-  busca semântica — o Conselho de Educação audita esses livros com frequência;
-  versão digital é permitida desde que tenha assinatura digital válida.
-- **Financeiro automatizado**: geração e acompanhamento de boletos no app.
-- **Contratos e atas com assinatura digital**: envio e coleta de assinaturas
-  sem papel (padrão equivalente a DocuSign/Authentique — validação jurídica
-  pendente).
-- **Tudo em um só lugar**: acadêmico, financeiro, documental e comunicação.
-- **Rotina da educação infantil** (fase 2): professor registra alimentação,
-  sono, higiene, saúde, humor e recados; pais acompanham. No MVP, educação
-  infantil é atendida pela **comunicação** (mensagens com imagem).
-- **Comunicação direta e segura**: pais falam com professor e escola dentro
-  da plataforma, com histórico e privacidade por família. Diferencial:
-  envio de **imagens** nas mensagens (concorrentes atuais não oferecem).
-  Áudio **fora de escopo** no MVP.
+- **Stable and reliable**: critical data (grades, billing) is never lost.
+- **Complete digital archive**: a single audit-ready repository, eliminating the
+  physical archive.
+- **Digital Livro Ata**: formal minutes (enrollment, Conselho de Classe, final
+  results, parent meetings, events) with digital signatures and semantic
+  search — the Conselho de Educação audits these books frequently; a digital
+  version is allowed as long as it carries a valid digital signature.
+- **Automated billing**: generation and tracking of boletos in the app.
+- **Contracts and minutes with digital signature**: sending and collecting
+  signatures paperlessly (a standard equivalent to DocuSign/Authentique — legal
+  validation pending).
+- **Everything in one place**: academic, financial, documents, and
+  communication.
+- **Early childhood education daily routine** (phase 2): the teacher logs meals,
+  sleep, hygiene, health, mood, and notes; parents follow along. In the MVP,
+  early childhood education is served through **communication** (messages with
+  images).
+- **Direct, secure communication**: parents talk with the teacher and the school
+  inside the platform, with history and per-family privacy. Differentiator:
+  sending **images** in messages (current competitors do not offer this). Audio
+  is **out of scope** in the MVP.
 
-## 4. Público-alvo
+## 4. Target audience
 
-- **Primário**: escolas particulares (educação básica).
-- **Canal de distribuição**: parceria com o Sindicato das Escolas Particulares,
-  alcançando a rede — inclusive escolas em fase de abertura.
+- **Primary**: private schools (basic education).
+- **Distribution channel**: partnership with the Sindicato das Escolas
+  Particulares (private schools union), reaching the network — including schools
+  in the process of opening.
 
-## 5. Princípios de produto
+## 5. Product principles
 
-- **Multi-escola desde o dia 1**: várias escolas no mesmo sistema; isolamento
-  de dados entre escolas (estratégia de modelagem a definir).
-- **Estabilidade acima de features**: confiabilidade é requisito, não desejo.
-- **Digital-first**: reduzir/eliminar papel (boletos, contratos, arquivo).
-- **Multi-canal**: web e app compartilham as mesmas regras de negócio.
-- **Escalável**: modelagem pensada para muitas escolas desde o início.
-- **Privacidade por padrão (LGPD)**: dados de crianças exigem cuidado
-  redobrado — consentimento do responsável, isolamento por família,
-  minimização de acesso e retenção definida. Vale para rotina diária,
-  comunicação e arquivo digital.
+- **Multi-school from day 1**: many schools in the same system; data isolation
+  between schools (modeling strategy to be defined).
+- **Stability over features**: reliability is a requirement, not a wish.
+- **Digital-first**: reduce/eliminate paper (boletos, contracts, archive).
+- **Multi-channel**: web and app share the same business rules.
+- **Scalable**: modeling designed for many schools from the start.
+- **Privacy by default (LGPD — Brazil's data-protection law)**: children's data
+  demands extra care — guardian consent, per-family isolation, access
+  minimization, and defined retention. This applies to the daily routine,
+  communication, and the digital archive.
 
-## 6. Escopo do MVP (proposta)
+## 6. MVP scope (proposal)
 
-Objetivo do MVP: entregar valor imediato no início do semestre letivo —
-prioridade validada com diretor parceiro (escola NSR): **comunicação** como
-foco principal, com estabilidade acadêmica e financeiro como pilares
-complementares.
+MVP objective: deliver immediate value at the start of the school semester —
+a priority validated with the partner director (escola NSR): **communication**
+as the main focus, with academic stability and billing as complementary pillars.
 
-**Dentro do MVP**
+**In the MVP**
 
-- Cadastro de escola e isolamento de dados entre escolas.
-- Identidade e papéis: backoffice, escola (admin), professor, pais.
-- Cadastro e login de usuários (todos os papéis).
-- Cadastro base: alunos, responsáveis, turmas, disciplinas.
-- **Comunicação**: mensagens bidirecionais pai↔professor e pai↔escola, com
-  envio de imagens. Push notification para avisar novas mensagens e eventos
-  (paridade com sistema atual — já existe hoje).
-- Acadêmico: lançamento confiável de notas [fundamental/médio]; relatório de
-  boletim; frequência (chamada) com notificação automática de ausência —
-  **deve ser estável e correta** (falha gera conflito jurídico).
-- Professor: plano de aula e envio de mensagens.
-- Educação infantil: comunicação cobre a necessidade principal no MVP; rotina
-  diária estruturada (alimentação, sono, etc.) fica para fase posterior.
-- Financeiro: geração e acompanhamento de boletos; visão dos pais.
-- Arquivo digital: repositório de documentos por aluno/escola.
-- Web e app (ambos os canais no MVP).
+- School registration and data isolation between schools.
+- Identity and roles: backoffice, school (admin), teacher, parents.
+- User registration and login (all roles).
+- Base records: students, guardians, classes, subjects.
+- **Communication**: two-way parent↔teacher and parent↔school messaging, with
+  image sending. Push notifications to alert about new messages and events
+  (parity with the current system — it already exists today).
+- Academic: reliable grade posting [elementary/high school]; report card
+  reporting; attendance with automatic absence notification — **it must be
+  stable and correct** (a failure creates legal conflict).
+- Teacher: lesson plan and message sending.
+- Early childhood education: communication covers the main need in the MVP; a
+  structured daily routine (meals, sleep, etc.) is left for a later phase.
+- Billing: generation and tracking of boletos; parent view.
+- Digital archive: document repository per student/school.
+- Web and app (both channels in the MVP).
 
-**Fora do MVP (fases seguintes)**
+**Out of the MVP (later phases)**
 
-- **Livro Ata & atas formais** (prioridade alta na fase 2 — forte entusiasmo
-  do stakeholder): geração de atas por tipo, coleta de assinaturas digitais
-  (rabisco + e-mail + IP + hash), busca semântica no acervo, impressão
-  opcional para arquivo físico. Tipos: matrícula, Conselho de Classe,
-  resultados finais, reunião com pais, eventos ocorridos na escola.
-  Geração assistida por IA a partir de transcrição de reunião (fase posterior
-  dentro do módulo).
-- Contratos + assinatura digital (compartilha infra de assinatura com Livro
-  Ata; proposta em avaliação: assinatura avançada própria — validação
-  jurídica pendente).
-- Comunicação avançada (comunicados em massa, confirmação de leitura).
-- Landing / página de vendas.
-- Relatórios avançados e BI.
-- Rotina diária estruturada da educação infantil.
-- Mensagens de áudio.
+- **Livro Ata & formal minutes** (high priority in phase 2 — strong stakeholder
+  enthusiasm): generating minutes by type, collecting digital signatures
+  (drawn scribble + email + IP + hash), semantic search across the archive,
+  optional printing for the physical archive. Types: enrollment, Conselho de
+  Classe, final results, parent meetings, events that occurred at the school.
+  AI-assisted generation from a meeting transcript (a later stage within the
+  module).
+- Contracts + digital signature (shares signature infrastructure with the Livro
+  Ata; proposal under evaluation: a proprietary advanced signature — legal
+  validation pending).
+- Advanced communication (mass announcements, read receipts).
+- Landing / sales page.
+- Advanced reporting and BI.
+- Structured early childhood education daily routine.
+- Audio messages.
 
-> Validação com stakeholder (jul/2026): diretor parceiro priorizou comunicação,
-> notas, boletim e plano de aula para o segundo semestre; demonstrou forte
-> interesse em Livro Ata digital com assinatura e busca semântica para fase 2.
-> Itens ainda em aberto estão em `docs/open-questions.md`.
+> Stakeholder validation (Jul 2026): the partner director prioritized
+> communication, grades, report cards, and lesson plans for the second semester;
+> showed strong interest in a digital Livro Ata with signatures and semantic
+> search for phase 2. Items still open are in `docs/open-questions.md`.
 
-## 7. Fora do escopo desta fase de documentação
+## 7. Out of scope for this documentation phase
 
-- Stack do app mobile (React Native é intenção, não decisão).
-- Modelagem de banco, contratos de API e eventos.
-- Ferramentas de apoio (ex.: Mintlify, Figma MCP) — decisão posterior.
+- Mobile app stack (React Native is an intention, not a decision).
+- Database modeling, API contracts, and events.
+- Supporting tools (e.g., Mintlify, Figma MCP) — decision to come later.
 
-> Stack da camada web fechada em `docs/web-stack.md` (Rails 8 + Hotwire +
-> Tailwind + API REST).
+> Web-layer stack finalized in `docs/web-stack.md` (Rails 8 + Hotwire +
+> Tailwind + REST API).
 
-## 8. Métricas de sucesso (rascunho)
+## 8. Success metrics (draft)
 
-- Retenção de escolas (churn baixo vs. média do mercado).
-- Zero perda de dados de notas/financeiro.
-- % de boletos emitidos pela plataforma vs. manual.
-- % de documentos de auditoria disponíveis digitalmente.
-- % de famílias ativas na comunicação (mensagens lidas/respondidas).
-- (Fase 2) Tempo médio para fechar atas (ex.: Conselho de Classe) vs. baseline
-  manual (~1 semana).
+- School retention (low churn vs. market average).
+- Zero loss of grade/billing data.
+- % of boletos issued through the platform vs. manually.
+- % of audit documents available digitally.
+- % of families active in communication (messages read/answered).
+- (Phase 2) Average time to close minutes (e.g., Conselho de Classe) vs. the
+  manual baseline (~1 week).

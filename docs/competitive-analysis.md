@@ -1,273 +1,266 @@
-# Análise de Concorrência
+# Competitive Analysis
 
-> Documento informativo (não é âncora de decisão). Levantamento de
-> funcionalidades de players do mercado de gestão escolar, para embasar
-> priorização do MVP e as fases seguintes. Complementa `docs/vision.md` e
-> `docs/open-questions.md`.
+> Informational document (not a decision anchor). A survey of features from
+> players in the school-management market, to support MVP prioritization and the
+> following phases. Complements `docs/vision.md` and `docs/open-questions.md`.
 
-## 1. Panorama do mercado
+## 1. Market overview
 
-O mercado brasileiro de "sistemas de gestão escolar" (também chamado de ERP
-educacional) tem hoje três perfis de player, que competem entre si mas
-resolvem dores diferentes:
+The Brazilian "school-management systems" market (also called educational ERP)
+currently has three player profiles that compete with each other but solve
+different pain points:
 
-| Perfil | Foco principal | Exemplos |
+| Profile | Main focus | Examples |
 |--------|-----------------|----------|
-| **ERP escolar completo** | Acadêmico + financeiro + secretaria, tudo integrado | Sponte, TOTVS Educacional, Gennera |
-| **App de comunicação escola↔família** | Agenda digital, comunicados, chat, rotina — geralmente integra com um ERP por API | Agenda Edu, ClassApp, Olá Pais, Kix |
-| **Nicho creche/educação infantil** | Rotina diária (bebê/berçário) como produto principal | Lápis 360 Baby; referência internacional: Brightwheel, HiMama |
+| **Complete school ERP** | Academic + financial + registrar, all integrated | Sponte, TOTVS Educacional, Gennera |
+| **School↔family communication app** | Digital agenda, announcements, chat, routine — usually integrates with an ERP via API | Agenda Edu, ClassApp, Olá Pais, Kix |
+| **Daycare / early childhood niche** | Daily routine (baby/nursery) as the main product | Lápis 360 Baby; international reference: Brightwheel, HiMama |
 
-O **School Lab** se posiciona como ERP completo multi-escola, com
-**comunicação nativa** (mensagens com imagem — MVP, validado com stakeholder)
-e **Livro Ata digital** (fase 2, prioridade alta) como diferenciais que a
-maioria dos ERPs não oferece nativamente — hoje dependem de integração com
-apps de comunicação separados (Agenda Edu, ClassApp) e processos manuais para
-atas formais.
+**School Lab** positions itself as a complete multi-school ERP, with **native
+communication** (messages with images — MVP, validated with the stakeholder) and
+a **digital Livro Ata (official minutes-record book)** (phase 2, high priority)
+as differentiators that most ERPs don't offer natively — today they depend on
+integration with separate communication apps (Agenda Edu, ClassApp) and manual
+processes for formal minutes.
 
-## 2. Funcionalidades por domínio
+## 2. Features by domain
 
-### 2.1 Acadêmico
+### 2.1 Academic
 
-Recursos comuns entre Sponte, TOTVS Educacional e Gennera:
+Common features across Sponte, TOTVS Educacional, and Gennera:
 
-- Diário de classe eletrônico (notas, faltas, conteúdo de aula).
-- Cadastro de cursos, matriz curricular, disciplinas e turmas.
-- Ensalamento / montagem de turmas conforme matrículas.
-- Sistema de avaliação personalizável (notas x conceitos, por bimestre/trimestre).
-- Provas e atividades online para os alunos responderem (Sponte).
-- Plano de aula e conteúdo programático (TOTVS).
-- Histórico escolar e boletim gerados automaticamente.
-- Portal do aluno/professor com lançamento de notas e faltas pelo app.
+- Electronic class diary (grades, absences, lesson content).
+- Registration of courses, curriculum matrix, subjects, and classes.
+- Classroom allocation / class assembly according to enrollments.
+- Customizable assessment system (grades vs. concepts, by bimester/trimester).
+- Online tests and activities for students to answer (Sponte).
+- Lesson plans and syllabus content (TOTVS).
+- School transcript and report card generated automatically.
+- Student/teacher portal with grade and absence posting via the app.
 
-> Nenhum destaque incomum aqui — é o núcleo esperado de qualquer ERP escolar.
-> Frequência (chamada) aparece em 100% dos concorrentes analisados; entrou
-> no MVP do School Lab após validação com stakeholder (`docs/vision.md`).
+> No unusual highlight here — it's the expected core of any school ERP.
+> Attendance appears in 100% of the analyzed competitors; it entered the School
+> Lab MVP after stakeholder validation (`docs/vision.md`).
 
-### 2.2 Financeiro
+### 2.2 Financial
 
-Este é o domínio mais maduro e competitivo — praticamente todo concorrente
-oferece:
+This is the most mature and competitive domain — practically every competitor
+offers:
 
-- Emissão automática de boletos (não manual) com PIX e crédito recorrente.
-- Conciliação bancária automática ("zero conciliação manual" — Sponte).
-- Régua de cobrança automatizada (lembretes por e-mail/SMS/WhatsApp antes e
-  depois do vencimento).
-- Emissão de nota fiscal eletrônica (NF-e/NFS-e/NFC-e) integrada.
-- Painel de inadimplência por turma/série/período.
-- Contas a pagar/receber, fluxo de caixa (nos ERPs mais completos).
-- Matrícula/rematrícula 100% online, com contrato e formulário digitais.
+- Automatic (not manual) boleto (Brazilian bank payment slip) issuance with PIX
+  and recurring credit card.
+- Automatic bank reconciliation ("zero manual reconciliation" — Sponte).
+- Automated dunning workflow (reminders by email/SMS/WhatsApp before and after
+  the due date).
+- Integrated electronic invoice issuance (NF-e/NFS-e/NFC-e).
+- Delinquency panel by class/grade/period.
+- Accounts payable/receivable, cash flow (in the more complete ERPs).
+- 100% online enrollment/re-enrollment, with digital contract and form.
 
-Diferenciais de ponta encontrados:
+Leading-edge differentiators found:
 
-- **Sponte "Mensalidade Garantida"**: programa em que a Sponte assume o risco
-  de inadimplência e garante 100% do recebimento à escola (produto
-  financeiro, não só software).
-- **Brightwheel (referência internacional)**: rastreamento de subsídios
-  governamentais por múltiplas agências pagadoras (não aplicável ao Brasil,
-  mas mostra granularidade de billing por múltiplos pagadores por aluno).
+- **Sponte "Mensalidade Garantida" (Guaranteed Tuition)**: a program in which
+  Sponte takes on the delinquency risk and guarantees 100% of receipts to the
+  school (a financial product, not just software).
+- **Brightwheel (international reference)**: tracking of government subsidies
+  across multiple paying agencies (not applicable to Brazil, but it shows
+  billing granularity across multiple payers per student).
 
-> Confirma a decisão do `vision.md` de que financeiro automatizado é
-> diferencial esperado, não opcional — é tabela de entrada no mercado.
+> Confirms the `vision.md` decision that automated billing is an expected
+> differentiator, not optional — it's the price of entry into the market.
 
-### 2.3 Secretaria / arquivo digital
+### 2.3 Registrar / digital archive
 
-- Matrícula e rematrícula online, sem papel.
-- Armazenamento digital de documentos do aluno (RG, CPF, declarações,
-  contratos, histórico).
-- Emissão de declarações e históricos em poucos cliques.
-- Controle de vagas por turma/série em tempo real.
-- Conformidade com exigências da Secretaria Escolar Digital do MEC (citada
-  explicitamente pela TOTVS como requisito regulatório, não diferencial).
+- Online enrollment and re-enrollment, paperless.
+- Digital storage of the student's documents (RG, CPF, declarations, contracts,
+  transcript).
+- Issuance of declarations and transcripts in a few clicks.
+- Real-time seat/vacancy control by class/grade.
+- Compliance with the requirements of the MEC's Secretaria Escolar Digital
+  (cited explicitly by TOTVS as a regulatory requirement, not a differentiator).
 
-> Nenhum concorrente pesquisado destaca "arquivo pronto para auditoria do
-> Conselho/Secretaria" como proposta de valor central — a maioria trata isso
-> como funcionalidade de secretaria genérica. Isso reforça que pode ser um
-> diferencial de posicionamento real para o School Lab, e não apenas uma
-> funcionalidade de commodity.
+> No researched competitor highlights "an archive ready for Conselho/Secretaria
+> auditing" as a central value proposition — most treat it as a generic
+> registrar feature. This reinforces that it may be a real positioning
+> differentiator for School Lab, and not just a commodity feature.
 
-> Nenhum concorrente pesquisado destaca "arquivo pronto para auditoria do
-> Conselho/Secretaria" como proposta de valor central — a maioria trata isso
-> como funcionalidade de secretaria genérica. O **Livro Ata** (registro formal
-> de atas) é exigência legal que o Conselho de Educação audita com frequência;
-> nenhum player pesquisado oferece Livro Ata digital com busca semântica —
-> oportunidade de diferencial forte na fase 2 do School Lab (validado com
-> stakeholder em jul/2026).
+> No researched competitor highlights "an archive ready for Conselho/Secretaria
+> auditing" as a central value proposition — most treat it as a generic
+> registrar feature. The **Livro Ata** (official minutes-record book) is a legal
+> requirement that the Conselho de Educação (Board of Education) audits
+> frequently; no researched player offers a digital Livro Ata with semantic
+> search — an opportunity for a strong differentiator in School Lab's phase 2
+> (validated with the stakeholder in Jul 2026).
 
-### 2.4 Livro Ata e atas formais
+### 2.4 Livro Ata and formal minutes
 
-Domínio pouco coberto pelos ERPs pesquisados — tratado como processo manual
-(secretaria) ou fora do sistema:
+A domain barely covered by the researched ERPs — handled as a manual process
+(registrar) or outside the system:
 
-- Escolas mantêm **Livro Ata** físico obrigatório (também comum em
-  condomínios e outras entidades).
-- Tipos recorrentes: ata de matrícula, Conselho de Classe, resultados finais,
-  reunião com pais, eventos/incidentes na escola.
-- Stakeholder (escola NSR): versão **100% digital é permitida** — livro físico
-  não é obrigatório, desde que haja **assinatura digital** válida.
-- Dor operacional: Conselho de Classe pode levar ~1 semana para fechar
-  assinaturas; workflow atual envolve gravação de áudio, transcrição e IA
-  (Claude) para gerar rascunho da ata.
-- Diferencial potencial: **busca semântica** no acervo de atas — stakeholder
-  considera que "uma galera de escola choraria de ver".
+- Schools keep a mandatory physical **Livro Ata** (also common in condominiums
+  and other entities).
+- Recurring types: enrollment minutes, Conselho de Classe (class council), final
+  results, parent meetings, events/incidents at the school.
+- Stakeholder (escola NSR): a **100% digital version is allowed** — the physical
+  book is not mandatory, as long as there is a valid **digital signature**.
+- Operational pain: the Conselho de Classe can take ~1 week to finalize
+  signatures; the current workflow involves audio recording, transcription, and
+  AI (Claude) to generate a minutes draft.
+- Potential differentiator: **semantic search** across the minutes archive — the
+  stakeholder believes "a bunch of schools would cry to see it."
 
-> Não encontrado em Sponte, TOTVS, Gennera, Agenda Edu ou ClassApp como
-> produto nativo. Pode ser diferencial de posicionamento real, não commodity.
+> Not found in Sponte, TOTVS, Gennera, Agenda Edu, or ClassApp as a native
+> product. It may be a real positioning differentiator, not a commodity.
 
-### 2.5 Contratos e assinatura digital
+### 2.5 Contracts and digital signature
 
-Não é feature nativa de a maioria dos ERPs — o mercado de assinatura
-eletrônica é um ecossistema paralelo (Clicksign, D4Sign, DocuSign) que os
-ERPs integram ou replicam:
+Not a native feature in most ERPs — the electronic-signature market is a
+parallel ecosystem (Clicksign, D4Sign, DocuSign) that ERPs integrate with or
+replicate:
 
-- **Sponte** tem assinatura eletrônica própria embutida para contratos e
-  aditivos.
-- **ClassApp** oferece "coleta de assinatura de contratos digitais" dentro do
-  próprio app de comunicação.
-- **Clicksign / D4Sign**: players especializados, com validade jurídica já
-  confirmada pelo STJ (REsp 2.159.442/PR, 2024) mesmo sem certificado
-  ICP-Brasil, desde que haja trilha de auditoria (IP, geolocalização,
-  e-mail, hash). D4Sign também oferece assinatura qualificada (ICP-Brasil)
-  para os casos que exigem por lei (ex.: atos societários).
+- **Sponte** has its own built-in electronic signature for contracts and
+  amendments.
+- **ClassApp** offers "digital contract signature collection" within its own
+  communication app.
+- **Clicksign / D4Sign**: specialized players, with legal validity already
+  confirmed by the STJ (REsp 2.159.442/PR, 2024) even without an ICP-Brasil
+  certificate, provided there is an audit trail (IP, geolocation, email, hash).
+  D4Sign also offers a qualified signature (ICP-Brasil) for cases that require it
+  by law (e.g., corporate acts).
 
-> Relevante para a pergunta em aberto "assinatura própria vs. terceiros" em
-> `docs/open-questions.md`: o mercado mostra as duas abordagens convivendo —
-> ERPs maiores tendem a embutir assinatura própria (retém o cliente dentro
-> da plataforma); ERPs menores/mais novos integram via API com Clicksign/D4Sign.
+> Relevant to the open question "proprietary signature vs. third parties" in
+> `docs/open-questions.md`: the market shows both approaches coexisting — larger
+> ERPs tend to embed their own signature (keeping the customer inside the
+> platform); smaller/newer ERPs integrate via API with Clicksign/D4Sign.
 
-### 2.6 Comunicação (chat, comunicados, confirmação de leitura)
+### 2.6 Communication (chat, announcements, read receipts)
 
-Domínio dominado por players especializados em comunicação (Agenda Edu,
-ClassApp, Olá Pais), que os ERPs de gestão frequentemente integram via API em
-vez de construir do zero:
+A domain dominated by players specialized in communication (Agenda Edu,
+ClassApp, Olá Pais), which management ERPs frequently integrate via API instead
+of building from scratch:
 
-- **Comunicados em massa** com confirmação de leitura obrigatória
-  ("assinatura digital"/"visto") e dashboard de quem leu/não leu — recurso
-  citado por todos os players de comunicação pesquisados.
-- **Comunicados individuais/segmentados**: por aluno, turma ou responsável
-  específico (Agenda Edu).
-- **Canais de mensagem 1:1** entre pais e professor/turma, com histórico e
-  moderação: administradores/coordenação têm acesso a todas as mensagens
-  enviadas (ClassApp) — relevante para a pergunta de auditoria de acesso do
-  `open-questions.md`.
-- **Canais de atendimento** (tipo ticket) separados de canais de mensagem
-  1:1, para organizar volume alto de solicitações à secretaria (Agenda Edu,
-  Olá Pais).
-- **Horário de atendimento configurável**: a escola define dias/horários em
-  que mensagens são respondidas, para não gerar expectativa de resposta 24/7
-  — resposta direta à pergunta aberta sobre "silenciar fora do expediente" em
+- **Mass announcements** with mandatory read receipts ("digital
+  signature"/"seen") and a dashboard of who read/didn't read — a feature cited
+  by all the researched communication players.
+- **Individual/segmented announcements**: by student, class, or specific guardian
+  (Agenda Edu).
+- **1:1 message channels** between parents and teacher/class, with history and
+  moderation: admins/coordination have access to all sent messages (ClassApp) —
+  relevant to the access-auditing question in `open-questions.md`.
+- **Service channels** (ticket-like) separate from 1:1 message channels, to
+  organize a high volume of requests to the registrar (Agenda Edu, Olá Pais).
+- **Configurable service hours**: the school defines the days/hours in which
+  messages are answered, so as not to create an expectation of 24/7 replies — a
+  direct answer to the open question about "silencing outside working hours" in
   `docs/open-questions.md`.
-- **Indicadores de satisfação** por atendimento concluído (CSAT) — Agenda
-  Edu.
-- **Eventos com confirmação de presença**, separados de comunicados gerais.
-- **Grupos internos da equipe** para substituir WhatsApp interno.
-- **Enquetes/pesquisas de satisfação** com a comunidade escolar (ClassApp).
+- **Satisfaction indicators** per completed service (CSAT) — Agenda Edu.
+- **Events with attendance confirmation**, separate from general announcements.
+- **Internal team groups** to replace internal WhatsApp.
+- **Polls/satisfaction surveys** with the school community (ClassApp).
 
-> Nenhum player citou "escalonamento automático para coordenação se o
-> professor não responde em X tempo" como recurso existente — parece ser uma
-> lacuna do mercado, não só do School Lab (pergunta ainda em aberto no
-> `open-questions.md`).
+> No player cited "automatic escalation to coordination if the teacher doesn't
+> reply within X time" as an existing feature — it seems to be a market gap, not
+> just a School Lab one (a question still open in `open-questions.md`).
 
-### 2.7 Rotina diária (educação infantil / berçário)
+### 2.7 Daily routine (early childhood education / nursery)
 
-Domínio onde há dois grupos de concorrentes: apps brasileiros
-generalistas de comunicação que adicionaram rotina (Olá Pais, ClassApp,
-Agenda Edu, Kix) e players 100% focados em creche (Lápis 360 Baby no Brasil;
-Brightwheel/HiMama internacionalmente, como referência de maturidade de
-produto).
+A domain with two groups of competitors: generalist Brazilian communication apps
+that added routine (Olá Pais, ClassApp, Agenda Edu, Kix) and players 100%
+focused on daycare (Lápis 360 Baby in Brazil; Brightwheel/HiMama
+internationally, as a reference for product maturity).
 
-Funcionalidades recorrentes:
+Recurring features:
 
-- Registro por criança de alimentação, sono, higiene/fralda, saúde e humor,
-  enviado aos pais em tempo real ou por resumo.
-- Cardápio do dia/semana/mês compartilhado com os pais, com registro de
-  quanto a criança comeu de cada refeição (Olá Pais).
-- Galeria de fotos/vídeos privada e segura ("Momentos" no ClassApp) — com
-  reações tipo "curtida" dos pais (Brightwheel).
-- **Registro rápido otimizado para mobile**: interface por "swipe e tap" para
-  o professor registrar a turma toda em menos de um minuto (Kix); registro
-  em lote para vários alunos de uma vez (Brightwheel: "record actions for
-  one, some, or all children").
-- Controle de medicação e registro de ocorrências/incidentes ao longo do dia
-  (Brightwheel "incident reports"; Lápis 360 "diário de bordo").
-- Relatório diário consolidado por e-mail, agendável (Brightwheel "Daily
-  Report Emails" — os pais optam por receber ou não).
-- Check-in/check-out digital da criança (chegada/saída), presente no
-  Brightwheel — não visto nos players brasileiros pesquisados.
+- Per-child logging of meals, sleep, hygiene/diaper, health, and mood, sent to
+  parents in real time or as a summary.
+- Day/week/month menu shared with parents, recording how much of each meal the
+  child ate (Olá Pais).
+- Private, secure photo/video gallery ("Momentos" in ClassApp) — with "like"-type
+  reactions from parents (Brightwheel).
+- **Fast, mobile-optimized logging**: a "swipe and tap" interface for the teacher
+  to log the whole class in under a minute (Kix); batch logging for several
+  students at once (Brightwheel: "record actions for one, some, or all
+  children").
+- Medication control and logging of occurrences/incidents throughout the day
+  (Brightwheel "incident reports"; Lápis 360 "diário de bordo" — logbook).
+- Consolidated daily report by email, schedulable (Brightwheel "Daily Report
+  Emails" — parents opt in to receive them or not).
+- Digital child check-in/check-out (arrival/departure), present in Brightwheel —
+  not seen in the researched Brazilian players.
 
-> Achados relevantes para as perguntas abertas do School Lab:
-> - **Notificação em tempo real x resumo diário**: o mercado (Brightwheel)
->   resolve com os dois ao mesmo tempo — feed em tempo real + e-mail de
->   resumo diário opcional (pais escolhem).
-> - **Granularidade do registro**: Brightwheel permite registrar por evento
->   pontual (cada refeição, cada troca) e por lote (turma toda de uma vez);
->   Kix aposta 100% em velocidade de registro em lote como diferencial de
->   adoção pelo professor.
-> - **Fotos do dia — feature de rotina ou de arquivo?**: nos concorrentes,
->   fotos/vídeos do dia a dia vivem dentro do módulo de comunicação/rotina
->   (efêmero, foco em engajamento), não no módulo de arquivo/auditoria
->   (documentos formais). Sugere que, no School Lab, "fotos do dia" e
->   "arquivo digital" podem ser modelados como coisas distintas.
+> Findings relevant to School Lab's open questions:
+> - **Real-time notification vs. daily summary**: the market (Brightwheel) solves
+>   it with both at once — a real-time feed + an optional daily-summary email
+>   (parents choose).
+> - **Logging granularity**: Brightwheel allows logging by discrete event (each
+>   meal, each change) and by batch (the whole class at once); Kix bets 100% on
+>   batch-logging speed as a differentiator for teacher adoption.
+> - **Photos of the day — a routine feature or an archive feature?**: in
+>   competitors, day-to-day photos/videos live inside the communication/routine
+>   module (ephemeral, engagement-focused), not in the archive/audit module
+>   (formal documents). This suggests that, in School Lab, "photos of the day"
+>   and "digital archive" may be modeled as distinct things.
 
-### 2.8 Multi-escola / backoffice de plataforma
+### 2.8 Multi-school / platform backoffice
 
-Nenhum dos concorrentes pesquisados é claramente **multi-tenant desde a
-concepção** com um backoffice de operador de plataforma administrando várias
-escolas-cliente (o desenho do School Lab). Sponte, TOTVS e Gennera vendem
-uma instância por escola/rede (multi-unidade dentro do mesmo grupo
-educacional, mas não multi-tenant no sentido de plataforma-como-produto para
-escolas de terceiros). Isso é consistente com o princípio "multi-escola
-desde o dia 1" do `docs/vision.md` como diferencial estrutural, e não algo
-para copiar de um concorrente específico.
+None of the researched competitors is clearly **multi-tenant by design** with a
+platform-operator backoffice administering multiple client schools (School Lab's
+design). Sponte, TOTVS, and Gennera sell one instance per school/network
+(multi-unit within the same educational group, but not multi-tenant in the sense
+of a platform-as-product for third-party schools). This is consistent with the
+"multi-school from day 1" principle in `docs/vision.md` as a structural
+differentiator, and not something to copy from a specific competitor.
 
-## 3. Tabela-resumo comparativa
+## 3. Comparative summary table
 
-| Funcionalidade | Sponte | TOTVS Educacional | Gennera | Agenda Edu / ClassApp | Brightwheel (ref. internacional) | School Lab (proposta) |
+| Feature | Sponte | TOTVS Educacional | Gennera | Agenda Edu / ClassApp | Brightwheel (int'l ref.) | School Lab (proposal) |
 |---|---|---|---|---|---|---|
-| Notas / diário de classe | Sim | Sim | Sim | Não (integra via API) | Não (foco creche) | Sim (MVP) |
-| Frequência/chamada | Sim | Sim | Sim | Parcial | Sim (check-in/out) | Sim (MVP) |
-| Boleto/PIX automatizado | Sim | Sim | Sim | Parcial (via integração) | Sim (billing) | Sim (MVP) |
-| Nota fiscal eletrônica | Sim | Sim | Sim | Não | N/A (EUA) | Não definido |
-| Arquivo digital / auditoria | Parcial (secretaria) | Parcial (secretaria) | Parcial | Não | Não | Sim (MVP) — diferencial de posicionamento |
-| Livro Ata digital + busca semântica | Não | Não | Não | Não | Não | Fase 2 — prioridade alta (stakeholder) |
-| Contratos + assinatura digital | Sim (própria) | Não claro | Não claro | Sim (ClassApp) | Não | Fase 2 (compartilha infra com Livro Ata) |
-| Comunicados em massa + confirmação de leitura | Parcial (app) | Parcial (app) | Não destacado | Sim (núcleo do produto) | Parcial (mensagens) | Fase 2 |
-| Chat 1:1 pai↔professor/escola (com imagem) | Não (via app parceiro) | Não (via app) | Não | Parcial (sem imagem destacada) | Sim (mensagens) | Sim (MVP) |
-| Rotina diária estruturada (creche/infantil) | Não | Não | Não | Sim (parcial) | Sim (núcleo do produto) | Fase 2 (comunicação cobre infantil no MVP) |
-| Multi-tenant plataforma p/ várias escolas-cliente | Não (instância por escola) | Não | Não | Sim (é a própria natureza do produto) | Sim (é a própria natureza do produto) | Sim (princípio de arquitetura) |
+| Grades / class diary | Yes | Yes | Yes | No (integrates via API) | No (daycare focus) | Yes (MVP) |
+| Attendance | Yes | Yes | Yes | Partial | Yes (check-in/out) | Yes (MVP) |
+| Automated boleto/PIX | Yes | Yes | Yes | Partial (via integration) | Yes (billing) | Yes (MVP) |
+| Electronic invoice | Yes | Yes | Yes | No | N/A (US) | Not defined |
+| Digital archive / auditing | Partial (registrar) | Partial (registrar) | Partial | No | No | Yes (MVP) — positioning differentiator |
+| Digital Livro Ata + semantic search | No | No | No | No | No | Phase 2 — high priority (stakeholder) |
+| Contracts + digital signature | Yes (proprietary) | Unclear | Unclear | Yes (ClassApp) | No | Phase 2 (shares infra with Livro Ata) |
+| Mass announcements + read receipts | Partial (app) | Partial (app) | Not highlighted | Yes (product core) | Partial (messages) | Phase 2 |
+| 1:1 parent↔teacher/school chat (with image) | No (via partner app) | No (via app) | No | Partial (image not highlighted) | Yes (messages) | Yes (MVP) |
+| Structured daily routine (daycare/early childhood) | No | No | No | Yes (partial) | Yes (product core) | Phase 2 (communication covers early childhood in the MVP) |
+| Multi-tenant platform for multiple client schools | No (instance per school) | No | No | Yes (the very nature of the product) | Yes (the very nature of the product) | Yes (architecture principle) |
 
-## 4. O que isso muda nas perguntas abertas
+## 4. What this changes in the open questions
 
-Itens incorporados em `docs/open-questions.md` e `docs/vision.md` após
-validação com stakeholder (jul/2026). Demais achados do levantamento:
+Items incorporated into `docs/open-questions.md` and `docs/vision.md` after
+stakeholder validation (Jul 2026). Other findings from the survey:
 
-- **Arquivo digital como diferencial**: nenhum concorrente vende isso como
-  proposta central; fortalece a tese do `vision.md`, mas também significa que
-  não há um "padrão de mercado" pronto para copiar — a modelagem de
-  documentos exigidos pela Secretaria/Conselho precisa ser levantada
-  diretamente com escolas, não inferida de concorrentes.
-- **Livro Ata digital**: lacuna de mercado confirmada; stakeholder validou
-  que versão digital é permitida com assinatura digital; busca semântica é
-  diferencial não oferecido por concorrentes pesquisados.
-- **Assinatura de contratos/atas**: mercado valida as duas rotas (própria vs.
-  Clicksign/D4Sign/DocuSign); ambas têm validade jurídica reconhecida pelo STJ
-  sem ICP-Brasil, desde que haja trilha de auditoria. Stakeholder exige
-  equivalência ao padrão DocuSign/Authentique aceito pelo cartório.
-- **Comunicação — horário de atendimento e escalonamento**: "silenciar fora
-  do expediente" já é prática comum (Agenda Edu, Olá Pais); "escalonamento
-  automático se o professor não responde" não foi encontrado em nenhum
-  concorrente — pode ser tratado como P2 sem risco de ficar atrás do mercado.
-- **Rotina diária — tempo real x resumo**: não é dilema binário no mercado
-  líder (Brightwheel) — ambos convivem, com o pai escolhendo a preferência.
-- **Fotos do dia**: concorrentes tratam como parte do módulo de
-  comunicação/rotina, não do arquivo/auditoria formal — sugere dois
-  repositórios/modelos de dados distintos no School Lab.
+- **Digital archive as a differentiator**: no competitor sells this as a central
+  proposition; it strengthens the `vision.md` thesis, but it also means there is
+  no ready-made "market standard" to copy — the modeling of documents required
+  by the Secretaria/Conselho needs to be gathered directly with schools, not
+  inferred from competitors.
+- **Digital Livro Ata**: market gap confirmed; the stakeholder validated that a
+  digital version is allowed with a digital signature; semantic search is a
+  differentiator not offered by the researched competitors.
+- **Contract/minutes signature**: the market validates both routes (proprietary
+  vs. Clicksign/D4Sign/DocuSign); both have legal validity recognized by the STJ
+  without ICP-Brasil, provided there is an audit trail. The stakeholder requires
+  equivalence to the DocuSign/Authentique standard accepted by the notary's
+  office.
+- **Communication — service hours and escalation**: "silencing outside working
+  hours" is already a common practice (Agenda Edu, Olá Pais); "automatic
+  escalation if the teacher doesn't reply" was not found in any competitor — it
+  can be treated as P2 without risk of falling behind the market.
+- **Daily routine — real time vs. summary**: it is not a binary dilemma for the
+  market leader (Brightwheel) — both coexist, with the parent choosing the
+  preference.
+- **Photos of the day**: competitors treat them as part of the
+  communication/routine module, not the formal archive/audit one — suggesting two
+  distinct repositories/data models in School Lab.
 
-## 5. Fontes
+## 5. Sources
 
-Levantamento via busca na web em 2026-07-09. Sites oficiais e páginas de
-funcionalidades dos produtos:
+Survey via web search on 2026-07-09. Official sites and product feature pages:
 
-- Sponte — sponte.com.br (funcionalidades, gestão financeira)
+- Sponte — sponte.com.br (features, financial management)
 - TOTVS Educacional — totvs.com/educacional
 - Gennera — gennera.com.br/blog
 - Agenda Edu — agendaedu.com.br
@@ -275,10 +268,10 @@ funcionalidades dos produtos:
 - Olá Pais — agenda.olapais.com.br
 - Kix — kix.com.br
 - Lápis 360 Baby — setasistemas.com.br
-- Brightwheel (referência internacional de creche/childcare) — mybrightwheel.com
-- Clicksign — clicksign.com; D4Sign — d4sign.com.br (validade jurídica de
-  assinatura eletrônica no Brasil, incl. jurisprudência do STJ)
+- Brightwheel (international daycare/childcare reference) — mybrightwheel.com
+- Clicksign — clicksign.com; D4Sign — d4sign.com.br (legal validity of
+  electronic signatures in Brazil, incl. STJ case law)
 
-> Este documento é um retrato do mercado no momento da pesquisa; produtos e
-> preços mudam com frequência. Revalidar antes de decisões de investimento
-> alto (ex.: escolher entre assinatura própria vs. terceiros).
+> This document is a snapshot of the market at the time of the research; products
+> and prices change frequently. Revalidate before high-investment decisions
+> (e.g., choosing between a proprietary signature vs. third parties).
