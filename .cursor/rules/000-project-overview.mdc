@@ -5,10 +5,10 @@ alwaysApply: true
 
 # School Lab — Project Overview
 
-Multi-school management SaaS for private Brazilian schools. Product UI locale is `pt-BR`; repository language is English (see `language-conventions` rule).
+Multi-school management SaaS for private Brazilian schools. Product UI locale is `pt-BR`; repository language is English (see `005-language-conventions` rule).
 
 ## Monorepo layout
-- `web/` — Rails 8 + Hotwire + Tailwind, plus the versioned REST API (single source of business rules). Stack is locked; see `web-rails` rule.
+- `web/` — Rails 8 + Hotwire + Tailwind, plus the versioned REST API (single source of business rules). Stack is locked; see `004-web-rails` rule.
 - `app/` — React Native mobile (intention, not finalized). Consumes the API; never duplicates business rules.
 - `docs/` — anchor docs, PRDs, guidelines. Source of truth for scope.
 
