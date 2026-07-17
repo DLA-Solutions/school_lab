@@ -11,3 +11,4 @@ alwaysApply: false
 - Write PRDs in **English**. Use Portuguese only for approved domain exceptions; gloss them on first use (see `docs/glossary.md`).
 - Suggested PRD order is in `product-map.md` §5. Communication is the MVP priority.
 - Unresolved decisions go to `docs/open-questions.md`; when a decision is made, record it in the relevant anchor doc and check the box.
+- Detailed process guidance (how to write a PRD, how modeling flows) lives in `docs/guidelines/process/`.
