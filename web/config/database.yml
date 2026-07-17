@@ -1,0 +1,40 @@
+# PostgreSQL (Docker Compose at repo root — see ../../README.md).
+#
+# Copy .env.example to .env and adjust if needed.
+# Defaults match docker-compose.yml credentials.
+
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
+  port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
+  username: <%= ENV.fetch("POSTGRES_USER", "school_lab") %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD", "school_lab") %>
+
+development:
+  <<: *default
+  database: school_lab_development
+
+test:
+  <<: *default
+  database: school_lab_test
+
+production:
+  primary: &primary_production
+    <<: *default
+    database: school_lab_production
+    username: school_lab
+    password: <%= ENV["SCHOOL_LAB_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: school_lab_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: school_lab_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: school_lab_production_cable
+    migrations_paths: db/cable_migrate
