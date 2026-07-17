@@ -3,7 +3,7 @@
 > Folder: `web/`
 > Status: finalized decision (web layer)
 
-A Rails 8 monolith with Hotwire for web surfaces and a versioned JSON REST API
+A Rails 8.1 monolith with Hotwire for web surfaces and a versioned JSON REST API
 for the mobile app. Many schools in the same system. Minimal infrastructure in
 the MVP: app + PostgreSQL + S3.
 
@@ -11,8 +11,10 @@ the MVP: app + PostgreSQL + S3.
 
 | Layer | Technology |
 |--------|------------|
-| Language | Ruby 3.3.x |
-| Framework | Rails 8.x |
+| Language | Ruby 4.0.x |
+| Framework | Rails 8.1.x |
+
+**Pinned versions (Jul 2026):** Ruby 4.0.5, Rails 8.1.3.
 | Web UI | Hotwire (Turbo + Stimulus) + Tailwind CSS |
 | Components | ViewComponent |
 | Database | PostgreSQL 16+ |
@@ -176,7 +178,7 @@ flowchart TB
         MobileApp[App React Native]
     end
 
-    subgraph web [web/ — Rails 8]
+    subgraph web [web/ — Rails 8.1]
         HTML[Controllers HTML]
         API[API v1 JSON]
         Services[Service Objects]
@@ -318,6 +320,7 @@ Items still open — see `docs/open-questions.md` (Web stack section):
 
 **Finalized decisions (Jul 2026):**
 
+- Language & framework: Ruby 4.0.5 (4.0.x line), Rails 8.1.3 (8.1.x line).
 - Push notifications: FCM + Solid Queue + state machine on the API.
 - Real-time (Solid Cable / Turbo Streams): phase 2 — not needed in the MVP.
 

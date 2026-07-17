@@ -1,12 +1,12 @@
 ---
-description: Rails 8 web layer conventions (locked stack)
+description: Rails 8.1 web layer conventions (locked stack)
 globs: web/**
 alwaysApply: false
 ---
 
-# web/ — Rails 8 Conventions
+# web/ — Rails 8.1 Conventions
 
-Stack is locked in `docs/web-stack.md`. Ruby 3.3, Rails 8. Granular coding standards live in `docs/guidelines/web/`.
+Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. Granular coding standards live in `docs/guidelines/web/`.
 
 ## Architecture
 - Business logic in **service objects** (`app/services/`, e.g. `Communication::SendMessage`). HTML and API controllers both delegate to services — no duplicated rules.
