@@ -5,7 +5,7 @@ alwaysApply: true
 
 # School Lab — Project Overview
 
-Multi-school management SaaS for private Brazilian schools. Product locale is `pt-BR`.
+Multi-school management SaaS for private Brazilian schools. Product UI locale is `pt-BR`; repository language is English (see `language-conventions` rule).
 
 ## Monorepo layout
 - `web/` — Rails 8 + Hotwire + Tailwind, plus the versioned REST API (single source of business rules). Stack is locked; see `web-rails` rule.
@@ -17,5 +17,5 @@ Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs 
 
 ## Ground rules
 - Business logic lives in the API layer (service objects), shared by web + mobile.
-- Data is isolated per school (`escola_id`); never leak data across schools.
+- Data is isolated per school (`school_id`); never leak data across schools.
 - When unsure about scope, check `docs/open-questions.md` before assuming.

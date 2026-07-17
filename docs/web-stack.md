@@ -28,7 +28,7 @@ The `web/` folder delivers two modes from the same business-rules base:
 
 | Mode | Consumer | Approach |
 |------|------------|-----------|
-| HTML + Hotwire | Browsers (backoffice, school, teacher, parents) | Server-rendered, Turbo, Stimulus |
+| HTML + Hotwire | Browsers (backoffice, school, teacher, guardian) | Server-rendered, Turbo, Stimulus |
 | JSON API | Mobile app (`app/`) | Versioned REST, token authentication |
 
 HTML and API controllers delegate to the same service objects — business rules
@@ -70,7 +70,7 @@ can't solve it.
 
 | Component | Decision |
 |------------|---------|
-| **Authorization** | Pundit — roles: backoffice, school, teacher, parents |
+| **Authorization** | Pundit — roles: backoffice, school, teacher, guardian |
 | **Per-school isolation** | To be defined in the modeling; enforcement via policies and services |
 
 ## 5. API for the mobile app

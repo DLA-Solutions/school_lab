@@ -31,6 +31,10 @@ Recorded from a conversation with the partner director (escola NSR). Details in
 
 - [x] **Teacher in the MVP: web and app together** — grades and lesson plans on
       web; messages and attendance on app (both channels available).
+- [x] **Repository language is English** — code, API, docs, and branch names use
+      English identifiers. Product UI stays `pt-BR` via i18n. Portuguese
+      identifiers only for approved domain exceptions (`docs/glossary.md`); ask
+      before adding new ones.
 
 ## MVP and scope
 

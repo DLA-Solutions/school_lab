@@ -1,0 +1,41 @@
+---
+description: Repository language — English by default; pt-BR only for product UI and approved domain exceptions
+alwaysApply: true
+---
+
+# Language Conventions
+
+Prompts and chat may be in any language. **Everything in the repository defaults to English.**
+
+## English (default)
+
+- Code: classes, methods, columns, enums, routes, services, policies, tests, factories.
+- API: JSON keys, error codes, query params (e.g. `school_id`, not `escola_id`).
+- Docs: anchor docs, PRDs, comments, commit messages, branch names, file names.
+- Naming: `snake_case` (Ruby/DB), `PascalCase` (classes/modules), `kebab-case` (branches).
+
+## pt-BR (product UI only)
+
+User-facing strings live in locale files (`config/locales/pt-BR.yml`). Code references i18n keys in English:
+
+```ruby
+t("billing.boleto.status.pending")  # => "Pendente"
+```
+
+Product locale is `pt-BR`; do not hardcode Portuguese in views, API responses, or error messages.
+
+## Portuguese identifiers (exceptions)
+
+Use a Portuguese identifier **only** when no accepted English equivalent exists for the Brazilian domain. Approved exceptions are listed in `docs/glossary.md`.
+
+Before introducing a **new** Portuguese identifier, ask the user to confirm context and the correct term. Do not guess.
+
+## Examples
+
+| Concept | Code | UI (pt-BR) |
+|---------|------|------------|
+| School | `school`, `school_id` | "Escola" |
+| Student | `student` | "Aluno" |
+| Attendance | `attendance` | "Chamada" |
+| Message | `message` | "Mensagem" |
+| Boleto | `boleto` | "Boleto" (exception — see glossary) |

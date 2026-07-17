@@ -38,6 +38,7 @@ finalized in `docs/web-stack.md`; the mobile app stack is still an intention.
 - `open-questions.md` — open questions.
 - `competitive-analysis.md` — informational survey of competitor features (not a
   decision anchor).
+- `glossary.md` — approved Portuguese domain exceptions and English code mappings.
 - `prds/` — domain PRDs (later phase) + `template.md`.
 
 ## 3. Organization principles
@@ -64,8 +65,8 @@ adjusted after stakeholder validation (Jul 2026 — communication as the MVP
 focus):
 
 1. Product vision & scope — what is / isn't the MVP.
-2. Multi-tenancy & schools — `escola_id`, isolation, school onboarding.
-3. Identity & roles — school, teacher, parents, backoffice; registration and
+2. Multi-tenancy & schools — `school_id`, isolation, school onboarding.
+3. Identity & roles — school, teacher, guardian, backoffice; registration and
    login.
 4. Students & enrollments — registration, family–student–class link.
 5. **Communication** — two-way messaging with images, push notifications.
