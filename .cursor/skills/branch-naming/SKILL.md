@@ -5,7 +5,7 @@ description: Pick or validate Git branch names following School Lab conventions 
 
 # Git Branch Naming
 
-Follow `.cursor/rules/005-git-branch-naming.mdc`. Format: `<prefix>/<short-kebab-slug>`.
+Follow `.cursor/rules/006-git-branch-naming.mdc`. Format: `<prefix>/<short-kebab-slug>`.
 
 ## Prefix decision tree
 
