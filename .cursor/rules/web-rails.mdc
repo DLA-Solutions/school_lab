@@ -9,8 +9,8 @@ alwaysApply: false
 Stack is locked in `docs/web-stack.md`. Ruby 3.3, Rails 8.
 
 ## Architecture
-- Business logic in **service objects** (`app/services/`, e.g. `Comunicacao::EnviarMensagem`). HTML and API controllers both delegate to services — no duplicated rules.
-- Authorization via **Pundit** policies (`app/policies/`); roles: backoffice, escola, professor, pais.
+- Business logic in **service objects** (`app/services/`, e.g. `Communication::SendMessage`). HTML and API controllers both delegate to services — no duplicated rules.
+- Authorization via **Pundit** policies (`app/policies/`); roles: backoffice, school, teacher, guardian.
 - Web UI: Hotwire (Turbo + Stimulus) + Tailwind + ViewComponent. Server-rendered HTML by default; add JS only when Turbo/Stimulus can't solve it.
 - API: REST JSON, versioned under `/api/v1`, JWT auth for mobile.
 
