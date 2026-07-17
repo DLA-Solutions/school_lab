@@ -11,3 +11,4 @@ React Native is the current **intention**, not a locked decision. Confirm before
 - Consumes the versioned REST API (`/api/v1`) with JWT; never re-implements business rules.
 - MVP surface: communication (messages with images), push notifications, boletos, and academic lookups for parents; messaging + attendance for teachers.
 - Keep parity of business behavior with `web/` by relying on the shared API.
+- Granular mobile standards (once the stack is confirmed) live in `docs/guidelines/app/`.

@@ -1,6 +1,6 @@
 # Glossary — Domain Terms
 
-Repository identifiers default to **English** (see `.cursor/rules/005-language-conventions.mdc`).
+Repository identifiers default to **English** (see `.cursor/rules/core/language-conventions.mdc`).
 This glossary lists **approved Portuguese exceptions** and maps common concepts to code names.
 
 ## Approved Portuguese identifiers
