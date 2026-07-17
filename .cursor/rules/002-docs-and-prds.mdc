@@ -7,7 +7,7 @@ alwaysApply: false
 # docs/ — Anchor Docs & PRDs
 
 - Anchor docs (`vision.md`, `actors-and-surfaces.md`, `product-map.md`, `web-stack.md`) are the source of truth. Keep them consistent with each other.
-- New domain requirements become PRDs in `docs/prds/`, following `docs/prds/template.md` (Objetivo, Contexto, Regras de Negócio, Casos de Uso, API, Erros, Banco, Eventos, Permissões, Critérios de Aceitação, Fora do Escopo).
+- New domain requirements become PRDs in `docs/prds/`, following `docs/prds/template.md` (Objective, Context, Business Rules, Use Cases, API, Errors, Database, Events, Permissions, Acceptance Criteria, Out of Scope).
+- Write PRDs in **English**. Use Portuguese only for approved domain exceptions; gloss them on first use (see `docs/glossary.md`).
 - Suggested PRD order is in `product-map.md` §5. Communication is the MVP priority.
 - Unresolved decisions go to `docs/open-questions.md`; when a decision is made, record it in the relevant anchor doc and check the box.
-- Respect `pt-BR` domain terms (escola, professor, pais, boleto, chamada, Livro Ata).
