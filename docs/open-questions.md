@@ -1,158 +1,165 @@
-# Perguntas em Aberto
+# Open Questions
 
-Backlog vivo de decisões que ainda não estão fechadas. Cada item deve virar
-decisão registrada (em vision/actors) ou PRD.
+A living backlog of decisions that aren't finalized yet. Each item should become
+a recorded decision (in vision/actors) or a PRD.
 
-## Decisões recentes (validação stakeholder — jul/2026)
+## Recent decisions (stakeholder validation — Jul 2026)
 
-Registradas a partir de conversa com diretor parceiro (escola NSR). Detalhes
-em `docs/vision.md` e `docs/actors-and-surfaces.md`.
+Recorded from a conversation with the partner director (escola NSR). Details in
+`docs/vision.md` and `docs/actors-and-surfaces.md`.
 
-- [x] **Comunicação entra no MVP** — prioridade #1 para o segundo semestre.
-      Mensagens bidirecionais pai↔professor e pai↔escola, com envio de imagens.
-      Áudio fora de escopo.
-- [x] **Push notification** — já existe no sistema atual; manter paridade no
-      MVP. Entrega via FCM + fila (Solid Queue) + máquina de estado na API.
-- [x] **Real-time não é necessário** — informação deve chegar em tempo hábil,
-      não em tempo real. Solid Cable / Turbo Streams ficam para fase 2.
-- [x] **Web e app no MVP** — ambos os canais desde o início.
-- [x] **Cadastro e login** — todos os papéis precisam de registro e autenticação.
-- [x] **Educação infantil no MVP** — comunicação cobre a necessidade principal;
-      rotina diária estruturada fica para fase posterior.
-- [x] **Frequência (chamada) no MVP** — já existe no legado; notificação
-      automática de ausência é crítica e deve ser confiável (falha gera
-      conflito jurídico).
-- [x] **Livro Ata pode ser 100% digital** — o livro físico não é obrigatório;
-      o requisito legal é **assinatura digital** válida. Conselho de Educação
-      audita esses registros com frequência.
+- [x] **Communication enters the MVP** — priority #1 for the second semester.
+      Two-way parent↔teacher and parent↔school messaging, with image sending.
+      Audio out of scope.
+- [x] **Push notification** — already exists in the current system; keep parity
+      in the MVP. Delivery via FCM + queue (Solid Queue) + state machine on the
+      API.
+- [x] **Real-time is not needed** — information must arrive in a timely manner,
+      not in real time. Solid Cable / Turbo Streams are left for phase 2.
+- [x] **Web and app in the MVP** — both channels from the start.
+- [x] **Registration and login** — all roles need registration and
+      authentication.
+- [x] **Early childhood education in the MVP** — communication covers the main
+      need; a structured daily routine is left for a later phase.
+- [x] **Attendance in the MVP** — already exists in the legacy system; automatic
+      absence notification is critical and must be reliable (a failure creates
+      legal conflict).
+- [x] **The Livro Ata (official minutes-record book) can be 100% digital** — the
+      physical book is not mandatory; the legal requirement is a valid **digital
+      signature**. The Conselho de Educação (Board of Education) audits these
+      records frequently.
 
-- [x] **Professor no MVP: web e app juntos** — notas e plano de aula no web;
-      mensagens e chamada no app (ambos os canais disponíveis).
+- [x] **Teacher in the MVP: web and app together** — grades and lesson plans on
+      web; messages and attendance on app (both channels available).
 
-## MVP e escopo
+## MVP and scope
 
-- [ ] Confirmar escopo completo do MVP: comunicação + acadêmico (notas,
-      boletim, chamada) + financeiro (boleto) + arquivo digital. O que fica
-      de fora neste primeiro corte?
-- [ ] Backoffice no MVP: só cadastro de escolas, ou também billing da plataforma?
-- [ ] Pais no MVP: só app, ou web também?
+- [ ] Confirm the full MVP scope: communication + academic (grades, report
+      cards, attendance) + billing (boleto) + digital archive. What is left out
+      in this first cut?
+- [ ] Backoffice in the MVP: only school registration, or also platform billing?
+- [ ] Parents in the MVP: app only, or web too?
 
-## Financeiro
+## Billing
 
-- [ ] Quem gera o boleto (escola manual x automático) e qual recorrência?
-- [ ] Integração de pagamento/emissão de boleto (banco, gateway)?
-- [ ] Tratamento de inadimplência (avisos, bloqueios)?
+- [ ] Who generates the boleto (school manually vs. automatically) and what
+      recurrence?
+- [ ] Payment/boleto-issuance integration (bank, gateway)?
+- [ ] Delinquency handling (notices, blocks)?
 
-## Arquivo digital / auditoria
+## Digital archive / auditing
 
-- [ ] Quais documentos a Secretaria/Conselho exige? (lista oficial)
-- [ ] Organização: por aluno, por turma, por ano letivo?
-- [ ] Retenção e versionamento de documentos?
+- [ ] Which documents does the Secretaria/Conselho require? (official list)
+- [ ] Organization: by student, by class, by school year?
+- [ ] Document retention and versioning?
 
-## Contratos, assinatura e Livro Ata (fase 2 — prioridade alta)
+## Contracts, signature, and Livro Ata (phase 2 — high priority)
 
-Stakeholder validou forte interesse. Livro Ata compartilha infra de assinatura
-digital com contratos.
+The stakeholder validated strong interest. The Livro Ata shares digital-
+signature infrastructure with contracts.
 
-- [ ] Assinatura própria vs. terceiros (DocuSign, Authentique, Clicksign)?
-      Proposta em avaliação: assinatura avançada própria com rabisco (campo
-      desenhado) + e-mail + IP + hash — precisa equivaler ao padrão aceito
-      pelo cartório (DocuSign/Authentique). Validação jurídica pendente
-      (Lei 14.063/2020).
-- [ ] Requisitos legais de validade jurídica no Brasil — confirmar com
-      advogado especializado antes de decidir própria vs. terceiro.
-- [ ] Tipos de ata no escopo inicial: matrícula, Conselho de Classe,
-      resultados finais, reunião com pais, eventos ocorridos na escola
-      (incidentes, quedas, etc.) — todos entram juntos ou por etapas?
-- [ ] Fluxo de geração da ata: template manual, formulário guiado, ou IA a
-      partir de transcrição de áudio/reunião (workflow atual do stakeholder:
-      gravação → transcrição → Claude com prompt → revisão)?
-- [ ] Integração com transcrição de reunião (Google Meet / ferramenta MCP) —
-      fase 2 ou posterior dentro do módulo?
-- [ ] Busca semântica no acervo de atas — tecnologia (pgvector, serviço
-      externo) e escopo (só atas ou todo arquivo digital)?
-- [ ] Impressão formatada para Livro Ata físico — ainda necessária mesmo com
-      versão digital válida, ou só para escolas que preferem arquivo híbrido?
-- [ ] Migração de atas históricas: escolas antigas têm volume grande no físico;
-      escolas com até ~5 anos teriam pouco backlog — oferecer serviço de
-      digitalização ou só "nascer digital"?
-- [ ] Conselho de Classe: quantos signatários por ata? Fluxo de coleta
-      paralela vs. sequencial para reduzir o prazo atual (~1 semana)?
+- [ ] Proprietary signature vs. third parties (DocuSign, Authentique,
+      Clicksign)? Proposal under evaluation: a proprietary advanced signature
+      with a scribble (drawn field) + email + IP + hash — it needs to match the
+      standard accepted by the notary's office (DocuSign/Authentique). Legal
+      validation pending (Lei 14.063/2020).
+- [ ] Legal requirements for legal validity in Brazil — confirm with a
+      specialized lawyer before deciding proprietary vs. third party.
+- [ ] Types of minutes in the initial scope: enrollment, Conselho de Classe
+      (class council), final results, parent meetings, events that occurred at
+      the school (incidents, falls, etc.) — do they all come in together or in
+      stages?
+- [ ] Minutes generation flow: manual template, guided form, or AI from an
+      audio/meeting transcript (the stakeholder's current workflow: recording →
+      transcription → Claude with a prompt → review)?
+- [ ] Integration with meeting transcription (Google Meet / MCP tool) — phase 2
+      or later within the module?
+- [ ] Semantic search across the minutes archive — technology (pgvector,
+      external service) and scope (minutes only or the entire digital archive)?
+- [ ] Formatted printing for a physical Livro Ata — still needed even with a
+      valid digital version, or only for schools that prefer a hybrid archive?
+- [ ] Migration of historical minutes: older schools have a large physical
+      volume; schools up to ~5 years old would have little backlog — offer a
+      digitization service or just "born digital"?
+- [ ] Conselho de Classe: how many signatories per set of minutes? Parallel vs.
+      sequential collection flow to reduce the current turnaround (~1 week)?
 
-## Acadêmico
+## Academic
 
-- [ ] Modelo de avaliação (bimestre, trimestre, conceitos x notas)?
-- [ ] Formato do relatório de boletim — template por escola ou padrão?
-- [ ] Regras de confiabilidade da chamada: validação antes de disparar push
-      de ausência; retry/idempotência; auditoria de notificações enviadas.
+- [ ] Assessment model (bimester, trimester, concepts vs. grades)?
+- [ ] Report card format — per-school template or standard?
+- [ ] Attendance reliability rules: validation before triggering an absence
+      push; retry/idempotency; auditing of sent notifications.
 
-## Educação infantil / Rotina diária (fase 2)
+## Early childhood education / Daily routine (phase 2)
 
-- [ ] Campos do registro: alimentação, sono, higiene/fralda, saúde, humor,
-      fotos, recados (confirmado como conjunto desejado — falta detalhar
-      granularidade de cada campo, ex.: alimentação por refeição ou geral)
-- [ ] Como diferenciar turma de "educação infantil" x "fundamental/médio" na
-      modelagem — por segmento da turma, por escola, ou configurável?
-- [ ] Frequência/granularidade de registro: por período do dia
-      (manhã/tarde) ou por evento pontual (cada troca de fralda, cada
-      refeição)?
-- [ ] Notificação aos pais: em tempo real a cada registro, ou resumo diário
-      consolidado?
-- [ ] Fotos do dia: entram nesta feature ou via mensagens com imagem
-      (módulo de comunicação)?
-- [ ] Retenção/histórico: por quanto tempo o histórico de rotina fica
-      disponível para os pais?
+- [ ] Record fields: meals, sleep, hygiene/diaper, health, mood, photos, notes
+      (confirmed as the desired set — still need to detail the granularity of
+      each field, e.g., meals per serving or overall)
+- [ ] How to distinguish an "early childhood education" class vs.
+      "elementary/high school" in the modeling — by class segment, by school, or
+      configurable?
+- [ ] Recording frequency/granularity: by period of the day (morning/afternoon)
+      or by discrete event (each diaper change, each meal)?
+- [ ] Notification to parents: in real time for each record, or a consolidated
+      daily summary?
+- [ ] Photos of the day: part of this feature or via messages with images
+      (communication module)?
+- [ ] Retention/history: for how long does the routine history stay available to
+      parents?
 
-## Comunicação
+## Communication
 
-Decisão de escopo fechada (entra no MVP). Pendências de detalhamento:
+Scope decision finalized (enters the MVP). Detailing to be resolved:
 
-- [ ] Tipos no MVP: chat 1:1 pai↔professor e pai↔escola — comunicados em
-      massa e comentários contextuais ficam para fase 2?
-- [ ] Comunicado em massa (fase 2): por escola toda, por turma, ou ambos?
-- [ ] Confirmação de leitura é obrigatória em comunicados? Vira registro
-      auditável (`docs/vision.md` — arquivo digital)?
-- [ ] Expectativa de horário de resposta do professor — como evitar
-      cobrança de disponibilidade 24/7? (silenciar fora do expediente,
-      aviso de "resposta no próximo dia útil")
-- [ ] Escalonamento: se professor não responde em X tempo, mensagem sobe
-      para coordenação/escola?
-- [ ] Notificações push: imediatas para tudo, ou só para urgente
-      (ex.: saúde, ausência) com resumo diário para o resto?
-- [ ] Isolamento: garantir que pai nunca veja conversa/comunicado de outra
-      família — enforcement via policy, igual isolamento entre escolas?
-- [ ] Limite de tamanho/resolução de imagens nas mensagens?
+- [ ] Types in the MVP: 1:1 parent↔teacher and parent↔school chat — do mass
+      announcements and contextual comments come in phase 2?
+- [ ] Mass announcement (phase 2): whole school, by class, or both?
+- [ ] Are read receipts mandatory in announcements? Do they become an auditable
+      record (`docs/vision.md` — digital archive)?
+- [ ] Teacher response-time expectations — how to avoid demands for 24/7
+      availability? (silence outside working hours, a "reply on the next
+      business day" notice)
+- [ ] Escalation: if a teacher doesn't reply within X time, does the message
+      escalate to coordination/school?
+- [ ] Push notifications: immediate for everything, or only for urgent items
+      (e.g., health, absence) with a daily summary for the rest?
+- [ ] Isolation: ensure a parent never sees another family's
+      conversation/announcement — enforcement via policy, like the isolation
+      between schools?
+- [ ] Size/resolution limit for images in messages?
 
-## LGPD / Privacidade
+## LGPD / Privacy
 
-- [ ] Base legal para tratamento de dados de crianças — quem consente
-      (responsável legal) e onde isso é registrado no cadastro do aluno?
-- [ ] Papéis LGPD: escola como controladora, DLA como operadora — precisa
-      de Encarregado de Dados (DPO)? De quem é a responsabilidade formal?
-- [ ] Dados sensíveis (saúde — campos de rotina infantil, remédios,
-      ocorrências): precisam de tratamento/retenção diferenciado dos
-      demais dados?
-- [ ] Retenção: por quanto tempo mensagens, fotos e registros de rotina
-      ficam guardados? O que acontece quando o aluno sai da escola?
-- [ ] Auditoria de acesso: registrar quem visualizou mensagens/comunicados
-      (relevante em caso de conflito escola↔família)?
-- [ ] Direitos do titular (acesso, correção, exclusão) exercidos pelo
-      responsável em nome da criança — fluxo definido?
-- [ ] Termo de consentimento/política de privacidade — texto jurídico
-      próprio ou apoio externo (jurídico especializado em educação)?
+- [ ] Legal basis for processing children's data — who consents (legal guardian)
+      and where is that recorded in the student's record?
+- [ ] LGPD (Brazil's data-protection law) roles: the school as controller, DLA
+      as processor — is a Data Protection Officer (DPO) needed? Whose is the
+      formal responsibility?
+- [ ] Sensitive data (health — early childhood routine fields, medications,
+      incidents): does it need differentiated processing/retention from other
+      data?
+- [ ] Retention: for how long are messages, photos, and routine records kept?
+      What happens when the student leaves the school?
+- [ ] Access auditing: record who viewed messages/announcements (relevant in
+      case of school↔family conflict)?
+- [ ] Data subject rights (access, correction, deletion) exercised by the
+      guardian on the child's behalf — is the flow defined?
+- [ ] Consent form / privacy policy — proprietary legal text or external support
+      (legal counsel specialized in education)?
 
-## GTM / negócio
+## GTM / business
 
-- [ ] Formato da parceria com o Sindicato (comercial, precificação)?
-- [ ] Modelo de cobrança da plataforma (por aluno, por escola, por plano)?
+- [ ] Format of the partnership with the Sindicato (commercial, pricing)?
+- [ ] Platform billing model (per student, per school, per plan)?
 
-## Stack web
+## Web stack
 
-Decisões fechadas em `docs/web-stack.md`. Pendências:
+Decisions finalized in `docs/web-stack.md`. Open items:
 
-- [ ] Serialização da API: `jsonapi-serializer` vs. `blueprinter`?
-- [ ] Auth web: Rails 8 Authentication Generator vs. Devise?
-- [ ] Provider de e-mail (Postmark, SES, etc.)?
-- [ ] Integração de boleto (gateway/banco)?
-- [ ] Quando adicionar Redis (só cache) — critério de escala?
-- [ ] Firebase Authentication — necessário ou auth próprio (JWT) basta?
+- [ ] API serialization: `jsonapi-serializer` vs. `blueprinter`?
+- [ ] Web auth: Rails 8 Authentication Generator vs. Devise?
+- [ ] Email provider (Postmark, SES, etc.)?
+- [ ] Boleto integration (gateway/bank)?
+- [ ] When to add Redis (cache only) — scaling criterion?
+- [ ] Firebase Authentication — needed, or is proprietary auth (JWT) enough?

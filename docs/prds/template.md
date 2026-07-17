@@ -1,62 +1,62 @@
-# PRD-001 - Cadastro de Usuários
+# PRD-001 - User Registration
 
-## Objetivo
+## Objective
 
-Permitir o cadastro de usuários da plataforma.
-
----
-
-## Contexto
-
-O sistema já possui autenticação JWT.
-
-Todo usuário pertence exatamente a uma empresa.
-
-A empresa sempre existe antes do usuário.
+Allow the registration of platform users.
 
 ---
 
-## Regras de Negócio
+## Context
+
+The system already has JWT authentication.
+
+Every user belongs to exactly one company.
+
+The company always exists before the user.
+
+---
+
+## Business Rules
 
 RN-001
 
-O email deve ser único.
+The email must be unique.
 
 RN-002
 
-O nome deve possuir entre 3 e 120 caracteres.
+The name must be between 3 and 120 characters.
 
 RN-003
 
-A senha deve possuir no mínimo 8 caracteres.
+The password must be at least 8 characters.
 
 RN-004
 
-A senha nunca deve ser retornada pela API.
+The password must never be returned by the API.
 
 RN-005
 
-O usuário inicia ativo.
+The user starts active.
 
 ---
 
-## Casos de Uso
+## Use Cases
 
-### Criar usuário
+### Create user
 
-Entrada
+Input
 
-- nome
+- name
 - email
-- senha
+- password
 
-Fluxo
+Flow
 
-1. Validar dados.
-2. Verificar email duplicado.
-3. Criptografar senha.
-4. Salvar usuário.
-5. Retornar usuário criado.
+1. Validate data.
+2. Check for a duplicate email.
+3. Encrypt the password.
+4. Save the user.
+5. Return the created user.
 
 ---
 
@@ -83,29 +83,29 @@ Response 201
 
 ---
 
-## Erros
+## Errors
 
 400
 
-Dados inválidos.
+Invalid data.
 
 409
 
-Email já cadastrado.
+Email already registered.
 
 500
 
-Erro interno.
+Internal error.
 
 ---
 
-## Banco
+## Database
 
-Tabela
+Table
 
 users
 
-Campos
+Fields
 
 id UUID
 
@@ -123,9 +123,9 @@ updated_at
 
 ---
 
-## Eventos
+## Events
 
-Após criar usuário:
+After creating a user:
 
 UserCreated
 
@@ -138,25 +138,25 @@ companyId
 
 ---
 
-## Permissões
+## Permissions
 
-Somente ADMIN pode criar usuários.
-
----
-
-## Critérios de Aceitação
-
-- Email duplicado retorna 409.
-- Senha nunca retorna.
-- Senha armazenada usando bcrypt.
-- Usuário inicia ativo.
+Only ADMIN can create users.
 
 ---
 
-## Fora do Escopo
+## Acceptance Criteria
 
-Reset de senha.
+- A duplicate email returns 409.
+- The password is never returned.
+- The password is stored using bcrypt.
+- The user starts active.
+
+---
+
+## Out of Scope
+
+Password reset.
 
 Login.
 
-Confirmação por email.
+Email confirmation.
