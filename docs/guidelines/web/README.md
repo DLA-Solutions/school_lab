@@ -1,4 +1,4 @@
-# Web Guidelines (Rails 8)
+# Web Guidelines (Rails 8.1)
 
 Granular coding standards for `web/`. **Complements** `docs/web-stack.md` (the locked stack
 and architecture) — it does not repeat it.

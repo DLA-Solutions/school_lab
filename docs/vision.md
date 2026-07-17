@@ -126,7 +126,7 @@ as the main focus, with academic stability and billing as complementary pillars.
 - Database modeling, API contracts, and events.
 - Supporting tools (e.g., Mintlify, Figma MCP) — decision to come later.
 
-> Web-layer stack finalized in `docs/web-stack.md` (Rails 8 + Hotwire +
+> Web-layer stack finalized in `docs/web-stack.md` (Rails 8.1 + Hotwire +
 > Tailwind + REST API).
 
 ## 8. Success metrics (draft)

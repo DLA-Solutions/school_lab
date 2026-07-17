@@ -26,7 +26,7 @@ Do not duplicate anchor-doc content; link to it.
 | Folder | Scope | Feeds |
 |--------|-------|-------|
 | `process/` | Cross-cutting workflow: docs → PRD → modeling → implementation, branch naming, language | `rules/core/**`, `rules/docs/**`, `skills/docs/**`, `skills/core/**` |
-| `web/` | Rails 8 coding standards granular to `web/` (complements `web-stack.md`, does not repeat it) | `rules/web/**`, `rails-implementer` agent |
+| `web/` | Rails 8.1 coding standards granular to `web/` (complements `web-stack.md`, does not repeat it) | `rules/web/**`, `rails-implementer` agent |
 | `app/` | Mobile standards — placeholder until the React Native stack is confirmed | `rules/app/**` |
 
 Add a context folder only when it has real content; keep folders lean.

@@ -1,0 +1,48 @@
+# Local infrastructure for School Lab (monorepo root).
+# Rails runs on the host; only backing services run in Docker.
+#
+# Variables are loaded from web/.env (see Makefile):
+#   cp web/.env.example web/.env
+#   make services-up
+
+name: school_lab
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: school_lab_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-school_lab}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-school_lab}
+      POSTGRES_DB: ${POSTGRES_DB:-school_lab_development}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U school_lab -d school_lab_development" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: school_lab_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,13 @@
+# Environment (per-surface — see web/.env.example and app/.env.example)
+web/.env
+web/.env.*
+!web/.env.example
+app/.env
+app/.env.*
+!app/.env.example
+
+# OS
+.DS_Store
+
+# Docker
+docker-compose.override.yml

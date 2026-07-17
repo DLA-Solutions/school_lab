@@ -84,7 +84,7 @@
 
 ### web (finalized decision)
 
-Rails 8 + Hotwire (Turbo + Stimulus) + Tailwind for HTML surfaces; a versioned
+Rails 8.1 + Hotwire (Turbo + Stimulus) + Tailwind for HTML surfaces; a versioned
 JSON REST API (`/api/v1`) for the mobile app. Details in `docs/web-stack.md`.
 
 - **Web (browser):** session + server-rendered HTML.

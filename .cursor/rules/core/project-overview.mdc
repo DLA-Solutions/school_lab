@@ -8,7 +8,7 @@ alwaysApply: true
 Multi-school management SaaS for private Brazilian schools. Product UI locale is `pt-BR`; repository language is English (see the `core/language-conventions` rule).
 
 ## Monorepo layout
-- `web/` — Rails 8 + Hotwire + Tailwind, plus the versioned REST API (single source of business rules). Stack is locked; see the `web/web-rails` rule.
+- `web/` — Rails 8.1 + Hotwire + Tailwind, plus the versioned REST API (single source of business rules). Stack is locked; see the `web/web-rails` rule.
 - `app/` — React Native mobile (intention, not finalized). Consumes the API; never duplicates business rules.
 - `docs/` — anchor docs, PRDs, guidelines. Source of truth for scope. Human-facing engineering standards live in `docs/guidelines/`.
 

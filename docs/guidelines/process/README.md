@@ -7,7 +7,7 @@ process rules and skills.
 
 ```
 anchor docs  ──▶  domain PRD  ──▶  data modeling (DSL → DER)  ──▶  implementation (web/)
- (validated)     docs/prds/         docs/modeling/                  Rails 8
+ (validated)     docs/prds/         docs/modeling/                  Rails 8.1
 ```
 
 - Do not implement a domain that lacks an approved PRD — flag it instead.
