@@ -1,16 +1,29 @@
 ---
-description: Data modeling conventions (DSL → DER) derived from approved PRDs
-globs: docs/modeling/**
+description: Data modeling conventions — narrative DSL + executable DBML/DER
+globs: docs/modeling/**,docs/database/**
 alwaysApply: false
 ---
 
-# docs/modeling/ — Data Modeling
+# docs/modeling/ + docs/database/ — Data Modeling
 
 Modeling comes after PRDs and before implementation (`docs/product-map.md` §4). Model only what an approved PRD defines.
 
-- Output lives in `docs/modeling/`, one file per domain: `NNN-<domain>.md` (mirror the PRD number).
-- Produce a concise **DSL** first (entities, fields, types, relationships), then derive the **DER** (Mermaid `erDiagram` preferred).
-- Enforce per-school isolation: entities carry `school_id` where applicable; enforce family-level isolation for communication.
-- Mark **LGPD-sensitive** fields (health, routine, medications, incidents, message content) and note retention needs.
-- Use English `snake_case` identifiers (`students`, `messages`, `boletos`). Portuguese only for approved glossary exceptions (`docs/glossary.md`); ask before adding new ones.
-- Use the `data-modeling` skill for the full procedure. Detailed guidance: `docs/guidelines/process/`.
+## Hybrid pattern
+
+| Output | Location | Purpose |
+|--------|----------|---------|
+| Narrative DSL | `docs/modeling/NNN-<domain>.md` | Entity groups, auth model, LGPD notes, scope boundaries |
+| Executable schema | `docs/database/database_dml.md` | DBML — canonical for migrations and models |
+| DER export | `docs/database/der_NNN.png` | Visual review; link from PRDs |
+
+Every PRD entity change must update `docs/database/` first, then align the narrative file.
+
+## Conventions
+
+- Mirror PRD number: `001-fintech-first.md` ↔ `der_001.png`.
+- DBML is the executable DER; Mermaid `erDiagram` remains valid for simple domains or sketches.
+- Enforce per-school isolation (`school_id`); family-level isolation for communication.
+- Mark LGPD-sensitive fields; note retention where legal is pending.
+- English `snake_case` identifiers; Portuguese only for glossary exceptions (`docs/glossary.md`).
+
+Use the `data-modeling` skill for the full procedure. Detailed guidance: `docs/guidelines/process/`.

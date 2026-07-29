@@ -15,5 +15,13 @@ description: Author a domain PRD for School Lab following docs/prds/template.md 
 ## Sections (from template)
 Objective, Context, Business Rules (BR-NNN), Use Cases, API, Errors, Database, Events, Permissions, Acceptance Criteria, Out of Scope.
 
+## Database section
+
+When modeling exists for the domain, link to:
+- Narrative DSL: `docs/modeling/NNN-<domain>.md`
+- Executable schema: `docs/database/database_dml.md` and `docs/database/der_NNN.png`
+
+Do not duplicate full table definitions in the PRD — reference the artifacts and list entity groups.
+
 ## See also
 Process guidance in `docs/guidelines/process/`.
