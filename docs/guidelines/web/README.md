@@ -13,13 +13,13 @@ and architecture) — it does not repeat it.
 - Agent-facing rule: `.cursor/rules/web/web-rails.mdc`.
 - Implementer agent: `rails-implementer`.
 
-## Standards to document here (as code is written)
+## Standards
 
+- **Testing** — behavior-focused RSpec; see [`testing.md`](testing.md). Rule: `rules/web/testing-rspec`. Skill: `write-rspec-spec`.
 - **Service objects** — naming (`Domain::Verb`), single public entry point, return objects/results, no controller logic leaking in.
 - **Controllers** — thin; API under `/api/v1`; delegate to services.
 - **API docs** — rswag request specs; `rake rswag:specs:swaggerize`.
 - **Policies (Pundit)** — per-school and per-family isolation; path `:school_id` + `me/` routes.
-- **Testing** — RSpec layout (model/service/request), FactoryBot conventions, Cuprite system specs.
 - **i18n** — keys in English, strings in `config/locales/pt-BR.yml`; no hardcoded Portuguese.
 - **Migrations / multi-tenancy** — `school_id` on tenant-scoped tables, indexing, foreign keys.
 
