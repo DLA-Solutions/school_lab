@@ -6,8 +6,14 @@ process rules and skills.
 ## The flow (source: `product-map.md` §4)
 
 ```
-anchor docs  ──▶  domain PRD  ──▶  data modeling (DSL → DER)  ──▶  implementation (web/)
- (validated)     docs/prds/         docs/modeling/                  Rails 8.1
+anchor docs  ──▶  domain PRD  ──▶  data modeling  ──▶  implementation (web/)
+ (validated)     docs/prds/         narrative + DBML         Rails 8.1
+                                      │
+                    docs/modeling/NNN-domain.md  (DSL narrative)
+                                      │
+                    docs/database/database_dml.md  (DBML)
+                                      │
+                    docs/database/der_NNN.png  (DER export)
 ```
 
 - Do not implement a domain that lacks an approved PRD — flag it instead.
@@ -24,9 +30,12 @@ anchor docs  ──▶  domain PRD  ──▶  data modeling (DSL → DER)  ─�
 
 ## Data modeling
 
-- Comes after the PRD, before code. Output in `docs/modeling/NNN-<domain>.md`.
-- Skill: `data-modeling`. Rule: `rules/docs/modeling`.
-- DSL first, then DER (Mermaid `erDiagram`). Enforce `school_id` isolation; mark LGPD-sensitive fields.
+- Comes after the PRD, before code.
+- **Narrative DSL** → `docs/modeling/NNN-<domain>.md` (entity groups, auth, LGPD, scope).
+- **Executable schema** → `docs/database/database_dml.md` (DBML); export **DER PNG** → `docs/database/der_NNN.png`.
+- Skill: `data-modeling`. Rules: `rules/docs/modeling`.
+- Mermaid `erDiagram` is fine for simple domains; DBML preferred when the schema grows.
+- Enforce `school_id` isolation; mark LGPD-sensitive fields.
 
 ## Language & naming
 

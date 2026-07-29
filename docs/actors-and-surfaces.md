@@ -82,18 +82,16 @@
 
 ## 5. Stack by channel
 
-### web (finalized decision)
+### web-ui + app (finalized decision)
 
-Rails 8.1 + Hotwire (Turbo + Stimulus) + Tailwind for HTML surfaces; a versioned
-JSON REST API (`/api/v1`) for the mobile app. Details in `docs/web-stack.md`.
+**React web** (`web-ui/`) and **React Native** (`app/`) both consume the same
+versioned JSON REST API (`/api/v1`) from Rails (`web/`). Details in `docs/web-stack.md`
+and `docs/api/README.md`.
 
-- **Web (browser):** session + server-rendered HTML.
-- **API (mobile app):** JWT + JSON.
-- Business rules shared via service objects.
-
-### app (intention)
-
-React Native — decision not yet finalized.
+- **Web (browser):** React SPA + JWT access + refresh httpOnly cookie.
+- **Mobile app:** React Native + JWT access + refresh in secure storage.
+- **API:** Devise credentials, JWT, OpenAPI via rswag.
+- Business rules shared via Rails service objects — clients stay thin.
 
 ### Principle
 

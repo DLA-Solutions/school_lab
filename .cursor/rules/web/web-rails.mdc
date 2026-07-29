@@ -6,23 +6,29 @@ alwaysApply: false
 
 # web/ — Rails 8.1 Conventions
 
-Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. Granular coding standards live in `docs/guidelines/web/`.
+Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. API conventions in `docs/api/README.md`.
 
 ## Architecture
-- Business logic in **service objects** (`app/services/`, e.g. `Communication::SendMessage`). HTML and API controllers both delegate to services — no duplicated rules.
+- Business logic in **service objects** (`app/services/`). API controllers delegate to services — no duplicated rules.
 - Authorization via **Pundit** policies (`app/policies/`); roles: backoffice, school, teacher, guardian.
-- Web UI: Hotwire (Turbo + Stimulus) + Tailwind + ViewComponent. Server-rendered HTML by default; add JS only when Turbo/Stimulus can't solve it.
-- API: REST JSON, versioned under `/api/v1`, JWT auth for mobile.
+- **No Hotwire UI** in `web/` — product web is React SPA in `web-ui/`.
+- API: REST JSON under `/api/v1`, JWT auth; OpenAPI via **rswag** request specs.
+- Clients: `web-ui/` (React) and `app/` (React Native) consume the same API.
+
+## Auth
+- Devise for credentials on `users`; JWT access + `refresh_tokens` table.
+- See `docs/modeling/002-api-auth.md` for TTL, rotation, and client transport.
 
 ## Infra defaults (MVP)
 - PostgreSQL 16+, Solid Queue (jobs), Solid Cache. No Redis/Sidekiq in MVP.
 - Active Storage → S3. Push via FCM, enqueued on Solid Queue, gated by a state machine.
+- rack-cors for `web-ui` origins.
 
 ## Testing
-RSpec (unit/model/service + request specs), Capybara + Cuprite (system), FactoryBot.
+RSpec (unit/model/service + **rswag** API request specs), FactoryBot.
 
-## Pending decisions — do not choose unilaterally
-Serialization (`jsonapi-serializer` vs `blueprinter`), web auth (Rails 8 gen vs Devise), and JSON key casing are open in `docs/open-questions.md`. Flag them instead of assuming.
+## Serialization
+**blueprinter** (provisional). Email provider and boleto gateway still open in `docs/open-questions.md`.
 
 ## Out of scope
-Separate JS SPA (React/Vue on web), GraphQL, microservices, Sidekiq/Redis for jobs.
+GraphQL, microservices, Sidekiq/Redis for jobs, server-rendered Hotwire as primary UI.

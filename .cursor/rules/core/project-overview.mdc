@@ -13,7 +13,7 @@ Multi-school management SaaS for private Brazilian schools. Product UI locale is
 - `docs/` — anchor docs, PRDs, guidelines. Source of truth for scope. Human-facing engineering standards live in `docs/guidelines/`.
 
 ## Working convention
-Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs (`docs/prds/`) → data modeling (DSL → DER) → implementation in `web/`. Do not implement domains that lack a PRD without flagging it.
+Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs (`docs/prds/`) → modeling (narrative in `docs/modeling/`) + database (DBML/DER in `docs/database/`) → implementation in `web/`. Do not implement domains that lack a PRD without flagging it.
 
 ## `.cursor` layout
 - `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming).

@@ -1,10 +1,10 @@
 # Web Stack — School Lab
 
-> Folder: `web/`
+> Folders: `web/` (Rails API), `web-ui/` (React SPA), `app/` (React Native)  
 > Status: finalized decision (web layer)
 
-A Rails 8.1 monolith with Hotwire for web surfaces and a versioned JSON REST API
-for the mobile app. Many schools in the same system. Minimal infrastructure in
+Rails 8.1 API monolith with a versioned JSON REST API consumed by **React web** and
+**React Native** clients. Many schools in the same system. Minimal infrastructure in
 the MVP: app + PostgreSQL + S3.
 
 ## 1. Summary
@@ -15,118 +15,131 @@ the MVP: app + PostgreSQL + S3.
 | Framework | Rails 8.1.x |
 
 **Pinned versions (Jul 2026):** Ruby 4.0.5, Rails 8.1.3.
-| Web UI | Hotwire (Turbo + Stimulus) + Tailwind CSS |
-| Components | ViewComponent |
+| API | REST JSON `/api/v1` |
+| Web UI | **React** SPA (`web-ui/`) — Vite |
+| Mobile UI | **React Native** (`app/`) |
+| API docs | **rswag** → OpenAPI (`swagger/v1/swagger.yaml`) |
 | Database | PostgreSQL 16+ |
 | Background jobs | Solid Queue (PostgreSQL) |
 | Cache | Solid Cache in the MVP; Redis optional at scale |
 | Storage | Active Storage → S3 |
 | Push notifications | Firebase Cloud Messaging (FCM) |
-| Locale | pt-BR |
+| Locale | pt-BR (API errors via i18n) |
 
-## 2. Two delivery modes
-
-The `web/` folder delivers two modes from the same business-rules base:
-
-| Mode | Consumer | Approach |
-|------|------------|-----------|
-| HTML + Hotwire | Browsers (backoffice, school, teacher, guardian) | Server-rendered, Turbo, Stimulus |
-| JSON API | Mobile app (`app/`) | Versioned REST, token authentication |
-
-HTML and API controllers delegate to the same service objects — business rules
-are not duplicated.
-
-## 3. Web frontend
+## 2. Monorepo layout
 
 ```
-┌─────────────────────────────────────────────────┐
-│  Views (ERB + ViewComponent) + Tailwind CSS       │
-├─────────────────────────────────────────────────┤
-│  Stimulus — local interactivity                   │
-│  (modals, masks, toggles, inline validation)      │
-├─────────────────────────────────────────────────┤
-│  Turbo Drive  — SPA-like navigation               │
-│  Turbo Frames — partial section updates           │
-│  Turbo Streams — real-time updates (phase 2)      │
-└─────────────────────────────────────────────────┘
+school_lab/
+  web/       # Rails — API, services, models, jobs (no Hotwire UI)
+  web-ui/    # React SPA — backoffice, school, teacher, guardian (web)
+  app/       # React Native — school, teacher, parents (mobile)
+  docs/api/  # API conventions + route narratives
 ```
 
-| Component | Role |
-|------------|-------|
-| **Hotwire (Turbo)** | Navigation and updates without a full SPA |
-| **Stimulus** | Minimal, declarative JS |
-| **Tailwind CSS** | Styling (gem `tailwindcss-rails`) |
-| **ViewComponent** | Reusable components (cards, tables, badges) |
-| **Propshaft** | Asset pipeline |
-| **importmap-rails** | JS without a heavy bundler |
+| Folder | Role |
+|--------|------|
+| `web/` | Single source of business rules; `/api/v1` only for product UI |
+| `web-ui/` | Consumes API with JWT; refresh via httpOnly cookie |
+| `app/` | Consumes same API; refresh in secure device storage |
 
-**Principle:** server-side HTML as the default. Only add JS when Turbo/Stimulus
-can't solve it.
+All product controllers delegate to the same service objects — rules are not duplicated.
 
-## 4. Authentication and authorization
+## 3. Web frontend (`web-ui/`)
+
+React SPA (planned: Vite + TypeScript + Tailwind).
+
+| Concern | Approach |
+|---------|----------|
+| Routing | React Router (or TanStack Router) |
+| API client | Fetch/axios + OpenAPI types (optional `openapi-typescript`) |
+| Auth | Access token in memory; refresh in httpOnly cookie |
+| State | Context / Zustand per feature |
+| Styling | Tailwind CSS |
+
+**Principle:** thin client — validation and business rules stay in the API.
+
+## 4. Mobile frontend (`app/`)
+
+React Native consuming the same `/api/v1` contract.
+
+| Concern | Approach |
+|---------|----------|
+| Auth | JWT access in memory; refresh in Keychain/Keystore |
+| Push | FCM device tokens via `POST /api/v1/me/device_tokens` |
+| API client | Shared patterns with `web-ui` where possible |
+
+## 5. Authentication and authorization
 
 | Channel | Mechanism |
 |-------|-----------|
-| **Web** | Session (cookie) — Rails 8 Authentication Generator or Devise |
-| **API (mobile app)** | JWT + refresh token |
+| **Web (`web-ui`)** | JWT access (Bearer) + refresh **httpOnly cookie** |
+| **Mobile (`app`)** | JWT access + refresh token (secure storage) |
+| **Credentials** | **Devise** on `users` (password, reset, lock) |
+
+Details: `docs/modeling/002-api-auth.md`.
+
+| Token | TTL |
+|-------|-----|
+| Access JWT | 20 minutes |
+| Refresh | 90 days sliding (180 with remember me) |
+| Rotation | New refresh on every refresh call |
 
 | Component | Decision |
 |------------|---------|
 | **Authorization** | Pundit — roles: backoffice, school, teacher, guardian |
-| **Per-school isolation** | To be defined in the modeling; enforcement via policies and services |
+| **Per-school isolation** | Path `/schools/:school_id/...` + Pundit + services |
+| **Per-family isolation** | Guardian `.../me/...` routes + policies |
 
-## 5. API for the mobile app
+## 6. API
 
 | Aspect | Decision |
 |---------|---------|
 | **Format** | REST JSON, versioned (`/api/v1/...`) |
-| **Serialization** | To be defined (`jsonapi-serializer` or `blueprinter`) |
-| **Contracts** | OpenAPI in `docs/api/` (later phase) |
+| **Serialization** | **blueprinter** (provisional) |
+| **Contracts** | OpenAPI via **rswag** request specs |
+| **Conventions** | `docs/api/README.md` |
+| **Fintech MVP routes** | `docs/api/v1/fintech-first.md` |
 
-## 6. Domain layer
+## 7. Domain layer
 
 | Layer | Tool | Example |
 |--------|------------|---------|
-| **Models** | ActiveRecord + validations | `Student`, `Grade`, `Payment`, `Message` |
-| **Services** | Plain Ruby objects | `Billing::GenerateBoleto`, `Communication::SendMessage` |
+| **Models** | ActiveRecord + validations | `Student`, `Charge`, `Payment` |
+| **Services** | Plain Ruby objects | `Billing::GenerateBoleto`, `Auth::IssueTokens` |
 | **Forms** | ActiveModel form objects | Student registration with guardian |
-| **Jobs** | ActiveJob + Solid Queue | Boleto issuance, email sending, push (FCM) |
-| **Notifications** | FCM + state machine | Reliable push; events validated before sending |
-| **Uploads** | Active Storage + S3 | Digital archive, images in messages |
+| **Jobs** | ActiveJob + Solid Queue | Boleto issuance, email, push (FCM) |
+| **Notifications** | FCM + state machine | Reliable push |
+| **Uploads** | Active Storage + S3 | Documents, message images |
 | **Auditing** | `paper_trail` or `audited` | History of grades and documents |
-| **Pagination** | Pagy | Student and boleto listings |
+| **Pagination** | Pagy | List endpoints |
 | **Search** | pg_search (MVP) | Search by name/CPF |
+| **Soft delete** | **discard** gem | `discarded_at` on domain tables |
 
-## 7. Supporting infrastructure
+## 8. Supporting infrastructure
 
 | Component | Technology | Notes |
 |------------|------------|-------|
-| **Database** | PostgreSQL 16+ | Data, queues (Solid Queue), and cache (Solid Cache) |
+| **Database** | PostgreSQL 16+ | Data, queues (Solid Queue), cache (Solid Cache) |
 | **Background jobs** | Solid Queue | ActiveJob; no Redis |
 | **Cache** | Solid Cache (MVP) → Redis (scale) | Redis optional, cache only |
-| **Real-time** | Solid Cable (phase 2) | Turbo Streams — not needed in the MVP |
-| **Push** | FCM via Solid Queue | Async delivery; does not require real-time |
-| **Storage** | Active Storage → S3 | Documents / auditing |
+| **Real-time** | WebSocket client (phase 2) | Polling or push-first in MVP |
+| **Push** | FCM via Solid Queue | Async delivery |
+| **Storage** | Active Storage → S3 | Documents |
 | **Server** | Puma | Rails default |
+| **CORS** | rack-cors | `web-ui` origins |
 
 ### Minimal infrastructure (MVP)
 
 ```
-Rails App  →  PostgreSQL  →  S3
+Rails API  →  PostgreSQL  →  S3
+web-ui SPA →  CDN or static host
+React Native → stores
 ```
-
-Redis comes in when there is evidence of need (slow dashboard, repeated reads).
-When it does, it is **cache only** — jobs stay on Solid Queue.
 
 ### Push notifications (finalized decision)
 
-Push delivery via **FCM** (Firebase Cloud Messaging), queued in **Solid Queue**.
-On the API, events pass through a **state machine** before triggering the push —
-this ensures notifications (e.g., attendance absence) only go out when the
-event's state is correct and confirmed.
-
-It does not require real-time (WebSocket/Solid Cable): the information must
-arrive in a timely manner, not instantly. Solid Cable is left for phase 2.
+Push delivery via **FCM**, queued in **Solid Queue**. Events pass through a **state
+machine** before triggering push.
 
 ```
 Event (e.g., attendance recorded)
@@ -137,49 +150,49 @@ Event (e.g., attendance recorded)
   → App receives push
 ```
 
-## 8. Testing
+## 9. Testing
 
 | Type | Tool |
-|------|------------|
+|------|------|
 | Unit / model / service | RSpec |
-| Request / API | RSpec request specs |
-| System (web) | Capybara + Cuprite |
+| API + OpenAPI | RSpec request specs + **rswag** |
+| Web UI | Vitest + React Testing Library (in `web-ui/`) |
+| Mobile | Jest + RN Testing Library (in `app/`) |
 | Factories | FactoryBot |
 
-## 9. Web surfaces
+## 10. Client surfaces
 
-| Surface | MVP | Note |
-|------------|-----|------------|
-| DLA backoffice | Yes | School registration, platform overview |
-| School admin | Yes | Classes, students, billing, documents, push |
-| Teacher | Yes | Grades, lesson plans, attendance, messages |
-| Parents (app) | Yes | Communication, boletos, grades, documents |
-| Parents (web) | Phase 2 | Priority on the mobile app in the MVP |
+| Surface | Channel | MVP |
+|---------|---------|-----|
+| DLA backoffice | `web-ui` | Yes |
+| School admin | `web-ui` (+ light `app`) | Yes |
+| Teacher | `web-ui` + `app` | Yes |
+| Parents | `app` (+ `web-ui` phase 2) | App first for boletos |
 
-## 10. Conventions
+## 11. Conventions
 
 - Service objects in `app/services/`
 - Policies in `app/policies/`
+- API controllers in `app/controllers/api/v1/`
 - Locale default: `pt-BR`
 
-## 11. Out of scope
+## 12. Out of scope
 
-- A separate JavaScript SPA (React/Vue on web)
 - GraphQL
 - Microservices
 - Redis for background jobs (Sidekiq)
+- Server-rendered Hotwire as primary web UI (superseded by React SPA)
 
-## 12. Architecture
+## 13. Architecture
 
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
-        Browser[Browser — Hotwire]
-        MobileApp[App React Native]
+        WebUI[web-ui React SPA]
+        MobileApp[app React Native]
     end
 
     subgraph web [web/ — Rails 8.1]
-        HTML[Controllers HTML]
         API[API v1 JSON]
         Services[Service Objects]
         Models[ActiveRecord]
@@ -190,14 +203,13 @@ flowchart TB
     subgraph infra [Infra]
         PG[(PostgreSQL)]
         Redis[(Redis — optional)]
-        S3[(S3 — documents)]
-        FCM[FCM — push]
+        S3[(S3)]
+        FCM[FCM]
     end
 
-    Browser -->|Turbo / Stimulus| HTML
-    MobileApp -->|JWT| API
+    WebUI -->|JWT + cookie refresh| API
+    MobileApp -->|JWT + secure refresh| API
 
-    HTML --> Services
     API --> Services
     Services --> Models
     Services --> Jobs
@@ -221,20 +233,15 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
-        Browser[Browser]
-        MobileApp[App React Native]
+        WebUI[web-ui]
+        MobileApp[app]
     end
 
-    subgraph presentation [Presentation — web/]
-        direction TB
-        Hotwire[Hotwire — Turbo + Stimulus]
-        Tailwind[Tailwind CSS]
-        VC[ViewComponent]
-        HTMLCtrl[Controllers HTML]
+    subgraph presentation [Presentation]
         API[API REST /api/v1]
     end
 
-    subgraph domain [Domain]
+    subgraph domain [Domain — web/]
         Services[Service Objects]
         Policies[Pundit]
         Models[ActiveRecord]
@@ -245,24 +252,14 @@ flowchart TB
         SolidQueue[Solid Queue]
     end
 
-    subgraph data [Data and storage]
+    subgraph data [Data]
         PG[(PostgreSQL)]
-        S3[(S3 — Active Storage)]
+        S3[(S3)]
     end
 
-    subgraph cache [Cache — optional]
-        SolidCache[Solid Cache — MVP]
-        RedisCache[Redis — scale]
-    end
-
-    Browser --> Hotwire
-    Hotwire --> HTMLCtrl
-    Tailwind --> HTMLCtrl
-    VC --> HTMLCtrl
-
+    WebUI --> API
     MobileApp --> API
 
-    HTMLCtrl --> Services
     API --> Services
     Services --> Policies
     Policies --> Models
@@ -273,64 +270,35 @@ flowchart TB
 
     Models --> PG
     Models --> S3
-
-    Services -.-> SolidCache
-    SolidCache -.-> PG
-    Services -.-> RedisCache
-    RedisCache -.-> Redis[(Redis)]
-
-    classDef optional stroke-dasharray: 5 5
-    class SolidCache,RedisCache,Redis optional
 ```
 
-### Infrastructure evolution
+## 14. Pending decisions
 
-```mermaid
-flowchart LR
-    subgraph mvp [MVP]
-        App1[Rails App]
-        PG1[(PostgreSQL)]
-        S31[(S3)]
-        App1 --> PG1
-        App1 --> S31
-    end
+See `docs/open-questions.md` (Web stack section):
 
-    subgraph scale [Scale]
-        App2[Rails App]
-        PG2[(PostgreSQL)]
-        Redis2[(Redis — cache)]
-        S32[(S3)]
-        App2 --> PG2
-        App2 --> Redis2
-        App2 --> S32
-    end
-
-    mvp -->|when needed| scale
-```
-
-## 13. Pending decisions
-
-Items still open — see `docs/open-questions.md` (Web stack section):
-
-- API serialization (`jsonapi-serializer` vs. `blueprinter`)
-- Web auth: Rails 8 Authentication Generator vs. Devise
 - Email provider (Postmark, SES, etc.)
 - Boleto integration (gateway/bank)
-- Firebase Authentication — needed, or is proprietary auth (JWT) enough?
+- When to add Redis (cache only)
 
 **Finalized decisions (Jul 2026):**
 
-- Language & framework: Ruby 4.0.5 (4.0.x line), Rails 8.1.3 (8.1.x line).
-- Push notifications: FCM + Solid Queue + state machine on the API.
-- Real-time (Solid Cable / Turbo Streams): phase 2 — not needed in the MVP.
+- Language & framework: Ruby 4.0.5, Rails 8.1.3.
+- **Web UI: React SPA** (`web-ui/`), not Hotwire.
+- **Mobile: React Native** (`app/`).
+- **One API** for web and mobile (`/api/v1`).
+- Auth: Devise credentials + JWT access + `refresh_tokens`.
+- Access 20 min; refresh 90 days sliding (180 remember me); rotation on refresh.
+- Web refresh: httpOnly cookie; mobile: secure storage.
+- API docs: **rswag** → OpenAPI.
+- Serialization: **blueprinter** (provisional).
+- Push: FCM + Solid Queue + state machine.
+- Real-time WebSockets: phase 2 — MVP uses push + polling.
 
-## 14. Phase 2 — technical directions (draft)
-
-Items not yet finalized — see `docs/open-questions.md` (Livro Ata):
+## 15. Phase 2 — technical directions (draft)
 
 | Component | Likely direction | Notes |
 |------------|------------------|-------|
-| **Digital signature** | Proprietary (scribble + email + IP + hash) or DocuSign/Authentique integration | Legal validation pending |
-| **Livro Ata** | Minutes model by type + signatory workflow | Shares signature infrastructure |
-| **Semantic search** | pgvector in PostgreSQL or an external service | Scope: minutes or the entire archive |
-| **Transcription / AI** | Meet integration or audio upload → draft generation | Later, within the module |
+| **Digital signature** | Proprietary or DocuSign/Authentique | Legal validation pending |
+| **Livro Ata** | Minutes + signatory workflow | Shares signature infra |
+| **Semantic search** | pgvector or external service | Minutes / archive |
+| **Real-time** | WebSocket or Action Cable for messages | Optional upgrade from push |
