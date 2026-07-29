@@ -25,7 +25,7 @@ Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. API conventions in 
 - rack-cors for `web-ui` origins.
 
 ## Testing
-RSpec (unit/model/service + **rswag** API request specs), FactoryBot.
+RSpec (model/service/policy + **rswag** request specs), FactoryBot. Test **behavior**, not implementation; avoid mocks except at external boundaries. See `docs/guidelines/web/testing.md` and rule `testing-rspec`.
 
 ## Serialization
 **blueprinter** (provisional). Email provider and boleto gateway still open in `docs/open-questions.md`.

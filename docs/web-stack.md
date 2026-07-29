@@ -160,6 +160,8 @@ Event (e.g., attendance recorded)
 | Mobile | Jest + RN Testing Library (in `app/`) |
 | Factories | FactoryBot |
 
+Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testing.md`.
+
 ## 10. Client surfaces
 
 | Surface | Channel | MVP |

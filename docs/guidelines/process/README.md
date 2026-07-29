@@ -46,3 +46,13 @@ anchor docs  ──▶  domain PRD  ──▶  data modeling  ──▶  impleme
 
 - `<prefix>/<short-kebab-slug>` with prefix `feature|fix|refactor|chore|docs`.
 - Rule: `rules/core/git-branch-naming`. Skill: `branch-naming`.
+
+## Design principles
+
+- SOLID, coupling/cohesion, cautious abstraction: [`design-principles.md`](design-principles.md).
+- Rule: `rules/core/design-principles`.
+
+## Implementation
+
+- Prerequisites, Context7 workflow, checklist: [`implementation.md`](implementation.md).
+- Rule: `rules/core/use-context7`. Skill: `consult-context7`.
