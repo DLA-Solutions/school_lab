@@ -1,5 +1,7 @@
 # Task Output Templates
 
+Gherkin rules: [gherkin.md](gherkin.md). Every acceptance criterion must use Given / When / Then.
+
 ## Single task
 
 ```markdown
@@ -14,18 +16,27 @@
 | Suggested branch | feature/short-slug |
 
 **Description**
-[1–3 sentences: what and why]
+[2–4 sentences: what, why, scope boundaries, assumptions made]
 
 **Acceptance criteria**
-- [ ] [Testable outcome]
-- [ ] [Testable outcome]
+
+### Scenario: [Happy path — short name]
+
+**Given** [actor + school context + data state]
+**When** [single action]
+**Then** [observable outcome]
+**And** [additional outcomes]
+
+### Scenario: [Negative or authorization case]
+
+**Given** [...]
+**When** [...]
+**Then** [...]
 ```
 
 ---
 
 ## Full decomposition output
-
-Use this structure when presenting to the user:
 
 ```markdown
 # Task plan — [Source name]
@@ -33,6 +44,8 @@ Use this structure when presenting to the user:
 **Source:** [path or conversation summary]
 **Mode:** roadmap | domain-plan | slice | incremental
 **Blocked decisions:** [list or "none"]
+**Assumptions:** [decisions made when source was silent, or "none — source is complete"]
+**Open questions for user:** [list or "none — ready for review"]
 
 ## Summary
 
@@ -53,7 +66,7 @@ T1 → T3 → T4
 ## Tasks
 
 ### T1: ...
-[full task block]
+[full task block with Gherkin scenarios]
 
 ### T2: ...
 ...
@@ -62,8 +75,6 @@ T1 → T3 → T4
 ---
 
 ## Roadmap mode (product / multi-domain)
-
-One epic-style task per domain, plus discovery:
 
 ```markdown
 ### T1: Write domain PRD — communication
@@ -75,11 +86,23 @@ One epic-style task per domain, plus discovery:
 | Source | product-map.md §5 item 5 |
 
 **Description**
-Author `docs/prds/005-communication.md` covering MVP messaging scope.
+Author `docs/prds/005-communication.md` covering MVP two-way messaging with images and push notifications for school, teacher, and guardian actors.
 
 **Acceptance criteria**
-- [ ] All template sections present per write-prd skill
-- [ ] Open questions flagged, not invented
+
+### Scenario: PRD covers all template sections
+
+**Given** `docs/prds/template.md` section list
+**When** `docs/prds/005-communication.md` is reviewed
+**Then** every required section is present in the correct order
+**And** business rules use BR-NNN identifiers
+
+### Scenario: Open questions are flagged not invented
+
+**Given** unresolved items in `docs/open-questions.md` affecting communication
+**When** the PRD addresses those topics
+**Then** each item is listed in Out of Scope or Open items with a link to `open-questions.md`
+**And** no speculative business rules close unresolved decisions
 ```
 
 ---
@@ -101,37 +124,45 @@ Typical task chain for a new domain:
 | 9 | Background jobs (if PRD defines events/async) |
 | 10 | web-ui / app surfaces (if in scope) |
 
+Each implementation task (rows 5–10) requires happy path + authorization/isolation scenarios per [gherkin.md](gherkin.md).
+
 ---
 
 ## GitHub issue grouping
 
-When creating issues from tasks, merge tasks that ship together:
-
-| Grouping | Example issue title |
-|----------|---------------------|
-| One migration + models | `Add billing charges schema and models` |
-| One service + policy + specs | `Implement Billing::CreateCharge service` |
-| API doc + rswag for a wave | `Document and spec billing charges API (wave 1)` |
-
-Issue body — link child acceptance criteria from merged tasks:
+When creating issues from approved tasks, merge tasks that ship together. **Preserve full Gherkin scenarios** — do not collapse into bullets.
 
 ```markdown
 ## Context
 Decomposed from `docs/prds/003-billing.md` (context-to-tasks T5–T7).
 
 ## Acceptance criteria
-- [ ] (from T5)
-- [ ] (from T6)
-- [ ] (from T7)
 
-## Tasks
-- [ ] T5: ...
-- [ ] T6: ...
-- [ ] T7: ...
+### Scenario: [from T5]
+**Given** ...
+**When** ...
+**Then** ...
+
+### Scenario: [from T5 — negative case]
+**Given** ...
+**When** ...
+**Then** ...
+
+### Scenario: [from T6]
+...
+
+## Traceability
+| Task | Source |
+|------|--------|
+| T5 | PRD §6.1, BR-003 |
+| T6 | PRD §6.1, UC Create charge |
+
+## Dependencies
+- Blocked by: #123
+- Blocks: #125
 
 ## Notes
-- Depends on #123 (schema PR)
-- Blocked: open-questions.md — PSP choice
+- open-questions.md — PSP choice still pending
 ```
 
 ---
