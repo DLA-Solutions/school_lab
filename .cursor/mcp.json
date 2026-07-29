@@ -2,6 +2,10 @@
   "mcpServers": {
     "context7": {
       "url": "https://mcp.context7.com/mcp/oauth"
+    },
+    "github": {
+      "command": "bash",
+      "args": ["${workspaceFolder}/.cursor/scripts/run-github-mcp.sh"]
     }
   }
 }
