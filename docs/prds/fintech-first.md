@@ -125,6 +125,8 @@ Foundational modeling for this PRD is **in progress** in this monorepo:
 | Executable schema (DBML) | [`docs/database/database_dml.md`](../database/database_dml.md) |
 | DER export (PNG) | [`docs/database/der_001.png`](../database/der_001.png) |
 | Narrative DSL + LGPD notes | [`docs/modeling/001-fintech-first.md`](../modeling/001-fintech-first.md) |
+| API auth lifecycle | [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md) |
+| API routes (v1) | [`docs/api/v1/fintech-first.md`](../api/v1/fintech-first.md) |
 
 **Entities in scope:**
 

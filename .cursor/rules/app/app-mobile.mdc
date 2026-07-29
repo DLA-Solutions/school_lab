@@ -4,11 +4,12 @@ globs: app/**
 alwaysApply: false
 ---
 
-# app/ — Mobile
+# app/ — Mobile (React Native)
 
-React Native is the current **intention**, not a locked decision. Confirm before scaffolding.
+Stack locked in `docs/web-stack.md`. Consumes `/api/v1` — see `docs/api/README.md` and `docs/modeling/002-api-auth.md`.
 
-- Consumes the versioned REST API (`/api/v1`) with JWT; never re-implements business rules.
-- MVP surface: communication (messages with images), push notifications, boletos, and academic lookups for parents; messaging + attendance for teachers.
-- Keep parity of business behavior with `web/` by relying on the shared API.
-- Granular mobile standards (once the stack is confirmed) live in `docs/guidelines/app/`.
+- JWT access in memory; refresh token in Keychain/Keystore (not localStorage).
+- Silent refresh before access expiry; retry once on 401.
+- Never re-implements business rules — parity with `web-ui/` via shared API.
+- MVP: boletos (guardian), messages, attendance (teacher), push (FCM).
+- Granular standards in `docs/guidelines/app/`.

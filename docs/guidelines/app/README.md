@@ -2,12 +2,12 @@
 
 Granular standards for `app/`.
 
-> Status: placeholder. React Native is an **intention, not a locked decision**
-> (`docs/actors-and-surfaces.md` §5, `docs/vision.md` §7). Confirm the stack before scaffolding,
-> then expand this document.
+> Status: placeholder. **React Native** is the decided mobile stack (`docs/web-stack.md`).
+> Expand as `app/` is scaffolded.
 
 ## Source of truth
 
+- Stack: `docs/web-stack.md`, `docs/api/README.md`, `docs/modeling/002-api-auth.md`.
 - Agent-facing rule: `.cursor/rules/app/app-mobile.mdc`.
 
 ## Principles (already decided)

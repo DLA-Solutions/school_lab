@@ -3,6 +3,21 @@
 A living backlog of decisions that aren't finalized yet. Each item should become
 a recorded decision (in vision/actors) or a PRD.
 
+## Recent decisions (API & clients — Jul 2026)
+
+Recorded from API planning session. Details in `docs/web-stack.md`, `docs/api/`,
+and `docs/modeling/002-api-auth.md`.
+
+- [x] **Web UI: React SPA** (`web-ui/`) — not Hotwire as primary UI.
+- [x] **Mobile: React Native** (`app/`) — same API contract as web.
+- [x] **One API** — `/api/v1` serves both `web-ui` and `app`.
+- [x] **API docs: rswag** — OpenAPI from request specs; Swagger UI in dev.
+- [x] **Auth: Devise + JWT** — access 20 min; refresh 90 days sliding (180 remember me);
+      rotation on refresh; web refresh in httpOnly cookie; mobile in secure storage.
+- [x] **Serialization: blueprinter** (provisional — revisit if JSON:API need emerges).
+- [x] **Tenant in path** — `/api/v1/schools/:school_id/...` for scoped resources.
+- [x] **Fintech-first API routes** documented in `docs/api/v1/fintech-first.md`.
+
 ## Recent decisions (stakeholder validation — Jul 2026)
 
 Recorded from a conversation with the partner director (escola NSR). Details in
@@ -168,10 +183,14 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
 
 Decisions finalized in `docs/web-stack.md`. Open items:
 
-- [x] **Web auth: Devise** — session on `users`; API JWT + `refresh_tokens`. Schema:
-      `docs/database/database_dml.md` (`users`, `memberships`, `refresh_tokens`).
-- [ ] API serialization: `jsonapi-serializer` vs. `blueprinter`?
+- [x] **Web UI** — React SPA in `web-ui/` (not Hotwire).
+- [x] **Mobile** — React Native in `app/`.
+- [x] **API** — single `/api/v1` for web and mobile; conventions in `docs/api/README.md`.
+- [x] **Web auth** — Devise credentials + JWT access + `refresh_tokens`. Schema:
+      `docs/database/database_dml.md`. Lifecycle: `docs/modeling/002-api-auth.md`.
+- [x] **API documentation** — rswag → OpenAPI.
+- [x] **API serialization** — blueprinter (provisional).
+- [x] **Firebase Authentication** — not used for login; FCM only for push.
 - [ ] Email provider (Postmark, SES, etc.)?
 - [ ] Boleto integration (gateway/bank)?
 - [ ] When to add Redis (cache only) — scaling criterion?
-- [ ] Firebase Authentication — needed, or is proprietary auth (JWT) enough?

@@ -112,13 +112,20 @@ Do not assume indefinite storage. Record final windows in this file and `docs/op
 
 | Channel | Mechanism |
 |---------|-----------|
-| Web (school admin, guardian portal) | Devise session on `users` |
-| API (mobile) | JWT + `refresh_tokens` (store digest only) |
+| Web (`web-ui/`) | JWT access + refresh httpOnly cookie |
+| Mobile (`app/`) | JWT access + refresh in secure storage |
+| Credential validation | Devise on `users` |
+
+Full token lifecycle, TTL, and evaluation order: [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md).
+API route map: [`docs/api/v1/fintech-first.md`](../api/v1/fintech-first.md).
 
 Guardian portal: `guardians.user_id` links profile to `users` after signup or invite acceptance.  
 Invite flow: create `membership` with `status: invited` → guardian registers → `status: active`, set `guardians.user_id`.
 
 ### Auth evaluation order
+
+See [`002-api-auth.md`](002-api-auth.md) for full JWT flow, TTL, and client transport.
+Per-request checks after JWT validation:
 
 1. `users.discarded_at` present → account removed
 2. `users.status == disabled` → platform-wide block (revoke active `refresh_tokens`)
