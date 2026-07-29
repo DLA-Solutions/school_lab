@@ -2,11 +2,19 @@
 // Fintech-first — executable schema (DBML)
 // Auth: Devise (web session) + refresh_tokens (API JWT)
 // Narrative DSL + LGPD notes: docs/modeling/001-fintech-first.md
+//
+// Soft delete: Discard gem — default column discarded_at (nullable timestamp).
+//   kept: discarded_at IS NULL — visible in app queries (Model.kept / default_scope).
+//   discarded: set via discard — hidden; FKs and audit history preserved.
+// Hard delete: scheduled job removes rows past retention (discarded_at + entity window).
+//   Financial/audit tables may skip Discard and purge only by age (see per-table notes).
+// Do not use Discard on ephemeral/ingress logs — use revoked_at, expires_at, or age-based purge.
 
 Table school_groups {
   id integer [primary key, increment]
   name varchar [note: 'Network/holding — optional']
   headquarters_cnpj varchar
+  discarded_at timestamp [note: 'Discard gem — null = kept']
   created_at timestamp
   updated_at timestamp
 }
@@ -18,6 +26,8 @@ Table schools {
   cnpj varchar
   address varchar
   saas_plan varchar
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
 }
@@ -26,7 +36,7 @@ Table schools {
 
 Table users {
   id integer [primary key, increment]
-  email varchar [not null, unique, note: 'LGPD: personal data — login identifier']
+  email varchar [not null, note: 'LGPD: personal data — partial unique WHERE discarded_at IS NULL']
   encrypted_password varchar [not null, default: '']
   reset_password_token varchar [unique]
   reset_password_sent_at timestamp
@@ -42,9 +52,17 @@ Table users {
   unconfirmed_email varchar
   failed_attempts integer [default: 0]
   unlock_token varchar [unique]
-  locked_at timestamp
+  locked_at timestamp [note: 'Devise lock — failed login attempts; distinct from status disabled']
+  status varchar [not null, default: 'active', note: 'active | disabled — platform-wide auth block; revokes refresh_tokens']
+  disabled_at timestamp [note: 'Set when status becomes disabled']
+  disabled_by_id integer [note: 'Backoffice user who disabled; nullable for system/job']
+  discarded_at timestamp [note: 'Discard gem — soft delete; purge after retention']
   created_at timestamp [not null]
   updated_at timestamp [not null]
+
+  indexes {
+    email [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+  }
 }
 
 Table memberships {
@@ -52,12 +70,15 @@ Table memberships {
   user_id integer [not null]
   school_id integer [note: 'Nullable for platform backoffice']
   role varchar [not null, note: 'backoffice | school | teacher | guardian']
-  status varchar [not null, default: 'active', note: 'active | invited | suspended']
+  status varchar [not null, default: 'active', note: 'active | invited | suspended — per-school only; global disable is users.status']
+  suspended_at timestamp [note: 'Set when status becomes suspended']
+  suspended_by_id integer [note: 'School admin who suspended; nullable for system/job']
+  discarded_at timestamp [note: 'Discard — removes school link; distinct from suspended']
   created_at timestamp
   updated_at timestamp
 
   indexes {
-    (user_id, school_id) [unique, note: 'One role per user per school']
+    (user_id, school_id) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
   }
 }
 
@@ -66,7 +87,7 @@ Table refresh_tokens {
   user_id integer [not null]
   token_digest varchar [not null, unique, note: 'Store hash only — never raw token']
   expires_at timestamp [not null]
-  revoked_at timestamp
+  revoked_at timestamp [note: 'No Discard — revoke + purge after expires_at']
   created_at timestamp
 }
 
@@ -80,6 +101,8 @@ Table guardians {
   cpf varchar [note: 'LGPD: sensitive personal data']
   email varchar [note: 'LGPD: contact email; may match users.email after signup']
   phone varchar [note: 'LGPD: personal data']
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
 }
@@ -89,7 +112,9 @@ Table students {
   school_id integer [not null]
   name varchar
   birth_date date [note: 'LGPD: child data — guardian consent required']
-  status varchar
+  status varchar [note: 'Enrollment state — e.g. active | transferred; distinct from discarded_at']
+  discarded_at timestamp [note: 'Discard gem — removed from active school records']
+  discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
 }
@@ -100,6 +125,7 @@ Table teachers {
   user_id integer [note: 'Set when teacher account is provisioned']
   name varchar
   status varchar [default: 'active']
+  discarded_at timestamp [note: 'Discard gem — null = kept']
   created_at timestamp
   updated_at timestamp
 }
@@ -110,8 +136,13 @@ Table student_guardians {
   student_id integer [not null]
   financial_percentage decimal
   primary_guardian boolean
+  discarded_at timestamp [note: 'Discard gem — unlink guardian↔student']
   created_at timestamp
   updated_at timestamp
+
+  indexes {
+    (guardian_id, student_id) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+  }
 }
 
 // --- Billing ---
@@ -122,6 +153,7 @@ Table billing_plans {
   name varchar
   plan_type varchar [note: 'tuition | enrollment | fee']
   base_amount decimal
+  discarded_at timestamp [note: 'Discard gem — archived plan']
   created_at timestamp
   updated_at timestamp
 }
@@ -135,6 +167,7 @@ Table contracts {
   starts_on date
   ends_on date
   status varchar [note: 'active | suspended | ended']
+  discarded_at timestamp [note: 'Discard gem — distinct from status ended']
   created_at timestamp
   updated_at timestamp
 }
@@ -149,7 +182,9 @@ Table charges {
   late_fee_amount decimal
   total_amount decimal
   due_date date
-  status varchar [note: 'pending | paid | overdue | cancelled']
+  status varchar [note: 'pending | paid | overdue | cancelled — business state; discard for erroneous removal']
+  discarded_at timestamp [note: 'Discard gem — erroneous/duplicate charge removal']
+  discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
 }
@@ -159,6 +194,7 @@ Table applied_discounts {
   charge_id integer [not null]
   discount_type varchar
   amount decimal
+  discarded_at timestamp [note: 'Discard gem — discount line removed']
   created_at timestamp
 }
 
@@ -172,6 +208,7 @@ Table payments {
   status varchar
   created_at timestamp
   updated_at timestamp
+  Note: 'No Discard — immutable financial record; hard delete only after legal retention'
 }
 
 Table webhook_events {
@@ -180,6 +217,7 @@ Table webhook_events {
   payload text
   processed_at timestamp
   created_at timestamp
+  Note: 'No Discard — ingress audit log; purge by created_at after processing + retention'
 }
 
 // --- Documents (MVP: enrollment/KYC docs — not full digital archive) ---
@@ -194,6 +232,8 @@ Table documents {
   rejection_reason varchar
   uploaded_by_id integer
   reviewed_at timestamp
+  discarded_at timestamp [note: 'Discard gem — removed from active archive']
+  discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
 }
@@ -201,14 +241,19 @@ Table documents {
 // --- Relationships ---
 
 Ref: schools.school_group_id > school_groups.id
+Ref: schools.discarded_by_id > users.id
 
 Ref: memberships.user_id > users.id
 Ref: memberships.school_id > schools.id
+Ref: memberships.suspended_by_id > users.id
 Ref: refresh_tokens.user_id > users.id
+Ref: users.disabled_by_id > users.id
 
 Ref: guardians.school_id > schools.id
 Ref: guardians.user_id > users.id
+Ref: guardians.discarded_by_id > users.id
 Ref: students.school_id > schools.id
+Ref: students.discarded_by_id > users.id
 Ref: teachers.school_id > schools.id
 Ref: teachers.user_id > users.id
 Ref: billing_plans.school_id > schools.id
@@ -221,12 +266,14 @@ Ref: contracts.billing_plan_id > billing_plans.id
 
 Ref: charges.contract_id > contracts.id
 Ref: charges.guardian_id > guardians.id
+Ref: charges.discarded_by_id > users.id
 
 Ref: applied_discounts.charge_id > charges.id
 Ref: payments.charge_id > charges.id
 
 Ref: documents.school_id > schools.id
 Ref: documents.uploaded_by_id > users.id
+Ref: documents.discarded_by_id > users.id
 
 // --- Sample data ---
 
@@ -239,22 +286,25 @@ Records schools(id, school_group_id, name) {
   1, 0, 'Example School — South Unit'
 }
 
-Records users(id, email, encrypted_password) {
-  0, 'admin@example-school.local', '$2a$...'
-  1, 'maria.silva@example.com', '$2a$...'
+Records users(id, email, encrypted_password, status) {
+  0, 'admin@example-school.local', '$2a$...', 'active'
+  1, 'maria.silva@example.com', '$2a$...', 'active'
+  2, 'ex-responsavel@example.com', '$2a$...', 'disabled'
 }
 
 Records memberships(id, user_id, school_id, role, status) {
   0, 0, 0, 'school', 'active'
   1, 1, 0, 'guardian', 'active'
+  2, 1, 1, 'guardian', 'suspended'
 }
 
 Records guardians(id, school_id, user_id, name, cpf) {
   0, 0, 1, 'Maria Silva', '000.000.000-00'
 }
 
-Records students(id, school_id, name, status) {
-  0, 0, 'Pedro Silva', 'active'
-  1, 1, 'Ana Silva', 'active'
+Records students(id, school_id, name, status, discarded_at) {
+  0, 0, 'Pedro Silva', 'active', null
+  1, 1, 'Ana Silva', 'active', null
+  2, 0, 'Former Student', 'transferred', '2026-01-15 10:00:00'
 }
 ```
