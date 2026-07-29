@@ -1,199 +1,193 @@
-# PRD — Módulo Financeiro (Estratégia "Fintech-first" para Escolas)
+# PRD — Billing Module ("Fintech-first" Strategy for Schools)
 
-> Status: rascunho para validação com parceiro (diretor de escola infantil)
-> Relação com School Lab: frente derivada, não substitui a ordem de MVP
-> validada em `vision.md` (comunicação → acadêmico → financeiro). Ver seção
-> 10 para a discussão explícita dessa diferença de estratégia.
+> Status: draft for partner validation (early childhood school director)  
+> Relation to School Lab: derived front, does not replace the MVP order validated in  
+> `vision.md` (communication → academic → billing). See §10 for the explicit strategy discussion.
 
-## 1. Contexto e motivação
+## 1. Context and motivation
 
-O parceiro (diretor de escola infantil, amigo de longa data) reporta troca
-frequente de sistema de gestão escolar, com a dor recorrente sendo o
-**financeiro**, especificamente a **gestão de boletos**: emissão manual ou
-pouco confiável, conciliação manual, falta de visibilidade sobre
-inadimplência, e cobrança que depende de esforço humano (ligar, mandar
-mensagem) em vez de processo automatizado.
+The partner (director of an early childhood school, long-time friend) reports frequent
+switches between school management systems, with the recurring pain point being
+**billing** — specifically **boleto management**: manual or unreliable issuance,
+manual reconciliation, no visibility into delinquency, and collection that depends on
+human effort (phone calls, messages) instead of an automated process.
 
-Diferente da abordagem "ERP completo desde o dia 1", a proposta aqui é
-nascer como um produto **fintech-like**, focado exclusivamente em resolver a
-dor de cobrança recorrente com excelência, e só depois expandir para gestão
-acadêmica e comunicação — nessa ordem.
+Unlike an "full ERP from day one" approach, this proposal is to launch as a
+**fintech-like** product focused exclusively on recurring school billing, and only
+later expand into academic management and communication — in that order.
 
-## 2. Objetivo (north star)
+## 2. Objective (north star)
 
-Eliminar o trabalho manual e a incerteza do fluxo de cobrança de
-mensalidades escolares: da geração da cobrança até a confirmação do
-pagamento, sem intervenção manual da secretaria, com visibilidade completa
-de inadimplência para o diretor.
+Eliminate manual work and uncertainty in the school tuition billing flow: from charge
+generation through payment confirmation, without secretarial intervention, with full
+delinquency visibility for the director.
 
-## 3. Público-alvo do MVP
+## 3. MVP target audience
 
-- **Cliente inicial**: a escola do parceiro validador (escola infantil).
-- **Perfil de expansão**: escolas particulares de pequeno/médio porte,
-  ensino infantil e fundamental, com processo de cobrança hoje manual ou mal
-  atendido pelo sistema atual.
-- **Usuários diretos**: administração da escola (emissão e acompanhamento) e
-  responsáveis financeiros/pais (recebimento e pagamento).
+- **Initial customer**: the validating partner's school (early childhood).
+- **Expansion profile**: small/medium private schools, early childhood and elementary,
+  with billing today that is manual or poorly served by the current system.
+- **Direct users**: school administration (issuance and tracking) and financial
+  guardians/parents (receipt and payment).
 
-## 4. Problema a resolver (detalhado)
+## 4. Problem to solve (detailed)
 
-| Dor relatada | Impacto |
+| Reported pain | Impact |
 |---|---|
-| Emissão de boleto manual ou pouco confiável | Atraso na cobrança, erro de valor |
-| Sem conciliação automática | Secretaria baixa pagamento manualmente, sujeito a erro |
-| Sem régua de cobrança | Inadimplência descoberta tarde, cobrança informal e inconsistente |
-| Sem visão consolidada de inadimplência | Diretor não sabe fluxo de caixa esperado do mês |
-| Descontos e negociações tratados fora do sistema | Falta de rastreabilidade, retrabalho na secretaria |
+| Manual or unreliable boleto issuance | Billing delays, wrong amounts |
+| No automatic reconciliation | Secretarial manual write-off, error-prone |
+| No collection régua (dunning sequence) | Delinquency discovered late, informal inconsistent collection |
+| No consolidated delinquency view | Director lacks expected monthly cash flow |
+| Discounts and negotiations handled outside the system | No traceability, secretarial rework |
 
-## 5. Escopo do MVP
+## 5. MVP scope
 
-### Dentro do MVP
+### In scope
 
-- Cadastro de escola, responsáveis e alunos (fundação mínima — sem módulo
-  acadêmico).
-- Vínculo `student_guardians` com suporte a múltiplos responsáveis
-  financeiros por aluno (ex.: pais separados, percentual de divisão).
-- Cadastro de planos de cobrança (`billing_plans`): mensalidade, matrícula,
-  taxas avulsas (material, evento).
-- Contratos por aluno (`contracts`): valor negociado, dia de vencimento,
-  vigência, descontos aplicados (ex.: desconto de irmão).
-- Geração automática e recorrente de cobranças (`charges`) a partir do
-  contrato ativo.
-- Emissão de boleto e Pix via integração com PSP (gateway de pagamento —
-  decisão de fornecedor em aberto, ver seção 9).
-- Conciliação automática via webhook do PSP (`webhook_events` →
-  `payments`).
-- Régua de cobrança automatizada: lembrete antes do vencimento, aviso no
-  dia, cobrança após atraso — via e-mail e/ou WhatsApp.
-- Cálculo de multa/juros por atraso, configurável por escola.
-- Dashboard de inadimplência para o diretor: cobranças em aberto, atrasadas,
-  pagas, previsão de recebimento do mês.
-- Portal/tela simples para o responsável: ver cobranças, 2ª via de boleto,
-  copiar código Pix, histórico de pagamento.
+- School, guardian, and student registration (minimal foundation — no academic module).
+- **Identity**: user registration, guardian invites, guardian portal login (`users` +
+  `memberships` + `guardians.user_id`; see §9).
+- `student_guardians` link with support for multiple financial guardians per student
+  (e.g. separated parents, split percentage).
+- Billing plan registration (`billing_plans`): tuition, enrollment, one-off fees
+  (material, events).
+- Per-student contracts (`contracts`): negotiated amount, due day, term, applied
+  discounts (e.g. sibling discount).
+- Automatic recurring charge generation (`charges`) from active contracts.
+- Boleto and Pix issuance via PSP integration (gateway choice open — see §9).
+- Automatic reconciliation via PSP webhook (`webhook_events` → `payments`).
+- Automated collection régua: reminder before due date, notice on due date, follow-up
+  after delinquency — via email and/or WhatsApp.
+- Configurable late fee/interest per school.
+- Delinquency dashboard for the director: open, overdue, paid charges, monthly
+  collection forecast.
+- Simple guardian portal: view charges, boleto reissue, copy Pix code, payment history.
+- **Documents (enrollment/KYC only)**: upload and review of enrollment and KYC
+  documents via polymorphic `documents` — **not** the full digital archive (that domain
+  is out of scope for this PRD).
 
-### Fora do MVP (fases seguintes)
+### Out of scope (later phases)
 
-- Gestão acadêmica (notas, turmas, chamada, plano de aula).
-- Comunicação estruturada pai↔professor↔escola (mensagens, imagens).
-- Arquivo digital / documentos do aluno.
-- Livro Ata e assinatura digital.
-- Antecipação de recebíveis para a escola (produto fintech mais avançado —
-  a escola recebe adiantado, plataforma assume risco de inadimplência).
-  Mencionado como visão de médio prazo, não como requisito deste PRD.
-- App mobile dedicado — MVP pode rodar 100% web/responsivo.
-- Multi-unidade/rede de escolas (`school_groups`) — schema já contempla,
-  mas fluxo de produto para múltiplas unidades fica para quando houver
-  cliente com mais de uma unidade ativa.
+- Academic management (grades, classes, attendance, lesson plans).
+- Structured parent↔teacher↔school communication (messages, images).
+- Full digital archive / student document repository.
+- Livro Ata and digital signature.
+- Receivables anticipation for the school (advanced fintech product — school receives
+  early, platform assumes delinquency risk). Medium-term vision, not a requirement of
+  this PRD.
+- Dedicated mobile app — MVP can run 100% web/responsive.
+- Multi-unit school network (`school_groups`) — schema already supports it, but
+  product flow for multiple active units waits until a multi-unit client exists.
 
-## 6. Fluxos principais
+## 6. Main flows
 
-### 6.1 Geração de cobrança recorrente
-
-```
-Contrato ativo (dia de vencimento definido)
-  → Job agendado gera charge do mês (competência)
-  → Aplica desconto vigente (se houver)
-  → Calcula valor_total (original - desconto)
-  → Emite boleto/Pix junto ao PSP
-  → Envia notificação ao responsável (e-mail/WhatsApp)
-```
-
-### 6.2 Conciliação de pagamento
+### 6.1 Recurring charge generation
 
 ```
-Pagamento confirmado no PSP
-  → PSP dispara webhook
-  → webhook_event registrado (bruto, idempotente)
-  → Job processa evento de forma assíncrona
-  → Localiza charge via psp_transaction_id
-  → Cria/atualiza payment
-  → Atualiza status da charge (paid)
-  → Notifica responsável (confirmação) e escola (baixa automática)
+Active contract (due day defined)
+  → Scheduled job generates monthly charge (billing period)
+  → Applies current discount (if any)
+  → Computes total_amount (original - discount)
+  → Issues boleto/Pix with PSP
+  → Sends notification to guardian (email/WhatsApp)
 ```
 
-### 6.3 Régua de cobrança (atraso)
+### 6.2 Payment reconciliation
 
 ```
-Charge vence sem pagamento confirmado
-  → Job diário verifica charges vencidas
-  → Aplica multa/juros configurado
-  → Dispara lembrete (D+1, D+3, D+7 — configurável)
-  → Atualiza status (overdue)
-  → Reflete no dashboard de inadimplência
+Payment confirmed at PSP
+  → PSP sends webhook
+  → webhook_event recorded (raw, idempotent)
+  → Job processes event asynchronously
+  → Locates charge via psp_transaction_id
+  → Creates/updates payment
+  → Updates charge status (paid)
+  → Notifies guardian (confirmation) and school (automatic write-off)
 ```
 
-## 7. Modelo de dados (referência)
+### 6.3 Collection régua (delinquency)
 
-O modelo de dados detalhado (schema DBML) já foi definido em conversa
-anterior e cobre as entidades centrais deste PRD: `schools`, `guardians`,
-`students`, `student_guardians`, `billing_plans`, `contracts`, `charges`,
-`applied_discounts`, `payments`, `webhook_events` (+ `school_groups` para
-suporte futuro a rede de escolas).
+```
+Charge due without confirmed payment
+  → Daily job checks overdue charges
+  → Applies configured late fee/interest
+  → Sends reminders (D+1, D+3, D+7 — configurable)
+  → Updates status (overdue)
+  → Reflects on delinquency dashboard
+```
 
-Este PRD não repete o schema — qualquer ajuste de modelagem decidido aqui
-deve ser refletido de volta no DBML.
+## 7. Database (reference)
 
-## 8. Requisitos não funcionais
+Foundational modeling for this PRD is **in progress** in this monorepo:
 
-- **Confiabilidade de cobrança**: falha na geração ou emissão de uma charge
-  não pode passar despercebida — requer alerta/monitoramento (o paralelo
-  aqui com o princípio de `vision.md` de "estabilidade acima de features" se
-  aplica: erro no financeiro tem o mesmo peso jurídico/reputacional que erro
-  em nota ou chamada).
-- **Idempotência de webhook**: eventos duplicados ou fora de ordem do PSP
-  não podem gerar cobrança duplicada nem baixa incorreta.
-- **Auditoria**: toda alteração em `charges` e `payments` deve ser
-  rastreável (quem/quando), especialmente descontos manuais aplicados pela
-  secretaria.
-- **LGPD**: CPF, e-mail e telefone de responsáveis são dados pessoais;
-  tratamento e retenção seguem o mesmo princípio de privacidade-por-padrão
-  de `vision.md`. Base legal e política de retenção específicas para dados
-  financeiros ainda não foram validadas com jurídico — tratar como pendência,
-  não como decisão fechada.
+| Artifact | Location |
+|----------|----------|
+| Executable schema (DBML) | [`docs/database/database_dml.md`](../database/database_dml.md) |
+| DER export (PNG) | [`docs/database/der_001.png`](../database/der_001.png) |
+| Narrative DSL + LGPD notes | [`docs/modeling/001-fintech-first.md`](../modeling/001-fintech-first.md) |
 
-## 9. Pendências / perguntas em aberto
+**Entities in scope:**
 
-Itens que precisam de decisão antes ou durante a implementação — não devem
-ser tratados como resolvidos por este PRD:
+| Group | Tables |
+|-------|--------|
+| Identity | `users`, `memberships`, `refresh_tokens` |
+| School | `school_groups`, `schools`, `guardians`, `students`, `teachers`, `student_guardians` |
+| Billing | `billing_plans`, `contracts`, `charges`, `applied_discounts`, `payments`, `webhook_events` |
+| Documents (enrollment/KYC) | `documents` |
 
-- [ ] Escolha do PSP (Asaas, Iugu, Pagar.me ou outro) — critérios: suporte a
-      boleto + Pix recorrente, split de pagamento (útil se houver rede no
-      futuro), qualidade de webhook, custo por transação.
-- [ ] Canal da régua de cobrança: e-mail, WhatsApp (API oficial ou não),
-      SMS — ou combinação, configurável por escola.
-- [ ] Regra de multa/juros: percentual fixo por escola ou configurável por
-      plano de cobrança?
-- [ ] Fluxo de desconto negociado manualmente (ex.: bolsa, acordo pontual):
-      quem aprova, fica registrado onde, afeta o contrato ou só a charge
-      pontual?
-- [ ] Emissão de nota fiscal (NFS-e) — dentro do MVP ou fase seguinte? (Não
-      mencionado como dor inicial pelo parceiro, mas é tabela de entrada no
-      mercado, conforme `competitive-analysis.md`.)
-- [ ] Responsável acessa via login próprio (conta) ou link mágico/token por
-      cobrança (sem necessidade de senha)?
-- [ ] Modelo de cobrança da própria plataforma para a escola (SaaS fee) —
-      por aluno ativo, por escola, percentual sobre volume processado?
+Any modeling decision made in this PRD must be reflected back in the DBML before implementation.
 
-## 10. Nota de posicionamento — relação com o School Lab
+## 8. Non-functional requirements
 
-Este PRD propõe uma ordem de construção **invertida** em relação à validada
-em `vision.md`/`open-questions.md` para o School Lab (onde comunicação é a
-prioridade #1, validada com a escola NSR em jul/2026). Isso é intencional e
-contextual a este parceiro específico, cuja dor primária e explícita é
-financeira.
+- **Billing reliability**: failure in charge generation or issuance must not go
+  unnoticed — requires alerting/monitoring (same weight as `vision.md` stability
+  principle: billing errors have legal/reputational impact).
+- **Webhook idempotency**: duplicate or out-of-order PSP events must not create
+  duplicate charges or incorrect write-offs.
+- **Audit trail**: every change to `charges` and `payments` must be traceable
+  (who/when), especially manual discounts applied by the secretarial staff.
+- **LGPD**: guardian CPF, email, and phone are personal data; student `birth_date`
+  is child data requiring guardian consent. Treatment and retention follow
+  privacy-by-default from `vision.md`. Legal basis and retention policy for
+  financial data are not yet validated with legal counsel — treat as open, not closed.
 
-Duas leituras possíveis, a decidir mais adiante e fora do escopo deste PRD:
+## 9. Open items / pending decisions
 
-1. Tratar como **produtos separados** com bases de cliente diferentes
-   (School Lab para o perfil "comunicação como dor #1"; este módulo
-   financeiro para o perfil "financeiro como dor #1").
-2. Tratar como **a mesma base de código com dois pontos de entrada** —
-   nesse caso, o modelo de dados aqui precisa, em algum momento, convergir
-   com as entidades já definidas no School Lab (`School`, `User`,
-   `Membership`, `Student`, `StudentGuardian` já existentes na modelagem
-   fundacional) em vez de duplicar `schools`/`students`/`guardians` como
-   entidades paralelas.
+Items requiring a decision before or during implementation — not resolved by this PRD:
 
-Recomendo explicitar essa decisão antes de começar a implementação, porque
-ela muda se este PRD gera um repositório novo ou um módulo dentro do
-monorepo do School Lab.
+- [ ] PSP choice (Asaas, Iugu, Pagar.me, or other) — criteria: boleto + recurring Pix,
+      split payment (useful for future networks), webhook quality, per-transaction cost.
+- [ ] Collection régua channel: email, WhatsApp (official API or not), SMS — or
+      combination, configurable per school.
+- [ ] Late fee/interest rule: fixed percentage per school or configurable per billing plan?
+- [ ] Manually negotiated discount flow (e.g. scholarship, one-off agreement): who
+      approves, where recorded, affects contract or single charge only?
+- [ ] Invoice issuance (NFS-e) — in MVP or later phase? (Not mentioned as initial pain
+      by partner, but table stakes per `competitive-analysis.md`.)
+- [x] **Guardian access — decided:** own account via Devise (`users` + `memberships` +
+      `guardians.user_id`). Magic link / token per charge remains a possible future
+      alternative, not the MVP approach.
+- [ ] Platform billing model for the school (SaaS fee) — per active student, per school,
+      percentage on processed volume?
+
+## 10. Positioning note — relation to School Lab
+
+This PRD proposes an **inverted** build order relative to what is validated in
+`vision.md` / `open-questions.md` for School Lab (communication as priority #1,
+validated with escola NSR in Jul 2026). That is intentional and specific to this
+partner, whose primary explicit pain is billing.
+
+Foundational modeling for this front has **already started** in this monorepo:
+`docs/database/` (DBML + DER) and `docs/modeling/001-fintech-first.md`.
+
+Two readings still to decide (see also `open-questions.md` — MVP and scope):
+
+1. Treat as **separate products** with different customer profiles (School Lab for
+   "communication as pain #1"; this billing module for "billing as pain #1").
+2. Treat as **same codebase with two entry points** — in that case, this schema must
+   eventually converge with School Lab foundational entities (`School`, `User`,
+   `Membership`, `Student`, `StudentGuardian`) rather than duplicating parallel
+   `schools` / `students` / `guardians` tables.
+
+Explicitly decide this before implementation begins — it determines whether this PRD
+spawns a new repository or a module within the School Lab monorepo.
