@@ -67,13 +67,13 @@ can't solve it.
 
 | Channel | Mechanism |
 |-------|-----------|
-| **Web** | Session (cookie) — Rails 8 Authentication Generator or Devise |
+| **Web** | Session (cookie) — **Devise** on `users` |
 | **API (mobile app)** | JWT + refresh token |
 
 | Component | Decision |
 |------------|---------|
 | **Authorization** | Pundit — roles: backoffice, school, teacher, guardian |
-| **Per-school isolation** | To be defined in the modeling; enforcement via policies and services |
+| **Per-school isolation** | Schema in `docs/database/database_dml.md`; enforcement via Pundit policies and services |
 
 ## 5. API for the mobile app
 
@@ -313,7 +313,6 @@ flowchart LR
 Items still open — see `docs/open-questions.md` (Web stack section):
 
 - API serialization (`jsonapi-serializer` vs. `blueprinter`)
-- Web auth: Rails 8 Authentication Generator vs. Devise
 - Email provider (Postmark, SES, etc.)
 - Boleto integration (gateway/bank)
 - Firebase Authentication — needed, or is proprietary auth (JWT) enough?
@@ -321,6 +320,7 @@ Items still open — see `docs/open-questions.md` (Web stack section):
 **Finalized decisions (Jul 2026):**
 
 - Language & framework: Ruby 4.0.5 (4.0.x line), Rails 8.1.3 (8.1.x line).
+- Web auth: **Devise** (session on `users`; API uses JWT + `refresh_tokens`).
 - Push notifications: FCM + Solid Queue + state machine on the API.
 - Real-time (Solid Cable / Turbo Streams): phase 2 — not needed in the MVP.
 

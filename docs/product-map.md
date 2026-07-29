@@ -39,15 +39,17 @@ finalized in `docs/web-stack.md`; the mobile app stack is still an intention.
 - `competitive-analysis.md` — informational survey of competitor features (not a
   decision anchor).
 - `glossary.md` — approved Portuguese domain exceptions and English code mappings.
-- `prds/` — domain PRDs (later phase) + `template.md`.
+- `database/` — executable schema (DBML + DER PNG) for implementation.
+- `modeling/` — narrative DSL per domain (`NNN-<domain>.md`).
+- `prds/` — domain PRDs + `template.md` (e.g. `fintech-first.md`).
 
 ## 3. Organization principles
 
 - **One API, multiple channels**: business rules live in the API layer.
 - **Per-school isolation**: one school's data never mixes with another's; it
   spans web and app (details in the modeling).
-- **Docs guide implementation**: finalized anchors → PRDs → (later) modeling
-  (DSL → ERD) → implementation.
+- **Docs guide implementation**: finalized anchors → PRDs → modeling (narrative DSL
+  in `docs/modeling/` + executable schema in `docs/database/`) → implementation.
 
 ## 4. Work sequence
 
@@ -55,7 +57,8 @@ finalized in `docs/web-stack.md`; the mobile app stack is still an intention.
    domain PRDs.
 2. Write domain PRDs (one per domain, using the template) — suggested order
    below.
-3. Data modeling from the PRDs (DSL → ERD).
+3. Data modeling from the PRDs — **in progress** for fintech-first (`docs/modeling/`,
+   `docs/database/`); hybrid pattern: narrative DSL + DBML/DER for executable schema.
 4. Implementation (`web/` with the stack defined in `web-stack.md`).
 
 ## 5. Requirement domains (PRD candidates)
@@ -77,3 +80,6 @@ focus):
    signature** — generation, signature collection, semantic search (phase 2,
    high priority).
 10. Landing / sales — commercial page (later).
+
+**Note:** `fintech-first` is a derived front (partner billing pain) outside the main
+MVP order above — see `docs/prds/fintech-first.md` §10.

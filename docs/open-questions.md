@@ -38,6 +38,10 @@ Recorded from a conversation with the partner director (escola NSR). Details in
 
 ## MVP and scope
 
+- [ ] **Fintech-first vs School Lab monorepo** — separate product or same codebase
+      with two entry points? Foundational modeling started in `docs/database/` and
+      `docs/modeling/001-fintech-first.md`; decision affects convergence with main
+      MVP entities. See `docs/prds/fintech-first.md` §10.
 - [ ] Confirm the full MVP scope: communication + academic (grades, report
       cards, attendance) + billing (boleto) + digital archive. What is left out
       in this first cut?
@@ -45,6 +49,9 @@ Recorded from a conversation with the partner director (escola NSR). Details in
 - [ ] Parents in the MVP: app only, or web too?
 
 ## Billing
+
+School Lab MVP billing questions remain here. Fintech-first–specific items (PSP,
+régua channels, NFS-e, platform SaaS fee) are tracked in `docs/prds/fintech-first.md` §9.
 
 - [ ] Who generates the boleto (school manually vs. automatically) and what
       recurrence?
@@ -161,8 +168,9 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
 
 Decisions finalized in `docs/web-stack.md`. Open items:
 
+- [x] **Web auth: Devise** — session on `users`; API JWT + `refresh_tokens`. Schema:
+      `docs/database/database_dml.md` (`users`, `memberships`, `refresh_tokens`).
 - [ ] API serialization: `jsonapi-serializer` vs. `blueprinter`?
-- [ ] Web auth: Rails 8 Authentication Generator vs. Devise?
 - [ ] Email provider (Postmark, SES, etc.)?
 - [ ] Boleto integration (gateway/bank)?
 - [ ] When to add Redis (cache only) — scaling criterion?
