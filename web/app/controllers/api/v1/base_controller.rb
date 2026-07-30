@@ -4,6 +4,7 @@ module Api
   module V1
     class BaseController < ActionController::API
       include ActionController::Cookies
+      include AuditContext
       include Pagy::Method
       include Pundit::Authorization
 
@@ -49,10 +50,18 @@ module Api
 
       def set_school_context!
         school = School.kept.find(params[:school_id])
-        Current.school = school
-        membership = Current.user.memberships.kept.active.find_by(school: school)
+        membership = Current.user.memberships.kept.find_by(school: school)
         return render_error(:not_found, status: :not_found) unless membership
 
+        if membership.suspended?
+          return render_error(:membership_suspended, status: :forbidden)
+        end
+
+        if membership.invited?
+          return render_error(:membership_invited, status: :forbidden)
+        end
+
+        Current.school = school
         Current.membership = membership
       end
 

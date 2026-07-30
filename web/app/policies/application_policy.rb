@@ -42,6 +42,14 @@ class ApplicationPolicy
     user&.backoffice?
   end
 
+  def school_staff?
+    Current.membership&.role == "school" && Current.membership&.active?
+  end
+
+  def school_id
+    Current.school&.id
+  end
+
   class Scope
     def initialize(user, scope)
       @user = user

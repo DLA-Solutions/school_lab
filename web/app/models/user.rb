@@ -11,6 +11,7 @@ class User < ApplicationRecord
 
   has_many :memberships, dependent: :destroy
   has_many :schools, through: :memberships
+  has_many :guardians, dependent: :nullify
   has_many :refresh_tokens, dependent: :destroy
   has_many :device_tokens, dependent: :destroy
 

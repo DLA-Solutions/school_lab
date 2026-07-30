@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-class School < ApplicationRecord
+class Guardian < ApplicationRecord
   include Discard::Model
+  include SchoolAuditable
 
-  belongs_to :school_group, optional: true
+  belongs_to :school
+  belongs_to :user, optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
 
-  has_many :memberships, dependent: :destroy
-  has_many :guardians, dependent: :destroy
-  has_many :students, dependent: :destroy
   has_many :student_guardians, dependent: :destroy
+  has_many :students, through: :student_guardians
 
   validates :name, presence: true
 end

@@ -9,7 +9,7 @@ class UserBlueprint < Blueprinter::Base
     user.memberships.kept.includes(:school)
   end
 
-  field :guardian_profiles do |_user, _options|
-    []
+  field :guardian_profiles do |user, _options|
+    GuardianBlueprint.render_as_hash(user.guardians.kept)
   end
 end

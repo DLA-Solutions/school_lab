@@ -21,10 +21,28 @@ Rails.application.routes.draw do
       get "me", to: "me#show"
       namespace :me do
         resources :device_tokens, only: :create
+        resources :memberships, only: [] do
+          member do
+            post :accept
+          end
+        end
       end
 
       resources :schools, only: %i[index show create update destroy] do
         scope module: :schools do
+          namespace :people do
+            resources :guardians
+            resources :students do
+              resources :guardians, only: %i[index create], controller: "student_guardians"
+            end
+            resources :student_guardians, only: :destroy
+            resources :memberships do
+              member do
+                post :invite
+              end
+            end
+          end
+
           namespace :communication do
             resources :conversations, only: :index
           end

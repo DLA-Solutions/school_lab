@@ -35,10 +35,41 @@ FactoryBot.define do
       school { nil }
     end
 
+    trait :school_admin do
+      role { "school" }
+    end
+
+    trait :invited do
+      status { "invited" }
+    end
+
     trait :suspended do
       status { "suspended" }
       suspended_at { Time.current }
     end
+  end
+
+  factory :guardian do
+    school
+    sequence(:name) { |n| "Guardian #{n}" }
+    sequence(:email) { |n| "guardian#{n}@example.com" }
+    cpf { "123.456.789-00" }
+    phone { "+55 11 99999-0000" }
+  end
+
+  factory :student do
+    school
+    sequence(:name) { |n| "Student #{n}" }
+    status { "active" }
+    birth_date { Date.new(2015, 3, 10) }
+  end
+
+  factory :student_guardian do
+    school
+    student { association :student, school: school }
+    guardian { association :guardian, school: school }
+    financial_percentage { 50 }
+    primary_guardian { true }
   end
 
   factory :refresh_token do

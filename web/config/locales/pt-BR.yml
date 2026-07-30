@@ -6,5 +6,7 @@ pt-BR:
       forbidden: "Acesso negado."
       not_found: "Não encontrado."
       not_implemented: "Recurso ainda não implementado."
-      validation_failed: "Dados inválidos."
+      validation_error: "Dados inválidos."
       invalid_state_transition: "Transição de estado inválida."
+      membership_suspended: "Acesso suspenso nesta escola."
+      membership_invited: "Convite pendente para esta escola."
