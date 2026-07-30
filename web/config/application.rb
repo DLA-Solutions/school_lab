@@ -40,6 +40,12 @@ module SchoolLab
       g.helper false
       g.assets false
       g.system_tests nil
+      g.test_framework :rspec
+      g.fixture_replacement :factory_bot, dir: "spec/factories"
     end
+
+    config.api_only = true
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore
   end
 end

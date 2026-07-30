@@ -90,6 +90,20 @@ Table refresh_tokens {
   created_at timestamp
 }
 
+Table device_tokens {
+  id integer [primary key, increment]
+  user_id integer [not null]
+  token varchar [not null, note: 'FCM registration token']
+  platform varchar [not null, note: 'ios | android | web']
+  discarded_at timestamp [note: 'Discard — unregister on logout or token rotation']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    token [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+  }
+}
+
 // --- School domain ---
 
 Table guardians {
@@ -260,6 +274,7 @@ Ref: memberships.user_id > users.id
 Ref: memberships.school_id > schools.id
 Ref: memberships.suspended_by_id > users.id
 Ref: refresh_tokens.user_id > users.id
+Ref: device_tokens.user_id > users.id
 Ref: users.disabled_by_id > users.id
 
 Ref: guardians.school_id > schools.id
