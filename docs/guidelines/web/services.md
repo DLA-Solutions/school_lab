@@ -70,22 +70,22 @@ end
 
 ## Naming and file layout
 
-Pattern: **`Domain::Verb`** — no `Service` suffix.
+Pattern: **`Domain::VerbService`** — always use the `Service` suffix.
 
 | Good | Avoid |
 |------|-------|
-| `Billing::CreateCharge` | `Billing::CreateChargeService` |
-| `Auth::IssueTokens` | `Entities::CreateService` |
-| `Billing::CancelCharge` | `ChargeCreator` |
+| `Billing::CreateChargeService` | `Billing::CreateCharge` (missing suffix) |
+| `Auth::IssueTokensService` | `ChargeCreator` |
+| `Billing::CancelChargeService` | `Entities::Create` (no domain namespace) |
 
 ```
 app/services/
   application_service.rb
   billing/
-    create_charge.rb      # Billing::CreateCharge
-    cancel_charge.rb      # Billing::CancelCharge
+    create_charge_service.rb      # Billing::CreateChargeService
+    cancel_charge_service.rb      # Billing::CancelChargeService
   auth/
-    issue_tokens.rb       # Auth::IssueTokens
+    issue_tokens_service.rb       # Auth::IssueTokensService
 ```
 
 ## Implementation checklist
@@ -101,9 +101,9 @@ app/services/
    (inside the transaction only when rollback must undo them; otherwise after commit).
 
 ```ruby
-# app/services/billing/cancel_charge.rb
+# app/services/billing/cancel_charge_service.rb
 module Billing
-  class CancelCharge < ApplicationService
+  class CancelChargeService < ApplicationService
     def initialize(charge:, actor:)
       @charge = charge
       @actor = actor
@@ -137,7 +137,7 @@ end
 ```ruby
 def create
   authorize Charge
-  result = Billing::CreateCharge.call(school: Current.school, params: charge_params)
+  result = Billing::CreateChargeService.call(school: Current.school, params: charge_params)
   return render_service_error(result) if result.failure?
 
   render json: ChargeBlueprint.render(result.data), status: :created
@@ -171,7 +171,7 @@ Map common codes to HTTP status:
 Specs live in `spec/services/<domain>/`. Focus on observable behavior:
 
 ```ruby
-RSpec.describe Billing::CancelCharge do
+RSpec.describe Billing::CancelChargeService do
   subject(:result) { described_class.call(charge:, actor:) }
 
   let(:charge) { create(:charge, :issued, school:) }

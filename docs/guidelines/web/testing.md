@@ -34,7 +34,7 @@ is itself a business rule.
 
 ```ruby
 # Bad — tests implementation
-expect(Billing::IssueBoleto).to receive(:call)
+expect(Billing::IssueBoletoService).to receive(:call)
 
 # Good — tests behavior
 post "/api/v1/schools/#{school.id}/boletos", params:, headers: auth_headers

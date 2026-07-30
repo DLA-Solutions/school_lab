@@ -18,6 +18,7 @@ Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs 
 ## `.cursor` layout
 - `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming).
 - `rules/docs/`, `rules/web/`, `rules/app/` — scoped by surface via `globs`; the folder is organizational, activation is driven by frontmatter.
+- `agents/` — specialized subagents (`rails-implementer` orchestrates; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/`; `prd-reviewer`, `doc-consistency-checker` for docs).
 - `skills/` — grouped by context (`core/`, `docs/`, `web/`; `app/` added when code lands).
 - Detailed "why" for these rules lives in `docs/guidelines/`; rules stay terse and point there.
 

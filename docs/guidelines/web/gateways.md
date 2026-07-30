@@ -43,7 +43,7 @@ hidden mid-service.
 | **No tenancy in gateway** | Services pass scoped data; gateway does not query `Charge.find` globally |
 
 ```ruby
-class Billing::IssueBoleto < ApplicationService
+class Billing::IssueBoletoService < ApplicationService
   def initialize(charge:, school:, gateway: BoletoGateway::Adapter.new)
     @charge = charge
     @school = school

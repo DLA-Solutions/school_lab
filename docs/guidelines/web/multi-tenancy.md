@@ -35,7 +35,7 @@ data from raw IDs without scoping through school or policy.
 
 ```ruby
 # Good — controller already validated membership
-Billing::CreateCharge.call(school: Current.school, actor: Current.user, params:)
+Billing::CreateChargeService.call(school: Current.school, actor: Current.user, params:)
 
 # Bad — ID from params without tenant scope
 Charge.find(params[:id])
@@ -95,7 +95,7 @@ class Billing::IssueBoletoJob < ApplicationJob
   def perform(charge_id, school_id)
     school = School.find(school_id)
     charge = school.charges.find(charge_id)
-    Billing::IssueBoleto.call(school: school, charge: charge)
+    Billing::IssueBoletoService.call(school: school, charge: charge)
   end
 end
 ```
