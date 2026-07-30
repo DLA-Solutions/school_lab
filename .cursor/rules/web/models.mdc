@@ -40,6 +40,7 @@ Full guide: `docs/guidelines/web/models.md`. Rules: `web-rails`, `testing-rspec`
 ## Queries and concerns
 
 - Reusable filters as **scopes**; complex list/filter logic belongs in services or `policy_scope`, not controllers.
+- No `app/queries/` by default — extract query object on third stable case (`multi-tenancy` rule).
 - Extract a **concern** only on the third stable case — one behavior per concern (`Discardable`, `SchoolScoped`).
 - Negative-state scopes: `where.missing(:association)` (e.g. records not yet linked).
 

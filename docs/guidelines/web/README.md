@@ -3,9 +3,8 @@
 Granular coding standards for `web/`. **Complements** `docs/web-stack.md` (the locked stack
 and architecture) — it does not repeat it.
 
-> Status: seed. `web/` has no code yet. Expand this as the Rails app lands; keep
-> `docs/web-stack.md` as the architecture source of truth and the `rules/web/web-rails` rule
-> as the terse agent-facing summary.
+> Status: expanding as `web/` lands. Keep `docs/web-stack.md` as the architecture source of
+> truth and the `rules/web/web-rails` rule as the terse agent-facing summary.
 
 ## Source of truth
 
@@ -15,16 +14,28 @@ and architecture) — it does not repeat it.
 
 ## Standards
 
-- **Testing** — behavior-focused RSpec; see [`testing.md`](testing.md). Rule: `rules/web/testing-rspec`. Skill: `write-rspec-spec`.
-- **Controllers** — thin API orchestration; see [`controllers.md`](controllers.md). Rule: `rules/web/controllers`. Skill: `review-api`.
-- **Models** — thin ActiveRecord layer, tenancy, Discard; see [`models.md`](models.md). Rule: `rules/web/models`.
-- **Migrations** — DBML-first schema, `school_id`, FKs, Discard indexes; see [`migrations.md`](migrations.md). Rule: `rules/web/migrations`.
-- **State machines** — AASM lifecycles on `status`; see [`state-machines.md`](state-machines.md). Rule: `rules/web/state-machines`.
-- **Auditing** — change history with **audited**; see [`auditing.md`](auditing.md). Rule: `rules/web/auditing`.
-- **Services** — business logic entry point; see [`services.md`](services.md). Rule: `rules/web/services`.
+| Topic | Guideline | Rule | Skill |
+|-------|-----------|------|-------|
+| **Testing** | [`testing.md`](testing.md) | `testing-rspec` | `write-rspec-spec` |
+| **Controllers** | [`controllers.md`](controllers.md) | `controllers` | `review-api` |
+| **Models** | [`models.md`](models.md) | `models` | `write-rspec-spec` |
+| **Services** | [`services.md`](services.md) | `services` | `write-rspec-spec` |
+| **Policies (Pundit)** | [`policies.md`](policies.md) | `policies` | `review-api` |
+| **Multi-tenancy** | [`multi-tenancy.md`](multi-tenancy.md) | `multi-tenancy` | `review-api` |
+| **Migrations** | [`migrations.md`](migrations.md) | `migrations` | `publish-dbdocs` |
+| **State machines** | [`state-machines.md`](state-machines.md) | `state-machines` | — |
+| **Auditing** | [`auditing.md`](auditing.md) | `auditing` | — |
+| **Jobs** | [`jobs.md`](jobs.md) | `jobs` | — |
+| **Serializers** | [`serializers.md`](serializers.md) | `serializers` | `review-api` |
+| **Mailers** | [`mailers.md`](mailers.md) | `mailers` | — |
+| **Gateways** | [`gateways.md`](gateways.md) | `gateways` | — |
+| **Anti-patterns** | [`anti-patterns.md`](anti-patterns.md) | `anti-patterns` | — |
+
+## Cross-cutting
+
 - **API docs** — rswag request specs; `rake rswag:specs:swaggerize`.
-- **Policies (Pundit)** — per-school and per-family isolation; path `:school_id` + `me/` routes.
 - **i18n** — keys in English, strings in `config/locales/pt-BR.yml`; no hardcoded Portuguese.
+- **Design principles** — `docs/guidelines/process/design-principles.md`; rule `design-principles`.
 
 ## Open decisions (do not choose unilaterally)
 

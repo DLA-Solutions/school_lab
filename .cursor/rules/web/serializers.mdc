@@ -1,0 +1,25 @@
+---
+description: Blueprinter API serialization — views, lists, no inline JSON
+globs: web/app/blueprints/**/*.rb,web/app/controllers/**/*.rb,web/spec/requests/**/*.rb
+alwaysApply: false
+---
+
+# web/ — Serializers (Blueprinter)
+
+Full guide: `docs/guidelines/web/serializers.md`. API: `docs/api/README.md`. Rule: `controllers`.
+
+## Role
+
+- Blueprints in `app/blueprints/` — field selection and nesting only, no business logic.
+- Controllers render via `ModelBlueprint.render(...)` — never inline JSON hashes.
+
+## Conventions
+
+- `snake_case` keys; `amount_cents` as integer; ISO 8601 timestamps.
+- Views: `:summary` for lists, `:detail` for show — `include_view` for DRY.
+- Eager-load associations before render — blueprints must not cause N+1.
+- Errors use standard `{ error: { code, message, details } }` envelope — not blueprints.
+
+## Testing
+
+- rswag request specs are the contract; run `rake rswag:specs:swaggerize` when shape changes.

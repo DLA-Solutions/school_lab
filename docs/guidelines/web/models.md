@@ -92,6 +92,8 @@ See [`state-machines.md`](state-machines.md). Rule: `rules/web/state-machines`.
 
 - Reusable filters → **scopes** on the model.
 - Complex list/filter logic → services or `policy_scope`, not controllers.
+- **No `app/queries/` by default** — scopes + services cover reads; extract a dedicated
+  query object only on the third stable case (see [`multi-tenancy.md`](multi-tenancy.md)).
 - Negative state: `where.missing(:association)` (e.g. charges without a payment).
 - Extract a **concern** on the third stable case — one behavior each (`SchoolScoped`).
 

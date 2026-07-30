@@ -1,0 +1,24 @@
+---
+description: External API adapters — boleto, FCM, injectable fakes for tests
+globs: web/app/gateways/**/*.rb,web/spec/gateways/**/*.rb,web/app/services/**/*.rb
+alwaysApply: false
+---
+
+# web/ — Gateway Adapters
+
+Full guide: `docs/guidelines/web/gateways.md`. Principles: `design-principles`. Related: `services`, `jobs`.
+
+## Role
+
+- Wrap third-party APIs (boleto, FCM) behind small interfaces — services stay provider-agnostic.
+- Inject via constructor — no `Client.new` hidden in services.
+
+## Design
+
+- Plain Ruby in/out; domain errors (`TransientError`) for job `retry_on`.
+- Gateway does not query tenant data globally — services pass scoped records.
+- `Fake` implementation for tests; WebMock/VCR only for gateway unit specs if needed.
+
+## When to skip
+
+- Active Storage S3 — Rails config. Email — mailer + env until second provider.

@@ -1,0 +1,30 @@
+---
+description: ActiveJob + Solid Queue — async work, idempotency, service delegation
+globs: web/app/jobs/**/*.rb,web/spec/jobs/**/*.rb,web/config/queue.yml,web/config/solid_queue.yml
+alwaysApply: false
+---
+
+# web/ — Background Jobs
+
+Full guide: `docs/guidelines/web/jobs.md`. Stack: `docs/web-stack.md` §8. Related: `services`, `state-machines`, `gateways`.
+
+## Role
+
+- Async only: email, boleto, FCM, webhooks — enqueue from **services** after commit.
+- `perform` calls one **service** — no inline business logic.
+
+## Design
+
+- **Idempotent** — safe to retry.
+- **Pass IDs** (`charge_id`, `school_id`) — not ActiveRecord objects.
+- **Restore tenant** — `school.charges.find(id)` in `perform`.
+- `retry_on` transient errors; `discard_on ActiveRecord::RecordNotFound`.
+- One job, one responsibility.
+
+## State machines
+
+- Jobs do not call AASM `event!` directly — call a service that does.
+
+## Testing
+
+- `have_enqueued_job` from service specs; job spec stubs gateway at boundary only.
