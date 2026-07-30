@@ -8,6 +8,7 @@ Use during `review-api`. Check only what the diff touches.
 - [ ] Controller calls **one** service per action; no long cross-domain service chains
 - [ ] No duplicated domain rules that belong in a service already used elsewhere
 - [ ] Non-CRUD actions use `POST` member routes (`/resources/:id/cancel`), not verb hacks on `PATCH`
+- [ ] State changes go through services → AASM `event!`; invalid transition → `409`
 
 ## Routing and versioning
 
@@ -68,6 +69,19 @@ Use during `review-api`. Check only what the diff touches.
 - [ ] Guardian endpoints scoped to own family only
 - [ ] No unnecessary PII in logs or error `details`
 - [ ] Retention/access implications flagged when touching messages, photos, archive
+- [ ] Domain models use `SchoolAuditable` where change history is required; secrets `redacted`/`except`
+
+## Change auditing (audited)
+
+- [ ] API base includes `AuditContext` so `Current.user` is stored on audits
+- [ ] No auditing on `refresh_tokens`, `payments`, `webhook_events`
+- [ ] Bulk imports wrapped in `without_auditing` when no per-row actor
+
+## State machines (AASM)
+
+- [ ] Lifecycle models use AASM concern with `column: :status`, `no_direct_assignment: true`
+- [ ] Controllers do not call `record.cancel!` / bang events — services own transitions
+- [ ] Discard (`discarded_at`) not used for business cancellation when `status` exists
 
 ## Language and identifiers
 
