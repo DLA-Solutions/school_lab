@@ -118,7 +118,7 @@ POST /api/v1/schools/:school_id/billing/charges/:id/reissue
 | `401` | Missing/invalid access token |
 | `403` | Policy denied / wrong role |
 | `404` | Not found or cross-tenant isolation |
-| `409` | Conflict (duplicate email, invalid state) |
+| `409` | Conflict (duplicate email, **invalid state transition**) |
 | `422` | Validation errors (`details` may hold field errors) |
 | `501` | Planned route not implemented yet (phase 2 skeleton) |
 

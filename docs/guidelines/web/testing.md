@@ -81,6 +81,7 @@ Request specs are the primary API contract tests. Each endpoint should cover:
 2. **Authorization** — wrong role → 403; wrong school → 404 or 403
 3. **Validation errors** — 422 with structured error payload
 4. **Tenant isolation** — records from school A never visible to school B
+5. **State transitions** — invalid AASM transition → `409` with `invalid_state_transition` (or domain code)
 
 Keep rswag metadata (`path`, `parameter`, `response`) alongside examples so OpenAPI stays
 in sync with behavior.
@@ -91,6 +92,19 @@ in sync with behavior.
 - Always set `school` (and other tenant keys) explicitly or via factory defaults.
 - Avoid `create` cascades that build unrelated domains — a test needing five unrelated
   factories may indicate high coupling in the code under test.
+
+## State machines (AASM)
+
+When RSpec is configured, add `require "aasm/rspec"` to `spec/rails_helper.rb`.
+
+| Layer | Assert |
+|-------|--------|
+| Concern / model | `have_state`, `allow_event`, `transition_from` for the graph |
+| Service | `may_*?` denial; DB `status` after `event!` |
+| Request | Valid transition → updated JSON `status`; invalid → `409` |
+
+Test transitions in **service specs** as the primary behavior contract; model specs cover
+the state graph. See [`state-machines.md`](state-machines.md).
 
 ## Cross-surface note
 

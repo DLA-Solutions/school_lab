@@ -110,7 +110,8 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Jobs** | ActiveJob + Solid Queue | Boleto issuance, email, push (FCM) |
 | **Notifications** | FCM + state machine | Reliable push |
 | **Uploads** | Active Storage + S3 | Documents, message images |
-| **Auditing** | `paper_trail` or `audited` | History of grades and documents |
+| **Auditing** | **audited** | Change history on domain records (`audits` table, jsonb) |
+| **State machines** | **aasm** | Domain lifecycles (`status` column — charges, documents, push delivery) |
 | **Pagination** | Pagy | List endpoints |
 | **Search** | pg_search (MVP) | Search by name/CPF |
 | **Soft delete** | **discard** gem | `discarded_at` on domain tables |
@@ -138,8 +139,8 @@ React Native → stores
 
 ### Push notifications (finalized decision)
 
-Push delivery via **FCM**, queued in **Solid Queue**. Events pass through a **state
-machine** before triggering push.
+Push delivery via **FCM**, queued in **Solid Queue**. Events pass through an **AASM**
+state machine (see `docs/guidelines/web/state-machines.md`) before triggering push.
 
 ```
 Event (e.g., attendance recorded)

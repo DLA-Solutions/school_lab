@@ -16,12 +16,15 @@ and architecture) — it does not repeat it.
 ## Standards
 
 - **Testing** — behavior-focused RSpec; see [`testing.md`](testing.md). Rule: `rules/web/testing-rspec`. Skill: `write-rspec-spec`.
+- **Controllers** — thin API orchestration; see [`controllers.md`](controllers.md). Rule: `rules/web/controllers`. Skill: `review-api`.
+- **Models** — thin ActiveRecord layer, tenancy, Discard; see [`models.md`](models.md). Rule: `rules/web/models`.
+- **Migrations** — DBML-first schema, `school_id`, FKs, Discard indexes; see [`migrations.md`](migrations.md). Rule: `rules/web/migrations`.
+- **State machines** — AASM lifecycles on `status`; see [`state-machines.md`](state-machines.md). Rule: `rules/web/state-machines`.
+- **Auditing** — change history with **audited**; see [`auditing.md`](auditing.md). Rule: `rules/web/auditing`.
 - **Service objects** — naming (`Domain::Verb`), single public entry point, return objects/results, no controller logic leaking in.
-- **Controllers** — thin; API under `/api/v1`; delegate to services.
 - **API docs** — rswag request specs; `rake rswag:specs:swaggerize`.
 - **Policies (Pundit)** — per-school and per-family isolation; path `:school_id` + `me/` routes.
 - **i18n** — keys in English, strings in `config/locales/pt-BR.yml`; no hardcoded Portuguese.
-- **Migrations / multi-tenancy** — `school_id` on tenant-scoped tables, indexing, foreign keys.
 
 ## Open decisions (do not choose unilaterally)
 
