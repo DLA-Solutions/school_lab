@@ -1,6 +1,3 @@
-# Canonical workflow lives at ../../.github/workflows/ci.yml (repo root).
-# This copy is kept for discoverability next to the Rails app.
-
 name: CI
 
 on:
