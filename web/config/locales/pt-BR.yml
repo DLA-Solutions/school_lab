@@ -1,0 +1,10 @@
+pt-BR:
+  api:
+    errors:
+      unauthorized: "Não autorizado."
+      invalid_credentials: "E-mail ou senha inválidos."
+      forbidden: "Acesso negado."
+      not_found: "Não encontrado."
+      not_implemented: "Recurso ainda não implementado."
+      validation_failed: "Dados inválidos."
+      invalid_state_transition: "Transição de estado inválida."

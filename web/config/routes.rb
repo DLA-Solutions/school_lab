@@ -1,14 +1,35 @@
-Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+# frozen_string_literal: true
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+Rails.application.routes.draw do
+  if defined?(Rswag::Ui::Engine)
+    mount Rswag::Ui::Engine => "/api-docs"
+  end
+  mount Rswag::Api::Engine => "/api-docs"
+
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  namespace :api do
+    namespace :v1 do
+      scope :auth do
+        post "login", to: "auth#login"
+        post "refresh", to: "auth#refresh"
+        post "logout", to: "auth#logout"
+        post "password", to: "auth#password"
+        put "password", to: "auth#password"
+      end
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+      get "me", to: "me#show"
+      namespace :me do
+        resources :device_tokens, only: :create
+      end
+
+      resources :schools, only: [] do
+        scope module: :schools do
+          namespace :communication do
+            resources :conversations, only: :index
+          end
+        end
+      end
+    end
+  end
 end
