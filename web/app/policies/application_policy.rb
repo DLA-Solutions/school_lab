@@ -36,6 +36,12 @@ class ApplicationPolicy
     false
   end
 
+  private
+
+  def backoffice?
+    user&.backoffice?
+  end
+
   class Scope
     def initialize(user, scope)
       @user = user
