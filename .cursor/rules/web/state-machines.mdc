@@ -6,7 +6,7 @@ alwaysApply: false
 
 # web/ — State Machines (AASM)
 
-Full guide: `docs/guidelines/web/state-machines.md`. Stack: `docs/web-stack.md` §7.
+Full guide: `docs/guidelines/web/state-machines.md`. Stack: `docs/web-stack.md` §7. Services: rule `services`.
 
 ## When to use
 

@@ -21,7 +21,7 @@ and architecture) — it does not repeat it.
 - **Migrations** — DBML-first schema, `school_id`, FKs, Discard indexes; see [`migrations.md`](migrations.md). Rule: `rules/web/migrations`.
 - **State machines** — AASM lifecycles on `status`; see [`state-machines.md`](state-machines.md). Rule: `rules/web/state-machines`.
 - **Auditing** — change history with **audited**; see [`auditing.md`](auditing.md). Rule: `rules/web/auditing`.
-- **Service objects** — naming (`Domain::Verb`), single public entry point, return objects/results, no controller logic leaking in.
+- **Services** — business logic entry point; see [`services.md`](services.md). Rule: `rules/web/services`.
 - **API docs** — rswag request specs; `rake rswag:specs:swaggerize`.
 - **Policies (Pundit)** — per-school and per-family isolation; path `:school_id` + `me/` routes.
 - **i18n** — keys in English, strings in `config/locales/pt-BR.yml`; no hardcoded Portuguese.

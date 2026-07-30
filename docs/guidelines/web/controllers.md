@@ -27,7 +27,7 @@ Avoid N+1 queries, cross-domain service chains, and logic that belongs in `app/s
 def create
   authorize Charge
   result = Billing::CreateCharge.call(school: Current.school, params: charge_params)
-  render json: ChargeBlueprint.render(result.charge), status: :created
+  render json: ChargeBlueprint.render(result.data), status: :created
 end
 ```
 

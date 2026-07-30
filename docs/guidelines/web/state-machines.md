@@ -87,14 +87,19 @@ Controllers and jobs never call bang events directly without a service wrapper:
 ```ruby
 # app/services/billing/cancel_charge.rb
 module Billing
-  class CancelCharge
-    def self.call(charge:, actor:)
-      return failure(:invalid_transition) unless charge.may_cancel?
+  class CancelCharge < ApplicationService
+    def initialize(charge:, actor:)
+      @charge = charge
+      @actor = actor
+    end
 
-      charge.cancel! # persists via AASM bang method
-      success(charge)
+    def call
+      return ResponseService.failure(code: :invalid_state_transition) unless @charge.may_cancel?
+
+      @charge.cancel! # persists via AASM bang method
+      ResponseService.success(data: @charge)
     rescue ActiveRecord::RecordInvalid => e
-      failure(:validation_error, e.record)
+      ResponseService.failure(code: :validation_error, details: e.record.errors)
     end
   end
 end

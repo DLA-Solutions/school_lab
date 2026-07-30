@@ -11,6 +11,7 @@ Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. API conventions in 
 ## Architecture
 - Business logic in **service objects** (`app/services/`). API controllers delegate to services — no duplicated rules.
 - Controllers: `docs/guidelines/web/controllers.md` — rule `controllers`.
+- Services: `docs/guidelines/web/services.md` — rule `services`.
 - Models: `docs/guidelines/web/models.md` — rule `models`.
 - Migrations: `docs/guidelines/web/migrations.md` — rule `migrations`.
 - State machines: `docs/guidelines/web/state-machines.md` — rule `state-machines`.
