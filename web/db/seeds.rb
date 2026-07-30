@@ -1,9 +1,17 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
+# frozen_string_literal: true
+
+# Demo data for partner validation in development.
+# Idempotent — safe to run multiple times via `bin/rails db:seed`.
 #
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# Guardian login: guardian@demo.schoollab.local / password123
+# School admin:   admin@demo.schoollab.local / password123
+
+require_relative "seeds/demo_school"
+
+DemoSchool.seed!
+
+if Rails.env.development?
+  puts "Demo school seeded."
+  puts "  Guardian: #{DemoSchool::GUARDIAN_EMAIL} / #{DemoSchool::PASSWORD}"
+  puts "  Admin:    #{DemoSchool::ADMIN_EMAIL} / #{DemoSchool::PASSWORD}"
+end
