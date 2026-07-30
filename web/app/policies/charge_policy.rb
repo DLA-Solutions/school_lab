@@ -2,11 +2,13 @@
 
 class ChargePolicy < ApplicationPolicy
   def index?
-    school_staff?
+    school_staff? || guardian_member?
   end
 
   def show?
-    school_staff? && record.school_id == school_id
+    return school_staff? && record.school_id == school_id if school_staff?
+
+    guardian_member? && record.school_id == school_id && record.guardian_id == Current.guardian.id
   end
 
   def cancel?
@@ -25,7 +27,15 @@ class ChargePolicy < ApplicationPolicy
     def resolve
       return scope.none unless Current.school
 
-      scope.kept.where(school_id: Current.school.id)
+      base = scope.kept.where(school_id: Current.school.id)
+
+      if Current.membership&.role == "guardian" && Current.guardian
+        base.where(guardian_id: Current.guardian.id)
+      elsif Current.membership&.role == "school" && Current.membership&.active?
+        base
+      else
+        scope.none
+      end
     end
   end
 end
