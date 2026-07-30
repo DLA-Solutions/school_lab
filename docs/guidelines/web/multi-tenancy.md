@@ -43,11 +43,18 @@ Charge.find(params[:id])
 
 ## Database rules
 
-- Tenant-scoped tables require `school_id` (`null: false` unless documented — e.g. `memberships`).
+- Every table belonging to a school carries `school_id` **directly** (`null: false` unless
+  documented), even when reachable via a parent FK (e.g. `charges.school_id` in addition to
+  `charges.contract_id`) — denormalized so tenant queries never need to join through the
+  parent chain.
 - **Foreign keys** enforce referential integrity at DB level.
 - Polymorphic rows that belong to a school still carry `school_id` (e.g. `documents`).
 - Composite indexes for common filters: `[:school_id, :status]`, `[:school_id, :due_date]`.
 - **Integer primary keys** (bigint) — no UUID requirement unless an anchor doc mandates it.
+
+Intentional exceptions — do not add `school_id` here: `users`, `refresh_tokens` (cross-school
+by design, see `docs/modeling/002-api-auth.md`), `webhook_events` (raw PSP ingress log, not a
+domain entity), `audits` (uses polymorphic `associated_*` instead — see `auditing.md`).
 
 See `docs/guidelines/web/migrations.md` for migration patterns.
 
