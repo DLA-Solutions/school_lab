@@ -211,6 +211,176 @@
           }
         }
       }
+    },
+    "/api/v1/schools": {
+      "get": {
+        "summary": "List schools",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "schools listed for backoffice"
+          },
+          "403": {
+            "description": "forbidden for guardian"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create school",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "school created"
+          },
+          "403": {
+            "description": "forbidden for school admin"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "school": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "cnpj": {
+                        "type": "string"
+                      },
+                      "address": {
+                        "type": "string"
+                      },
+                      "saas_plan": {
+                        "type": "string"
+                      },
+                      "school_group_id": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                },
+                "required": [
+                  "school"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "delete": {
+        "summary": "Soft delete school",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "school discarded"
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}/disable": {
+      "post": {
+        "summary": "Disable user",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "user disabled and tokens revoked"
+          },
+          "403": {
+            "description": "forbidden for school admin"
+          }
+        }
+      }
     }
   },
   "servers": [

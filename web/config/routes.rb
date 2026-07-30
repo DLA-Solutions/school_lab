@@ -23,11 +23,18 @@ Rails.application.routes.draw do
         resources :device_tokens, only: :create
       end
 
-      resources :schools, only: [] do
+      resources :schools, only: %i[index show create update destroy] do
         scope module: :schools do
           namespace :communication do
             resources :conversations, only: :index
           end
+        end
+      end
+
+      resources :users, only: [] do
+        member do
+          post :disable
+          post :enable
         end
       end
     end

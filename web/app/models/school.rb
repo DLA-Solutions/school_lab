@@ -7,4 +7,6 @@ class School < ApplicationRecord
   belongs_to :discarded_by, class_name: "User", optional: true
 
   has_many :memberships, dependent: :destroy
+
+  validates :name, presence: true
 end
