@@ -46,6 +46,19 @@ Rails.application.routes.draw do
           namespace :communication do
             resources :conversations, only: :index
           end
+
+          namespace :billing do
+            resources :plans
+            resources :contracts
+            resources :charges, only: %i[index show destroy] do
+              member do
+                post :cancel
+                post :reissue
+              end
+            end
+            resources :payments, only: %i[index show]
+            resource :summary, only: :show, controller: "summary"
+          end
         end
       end
 
@@ -57,4 +70,6 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  post "webhooks/psp", to: "webhooks/psp#create"
 end
