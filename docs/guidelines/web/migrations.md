@@ -27,11 +27,15 @@ Never modify a migration that has already run — create a new migration instead
 
 ## Multi-tenancy (`school_id`)
 
-- Tenant-scoped tables require `school_id` with `null: false` unless documented otherwise
-  (e.g. `memberships.school_id` nullable for platform backoffice).
+- Every table belonging to a school carries `school_id` directly, with `null: false` unless
+  documented otherwise (e.g. `memberships.school_id` nullable for platform backoffice) — even
+  when the row is also reachable via a parent FK (e.g. `contracts.school_id` alongside
+  `contracts.student_id`). Do not rely on joining through the parent chain for tenant scoping.
 - Polymorphic records that belong to a school still carry `school_id` for isolation
   (`documents`).
 - Add composite indexes for list/filter patterns: `[:school_id, :status]`, `[:school_id, :due_date]`.
+- Exceptions (no `school_id` column): `users`, `refresh_tokens`, `webhook_events`, `audits`
+  (see `docs/guidelines/web/multi-tenancy.md`).
 
 ```ruby
 t.references :school, null: false, foreign_key: true

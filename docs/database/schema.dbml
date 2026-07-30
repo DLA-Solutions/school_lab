@@ -133,6 +133,7 @@ Table student_guardians {
   id integer [primary key, increment]
   guardian_id integer [not null]
   student_id integer [not null]
+  school_id integer [not null]
   financial_percentage decimal
   primary_guardian boolean
   discarded_at timestamp [note: 'Discard gem — unlink guardian↔student']
@@ -160,6 +161,7 @@ Table billing_plans {
 Table contracts {
   id integer [primary key, increment]
   student_id integer [not null]
+  school_id integer [not null]
   billing_plan_id integer [not null]
   negotiated_amount decimal
   due_day integer [note: '1–28']
@@ -169,11 +171,16 @@ Table contracts {
   discarded_at timestamp [note: 'Discard gem — distinct from status ended']
   created_at timestamp
   updated_at timestamp
+
+  indexes {
+    (school_id, status)
+  }
 }
 
 Table charges {
   id integer [primary key, increment]
   contract_id integer [not null]
+  school_id integer [not null]
   guardian_id integer [not null, note: 'Financially responsible guardian for this charge']
   billing_period varchar [note: 'E.g. 2026-08']
   original_amount decimal
@@ -186,11 +193,17 @@ Table charges {
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
+
+  indexes {
+    (school_id, status)
+    (school_id, due_date)
+  }
 }
 
 Table applied_discounts {
   id integer [primary key, increment]
   charge_id integer [not null]
+  school_id integer [not null]
   discount_type varchar
   amount decimal
   discarded_at timestamp [note: 'Discard gem — discount line removed']
@@ -200,6 +213,7 @@ Table applied_discounts {
 Table payments {
   id integer [primary key, increment]
   charge_id integer [not null]
+  school_id integer [not null]
   paid_amount decimal
   payment_method varchar [note: 'boleto | pix | card']
   psp_transaction_id varchar
@@ -259,16 +273,21 @@ Ref: billing_plans.school_id > schools.id
 
 Ref: student_guardians.guardian_id > guardians.id
 Ref: student_guardians.student_id > students.id
+Ref: student_guardians.school_id > schools.id
 
 Ref: contracts.student_id > students.id
 Ref: contracts.billing_plan_id > billing_plans.id
+Ref: contracts.school_id > schools.id
 
 Ref: charges.contract_id > contracts.id
 Ref: charges.guardian_id > guardians.id
 Ref: charges.discarded_by_id > users.id
+Ref: charges.school_id > schools.id
 
 Ref: applied_discounts.charge_id > charges.id
+Ref: applied_discounts.school_id > schools.id
 Ref: payments.charge_id > charges.id
+Ref: payments.school_id > schools.id
 
 Ref: documents.school_id > schools.id
 Ref: documents.uploaded_by_id > users.id

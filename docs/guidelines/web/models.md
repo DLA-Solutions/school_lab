@@ -24,10 +24,14 @@ Never enqueue jobs, call external APIs, or send mail from callbacks.
 
 ## Multi-tenancy and integrity
 
-- Tenant-scoped tables require `school_id` (`not null` unless documented — e.g. platform `memberships`).
+- Every model belonging to a school carries `school_id` directly (`not null` unless
+  documented — e.g. platform `memberships`), even when also reachable via a parent
+  `belongs_to` (e.g. `Charge#school_id` alongside `Charge#contract`) — `belongs_to :school`
+  is denormalized, not derived only through the parent chain.
 - **Foreign keys in migrations** — DB enforces referential integrity; models use `belongs_to`.
 - Always set `dependent:` on `has_many` / `has_one` (or document why not).
 - Queries must scope by `school_id` or go through `policy_scope` — never leak across schools.
+- Exceptions (no `school_id`): `User`, `RefreshToken`, `WebhookEvent`, `Audit`.
 
 ## Soft delete (Discard)
 

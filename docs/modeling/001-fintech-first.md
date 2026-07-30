@@ -50,6 +50,20 @@ User platform status: `active` | `disabled` (blocks all schools; distinct from p
 
 `documentable_type`: `School`, `Guardian`, `Student` (Teacher deferred to academic phase).
 
+## Multi-tenancy (`school_id`)
+
+Every billing and school-domain table carries `school_id` **directly**, even when a parent
+FK (e.g. `contracts.student_id`, `charges.contract_id`) already places it within a school's
+scope. This denormalization keeps tenant-scoped queries and policy scopes a single
+`where(school_id: ...)` away, without joining through the parent chain.
+
+Intentional exceptions (no direct `school_id`):
+
+| Table | Reason |
+|-------|--------|
+| `users`, `refresh_tokens` | Cross-school by design — one login, N schools via `memberships`; JWT payload has no `school_id` (see [`002-api-auth.md`](002-api-auth.md)) |
+| `webhook_events` | Raw PSP ingress log, not a domain entity |
+
 ## Data lifecycle — access control vs soft delete vs purge
 
 Three orthogonal mechanisms:
