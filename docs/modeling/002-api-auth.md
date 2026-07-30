@@ -167,7 +167,7 @@ After JWT signature and expiry:
 
 ## Implementation notes (deferred to `web/`)
 
-- `Auth::IssueTokens`, `Auth::RefreshTokens`, `Auth::RevokeTokens` services.
+- `Auth::IssueTokensService`, `Auth::RefreshTokensService`, `Auth::RevokeTokensService`.
 - `Api::V1::BaseController` — Bearer parsing, `Current.user`.
 - `rack-cors` for `web-ui` origins.
 - `CleanExpiredRefreshTokensJob` on Solid Queue (recurring).

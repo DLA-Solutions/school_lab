@@ -85,9 +85,9 @@ predicates on the model; cross-aggregate checks belong in the service before cal
 Controllers and jobs never call bang events directly without a service wrapper:
 
 ```ruby
-# app/services/billing/cancel_charge.rb
+# app/services/billing/cancel_charge_service.rb
 module Billing
-  class CancelCharge < ApplicationService
+  class CancelChargeService < ApplicationService
     def initialize(charge:, actor:)
       @charge = charge
       @actor = actor
@@ -116,7 +116,7 @@ Map invalid transitions to API `409 Conflict` with a stable `error.code` (e.g. `
 Member routes map to AASM events via services:
 
 ```
-POST /charges/:id/cancel  →  Billing::CancelCharge  →  charge.cancel!
+POST /charges/:id/cancel  →  Billing::CancelChargeService  →  charge.cancel!
 ```
 
 Event names should align with route intent (`cancel`, `pay`, `approve`) — not generic `update`.

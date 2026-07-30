@@ -105,7 +105,7 @@ Details: `docs/modeling/002-api-auth.md`.
 | Layer | Tool | Example |
 |--------|------------|---------|
 | **Models** | ActiveRecord + validations | `Student`, `Charge`, `Payment` |
-| **Services** | Plain Ruby objects | `Billing::GenerateBoleto`, `Auth::IssueTokens` |
+| **Services** | Plain Ruby objects | `Billing::GenerateBoletoService`, `Auth::IssueTokensService` |
 | **Forms** | ActiveModel form objects | Student registration with guardian |
 | **Jobs** | ActiveJob + Solid Queue | Boleto issuance, email, push (FCM) |
 | **Notifications** | FCM + state machine | Reliable push |

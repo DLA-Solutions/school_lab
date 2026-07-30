@@ -51,7 +51,7 @@ GWT scenarios should be implementable as behavior-focused specs (`write-rspec-sp
 **Given** school S with an active admin membership
 **And** student St is enrolled in school S
 **And** an active contract exists for St with due day 10
-**When** the admin calls `Billing::CreateCharge` for St for the current billing period
+**When** the admin calls `Billing::CreateChargeService` for St for the current billing period
 **Then** a charge is persisted with `status: open`
 **And** `total_amount` reflects the contract amount minus applied discounts
 **And** the charge is scoped to school S (`school_id`)

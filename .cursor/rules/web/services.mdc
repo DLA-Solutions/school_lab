@@ -17,8 +17,8 @@ Full guide: `docs/guidelines/web/services.md`. Rules: `web-rails`, `controllers`
 
 ## Naming and layout
 
-- Namespace by domain, verb name: `Billing::CreateCharge`, `Auth::IssueTokens` — not `*Service` suffix.
-- File path mirrors constant: `app/services/billing/create_charge.rb`.
+- Namespace by domain, verb + `Service` suffix: `Billing::CreateChargeService`, `Auth::IssueTokensService`.
+- File path mirrors constant: `app/services/billing/create_charge_service.rb`.
 - Inject dependencies via constructor (gateways, mailers); pass context as keywords (`school:`, `actor:`, `params:`).
 
 ## Results

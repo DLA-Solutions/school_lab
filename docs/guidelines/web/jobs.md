@@ -12,7 +12,7 @@ push, webhooks, bulk exports. Business rules stay in **services** — jobs enque
 one service (or a thin wrapper around it).
 
 ```
-Controller/Service → perform_later → Solid Queue → Job#perform → Domain::Verb.call
+Controller/Service → perform_later → Solid Queue → Job#perform → Domain::VerbService.call
 ```
 
 ## Layout
@@ -50,7 +50,7 @@ class Billing::IssueBoletoJob < ApplicationJob
   def perform(charge_id, school_id)
     school = School.find(school_id)
     charge = school.charges.find(charge_id)
-    Billing::IssueBoleto.call(school: school, charge: charge)
+    Billing::IssueBoletoService.call(school: school, charge: charge)
   end
 end
 ```

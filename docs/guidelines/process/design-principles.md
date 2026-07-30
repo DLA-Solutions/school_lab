@@ -23,7 +23,7 @@ check on cohesion and coupling.
 
 | Principle | School Lab application |
 |-----------|------------------------|
-| **S** — Single responsibility | One service = one use case (`Billing::IssueBoleto`, not issue + notify + report) |
+| **S** — Single responsibility | One service = one use case (`Billing::IssueBoletoService`, not issue + notify + report) |
 | **O** — Open/closed | Extend via new services or adapters, not `if provider == :x` scattered in code |
 | **L** — Liskov substitution | Gateway adapters (boleto, email) are interchangeable; fakes work in tests |
 | **I** — Interface segregation | Small, focused policies; no god-policy covering unrelated actions |
@@ -36,7 +36,7 @@ them without cause:
 
 | Abstraction | Role |
 |-------------|------|
-| Service objects (`Domain::Verb`) | Business logic entry point |
+| Service objects (`Domain::VerbService`) | Business logic entry point |
 | Pundit policies | Authorization |
 | Serializers (blueprinter) | API output shape |
 | Return / result objects | Service success and failure channels |

@@ -22,7 +22,7 @@ Full guide: `docs/guidelines/web/state-machines.md`. Stack: `docs/web-stack.md` 
 ## Who calls events
 
 - **Services** invoke `may_*?` / `event!` — not controllers or jobs directly.
-- Controllers: `POST /charges/:id/cancel` → `Billing::CancelCharge` → `charge.cancel!`.
+- Controllers: `POST /charges/:id/cancel` → `Billing::CancelChargeService` → `charge.cancel!`.
 - Invalid transition → API `409` with stable `error.code`.
 
 ## Orthogonal concerns

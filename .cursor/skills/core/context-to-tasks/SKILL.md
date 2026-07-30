@@ -183,7 +183,7 @@ Never auto-create issues without user approval of the drafted tasks.
 | Size | Guidance |
 |------|----------|
 | **Too large** | "Implement billing module" → split by entity group or use case |
-| **Right** | "Add charges table migration + Charge model" or "Implement Billing::CreateCharge service" |
+| **Right** | "Add charges table migration + Charge model" or "Implement Billing::CreateChargeService" |
 | **Too small** | "Add column to schema comment" → merge into parent migration task |
 
 Each task should be completable in one focused PR where possible.
