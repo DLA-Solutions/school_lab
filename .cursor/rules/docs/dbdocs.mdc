@@ -1,0 +1,31 @@
+---
+description: Keep dbdocs in sync after DBML or migration changes
+globs: docs/database/**,web/db/migrate/**/*.rb,web/db/schema.rb
+alwaysApply: false
+---
+
+# docs/ — dbdocs (schema documentation)
+
+Full workflow: skill `publish-dbdocs`. Schema source: `docs/database/schema.dbml`.
+
+Published site: [dbdocs.io/contatodcd60b30ac/school_lab](https://dbdocs.io/contatodcd60b30ac/school_lab) (password-protected).
+
+## Source of truth
+
+- **DBML** lives in `docs/database/schema.dbml` — not in markdown fences.
+- `database_dml.md` is a pointer and workflow doc only.
+- DBML before migration (rules `modeling`, `migrations`); dbdocs publish **after** schema changes land.
+
+## When to publish
+
+After any change to `schema.dbml` or a migration that alters tables, columns, indexes, or refs:
+
+1. Ensure `schema.dbml` matches the intended schema (and `web/db/schema.rb` when migrations exist).
+2. Run skill **`publish-dbdocs`** (or `.cursor/scripts/publish-dbdocs.sh`).
+3. Do not mark schema work complete until `dbdocs validate` succeeds.
+
+## Do not
+
+- Publish from `schema.rb` via `dbdocs db2dbml` — DBML keeps LGPD notes, sample data, and partial-index intent.
+- Edit `database_dml.md` as if it still held inline DBML.
+- Skip publish when only renaming tables/columns in DBML — dbdocs must reflect the live doc.

@@ -13,10 +13,10 @@ Modeling comes after PRDs and before implementation (`docs/product-map.md` §4).
 | Output | Location | Purpose |
 |--------|----------|---------|
 | Narrative DSL | `docs/modeling/NNN-<domain>.md` | Entity groups, auth model, LGPD notes, scope boundaries |
-| Executable schema | `docs/database/database_dml.md` | DBML — canonical for migrations and models |
+| Executable schema | `docs/database/schema.dbml` | DBML — canonical for migrations, dbdocs, dbdiagram |
 | DER export | `docs/database/der_NNN.png` | Visual review; link from PRDs |
 
-Every PRD entity change must update `docs/database/` first, then align the narrative file.
+Every PRD entity change must update `docs/database/schema.dbml` first, then align the narrative file. After schema changes, publish dbdocs — rule `dbdocs`, skill `publish-dbdocs`.
 
 ## Conventions
 
