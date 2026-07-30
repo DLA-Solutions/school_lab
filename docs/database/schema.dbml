@@ -203,6 +203,9 @@ Table charges {
   total_amount decimal
   due_date date
   status varchar [note: 'pending | paid | overdue | cancelled — business state; discard for erroneous removal']
+  psp_charge_id varchar [note: 'Fake/real PSP reference for webhooks and reissue']
+  boleto_url varchar [note: 'Last issued boleto URL from PSP']
+  pix_copy_paste text [note: 'Last issued Pix copy-paste from PSP']
   discarded_at timestamp [note: 'Discard gem — erroneous/duplicate charge removal']
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
@@ -240,11 +243,16 @@ Table payments {
 
 Table webhook_events {
   id integer [primary key, increment]
+  psp_event_id varchar [not null, note: 'Idempotency key from PSP']
   event_type varchar
   payload text
   processed_at timestamp
   created_at timestamp
   Note: 'No Discard — ingress audit log; purge by created_at after processing + retention'
+
+  indexes {
+    psp_event_id [unique]
+  }
 }
 
 // --- Documents (MVP: enrollment/KYC docs — not full digital archive) ---

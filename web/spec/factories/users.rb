@@ -84,4 +84,73 @@ FactoryBot.define do
     sequence(:token) { |n| "fcm-token-#{n}" }
     platform { "android" }
   end
+
+  factory :billing_plan do
+    school
+    sequence(:name) { |n| "Tuition Plan #{n}" }
+    plan_type { "tuition" }
+    base_amount { 900.00 }
+  end
+
+  factory :contract do
+    school
+    student { association :student, school: school }
+    billing_plan { association :billing_plan, school: school }
+    negotiated_amount { 850.00 }
+    due_day { 10 }
+    starts_on { Date.new(2026, 1, 1) }
+    status { "active" }
+  end
+
+  factory :charge do
+    school
+    contract { association :contract, school: school }
+    guardian { association :guardian, school: school }
+    billing_period { "2026-08" }
+    original_amount { 900.00 }
+    discount_amount { 50.00 }
+    late_fee_amount { 0 }
+    total_amount { 850.00 }
+    due_date { Date.new(2026, 8, 10) }
+
+    trait :overdue do
+      due_date { Date.yesterday }
+
+      after(:create) do |charge|
+        charge.mark_overdue! if charge.may_mark_overdue?
+      end
+    end
+
+    trait :paid do
+      after(:create, &:pay!)
+    end
+
+    trait :cancelled do
+      after(:create) do |charge|
+        charge.cancel! if charge.may_cancel?
+      end
+    end
+
+    trait :with_psp do
+      psp_charge_id { "fake-#{SecureRandom.hex(4)}" }
+      boleto_url { "https://fake-psp.example/boleto/test" }
+      pix_copy_paste { "00020126580014br.gov.bcb.pixtest" }
+    end
+  end
+
+  factory :payment do
+    school
+    charge { association :charge, :with_psp, school: school }
+    paid_amount { 850.00 }
+    payment_method { "pix" }
+    sequence(:psp_transaction_id) { |n| "txn-#{n}" }
+    paid_at { Time.current }
+    status { "confirmed" }
+  end
+
+  factory :webhook_event do
+    sequence(:psp_event_id) { |n| "evt-#{n}" }
+    event_type { "payment.confirmed" }
+    payload { "{}" }
+  end
 end

@@ -10,10 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_30_052516) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_054838) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
+
+  create_table "applied_discounts", force: :cascade do |t|
+    t.decimal "amount", precision: 12, scale: 2
+    t.bigint "charge_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "discount_type"
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["charge_id"], name: "index_applied_discounts_on_charge_id"
+    t.index ["school_id"], name: "index_applied_discounts_on_school_id"
+  end
 
   create_table "audits", force: :cascade do |t|
     t.string "action"
@@ -35,6 +47,62 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_052516) do
     t.index ["created_at"], name: "index_audits_on_created_at"
     t.index ["request_uuid"], name: "index_audits_on_request_uuid"
     t.index ["user_id", "user_type"], name: "user_index"
+  end
+
+  create_table "billing_plans", force: :cascade do |t|
+    t.decimal "base_amount", precision: 12, scale: 2
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "name"
+    t.string "plan_type"
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_billing_plans_on_school_id"
+  end
+
+  create_table "charges", force: :cascade do |t|
+    t.string "billing_period"
+    t.string "boleto_url"
+    t.bigint "contract_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.decimal "discount_amount", precision: 12, scale: 2, default: "0.0"
+    t.date "due_date"
+    t.bigint "guardian_id", null: false
+    t.decimal "late_fee_amount", precision: 12, scale: 2, default: "0.0"
+    t.decimal "original_amount", precision: 12, scale: 2
+    t.text "pix_copy_paste"
+    t.string "psp_charge_id"
+    t.bigint "school_id", null: false
+    t.string "status", default: "pending", null: false
+    t.decimal "total_amount", precision: 12, scale: 2
+    t.datetime "updated_at", null: false
+    t.index ["contract_id"], name: "index_charges_on_contract_id"
+    t.index ["discarded_by_id"], name: "index_charges_on_discarded_by_id"
+    t.index ["guardian_id"], name: "index_charges_on_guardian_id"
+    t.index ["psp_charge_id"], name: "index_charges_on_psp_charge_id", unique: true, where: "(psp_charge_id IS NOT NULL)"
+    t.index ["school_id", "due_date"], name: "index_charges_on_school_id_and_due_date"
+    t.index ["school_id", "status"], name: "index_charges_on_school_id_and_status"
+    t.index ["school_id"], name: "index_charges_on_school_id"
+  end
+
+  create_table "contracts", force: :cascade do |t|
+    t.bigint "billing_plan_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.integer "due_day"
+    t.date "ends_on"
+    t.decimal "negotiated_amount", precision: 12, scale: 2
+    t.bigint "school_id", null: false
+    t.date "starts_on"
+    t.string "status", default: "active", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id"], name: "index_contracts_on_billing_plan_id"
+    t.index ["school_id", "status"], name: "index_contracts_on_school_id_and_status"
+    t.index ["school_id"], name: "index_contracts_on_school_id"
+    t.index ["student_id"], name: "index_contracts_on_student_id"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -78,6 +146,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_052516) do
     t.index ["suspended_by_id"], name: "index_memberships_on_suspended_by_id"
     t.index ["user_id", "school_id"], name: "index_memberships_on_user_id_and_school_id_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["user_id"], name: "index_memberships_on_user_id"
+  end
+
+  create_table "payments", force: :cascade do |t|
+    t.bigint "charge_id", null: false
+    t.datetime "created_at", null: false
+    t.decimal "paid_amount", precision: 12, scale: 2
+    t.datetime "paid_at"
+    t.string "payment_method"
+    t.string "psp_transaction_id"
+    t.bigint "school_id", null: false
+    t.string "status", default: "confirmed", null: false
+    t.datetime "updated_at", null: false
+    t.index ["charge_id"], name: "index_payments_on_charge_id"
+    t.index ["psp_transaction_id"], name: "index_payments_on_psp_transaction_id", unique: true, where: "(psp_transaction_id IS NOT NULL)"
+    t.index ["school_id"], name: "index_payments_on_school_id"
   end
 
   create_table "refresh_tokens", force: :cascade do |t|
@@ -172,6 +255,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_052516) do
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 
+  create_table "webhook_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event_type"
+    t.text "payload"
+    t.datetime "processed_at"
+    t.string "psp_event_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["psp_event_id"], name: "index_webhook_events_on_psp_event_id", unique: true
+  end
+
+  add_foreign_key "applied_discounts", "charges"
+  add_foreign_key "applied_discounts", "schools"
+  add_foreign_key "billing_plans", "schools"
+  add_foreign_key "charges", "contracts"
+  add_foreign_key "charges", "guardians"
+  add_foreign_key "charges", "schools"
+  add_foreign_key "charges", "users", column: "discarded_by_id"
+  add_foreign_key "contracts", "billing_plans"
+  add_foreign_key "contracts", "schools"
+  add_foreign_key "contracts", "students"
   add_foreign_key "device_tokens", "users"
   add_foreign_key "guardians", "schools"
   add_foreign_key "guardians", "users"
@@ -179,6 +282,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_052516) do
   add_foreign_key "memberships", "schools"
   add_foreign_key "memberships", "users"
   add_foreign_key "memberships", "users", column: "suspended_by_id"
+  add_foreign_key "payments", "charges"
+  add_foreign_key "payments", "schools"
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
