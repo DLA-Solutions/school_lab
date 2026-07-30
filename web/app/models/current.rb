@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 class Current < ActiveSupport::CurrentAttributes
-  attribute :user, :school, :membership
+  attribute :user, :school, :membership, :guardian
 end
