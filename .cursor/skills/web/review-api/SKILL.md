@@ -47,7 +47,7 @@ Read the docs that govern the changed domain — **before** judging the code:
 2. Domain narrative: `docs/api/v1/<domain>.md` when the change maps to a namespace.
 3. Modeling when auth/identity/tenant scope is involved: `docs/modeling/002-api-auth.md`, relevant `docs/modeling/NNN-*.md`.
 4. PRD section (API, Errors, Permissions) when a PRD exists for the domain.
-5. Rules: `rules/web/web-rails`, `rules/web/testing-rspec`, `rules/core/lgpd-privacy`, `rules/core/language-conventions`.
+5. Rules: `rules/web/web-rails`, `rules/web/controllers`, `rules/web/models`, `rules/web/state-machines`, `rules/web/auditing`, `rules/web/testing-rspec`, `rules/core/lgpd-privacy`, `rules/core/language-conventions`.
 6. `docs/open-questions.md` — do not treat unresolved decisions as violations.
 
 ### 3. Consult Context7 (required)

@@ -1,0 +1,25 @@
+---
+description: Transactional email — async delivery, i18n, LGPD-aware content
+globs: web/app/mailers/**/*.rb,web/app/views/**/*mailer*,web/spec/mailers/**/*.rb
+alwaysApply: false
+---
+
+# web/ — Mailers
+
+Full guide: `docs/guidelines/web/mailers.md`. Provider: `docs/open-questions.md`. Related: `jobs`, `gateways`.
+
+## Role
+
+- Services decide **when**; mailers define **what** — no business rules in mailers.
+- `deliver_later` from services — never `deliver_now` in request cycle (except tests).
+
+## Conventions
+
+- Strings via i18n (`config/locales/pt-BR.yml`) — no hardcoded Portuguese in templates.
+- `Mailer.with(...).action.deliver_later` — pass scoped records or IDs.
+- Minimize PII in subject lines; LGPD-sensitive content only when required.
+
+## Testing
+
+- Mailer specs: subject, to, key body; `have_enqueued_job(ActionMailer::MailDeliveryJob)` in service specs.
+- Test env: `delivery_method = :test`.

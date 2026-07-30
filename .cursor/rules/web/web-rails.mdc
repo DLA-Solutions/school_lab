@@ -7,16 +7,29 @@ alwaysApply: false
 # web/ — Rails 8.1 Conventions
 
 Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. API conventions in `docs/api/README.md`.
+Index: `docs/guidelines/web/README.md`.
 
 ## Architecture
 - Business logic in **service objects** (`app/services/`). API controllers delegate to services — no duplicated rules.
-- Authorization via **Pundit** policies (`app/policies/`); roles: backoffice, school, teacher, guardian.
+- Controllers: `docs/guidelines/web/controllers.md` — rule `controllers`.
+- Services: `docs/guidelines/web/services.md` — rule `services`.
+- Models: `docs/guidelines/web/models.md` — rule `models`.
+- Policies: `docs/guidelines/web/policies.md` — rule `policies`.
+- Multi-tenancy: `docs/guidelines/web/multi-tenancy.md` — rule `multi-tenancy`.
+- Migrations: `docs/guidelines/web/migrations.md` — rule `migrations`.
+- State machines: `docs/guidelines/web/state-machines.md` — rule `state-machines`.
+- Auditing: `docs/guidelines/web/auditing.md` — rule `auditing`.
+- Jobs: `docs/guidelines/web/jobs.md` — rule `jobs`.
+- Serializers: `docs/guidelines/web/serializers.md` — rule `serializers`.
+- Mailers / gateways: `docs/guidelines/web/mailers.md`, `gateways.md` — rules `mailers`, `gateways`.
+- Anti-patterns: `docs/guidelines/web/anti-patterns.md` — rule `anti-patterns`.
 - **No Hotwire UI** in `web/` — product web is React SPA in `web-ui/`.
 - API: REST JSON under `/api/v1`, JWT auth; OpenAPI via **rswag** request specs.
 - Clients: `web-ui/` (React) and `app/` (React Native) consume the same API.
 
 ## Auth
 - Devise for credentials on `users`; JWT access + `refresh_tokens` table.
+- Pundit — roles: backoffice, school, teacher, guardian; per-school + per-family isolation.
 - See `docs/modeling/002-api-auth.md` for TTL, rotation, and client transport.
 
 ## Infra defaults (MVP)

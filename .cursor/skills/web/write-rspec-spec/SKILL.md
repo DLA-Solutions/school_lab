@@ -36,3 +36,4 @@ Before adding a mock, ask: can I use a real record, fake adapter, or `travel_to`
 - Wrong role → 403
 - Wrong school → 404 or 403 (tenant isolation)
 - Invalid params → 422 with error payload
+- Invalid state transition → 409 with error payload

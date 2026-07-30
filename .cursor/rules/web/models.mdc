@@ -1,0 +1,63 @@
+---
+description: ActiveRecord model conventions for web/ — thin models, tenancy, Discard
+globs: web/app/models/**/*.rb,web/spec/models/**/*.rb,web/spec/factories/**/*.rb
+alwaysApply: false
+---
+
+# web/ — Model Conventions
+
+Full guide: `docs/guidelines/web/models.md`. Rules: `web-rails`, `testing-rspec`.
+
+## Thin models
+
+- Data layer only: **associations**, **validations**, **scopes**, simple predicates (`active?`, `overdue?`).
+- Complex business logic, side effects, and orchestration live in **service objects** (`app/services/`).
+- Callbacks only for data normalization (`before_validation`) and defaults (`after_initialize`).
+- No emails, API calls, or job enqueueing in callbacks — services own side effects.
+
+## Multi-tenancy and integrity
+
+- Tenant-scoped tables require `school_id` (nullable only when documented, e.g. platform `memberships`).
+- **Foreign keys in migrations** — DB enforces referential integrity; models mirror with `belongs_to`.
+- Always specify `dependent:` on `has_many` / `has_one` (or document why not).
+- Never query tenant data without scoping through `school_id` or `policy_scope`.
+
+## Soft delete (Discard)
+
+- Use **discard** gem (`include Discard::Model`) on domain tables per modeling doc.
+- Prefer explicit `.kept` in queries; avoid `default_scope` unless the domain doc requires it.
+- Do **not** use Discard on ephemeral/audit tables (`refresh_tokens`, `payments`, `webhook_events`).
+- Partial unique indexes (`WHERE discarded_at IS NULL`) must have matching model validations.
+
+## State and lifecycle
+
+- **Simple status** — string `status` column + `inclusion` validation when no transition graph.
+- **AASM** — guarded lifecycles on `column: :status`; concern per model (`ChargeStateMachine`).
+- Services invoke `may_*?` / `event!`; controllers never call bang events directly.
+- **Discard** (`discarded_at`) ≠ business `status` — orthogonal concerns.
+- Guide: `docs/guidelines/web/state-machines.md` — rule `state-machines`.
+
+## Queries and concerns
+
+- Reusable filters as **scopes**; complex list/filter logic belongs in services or `policy_scope`, not controllers.
+- No `app/queries/` by default — extract query object on third stable case (`multi-tenancy` rule).
+- Extract a **concern** only on the third stable case — one behavior per concern (`Discardable`, `SchoolScoped`).
+- Negative-state scopes: `where.missing(:association)` (e.g. records not yet linked).
+
+## Validations
+
+- Validate presence/format in the model **and** enforce `null: false` / constraints in migrations.
+- User-facing error strings via i18n keys — no hardcoded pt-BR in models.
+
+## Testing and factories
+
+- Model specs in `spec/models/` — validations, scopes, and callbacks with business effect only.
+- One **FactoryBot** factory per model in `spec/factories/`; traits for states (`:discarded`, `:suspended`, `:overdue`).
+- Always set `school` (and tenant keys) explicitly or via factory defaults.
+- Shoulda matchers for associations/validations are fine; prefer behavior assertions over matcher-only specs.
+
+## Change auditing
+
+- Include `SchoolAuditable` on tenant models that need change history (`associated_with: :school`).
+- Do not audit `refresh_tokens`, `payments`, `webhook_events`; redact secrets with `redacted:` / `except:`.
+- Bulk/system updates: `without_auditing`. Guide: `docs/guidelines/web/auditing.md` — rule `auditing`.

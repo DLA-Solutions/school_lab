@@ -11,14 +11,15 @@ Per `docs/product-map.md` §4, modeling comes after PRDs and before implementati
 
 1. Read the relevant PRD(s) in `docs/prds/` — model only what PRDs define.
 2. Write narrative DSL → `docs/modeling/NNN-<domain>.md` (entity groups, auth, LGPD notes, scope boundaries).
-3. Write executable DBML → `docs/database/database_dml.md` (or a per-domain file if the schema grows).
-4. Export DER PNG from [dbdiagram.io](https://dbdiagram.io) → `docs/database/der_NNN.png`.
-5. Cross-check PRD entities ↔ DBML tables; link artifacts in the PRD Database section.
-6. LGPD + `school_id` checklist:
+3. Write executable DBML → `docs/database/schema.dbml` (or a per-domain file if the schema grows).
+4. Publish dbdocs — skill `publish-dbdocs` (`.cursor/scripts/publish-dbdocs.sh`).
+5. Export DER PNG from [dbdiagram.io](https://dbdiagram.io) → `docs/database/der_NNN.png`.
+6. Cross-check PRD entities ↔ DBML tables; link artifacts in the PRD Database section.
+7. LGPD + `school_id` checklist:
    - Every tenant-scoped entity has `school_id` where applicable.
    - Mark sensitive fields (`cpf`, `email`, `phone`, `birth_date`, health, messages).
    - Note retention as pending when legal is not validated.
-7. Use English `snake_case` identifiers. Portuguese exceptions only when listed in `docs/glossary.md`; ask before adding new ones.
+8. Use English `snake_case` identifiers. Portuguese exceptions only when listed in `docs/glossary.md`; ask before adding new ones.
 
 ## Format choice
 

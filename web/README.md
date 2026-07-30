@@ -7,3 +7,6 @@ cp .env.example .env    # required before make services-up (from repo root)
 ```
 
 Product stack: [`docs/web-stack.md`](../docs/web-stack.md).
+
+Coding standards: [`docs/guidelines/web/`](../docs/guidelines/web/) — controllers, models, state machines, auditing, testing.
+Agent rules: `.cursor/rules/web/`.

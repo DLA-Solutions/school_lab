@@ -1,0 +1,31 @@
+---
+description: Change-history auditing with audited gem — tenancy, LGPD, API context
+globs: web/app/models/**/*.rb,web/app/models/concerns/**/*.rb,web/app/controllers/concerns/audit_context.rb,web/config/initializers/audited.rb,web/db/migrate/*audits*
+alwaysApply: false
+---
+
+# web/ — Auditing (audited)
+
+Full guide: `docs/guidelines/web/auditing.md`. Stack: `docs/web-stack.md` §7.
+
+**audited** = change history (`audits` table). Not `bundler-audit` (CVE scan) or read/access logs.
+
+## When to audit
+
+- Tenant domain models: students, guardians, charges, documents, billing plans, etc.
+- Include `SchoolAuditable` on models with `belongs_to :school` (`associated_with: :school`).
+
+## Do not audit
+
+- `refresh_tokens`, `webhook_events`, `payments`, `audits`.
+- Secrets: `redacted:` / `except:` for passwords, tokens, digests.
+
+## API context
+
+- API base controller includes `AuditContext` — sets `Audited.store[:audited_user]` from `Current.user`.
+- Bulk/system work: `Model.without_auditing { ... }`.
+
+## LGPD
+
+- Treat `audits` as sensitive; retention TBD (`docs/open-questions.md`).
+- Expose audit history only via Pundit-approved backoffice/school endpoints — not guardians by default.
