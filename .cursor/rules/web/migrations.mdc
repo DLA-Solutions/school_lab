@@ -11,6 +11,8 @@ Full guide: `docs/guidelines/web/migrations.md`. Schema source: `docs/database/s
 ## Source of truth
 
 - Update **DBML** (`docs/database/schema.dbml`) before writing migrations when adding or changing domain tables.
+- Generate migrations: `bin/rails generate migration ...` — never hand-create migration files without the generator.
+- After migration: `bin/rails generate model ... --skip-migration` (guide `models.md`).
 - After migration + DBML align, publish dbdocs — skill `publish-dbdocs`.
 - One concern per migration; never edit a migration that has already run in any environment — add a new one.
 

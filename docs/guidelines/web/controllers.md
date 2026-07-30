@@ -10,6 +10,29 @@ Rule: `.cursor/rules/web/controllers.mdc`. Skill: `review-api`.
 `web/` is **API-only** — JSON under `/api/v1`. Controllers orchestrate; they do not own
 business rules. Clients (`web-ui/`, `app/`) consume the same API.
 
+## Creating controllers
+
+Always generate controllers with **`bin/rails generate`** — never hand-create files in
+`app/controllers/api/v1/` or `spec/requests/api/v1/`.
+
+```bash
+bin/rails generate controller api/v1/charges index show create update destroy --skip-routes
+```
+
+- Use the `api/v1/` namespace — matches `app/controllers/api/v1/`.
+- Pass only the actions you need (`index`, `show`, `create`, `update`, `destroy`, or member
+  routes like `cancel`).
+- Use `--skip-routes` — add routes manually in `config/routes.rb` (tenant paths, `scope module:`).
+- Do **not** use `scaffold` or `scaffold_api` — they generate views and inline JSON this stack
+  does not use.
+
+After generation:
+
+1. Make the controller thin — Pundit, one service per action, blueprinter.
+2. Replace the generated request spec stub with an **rswag** request spec in
+   `spec/requests/api/v1/`.
+3. Add the blueprint in `app/blueprints/` (blueprints are hand-written — no generator).
+
 ## Thin controllers
 
 Each action should:

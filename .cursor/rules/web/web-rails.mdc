@@ -11,6 +11,7 @@ Index: `docs/guidelines/web/README.md`.
 
 ## Architecture
 - Business logic in **service objects** (`app/services/`). API controllers delegate to services — no duplicated rules.
+- **Generators:** `bin/rails generate` for models (`--skip-migration` after migration-agent) and controllers (`api/v1/... --skip-routes`); no scaffold.
 - Controllers: `docs/guidelines/web/controllers.md` — rule `controllers`.
 - Services: `docs/guidelines/web/services.md` — rule `services`.
 - Models: `docs/guidelines/web/models.md` — rule `models`.

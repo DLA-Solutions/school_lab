@@ -16,17 +16,18 @@ Delegate to the right agent for each layer. Run in **dependency order** when a f
 | Order | Agent | Domain |
 |-------|-------|--------|
 | 1 | **migration-agent** | DBML-aligned migrations, `school_id`, indexes, FKs |
-| 2 | **policy-agent** | Pundit policies, scopes, role + tenant isolation |
-| 3 | **service-agent** | Business logic, `ResponseService`, transactions, AASM |
-| 4 | **api-controller-agent** | Thin API controllers, blueprinter, rswag specs |
+| 2 | **models** (you) | `bin/rails g model ... --skip-migration` — validations, associations, scopes, AASM |
+| 3 | **policy-agent** | Pundit policies, scopes, role + tenant isolation |
+| 4 | **service-agent** | Business logic, `ResponseService`, transactions, AASM |
+| 5 | **api-controller-agent** | `bin/rails g controller api/v1/...` — thin controllers, blueprinter, rswag |
 
-After models exist (post-migration), add ActiveRecord models following `docs/guidelines/web/models.md` and rule `models` — validations, associations, scopes, AASM concerns; keep models thin.
+After **migration-agent** runs, **generate** the model (`bin/rails generate model ... --skip-migration`) — never hand-create model files. Then edit per `docs/guidelines/web/models.md` and rule `models`; keep models thin.
 
 ## Common flows
 
 ```
 New domain entity:
-  migration-agent → models → policy-agent → service-agent → api-controller-agent
+  migration-agent → bin/rails g model (--skip-migration) → policy-agent → service-agent → api-controller-agent
 
 New endpoint on existing entity:
   policy-agent → service-agent → api-controller-agent

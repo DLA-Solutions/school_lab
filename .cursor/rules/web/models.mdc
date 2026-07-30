@@ -8,6 +8,12 @@ alwaysApply: false
 
 Full guide: `docs/guidelines/web/models.md`. Rules: `web-rails`, `testing-rspec`.
 
+## Generators
+
+- Always `bin/rails generate model ...` — never hand-create model, factory, or model spec files.
+- After **migration-agent** (table exists): `--skip-migration`.
+- No `scaffold` / `scaffold_api`.
+
 ## Thin models
 
 - Data layer only: **associations**, **validations**, **scopes**, simple predicates (`active?`, `overdue?`).

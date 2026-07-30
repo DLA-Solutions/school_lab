@@ -10,6 +10,30 @@ Rule: `.cursor/rules/web/models.mdc`. Skill: `write-rspec-spec`.
 Models are the **data layer** — associations, validations, scopes, and simple predicates.
 Business rules and side effects live in **service objects** (`app/services/`).
 
+## Creating models
+
+Always generate models with **`bin/rails generate`** — never hand-create files in
+`app/models/`, `spec/models/`, or `spec/factories/`.
+
+Workflow (DBML-first — see [`migrations.md`](migrations.md)):
+
+1. **migration-agent** creates and runs a DBML-aligned migration.
+2. Generate the model **without** a second migration:
+
+```bash
+bin/rails generate model Charge school:references amount_cents:integer status:string --skip-migration
+```
+
+3. Edit the generated model — associations, validations, scopes, AASM concerns, `Discard::Model`.
+4. Edit the generated factory and model spec stubs.
+
+Use `--skip-migration` when the table already exists from step 1. For a new table with no
+migration yet, omit `--skip-migration` and then align the generated migration with DBML before
+`db:migrate`.
+
+Do **not** use `scaffold` or `scaffold_api` — they create controllers and serializers this
+stack does not use.
+
 ## Thin models
 
 | Belongs in model | Belongs in service |
