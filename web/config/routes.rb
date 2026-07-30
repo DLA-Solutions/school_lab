@@ -68,6 +68,16 @@ Rails.application.routes.draw do
           end
 
           namespace :me do
+            resources :charges, only: %i[index show] do
+              collection do
+                get :history
+              end
+              member do
+                post :reissue
+              end
+            end
+            resources :payments, only: :index
+            resources :students, only: :index
             resources :documents, only: :index
           end
         end
