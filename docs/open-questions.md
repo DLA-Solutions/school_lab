@@ -56,7 +56,7 @@ Recorded from a conversation with the partner director (escola NSR). Details in
 - [ ] **Fintech-first vs School Lab monorepo** — separate product or same codebase
       with two entry points? Foundational modeling started in `docs/database/` and
       `docs/modeling/001-fintech-first.md`; decision affects convergence with main
-      MVP entities. See `docs/prds/fintech-first.md` §10.
+      MVP entities. See `docs/prds/fintech-first.md` (Positioning note).
 - [ ] Confirm the full MVP scope: communication + academic (grades, report
       cards, attendance) + billing (boleto) + digital archive. What is left out
       in this first cut?
@@ -65,13 +65,19 @@ Recorded from a conversation with the partner director (escola NSR). Details in
 
 ## Billing
 
-School Lab MVP billing questions remain here. Fintech-first–specific items (PSP,
-régua channels, NFS-e, platform SaaS fee) are tracked in `docs/prds/fintech-first.md` §9.
+School Lab MVP billing questions remain here. Fintech-first–specific items are tracked
+in `docs/prds/fintech-first.md` (Open items).
 
 - [ ] Who generates the boleto (school manually vs. automatically) and what
       recurrence?
 - [ ] Payment/boleto-issuance integration (bank, gateway)?
 - [ ] Delinquency handling (notices, blocks)?
+- [ ] **Fintech-first — PSP charge reference** — persist `psp_charge_id`/URLs on
+      `charges` vs fetch on read from gateway adapter (`docs/prds/fintech-first.md`).
+- [ ] **Fintech-first — `device_tokens` table** — schema for `POST /me/device_tokens`
+      (API Wave 1; not yet in `schema.dbml`).
+- [ ] **Fintech-first — migrated payment history** — storage for `source: migrated`
+      and `external_reference` on guardian charge history.
 
 ## Digital archive / auditing
 
@@ -187,7 +193,7 @@ Decisions finalized in `docs/web-stack.md`. Open items:
 - [x] **Mobile** — React Native in `app/`.
 - [x] **API** — single `/api/v1` for web and mobile; conventions in `docs/api/README.md`.
 - [x] **Web auth** — Devise credentials + JWT access + `refresh_tokens`. Schema:
-      `docs/database/database_dml.md`. Lifecycle: `docs/modeling/002-api-auth.md`.
+      `docs/database/schema.dbml`. Lifecycle: `docs/modeling/002-api-auth.md`.
 - [x] **API documentation** — rswag → OpenAPI.
 - [x] **API serialization** — blueprinter (provisional).
 - [x] **Firebase Authentication** — not used for login; FCM only for push.

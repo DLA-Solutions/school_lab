@@ -1,134 +1,336 @@
 # PRD — Billing Module ("Fintech-first" Strategy for Schools)
 
 > Status: draft for partner validation (early childhood school director)  
-> Relation to School Lab: derived front, does not replace the MVP order validated in  
-> `vision.md` (communication → academic → billing). See §10 for the explicit strategy discussion.
+> Scope: domain bundle (identity, schools, people, billing, documents)  
+> API: [`docs/api/v1/fintech-first.md`](../api/v1/fintech-first.md)  
+> Relation to School Lab: derived front — does not replace the MVP order validated in  
+> `vision.md` (communication → academic → billing). See **Positioning note** at the end.
 
-## 1. Context and motivation
+---
 
-The partner (director of an early childhood school, long-time friend) reports frequent
-switches between school management systems, with the recurring pain point being
-**billing** — specifically **boleto management**: manual or unreliable issuance,
-manual reconciliation, no visibility into delinquency, and collection that depends on
-human effort (phone calls, messages) instead of an automated process.
-
-Unlike an "full ERP from day one" approach, this proposal is to launch as a
-**fintech-like** product focused exclusively on recurring school billing, and only
-later expand into academic management and communication — in that order.
-
-## 2. Objective (north star)
+## Objective
 
 Eliminate manual work and uncertainty in the school tuition billing flow: from charge
 generation through payment confirmation, without secretarial intervention, with full
 delinquency visibility for the director.
 
-## 3. MVP target audience
+---
+
+## Context
+
+The partner (director of an early childhood school) reports frequent switches between
+school management systems. The recurring pain point is **billing** — specifically
+**boleto** (Brazilian bank payment slip) management: manual or unreliable issuance,
+manual reconciliation, no delinquency visibility, and collection that depends on human
+effort instead of an automated process.
+
+This PRD defines a **fintech-like** product focused on recurring school billing first,
+expanding later into academic management and communication.
+
+**Target audience**
 
 - **Initial customer**: the validating partner's school (early childhood).
-- **Expansion profile**: small/medium private schools, early childhood and elementary,
-  with billing today that is manual or poorly served by the current system.
-- **Direct users**: school administration (issuance and tracking) and financial
-  guardians/parents (receipt and payment).
+- **Expansion**: small/medium private schools with manual or poorly served billing.
+- **Direct users**: school administration (issuance and tracking); financial guardians
+  (receipt and payment).
 
-## 4. Problem to solve (detailed)
+**Reported pains**
 
-| Reported pain | Impact |
-|---|---|
+| Pain | Impact |
+|------|--------|
 | Manual or unreliable boleto issuance | Billing delays, wrong amounts |
 | No automatic reconciliation | Secretarial manual write-off, error-prone |
-| No collection régua (dunning sequence) | Delinquency discovered late, informal inconsistent collection |
+| No collection régua (dunning sequence) | Delinquency discovered late |
 | No consolidated delinquency view | Director lacks expected monthly cash flow |
-| Discounts and negotiations handled outside the system | No traceability, secretarial rework |
+| Discounts negotiated outside the system | No traceability, secretarial rework |
 
-## 5. MVP scope
+**Prerequisites**
 
-### In scope
+- Anchor docs: `vision.md`, `product-map.md`, `actors-and-surfaces.md`, `web-stack.md`.
+- Auth lifecycle: [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md).
+- Implementation patterns: `docs/guidelines/web/` (services, state machines, auditing,
+  multi-tenancy).
 
-- School, guardian, and student registration (minimal foundation — no academic module).
-- **Identity**: user registration, guardian invites, guardian portal login (`users` +
-  `memberships` + `guardians.user_id`; see §9).
-- `student_guardians` link with support for multiple financial guardians per student
-  (e.g. separated parents, split percentage).
-- Billing plan registration (`billing_plans`): tuition, enrollment, one-off fees
-  (material, events).
-- Per-student contracts (`contracts`): negotiated amount, due day, term, applied
-  discounts (e.g. sibling discount).
-- Automatic recurring charge generation (`charges`) from active contracts.
-- Boleto and Pix issuance via PSP integration (gateway choice open — see §9).
-- Automatic reconciliation via PSP webhook (`webhook_events` → `payments`).
-- Automated collection régua: reminder before due date, notice on due date, follow-up
-  after delinquency — via email and/or WhatsApp.
-- Configurable late fee/interest per school.
-- Delinquency dashboard for the director: open, overdue, paid charges, monthly
-  collection forecast.
-- Simple guardian portal: view charges, boleto reissue, copy Pix code, payment history.
-- **Documents (enrollment/KYC only)**: upload and review of enrollment and KYC
-  documents via polymorphic `documents` — **not** the full digital archive (that domain
-  is out of scope for this PRD).
+**Surfaces (MVP)**
 
-### Out of scope (later phases)
+- **School admin**: responsive web (`web-ui/`) — plans, contracts, charges, dashboard.
+- **Guardian**: responsive web portal in MVP; Wave 2 API is contract-ready for
+  React Native (`app/`) when that channel ships. Fintech-first partner validation does
+  not block on a dedicated mobile release.
 
-- Academic management (grades, classes, attendance, lesson plans).
-- Structured parent↔teacher↔school communication (messages, images).
-- Full digital archive / student document repository.
-- Livro Ata and digital signature.
-- Receivables anticipation for the school (advanced fintech product — school receives
-  early, platform assumes delinquency risk). Medium-term vision, not a requirement of
-  this PRD.
-- Dedicated mobile app — MVP can run 100% web/responsive.
-- Multi-unit school network (`school_groups`) — schema already supports it, but
-  product flow for multiple active units waits until a multi-unit client exists.
+---
 
-## 6. Main flows
+## Business Rules
 
-### 6.1 Recurring charge generation
+BR-001
 
+Every school-scoped resource belongs to exactly one `school_id`. Queries and policies
+must never return data across schools.
+
+BR-002
+
+After JWT validation, auth checks run in order: `users.discarded_at` → `users.status`
+disabled → Devise lock → `memberships.discarded_at` → `memberships.status` (invited /
+suspended block) → `active` proceeds. See `002-api-auth.md`.
+
+BR-003
+
+Guardian routes under `/schools/:school_id/me/*` are family-scoped. A guardian may
+only access charges, payments, students, and documents linked via `student_guardians`
+for their `guardians` profile in that school. Cross-family access returns `404`.
+
+BR-004
+
+`charges.status` follows AASM: `pending` (initial) → `paid` | `overdue` | `cancelled`.
+Transitions: `pay` (from pending/overdue), `mark_overdue` (from pending),
+`cancel` (from pending/overdue). See `ChargeStateMachine` and
+`docs/guidelines/web/state-machines.md`.
+
+BR-005
+
+Business cancellation uses `status: cancelled` (`POST /charges/:id/cancel`). Erroneous
+or duplicate charge removal uses Discard (`discarded_at`) via `DELETE /charges/:id`.
+Never use Discard to represent business cancellation.
+
+BR-006
+
+`payments` and `webhook_events` are immutable financial/ingress records — no Discard.
+Duplicate PSP webhooks must not create duplicate payments or incorrect write-offs
+(idempotent processing via `webhook_events`).
+
+BR-007
+
+On confirmed PSP payment, the system creates or updates a `payments` row with
+`psp_transaction_id`, then transitions the charge to `paid` via the `pay` event.
+
+BR-008
+
+`users.email` and `memberships (user_id, school_id)` are unique among kept records
+(partial unique index `WHERE discarded_at IS NULL`).
+
+BR-009
+
+Guardian portal access requires `users` + `memberships` (role `guardian`, status
+`active`) + `guardians.user_id` linked after invite acceptance. Invite flow:
+create membership `invited` → guardian registers → `active`, set `guardians.user_id`.
+
+BR-010
+
+Active `contracts` drive recurring charge generation per `billing_period`. Each charge
+references the financially responsible `guardian_id`, applies `applied_discounts`, and
+computes `total_amount` (original − discount + late fees when applicable).
+
+BR-011
+
+Late fee/interest is configurable per school (rule details pending — see Open items).
+Overdue charges update `late_fee_amount` and `total_amount` before régua notifications.
+
+BR-012
+
+`POST /charges/:id/reissue` (school and guardian) requests a new boleto/Pix issuance
+from the PSP gateway. Invalid state (e.g. already `paid`) returns `409`.
+
+BR-013
+
+`documents.status`: `pending` → `approved` | `rejected` via `POST .../approve` or
+`.../reject`. Rejection requires `rejection_reason`.
+
+BR-014
+
+Passwords and refresh token raw values are never returned by the API. `refresh_tokens`
+store `token_digest` only.
+
+BR-015
+
+Platform-wide user disable (`users.status: disabled`) revokes active refresh tokens and
+blocks all school access. Per-school suspend uses `memberships.status: suspended`.
+
+BR-016
+
+Phase 2 routes (`communication`, `academic`) documented in OpenAPI return `501 Not
+Implemented` until their domain PRDs ship.
+
+BR-017
+
+Changes to tenant domain records (`charges`, `contracts`, `guardians`, `documents`,
+etc.) are audited via the `audited` gem with `SchoolAuditable` (`associated_with: :school`).
+
+---
+
+## Use Cases
+
+### UC-01 — Recurring charge generation
+
+Input: active `contract`, billing calendar.
+
+Flow:
+
+1. Scheduled job selects contracts with `status: active` due for the period.
+2. Create `charge` with `billing_period`, amounts, `due_date`, `guardian_id`.
+3. Apply `applied_discounts` if any.
+4. Issue boleto/Pix via PSP gateway adapter.
+5. Notify guardian (email/WhatsApp — channel pending).
+6. Emit `ChargeGenerated`.
+
+### UC-02 — Payment reconciliation (PSP webhook)
+
+Input: PSP webhook payload at `POST /webhooks/psp` (HMAC verified).
+
+Flow:
+
+1. Persist raw payload in `webhook_events` (idempotent on PSP event id).
+2. Enqueue async job.
+3. Resolve target charge via PSP reference on the charge or payment record.
+4. Create/update `payments` with `psp_transaction_id`, `paid_amount`, `paid_at`.
+5. Invoke `charge.pay!` when payment confirmed.
+6. Notify guardian and school. Emit `PaymentConfirmed`.
+
+### UC-03 — Collection régua (dunning)
+
+Input: overdue `charges`, school régua configuration.
+
+Flow:
+
+1. Daily job marks eligible `pending` charges past `due_date` as `overdue`.
+2. Apply late fee/interest per BR-011.
+3. Send reminders (D−N before due, on due date, D+1, D+3, D+7 — configurable).
+4. Reflect counts and amounts on `GET /billing/summary`.
+
+### UC-04 — Guardian views and pays charges
+
+Input: authenticated guardian, `school_id`.
+
+Flow:
+
+1. List open charges (`pending`, `overdue`) at `GET /me/charges`.
+2. View detail with `payment_methods` (boleto URL, Pix copy-paste).
+3. Optionally `POST /me/charges/:id/reissue` for second copy.
+4. Payment history at `GET /me/charges/history` and `GET /me/payments`.
+
+### UC-05 — School delinquency dashboard
+
+Input: school admin with `role: school`.
+
+Flow:
+
+1. `GET /billing/summary` returns open/overdue counts and amounts, paid-this-month,
+   expected collection.
+2. `GET /billing/charges` with filters (`status`, `guardian_id`, `due_date` range).
+
+### UC-06 — Membership invite (guardian or staff)
+
+Input: school admin, email, role.
+
+Flow:
+
+1. `POST /people/memberships` creates membership `status: invited`.
+2. System sends invite (email — provider pending).
+3. User registers or logs in, accepts invite → `active`.
+4. For guardians: link `guardians.user_id`. Resend via `POST .../invite`.
+
+### UC-07 — Document upload and review (enrollment/KYC)
+
+Input: school staff upload; guardian read-only via `/me/documents`.
+
+Flow:
+
+1. `POST /documents` (multipart) attaches to `School`, `Guardian`, or `Student`.
+2. School reviews: `approve` or `reject` with reason.
+3. Guardian sees approved/pending docs for linked children only.
+
+### UC-08 — Backoffice school onboarding
+
+Input: backoffice user.
+
+Flow:
+
+1. `POST /api/v1/schools` creates tenant.
+2. School admin membership provisioned (Wave 6 / onboarding flow).
+3. Soft delete via `DELETE /schools/:id` (Discard).
+
+---
+
+## API
+
+Full route map, request/response examples, and rswag layout:
+[`docs/api/v1/fintech-first.md`](../api/v1/fintech-first.md).
+
+Auth contract: [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md).
+
+### Delivery waves (OpenAPI / rswag priority)
+
+| Wave | Scope |
+|------|--------|
+| **1** | `auth/*`, `GET /me`, `POST /me/device_tokens` |
+| **2** | Guardian `me/charges`, `me/payments`, `me/students`, `me/documents` |
+| **3** | School `billing/*`, `billing/summary` |
+| **4** | `people/*`, `memberships` |
+| **5** | `documents/*` (school write) |
+| **6** | Backoffice `schools`, user disable/enable |
+
+### Implementation dependency order
+
+Waves 2–3 require people and billing master data. Implement in this order:
+
+**1 → 6 → 4 → 3 → 2 → 5**
+
+(Wave 1 auth first; Wave 6 minimal school tenant; Wave 4 people; then billing school,
+guardian, documents.)
+
+### Webhook (not under `/api/v1`)
+
+| Method | Path | Auth |
+|--------|------|------|
+| `POST` | `/webhooks/psp` | PSP HMAC signature |
+
+### Key endpoints by role
+
+| Role | Base path | Operations |
+|------|-----------|------------|
+| — (auth) | `/api/v1/auth/*`, `/api/v1/me` | Login, refresh, profile |
+| backoffice | `/api/v1/schools`, `/api/v1/users/:id/disable` | Tenant CRUD, platform disable |
+| school | `.../people/*`, `.../billing/*`, `.../documents/*` | CRUD + billing ops |
+| guardian | `.../me/*` | Read family billing; reissue; documents read |
+
+---
+
+## Errors
+
+Standard envelope per `docs/api/README.md`:
+
+```json
+{ "error": { "code": "invalid_state_transition", "message": "..." } }
 ```
-Active contract (due day defined)
-  → Scheduled job generates monthly charge (billing period)
-  → Applies current discount (if any)
-  → Computes total_amount (original - discount)
-  → Issues boleto/Pix with PSP
-  → Sends notification to guardian (email/WhatsApp)
-```
 
-### 6.2 Payment reconciliation
+| HTTP | `error.code` (examples) | When |
+|------|-------------------------|------|
+| `400` | `bad_request` | Malformed JSON or params |
+| `401` | `unauthorized` | Missing/invalid access token |
+| `403` | `forbidden` | Valid token, policy denies action |
+| `404` | `not_found` | Resource missing or cross-tenant/family scope |
+| `409` | `duplicate_email`, `invalid_state_transition` | Unique violation; invalid AASM transition |
+| `422` | `validation_error` | Model validation failed (`details` per field) |
+| `501` | `not_implemented` | Phase 2 routes (communication, academic) |
+| `500` | `internal_error` | Unexpected failure |
 
-```
-Payment confirmed at PSP
-  → PSP sends webhook
-  → webhook_event recorded (raw, idempotent)
-  → Job processes event asynchronously
-  → Locates charge via psp_transaction_id
-  → Creates/updates payment
-  → Updates charge status (paid)
-  → Notifies guardian (confirmation) and school (automatic write-off)
-```
+Invalid charge cancel/reissue on `paid` or `cancelled` charge → `409`
+`invalid_state_transition`.
 
-### 6.3 Collection régua (delinquency)
+---
 
-```
-Charge due without confirmed payment
-  → Daily job checks overdue charges
-  → Applies configured late fee/interest
-  → Sends reminders (D+1, D+3, D+7 — configurable)
-  → Updates status (overdue)
-  → Reflects on delinquency dashboard
-```
+## Database
 
-## 7. Database (reference)
-
-Foundational modeling for this PRD is **in progress** in this monorepo:
+Do not duplicate full table definitions here. Update `schema.dbml` before migrations.
 
 | Artifact | Location |
 |----------|----------|
-| Executable schema (DBML) | [`docs/database/database_dml.md`](../database/database_dml.md) |
+| Executable schema (DBML) | [`docs/database/schema.dbml`](../database/schema.dbml) |
+| Edit workflow | [`docs/database/database_dml.md`](../database/database_dml.md) |
 | DER export (PNG) | [`docs/database/der_001.png`](../database/der_001.png) |
-| Narrative DSL + LGPD notes | [`docs/modeling/001-fintech-first.md`](../modeling/001-fintech-first.md) |
-| API auth lifecycle | [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md) |
-| API routes (v1) | [`docs/api/v1/fintech-first.md`](../api/v1/fintech-first.md) |
+| Narrative DSL + LGPD | [`docs/modeling/001-fintech-first.md`](../modeling/001-fintech-first.md) |
+| API auth | [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md) |
 
-**Entities in scope:**
+**Entity groups**
 
 | Group | Tables |
 |-------|--------|
@@ -136,60 +338,228 @@ Foundational modeling for this PRD is **in progress** in this monorepo:
 | School | `school_groups`, `schools`, `guardians`, `students`, `teachers`, `student_guardians` |
 | Billing | `billing_plans`, `contracts`, `charges`, `applied_discounts`, `payments`, `webhook_events` |
 | Documents (enrollment/KYC) | `documents` |
+| Auditing | `audits` (audited gem — not a domain entity) |
 
-Any modeling decision made in this PRD must be reflected back in the DBML before implementation.
+**Pending schema work** (see Open items): `device_tokens` for FCM; PSP charge reference
+columns or documented gateway-only lookup; migrated payment history storage.
 
-## 8. Non-functional requirements
+Any PRD entity change must be reflected in `schema.dbml` before `web/` implementation.
 
-- **Billing reliability**: failure in charge generation or issuance must not go
-  unnoticed — requires alerting/monitoring (same weight as `vision.md` stability
-  principle: billing errors have legal/reputational impact).
-- **Webhook idempotency**: duplicate or out-of-order PSP events must not create
-  duplicate charges or incorrect write-offs.
-- **Audit trail**: every change to `charges` and `payments` must be traceable
-  (who/when), especially manual discounts applied by the secretarial staff.
-- **LGPD**: guardian CPF, email, and phone are personal data; student `birth_date`
-  is child data requiring guardian consent. Treatment and retention follow
-  privacy-by-default from `vision.md`. Legal basis and retention policy for
-  financial data are not yet validated with legal counsel — treat as open, not closed.
+---
 
-## 9. Open items / pending decisions
+## Events
 
-Items requiring a decision before or during implementation — not resolved by this PRD:
+| Event | Trigger | Consumers |
+|-------|---------|-----------|
+| `ChargeGenerated` | Job creates charge + PSP issuance | Notifications, audit |
+| `ChargeOverdue` | Daily job marks overdue | Régua notifications, dashboard |
+| `ChargeCancelled` | `Billing::CancelCharge` | PSP void (if applicable), audit |
+| `PaymentConfirmed` | Webhook job completes | Guardian + school notifications |
+| `WebhookReceived` | `POST /webhooks/psp` | Async job enqueue |
+| `WebhookProcessed` | Job success/failure | Monitoring/alerting on failure |
+| `MembershipInvited` | Create/resend invite | Email job |
+| `UserDisabled` | Backoffice disable | Revoke refresh tokens |
+| `DocumentUploaded` | `POST /documents` | School review queue |
+| `DocumentApproved` / `DocumentRejected` | Review actions | Guardian notification (optional) |
 
-- [ ] PSP choice (Asaas, Iugu, Pagar.me, or other) — criteria: boleto + recurring Pix,
-      split payment (useful for future networks), webhook quality, per-transaction cost.
-- [ ] Collection régua channel: email, WhatsApp (official API or not), SMS — or
-      combination, configurable per school.
-- [ ] Late fee/interest rule: fixed percentage per school or configurable per billing plan?
-- [ ] Manually negotiated discount flow (e.g. scholarship, one-off agreement): who
-      approves, where recorded, affects contract or single charge only?
-- [ ] Invoice issuance (NFS-e) — in MVP or later phase? (Not mentioned as initial pain
-      by partner, but table stakes per `competitive-analysis.md`.)
-- [x] **Guardian access — decided:** own account via Devise (`users` + `memberships` +
-      `guardians.user_id`). Magic link / token per charge remains a possible future
-      alternative, not the MVP approach.
-- [ ] Platform billing model for the school (SaaS fee) — per active student, per school,
-      percentage on processed volume?
+Payloads are internal (Solid Queue jobs / future event bus). No public event API in MVP.
 
-## 10. Positioning note — relation to School Lab
+---
 
-This PRD proposes an **inverted** build order relative to what is validated in
-`vision.md` / `open-questions.md` for School Lab (communication as priority #1,
-validated with escola NSR in Jul 2026). That is intentional and specific to this
-partner, whose primary explicit pain is billing.
+## Permissions
 
-Foundational modeling for this front has **already started** in this monorepo:
-`docs/database/` (DBML + DER) and `docs/modeling/001-fintech-first.md`.
+Pundit policies enforce role × action. Controller calls `authorize` before services.
 
-Two readings still to decide (see also `open-questions.md` — MVP and scope):
+| Resource | backoffice | school | guardian | teacher |
+|----------|:----------:|:------:|:--------:|:-------:|
+| `schools` CRUD | ✓ | — | — | — |
+| `users` disable/enable | ✓ | — | — | — |
+| `people/guardians`, `students` | — | ✓ | — | — |
+| `student_guardians` | — | ✓ | — | — |
+| `people/memberships` | — | ✓ | — | — |
+| `billing/*` | — | ✓ | — | — |
+| `me/charges`, `me/payments` | — | — | ✓ | — |
+| `me/students`, `me/documents` | — | — | ✓ | — |
+| `documents` write/review | — | ✓ | — | — |
+| `auth/*`, `GET /me` | ✓ | ✓ | ✓ | ✓ |
 
-1. Treat as **separate products** with different customer profiles (School Lab for
-   "communication as pain #1"; this billing module for "billing as pain #1").
-2. Treat as **same codebase with two entry points** — in that case, this schema must
-   eventually converge with School Lab foundational entities (`School`, `User`,
-   `Membership`, `Student`, `StudentGuardian`) rather than duplicating parallel
-   `schools` / `students` / `guardians` tables.
+Guardian policies scope through `guardians.user_id = current_user` and
+`student_guardians` links. Teachers are schema stubs in this PRD — no teacher MVP flows.
 
-Explicitly decide this before implementation begins — it determines whether this PRD
-spawns a new repository or a module within the School Lab monorepo.
+Audit history (`audits`) is exposed only to backoffice/school roles, not guardians by default.
+
+---
+
+## Acceptance Criteria
+
+### Wave 1 — Auth and profile
+
+```gherkin
+Given a registered user with active membership
+When they POST /api/v1/auth/login with valid credentials
+Then they receive access and refresh tokens
+And GET /api/v1/me returns user, memberships, and guardian_profiles when applicable
+
+Given an authenticated user on mobile
+When they POST /api/v1/me/device_tokens with a valid FCM token
+Then the token is stored for push delivery
+```
+
+### Wave 6 — Backoffice (implement before billing data)
+
+```gherkin
+Given a backoffice user
+When they POST /api/v1/schools with valid payload
+Then a new school tenant is created
+
+Given a backoffice user and a platform user
+When they POST /api/v1/users/:user_id/disable
+Then users.status becomes disabled and refresh tokens are revoked
+```
+
+### Wave 4 — People
+
+```gherkin
+Given a school admin and an existing school
+When they POST /people/guardians and POST /people/students
+And link them via POST /students/:id/guardians
+Then guardians and students are visible only within that school_id
+
+Given a school admin
+When they POST /people/memberships with role guardian and status invited
+Then the invitee can activate membership and link guardians.user_id
+```
+
+### Wave 3 — School billing
+
+```gherkin
+Given active billing_plans and contracts
+When the charge generation job runs for the billing period
+Then charges are created with correct amounts and guardian_id
+
+Given a pending charge
+When the school POST /billing/charges/:id/cancel
+Then charge status becomes cancelled
+And a subsequent cancel attempt returns 409 invalid_state_transition
+
+Given paid and open charges
+When the school GET /billing/summary
+Then open_count, overdue_count, and amount fields match kept charges
+```
+
+### Wave 2 — Guardian billing
+
+```gherkin
+Given a guardian with student_guardians links
+When they GET /schools/:school_id/me/charges
+Then only their family's open charges are returned
+And another guardian's charges are not visible (404 on direct id access)
+
+Given a pending charge with PSP issuance
+When the guardian GET /me/charges/:id
+Then payment_methods includes boleto_url and pix_copy_paste
+
+Given a paid charge
+When the guardian GET /me/charges/history
+Then paid records appear with source platform
+```
+
+### Wave 5 — Documents
+
+```gherkin
+Given a school admin
+When they POST /documents with a file for a student
+Then document status is pending
+
+Given a pending document
+When the school POST /documents/:id/approve
+Then status becomes approved
+And the guardian sees it via GET /me/documents for linked children
+```
+
+### Webhooks
+
+```gherkin
+Given a valid PSP payment webhook
+When POST /webhooks/psp is called with valid HMAC
+Then a webhook_event row is stored
+And async processing creates payment and marks charge paid
+
+Given the same PSP event id delivered twice
+When the webhook is processed again
+Then no duplicate payment is created
+```
+
+### Phase 2 skeleton
+
+```gherkin
+Given communication or academic routes are called
+When the domain PRD does not exist
+Then the API returns 501 not_implemented
+```
+
+---
+
+## Non-functional requirements
+
+- **Billing reliability**: charge generation or issuance failures must alert/monitor —
+  billing errors have legal and reputational impact.
+- **Webhook idempotency**: duplicate or out-of-order PSP events must not corrupt payments.
+- **Audit trail**: changes to `charges`, `contracts`, `guardians`, `documents`, etc. via
+  `audited` + `SchoolAuditable`; `payments` are immutable facts.
+- **LGPD**: `guardians.cpf`, email, phone; `students.birth_date` (child data). Retention
+  windows pending legal validation — see `open-questions.md`.
+- **Per-school isolation** (`school_id`) and **per-family isolation** for guardian routes.
+
+---
+
+## Out of Scope
+
+- Academic management (grades, classes, attendance, lesson plans).
+- Structured parent↔teacher↔school communication (messages, images).
+- Full digital archive / student document repository (enrollment/KYC only in MVP).
+- Livro Ata and digital signature.
+- Receivables anticipation (school receives early; platform assumes risk).
+- Multi-unit school network product UX (`school_groups` schema ready; flow deferred).
+- Phase 2 API domains until PRDs exist: `communication`, `academic` (OpenAPI skeleton only).
+- Teacher-facing surfaces in this PRD (schema stub only).
+
+---
+
+## Open items / pending decisions
+
+Tracked here and in [`docs/open-questions.md`](../open-questions.md). Do not invent
+answers in implementation.
+
+- [ ] PSP choice (Asaas, Iugu, Pagar.me, or other).
+- [ ] PSP charge reference storage: persist `psp_charge_id`/URLs on `charges` vs fetch
+      on read from gateway adapter.
+- [ ] `device_tokens` table design for `POST /me/device_tokens` (not yet in `schema.dbml`).
+- [ ] Migrated payment history (`source: migrated`, `external_reference`) — column or
+      join table when import scope is defined.
+- [ ] Collection régua channel: email, WhatsApp, SMS, or combination per school.
+- [ ] Late fee/interest rule: per school or per billing plan.
+- [ ] Manually negotiated discount approval flow (scholarship, one-off agreement).
+- [ ] Invoice issuance (NFS-e) in MVP or later phase.
+- [ ] Platform SaaS billing model for schools.
+- [x] **Guardian access — decided:** Devise account (`users` + `memberships` +
+      `guardians.user_id`). Magic link per charge is a future alternative.
+- [ ] Fintech-first vs School Lab monorepo convergence — see Positioning note.
+
+---
+
+## Positioning note — relation to School Lab
+
+This PRD proposes an **inverted** build order relative to School Lab's validated MVP
+(communication as priority #1, Jul 2026). That is intentional for the billing-first partner.
+
+Foundational modeling has started in this monorepo: `docs/database/schema.dbml`,
+`docs/modeling/001-fintech-first.md`.
+
+Two readings still open (`open-questions.md` — MVP and scope):
+
+1. **Separate products** — School Lab ("communication pain #1") vs this billing module.
+2. **Same codebase, two entry points** — schema must converge with School Lab entities
+   (`School`, `User`, `Membership`, `Student`, `StudentGuardian`) without parallel tables.
+
+Decide before full implementation — it affects repository boundaries and entity naming.

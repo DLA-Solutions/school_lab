@@ -89,4 +89,4 @@ focus):
 10. Landing / sales — commercial page (later).
 
 **Note:** `fintech-first` is a derived front (partner billing pain) outside the main
-MVP order above — see `docs/prds/fintech-first.md` §10.
+MVP order above — see `docs/prds/fintech-first.md` (Positioning note).
