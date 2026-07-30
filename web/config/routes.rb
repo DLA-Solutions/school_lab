@@ -59,6 +59,17 @@ Rails.application.routes.draw do
             resources :payments, only: %i[index show]
             resource :summary, only: :show, controller: "summary"
           end
+
+          resources :documents do
+            member do
+              post :approve
+              post :reject
+            end
+          end
+
+          namespace :me do
+            resources :documents, only: :index
+          end
         end
       end
 

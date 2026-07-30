@@ -10,10 +10,38 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_30_054838) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_185843) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
+
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "record_id", null: false
+    t.string "record_type", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
 
   create_table "applied_discounts", force: :cascade do |t|
     t.decimal "amount", precision: 12, scale: 2
@@ -114,6 +142,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_054838) do
     t.bigint "user_id", null: false
     t.index ["token"], name: "index_device_tokens_on_token_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["user_id"], name: "index_device_tokens_on_user_id"
+  end
+
+  create_table "documents", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "document_type"
+    t.bigint "documentable_id", null: false
+    t.string "documentable_type", null: false
+    t.string "rejection_reason"
+    t.datetime "reviewed_at"
+    t.bigint "school_id", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "uploaded_by_id"
+    t.index ["discarded_by_id"], name: "index_documents_on_discarded_by_id"
+    t.index ["documentable_type", "documentable_id"], name: "index_documents_on_documentable"
+    t.index ["documentable_type", "documentable_id"], name: "index_documents_on_documentable_type_and_documentable_id"
+    t.index ["school_id", "status"], name: "index_documents_on_school_id_and_status"
+    t.index ["school_id"], name: "index_documents_on_school_id"
+    t.index ["uploaded_by_id"], name: "index_documents_on_uploaded_by_id"
   end
 
   create_table "guardians", force: :cascade do |t|
@@ -265,6 +314,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_054838) do
     t.index ["psp_event_id"], name: "index_webhook_events_on_psp_event_id", unique: true
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "applied_discounts", "charges"
   add_foreign_key "applied_discounts", "schools"
   add_foreign_key "billing_plans", "schools"
@@ -276,6 +327,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_054838) do
   add_foreign_key "contracts", "schools"
   add_foreign_key "contracts", "students"
   add_foreign_key "device_tokens", "users"
+  add_foreign_key "documents", "schools"
+  add_foreign_key "documents", "users", column: "discarded_by_id"
+  add_foreign_key "documents", "users", column: "uploaded_by_id"
   add_foreign_key "guardians", "schools"
   add_foreign_key "guardians", "users"
   add_foreign_key "guardians", "users", column: "discarded_by_id"

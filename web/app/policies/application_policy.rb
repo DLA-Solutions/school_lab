@@ -46,6 +46,10 @@ class ApplicationPolicy
     Current.membership&.role == "school" && Current.membership&.active?
   end
 
+  def guardian_member?
+    Current.membership&.role == "guardian" && Current.membership&.active? && Current.guardian.present?
+  end
+
   def school_id
     Current.school&.id
   end
