@@ -496,6 +496,163 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/documents": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Upload document",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "document uploaded with pending status"
+          },
+          "403": {
+            "description": "forbidden for guardian role"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/documents/{id}/approve": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Approve document",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pending document approved"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/documents/{id}/reject": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Reject document",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "422": {
+            "description": "rejection requires reason"
+          },
+          "200": {
+            "description": "pending document rejected with reason"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rejection_reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/me/charges": {
       "parameters": [
         {
@@ -614,6 +771,43 @@
         "responses": {
           "200": {
             "description": "platform paid charges with source"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/documents": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List family documents",
+        "tags": [
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "linked children documents only"
           }
         }
       }

@@ -4,8 +4,7 @@ module Api
   module V1
     module Schools
       module Me
-        class BaseController < Api::V1::BaseController
-          before_action :set_school_context!
+        class BaseController < Api::V1::Schools::BaseController
           before_action :require_guardian_context!
 
           private
