@@ -10,6 +10,11 @@ Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. API conventions in 
 
 ## Architecture
 - Business logic in **service objects** (`app/services/`). API controllers delegate to services — no duplicated rules.
+- Controllers: `docs/guidelines/web/controllers.md` — rule `controllers`.
+- Models: `docs/guidelines/web/models.md` — rule `models`.
+- Migrations: `docs/guidelines/web/migrations.md` — rule `migrations`.
+- State machines: `docs/guidelines/web/state-machines.md` — rule `state-machines`.
+- Auditing: `docs/guidelines/web/auditing.md` — rule `auditing`.
 - Authorization via **Pundit** policies (`app/policies/`); roles: backoffice, school, teacher, guardian.
 - **No Hotwire UI** in `web/` — product web is React SPA in `web-ui/`.
 - API: REST JSON under `/api/v1`, JWT auth; OpenAPI via **rswag** request specs.
