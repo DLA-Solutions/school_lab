@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_30_050634) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_052516) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -46,6 +46,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_050634) do
     t.bigint "user_id", null: false
     t.index ["token"], name: "index_device_tokens_on_token_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["user_id"], name: "index_device_tokens_on_user_id"
+  end
+
+  create_table "guardians", force: :cascade do |t|
+    t.string "cpf"
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "email"
+    t.string "name"
+    t.string "phone"
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["discarded_by_id"], name: "index_guardians_on_discarded_by_id"
+    t.index ["school_id"], name: "index_guardians_on_school_id"
+    t.index ["user_id"], name: "index_guardians_on_user_id"
   end
 
   create_table "memberships", force: :cascade do |t|
@@ -96,6 +112,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_050634) do
     t.index ["school_group_id"], name: "index_schools_on_school_group_id"
   end
 
+  create_table "student_guardians", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.decimal "financial_percentage"
+    t.bigint "guardian_id", null: false
+    t.boolean "primary_guardian"
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["guardian_id", "student_id"], name: "index_student_guardians_on_guardian_id_and_student_id_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["guardian_id"], name: "index_student_guardians_on_guardian_id"
+    t.index ["school_id"], name: "index_student_guardians_on_school_id"
+    t.index ["student_id"], name: "index_student_guardians_on_student_id"
+  end
+
+  create_table "students", force: :cascade do |t|
+    t.date "birth_date"
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "name"
+    t.bigint "school_id", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_by_id"], name: "index_students_on_discarded_by_id"
+    t.index ["school_id", "status"], name: "index_students_on_school_id_and_status"
+    t.index ["school_id"], name: "index_students_on_school_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
@@ -128,11 +173,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_050634) do
   end
 
   add_foreign_key "device_tokens", "users"
+  add_foreign_key "guardians", "schools"
+  add_foreign_key "guardians", "users"
+  add_foreign_key "guardians", "users", column: "discarded_by_id"
   add_foreign_key "memberships", "schools"
   add_foreign_key "memberships", "users"
   add_foreign_key "memberships", "users", column: "suspended_by_id"
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
+  add_foreign_key "student_guardians", "guardians"
+  add_foreign_key "student_guardians", "schools"
+  add_foreign_key "student_guardians", "students"
+  add_foreign_key "students", "schools"
+  add_foreign_key "students", "users", column: "discarded_by_id"
   add_foreign_key "users", "users", column: "disabled_by_id"
 end

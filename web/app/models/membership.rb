@@ -15,4 +15,17 @@ class Membership < ApplicationRecord
   validates :user_id, uniqueness: { scope: :school_id, conditions: -> { kept } }
 
   scope :active, -> { kept.where(status: "active") }
+  scope :invited, -> { kept.where(status: "invited") }
+
+  def active?
+    status == "active"
+  end
+
+  def invited?
+    status == "invited"
+  end
+
+  def suspended?
+    status == "suspended"
+  end
 end
