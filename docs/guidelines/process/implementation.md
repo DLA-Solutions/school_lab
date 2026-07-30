@@ -38,6 +38,7 @@ over Sidekiq, blueprinter, JWT auth).
 
 ## Implementation checklist
 
+- [ ] Models and controllers generated via `bin/rails generate` (not hand-created files)
 - [ ] Business logic in service objects (`app/services/`), not controllers
 - [ ] Authorization via Pundit; per-school and per-family isolation enforced
 - [ ] Behavior-focused specs (see `docs/guidelines/web/testing.md`)

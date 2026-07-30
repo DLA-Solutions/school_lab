@@ -21,6 +21,8 @@ You create database migrations in `web/db/migrate/`. Schema source of truth is *
 3. Mirror DBML types, nullability, defaults, indexes, and `Ref:` relationships.
 4. Run `bin/rails db:migrate` locally; commit migration + `schema.rb`.
 5. Publish dbdocs when schema changes are complete.
+6. Hand off to **rails-implementer** for `bin/rails generate model ... --skip-migration` (see
+   `docs/guidelines/web/models.md`) — migration-agent does not create model files.
 
 **Never modify a migration that has already run** — create a new migration instead.
 

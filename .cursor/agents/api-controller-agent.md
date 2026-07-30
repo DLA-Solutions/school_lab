@@ -14,6 +14,19 @@ You implement **API-only** controllers in `web/app/controllers/api/v1/`. `web/` 
 - API contract: `docs/api/README.md` and domain narratives in `docs/api/v1/<domain>.md`
 - Review checklist: skill `review-api`
 
+## Generators
+
+Always **`bin/rails generate controller`** before editing — never hand-create controller or
+request spec files.
+
+```bash
+bin/rails generate controller api/v1/charges index show create update destroy --skip-routes
+```
+
+- Namespace: `api/v1/`; actions match the API contract.
+- `--skip-routes` — register routes manually (`schools/:school_id`, `scope module:`).
+- No `scaffold` / `scaffold_api`. Add blueprint by hand in `app/blueprints/`.
+
 ## Your role
 
 Create thin controllers that orchestrate HTTP — never own business rules. Every action:

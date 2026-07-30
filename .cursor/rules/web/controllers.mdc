@@ -10,6 +10,12 @@ Full guide: `docs/guidelines/web/controllers.md`. Rule: `web-rails`.
 
 `web/` is **API-only** (JSON under `/api/v1`); no Hotwire or server-rendered views.
 
+## Generators
+
+- Always `bin/rails generate controller api/v1/<resource> <actions> --skip-routes` — never hand-create controller or request spec files.
+- Routes in `config/routes.rb` manually (tenant paths, `scope module:`).
+- No `scaffold` / `scaffold_api`. Blueprints are hand-written in `app/blueprints/`.
+
 ## Thin controllers
 
 - Orchestrate only — no business logic, no N+1 queries, no cross-domain chains.

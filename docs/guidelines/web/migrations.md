@@ -12,6 +12,7 @@ Rule: `.cursor/rules/web/migrations.mdc`. Related: [`models.md`](models.md), [`a
 3. Mirror DBML types, nullability, defaults, indexes, and `Ref:` relationships.
 4. Run `bin/rails db:migrate` locally; commit migration + `schema.rb`.
 5. Publish dbdocs: `.cursor/scripts/publish-dbdocs.sh` (skill `publish-dbdocs`).
+6. Generate the model: `bin/rails generate model ... --skip-migration` (see [`models.md`](models.md)).
 
 Never modify a migration that has already run — create a new migration instead.
 
