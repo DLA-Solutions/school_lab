@@ -1,7 +1,7 @@
 # Data Model — Fintech-first (001)
 
 > PRD: [`docs/prds/fintech-first.md`](../prds/fintech-first.md)  
-> Executable schema: [`docs/database/database_dml.md`](../database/database_dml.md) · [`docs/database/der_001.png`](../database/der_001.png)
+> Executable schema: [`docs/database/schema.dbml`](../database/schema.dbml) · [`docs/database/der_001.png`](../database/der_001.png)
 
 Narrative DSL for the fintech-first billing MVP. The authoritative schema for migrations is the DBML in `docs/database/`.
 
