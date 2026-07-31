@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+wait_for_postgres() {
+  local host="${POSTGRES_HOST:-postgres}"
+  local port="${POSTGRES_PORT:-5432}"
+  local user="${POSTGRES_USER:-school_lab}"
+
+  until pg_isready -h "$host" -p "$port" -U "$user" >/dev/null 2>&1; do
+    echo "Waiting for PostgreSQL at ${host}:${port}..."
+    sleep 1
+  done
+}
+
+wait_for_postgres
+
+bundle check >/dev/null 2>&1 || bundle install
+
+if [ "$1" = "bin/rails" ] && [ "$2" = "server" ]; then
+  bin/rails tailwindcss:build 2>/dev/null || true
+  bin/rails db:prepare
+fi
+
+exec "$@"
