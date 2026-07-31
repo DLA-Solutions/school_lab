@@ -1,9 +1,12 @@
-# Local infrastructure for School Lab (monorepo root).
-# Rails runs on the host; only backing services run in Docker.
+# Local development for School Lab (monorepo root).
 #
-# Variables are loaded from web/.env (see Makefile):
+# Infrastructure only (host Rails):
 #   cp web/.env.example web/.env
 #   make services-up
+#
+# Full stack in Docker (API + Postgres + Redis):
+#   cp web/.env.example web/.env
+#   make setup && make up
 
 name: school_lab
 
@@ -43,6 +46,39 @@ services:
       timeout: 3s
       retries: 10
 
+  web:
+    profiles: [ "app" ]
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    container_name: school_lab_web
+    env_file:
+      - web/.env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: development
+      PORT: "3000"
+      RUBY_DEBUG_OPEN: "true"
+      RUBY_DEBUG_LAZY: "true"
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - ./web:/rails
+      - bundle_cache:/usr/local/bundle
+      - rails_tmp:/rails/tmp
+      - rails_log:/rails/log
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
 volumes:
   postgres_data:
   redis_data:
+  bundle_cache:
+  rails_tmp:
+  rails_log:
