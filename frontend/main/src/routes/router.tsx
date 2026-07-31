@@ -1,0 +1,66 @@
+import { Suspense, lazy } from 'react';
+import { Outlet, createBrowserRouter } from 'react-router';
+import paths, { rootPaths } from './paths';
+
+import MainLayout from 'layouts/main-layout';
+import AuthLayout from 'layouts/auth-layout';
+import Splash from 'components/loader/Splash';
+import PageLoader from 'components/loader/PageLoader';
+import Signin from 'pages/authentication/Signin';
+import Error404 from 'pages/Error404';
+import { RequireAuth, RequireGuest } from './guards';
+
+const App = lazy(() => import('App'));
+const Dashboard = lazy(() => import('pages/Dashboard'));
+
+const router = createBrowserRouter([
+  {
+    element: (
+      <Suspense fallback={<Splash />}>
+        <App />
+      </Suspense>
+    ),
+    children: [
+      {
+        path: rootPaths.root,
+        element: (
+          <RequireAuth>
+            <MainLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Outlet />
+              </Suspense>
+            </MainLayout>
+          </RequireAuth>
+        ),
+        children: [
+          {
+            index: true,
+            element: <Dashboard />,
+          },
+        ],
+      },
+      {
+        path: rootPaths.authRoot,
+        element: (
+          <RequireGuest>
+            <AuthLayout>
+              <Outlet />
+            </AuthLayout>
+          </RequireGuest>
+        ),
+        children: [
+          {
+            path: paths.signin,
+            element: <Signin />,
+          },
+        ],
+      },
+      {
+        path: '*',
+        element: <Error404 />,
+      },
+    ],
+  },
+]);
+
+export default router;
