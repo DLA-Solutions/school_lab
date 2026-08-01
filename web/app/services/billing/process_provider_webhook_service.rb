@@ -1,16 +1,12 @@
 # frozen_string_literal: true
 
 module Billing
-  class ProcessPspWebhookService < ApplicationService
-    def initialize(payload:, signature:, gateway: Gateways::Psp::Fake.new)
+  class ProcessProviderWebhookService < ApplicationService
+    def initialize(payload:)
       @payload = payload
-      @signature = signature
-      @gateway = gateway
     end
 
     def call
-      return ResponseService.failure(code: :forbidden) unless gateway.verify_signature(payload: payload, signature: signature)
-
       data = JSON.parse(payload)
       provider = data.fetch("provider")
       provider_event_id = data.fetch("event_id")
@@ -34,7 +30,7 @@ module Billing
 
     private
 
-    attr_reader :payload, :signature, :gateway
+    attr_reader :payload
 
     def process_payment(data, event)
       return complete_event(event, :ignored) unless data["event_type"] == "payment.confirmed"
