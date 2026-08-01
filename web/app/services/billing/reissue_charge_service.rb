@@ -2,19 +2,20 @@
 
 module Billing
   class ReissueChargeService < ApplicationService
-    def initialize(charge:, gateway: Gateways::Psp::Fake.new)
+    def initialize(charge:, adapter: nil)
       @charge = charge
-      @gateway = gateway
+      @adapter = adapter || Gateways::BankSlip::Registry.resolve(school: charge.school)
     end
 
     def call
       return ResponseService.failure(code: :invalid_state_transition) unless charge.pending? || charge.overdue?
 
-      result = gateway.issue(charge: charge)
+      request = Gateways::BankSlip::IssueRequestBuilder.from_charge(charge)
+      result = adapter.issue(request)
       charge.update!(
         provider_invoice_id: result.provider_invoice_id,
         boleto_url: result.boleto_url,
-        pix_copy_paste: result.pix_copy_paste
+        pix_copy_paste: result.pix_emv
       )
 
       ResponseService.success(data: charge)
@@ -22,6 +23,6 @@ module Billing
 
     private
 
-    attr_reader :charge, :gateway
+    attr_reader :charge, :adapter
   end
 end
