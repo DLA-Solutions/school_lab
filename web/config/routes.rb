@@ -94,5 +94,5 @@ Rails.application.routes.draw do
     end
   end
 
-  post "webhooks/psp", to: "webhooks/psp#create"
+  post "webhooks/:provider/:token", to: "webhooks/providers#create", as: :provider_webhook
 end

@@ -21,7 +21,17 @@ class SchoolPaymentProvider < ApplicationRecord
 
   scope :active, -> { where(active: true) }
 
+  before_validation :ensure_webhook_endpoint_token, on: :create
+
+  def self.find_by_webhook_token!(provider:, token:)
+    active.find_by!(provider: provider, webhook_endpoint_token: token)
+  end
+
   private
+
+  def ensure_webhook_endpoint_token
+    self.webhook_endpoint_token ||= SecureRandom.urlsafe_base64(32)
+  end
 
   def derive_certificate_metadata
     cert = parsed_certificate

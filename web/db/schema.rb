@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_01_220757) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_01_230335) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -295,9 +295,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_220757) do
     t.datetime "updated_at", null: false
     t.datetime "uploaded_at"
     t.bigint "uploaded_by_id"
+    t.string "webhook_endpoint_token", null: false
     t.index ["school_id", "instrument", "environment"], name: "index_school_payment_providers_active_triple", unique: true, where: "(active = true)"
     t.index ["school_id"], name: "index_school_payment_providers_on_school_id"
     t.index ["uploaded_by_id"], name: "index_school_payment_providers_on_uploaded_by_id"
+    t.index ["webhook_endpoint_token"], name: "index_school_payment_providers_on_webhook_endpoint_token", unique: true
     t.check_constraint "environment::text = ANY (ARRAY['stage'::character varying::text, 'production'::character varying::text])", name: "school_payment_providers_environment_allowed"
     t.check_constraint "instrument::text = 'bank_slip'::text", name: "school_payment_providers_instrument_allowed"
   end
@@ -514,10 +516,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_220757) do
     t.string "event_type"
     t.text "payload"
     t.datetime "processed_at"
+    t.text "processing_error"
     t.string "provider", null: false
     t.string "provider_event_id", null: false
+    t.string "provider_resource_id"
+    t.bigint "school_id"
     t.datetime "updated_at", null: false
     t.index ["provider", "provider_event_id"], name: "index_webhook_events_on_provider_and_provider_event_id", unique: true
+    t.index ["school_id"], name: "index_webhook_events_on_school_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -564,4 +570,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_220757) do
   add_foreign_key "students", "schools"
   add_foreign_key "students", "users", column: "discarded_by_id"
   add_foreign_key "users", "users", column: "disabled_by_id"
+  add_foreign_key "webhook_events", "schools"
 end

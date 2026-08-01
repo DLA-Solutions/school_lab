@@ -116,7 +116,7 @@ module Gateways
         :provider,
         :provider_event_id,
         :event_type,
-        :provider_invoice_id,
+        :provider_resource_id,
         :payload
       )
     end
