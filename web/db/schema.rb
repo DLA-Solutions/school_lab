@@ -271,7 +271,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_202722) do
     t.index ["school_id", "instrument", "environment"], name: "index_school_payment_providers_active_triple", unique: true, where: "(active = true)"
     t.index ["school_id"], name: "index_school_payment_providers_on_school_id"
     t.index ["uploaded_by_id"], name: "index_school_payment_providers_on_uploaded_by_id"
-    t.check_constraint "environment::text = ANY (ARRAY['stage'::character varying, 'production'::character varying]::text[])", name: "school_payment_providers_environment_allowed"
+    t.check_constraint "environment::text = ANY (ARRAY['stage'::character varying::text, 'production'::character varying::text])", name: "school_payment_providers_environment_allowed"
     t.check_constraint "instrument::text = 'bank_slip'::text", name: "school_payment_providers_instrument_allowed"
   end
 
