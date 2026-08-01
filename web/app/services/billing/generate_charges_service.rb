@@ -2,10 +2,9 @@
 
 module Billing
   class GenerateChargesService < ApplicationService
-    def initialize(school:, billing_period:, adapter: nil)
+    def initialize(school:, billing_period:)
       @school = school
       @billing_period = billing_period
-      @adapter = adapter
     end
 
     def call
@@ -31,25 +30,17 @@ module Billing
 
     attr_reader :school, :billing_period
 
-    def adapter
-      @adapter ||= Gateways::BankSlip::Registry.resolve(school: school)
-    end
-
     def active_contracts
       school.contracts.active.includes(:student, :billing_plan)
     end
 
     def create_charge_for(contract, guardian, created, skipped_contract_ids)
-      charge = build_charge(contract, guardian)
-      charge.save!
-      request = Gateways::BankSlip::IssueRequestBuilder.from_charge(charge)
-      issue_result = adapter.issue(request)
-      charge.update!(
-        provider_invoice_id: issue_result.provider_invoice_id,
-        boleto_url: issue_result.boleto_url,
-        pix_copy_paste: issue_result.pix_emv
-      )
-      created << charge
+      ActiveRecord::Base.transaction do
+        charge = build_charge(contract, guardian)
+        charge.save!
+        Billing::IssueChargeJob.perform_later(charge.id, school.id)
+        created << charge
+      end
     rescue ActiveRecord::RecordNotUnique
       skipped_contract_ids << contract.id
     end
