@@ -132,9 +132,44 @@ FactoryBot.define do
     end
 
     trait :issued do
-      provider_invoice_id { "fake-#{SecureRandom.hex(4)}" }
+      after(:create) do |charge|
+        create(:charge_issuance, :issued, charge: charge, school: charge.school)
+        charge.sync_invoice_cache!
+      end
+    end
+  end
+
+  factory :charge_issuance do
+    school
+    charge { association :charge, school: school }
+    provider { "fake" }
+    sequence(:idempotency_key) { |n| "issuance-key-#{n}" }
+    amount_cents { charge.total_amount_cents }
+    due_date { charge.due_date }
+
+    trait :pending do
+      status { "pending" }
+    end
+
+    trait :issued do
+      sequence(:provider_invoice_id) { |n| "fake-invoice-#{n}" }
       boleto_url { "https://fake-psp.example/boleto/test" }
-      pix_copy_paste { "00020126580014br.gov.bcb.pixtest" }
+      digitable_line { "23793.38128 60000.000003 00000.000401 1 84340000085000" }
+      barcode { "237918434000008500033812860000000000000000401" }
+      our_number { "000000401" }
+      pix_emv { "00020126580014br.gov.bcb.pixtest" }
+
+      after(:create, &:issue!)
+    end
+
+    trait :failed do
+      last_error { "Provider timeout" }
+
+      after(:create, &:mark_failed!)
+    end
+
+    trait :cancelled do
+      after(:create, &:cancel!)
     end
   end
 

@@ -250,6 +250,36 @@ Table charges {
   }
 }
 
+Table charge_issuances {
+  id integer [primary key, increment]
+  charge_id integer [not null]
+  school_id integer [not null]
+  provider varchar [not null, note: 'PSP identifier — e.g. cora, fake']
+  provider_invoice_id varchar [note: 'PSP invoice id; partial unique when present']
+  idempotency_key varchar [not null, note: 'Persisted before HTTP — retry-safe issuance']
+  status varchar [not null, default: 'pending', note: 'pending | issued | failed | cancelled']
+  amount_cents integer [not null, note: 'Snapshot of charge total at issuance time']
+  due_date date [not null, note: 'Snapshot of charge due date at issuance time']
+  boleto_url varchar
+  digitable_line varchar
+  barcode varchar
+  our_number varchar
+  pix_emv text
+  issued_at timestamp
+  cancelled_at timestamp
+  last_error text [note: 'Provider error on failed transition']
+  created_at timestamp
+  updated_at timestamp
+  Note: 'One row per bank invoice; immutable financial record — cancel via status, not Discard'
+
+  indexes {
+    idempotency_key [unique]
+    provider_invoice_id [unique, note: 'WHERE provider_invoice_id IS NOT NULL']
+    (charge_id, status)
+    school_id
+  }
+}
+
 Table applied_discounts {
   id integer [primary key, increment]
   charge_id integer [not null]
@@ -342,6 +372,9 @@ Ref: charges.contract_id > contracts.id
 Ref: charges.guardian_id > guardians.id
 Ref: charges.discarded_by_id > users.id
 Ref: charges.school_id > schools.id
+
+Ref: charge_issuances.charge_id > charges.id
+Ref: charge_issuances.school_id > schools.id
 
 Ref: applied_discounts.charge_id > charges.id
 Ref: applied_discounts.school_id > schools.id
