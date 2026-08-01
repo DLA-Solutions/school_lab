@@ -36,6 +36,7 @@ User platform status: `active` | `disabled` (blocks all schools; distinct from p
 | Table | Role |
 |-------|------|
 | `billing_plans` | Tuition, enrollment, fee templates per school |
+| `school_billing_settings` | Per-school billing policy — grace days, boleto service description, notification schedule (not provider credentials) |
 | `contracts` | Per-student negotiated terms and due day |
 | `charges` | Generated billing periods; links to financially responsible `guardian` |
 | `applied_discounts` | Discount lines on a charge |

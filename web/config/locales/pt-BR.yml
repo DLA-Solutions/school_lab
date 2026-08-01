@@ -1,4 +1,7 @@
 pt-BR:
+  billing:
+    settings:
+      default_service_description: "Mensalidade escolar"
   api:
     errors:
       unauthorized: "Não autorizado."

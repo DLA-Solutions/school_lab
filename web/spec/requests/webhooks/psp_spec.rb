@@ -3,7 +3,6 @@
 require "rails_helper"
 
 RSpec.describe "POST /webhooks/psp", type: :request do
-  let(:gateway) { Gateways::Psp::Fake.new }
   let(:school) { create(:school) }
   let(:guardian) { create(:guardian, school: school) }
   let(:student) { create(:student, school: school) }
@@ -14,18 +13,14 @@ RSpec.describe "POST /webhooks/psp", type: :request do
   end
 
   def post_webhook(payload_hash)
-    payload = payload_hash.to_json
     post "/webhooks/psp",
-         params: payload,
-         headers: {
-           "CONTENT_TYPE" => "application/json",
-           "X-Psp-Signature" => gateway.sign_payload(payload: payload)
-         }
+         params: payload_hash.to_json,
+         headers: { "CONTENT_TYPE" => "application/json" }
   end
 
   it "stores webhook event, payment, and marks charge paid" do
     post_webhook(
-      provider: Gateways::Psp::Fake::PROVIDER,
+      provider: Gateways::BankSlip::Fake::PROVIDER,
       event_id: "evt-payment-1",
       event_type: "payment.confirmed",
       provider_invoice_id: charge.provider_invoice_id,
@@ -43,7 +38,7 @@ RSpec.describe "POST /webhooks/psp", type: :request do
 
   it "is idempotent for duplicate provider event ids" do
     payload_hash = {
-      provider: Gateways::Psp::Fake::PROVIDER,
+      provider: Gateways::BankSlip::Fake::PROVIDER,
       event_id: "evt-payment-dup",
       event_type: "payment.confirmed",
       provider_invoice_id: charge.provider_invoice_id,
