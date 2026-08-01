@@ -184,9 +184,11 @@ FactoryBot.define do
   end
 
   factory :webhook_event do
+    school
     provider { "fake" }
     sequence(:provider_event_id) { |n| "evt-#{n}" }
     event_type { "payment.confirmed" }
+    provider_resource_id { "fake-invoice-1" }
     payload { "{}" }
   end
 
@@ -199,6 +201,7 @@ FactoryBot.define do
     settings { {} }
     client_id { "client-test-123" }
     uploaded_at { Time.current }
+    sequence(:webhook_endpoint_token) { |n| "webhook-token-#{n}-#{SecureRandom.urlsafe_base64(16)}" }
 
     trait :active do
       active { true }

@@ -187,11 +187,13 @@ Table school_payment_providers {
   certificate_expires_at timestamp
   uploaded_at timestamp
   uploaded_by_id integer
+  webhook_endpoint_token varchar [note: 'Secret URL segment for unsigned provider notifications; rotatable']
   created_at timestamp
   updated_at timestamp
 
   indexes {
     (school_id, instrument, environment) [unique, note: 'Partial: WHERE active = true']
+    webhook_endpoint_token [unique, note: 'WHERE webhook_endpoint_token IS NOT NULL']
   }
 }
 
@@ -306,15 +308,21 @@ Table payments {
 
 Table webhook_events {
   id integer [primary key, increment]
-  psp_event_id varchar [not null, note: 'Idempotency key from PSP']
+  school_id integer [note: 'Tenant that received the notification']
+  provider varchar [not null, note: 'cora | fake']
+  provider_event_id varchar [not null, note: 'Idempotency key from PSP']
   event_type varchar
+  provider_resource_id varchar [note: 'Normalized invoice/resource id from the notification']
   payload text
+  processing_error text [note: 'Mismatch or permanent failure details — no PII']
   processed_at timestamp
   created_at timestamp
+  updated_at timestamp
   Note: 'No Discard — ingress audit log; purge by created_at after processing + retention'
 
   indexes {
-    psp_event_id [unique]
+    (provider, provider_event_id) [unique]
+    school_id
   }
 }
 
