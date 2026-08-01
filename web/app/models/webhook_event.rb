@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
 class WebhookEvent < ApplicationRecord
-  validates :psp_event_id, presence: true, uniqueness: true
+  validates :provider, :provider_event_id, presence: true
+  validates :provider_event_id, uniqueness: { scope: :provider }
 end

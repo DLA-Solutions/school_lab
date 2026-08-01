@@ -30,11 +30,11 @@ RSpec.describe "Api::V1::Schools::Me::Payments", type: :request do
 
       response "200", "family-scoped payments" do
         let!(:charge) do
-          create(:charge, :paid, :with_psp, school: school, contract: contract, guardian: guardian)
+          create(:charge, :paid, :issued, school: school, contract: contract, guardian: guardian)
         end
         let!(:payment_p) { create(:payment, school: school, charge: charge) }
         let!(:other_charge) do
-          create(:charge, :paid, :with_psp, school: school, contract: other_contract, guardian: other_guardian)
+          create(:charge, :paid, :issued, school: school, contract: other_contract, guardian: other_guardian)
         end
         let!(:payment_p2) { create(:payment, school: school, charge: other_charge) }
 

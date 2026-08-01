@@ -26,7 +26,7 @@ RSpec.describe Billing::GenerateChargesService do
     expect(charge.billing_period).to eq("2026-08")
     expect(charge.status).to eq("pending")
     expect(charge.total_amount_cents).to eq(90_000)
-    expect(charge.psp_charge_id).to be_present
+    expect(charge.provider_invoice_id).to be_present
   end
 
   it "does not duplicate charges for the same period" do

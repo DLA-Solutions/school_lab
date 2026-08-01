@@ -30,7 +30,7 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
 
       response "200", "family open charges only" do
         let!(:charge_c1) do
-          create(:charge, :with_psp, school: school, contract: contract, guardian: guardian)
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian)
         end
         let!(:charge_c2) do
           create(:charge, school: school, contract: other_contract, guardian: other_guardian)
@@ -58,7 +58,7 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
 
       response "200", "includes payment methods" do
         let!(:charge_c1) do
-          create(:charge, :with_psp, school: school, contract: contract, guardian: guardian)
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian)
         end
         let(:id) { charge_c1.id }
 
@@ -95,7 +95,7 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
 
       response "200", "platform paid charges with source" do
         let!(:paid_charge) do
-          create(:charge, :paid, :with_psp, school: school, contract: contract, guardian: guardian)
+          create(:charge, :paid, :issued, school: school, contract: contract, guardian: guardian)
         end
         let!(:payment) { create(:payment, school: school, charge: paid_charge) }
 

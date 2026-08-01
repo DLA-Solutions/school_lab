@@ -39,7 +39,7 @@ RSpec.describe "Api::V1::Schools::Billing::Summary", type: :request do
             charge = create(:charge, :paid, school: school, contract: contract, guardian: guardian,
                                             total_amount_cents: 5_000)
             create(:payment, school: school, charge: charge, paid_amount_cents: 5_000,
-                             paid_at: Time.current, psp_transaction_id: "paid-#{i}")
+                             paid_at: Time.current, provider_payment_id: "paid-#{i}")
           end
         end
 

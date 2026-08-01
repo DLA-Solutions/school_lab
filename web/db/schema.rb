@@ -105,7 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.datetime "overdue_at"
     t.datetime "paid_at"
     t.text "pix_copy_paste"
-    t.string "psp_charge_id"
+    t.string "provider_invoice_id"
     t.bigint "school_id", null: false
     t.string "status", default: "pending", null: false
     t.integer "total_amount_cents", null: false
@@ -113,7 +113,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.index ["contract_id"], name: "index_charges_on_contract_id"
     t.index ["discarded_by_id"], name: "index_charges_on_discarded_by_id"
     t.index ["guardian_id"], name: "index_charges_on_guardian_id"
-    t.index ["psp_charge_id"], name: "index_charges_on_psp_charge_id", unique: true, where: "(psp_charge_id IS NOT NULL)"
+    t.index ["provider_invoice_id"], name: "index_charges_on_provider_invoice_id", unique: true, where: "(provider_invoice_id IS NOT NULL)"
     t.index ["school_id", "due_date"], name: "index_charges_on_school_id_and_due_date"
     t.index ["school_id", "status"], name: "index_charges_on_school_id_and_status"
     t.index ["school_id"], name: "index_charges_on_school_id"
@@ -212,12 +212,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.integer "paid_amount_cents", null: false
     t.datetime "paid_at"
     t.string "payment_method"
-    t.string "psp_transaction_id"
+    t.string "provider_payment_id"
     t.bigint "school_id", null: false
     t.string "status", default: "confirmed", null: false
     t.datetime "updated_at", null: false
     t.index ["charge_id"], name: "index_payments_on_charge_id"
-    t.index ["psp_transaction_id"], name: "index_payments_on_psp_transaction_id", unique: true, where: "(psp_transaction_id IS NOT NULL)"
+    t.index ["provider_payment_id"], name: "index_payments_on_provider_payment_id", unique: true, where: "(provider_payment_id IS NOT NULL)"
     t.index ["school_id"], name: "index_payments_on_school_id"
     t.check_constraint "paid_amount_cents >= 0", name: "payments_paid_amount_cents_non_negative"
   end
@@ -452,9 +452,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.string "event_type"
     t.text "payload"
     t.datetime "processed_at"
-    t.string "psp_event_id", null: false
+    t.string "provider", null: false
+    t.string "provider_event_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["psp_event_id"], name: "index_webhook_events_on_psp_event_id", unique: true
+    t.index ["provider", "provider_event_id"], name: "index_webhook_events_on_provider_and_provider_event_id", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

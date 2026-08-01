@@ -58,7 +58,7 @@ module DemoSchool
       record.late_fee_amount_cents = 0
       record.total_amount_cents = 85_000
       record.due_date = Date.new(2026, 8, 10)
-      record.psp_charge_id = "demo-charge-001"
+      record.provider_invoice_id = "demo-charge-001"
       record.boleto_url = "https://demo.schoollab.local/boleto/demo-charge-001"
       record.pix_copy_paste = "00020126580014br.gov.bcb.pixdemo0001"
     end

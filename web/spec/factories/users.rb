@@ -131,8 +131,8 @@ FactoryBot.define do
       end
     end
 
-    trait :with_psp do
-      psp_charge_id { "fake-#{SecureRandom.hex(4)}" }
+    trait :issued do
+      provider_invoice_id { "fake-#{SecureRandom.hex(4)}" }
       boleto_url { "https://fake-psp.example/boleto/test" }
       pix_copy_paste { "00020126580014br.gov.bcb.pixtest" }
     end
@@ -140,16 +140,17 @@ FactoryBot.define do
 
   factory :payment do
     school
-    charge { association :charge, :with_psp, school: school }
+    charge { association :charge, :issued, school: school }
     paid_amount_cents { 85_000 }
     payment_method { "pix" }
-    sequence(:psp_transaction_id) { |n| "txn-#{n}" }
+    sequence(:provider_payment_id) { |n| "txn-#{n}" }
     paid_at { Time.current }
     status { "confirmed" }
   end
 
   factory :webhook_event do
-    sequence(:psp_event_id) { |n| "evt-#{n}" }
+    provider { "fake" }
+    sequence(:provider_event_id) { |n| "evt-#{n}" }
     event_type { "payment.confirmed" }
     payload { "{}" }
   end

@@ -22,7 +22,7 @@ module Billing
           charge.save!
           issue_result = gateway.issue(charge: charge)
           charge.update!(
-            psp_charge_id: issue_result.psp_charge_id,
+            provider_invoice_id: issue_result.provider_invoice_id,
             boleto_url: issue_result.boleto_url,
             pix_copy_paste: issue_result.pix_copy_paste
           )

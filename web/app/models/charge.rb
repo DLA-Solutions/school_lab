@@ -17,7 +17,7 @@ class Charge < ApplicationRecord
   validates :original_amount_cents, :total_amount_cents, presence: true
   validates :original_amount_cents, :discount_amount_cents, :late_fee_amount_cents, :total_amount_cents,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
-  validates :psp_charge_id, uniqueness: true, allow_nil: true
+  validates :provider_invoice_id, uniqueness: true, allow_nil: true
 
   scope :open, -> { kept.where(status: %w[pending overdue]) }
 end

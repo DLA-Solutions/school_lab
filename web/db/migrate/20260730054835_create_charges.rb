@@ -13,7 +13,7 @@ class CreateCharges < ActiveRecord::Migration[8.1]
       t.integer :total_amount_cents, null: false
       t.date :due_date
       t.string :status, null: false, default: "pending"
-      t.string :psp_charge_id
+      t.string :provider_invoice_id
       t.string :boleto_url
       t.text :pix_copy_paste
       t.datetime :paid_at
@@ -27,7 +27,7 @@ class CreateCharges < ActiveRecord::Migration[8.1]
 
     add_index :charges, %i[school_id status]
     add_index :charges, %i[school_id due_date]
-    add_index :charges, :psp_charge_id, unique: true, where: "psp_charge_id IS NOT NULL"
+    add_index :charges, :provider_invoice_id, unique: true, where: "provider_invoice_id IS NOT NULL"
 
     add_check_constraint :charges, "original_amount_cents >= 0",
                          name: "charges_original_amount_cents_non_negative"

@@ -5,13 +5,15 @@ module Gateways
     class Fake
       include Interface
 
+      PROVIDER = "fake"
+
       def issue(charge:)
-        psp_charge_id = "fake-#{charge.school_id}-#{charge.id || SecureRandom.hex(4)}"
+        provider_invoice_id = "fake-#{charge.school_id}-#{charge.id || SecureRandom.hex(4)}"
 
         IssueResult.new(
-          psp_charge_id: psp_charge_id,
-          boleto_url: "https://fake-psp.example/boleto/#{psp_charge_id}",
-          pix_copy_paste: "00020126580014br.gov.bcb.pix#{psp_charge_id}"
+          provider_invoice_id: provider_invoice_id,
+          boleto_url: "https://fake-psp.example/boleto/#{provider_invoice_id}",
+          pix_copy_paste: "00020126580014br.gov.bcb.pix#{provider_invoice_id}"
         )
       end
 

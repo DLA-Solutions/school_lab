@@ -459,6 +459,43 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/billing/payments": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List payments",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "payments expose provider payment identifier"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/billing/summary": {
       "parameters": [
         {

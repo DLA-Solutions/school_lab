@@ -16,7 +16,7 @@ RSpec.describe Gateways::Psp::Fake do
 
       expect(result.boleto_url).to include("fake-psp.example/boleto/")
       expect(result.pix_copy_paste).to start_with("00020126580014br.gov.bcb.pix")
-      expect(result.psp_charge_id).to start_with("fake-#{school.id}-")
+      expect(result.provider_invoice_id).to start_with("fake-#{school.id}-")
     end
   end
 
