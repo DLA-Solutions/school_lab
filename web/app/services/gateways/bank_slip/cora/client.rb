@@ -27,32 +27,38 @@ module Gateways
           request(:get, path)
         end
 
-        def post(path, body: nil, content_type: "application/json")
-          request(:post, path, body: body, content_type: content_type)
+        def post(path, body: nil, content_type: "application/json", idempotency_key: nil)
+          request(:post, path, body: body, content_type: content_type, idempotency_key: idempotency_key)
+        end
+
+        def delete(path)
+          request(:delete, path)
         end
 
         private
 
         attr_reader :config, :token_cache, :environment_config
 
-        def request(method, path, body: nil, content_type: "application/json", retried: false)
+        def request(method, path, body: nil, content_type: "application/json", idempotency_key: nil, retried: false)
           response = with_connection_rescue do
-            authenticated_request(method, path, body: body, content_type: content_type)
+            authenticated_request(method, path, body: body, content_type: content_type, idempotency_key: idempotency_key)
           end
 
           if response.code.to_i == 401 && !retried
             token_cache.delete
-            return request(method, path, body: body, content_type: content_type, retried: true)
+            return request(method, path, body: body, content_type: content_type, idempotency_key: idempotency_key,
+                             retried: true)
           end
 
           map_response!(response)
         end
 
-        def authenticated_request(method, path, body:, content_type:)
+        def authenticated_request(method, path, body:, content_type:, idempotency_key:)
           token = access_token
           uri = URI.join(environment_config.fetch(:api_base_url), path)
           http = build_http(uri)
-          request = build_request(method, uri, body: body, content_type: content_type, token: token)
+          request = build_request(method, uri, body: body, content_type: content_type, token: token,
+                                                  idempotency_key: idempotency_key)
           http.request(request)
         end
 
@@ -81,13 +87,24 @@ module Gateways
           http
         end
 
-        def build_request(method, uri, body:, content_type:, token:)
-          request_class = method == :get ? Net::HTTP::Get : Net::HTTP::Post
+        def build_request(method, uri, body:, content_type:, token:, idempotency_key:)
+          request_class = request_class_for(method)
           request = request_class.new(uri)
           request["Authorization"] = "Bearer #{token}"
           request["Content-Type"] = content_type if body
+          request["Idempotency-Key"] = idempotency_key if idempotency_key.present?
           request.body = body if body
           request
+        end
+
+        def request_class_for(method)
+          case method
+          when :get then Net::HTTP::Get
+          when :post then Net::HTTP::Post
+          when :delete then Net::HTTP::Delete
+          else
+            raise ArgumentError, "Unsupported HTTP method: #{method}"
+          end
         end
 
         def map_token_response!(response)
