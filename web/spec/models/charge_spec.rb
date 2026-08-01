@@ -33,7 +33,7 @@ RSpec.describe Charge, type: :model do
                          contract_id: contract.id,
                          school_id: school.id,
                          guardian_id: guardian.id,
-                         billing_period: "2026-08",
+                         billing_period: Date.new(2026, 8, 1),
                          original_amount_cents: 100,
                          discount_amount_cents: 0,
                          late_fee_amount_cents: 0,

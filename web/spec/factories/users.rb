@@ -106,7 +106,7 @@ FactoryBot.define do
     school
     contract { association :contract, school: school }
     guardian { association :guardian, school: school }
-    billing_period { "2026-08" }
+    sequence(:billing_period) { |n| Date.new(2026, 1, 1) >> (n - 1) }
     original_amount_cents { 90_000 }
     discount_amount_cents { 5_000 }
     late_fee_amount_cents { 0 }

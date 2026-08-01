@@ -90,7 +90,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
   end
 
   create_table "charges", force: :cascade do |t|
-    t.string "billing_period"
+    t.date "billing_period", null: false
     t.string "boleto_url"
     t.datetime "cancelled_at"
     t.bigint "contract_id", null: false
@@ -110,6 +110,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.string "status", default: "pending", null: false
     t.integer "total_amount_cents", null: false
     t.datetime "updated_at", null: false
+    t.index ["contract_id", "billing_period"], name: "index_charges_on_contract_id_and_billing_period_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["contract_id"], name: "index_charges_on_contract_id"
     t.index ["discarded_by_id"], name: "index_charges_on_discarded_by_id"
     t.index ["guardian_id"], name: "index_charges_on_guardian_id"

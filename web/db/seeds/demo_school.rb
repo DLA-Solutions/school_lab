@@ -5,7 +5,7 @@ module DemoSchool
   ADMIN_EMAIL = "admin@demo.schoollab.local"
   GUARDIAN_EMAIL = "guardian@demo.schoollab.local"
   PASSWORD = "password123"
-  DEMO_CHARGE_PERIOD = "2026-08"
+  DEMO_CHARGE_PERIOD = Date.new(2026, 8, 1)
 
   module_function
 

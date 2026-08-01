@@ -6,7 +6,7 @@ class CreateCharges < ActiveRecord::Migration[8.1]
       t.references :contract, null: false, foreign_key: true
       t.references :school, null: false, foreign_key: true
       t.references :guardian, null: false, foreign_key: true
-      t.string :billing_period
+      t.date :billing_period, null: false
       t.integer :original_amount_cents, null: false
       t.integer :discount_amount_cents, null: false, default: 0
       t.integer :late_fee_amount_cents, null: false, default: 0
@@ -27,6 +27,10 @@ class CreateCharges < ActiveRecord::Migration[8.1]
 
     add_index :charges, %i[school_id status]
     add_index :charges, %i[school_id due_date]
+    add_index :charges, %i[contract_id billing_period],
+              unique: true,
+              where: "discarded_at IS NULL",
+              name: "index_charges_on_contract_id_and_billing_period_kept"
     add_index :charges, :provider_invoice_id, unique: true, where: "provider_invoice_id IS NOT NULL"
 
     add_check_constraint :charges, "original_amount_cents >= 0",
