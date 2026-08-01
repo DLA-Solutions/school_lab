@@ -33,7 +33,7 @@ const DrawerItems = () => {
         <ButtonBase component={Link} href="/" disableRipple>
           <Image src={Logo} alt="logo" height={24} width={24} sx={{ mr: 1 }} />
           <Typography variant="h5" color="text.primary" fontWeight={600} letterSpacing={1}>
-            Scholar Lab
+            Scholar Premium
           </Typography>
         </ButtonBase>
       </Stack>
