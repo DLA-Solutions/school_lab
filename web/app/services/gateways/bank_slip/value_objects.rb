@@ -20,8 +20,8 @@ module Gateways
         end
       end
 
-      Customer = Data.define(:name, :document_number, :email, :address) do
-        def initialize(name:, document_number:, email: nil, address: nil)
+      Customer = Data.define(:name, :document_number, :email, :phone, :address) do
+        def initialize(name:, document_number:, email: nil, phone: nil, address: nil)
           super
         end
       end
