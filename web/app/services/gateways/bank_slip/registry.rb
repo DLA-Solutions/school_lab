@@ -6,7 +6,8 @@ module Gateways
       INSTRUMENT = "bank_slip"
 
       ADAPTERS = {
-        "fake" => Fake
+        "fake" => Fake,
+        "cora" => Cora::Adapter
       }.freeze
 
       class UnknownProviderError < Gateways::BankSlip::Error; end

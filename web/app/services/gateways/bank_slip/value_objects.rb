@@ -56,12 +56,23 @@ module Gateways
         :barcode,
         :our_number,
         :pix_emv,
-        :status
+        :status,
+        :amount_cents
       ) do
-        def initialize(provider_invoice_id:, boleto_url:, digitable_line:, barcode:, our_number:, pix_emv:, status:)
+        def initialize(provider_invoice_id:, boleto_url:, digitable_line:, barcode:, our_number:, pix_emv:, status:,
+                       amount_cents: nil)
           StatusNormalizer::INTERNAL_STATUSES.include?(status.to_s) || raise(ArgumentError, "invalid status: #{status}")
 
-          super
+          super(
+            provider_invoice_id: provider_invoice_id,
+            boleto_url: boleto_url,
+            digitable_line: digitable_line,
+            barcode: barcode,
+            our_number: our_number,
+            pix_emv: pix_emv,
+            status: status,
+            amount_cents: amount_cents.nil? ? nil : IntegerCents.coerce!(amount_cents, :amount_cents)
+          )
         end
       end
 
