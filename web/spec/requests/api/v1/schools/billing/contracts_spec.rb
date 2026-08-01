@@ -28,7 +28,7 @@ RSpec.describe "Api::V1::Schools::Billing::Contracts", type: :request do
             properties: {
               student_id: { type: :integer },
               billing_plan_id: { type: :integer },
-              negotiated_amount: { type: :number },
+              negotiated_amount_cents: { type: :integer },
               due_day: { type: :integer }
             },
             required: %w[student_id billing_plan_id]
@@ -43,7 +43,7 @@ RSpec.describe "Api::V1::Schools::Billing::Contracts", type: :request do
             contract: {
               student_id: student.id,
               billing_plan_id: billing_plan.id,
-              negotiated_amount: 850.00,
+              negotiated_amount_cents: 85_000,
               due_day: 10
             }
           }

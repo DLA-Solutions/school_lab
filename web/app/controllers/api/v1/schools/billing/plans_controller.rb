@@ -59,7 +59,7 @@ module Api
           private
 
           def plan_params
-            params.require(:billing_plan).permit(:name, :plan_type, :base_amount)
+            params.require(:billing_plan).permit(:name, :plan_type, :base_amount_cents)
           end
         end
       end

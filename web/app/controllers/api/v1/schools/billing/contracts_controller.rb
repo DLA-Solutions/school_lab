@@ -60,7 +60,7 @@ module Api
 
           def contract_params
             params.require(:contract).permit(
-              :student_id, :billing_plan_id, :negotiated_amount, :due_day,
+              :student_id, :billing_plan_id, :negotiated_amount_cents, :due_day,
               :starts_on, :ends_on, :status
             )
           end

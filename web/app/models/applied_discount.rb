@@ -7,5 +7,5 @@ class AppliedDiscount < ApplicationRecord
   belongs_to :charge
   belongs_to :school
 
-  validates :amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :amount_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 end

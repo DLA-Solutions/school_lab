@@ -7,7 +7,7 @@ RSpec.describe Gateways::Psp::Fake do
 
   let(:school) { create(:school) }
   let(:charge) do
-    Charge.new(school_id: school.id, id: 42, billing_period: "2026-08", total_amount: 850.00)
+    Charge.new(school_id: school.id, id: 42, billing_period: Date.new(2026, 8, 1), total_amount_cents: 85_000)
   end
 
   describe "#issue" do
@@ -16,7 +16,7 @@ RSpec.describe Gateways::Psp::Fake do
 
       expect(result.boleto_url).to include("fake-psp.example/boleto/")
       expect(result.pix_copy_paste).to start_with("00020126580014br.gov.bcb.pix")
-      expect(result.psp_charge_id).to start_with("fake-#{school.id}-")
+      expect(result.provider_invoice_id).to start_with("fake-#{school.id}-")
     end
   end
 

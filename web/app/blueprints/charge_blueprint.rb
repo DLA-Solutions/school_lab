@@ -3,7 +3,8 @@
 class ChargeBlueprint < Blueprinter::Base
   identifier :id
 
-  fields :billing_period, :original_amount, :discount_amount, :total_amount, :due_date, :status
+  fields :billing_period, :original_amount_cents, :discount_amount_cents, :late_fee_amount_cents,
+         :total_amount_cents, :due_date, :status
 
   field :student do |charge|
     student = charge.contract.student
@@ -15,7 +16,7 @@ class ChargeBlueprint < Blueprinter::Base
   end
 
   view :guardian do
-    excludes :original_amount, :discount_amount, :guardian
+    excludes :original_amount_cents, :discount_amount_cents, :guardian
 
     field :payment_methods do |charge|
       {
@@ -29,9 +30,7 @@ class ChargeBlueprint < Blueprinter::Base
     include_view :guardian
     excludes :payment_methods, :due_date
 
-    field :paid_at do |charge|
-      charge.payments.order(paid_at: :desc).pick(:paid_at)
-    end
+    field :paid_at
 
     field :source do |_charge|
       "platform"

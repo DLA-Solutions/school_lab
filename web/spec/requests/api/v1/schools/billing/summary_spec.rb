@@ -29,17 +29,17 @@ RSpec.describe "Api::V1::Schools::Billing::Summary", type: :request do
         before do
           3.times do
             create(:charge, school: school, contract: contract, guardian: guardian,
-                            total_amount: 100.00)
+                            total_amount_cents: 10_000)
           end
           2.times do
             create(:charge, :overdue, school: school, contract: contract, guardian: guardian,
-                                      total_amount: 200.00)
+                                      total_amount_cents: 20_000)
           end
           5.times do |i|
             charge = create(:charge, :paid, school: school, contract: contract, guardian: guardian,
-                                            total_amount: 50.00)
-            create(:payment, school: school, charge: charge, paid_amount: 50.00,
-                             paid_at: Time.current, psp_transaction_id: "paid-#{i}")
+                                            total_amount_cents: 5_000)
+            create(:payment, school: school, charge: charge, paid_amount_cents: 5_000,
+                             paid_at: Time.current, provider_payment_id: "paid-#{i}")
           end
         end
 
@@ -48,8 +48,8 @@ RSpec.describe "Api::V1::Schools::Billing::Summary", type: :request do
           expect(body["open_count"]).to eq(3)
           expect(body["overdue_count"]).to eq(2)
           expect(body["paid_this_month_count"]).to eq(5)
-          expect(body["open_amount"]).to eq("300.00")
-          expect(body["overdue_amount"]).to eq("400.00")
+          expect(body["open_amount_cents"]).to eq(30_000)
+          expect(body["overdue_amount_cents"]).to eq(40_000)
         end
       end
     end

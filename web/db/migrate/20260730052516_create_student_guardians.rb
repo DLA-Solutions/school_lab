@@ -6,7 +6,7 @@ class CreateStudentGuardians < ActiveRecord::Migration[8.1]
       t.references :guardian, null: false, foreign_key: true
       t.references :student, null: false, foreign_key: true
       t.references :school, null: false, foreign_key: true
-      t.decimal :financial_percentage
+      t.decimal :financial_percentage, precision: 5, scale: 2
       t.boolean :primary_guardian
       t.datetime :discarded_at
 
@@ -17,5 +17,9 @@ class CreateStudentGuardians < ActiveRecord::Migration[8.1]
               unique: true,
               where: "discarded_at IS NULL",
               name: "index_student_guardians_on_guardian_id_and_student_id_kept"
+
+    add_check_constraint :student_guardians,
+                         "financial_percentage IS NULL OR (financial_percentage >= 0 AND financial_percentage <= 100)",
+                         name: "student_guardians_financial_percentage_range"
   end
 end

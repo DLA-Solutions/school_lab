@@ -21,9 +21,9 @@ module Billing
           open_count: open_charges.count,
           overdue_count: overdue_charges.count,
           paid_this_month_count: paid_this_month.count,
-          open_amount: format_amount(open_charges.sum(:total_amount)),
-          overdue_amount: format_amount(overdue_charges.sum(:total_amount)),
-          expected_collection_this_month: format_amount(expected.sum(:total_amount))
+          open_amount_cents: open_charges.sum(:total_amount_cents),
+          overdue_amount_cents: overdue_charges.sum(:total_amount_cents),
+          expected_collection_this_month_cents: expected.sum(:total_amount_cents)
         }
       )
     end
@@ -31,9 +31,5 @@ module Billing
     private
 
     attr_reader :school
-
-    def format_amount(value)
-      format("%.2f", value.to_d)
-    end
   end
 end

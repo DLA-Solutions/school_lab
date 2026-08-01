@@ -6,10 +6,14 @@ class CreateBillingPlans < ActiveRecord::Migration[8.1]
       t.references :school, null: false, foreign_key: true
       t.string :name
       t.string :plan_type
-      t.decimal :base_amount, precision: 12, scale: 2
+      t.integer :base_amount_cents
       t.datetime :discarded_at
 
       t.timestamps
     end
+
+    add_check_constraint :billing_plans,
+                         "base_amount_cents IS NULL OR base_amount_cents >= 0",
+                         name: "billing_plans_base_amount_cents_non_negative"
   end
 end

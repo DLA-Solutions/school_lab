@@ -2,6 +2,6 @@
 
 module Gateways
   module Psp
-    IssueResult = Data.define(:psp_charge_id, :boleto_url, :pix_copy_paste)
+    IssueResult = Data.define(:provider_invoice_id, :boleto_url, :pix_copy_paste)
   end
 end

@@ -13,10 +13,10 @@ module Billing
       scope.find_each do |charge|
         next unless charge.may_mark_overdue?
 
-        late_fee = LateFeeCalculator.call(charge: charge)
-        total_amount = charge.original_amount - charge.discount_amount + late_fee
+        late_fee_cents = LateFeeCalculator.call(charge: charge)
+        total_amount_cents = charge.original_amount_cents - charge.discount_amount_cents + late_fee_cents
 
-        charge.update!(late_fee_amount: late_fee, total_amount: total_amount)
+        charge.update!(late_fee_amount_cents: late_fee_cents, total_amount_cents: total_amount_cents)
         charge.mark_overdue!
         CollectionReguaNotifier.notify_overdue(charge: charge)
         updated << charge

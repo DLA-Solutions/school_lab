@@ -12,11 +12,15 @@ module Billing
       return ResponseService.failure(code: :forbidden) unless gateway.verify_signature(payload: payload, signature: signature)
 
       data = JSON.parse(payload)
-      psp_event_id = data.fetch("event_id")
-      return ResponseService.success(data: :duplicate) if WebhookEvent.exists?(psp_event_id: psp_event_id)
+      provider = data.fetch("provider")
+      provider_event_id = data.fetch("event_id")
+      if WebhookEvent.exists?(provider: provider, provider_event_id: provider_event_id)
+        return ResponseService.success(data: :duplicate)
+      end
 
       event = WebhookEvent.create!(
-        psp_event_id: psp_event_id,
+        provider: provider,
+        provider_event_id: provider_event_id,
         event_type: data["event_type"],
         payload: payload
       )
@@ -35,7 +39,7 @@ module Billing
     def process_payment(data, event)
       return complete_event(event, :ignored) unless data["event_type"] == "payment.confirmed"
 
-      charge = Charge.kept.find_by!(psp_charge_id: data.fetch("psp_charge_id"))
+      charge = Charge.kept.find_by!(provider_invoice_id: data.fetch("provider_invoice_id"))
       if charge.paid?
         complete_event(event, :duplicate)
         return ResponseService.success(data: :duplicate)
@@ -45,9 +49,9 @@ module Billing
         Payment.create!(
           charge: charge,
           school: charge.school,
-          paid_amount: data.fetch("paid_amount"),
+          paid_amount_cents: data.fetch("paid_amount_cents"),
           payment_method: data.fetch("payment_method", "pix"),
-          psp_transaction_id: data.fetch("psp_transaction_id"),
+          provider_payment_id: data.fetch("provider_payment_id"),
           paid_at: Time.zone.parse(data.fetch("paid_at")),
           status: "confirmed"
         )

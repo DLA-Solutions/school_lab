@@ -10,27 +10,21 @@ module Billing
 
     def call
       created = []
+      skipped_contract_ids = []
 
-      ActiveRecord::Base.transaction do
-        active_contracts.find_each do |contract|
-          next if charge_exists?(contract)
+      active_contracts.find_each do |contract|
+        guardian = financial_guardian_for(contract)
+        next unless guardian
 
-          guardian = financial_guardian_for(contract)
-          next unless guardian
-
-          charge = build_charge(contract, guardian)
-          charge.save!
-          issue_result = gateway.issue(charge: charge)
-          charge.update!(
-            psp_charge_id: issue_result.psp_charge_id,
-            boleto_url: issue_result.boleto_url,
-            pix_copy_paste: issue_result.pix_copy_paste
-          )
-          created << charge
-        end
+        create_charge_for(contract, guardian, created, skipped_contract_ids)
       end
 
-      ResponseService.success(data: created)
+      ResponseService.success(
+        data: {
+          created_charges: created,
+          skipped_contract_ids: skipped_contract_ids
+        }
+      )
     end
 
     private
@@ -41,8 +35,18 @@ module Billing
       school.contracts.active.includes(:student, :billing_plan)
     end
 
-    def charge_exists?(contract)
-      contract.charges.kept.exists?(billing_period: billing_period)
+    def create_charge_for(contract, guardian, created, skipped_contract_ids)
+      charge = build_charge(contract, guardian)
+      charge.save!
+      issue_result = gateway.issue(charge: charge)
+      charge.update!(
+        provider_invoice_id: issue_result.provider_invoice_id,
+        boleto_url: issue_result.boleto_url,
+        pix_copy_paste: issue_result.pix_copy_paste
+      )
+      created << charge
+    rescue ActiveRecord::RecordNotUnique
+      skipped_contract_ids << contract.id
     end
 
     def financial_guardian_for(contract)
@@ -53,26 +57,35 @@ module Billing
     end
 
     def build_charge(contract, guardian)
-      original_amount = contract.negotiated_amount || contract.billing_plan.base_amount || 0
-      discount_amount = 0.to_d
-      total_amount = original_amount - discount_amount
+      original_amount_cents = contract.negotiated_amount_cents || contract.billing_plan.base_amount_cents || 0
+      discount_amount_cents = 0
+      total_amount_cents = original_amount_cents - discount_amount_cents
 
       school.charges.build(
         contract: contract,
         guardian: guardian,
-        billing_period: billing_period,
-        original_amount: original_amount,
-        discount_amount: discount_amount,
-        late_fee_amount: 0,
-        total_amount: total_amount,
+        billing_period: normalized_billing_period,
+        original_amount_cents: original_amount_cents,
+        discount_amount_cents: discount_amount_cents,
+        late_fee_amount_cents: 0,
+        total_amount_cents: total_amount_cents,
         due_date: due_date_for(contract)
       )
     end
 
+    def normalized_billing_period
+      @normalized_billing_period ||= begin
+        value = billing_period
+        value = Date.strptime(value, "%Y-%m") if value.is_a?(String) && value.match?(/\A\d{4}-\d{2}\z/)
+        value = value.to_date unless value.is_a?(Date)
+
+        value.beginning_of_month
+      end
+    end
+
     def due_date_for(contract)
-      year, month = billing_period.split("-").map(&:to_i)
       day = contract.due_day || 10
-      Date.new(year, month, day)
+      Date.new(normalized_billing_period.year, normalized_billing_period.month, day)
     end
   end
 end
