@@ -53,18 +53,18 @@ module Billing
     end
 
     def build_charge(contract, guardian)
-      original_amount = contract.negotiated_amount || contract.billing_plan.base_amount || 0
-      discount_amount = 0.to_d
-      total_amount = original_amount - discount_amount
+      original_amount_cents = contract.negotiated_amount_cents || contract.billing_plan.base_amount_cents || 0
+      discount_amount_cents = 0
+      total_amount_cents = original_amount_cents - discount_amount_cents
 
       school.charges.build(
         contract: contract,
         guardian: guardian,
         billing_period: billing_period,
-        original_amount: original_amount,
-        discount_amount: discount_amount,
-        late_fee_amount: 0,
-        total_amount: total_amount,
+        original_amount_cents: original_amount_cents,
+        discount_amount_cents: discount_amount_cents,
+        late_fee_amount_cents: 0,
+        total_amount_cents: total_amount_cents,
         due_date: due_date_for(contract)
       )
     end

@@ -3,5 +3,5 @@
 class BillingPlanBlueprint < Blueprinter::Base
   identifier :id
 
-  fields :school_id, :name, :plan_type, :base_amount
+  fields :school_id, :name, :plan_type, :base_amount_cents
 end

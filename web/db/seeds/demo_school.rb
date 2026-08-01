@@ -42,21 +42,21 @@ module DemoSchool
 
     billing_plan = BillingPlan.find_or_create_by!(school: school, name: "Mensalidade Demo") do |record|
       record.plan_type = "tuition"
-      record.base_amount = 900.00
+      record.base_amount_cents = 90_000
     end
 
     contract = Contract.find_or_create_by!(school: school, student: student, billing_plan: billing_plan) do |record|
-      record.negotiated_amount = 850.00
+      record.negotiated_amount_cents = 85_000
       record.due_day = 10
       record.starts_on = Date.new(2026, 1, 1)
       record.status = "active"
     end
 
     Charge.find_or_create_by!(school: school, contract: contract, guardian: guardian, billing_period: DEMO_CHARGE_PERIOD) do |record|
-      record.original_amount = 900.00
-      record.discount_amount = 50.00
-      record.late_fee_amount = 0
-      record.total_amount = 850.00
+      record.original_amount_cents = 90_000
+      record.discount_amount_cents = 5_000
+      record.late_fee_amount_cents = 0
+      record.total_amount_cents = 85_000
       record.due_date = Date.new(2026, 8, 10)
       record.psp_charge_id = "demo-charge-001"
       record.boleto_url = "https://demo.schoollab.local/boleto/demo-charge-001"

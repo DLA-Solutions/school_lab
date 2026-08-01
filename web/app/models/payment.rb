@@ -8,5 +8,6 @@ class Payment < ApplicationRecord
 
   validates :status, inclusion: { in: STATUSES }
   validates :psp_transaction_id, uniqueness: true, allow_nil: true
-  validates :paid_amount, numericality: { greater_than: 0 }, allow_nil: true
+  validates :paid_amount_cents, presence: true
+  validates :paid_amount_cents, numericality: { only_integer: true, greater_than: 0 }
 end

@@ -29,7 +29,7 @@ RSpec.describe "POST /webhooks/psp", type: :request do
       event_type: "payment.confirmed",
       psp_charge_id: charge.psp_charge_id,
       psp_transaction_id: "txn-abc-123",
-      paid_amount: charge.total_amount.to_s,
+      paid_amount_cents: charge.total_amount_cents,
       payment_method: "pix",
       paid_at: Time.current.iso8601
     )
@@ -46,7 +46,7 @@ RSpec.describe "POST /webhooks/psp", type: :request do
       event_type: "payment.confirmed",
       psp_charge_id: charge.psp_charge_id,
       psp_transaction_id: "txn-dup-123",
-      paid_amount: charge.total_amount.to_s,
+      paid_amount_cents: charge.total_amount_cents,
       payment_method: "pix",
       paid_at: Time.current.iso8601
     }

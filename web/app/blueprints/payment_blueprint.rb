@@ -3,5 +3,5 @@
 class PaymentBlueprint < Blueprinter::Base
   identifier :id
 
-  fields :charge_id, :paid_amount, :payment_method, :psp_transaction_id, :paid_at, :status
+  fields :charge_id, :paid_amount_cents, :payment_method, :psp_transaction_id, :paid_at, :status
 end

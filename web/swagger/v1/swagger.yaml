@@ -212,6 +212,43 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/billing/charges": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List charges",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "charges expose amounts in cents"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/billing/charges/{id}/cancel": {
       "parameters": [
         {
@@ -400,8 +437,8 @@
                       "billing_plan_id": {
                         "type": "integer"
                       },
-                      "negotiated_amount": {
-                        "type": "number"
+                      "negotiated_amount_cents": {
+                        "type": "integer"
                       },
                       "due_day": {
                         "type": "integer"

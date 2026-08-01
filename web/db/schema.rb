@@ -13,7 +13,6 @@
 ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "vector"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -44,7 +43,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
   end
 
   create_table "applied_discounts", force: :cascade do |t|
-    t.decimal "amount", precision: 12, scale: 2
+    t.integer "amount_cents"
     t.bigint "charge_id", null: false
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -53,6 +52,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.datetime "updated_at", null: false
     t.index ["charge_id"], name: "index_applied_discounts_on_charge_id"
     t.index ["school_id"], name: "index_applied_discounts_on_school_id"
+    t.check_constraint "amount_cents IS NULL OR amount_cents >= 0", name: "applied_discounts_amount_cents_non_negative"
   end
 
   create_table "audits", force: :cascade do |t|
@@ -78,7 +78,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
   end
 
   create_table "billing_plans", force: :cascade do |t|
-    t.decimal "base_amount", precision: 12, scale: 2
+    t.integer "base_amount_cents"
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.string "name"
@@ -86,25 +86,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.bigint "school_id", null: false
     t.datetime "updated_at", null: false
     t.index ["school_id"], name: "index_billing_plans_on_school_id"
+    t.check_constraint "base_amount_cents IS NULL OR base_amount_cents >= 0", name: "billing_plans_base_amount_cents_non_negative"
   end
 
   create_table "charges", force: :cascade do |t|
     t.string "billing_period"
     t.string "boleto_url"
+    t.datetime "cancelled_at"
     t.bigint "contract_id", null: false
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
-    t.decimal "discount_amount", precision: 12, scale: 2, default: "0.0"
+    t.integer "discount_amount_cents", default: 0, null: false
     t.date "due_date"
     t.bigint "guardian_id", null: false
-    t.decimal "late_fee_amount", precision: 12, scale: 2, default: "0.0"
-    t.decimal "original_amount", precision: 12, scale: 2
+    t.integer "late_fee_amount_cents", default: 0, null: false
+    t.integer "original_amount_cents", null: false
+    t.datetime "overdue_at"
+    t.datetime "paid_at"
     t.text "pix_copy_paste"
     t.string "psp_charge_id"
     t.bigint "school_id", null: false
     t.string "status", default: "pending", null: false
-    t.decimal "total_amount", precision: 12, scale: 2
+    t.integer "total_amount_cents", null: false
     t.datetime "updated_at", null: false
     t.index ["contract_id"], name: "index_charges_on_contract_id"
     t.index ["discarded_by_id"], name: "index_charges_on_discarded_by_id"
@@ -113,6 +117,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.index ["school_id", "due_date"], name: "index_charges_on_school_id_and_due_date"
     t.index ["school_id", "status"], name: "index_charges_on_school_id_and_status"
     t.index ["school_id"], name: "index_charges_on_school_id"
+    t.check_constraint "discount_amount_cents >= 0", name: "charges_discount_amount_cents_non_negative"
+    t.check_constraint "late_fee_amount_cents >= 0", name: "charges_late_fee_amount_cents_non_negative"
+    t.check_constraint "original_amount_cents >= 0", name: "charges_original_amount_cents_non_negative"
+    t.check_constraint "total_amount_cents >= 0", name: "charges_total_amount_cents_non_negative"
   end
 
   create_table "contracts", force: :cascade do |t|
@@ -121,7 +129,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.datetime "discarded_at"
     t.integer "due_day"
     t.date "ends_on"
-    t.decimal "negotiated_amount", precision: 12, scale: 2
+    t.integer "negotiated_amount_cents"
     t.bigint "school_id", null: false
     t.date "starts_on"
     t.string "status", default: "active", null: false
@@ -131,6 +139,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.index ["school_id", "status"], name: "index_contracts_on_school_id_and_status"
     t.index ["school_id"], name: "index_contracts_on_school_id"
     t.index ["student_id"], name: "index_contracts_on_student_id"
+    t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -200,7 +209,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
   create_table "payments", force: :cascade do |t|
     t.bigint "charge_id", null: false
     t.datetime "created_at", null: false
-    t.decimal "paid_amount", precision: 12, scale: 2
+    t.integer "paid_amount_cents", null: false
     t.datetime "paid_at"
     t.string "payment_method"
     t.string "psp_transaction_id"
@@ -210,6 +219,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.index ["charge_id"], name: "index_payments_on_charge_id"
     t.index ["psp_transaction_id"], name: "index_payments_on_psp_transaction_id", unique: true, where: "(psp_transaction_id IS NOT NULL)"
     t.index ["school_id"], name: "index_payments_on_school_id"
+    t.check_constraint "paid_amount_cents >= 0", name: "payments_paid_amount_cents_non_negative"
   end
 
   create_table "refresh_tokens", force: :cascade do |t|
@@ -379,7 +389,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
   create_table "student_guardians", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
-    t.decimal "financial_percentage"
+    t.decimal "financial_percentage", precision: 5, scale: 2
     t.bigint "guardian_id", null: false
     t.boolean "primary_guardian"
     t.bigint "school_id", null: false
@@ -389,6 +399,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.index ["guardian_id"], name: "index_student_guardians_on_guardian_id"
     t.index ["school_id"], name: "index_student_guardians_on_school_id"
     t.index ["student_id"], name: "index_student_guardians_on_student_id"
+    t.check_constraint "financial_percentage IS NULL OR financial_percentage >= 0::numeric AND financial_percentage <= 100::numeric", name: "student_guardians_financial_percentage_range"
   end
 
   create_table "students", force: :cascade do |t|

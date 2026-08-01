@@ -15,7 +15,7 @@ class Contract < ApplicationRecord
   validates :status, inclusion: { in: STATUSES }
   validates :due_day, numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: 28 },
                       allow_nil: true
-  validates :negotiated_amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :negotiated_amount_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 
   scope :active, -> { kept.where(status: "active") }
 end

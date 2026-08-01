@@ -45,7 +45,7 @@ module Billing
         Payment.create!(
           charge: charge,
           school: charge.school,
-          paid_amount: data.fetch("paid_amount"),
+          paid_amount_cents: data.fetch("paid_amount_cents"),
           payment_method: data.fetch("payment_method", "pix"),
           psp_transaction_id: data.fetch("psp_transaction_id"),
           paid_at: Time.zone.parse(data.fetch("paid_at")),

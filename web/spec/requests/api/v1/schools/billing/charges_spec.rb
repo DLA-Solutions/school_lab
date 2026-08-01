@@ -18,6 +18,31 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
     create(:contract, school: school, student: student, billing_plan: billing_plan)
   end
 
+  path "/api/v1/schools/{school_id}/billing/charges" do
+    parameter name: :school_id, in: :path, type: :integer
+
+    get "List charges" do
+      tags "Billing"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+
+      response "200", "charges expose amounts in cents" do
+        let!(:charge) do
+          create(:charge, school: school, contract: contract, guardian: guardian, total_amount_cents: 150_000)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          record = body.find { |item| item["id"] == charge.id }
+
+          expect(record["total_amount_cents"]).to eq(150_000)
+          expect(record).not_to have_key("total_amount")
+        end
+      end
+    end
+  end
+
   path "/api/v1/schools/{school_id}/billing/charges/{id}/cancel" do
     parameter name: :school_id, in: :path, type: :integer
     parameter name: :id, in: :path, type: :integer

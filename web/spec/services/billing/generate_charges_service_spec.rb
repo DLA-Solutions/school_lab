@@ -8,13 +8,13 @@ RSpec.describe Billing::GenerateChargesService do
   let(:school) { create(:school) }
   let(:guardian) { create(:guardian, school: school, name: "Maria Silva") }
   let(:student) { create(:student, school: school, name: "Pedro Silva") }
-  let(:billing_plan) { create(:billing_plan, school: school, base_amount: 900.00) }
+  let(:billing_plan) { create(:billing_plan, school: school, base_amount_cents: 90_000) }
   let!(:student_guardian) do
     create(:student_guardian, school: school, student: student, guardian: guardian, primary_guardian: true)
   end
   let!(:contract) do
     create(:contract, school: school, student: student, billing_plan: billing_plan,
-                      negotiated_amount: 900.00, due_day: 10, status: "active")
+                      negotiated_amount_cents: 90_000, due_day: 10, status: "active")
   end
 
   it "creates a pending charge for an active contract" do
@@ -25,7 +25,7 @@ RSpec.describe Billing::GenerateChargesService do
     expect(charge.school_id).to eq(school.id)
     expect(charge.billing_period).to eq("2026-08")
     expect(charge.status).to eq("pending")
-    expect(charge.total_amount).to eq(900.00)
+    expect(charge.total_amount_cents).to eq(90_000)
     expect(charge.psp_charge_id).to be_present
   end
 

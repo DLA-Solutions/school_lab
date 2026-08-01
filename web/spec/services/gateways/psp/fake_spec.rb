@@ -7,7 +7,7 @@ RSpec.describe Gateways::Psp::Fake do
 
   let(:school) { create(:school) }
   let(:charge) do
-    Charge.new(school_id: school.id, id: 42, billing_period: "2026-08", total_amount: 850.00)
+    Charge.new(school_id: school.id, id: 42, billing_period: "2026-08", total_amount_cents: 85_000)
   end
 
   describe "#issue" do

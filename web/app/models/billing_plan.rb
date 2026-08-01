@@ -12,5 +12,5 @@ class BillingPlan < ApplicationRecord
 
   validates :name, presence: true
   validates :plan_type, inclusion: { in: PLAN_TYPES }, allow_nil: true
-  validates :base_amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :base_amount_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 end
