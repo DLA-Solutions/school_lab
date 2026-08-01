@@ -44,7 +44,7 @@ RSpec.describe Billing::GenerateChargesService do
     described_class.call(school: school, billing_period: billing_period)
 
     expect { result }.not_to change(Charge, :count)
-    expect(result.data.fetch(:skipped_contract_ids)).to eq([contract.id])
+    expect(result.data.fetch(:skipped_contract_ids)).to eq([ contract.id ])
   end
 
   it "creates a charge when a discarded charge exists for the same period" do
@@ -63,7 +63,7 @@ RSpec.describe Billing::GenerateChargesService do
 
     expect(result.data.fetch(:created_charges).size).to eq(1)
     expect(result.data.fetch(:created_charges).first.contract_id).to eq(other_contract.id)
-    expect(result.data.fetch(:skipped_contract_ids)).to eq([contract.id])
+    expect(result.data.fetch(:skipped_contract_ids)).to eq([ contract.id ])
   end
 
   it "returns success when concurrent generation loses the race" do
