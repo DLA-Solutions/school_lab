@@ -31,10 +31,10 @@ RSpec.describe Billing::GenerateChargesService do
   end
 
   it "normalizes billing period strings to the first day of the month" do
-    result = described_class.call(school: school, billing_period: Date.new(2026, 3, 15))
+    result = described_class.call(school: school, billing_period: Date.new(2026, 9, 15))
 
     charge = result.data.fetch(:created_charges).first
-    expect(charge.billing_period).to eq(Date.new(2026, 3, 1))
+    expect(charge.billing_period).to eq(Date.new(2026, 9, 1))
   end
 
   it "does not duplicate charges for the same period" do
