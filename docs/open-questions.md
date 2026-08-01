@@ -78,6 +78,11 @@ in `docs/prds/fintech-first.md` (Open items).
       (API Wave 1; not yet in `schema.dbml`).
 - [ ] **Fintech-first — migrated payment history** — storage for `source: migrated`
       and `external_reference` on guardian charge history.
+- [x] **Fintech-first — reissue default due date** — `today + 7 business days`
+      in the school timezone, skipping weekends and Brazilian national holidays
+      (`Billing::BusinessDayCalendar`).
+- [x] **Fintech-first — municipal/state banking holidays** — out of scope for
+      overdue evaluation; national calendar only (`Billing::BusinessDayCalendar`).
 
 ## Digital archive / auditing
 
