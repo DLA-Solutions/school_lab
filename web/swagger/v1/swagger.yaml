@@ -212,6 +212,90 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/bank_credentials": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List bank credentials",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "lists metadata only"
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "forbidden for school staff"
+          }
+        }
+      },
+      "post": {
+        "summary": "Upload bank credentials",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "supersedes previous active configuration"
+          },
+          "422": {
+            "description": "expired certificate"
+          },
+          "403": {
+            "description": "forbidden for teacher"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/billing/charges": {
       "parameters": [
         {

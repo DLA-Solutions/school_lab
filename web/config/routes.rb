@@ -30,6 +30,7 @@ Rails.application.routes.draw do
 
       resources :schools, only: %i[index show create update destroy] do
         scope module: :schools do
+          resources :bank_credentials, only: %i[index create]
           namespace :people do
             resources :guardians
             resources :students do
