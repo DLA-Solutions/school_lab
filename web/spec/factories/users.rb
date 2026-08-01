@@ -154,4 +154,23 @@ FactoryBot.define do
     event_type { "payment.confirmed" }
     payload { "{}" }
   end
+
+  factory :school_payment_provider do
+    school
+    instrument { "bank_slip" }
+    provider { "cora" }
+    environment { "stage" }
+    active { true }
+    settings { {} }
+    client_id { "client-test-123" }
+    uploaded_at { Time.current }
+
+    trait :active do
+      active { true }
+    end
+
+    trait :inactive do
+      active { false }
+    end
+  end
 end

@@ -172,6 +172,29 @@ Table billing_plans {
   updated_at timestamp
 }
 
+Table school_payment_providers {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  instrument varchar [not null, note: 'bank_slip — card added later without migration']
+  provider varchar [not null, note: 'cora | fake']
+  environment varchar [not null, note: 'stage | production']
+  active boolean [not null, default: true]
+  settings jsonb [not null, default: '{}']
+  client_id varchar
+  certificate_pem text [note: 'Active Record Encryption — non-deterministic']
+  private_key_pem text [note: 'Active Record Encryption — non-deterministic']
+  certificate_fingerprint varchar [note: 'SHA-256 of cert DER — clear text']
+  certificate_expires_at timestamp
+  uploaded_at timestamp
+  uploaded_by_id integer
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, instrument, environment) [unique, note: 'Partial: WHERE active = true']
+  }
+}
+
 Table contracts {
   id integer [primary key, increment]
   student_id integer [not null]
@@ -293,6 +316,8 @@ Ref: students.discarded_by_id > users.id
 Ref: teachers.school_id > schools.id
 Ref: teachers.user_id > users.id
 Ref: billing_plans.school_id > schools.id
+Ref: school_payment_providers.school_id > schools.id
+Ref: school_payment_providers.uploaded_by_id > users.id
 
 Ref: student_guardians.guardian_id > guardians.id
 Ref: student_guardians.student_id > students.id

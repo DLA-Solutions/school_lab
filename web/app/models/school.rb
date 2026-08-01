@@ -15,6 +15,7 @@ class School < ApplicationRecord
   has_many :charges, dependent: :destroy
   has_many :payments, dependent: :destroy
   has_many :documents, dependent: :destroy
+  has_many :school_payment_providers, dependent: :destroy
 
   validates :name, presence: true
 end
