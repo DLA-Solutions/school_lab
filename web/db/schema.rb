@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_01_202722) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_01_220757) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -87,6 +87,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_202722) do
     t.datetime "updated_at", null: false
     t.index ["school_id"], name: "index_billing_plans_on_school_id"
     t.check_constraint "base_amount_cents IS NULL OR base_amount_cents >= 0", name: "billing_plans_base_amount_cents_non_negative"
+  end
+
+  create_table "charge_issuances", force: :cascade do |t|
+    t.integer "amount_cents", null: false
+    t.string "barcode"
+    t.string "boleto_url"
+    t.datetime "cancelled_at"
+    t.bigint "charge_id", null: false
+    t.datetime "created_at", null: false
+    t.string "digitable_line"
+    t.date "due_date", null: false
+    t.string "idempotency_key", null: false
+    t.datetime "issued_at"
+    t.text "last_error"
+    t.string "our_number"
+    t.text "pix_emv"
+    t.string "provider", null: false
+    t.string "provider_invoice_id"
+    t.bigint "school_id", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.index ["charge_id", "status"], name: "index_charge_issuances_on_charge_id_and_status"
+    t.index ["charge_id"], name: "index_charge_issuances_on_charge_id"
+    t.index ["idempotency_key"], name: "index_charge_issuances_on_idempotency_key", unique: true
+    t.index ["provider_invoice_id"], name: "index_charge_issuances_on_provider_invoice_id", unique: true, where: "(provider_invoice_id IS NOT NULL)"
+    t.index ["school_id"], name: "index_charge_issuances_on_school_id"
+    t.check_constraint "amount_cents >= 0", name: "charge_issuances_amount_cents_non_negative"
   end
 
   create_table "charges", force: :cascade do |t|
@@ -498,6 +525,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_202722) do
   add_foreign_key "applied_discounts", "charges"
   add_foreign_key "applied_discounts", "schools"
   add_foreign_key "billing_plans", "schools"
+  add_foreign_key "charge_issuances", "charges"
+  add_foreign_key "charge_issuances", "schools"
   add_foreign_key "charges", "contracts"
   add_foreign_key "charges", "guardians"
   add_foreign_key "charges", "schools"
