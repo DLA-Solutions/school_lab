@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Billing::GenerateChargesService do
+  include ActiveJob::TestHelper
+
   subject(:result) { described_class.call(school: school, billing_period: billing_period) }
 
   let(:school) { create(:school) }
@@ -20,6 +22,7 @@ RSpec.describe Billing::GenerateChargesService do
 
   it "creates a pending charge for an active contract" do
     expect { result }.to change(Charge, :count).by(1)
+      .and have_enqueued_job(Billing::IssueChargeJob).with(kind_of(Integer), school.id)
 
     charge = result.data.fetch(:created_charges).first
     expect(charge.guardian_id).to eq(guardian.id)
@@ -27,7 +30,7 @@ RSpec.describe Billing::GenerateChargesService do
     expect(charge.billing_period).to eq(Date.new(2026, 8, 1))
     expect(charge.status).to eq("pending")
     expect(charge.total_amount_cents).to eq(90_000)
-    expect(charge.provider_invoice_id).to be_present
+    expect(charge.provider_invoice_id).to be_nil
   end
 
   it "normalizes billing period strings to the first day of the month" do
