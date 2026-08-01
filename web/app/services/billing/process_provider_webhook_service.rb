@@ -35,7 +35,8 @@ module Billing
     def process_payment(data, event)
       return complete_event(event, :ignored) unless data["event_type"] == "payment.confirmed"
 
-      charge = Charge.kept.find_by!(provider_invoice_id: data.fetch("provider_invoice_id"))
+      issuance = ChargeIssuance.find_by_provider_invoice_id!(data.fetch("provider_invoice_id"))
+      charge = issuance.charge
       if charge.paid?
         complete_event(event, :duplicate)
         return ResponseService.success(data: :duplicate)
