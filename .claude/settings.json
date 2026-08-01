@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rails db:version)",
+      "Bash(chmod +x /private/tmp/claude-501/-Users-luizcalaca-school-lab/31f51df4-448f-4857-8052-1d47df2af9f6/scratchpad/test-login.sh)",
+      "Bash(/private/tmp/claude-501/-Users-luizcalaca-school-lab/31f51df4-448f-4857-8052-1d47df2af9f6/scratchpad/test-login.sh)"
+    ]
+  }
+}
