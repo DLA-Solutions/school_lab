@@ -2,6 +2,10 @@
 
 module Billing
   class MarkOverdueChargesService < ApplicationService
+    def self.grace_cutoff_for(school:, as_of: Date.current)
+      SchoolSettings.for(school).overdue_grace_cutoff(as_of: as_of)
+    end
+
     def initialize(school: nil, as_of: Date.current)
       @school = school
       @as_of = as_of

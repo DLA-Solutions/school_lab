@@ -195,6 +195,16 @@ Table school_payment_providers {
   }
 }
 
+Table school_billing_settings {
+  id integer [primary key, increment]
+  school_id integer [not null, unique]
+  overdue_grace_days integer [not null, default: 3, note: '0–30 days before a charge is marked overdue']
+  service_description varchar(100) [note: 'Guardian-facing boleto line; default from i18n']
+  notification_schedule jsonb [not null, default: '{}', note: 'Provider-agnostic reminder rules relative to due date']
+  created_at timestamp
+  updated_at timestamp
+}
+
 Table contracts {
   id integer [primary key, increment]
   student_id integer [not null]
@@ -318,6 +328,7 @@ Ref: teachers.user_id > users.id
 Ref: billing_plans.school_id > schools.id
 Ref: school_payment_providers.school_id > schools.id
 Ref: school_payment_providers.uploaded_by_id > users.id
+Ref: school_billing_settings.school_id > schools.id
 
 Ref: student_guardians.guardian_id > guardians.id
 Ref: student_guardians.student_id > students.id

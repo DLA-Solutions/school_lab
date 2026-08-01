@@ -580,6 +580,108 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/billing/settings": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show billing settings",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns defaults when no row exists"
+          },
+          "403": {
+            "description": "forbidden for guardian"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update billing settings",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "school staff updates settings"
+          },
+          "403": {
+            "description": "forbidden for guardian update"
+          },
+          "404": {
+            "description": "not found for another school"
+          },
+          "422": {
+            "description": "validation error for long service description"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "billing_settings": {
+                    "type": "object",
+                    "properties": {
+                      "overdue_grace_days": {
+                        "type": "integer"
+                      },
+                      "service_description": {
+                        "type": "string"
+                      },
+                      "notification_schedule": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "billing_settings"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/billing/summary": {
       "parameters": [
         {
