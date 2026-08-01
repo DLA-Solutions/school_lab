@@ -26,6 +26,17 @@ module Gateways
         def default_provider
           "fake"
         end
+
+        def active_config(school:, instrument: INSTRUMENT, environment:)
+          SchoolPaymentProvider.active.find_by!(
+            school_id: school.id,
+            instrument: instrument,
+            environment: environment
+          )
+        rescue ActiveRecord::RecordNotFound
+          raise UnknownProviderError,
+                "No active #{instrument} configuration for school #{school.id} (#{environment})"
+        end
       end
     end
   end

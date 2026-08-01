@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_01_202555) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_01_202722) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -250,6 +250,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_202555) do
     t.string "headquarters_cnpj"
     t.string "name"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "school_payment_providers", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "certificate_expires_at"
+    t.string "certificate_fingerprint"
+    t.text "certificate_pem"
+    t.string "client_id"
+    t.datetime "created_at", null: false
+    t.string "environment", null: false
+    t.string "instrument", null: false
+    t.text "private_key_pem"
+    t.string "provider", null: false
+    t.bigint "school_id", null: false
+    t.jsonb "settings", default: {}, null: false
+    t.datetime "updated_at", null: false
+    t.datetime "uploaded_at"
+    t.bigint "uploaded_by_id"
+    t.index ["school_id", "instrument", "environment"], name: "index_school_payment_providers_active_triple", unique: true, where: "(active = true)"
+    t.index ["school_id"], name: "index_school_payment_providers_on_school_id"
+    t.index ["uploaded_by_id"], name: "index_school_payment_providers_on_uploaded_by_id"
+    t.check_constraint "environment::text = ANY (ARRAY['stage'::character varying::text, 'production'::character varying::text])", name: "school_payment_providers_environment_allowed"
+    t.check_constraint "instrument::text = 'bank_slip'::text", name: "school_payment_providers_instrument_allowed"
   end
 
   create_table "schools", force: :cascade do |t|
@@ -496,6 +519,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_202555) do
   add_foreign_key "payments", "schools"
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "school_billing_settings", "schools"
+  add_foreign_key "school_payment_providers", "schools"
+  add_foreign_key "school_payment_providers", "users", column: "uploaded_by_id"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
