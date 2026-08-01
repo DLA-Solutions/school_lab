@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "School Lab",
+    "slug": "school-lab",
+    "scheme": "school-lab",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#081028",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "im.schoollab.app"
+    },
+    "android": {
+      "package": "im.schoollab.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#081028",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font"
+    ]
+  }
+}
