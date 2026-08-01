@@ -56,6 +56,11 @@ gem "audited"
 gem "aasm"
 gem "after_commit_everywhere", "~> 1.0"
 
+group :test do
+  gem "webmock"
+  gem "vcr"
+end
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 

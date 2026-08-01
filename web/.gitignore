@@ -26,4 +26,9 @@
 /config/master.key
 /config/credentials/*.key
 
+# Client certificates and private keys (Cora / PSP integration)
+*.pem
+*.key
+.certs/
+
 /node_modules

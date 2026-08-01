@@ -28,12 +28,10 @@ production:
     password: <%= ENV["SCHOOL_LAB_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
-    database: school_lab_production_cache
-    migrations_paths: db/cache_migrate
+    schema_dump: false
   queue:
     <<: *primary_production
-    database: school_lab_production_queue
-    migrations_paths: db/queue_migrate
+    schema_dump: false
   cable:
     <<: *primary_production
     database: school_lab_production_cable
