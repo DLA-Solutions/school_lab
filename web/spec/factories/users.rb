@@ -154,4 +154,11 @@ FactoryBot.define do
     event_type { "payment.confirmed" }
     payload { "{}" }
   end
+
+  factory :school_billing_settings do
+    school
+    overdue_grace_days { 3 }
+    service_description { "Mensalidade escolar" }
+    notification_schedule { SchoolBillingSettings.default_notification_schedule }
+  end
 end

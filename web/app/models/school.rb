@@ -11,6 +11,7 @@ class School < ApplicationRecord
   has_many :students, dependent: :destroy
   has_many :student_guardians, dependent: :destroy
   has_many :billing_plans, dependent: :destroy
+  has_one :school_billing_settings, dependent: :destroy
   has_many :contracts, dependent: :destroy
   has_many :charges, dependent: :destroy
   has_many :payments, dependent: :destroy
