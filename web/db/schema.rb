@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_01_202555) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -231,6 +231,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
     t.bigint "user_id", null: false
     t.index ["token_digest"], name: "index_refresh_tokens_on_token_digest", unique: true
     t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
+  end
+
+  create_table "school_billing_settings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "notification_schedule", default: {}, null: false
+    t.integer "overdue_grace_days", default: 3, null: false
+    t.bigint "school_id", null: false
+    t.string "service_description", limit: 100
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_school_billing_settings_on_school_id", unique: true
+    t.check_constraint "overdue_grace_days >= 0 AND overdue_grace_days <= 30", name: "school_billing_settings_overdue_grace_days_range"
   end
 
   create_table "school_groups", force: :cascade do |t|
@@ -484,6 +495,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_161000) do
   add_foreign_key "payments", "charges"
   add_foreign_key "payments", "schools"
   add_foreign_key "refresh_tokens", "users"
+  add_foreign_key "school_billing_settings", "schools"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

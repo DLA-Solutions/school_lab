@@ -48,6 +48,7 @@ Rails.application.routes.draw do
           end
 
           namespace :billing do
+            resource :settings, only: %i[show update]
             resources :plans
             resources :contracts
             resources :charges, only: %i[index show destroy] do
