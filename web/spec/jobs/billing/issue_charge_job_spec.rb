@@ -6,6 +6,7 @@ RSpec.describe Billing::IssueChargeJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:school) { create(:school) }
+  let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
   let(:charge) do
     create(:charge, school: school, guardian: guardian, due_date: Date.new(2026, 12, 10))
@@ -32,6 +33,28 @@ RSpec.describe Billing::IssueChargeJob, type: :job do
     described_class.perform_now(charge.id, school.id)
 
     expect(charge.reload.provider_invoice_id).to eq("fake-invoice-job")
+  end
+
+  it "retries transient provider failures and leaves the issuance pending" do
+    allow(adapter).to receive(:issue).and_raise(Gateways::BankSlip::TransientError, "Provider timeout")
+
+    expect { described_class.perform_now(charge.id, school.id) }
+      .to change { SolidQueue::Job.where(class_name: described_class.name).count }.by(1)
+
+    expect(charge.reload.current_issuance.status).to eq("pending")
+  end
+
+  it "does not retry permanent provider failures and records them on the issuance" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::AuthenticationError, "Provider authentication failed (401)"
+    )
+
+    expect { described_class.perform_now(charge.id, school.id) }
+      .not_to change { SolidQueue::Job.where(class_name: described_class.name).count }
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("failed")
+    expect(issuance.last_error).to be_present
   end
 
   it "does not persist jobs when charge generation rolls back" do

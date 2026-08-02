@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Gateways::BankSlip::Cora::Client do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:school) { create(:school) }
   let(:pair) { OpensslCertificateHelper.generate_certificate_pair }
   let!(:provider_config) do
@@ -64,6 +66,43 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
     client.get("/v1/invoices")
 
     expect(WebMock).to have_requested(:post, "https://matls-clients.api.stage.cora.com.br/token").once
+  end
+
+  it "reuses the token until the provider lifetime minus the safety margin" do
+    stub_request(:post, "https://matls-clients.api.stage.cora.com.br/token")
+      .to_return(
+        status: 200,
+        body: { access_token: "token-abc", expires_in: 3_600 }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+    stub_request(:get, "https://api.stage.cora.com.br/v1/invoices")
+      .to_return(status: 200, body: '{"ok":true}')
+
+    client.get("/v1/invoices")
+
+    cache_ttl = Gateways::BankSlip::Cora::Configuration.token_cache_ttl(3_600)
+
+    travel(cache_ttl - 60) { client.get("/v1/invoices") }
+    expect(WebMock).to have_requested(:post, "https://matls-clients.api.stage.cora.com.br/token").once
+
+    travel(cache_ttl + 60) { client.get("/v1/invoices") }
+    expect(WebMock).to have_requested(:post, "https://matls-clients.api.stage.cora.com.br/token").twice
+  end
+
+  it "does not cache a token whose lifetime is shorter than the safety margin" do
+    stub_request(:post, "https://matls-clients.api.stage.cora.com.br/token")
+      .to_return(
+        status: 200,
+        body: { access_token: "token-abc", expires_in: 60 }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+    stub_request(:get, "https://api.stage.cora.com.br/v1/invoices")
+      .to_return(status: 200, body: '{"ok":true}')
+
+    client.get("/v1/invoices")
+    client.get("/v1/invoices")
+
+    expect(WebMock).to have_requested(:post, "https://matls-clients.api.stage.cora.com.br/token").twice
   end
 
   it "uses separate token requests for different schools" do

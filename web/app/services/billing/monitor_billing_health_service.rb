@@ -74,12 +74,13 @@ module Billing
 
     def alert_unissued_charges!(current_school)
       unissued = UnissuedCharges.for(current_school, due_within: 3.days)
-      return if unissued.fetch(:never_attempted).empty? && unissued.fetch(:permanently_failed).empty?
+      return if unissued.values.all?(&:empty?)
 
       BillingAlertEmitter.unissued_charges(
         school: current_school,
         never_attempted: unissued.fetch(:never_attempted),
-        permanently_failed: unissued.fetch(:permanently_failed)
+        permanently_failed: unissued.fetch(:permanently_failed),
+        stuck_pending: unissued.fetch(:stuck_pending)
       )
     end
 

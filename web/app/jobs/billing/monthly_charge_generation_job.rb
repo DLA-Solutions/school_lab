@@ -14,11 +14,11 @@ module Billing
           billing_period: billing_period
         )
       rescue StandardError => e
-        failures << { school_id: config.school_id, error: sanitized_error_message(e) }
+        failures << { school_id: config.school_id, error: redact(e) }
         Rails.logger.error(
           event: "billing.monthly_charge_generation.school_failed",
           school_id: config.school_id,
-          error: sanitized_error_message(e)
+          error: redact(e)
         )
       end
 
@@ -27,8 +27,8 @@ module Billing
 
     private
 
-    def sanitized_error_message(error)
-      error.message.to_s
+    def redact(error)
+      Billing::PiiRedactor.call(error.message)
     end
   end
 end

@@ -6,6 +6,7 @@ RSpec.describe Billing::ReissueChargeService do
   subject(:result) { described_class.call(charge: charge, adapter: adapter, new_due_date: new_due_date) }
 
   let(:school) { create(:school) }
+  let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
   let(:charge) { create(:charge, :issued, :overdue, school: school, guardian: guardian) }
   let(:new_due_date) { Date.new(2026, 12, 20) }
@@ -75,6 +76,18 @@ RSpec.describe Billing::ReissueChargeService do
     expect(result).to be_failure
     expect(result.error_code).to eq(:invalid_state_transition)
     expect(adapter).not_to have_received(:cancel)
+  end
+
+  context "when the charge was never issued" do
+    let(:charge) { create(:charge, school: school, guardian: guardian) }
+
+    it "returns invalid_state_transition instead of reaching a provider" do
+      outcome = described_class.call(charge: charge, new_due_date: new_due_date)
+
+      expect(outcome).to be_failure
+      expect(outcome.error_code).to eq(:invalid_state_transition)
+      expect(charge.reload.charge_issuances).to be_empty
+    end
   end
 
   context "when the provider supports due date changes" do

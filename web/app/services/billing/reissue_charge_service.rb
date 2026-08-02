@@ -11,7 +11,7 @@ module Billing
     end
 
     def call
-      return ResponseService.failure(code: :invalid_state_transition) unless charge.pending? || charge.overdue?
+      return ResponseService.failure(code: :invalid_state_transition) unless reissuable?
 
       if adapter.capabilities.past_due_reissue
         reissue_in_place!
@@ -28,8 +28,14 @@ module Billing
       @adapter ||= Gateways::BankSlip::Registry.resolve(school: charge.school, provider: provider_name)
     end
 
+    # Without a previous issuance there is nothing to reissue and no provider to reissue
+    # through, so this fails as a state conflict rather than reaching a gateway.
+    def reissuable?
+      (charge.pending? || charge.overdue?) && charge.current_issuance.present?
+    end
+
     def provider_name
-      charge.current_issuance&.provider || Gateways::BankSlip::Registry.default_provider
+      charge.current_issuance.provider
     end
 
     def reissue_in_place!

@@ -6,6 +6,7 @@ RSpec.describe Billing::IssueChargeService do
   subject(:result) { described_class.call(charge: charge, adapter: adapter) }
 
   let(:school) { create(:school) }
+  let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
   let(:charge) do
     create(:charge, school: school, guardian: guardian, due_date: Date.new(2026, 12, 10))
@@ -75,6 +76,48 @@ RSpec.describe Billing::IssueChargeService do
     expect(charge.status).to eq("pending")
   end
 
+  it "marks authentication failures as failed with a redacted error" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::AuthenticationError, "mTLS handshake failed for 123.456.789-00"
+    )
+
+    expect { result }.not_to raise_error
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:provider_error)
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("failed")
+    expect(issuance.last_error).to include("[CPF]")
+    expect(issuance.last_error).not_to include("123.456.789-00")
+  end
+
+  it "marks unexpected provider responses as failed" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::ProviderError, "Unexpected provider response (418)"
+    )
+
+    expect { result }.not_to raise_error
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:provider_error)
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("failed")
+    expect(issuance.last_error).to be_present
+  end
+
+  it "marks a missing provider configuration as failed instead of losing the attempt" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::Registry::UnknownProviderError, "No active bank_slip configuration for school 1"
+    )
+
+    expect { result }.not_to raise_error
+    expect(result).to be_failure
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("failed")
+    expect(issuance.last_error).to be_present
+  end
+
   it "propagates transient errors for the job to retry" do
     allow(adapter).to receive(:issue).and_raise(Gateways::BankSlip::TransientError, "Provider timeout")
 
@@ -82,5 +125,36 @@ RSpec.describe Billing::IssueChargeService do
 
     issuance = charge.reload.current_issuance
     expect(issuance.status).to eq("pending")
+  end
+
+  context "when the school has no active bank slip configuration" do
+    let(:unconfigured_school) { create(:school) }
+    let(:unconfigured_charge) do
+      create(:charge, school: unconfigured_school, due_date: Date.new(2026, 12, 10))
+    end
+
+    it "fails instead of issuing through the fake adapter" do
+      outcome = described_class.call(charge: unconfigured_charge)
+
+      expect(outcome).to be_failure
+      expect(outcome.error_code).to eq(:provider_error)
+    end
+
+    it "leaves no issued invoice and no boleto on the charge" do
+      described_class.call(charge: unconfigured_charge)
+
+      expect(unconfigured_charge.reload.charge_issuances.where(status: "issued")).to be_empty
+      expect(unconfigured_charge.provider_invoice_id).to be_nil
+      expect(unconfigured_charge.boleto_url).to be_nil
+      expect(unconfigured_charge.pix_copy_paste).to be_nil
+    end
+
+    it "surfaces the charge to billing monitoring as never attempted" do
+      described_class.call(charge: unconfigured_charge)
+
+      unissued = Billing::UnissuedCharges.for(unconfigured_school, due_within: 200.days)
+
+      expect(unissued.fetch(:never_attempted).map(&:id)).to eq([ unconfigured_charge.id ])
+    end
   end
 end

@@ -20,8 +20,8 @@ gateways only translate request/response and raise typed errors.
 | Email | — | Open | Mailer + provider config |
 | S3 | — | Active Storage | `config/storage.yml` |
 
-Legacy `Gateways::Psp` remains in the tree until callers are fully migrated; new billing
-code uses `Gateways::BankSlip` only.
+All billing code uses `Gateways::BankSlip`; the legacy `Gateways::Psp` namespace no longer
+exists in the tree.
 
 ## Layout
 
@@ -82,14 +82,27 @@ stage while another is live, so a process-wide `config.x` key would be wrong.
 - `Registry.active_config(school:, environment: nil)` — with `environment` nil, the most
   recently created active row wins; passing `environment:` narrows the lookup (ops tooling,
   specs asserting a specific host).
-- `Registry.active_provider(school:)` — provider name from that same row, or nil.
-- `Registry.resolve(school:, provider:, environment: nil)` — leave `environment` nil so the
-  adapter derives it; pass it only when the caller already holds the config row.
+- `Registry.resolve(school:, provider:, environment: nil)` — `provider` is required; leave
+  `environment` nil so the adapter derives it, or pass it when you already hold the config row.
 - Adapters take `school:` and `environment:` so any adapter can be substituted. No adapter
   may default `environment` to a literal — a hardcoded default silently sends a production
   school to stage or makes it unreachable.
 - No active row → `Registry::UnknownProviderError`, logged as
   `bank_slip.configuration_missing`. Never fall back to a default environment.
+
+### There is no default provider
+
+`fake` is a registered adapter, not a fallback. It reports success unconditionally and returns
+a fabricated digitable line, so choosing it implicitly hands the guardian a boleto that
+collects nothing — with no error, no alert, and the issuance marked `issued`.
+
+- The issuance path derives the provider from `Registry.active_config(school:).provider`, so an
+  unconfigured school raises `UnknownProviderError` and is recorded as a permanent failure.
+- Cancellation and reissue derive it from the persisted `charge_issuances.provider`, reissuing
+  through the provider that issued.
+- To use `fake` (development, manual QA), give the school an explicit `school_payment_providers`
+  row with `provider: "fake"` — the demo seed does this. Never guard on `Rails.env`: a default
+  that changes with the environment is how this class of bug reaches production.
 
 ```ruby
 class Billing::IssueChargeService < ApplicationService
@@ -99,10 +112,11 @@ class Billing::IssueChargeService < ApplicationService
   end
 
   def call
+    config = Gateways::BankSlip::Registry.active_config(school: charge.school)
     adapter = @adapter || Gateways::BankSlip::Registry.resolve(
       school: charge.school,
-      provider: Gateways::BankSlip::Registry.active_provider(school: charge.school) ||
-                Gateways::BankSlip::Registry.default_provider
+      provider: config.provider,
+      environment: config.environment
     )
     # build IssueRequest, persist charge_issuance with idempotency_key, then:
     issuance = adapter.issue(request)
@@ -121,14 +135,24 @@ All bank slip errors inherit from `Gateways::BankSlip::Error`.
 | Class | Meaning | Job retry? |
 |-------|---------|------------|
 | `TransientError` | Timeout, 5xx, rate limit — may succeed on retry | **Yes** (`retry_on`) |
-| `ValidationError` | Bad payload, 4xx field errors — same input will fail again | No (`discard_on`) |
-| `AuthenticationError` | mTLS / token failure — config or credentials | No — alert ops |
-| `ProviderError` | Unexpected provider response, unmapped status | No — record and alert |
+| `ValidationError` | Bad payload, 4xx field errors — same input will fail again | No — service records it |
+| `AuthenticationError` | mTLS / token failure — config or credentials | No — service records it, alert ops |
+| `ProviderError` | Unexpected provider response, unmapped status | No — service records it, alert ops |
+| `Registry::UnknownProviderError` | Unregistered provider or no active configuration row | No — service records it, alert ops |
 
 **Only `TransientError` is retriable.** Jobs such as `Billing::IssueChargeJob` use
 Solid Queue `retry_on Gateways::BankSlip::TransientError` with bounded backoff.
-Permanent failures transition `charge_issuances` to `failed` and set `last_error`
-(redacted — no CPF, email, or PEM content in logs or DB).
+
+Everything else is permanent and is handled in the **service**, not by `discard_on`:
+`Billing::IssueChargeService` re-raises `TransientError` for the job and rescues the rest
+of `Gateways::BankSlip::Error`, transitioning `charge_issuances` to `failed` with
+`last_error` set (redacted via `Billing::PiiRedactor` — no CPF, email, or PEM content in
+logs or DB) and returning `ResponseService.failure`. Rescuing the base error class rather
+than a list means a new permanent error type is recorded instead of escaping silently.
+
+An issuance left in `pending` is invisible to a monitor that only looks for `failed`, so
+`Billing::UnissuedCharges` also reports a `stuck_pending` bucket (attempted, neither issued
+nor recorded as failed) alongside `never_attempted` and `permanently_failed`.
 
 ## Capabilities
 
@@ -152,7 +176,8 @@ due date on a registered slip.
   provider sandboxes when validating a new adapter or payload change. Filters must
   redact tokens, PEM, and `client_id` before any cassette is committed. Do not add
   cassettes to the default test suite unless the team explicitly opts in.
-- **Job specs** assert `retry_on TransientError` and no retry on `ValidationError`.
+- **Job specs** assert that a `TransientError` re-enqueues the job and that a permanent
+  error does not, leaving the issuance `failed` with `last_error` set.
 
 **Decision (Cora closure):** WebMock-only in repo; VCR is a maintainer tool, not a CI
 dependency. Cora stage smoke tests against live APIs are operational (credentials +

@@ -147,10 +147,6 @@ FactoryBot.define do
     amount_cents { charge.total_amount_cents }
     due_date { charge.due_date }
 
-    trait :pending do
-      status { "pending" }
-    end
-
     trait :issued do
       sequence(:provider_invoice_id) { |n| "fake-invoice-#{n}" }
       boleto_url { "https://fake-psp.example/boleto/test" }

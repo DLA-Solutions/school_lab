@@ -69,15 +69,7 @@ RSpec.describe Gateways::BankSlip::Registry do
     end
   end
 
-  describe ".active_provider" do
-    it "returns the provider of the active row" do
-      create(:school_payment_provider, school: school, provider: "cora", environment: "production")
-
-      expect(described_class.active_provider(school: school)).to eq("cora")
-    end
-
-    it "returns nil when the school has no active configuration" do
-      expect(described_class.active_provider(school: school)).to be_nil
-    end
+  it "requires an explicit provider — there is no default adapter" do
+    expect { described_class.resolve(school: school) }.to raise_error(ArgumentError, /provider/)
   end
 end

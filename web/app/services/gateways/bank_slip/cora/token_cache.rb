@@ -11,16 +11,26 @@ module Gateways
           @cache = cache
         end
 
-        def fetch(&block)
-          cache.fetch(cache_key, expires_in: expires_in, &block)
+        # No TTL here: the provider dictates the token lifetime, so the block is responsible
+        # for writing the entry with the TTL derived from its `expires_in`.
+        def fetch
+          cached = cache.read(cache_key)
+          return cached if cached
+
+          yield
         end
 
         def delete
           cache.delete(cache_key)
         end
 
+        # A non-positive TTL means the safety margin covers the whole token lifetime:
+        # caching it would risk serving a token the provider already expired.
         def write(token, expires_in:)
+          return token unless expires_in.positive?
+
           cache.write(cache_key, token, expires_in: expires_in)
+          token
         end
 
         private
@@ -29,10 +39,6 @@ module Gateways
 
         def cache_key
           "bank_slip/token/#{school_id}/#{provider}/#{environment}"
-        end
-
-        def expires_in
-          23.hours
         end
       end
     end

@@ -22,6 +22,19 @@ RSpec.describe Billing::RecordPaymentService do
     expect(result.data).to be_a(Payment)
   end
 
+  it "persists no payment when the charge cannot transition to paid" do
+    cancelled_charge = create(:charge, :cancelled, school: school)
+
+    result = nil
+    expect do
+      result = described_class.call(charge: cancelled_charge, remote_payment: remote_payment)
+    end.not_to change(Payment, :count)
+
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:invalid_state_transition)
+    expect(cancelled_charge.reload.status).to eq("cancelled")
+  end
+
   it "returns the existing payment for duplicate provider payment ids" do
     first_result = described_class.call(charge: charge, remote_payment: remote_payment)
     second_charge = create(:charge, :issued, school: school)

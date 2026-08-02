@@ -36,6 +36,21 @@ RSpec.describe Billing::MonthlyChargeGenerationJob, type: :job do
     expect(generate_charge_jobs.count).to eq(1)
   end
 
+  it "redacts personal data from logged enqueue failures" do
+    school = create(:school)
+    create(:school_payment_provider, school: school)
+
+    allow(Billing::GenerateChargesJob).to receive(:perform_later)
+      .and_raise(StandardError, "guardian 123.456.789-00 (maria@example.com) is invalid")
+
+    expect(Rails.logger).to receive(:error).with(
+      hash_including(error: include("[CPF]").and(include("[EMAIL]")))
+    )
+    allow(Rails.logger).to receive(:info)
+
+    described_class.perform_now
+  end
+
   it "does not enqueue jobs for schools without an active payment provider" do
     school_with_provider = create(:school)
     school_without_provider = create(:school)

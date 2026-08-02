@@ -47,6 +47,7 @@ module Billing
         Date.new(year, 10, 12),
         Date.new(year, 11, 2),
         Date.new(year, 11, 15),
+        Date.new(year, 11, 20), # Black Awareness Day — national since Lei 14.759/2023
         Date.new(year, 12, 25)
       ]
     end
