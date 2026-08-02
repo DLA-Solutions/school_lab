@@ -88,4 +88,9 @@ Rails.application.configure do
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  # A staging deploy also runs with RAILS_ENV=production, so it must export
+  # CORA_ENVIRONMENT=stage. The default is the live endpoints: a deploy that forgets the
+  # variable fails mTLS against Cora instead of quietly issuing sandbox boletos.
+  config.x.billing.cora_environment = ENV.fetch("CORA_ENVIRONMENT", "production")
 end

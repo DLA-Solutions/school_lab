@@ -13,7 +13,6 @@ module Billing
             school_id: config.school_id,
             provider: config.provider,
             instrument: config.instrument,
-            environment: config.environment,
             certificate_expires_at: config.certificate_expires_at&.iso8601,
             days_remaining: days_remaining,
             threshold_days: threshold

@@ -191,13 +191,25 @@ FactoryBot.define do
   factory :school_payment_provider do
     school
     instrument { "bank_slip" }
-    provider { "cora" }
-    environment { "stage" }
+    # `fake` by default: a configuration must be complete to be valid, and the fake provider is
+    # the only one that needs no credentials. Use `:cora` (or pass a pair) for a real provider.
+    provider { "fake" }
     active { true }
     settings { {} }
     client_id { "client-test-123" }
     uploaded_at { Time.current }
     sequence(:webhook_endpoint_token) { |n| "webhook-token-#{n}-#{SecureRandom.urlsafe_base64(16)}" }
+
+    trait :cora do
+      provider { "cora" }
+
+      transient do
+        pair { OpensslCertificateHelper.generate_certificate_pair }
+      end
+
+      certificate_pem { pair[:certificate_pem] }
+      private_key_pem { pair[:private_key_pem] }
+    end
 
     trait :active do
       active { true }

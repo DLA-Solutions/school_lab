@@ -2,7 +2,15 @@
 
 class SchoolPaymentProvider < ApplicationRecord
   INSTRUMENTS = %w[bank_slip].freeze
-  ENVIRONMENTS = %w[stage production].freeze
+
+  # What each provider needs before its configuration may be used to issue. A row that is not
+  # complete is not selectable at all: the missing piece would otherwise surface as a failure
+  # against the bank with a real family's charge in flight. Keys are the registered providers —
+  # `fake` legitimately has no credentials.
+  REQUIRED_CREDENTIALS = {
+    "cora" => %i[client_id certificate_pem private_key_pem],
+    "fake" => []
+  }.freeze
 
   belongs_to :school
   belongs_to :uploaded_by, class_name: "User", optional: true
@@ -13,8 +21,8 @@ class SchoolPaymentProvider < ApplicationRecord
           except: SchoolAuditable::AUDITED_EXCEPT + %w[certificate_pem private_key_pem settings]
 
   validates :instrument, inclusion: { in: INSTRUMENTS }
-  validates :provider, :environment, presence: true
-  validates :environment, inclusion: { in: ENVIRONMENTS }
+  validates :provider, presence: true, inclusion: { in: REQUIRED_CREDENTIALS.keys }
+  validate :required_credentials_present
   validate :certificate_and_key_valid, if: -> { certificate_pem.present? || private_key_pem.present? }
 
   before_validation :derive_certificate_metadata, if: -> { certificate_pem.present? }
@@ -31,6 +39,12 @@ class SchoolPaymentProvider < ApplicationRecord
 
   def ensure_webhook_endpoint_token
     self.webhook_endpoint_token ||= SecureRandom.urlsafe_base64(32)
+  end
+
+  def required_credentials_present
+    REQUIRED_CREDENTIALS.fetch(provider, []).each do |field|
+      errors.add(field, :blank) if public_send(field).blank?
+    end
   end
 
   def derive_certificate_metadata

@@ -7,8 +7,7 @@ module Gateways
 
       PROVIDER = "fake"
 
-      # `environment` is accepted for adapter substitutability; the fake has no hosts to target.
-      def initialize(school:, environment: nil)
+      def initialize(school:)
         @school = school
         @issued = {}
         @idempotency_index = {}

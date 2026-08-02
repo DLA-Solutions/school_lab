@@ -16,7 +16,7 @@ class SchoolPaymentProviderPolicy < ApplicationPolicy
       school_id = Current.school&.id
       return scope.none unless school_id
 
-      scope.where(school_id: school_id).order(:environment, :provider)
+      scope.where(school_id: school_id).order(:instrument, created_at: :desc)
     end
   end
 end

@@ -18,54 +18,40 @@ RSpec.describe Gateways::BankSlip::Registry do
   end
 
   describe ".active_config" do
-    let(:pair) { OpensslCertificateHelper.generate_certificate_pair }
-
-    it "returns the active configuration for the school" do
-      config = create(:school_payment_provider, school: school, environment: "stage",
-                                                  certificate_pem: pair[:certificate_pem],
-                                                  private_key_pem: pair[:private_key_pem])
-
-      expect(described_class.active_config(school: school, environment: "stage")).to eq(config)
-    end
-
-    it "does not return another school's configuration" do
-      other_school = create(:school)
-      create(:school_payment_provider, school: other_school, environment: "stage",
-                                       certificate_pem: pair[:certificate_pem],
-                                       private_key_pem: pair[:private_key_pem])
-
-      expect do
-        described_class.active_config(school: school, environment: "stage")
-      end.to raise_error(Gateways::BankSlip::Registry::UnknownProviderError)
-    end
-
-    it "reads the environment from the active row when none is requested" do
-      config = create(:school_payment_provider, school: school, environment: "production",
-                                                certificate_pem: pair[:certificate_pem],
-                                                private_key_pem: pair[:private_key_pem])
+    it "returns the single active configuration for the school" do
+      config = create(:school_payment_provider, :cora, school: school)
 
       expect(described_class.active_config(school: school)).to eq(config)
     end
 
-    it "prefers the most recently created active row" do
-      create(:school_payment_provider, school: school, environment: "stage",
-                                       certificate_pem: pair[:certificate_pem],
-                                       private_key_pem: pair[:private_key_pem])
-      newest = create(:school_payment_provider, school: school, environment: "production",
-                                                certificate_pem: pair[:certificate_pem],
-                                                private_key_pem: pair[:private_key_pem])
+    it "does not return another school's configuration" do
+      create(:school_payment_provider, :cora, school: create(:school))
 
-      expect(described_class.active_config(school: school)).to eq(newest)
+      expect do
+        described_class.active_config(school: school)
+      end.to raise_error(Gateways::BankSlip::Registry::UnknownProviderError)
     end
 
     it "fails explicitly and logs when the school has no active configuration" do
-      create(:school_payment_provider, :inactive, school: school)
-
       expect(Rails.logger).to receive(:error).with(include("bank_slip.configuration_missing"))
 
       expect do
         described_class.active_config(school: school)
-      end.to raise_error(Gateways::BankSlip::Registry::UnknownProviderError, /school #{school.id}\z/)
+      end.to raise_error(
+        Gateways::BankSlip::Registry::UnknownProviderError,
+        /school #{school.id} \(no credentials were ever uploaded\) — upload current bank credentials/
+      )
+    end
+
+    it "tells the operator that superseded credentials exist" do
+      create(:school_payment_provider, :inactive, school: school)
+
+      expect do
+        described_class.active_config(school: school)
+      end.to raise_error(
+        Gateways::BankSlip::Registry::UnknownProviderError,
+        /1 inactive one\(s\) exist/
+      )
     end
   end
 

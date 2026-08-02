@@ -33,21 +33,15 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
       parameter name: "Authorization", in: :header, type: :string
 
       response "200", "lists metadata only" do
-        let(:pair_a) { OpensslCertificateHelper.generate_certificate_pair }
-        let(:pair_b) { OpensslCertificateHelper.generate_certificate_pair }
-
         before do
-          create(:school_payment_provider, school: school, environment: "stage", active: true,
-                                           certificate_pem: pair_a[:certificate_pem],
-                                           private_key_pem: pair_a[:private_key_pem])
-          create(:school_payment_provider, school: school, environment: "production", active: true,
-                                           certificate_pem: pair_b[:certificate_pem],
-                                           private_key_pem: pair_b[:private_key_pem])
+          create(:school_payment_provider, :cora, :inactive, school: school)
+          create(:school_payment_provider, :cora, :active, school: school)
         end
 
         run_test! do |response|
           body = JSON.parse(response.body).fetch("data")
           expect(body.size).to eq(2)
+          expect(body.count { |row| row["active"] }).to eq(1)
           expect(body.first.keys).not_to include("certificate_pem", "private_key_pem")
           expect(body.first["certificate_fingerprint"]).to be_present
         end
@@ -76,7 +70,6 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :provider, in: :formData, type: :string, required: true
       parameter name: :instrument, in: :formData, type: :string, required: true
-      parameter name: :environment, in: :formData, type: :string, required: true
       parameter name: :client_id, in: :formData, type: :string, required: true
       parameter name: :certificate, in: :formData, type: :file, required: true
       parameter name: :private_key, in: :formData, type: :file, required: true
@@ -84,7 +77,6 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
       response "201", "valid certificate pair uploaded" do
         let(:provider) { "cora" }
         let(:instrument) { "bank_slip" }
-        let(:environment) { "stage" }
         let(:client_id) { "client-stage-001" }
         let(:certificate) { uploaded_pem(pair[:certificate_pem], "cert.pem") }
         let(:private_key) { uploaded_pem(pair[:private_key_pem], "key.pem") }
@@ -92,9 +84,9 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
         run_test! do |response|
           body = JSON.parse(response.body).fetch("data")
           expect(body["certificate_fingerprint"]).to be_present
-          expect(body["environment"]).to eq("stage")
+          expect(body["provider"]).to eq("cora")
           expect(body["active"]).to be(true)
-          expect(body.keys).not_to include("certificate_pem", "private_key_pem")
+          expect(body.keys).not_to include("certificate_pem", "private_key_pem", "environment")
           expect(SchoolPaymentProvider.find(body["id"]).uploaded_by_id).to eq(backoffice_user.id)
         end
       end
@@ -102,29 +94,25 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
       response "201", "supersedes previous active configuration" do
         let(:provider) { "cora" }
         let(:instrument) { "bank_slip" }
-        let(:environment) { "production" }
         let(:client_id) { "client-prod-002" }
         let(:certificate) { uploaded_pem(pair[:certificate_pem], "cert.pem") }
         let(:private_key) { uploaded_pem(pair[:private_key_pem], "key.pem") }
 
         before do
-          old_pair = OpensslCertificateHelper.generate_certificate_pair
-          create(:school_payment_provider, school: school, environment: "production", active: true,
-                                           certificate_pem: old_pair[:certificate_pem],
-                                           private_key_pem: old_pair[:private_key_pem])
+          create(:school_payment_provider, :cora, :active, school: school)
         end
 
         run_test! do
-          active = SchoolPaymentProvider.active.where(school: school, environment: "production")
-          expect(active.count).to eq(1)
-          expect(SchoolPaymentProvider.where(school: school, environment: "production").count).to eq(2)
+          configs = SchoolPaymentProvider.where(school: school, instrument: "bank_slip")
+
+          expect(configs.count).to eq(2)
+          expect(configs.active.pluck(:client_id)).to eq([ "client-prod-002" ])
         end
       end
 
       response "422", "invalid certificate" do
         let(:provider) { "cora" }
         let(:instrument) { "bank_slip" }
-        let(:environment) { "stage" }
         let(:client_id) { "client-stage-001" }
         let(:certificate) { uploaded_pem("not-a-cert", "cert.pem") }
         let(:private_key) { uploaded_pem(pair[:private_key_pem], "key.pem") }
@@ -140,7 +128,6 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
         let(:mismatched) { OpensslCertificateHelper.mismatched_key_pair }
         let(:provider) { "cora" }
         let(:instrument) { "bank_slip" }
-        let(:environment) { "stage" }
         let(:client_id) { "client-stage-001" }
         let(:certificate) { uploaded_pem(mismatched[:certificate_pem], "cert.pem") }
         let(:private_key) { uploaded_pem(mismatched[:private_key_pem], "key.pem") }
@@ -155,7 +142,6 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
         let(:expired) { OpensslCertificateHelper.expired_certificate_pair }
         let(:provider) { "cora" }
         let(:instrument) { "bank_slip" }
-        let(:environment) { "stage" }
         let(:client_id) { "client-stage-001" }
         let(:certificate) { uploaded_pem(expired[:certificate_pem], "cert.pem") }
         let(:private_key) { uploaded_pem(expired[:private_key_pem], "key.pem") }
@@ -170,7 +156,6 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
         let(:Authorization) { auth_headers_for(guardian_user)["Authorization"] }
         let(:provider) { "cora" }
         let(:instrument) { "bank_slip" }
-        let(:environment) { "stage" }
         let(:client_id) { "client-stage-001" }
         let(:certificate) { uploaded_pem(pair[:certificate_pem], "cert.pem") }
         let(:private_key) { uploaded_pem(pair[:private_key_pem], "key.pem") }
@@ -182,7 +167,6 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
         let(:Authorization) { auth_headers_for(teacher_user)["Authorization"] }
         let(:provider) { "cora" }
         let(:instrument) { "bank_slip" }
-        let(:environment) { "stage" }
         let(:client_id) { "client-stage-001" }
         let(:certificate) { uploaded_pem(pair[:certificate_pem], "cert.pem") }
         let(:private_key) { uploaded_pem(pair[:private_key_pem], "key.pem") }
