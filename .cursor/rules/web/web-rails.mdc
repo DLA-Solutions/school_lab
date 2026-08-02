@@ -24,9 +24,9 @@ Index: `docs/guidelines/web/README.md`.
 - Serializers: `docs/guidelines/web/serializers.md` — rule `serializers`.
 - Mailers / gateways: `docs/guidelines/web/mailers.md`, `gateways.md` — rules `mailers`, `gateways`.
 - Anti-patterns: `docs/guidelines/web/anti-patterns.md` — rule `anti-patterns`.
-- **No Hotwire UI** in `web/` — product web is React SPA in `web-ui/`.
+- **No Hotwire UI** in `web/` — `config.api_only = true`; the product web surface is the React SPA in `frontend/main`.
 - API: REST JSON under `/api/v1`, JWT auth; OpenAPI via **rswag** request specs.
-- Clients: `web-ui/` (React) and `app/` (React Native) consume the same API.
+- Clients: the web SPA (`frontend/main`) and the mobile app (`app/`, React Native) consume the same API.
 
 ## Auth
 - Devise for credentials on `users`; JWT access + `refresh_tokens` table.
@@ -36,7 +36,7 @@ Index: `docs/guidelines/web/README.md`.
 ## Infra defaults (MVP)
 - PostgreSQL 16+, Solid Queue (jobs), Solid Cache. No Redis/Sidekiq in MVP.
 - Active Storage → S3. Push via FCM, enqueued on Solid Queue, gated by a state machine.
-- rack-cors for `web-ui` origins.
+- rack-cors for web SPA origins.
 
 ## Testing
 RSpec (model/service/policy + **rswag** request specs), FactoryBot. Test **behavior**, not implementation; avoid mocks except at external boundaries. See `docs/guidelines/web/testing.md` and rule `testing-rspec`.

@@ -13,16 +13,28 @@ touches mobile UI, secure auth, push, or API consumption.
 
 | Area | Paths |
 |------|-------|
-| Screens | `app/src/screens/**`, `app/app/**` (Expo router if used) |
-| Components | `app/src/components/**` |
-| Navigation | `app/src/navigation/**`, root navigator |
-| API client | `app/src/api/**`, `app/src/lib/api/**` |
-| Auth | `app/src/auth/**`, secure storage wrappers |
-| Push | `app/src/push/**`, FCM registration |
-| Hooks | `app/src/hooks/**` |
+| Entry point | `app/App.tsx`, `app/index.ts` |
+| Screens | `app/src/screens/**` |
+| Navigation | `app/src/navigation/**` |
+| API client, auth transport, token storage | `app/src/services/**` (`api.ts`, `authApi.ts`, `tokenStore.ts`) |
+| Auth state | `app/src/providers/**` (`AuthProvider.tsx`, `AuthContext.ts`) |
 | Types | `app/src/types/**` |
-| Tests | `app/**/*.test.ts`, `app/**/*.test.tsx` |
-| Native config | `app/app.json`, `app/android/**`, `app/ios/**` when affecting auth/push/permissions |
+| Theme | `app/src/theme/**` |
+| Native config | `app/app.json`, `app/.env.example` when affecting auth/push/permissions |
+
+`app/` is an **Expo managed** project (Expo 57, React Navigation 7, `expo-secure-store`).
+There are no checked-in `android/` or `ios/` directories — native config lives in `app.json`
+until someone runs `expo prebuild`.
+
+Some conventions below describe surfaces that **do not exist in `app/` yet**. Treat them as
+targets for new code, not as paths to review today:
+
+| Not present yet | Applies when |
+|-----------------|--------------|
+| Components, hooks, dedicated push module | Someone adds `app/src/components/**`, `app/src/hooks/**`, `app/src/push/**` |
+| FCM / `@react-native-firebase/messaging` | Push is implemented — no messaging dependency is installed |
+| Tests (`app/**/*.test.ts(x)`) | A test runner is added — `app/package.json` has no Jest or test script |
+| Expo Router (`app/app/**`) | The project migrates off React Navigation |
 
 Skip unrelated native boilerplate unless it affects tokens, network, or permissions.
 
@@ -44,7 +56,7 @@ If the user points at a PR or branch, check it out first (stash only after user 
 
 Read **before** judging the code:
 
-1. `docs/web-stack.md` §4 — mobile stack, FCM, API client parity with web-ui.
+1. `docs/web-stack.md` §4 — mobile stack, FCM, API client parity with the web SPA.
 2. `docs/api/README.md` — error envelope, pagination, device tokens endpoint.
 3. `docs/modeling/002-api-auth.md` — mobile refresh in Keychain/Keystore; `client: mobile`.
 4. Domain narrative: `docs/api/v1/<domain>.md` when screens map to API namespaces.
@@ -97,13 +109,13 @@ Do **not** fix code unless the user asks.
 |-------|----------|
 | **Critical** | Refresh token in plain AsyncStorage; business rules duplicated; wrong-school data displayed; guardian cross-family leak; tokens logged; push token sent without auth |
 | **Warning** | No refresh on AppState resume; missing `POST /me/device_tokens` on login; 401 not retried once; image upload bypasses API flow; missing permission/error states |
-| **Suggestion** | Large screen component; duplicate API client vs web-ui; minor Context7 gap |
+| **Suggestion** | Large screen component; duplicate API client vs the web SPA; minor Context7 gap |
 
 After the table, add **Context7 notes** — libraries queried and any project-vs-official-doc conflicts.
 
 ## What good mobile code looks like here
 
-- **Thin client** — same API contract as `web-ui/`; no duplicated business rules.
+- **Thin client** — same API contract as the web SPA (`frontend/main`); no duplicated business rules.
 - **Auth** — access in memory; refresh in Keychain/Keystore; `client: mobile` on login/refresh body.
 - **Lifecycle** — refresh on resume and before expiry; one 401 retry then login screen.
 - **Push** — register FCM token via `POST /api/v1/me/device_tokens` after auth.

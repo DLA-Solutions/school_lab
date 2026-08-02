@@ -18,7 +18,7 @@ Review files that affect the API contract or its enforcement:
 | Controllers | `web/app/controllers/api/**` |
 | Services | `web/app/services/**` |
 | Policies | `web/app/policies/**` |
-| Serializers | `web/app/serializers/**`, `web/app/blueprints/**` |
+| Serializers | `web/app/blueprints/**` (blueprinter — there is no `app/serializers/`) |
 | Routes | `web/config/routes.rb` (API namespaces) |
 | Contract tests | `web/spec/requests/api/**` |
 | OpenAPI | `web/swagger/v1/swagger.yaml` |
@@ -104,7 +104,7 @@ project-vs-official-doc conflicts found.
 ## What good API code looks like here
 
 - **Thin controllers** — parse params, `authorize`, call one service, render result.
-- **Services own business rules** — shared by web-ui and mobile; return result objects.
+- **Services own business rules** — shared by the web SPA and mobile; return result objects.
 - **Pundit everywhere** — tenant (`school_id`) and family (`.../me/...`) isolation.
 - **Contract in request specs** — rswag metadata + behavior examples; run `rake rswag:specs:swaggerize`.
 - **Error envelope** — `{ error: { code, message, details } }` with documented HTTP codes.

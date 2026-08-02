@@ -1,6 +1,6 @@
 ---
 name: write-prd
-description: Author Product, Layer, or Domain PRDs for School Lab following project conventions. Use when the user asks to write, draft, or update a PRD, product requirements, layer requirements (web/web-ui/app), or domain requirements (communication, billing, identity, etc.).
+description: Author Product, Layer, or Domain PRDs for School Lab following project conventions. Use when the user asks to write, draft, or update a PRD, product requirements, layer requirements (API, web SPA, mobile app), or domain requirements (communication, billing, identity, etc.).
 ---
 
 # Write a PRD (Product · Layer · Domain)
@@ -12,13 +12,13 @@ School Lab has three PRD scopes. Detect which one the user needs before writing.
 | Scope | When | Primary output |
 |-------|------|----------------|
 | **Product** | MVP boundaries, vision, roadmap, cross-domain priorities | Anchor docs (`vision.md`, `product-map.md`, `actors-and-surfaces.md`) or `docs/prds/product.md` when a standalone artifact is needed |
-| **Layer** | Requirements for one monorepo layer (`web/`, `web-ui/`, `app/`) | `docs/prds/layer-<layer>.md` |
+| **Layer** | Requirements for one monorepo layer (`web/`, `frontend/main`, `app/`) | `docs/prds/layer-<layer>.md` |
 | **Domain** | One business capability (communication, billing, identity, …) | `docs/prds/NNN-<domain>.md` |
 
 **Decision cues**
 
 - Mentions MVP, vision, roadmap, "the product", priorities across domains → **Product**
-- Mentions API, Rails, React SPA, mobile app, jobs, stack, a specific folder (`web/`, `web-ui/`, `app/`) → **Layer**
+- Mentions API, Rails, React SPA, mobile app, jobs, stack, a specific folder (`web/`, `frontend/main`, `app/`) → **Layer**
 - Mentions a business area (messages, boletos, enrollments, attendance, …) → **Domain**
 
 When unclear, ask once: product, layer, or domain — and which layer/domain.
@@ -72,8 +72,10 @@ Use for **one monorepo layer** without duplicating business rules that belong in
 | Layer | Folder | Owns |
 |-------|--------|------|
 | `web` | `web/` | `/api/v1`, service objects, models, jobs, OpenAPI (rswag) |
-| `web-ui` | `web-ui/` | React SPA — backoffice, school, teacher, guardian web surfaces |
+| `web-spa` | `frontend/main` | React SPA — backoffice, school, teacher, guardian web surfaces |
 | `app` | `app/` | React Native — school, teacher, guardian mobile |
+
+`frontend/base` is the upstream template the SPA started from — never the subject of a layer PRD.
 
 ### Steps
 
@@ -82,7 +84,7 @@ Use for **one monorepo layer** without duplicating business rules that belong in
 3. Pull technical constraints from `web-stack.md` (auth, tokens, stack versions).
 4. Define layer-specific acceptance criteria (e.g. refresh token storage, offline behavior, job reliability).
 5. Reference Domain PRDs for feature scope; do not redefine BR-NNN rules.
-6. Save as `docs/prds/layer-<layer>.md` (`layer-web.md`, `layer-web-ui.md`, `layer-app.md`).
+6. Save as `docs/prds/layer-<layer>.md` (`layer-web.md`, `layer-web-spa.md`, `layer-app.md`). No layer PRD exists yet — these are output paths, not files to read.
 
 ### Section template
 

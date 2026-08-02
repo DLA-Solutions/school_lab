@@ -9,7 +9,7 @@ Gherkin rules: [gherkin.md](gherkin.md). Every acceptance criterion must use Giv
 
 | Field | Value |
 |-------|-------|
-| Phase | discovery \| docs \| modeling \| api \| backend \| jobs \| web-ui \| app \| chore |
+| Phase | discovery \| docs \| modeling \| api \| backend \| jobs \| web-spa \| app \| chore |
 | Depends on | T[x], T[y] or none |
 | Blocked by | [open-questions.md item] or none |
 | Source | [file §section / BR-NNN / use case name] |
@@ -122,7 +122,7 @@ Typical task chain for a new domain:
 | 7 | Controllers + rswag specs |
 | 8 | Request/model specs |
 | 9 | Background jobs (if PRD defines events/async) |
-| 10 | web-ui / app surfaces (if in scope) |
+| 10 | web SPA (`frontend/main`) / app surfaces (if in scope) |
 
 Each implementation task (rows 5–10) requires happy path + authorization/isolation scenarios per [gherkin.md](gherkin.md).
 
@@ -174,5 +174,5 @@ flowchart LR
   T1[discovery] --> T2[modeling]
   T2 --> T3[api]
   T3 --> T4[backend]
-  T4 --> T5[web-ui]
+  T4 --> T5[web-spa]
 ```

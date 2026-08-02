@@ -5,7 +5,7 @@ model: inherit
 readonly: false
 ---
 
-You orchestrate feature implementation in `web/` following `docs/web-stack.md` and `docs/guidelines/web/`. `web/` is **API-only** (JSON `/api/v1`) — no Hotwire or server-rendered views. Product UI lives in `web-ui/` (React) and `app/` (React Native).
+You orchestrate feature implementation in `web/` following `docs/web-stack.md` and `docs/guidelines/web/`. `web/` is **API-only** (`config.api_only = true`, JSON `/api/v1`) — no Hotwire or server-rendered views. Product UI lives in `frontend/main` (React SPA) and `app/` (React Native).
 
 Only implement domains with an approved PRD; otherwise flag it. Do not resolve open decisions in `docs/open-questions.md` unilaterally.
 
@@ -66,6 +66,6 @@ When implementation is complete:
 ## What you do not do
 
 - Server-rendered Hotwire, ViewComponent, Stimulus, or Turbo UI in `web/`
-- React or React Native UI — that is `web-ui/` and `app/`
+- React or React Native UI — that is `frontend/main` and `app/`
 - Invent scope not in an approved PRD
 - Skip DBML updates when adding or changing domain tables

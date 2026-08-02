@@ -26,10 +26,11 @@ Read the source fully before decomposing. Link every task back to its source sec
 
 ## 2. Task phases (follow repo flow)
 
-Order tasks by dependency. Default sequence from `docs/product-map.md` §4:
+Order tasks by dependency. Default sequence, refining the work flow in `docs/product-map.md` §4
+(anchors → PRDs → modeling → implementation) into task-level phases:
 
 ```
-discovery → docs → modeling → api → backend → jobs → web-ui → app → chore
+discovery → docs → modeling → api → backend → jobs → web-spa → app → chore
 ```
 
 | Phase | Task types | Examples |
@@ -40,7 +41,7 @@ discovery → docs → modeling → api → backend → jobs → web-ui → app 
 | `api` | Route map, rswag, error codes | "Document POST /schools/:id/messages" |
 | `backend` | Migration, model, service, policy, controller | "Implement Messages::Create service" |
 | `jobs` | ActiveJob, idempotency, scheduling | "Process PSP webhook events job" |
-| `web-ui` | React surfaces, auth, i18n | "Guardian message thread view" |
+| `web-spa` | React surfaces in `frontend/main`, auth, i18n | "Guardian message thread view" |
 | `app` | React Native screens, push | "Teacher message list screen" |
 | `chore` | CI, tooling, non-feature | "Add rswag CI step" |
 
@@ -49,7 +50,7 @@ discovery → docs → modeling → api → backend → jobs → web-ui → app 
 - Do not bundle modeling + implementation in one task.
 - One service use case ≈ one backend task (matches design principles).
 - Separate policy, service, controller, and specs when the slice is non-trivial.
-- Client tasks (`web-ui`, `app`) depend on API contract existing.
+- Client tasks (`web-spa`, `app`) depend on API contract existing.
 - Tasks blocked by `docs/open-questions.md` must say so — do not invent decisions.
 
 ---
@@ -81,7 +82,7 @@ Copy and track:
 | Error behavior undefined | What HTTP status and error code for duplicate email — 409 or 422? |
 | Tenant isolation edge case | Should a teacher see charges, or only school admin? |
 | Open question gates behavior | PSP not chosen — spike first or assume a fake gateway? |
-| Client surface | web-ui, app, or API-only for this slice? |
+| Client surface | web SPA, app, or API-only for this slice? |
 | Data preconditions missing | What constitutes an "active contract" — status enum value? |
 
 If the source PRD already answers the question, do not ask — cite the section instead.
