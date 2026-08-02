@@ -33,7 +33,7 @@ When adding a new Portuguese identifier, confirm with the team and update this t
 | Billing plan | `billing_plan` | Plano de cobrança |
 | Contract (student billing) | `contract` | Contrato |
 | Payment | `payment` | Pagamento |
-| Webhook event (PSP) | `webhook_event` | Evento webhook |
+| Webhook event (payment provider) | `webhook_event` | Evento webhook |
 
 ## Roles (authorization)
 
