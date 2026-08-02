@@ -24,7 +24,7 @@ module Gateways
         # Which endpoints this deploy talks to. A school is either correctly registered for the
         # integration or not; the sandbox is a property of the deploy, not of the school.
         def deploy_environment
-          Rails.application.config.x.billing.cora_environment
+          Billing::Settings.cora_environment
         end
 
         def current

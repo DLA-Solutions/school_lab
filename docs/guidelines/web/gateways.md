@@ -80,8 +80,9 @@ A school is either registered correctly for the integration or it is not — the
 sandbox credentials, in its own database. So `stage` vs `production` selects **Cora hosts**
 and nothing else, and lives in deploy configuration:
 
-- `config.x.billing.cora_environment` (`"stage"` / `"production"`), set per environment file:
-  `stage` in development and test, `ENV.fetch("CORA_ENVIRONMENT", "production")` in production.
+- `Billing::Settings.cora_environment` (`"stage"` / `"production"`) is how code reads it. The
+  value is stored in `config.x.billing.cora_environment` and set per environment file: `stage`
+  in development and test, `ENV.fetch("CORA_ENVIRONMENT", "production")` in production.
 - **Never derive it from `Rails.env`.** A staging deploy also runs with `RAILS_ENV=production`
   and would reach the live endpoints with sandbox credentials.
 - `Cora::Configuration.current` resolves the hosts; an unset or unknown value raises
@@ -204,7 +205,7 @@ account) and are not automated in CI.
 4. **Shared contract** — pass `spec/support/shared_examples/bank_slip_adapter.rb`.
 5. **Configuration** — document required `school_payment_providers` columns/settings;
    seed or backoffice flow creates the row (`instrument: bank_slip`, provider, credentials).
-   Host selection per deploy belongs in `config.x.billing`, never on the row.
+   Host selection per deploy belongs in deploy configuration (`Billing::Settings`), never on the row.
 6. **Capabilities** — declare honest flags; do not copy another provider's map blindly.
 
 No change to `Billing::` service orchestration should be required when the port contract

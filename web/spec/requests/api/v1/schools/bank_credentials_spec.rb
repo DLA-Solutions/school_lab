@@ -62,17 +62,59 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
       end
     end
 
-    post "Upload bank credentials" do
+    upload_body = {
+      required: true,
+      content: {
+        "multipart/form-data" => {
+          schema: {
+            type: :object,
+            required: %w[provider instrument client_id certificate private_key],
+            properties: {
+              provider: {
+                type: :string,
+                enum: SchoolPaymentProvider::REQUIRED_CREDENTIALS.keys,
+                description: "Payment provider the credentials belong to"
+              },
+              instrument: {
+                type: :string,
+                enum: SchoolPaymentProvider::INSTRUMENTS,
+                description: "Payment instrument the configuration is used for"
+              },
+              client_id: {
+                type: :string,
+                description: "Client identifier issued by the provider"
+              },
+              certificate: {
+                type: :string,
+                format: :binary,
+                description: "mTLS client certificate, PEM encoded"
+              },
+              private_key: {
+                type: :string,
+                format: :binary,
+                description: "Private key matching the certificate, PEM encoded"
+              }
+            }
+          }
+        }
+      }
+    }
+
+    # The body is declared here instead of through the `formData` parameters below because
+    # rswag 2.17 turns the first parameter carrying a schema into the whole request body —
+    # which published this form as a bare string. The parameters stay schema-less so they
+    # only feed the request payload the examples send.
+    post "Upload bank credentials", operation: { requestBody: upload_body } do
       tags "Backoffice"
       consumes "multipart/form-data"
       produces "application/json"
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
-      parameter name: :provider, in: :formData, type: :string, required: true
-      parameter name: :instrument, in: :formData, type: :string, required: true
-      parameter name: :client_id, in: :formData, type: :string, required: true
-      parameter name: :certificate, in: :formData, type: :file, required: true
-      parameter name: :private_key, in: :formData, type: :file, required: true
+      parameter name: :provider, in: :formData, required: true
+      parameter name: :instrument, in: :formData, required: true
+      parameter name: :client_id, in: :formData, required: true
+      parameter name: :certificate, in: :formData, required: true
+      parameter name: :private_key, in: :formData, required: true
 
       response "201", "valid certificate pair uploaded" do
         let(:provider) { "cora" }
