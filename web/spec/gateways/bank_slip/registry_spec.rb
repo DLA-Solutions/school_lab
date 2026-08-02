@@ -38,5 +38,46 @@ RSpec.describe Gateways::BankSlip::Registry do
         described_class.active_config(school: school, environment: "stage")
       end.to raise_error(Gateways::BankSlip::Registry::UnknownProviderError)
     end
+
+    it "reads the environment from the active row when none is requested" do
+      config = create(:school_payment_provider, school: school, environment: "production",
+                                                certificate_pem: pair[:certificate_pem],
+                                                private_key_pem: pair[:private_key_pem])
+
+      expect(described_class.active_config(school: school)).to eq(config)
+    end
+
+    it "prefers the most recently created active row" do
+      create(:school_payment_provider, school: school, environment: "stage",
+                                       certificate_pem: pair[:certificate_pem],
+                                       private_key_pem: pair[:private_key_pem])
+      newest = create(:school_payment_provider, school: school, environment: "production",
+                                                certificate_pem: pair[:certificate_pem],
+                                                private_key_pem: pair[:private_key_pem])
+
+      expect(described_class.active_config(school: school)).to eq(newest)
+    end
+
+    it "fails explicitly and logs when the school has no active configuration" do
+      create(:school_payment_provider, :inactive, school: school)
+
+      expect(Rails.logger).to receive(:error).with(include("bank_slip.configuration_missing"))
+
+      expect do
+        described_class.active_config(school: school)
+      end.to raise_error(Gateways::BankSlip::Registry::UnknownProviderError, /school #{school.id}\z/)
+    end
+  end
+
+  describe ".active_provider" do
+    it "returns the provider of the active row" do
+      create(:school_payment_provider, school: school, provider: "cora", environment: "production")
+
+      expect(described_class.active_provider(school: school)).to eq("cora")
+    end
+
+    it "returns nil when the school has no active configuration" do
+      expect(described_class.active_provider(school: school)).to be_nil
+    end
   end
 end

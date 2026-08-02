@@ -13,11 +13,13 @@ module Gateways
       class UnknownProviderError < Gateways::BankSlip::Error; end
 
       class << self
-        def resolve(school:, provider: default_provider)
+        # `environment` is per school and lives on the active school_payment_providers row.
+        # Leave it nil so adapters derive it from that row instead of assuming one.
+        def resolve(school:, provider: default_provider, environment: nil)
           adapter_class = ADAPTERS[provider]
           raise UnknownProviderError, "No bank slip adapter registered for provider #{provider.inspect}" unless adapter_class
 
-          adapter_class.new(school: school)
+          adapter_class.new(school: school, environment: environment)
         end
 
         def registered?(provider)
@@ -28,15 +30,43 @@ module Gateways
           "fake"
         end
 
-        def active_config(school:, instrument: INSTRUMENT, environment:)
-          SchoolPaymentProvider.active.find_by!(
-            school_id: school.id,
-            instrument: instrument,
-            environment: environment
+        # Without `environment`, the most recently created active row wins — a school may
+        # keep a superseded stage row active while running production.
+        def active_config(school:, instrument: INSTRUMENT, environment: nil)
+          config = active_scope(school: school, instrument: instrument, environment: environment).first
+          return config if config
+
+          log_missing_configuration(school: school, instrument: instrument, environment: environment)
+          raise UnknownProviderError, missing_configuration_message(school, instrument, environment)
+        end
+
+        # Provider name from the same row `active_config` would pick, or nil when unconfigured.
+        def active_provider(school:, instrument: INSTRUMENT)
+          active_scope(school: school, instrument: instrument, environment: nil).first&.provider
+        end
+
+        private
+
+        def active_scope(school:, instrument:, environment:)
+          scope = SchoolPaymentProvider.active.where(school_id: school.id, instrument: instrument)
+          scope = scope.where(environment: environment) if environment
+          scope.order(created_at: :desc, id: :desc)
+        end
+
+        def missing_configuration_message(school, instrument, environment)
+          suffix = environment ? " (#{environment})" : ""
+          "No active #{instrument} configuration for school #{school.id}#{suffix}"
+        end
+
+        def log_missing_configuration(school:, instrument:, environment:)
+          Rails.logger.error(
+            {
+              event: "bank_slip.configuration_missing",
+              school_id: school.id,
+              instrument: instrument,
+              environment: environment
+            }.to_json
           )
-        rescue ActiveRecord::RecordNotFound
-          raise UnknownProviderError,
-                "No active #{instrument} configuration for school #{school.id} (#{environment})"
         end
       end
     end

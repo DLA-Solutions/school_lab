@@ -34,8 +34,8 @@ module Billing
     end
 
     def provider_name
-      config = SchoolPaymentProvider.active.find_by(school_id: charge.school_id, instrument: Gateways::BankSlip::Registry::INSTRUMENT)
-      config&.provider || Gateways::BankSlip::Registry.default_provider
+      @provider_name ||= Gateways::BankSlip::Registry.active_provider(school: charge.school) ||
+                         Gateways::BankSlip::Registry.default_provider
     end
 
     def find_or_create_pending_issuance!

@@ -8,9 +8,9 @@ module Gateways
 
         PROVIDER = "cora"
 
-        def initialize(school:, environment: "stage", client: nil)
+        # A nil environment means "use the one on the school's active configuration row".
+        def initialize(school:, environment: nil, client: nil)
           @school = school
-          @environment = environment
           @client = client || Client.for_school(school: school, environment: environment)
         end
 
@@ -48,7 +48,7 @@ module Gateways
 
         private
 
-        attr_reader :school, :environment, :client
+        attr_reader :school, :client
       end
     end
   end
