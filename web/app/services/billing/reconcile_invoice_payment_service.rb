@@ -25,8 +25,8 @@ module Billing
     rescue Gateways::BankSlip::TransientError
       raise
     rescue Gateways::BankSlip::ValidationError, Gateways::BankSlip::ProviderError => e
-      complete_event!(observed_status: "error", error: sanitized_error_message(e))
-      ResponseService.failure(code: :provider_error, details: { message: sanitized_error_message(e) })
+      complete_event!(observed_status: "error", error: redact_error(e))
+      ResponseService.failure(code: :provider_error, details: { message: redact_error(e) })
     end
 
     private
@@ -57,8 +57,8 @@ module Billing
       )
     end
 
-    def sanitized_error_message(error)
-      error.message.to_s
+    def redact_error(error)
+      Billing::PiiRedactor.call(error.message)
     end
   end
 end

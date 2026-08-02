@@ -13,22 +13,28 @@ module Billing
 
         failures << { school_id: config.school_id, error_code: result.error_code, details: result.details }
       rescue Gateways::BankSlip::AuthenticationError => e
-        failures << { school_id: config.school_id, error: sanitized_error_message(e) }
+        failures << { school_id: config.school_id, error: redact_error(e) }
         Rails.logger.error(
-          event: "billing.daily_reconciliation.school_failed",
-          school_id: config.school_id,
-          provider: config.provider,
-          error: sanitized_error_message(e)
+          log_payload(
+            event: "billing.daily_reconciliation.school_failed",
+            school_id: config.school_id,
+            provider: config.provider,
+            error: redact_error(e)
+          )
         )
       end
 
-      Rails.logger.info(event: "billing.daily_reconciliation.completed", failures: failures) if failures.any?
+      Rails.logger.info(log_payload(event: "billing.daily_reconciliation.completed", failures: failures)) if failures.any?
     end
 
     private
 
-    def sanitized_error_message(error)
-      error.message.to_s
+    def redact_error(error)
+      Billing::PiiRedactor.call(error.message)
+    end
+
+    def log_payload(payload)
+      payload.to_json
     end
   end
 end
