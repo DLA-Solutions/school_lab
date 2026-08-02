@@ -166,7 +166,7 @@ Table billing_plans {
   school_id integer [not null]
   name varchar
   plan_type varchar [note: 'tuition | enrollment | fee']
-  base_amount decimal
+  base_amount_cents integer [note: 'Monetary amounts stored as integer cents']
   discarded_at timestamp [note: 'Discard gem — archived plan']
   created_at timestamp
   updated_at timestamp
@@ -187,13 +187,13 @@ Table school_payment_providers {
   certificate_expires_at timestamp
   uploaded_at timestamp
   uploaded_by_id integer
-  webhook_endpoint_token varchar [note: 'Secret URL segment for unsigned provider notifications; rotatable']
+  webhook_endpoint_token varchar [not null, note: 'Secret URL segment for unsigned provider notifications; rotatable']
   created_at timestamp
   updated_at timestamp
 
   indexes {
     (school_id, instrument, environment) [unique, note: 'Partial: WHERE active = true']
-    webhook_endpoint_token [unique, note: 'WHERE webhook_endpoint_token IS NOT NULL']
+    webhook_endpoint_token [unique]
   }
 }
 
@@ -212,7 +212,7 @@ Table contracts {
   student_id integer [not null]
   school_id integer [not null]
   billing_plan_id integer [not null]
-  negotiated_amount decimal
+  negotiated_amount_cents integer [note: 'Monetary amounts stored as integer cents']
   due_day integer [note: '1–28']
   starts_on date
   ends_on date
@@ -231,24 +231,29 @@ Table charges {
   contract_id integer [not null]
   school_id integer [not null]
   guardian_id integer [not null, note: 'Financially responsible guardian for this charge']
-  billing_period varchar [note: 'E.g. 2026-08']
-  original_amount decimal
-  discount_amount decimal
-  late_fee_amount decimal
-  total_amount decimal
+  billing_period date [not null, note: 'First day of billing month — e.g. 2026-08-01']
+  original_amount_cents integer [not null, note: 'Monetary amounts stored as integer cents']
+  discount_amount_cents integer [not null, default: 0]
+  late_fee_amount_cents integer [not null, default: 0]
+  total_amount_cents integer [not null]
   due_date date
-  status varchar [note: 'pending | paid | overdue | cancelled — business state; discard for erroneous removal']
-  psp_charge_id varchar [note: 'Fake/real PSP reference for webhooks and reissue']
-  boleto_url varchar [note: 'Last issued boleto URL from PSP']
-  pix_copy_paste text [note: 'Last issued Pix copy-paste from PSP']
+  status varchar [not null, default: 'pending', note: 'pending | paid | overdue | cancelled — business state; discard for erroneous removal']
+  provider_invoice_id varchar [note: 'Cached active provider invoice id — canonical history in charge_issuances']
+  boleto_url varchar [note: 'Cached last-issued boleto URL for guardian display']
+  pix_copy_paste text [note: 'Cached last-issued Pix EMV for guardian display']
+  paid_at timestamp [note: 'AASM timestamp — set on pay transition']
+  overdue_at timestamp [note: 'AASM timestamp — set on mark_overdue transition']
+  cancelled_at timestamp [note: 'AASM timestamp — set on cancel transition']
   discarded_at timestamp [note: 'Discard gem — erroneous/duplicate charge removal']
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
 
   indexes {
+    (contract_id, billing_period) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
     (school_id, status)
     (school_id, due_date)
+    provider_invoice_id [unique, note: 'WHERE provider_invoice_id IS NOT NULL']
   }
 }
 
@@ -256,8 +261,8 @@ Table charge_issuances {
   id integer [primary key, increment]
   charge_id integer [not null]
   school_id integer [not null]
-  provider varchar [not null, note: 'PSP identifier — e.g. cora, fake']
-  provider_invoice_id varchar [note: 'PSP invoice id; partial unique when present']
+  provider varchar [not null, note: 'Payment provider identifier — e.g. cora, fake; not a generic PSP label']
+  provider_invoice_id varchar [note: 'Provider invoice id; partial unique when present']
   idempotency_key varchar [not null, note: 'Persisted before HTTP — retry-safe issuance']
   status varchar [not null, default: 'pending', note: 'pending | issued | failed | cancelled']
   amount_cents integer [not null, note: 'Snapshot of charge total at issuance time']
@@ -287,32 +292,37 @@ Table applied_discounts {
   charge_id integer [not null]
   school_id integer [not null]
   discount_type varchar
-  amount decimal
+  amount_cents integer [note: 'Monetary amounts stored as integer cents']
   discarded_at timestamp [note: 'Discard gem — discount line removed']
   created_at timestamp
+  updated_at timestamp
 }
 
 Table payments {
   id integer [primary key, increment]
   charge_id integer [not null]
   school_id integer [not null]
-  paid_amount decimal
-  fine_amount decimal [note: 'Bank-reported fine component at settlement']
-  interest_amount decimal [note: 'Bank-reported interest component at settlement']
+  paid_amount_cents integer [not null, note: 'Monetary amounts stored as integer cents']
+  fine_amount_cents integer [not null, default: 0, note: 'Bank-reported fine component at settlement']
+  interest_amount_cents integer [not null, default: 0, note: 'Bank-reported interest component at settlement']
   payment_method varchar [note: 'boleto | pix | card']
-  psp_transaction_id varchar
+  provider_payment_id varchar [note: 'Provider settlement id; partial unique when present']
   paid_at timestamp
-  status varchar
+  status varchar [not null, default: 'confirmed']
   created_at timestamp
   updated_at timestamp
   Note: 'No Discard — immutable financial record; hard delete only after legal retention'
+
+  indexes {
+    provider_payment_id [unique, note: 'WHERE provider_payment_id IS NOT NULL']
+  }
 }
 
 Table webhook_events {
   id integer [primary key, increment]
   school_id integer [note: 'Tenant that received the notification']
   provider varchar [not null, note: 'cora | fake']
-  provider_event_id varchar [not null, note: 'Idempotency key from PSP']
+  provider_event_id varchar [not null, note: 'Idempotency key from provider — unique per provider']
   event_type varchar
   provider_resource_id varchar [note: 'Normalized invoice/resource id from the notification']
   payload text
