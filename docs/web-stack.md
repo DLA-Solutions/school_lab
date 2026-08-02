@@ -13,8 +13,6 @@ the MVP: app + PostgreSQL + S3.
 |--------|------------|
 | Language | Ruby 4.0.x |
 | Framework | Rails 8.1.x |
-
-**Pinned versions (Jul 2026):** Ruby 4.0.5, Rails 8.1.3.
 | API | REST JSON `/api/v1` |
 | Web UI | **React** SPA (`web-ui/`) — Vite |
 | Mobile UI | **React Native** (`app/`) |
@@ -25,6 +23,8 @@ the MVP: app + PostgreSQL + S3.
 | Storage | Active Storage → S3 |
 | Push notifications | Firebase Cloud Messaging (FCM) |
 | Locale | pt-BR (API errors via i18n) |
+
+**Pinned versions (Jul 2026):** Ruby 4.0.5, Rails 8.1.3.
 
 ## 2. Monorepo layout
 
@@ -105,7 +105,7 @@ Details: `docs/modeling/002-api-auth.md`.
 | Layer | Tool | Example |
 |--------|------------|---------|
 | **Models** | ActiveRecord + validations | `Student`, `Charge`, `Payment` |
-| **Services** | Plain Ruby objects | `Billing::GenerateBoletoService`, `Auth::IssueTokensService` |
+| **Services** | Plain Ruby objects | `Billing::IssueChargeService`, `Auth::IssueTokensService` |
 | **Forms** | ActiveModel form objects | Student registration with guardian |
 | **Jobs** | ActiveJob + Solid Queue | Boleto issuance, email, push (FCM) |
 | **Notifications** | FCM + state machine | Reliable push |
@@ -280,8 +280,14 @@ flowchart TB
 See `docs/open-questions.md` (Web stack section):
 
 - Email provider (Postmark, SES, etc.)
-- Boleto integration (gateway/bank)
 - When to add Redis (cache only)
+
+**Finalized decisions (Aug 2026):**
+
+- **Bank slip (boleto): Cora** in *Integração Direta* (Direct Integration) on the school's
+  own Cora account — the platform is not the payee. mTLS client certificate plus OAuth
+  token, registered boleto with embedded Pix. Implemented behind the `Gateways::BankSlip`
+  port (`cora` and `fake` adapters); see `docs/guidelines/web/gateways.md`.
 
 **Finalized decisions (Jul 2026):**
 

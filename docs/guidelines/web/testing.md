@@ -34,13 +34,14 @@ is itself a business rule.
 
 ```ruby
 # Bad — tests implementation
-expect(Billing::IssueBoletoService).to receive(:call)
+expect(Billing::IssueChargeService).to receive(:call)
 
 # Good — tests behavior
-post "/api/v1/schools/#{school.id}/boletos", params:, headers: auth_headers
+post "/api/v1/schools/#{school.id}/billing/charge_generations",
+     params: { billing_period: "2026-08" }, headers: auth_headers
 expect(response).to have_http_status(:created)
-expect(json["status"]).to eq("pending")
-expect(Boleto.count).to eq(1)
+expect(json.dig("data", "created_charges")).to eq(1)
+expect(Charge.kept.where(school:).count).to eq(1)
 ```
 
 ## Avoiding mocks and stubs
@@ -95,7 +96,8 @@ in sync with behavior.
 
 ## State machines (AASM)
 
-When RSpec is configured, add `require "aasm/rspec"` to `spec/rails_helper.rb`.
+The AASM matchers below need `require "aasm/rspec"` in `spec/rails_helper.rb` — not added
+yet; add it with the first spec that uses them.
 
 | Layer | Assert |
 |-------|--------|

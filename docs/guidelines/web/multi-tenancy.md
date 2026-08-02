@@ -35,7 +35,7 @@ data from raw IDs without scoping through school or policy.
 
 ```ruby
 # Good — controller already validated membership
-Billing::CreateChargeService.call(school: Current.school, actor: Current.user, params:)
+Billing::GenerateChargesService.call(school: Current.school, billing_period:)
 
 # Bad — ID from params without tenant scope
 Charge.find(params[:id])
@@ -53,8 +53,10 @@ Charge.find(params[:id])
 - **Integer primary keys** (bigint) — no UUID requirement unless an anchor doc mandates it.
 
 Intentional exceptions — do not add `school_id` here: `users`, `refresh_tokens` (cross-school
-by design, see `docs/modeling/002-api-auth.md`), `webhook_events` (raw PSP ingress log, not a
-domain entity), `audits` (uses polymorphic `associated_*` instead — see `auditing.md`).
+by design, see `docs/modeling/002-api-auth.md`), `audits` (uses polymorphic `associated_*`
+instead — see `auditing.md`). `webhook_events` is provider ingress rather than a domain
+entity: it carries a **nullable** `school_id`, resolved from the provider configuration when
+the notification is recorded.
 
 See `docs/guidelines/web/migrations.md` for migration patterns.
 
@@ -91,11 +93,11 @@ not leak.
 Jobs do not have HTTP context. Pass **IDs** and restore tenant context at perform time:
 
 ```ruby
-class Billing::IssueBoletoJob < ApplicationJob
+class Billing::IssueChargeJob < ApplicationJob
   def perform(charge_id, school_id)
-    school = School.find(school_id)
-    charge = school.charges.find(charge_id)
-    Billing::IssueBoletoService.call(school: school, charge: charge)
+    school = School.kept.find(school_id)
+    charge = school.charges.kept.find(charge_id)
+    Billing::IssueChargeService.call(charge: charge)
   end
 end
 ```

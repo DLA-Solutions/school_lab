@@ -39,6 +39,7 @@ and architecture) — it does not repeat it.
 
 ## Open decisions (do not choose unilaterally)
 
-Tracked in `docs/open-questions.md` (Web stack): email provider, boleto gateway.
-Serialization (**blueprinter**), web/mobile clients, and auth TTL are decided —
-see `docs/web-stack.md` and `docs/modeling/002-api-auth.md`.
+Tracked in `docs/open-questions.md` (Web stack): email provider.
+Serialization (**blueprinter**), web/mobile clients, auth TTL, and the bank slip gateway
+(**Cora** Direct Integration) are decided — see `docs/web-stack.md`,
+`docs/modeling/002-api-auth.md`, and [`gateways.md`](gateways.md).

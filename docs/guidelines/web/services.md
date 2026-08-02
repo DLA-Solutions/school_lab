@@ -74,7 +74,7 @@ Pattern: **`Domain::VerbService`** — always use the `Service` suffix.
 
 | Good | Avoid |
 |------|-------|
-| `Billing::CreateChargeService` | `Billing::CreateCharge` (missing suffix) |
+| `Billing::GenerateChargesService` | `Billing::GenerateCharges` (missing suffix) |
 | `Auth::IssueTokensService` | `ChargeCreator` |
 | `Billing::CancelChargeService` | `Entities::Create` (no domain namespace) |
 
@@ -82,7 +82,8 @@ Pattern: **`Domain::VerbService`** — always use the `Service` suffix.
 app/services/
   application_service.rb
   billing/
-    create_charge_service.rb      # Billing::CreateChargeService
+    generate_charges_service.rb   # Billing::GenerateChargesService
+    issue_charge_service.rb       # Billing::IssueChargeService
     cancel_charge_service.rb      # Billing::CancelChargeService
   auth/
     issue_tokens_service.rb       # Auth::IssueTokensService
@@ -104,19 +105,18 @@ app/services/
 # app/services/billing/cancel_charge_service.rb
 module Billing
   class CancelChargeService < ApplicationService
-    def initialize(charge:, actor:)
+    def initialize(charge:, adapter: nil)
       @charge = charge
-      @actor = actor
+      @adapter = adapter
     end
 
     def call
       return ResponseService.failure(code: :invalid_state_transition) unless @charge.may_cancel?
 
-      ActiveRecord::Base.transaction do
-        @charge.cancel!
-      end
+      remote = RemoteInvoiceCancellation.new(charge: @charge, adapter: @adapter).call
+      return remote if remote.failure?
 
-      Billing::VoidBoletoJob.perform_later(@charge.id)
+      @charge.cancel!
       ResponseService.success(data: @charge)
     rescue ActiveRecord::RecordInvalid => e
       ResponseService.failure(code: :validation_error, details: e.record.errors)
@@ -135,14 +135,19 @@ end
 ## Controller mapping
 
 ```ruby
-def create
-  authorize Charge
-  result = Billing::CreateChargeService.call(school: Current.school, params: charge_params)
-  return render_service_error(result) if result.failure?
+def cancel
+  charge = policy_scope(Charge).find(params[:id])
+  authorize charge, :cancel?
 
-  render json: ChargeBlueprint.render(result.data), status: :created
+  result = Billing::CancelChargeService.call(charge: charge)
+  render_service_result(result) do |updated|
+    render json: { data: ChargeBlueprint.render_as_hash(updated) }
+  end
 end
 ```
+
+`render_service_result` (in `Api::V1::BaseController`) renders the block on success and maps
+`error_code` to status on failure; pass `success_status:` when it is not `200`.
 
 Map common codes to HTTP status:
 
@@ -172,10 +177,9 @@ Specs live in `spec/services/<domain>/`. Focus on observable behavior:
 
 ```ruby
 RSpec.describe Billing::CancelChargeService do
-  subject(:result) { described_class.call(charge:, actor:) }
+  subject(:result) { described_class.call(charge:) }
 
-  let(:charge) { create(:charge, :issued, school:) }
-  let(:actor) { create(:user) }
+  let(:charge) { create(:charge, school:) }
 
   it "cancels the charge" do
     expect(result).to be_success
@@ -193,7 +197,8 @@ RSpec.describe Billing::CancelChargeService do
 end
 ```
 
-- Use real records and the database; stub only external gateways (boleto, email, FCM).
+- Use real records and the database; stub only external gateways — inject
+  `Gateways::BankSlip::Fake` for bank slips, and stub email and FCM at the boundary.
 - Cover success path, each failure code, and persisted side effects (`change { Model.count }`).
 
 See [`testing.md`](testing.md) for project-wide RSpec principles.

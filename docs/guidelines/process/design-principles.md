@@ -23,9 +23,9 @@ check on cohesion and coupling.
 
 | Principle | School Lab application |
 |-----------|------------------------|
-| **S** — Single responsibility | One service = one use case (`Billing::IssueBoletoService`, not issue + notify + report) |
+| **S** — Single responsibility | One service = one use case (`Billing::IssueChargeService`, not issue + notify + report) |
 | **O** — Open/closed | Extend via new services or adapters, not `if provider == :x` scattered in code |
-| **L** — Liskov substitution | Gateway adapters (boleto, email) are interchangeable; fakes work in tests |
+| **L** — Liskov substitution | Adapters behind a port are interchangeable (`Gateways::BankSlip::Cora::Adapter`, `Gateways::BankSlip::Fake`); fakes work in tests |
 | **I** — Interface segregation | Small, focused policies; no god-policy covering unrelated actions |
 | **D** — Dependency inversion | Inject external dependencies at boundaries (gateways, mailers); no `Client.new` hidden mid-service |
 
@@ -40,7 +40,7 @@ them without cause:
 | Pundit policies | Authorization |
 | Serializers (blueprinter) | API output shape |
 | Return / result objects | Service success and failure channels |
-| Gateway adapters | External integrations (boleto, email, FCM) |
+| Gateway adapters | External integrations (bank slip, email, FCM) |
 
 ## Coupling and cohesion
 

@@ -62,7 +62,8 @@ recurring reasons:
 ## 5. Product principles
 
 - **Multi-school from day 1**: many schools in the same system; data isolation
-  between schools (modeling strategy to be defined).
+  between schools (shared database with row-level `school_id` isolation — see
+  `docs/web-stack.md` §5).
 - **Stability over features**: reliability is a requirement, not a wish.
 - **Digital-first**: reduce/eliminate paper (boletos, contracts, archive).
 - **Multi-channel**: web and app share the same business rules.
@@ -122,12 +123,13 @@ as the main focus, with academic stability and billing as complementary pillars.
 
 ## 7. Out of scope for this documentation phase
 
-- Mobile app stack (React Native is an intention, not a decision).
-- Database modeling, API contracts, and events.
 - Supporting tools (e.g., Mintlify, Figma MCP) — decision to come later.
 
-> Web-layer stack finalized in `docs/web-stack.md` (Rails 8.1 + Hotwire +
-> Tailwind + REST API).
+> Decided since this document was first written: the stack is finalized in
+> `docs/web-stack.md` — `web/` is a **Rails 8.1 API-only** app (no Hotwire UI),
+> the product web UI is a **React SPA**, and **React Native** is the mobile
+> stack. Database modeling lives in `docs/database/` and `docs/modeling/`; API
+> contracts in `docs/api/`.
 
 ## 8. Success metrics (draft)
 
