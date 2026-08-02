@@ -8,8 +8,10 @@ alwaysApply: true
 Multi-school management SaaS for private Brazilian schools. Product UI locale is `pt-BR`; repository language is English (see the `core/language-conventions` rule).
 
 ## Monorepo layout
-- `web/` — Rails 8.1 + Hotwire + Tailwind, plus the versioned REST API (single source of business rules). Stack is locked; see the `web/web-rails` rule.
-- `app/` — React Native mobile (intention, not finalized). Consumes the API; never duplicates business rules.
+- `web/` — Rails 8.1, API-only (`config.api_only = true`), serving the versioned REST API (single source of business rules). Stack is locked; see the `web/web-rails` rule.
+- `frontend/main` — React + Vite SPA, the product web UI. Consumes the API; never duplicates business rules. Docs may still call this `web-ui/`; the directory on disk is `frontend/main`.
+- `frontend/base` — upstream template the SPA started from. Reference only; not the product.
+- `app/` — React Native mobile. Consumes the API; never duplicates business rules.
 - `docs/` — anchor docs, PRDs, guidelines. Source of truth for scope. Human-facing engineering standards live in `docs/guidelines/`.
 
 ## Working convention
@@ -19,7 +21,7 @@ Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs 
 - `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming).
 - `rules/docs/`, `rules/web/`, `rules/app/` — scoped by surface via `globs`; the folder is organizational, activation is driven by frontmatter.
 - `agents/` — specialized subagents (`rails-implementer` orchestrates; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/`; `prd-reviewer`, `doc-consistency-checker` for docs).
-- `skills/` — grouped by context (`core/`, `docs/`, `web/`; `app/` added when code lands).
+- `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `app/`).
 - Detailed "why" for these rules lives in `docs/guidelines/`; rules stay terse and point there.
 
 ## Ground rules
