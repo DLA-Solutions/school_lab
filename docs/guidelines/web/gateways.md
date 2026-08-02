@@ -115,6 +115,11 @@ collects nothing — with no error, no alert, and the issuance marked `issued`.
 - To use `fake` (development, manual QA), give the school an explicit `school_payment_providers`
   row with `provider: "fake"` — the demo seed does this. Never guard on `Rails.env`: a default
   that changes with the environment is how this class of bug reaches production.
+- The API refuses to register it, in every environment. `Registry::API_SELECTABLE_PROVIDERS` is
+  the subset of `ADAPTERS` a caller may upload credentials for; `UploadBankCredentialsService`
+  rejects the rest with `validation_error` (422), and the published contract offers the same
+  list. The model still accepts `fake` — the restriction is the API boundary, so seeds and
+  factories keep working.
 
 ```ruby
 class Billing::IssueChargeService < ApplicationService
@@ -199,7 +204,10 @@ account) and are not automated in CI.
 1. **Adapter** — implement `Gateways::BankSlip::Interface` under
    `app/services/gateways/bank_slip/<provider>/adapter.rb`.
 2. **Register** — add the class to `Gateways::BankSlip::Registry::ADAPTERS` and its credential
-   requirements to `SchoolPaymentProvider::REQUIRED_CREDENTIALS`.
+   requirements to `SchoolPaymentProvider::REQUIRED_CREDENTIALS`. To let backoffice upload
+   credentials for it, add it to `Registry::API_SELECTABLE_PROVIDERS` as well; if it needs a
+   different set of credentials than the ones the upload contract marks required, revisit that
+   contract in the same change.
 3. **Webhook parser** — add `Webhooks::Parsers::<Provider>` and register in
    `Webhooks::Parsers::Registry` (ingress is separate from the port).
 4. **Shared contract** — pass `spec/support/shared_examples/bank_slip_adapter.rb`.

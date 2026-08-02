@@ -273,8 +273,7 @@
                   "provider": {
                     "type": "string",
                     "enum": [
-                      "cora",
-                      "fake"
+                      "cora"
                     ],
                     "description": "Payment provider the credentials belong to"
                   },

@@ -16,6 +16,12 @@ module Backoffice
     end
 
     def call
+      # A boundary rule rather than a model validation: `fake` has to stay writable by seeds and
+      # factories, it just may not be registered by whoever calls the API.
+      unless Gateways::BankSlip::Registry.api_selectable?(provider)
+        return ResponseService.failure(code: :validation_error, details: { provider: [ "inclusion" ] })
+      end
+
       certificate_pem = read_limited_pem(certificate_io, field: :certificate)
       return certificate_pem if certificate_pem.is_a?(ResponseService)
 
