@@ -19,7 +19,7 @@ module Billing
     attr_reader :retention_days, :as_of
 
     def default_retention_days
-      Rails.application.config.x.billing.webhook_events_retention_days
+      Billing::Settings.webhook_events_retention_days
     end
   end
 end
