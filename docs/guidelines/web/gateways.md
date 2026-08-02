@@ -131,9 +131,18 @@ due date on a registered slip.
 
 - **Service specs** inject `Gateways::BankSlip::Fake` — assert persisted
   `charge_issuances` and charge state, not HTTP stubs.
-- **Adapter specs** use shared examples (`it_behaves_like "a bank slip adapter"`) plus
-  optional VCR cassettes against provider sandboxes — keep count low; sanitize secrets.
+- **Adapter specs** use shared examples (`it_behaves_like "a bank slip adapter"`) and
+  **WebMock** request stubs (`spec/gateways/bank_slip/<provider>/`). This is the
+  default for CI — no committed VCR cassettes.
+- **VCR** (`spec/support/vcr.rb`) remains for **optional** manual recordings against
+  provider sandboxes when validating a new adapter or payload change. Filters must
+  redact tokens, PEM, and `client_id` before any cassette is committed. Do not add
+  cassettes to the default test suite unless the team explicitly opts in.
 - **Job specs** assert `retry_on TransientError` and no retry on `ValidationError`.
+
+**Decision (Cora closure):** WebMock-only in repo; VCR is a maintainer tool, not a CI
+dependency. Cora stage smoke tests against live APIs are operational (credentials +
+account) and are not automated in CI.
 
 ## Adding a new bank slip provider
 

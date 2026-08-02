@@ -166,7 +166,7 @@ Table billing_plans {
   school_id integer [not null]
   name varchar
   plan_type varchar [note: 'tuition | enrollment | fee']
-  base_amount_cents integer [note: 'Monetary amounts stored as integer cents']
+  base_amount_cents integer [note: 'Integer cents; nullable — optional template default when every contract carries negotiated_amount_cents. Charge generation resolves negotiated_amount_cents → base_amount_cents → 0.']
   discarded_at timestamp [note: 'Discard gem — archived plan']
   created_at timestamp
   updated_at timestamp
@@ -292,7 +292,7 @@ Table applied_discounts {
   charge_id integer [not null]
   school_id integer [not null]
   discount_type varchar
-  amount_cents integer [note: 'Monetary amounts stored as integer cents']
+  amount_cents integer [note: 'Integer cents; nullable until discount application ships. Fixed-amount discount lines must set amount_cents; percentage discounts may leave NULL until a rate column exists.']
   discarded_at timestamp [note: 'Discard gem — discount line removed']
   created_at timestamp
   updated_at timestamp

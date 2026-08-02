@@ -61,7 +61,7 @@ Use only when the alternative makes the test slow, flaky, or impossible:
 
 | Case | Approach |
 |------|----------|
-| External HTTP (boleto gateway, email) | Fake adapter or WebMock/VCR; inject at the boundary |
+| External HTTP (boleto gateway, email) | Fake adapter in service specs; WebMock stubs in gateway adapter specs (see `gateways.md` — no VCR cassettes in CI) |
 | FCM push | Stub the delivery client when push is not the subject under test |
 | S3 / Active Storage | Use `:test` service or disk storage in test env |
 | Time-sensitive logic | `travel_to` / `freeze_time` (prefer over stubbing `Time.now`) |
