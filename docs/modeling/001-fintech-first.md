@@ -36,12 +36,14 @@ User platform status: `active` | `disabled` (blocks all schools; distinct from p
 | Table | Role |
 |-------|------|
 | `billing_plans` | Tuition, enrollment, fee templates per school |
+| `school_payment_providers` | Per-school provider credentials keyed by `instrument` (`bank_slip`) and `environment` |
 | `school_billing_settings` | Per-school billing policy — grace days, boleto service description, notification schedule (not provider credentials) |
 | `contracts` | Per-student negotiated terms and due day |
-| `charges` | Generated billing periods; links to financially responsible `guardian` |
+| `charges` | Generated billing periods; links to financially responsible `guardian`; caches latest invoice display fields |
+| `charge_issuances` | One row per provider invoice attempt — idempotency key, slip URLs, immutable issuance history |
 | `applied_discounts` | Discount lines on a charge |
 | `payments` | Confirmed payments (boleto, Pix, card) — **no Discard** |
-| `webhook_events` | Raw PSP webhooks for idempotent processing — **no Discard** |
+| `webhook_events` | Raw provider webhooks for idempotent processing — **no Discard** |
 
 ### Documents
 
@@ -50,6 +52,27 @@ User platform status: `active` | `disabled` (blocks all schools; distinct from p
 | `documents` | Polymorphic enrollment/KYC uploads — **not** the full digital archive |
 
 `documentable_type`: `School`, `Guardian`, `Student` (Teacher deferred to academic phase).
+
+## Charge, issuance, and payment
+
+Three layers keep business billing separate from provider invoice lifecycle:
+
+| Layer | Table | Responsibility |
+|-------|-------|----------------|
+| Business charge | `charges` | Contract period, amounts (cents), due date, AASM status, financially responsible guardian |
+| Provider invoice | `charge_issuances` | Idempotent issuance to the bank; stores `provider_invoice_id`, slip/Pix artifacts, issuance status |
+| Settlement | `payments` | Immutable payment fact after reconciliation |
+
+**Why issuance is not columns on `charges`:** reissue creates a new provider invoice without
+ losing history; idempotent retry reuses the same `idempotency_key` on one issuance row;
+ late webhooks about a cancelled invoice still resolve via `charge_issuances.provider_invoice_id`.
+ `charges` caches the active invoice id and display URLs for guardian APIs — canonical
+ history lives on `charge_issuances`.
+
+**Provider configuration:** `school_payment_providers` is keyed by `(school_id, instrument,
+ environment)` with a partial unique index on active rows. Each school selects a provider
+ per payment instrument (MVP: `bank_slip` → Cora or `fake`); card will add rows with
+ `instrument: card` without changing the bank slip port.
 
 ## Multi-tenancy (`school_id`)
 
@@ -63,7 +86,11 @@ Intentional exceptions (no direct `school_id`):
 | Table | Reason |
 |-------|--------|
 | `users`, `refresh_tokens` | Cross-school by design — one login, N schools via `memberships`; JWT payload has no `school_id` (see [`002-api-auth.md`](002-api-auth.md)) |
-| `webhook_events` | Raw PSP ingress log, not a domain entity |
+
+`webhook_events` carries `school_id` (resolved from `school_payment_providers` via the
+ webhook URL token) for tenant-scoped reconciliation queries. It is an ingress audit log,
+ not a domain entity — listed under "Tables without Discard" below, not as a tenancy
+ exception.
 
 ## Data lifecycle — access control vs soft delete vs purge
 
@@ -88,7 +115,7 @@ Lifecycle: `active` → (optional disable/suspend) → `discard` → [retention 
 
 All domain tables except ephemeral/audit ingress:
 
-`school_groups`, `schools`, `users`, `memberships`, `guardians`, `students`, `teachers`, `student_guardians`, `billing_plans`, `contracts`, `charges`, `applied_discounts`, `documents`.
+`school_groups`, `schools`, `users`, `memberships`, `device_tokens`, `guardians`, `students`, `teachers`, `student_guardians`, `billing_plans`, `contracts`, `charges`, `applied_discounts`, `documents`.
 
 `discarded_by_id` (→ `users.id`) on entities school/backoffice staff typically remove: `schools`, `guardians`, `students`, `charges`, `documents`.
 
@@ -97,6 +124,7 @@ All domain tables except ephemeral/audit ingress:
 | Table | Reason | Cleanup |
 |-------|--------|---------|
 | `refresh_tokens` | Ephemeral session artifact | `revoked_at` + purge after `expires_at` |
+| `charge_issuances` | Immutable provider invoice record | Cancel via `status`; no UI discard |
 | `webhook_events` | Immutable ingress audit log | Purge by `created_at` after processing + retention |
 | `payments` | Immutable financial fact | Hard delete only after legal retention — no UI discard |
 
@@ -116,7 +144,7 @@ Documented in DBML `indexes` notes; dbdiagram.io does not render partial indexes
 |--------------|-------------|-------------------|
 | Identity (`users`, `memberships`) | Discard | TBD — LGPD personal data |
 | School domain | Discard | TBD — aligned with identity |
-| Billing (`charges`, `contracts`, `billing_plans`) | Discard | TBD — long (fiscal/audit) |
+| Billing (`charges`, `contracts`, `billing_plans`, `charge_issuances`) | Discard on charge/plan/contract; **no Discard** on issuance rows | TBD — long (fiscal/audit) |
 | `payments` | No Discard | TBD — hard delete by `created_at` |
 | `webhook_events` | No Discard | **180 days** after `processed_at` (engineering default; legal validation pending) |
 | `refresh_tokens` | No Discard | Immediately after `expires_at` |

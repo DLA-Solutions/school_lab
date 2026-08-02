@@ -95,13 +95,13 @@ Never use Discard to represent business cancellation.
 BR-006
 
 `payments` and `webhook_events` are immutable financial/ingress records — no Discard.
-Duplicate PSP webhooks must not create duplicate payments or incorrect write-offs
+Duplicate provider webhooks must not create duplicate payments or incorrect write-offs
 (idempotent processing via `webhook_events`).
 
 BR-007
 
-On confirmed PSP payment, the system creates or updates a `payments` row with
-`psp_transaction_id`, then transitions the charge to `paid` via the `pay` event.
+On confirmed provider payment, the system creates or updates a `payments` row with
+`provider_payment_id`, then transitions the charge to `paid` via the `pay` event.
 
 BR-008
 
@@ -118,17 +118,17 @@ BR-010
 
 Active `contracts` drive recurring charge generation per `billing_period`. Each charge
 references the financially responsible `guardian_id`, applies `applied_discounts`, and
-computes `total_amount` (original − discount + late fees when applicable).
+computes `total_amount_cents` (original − discount + late fees when applicable).
 
 BR-011
 
 Late fee/interest is configurable per school (rule details pending — see Open items).
-Overdue charges update `late_fee_amount` and `total_amount` before régua notifications.
+Overdue charges update `late_fee_amount_cents` and `total_amount_cents` before régua notifications.
 
 BR-012
 
 `POST /charges/:id/reissue` (school and guardian) requests a new boleto/Pix issuance
-from the PSP gateway. Invalid state (e.g. already `paid`) returns `409`.
+via the bank slip gateway (new `charge_issuances` row). Invalid state (e.g. already `paid`) returns `409`.
 
 BR-013
 
@@ -166,24 +166,26 @@ Input: active `contract`, billing calendar.
 Flow:
 
 1. Scheduled job selects contracts with `status: active` due for the period.
-2. Create `charge` with `billing_period`, amounts, `due_date`, `guardian_id`.
+2. Create `charge` with `billing_period`, amount fields (cents), `due_date`, `guardian_id`.
 3. Apply `applied_discounts` if any.
-4. Issue boleto/Pix via PSP gateway adapter.
+4. Enqueue `Billing::IssueChargeJob` — issuance runs outside the DB transaction.
 5. Notify guardian (email/WhatsApp — channel pending).
 6. Emit `ChargeGenerated`.
 
-### UC-02 — Payment reconciliation (PSP webhook)
+### UC-02 — Payment reconciliation (provider webhook)
 
-Input: PSP webhook payload at `POST /webhooks/psp` (HMAC verified).
+Input: provider webhook at `POST /webhooks/:provider/:token` (school resolved from
+`webhook_endpoint_token` on `school_payment_providers`).
 
 Flow:
 
-1. Persist raw payload in `webhook_events` (idempotent on PSP event id).
+1. Persist raw payload in `webhook_events` (idempotent on `provider` + `provider_event_id`).
 2. Enqueue async job.
-3. Resolve target charge via PSP reference on the charge or payment record.
-4. Create/update `payments` with `psp_transaction_id`, `paid_amount`, `paid_at`.
-5. Invoke `charge.pay!` when payment confirmed.
-6. Notify guardian and school. Emit `PaymentConfirmed`.
+3. Resolve target `charge_issuance` via `provider_resource_id` (provider invoice id).
+4. Call `fetch_invoice` on the bank slip adapter to confirm current invoice state.
+5. Create/update `payments` with `provider_payment_id`, `paid_amount_cents`, `paid_at`.
+6. Invoke `charge.pay!` when payment confirmed.
+7. Notify guardian and school. Emit `PaymentConfirmed`.
 
 ### UC-03 — Collection régua (dunning)
 
@@ -281,7 +283,7 @@ guardian, documents.)
 
 | Method | Path | Auth |
 |--------|------|------|
-| `POST` | `/webhooks/psp` | PSP HMAC signature |
+| `POST` | `/webhooks/:provider/:token` | Secret token in URL (per-school `webhook_endpoint_token`) |
 
 ### Key endpoints by role
 
@@ -334,14 +336,13 @@ Do not duplicate full table definitions here. Update `schema.dbml` before migrat
 
 | Group | Tables |
 |-------|--------|
-| Identity | `users`, `memberships`, `refresh_tokens` |
+| Identity | `users`, `memberships`, `refresh_tokens`, `device_tokens` |
 | School | `school_groups`, `schools`, `guardians`, `students`, `teachers`, `student_guardians` |
-| Billing | `billing_plans`, `contracts`, `charges`, `applied_discounts`, `payments`, `webhook_events` |
+| Billing | `billing_plans`, `school_payment_providers`, `school_billing_settings`, `contracts`, `charges`, `charge_issuances`, `applied_discounts`, `payments`, `webhook_events` |
 | Documents (enrollment/KYC) | `documents` |
 | Auditing | `audits` (audited gem — not a domain entity) |
 
-**Pending schema work** (see Open items): `device_tokens` for FCM; PSP charge reference
-columns or documented gateway-only lookup; migrated payment history storage.
+**Pending schema work** (see Open items): migrated payment history storage.
 
 Any PRD entity change must be reflected in `schema.dbml` before `web/` implementation.
 
@@ -351,11 +352,11 @@ Any PRD entity change must be reflected in `schema.dbml` before `web/` implement
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `ChargeGenerated` | Job creates charge + PSP issuance | Notifications, audit |
+| `ChargeGenerated` | Job creates charge + enqueues issuance | Notifications, audit |
 | `ChargeOverdue` | Daily job marks overdue | Régua notifications, dashboard |
-| `ChargeCancelled` | `Billing::CancelCharge` | PSP void (if applicable), audit |
+| `ChargeCancelled` | `Billing::CancelCharge` | Provider void (if applicable), audit |
 | `PaymentConfirmed` | Webhook job completes | Guardian + school notifications |
-| `WebhookReceived` | `POST /webhooks/psp` | Async job enqueue |
+| `WebhookReceived` | `POST /webhooks/:provider/:token` | Async job enqueue |
 | `WebhookProcessed` | Job success/failure | Monitoring/alerting on failure |
 | `MembershipInvited` | Create/resend invite | Email job |
 | `UserDisabled` | Backoffice disable | Revoke refresh tokens |
@@ -455,7 +456,7 @@ When they GET /schools/:school_id/me/charges
 Then only their family's open charges are returned
 And another guardian's charges are not visible (404 on direct id access)
 
-Given a pending charge with PSP issuance
+Given a pending charge with a bank slip issuance
 When the guardian GET /me/charges/:id
 Then payment_methods includes boleto_url and pix_copy_paste
 
@@ -480,12 +481,12 @@ And the guardian sees it via GET /me/documents for linked children
 ### Webhooks
 
 ```gherkin
-Given a valid PSP payment webhook
-When POST /webhooks/psp is called with valid HMAC
+Given a valid provider payment webhook
+When POST /webhooks/:provider/:token is called with the school's endpoint token
 Then a webhook_event row is stored
-And async processing creates payment and marks charge paid
+And async processing fetches the invoice, creates payment, and marks charge paid
 
-Given the same PSP event id delivered twice
+Given the same provider event id delivered twice
 When the webhook is processed again
 Then no duplicate payment is created
 ```
@@ -504,7 +505,7 @@ Then the API returns 501 not_implemented
 
 - **Billing reliability**: charge generation or issuance failures must alert/monitor —
   billing errors have legal and reputational impact.
-- **Webhook idempotency**: duplicate or out-of-order PSP events must not corrupt payments.
+- **Webhook idempotency**: duplicate or out-of-order provider events must not corrupt payments.
 - **Audit trail**: changes to `charges`, `contracts`, `guardians`, `documents`, etc. via
   `audited` + `SchoolAuditable`; `payments` are immutable facts.
 - **LGPD**: `guardians.cpf`, email, phone; `students.birth_date` (child data). Retention
@@ -531,10 +532,13 @@ Then the API returns 501 not_implemented
 Tracked here and in [`docs/open-questions.md`](../open-questions.md). Do not invent
 answers in implementation.
 
-- [ ] PSP choice (Asaas, Iugu, Pagar.me, or other).
-- [ ] PSP charge reference storage: persist `psp_charge_id`/URLs on `charges` vs fetch
-      on read from gateway adapter.
-- [ ] `device_tokens` table design for `POST /me/device_tokens` (not yet in `schema.dbml`).
+- [x] **Bank slip provider — decided:** Cora Direct Integration on the school's own
+      Cora account (mTLS, registered boleto with embedded Pix). Alternatives considered:
+      Asaas, Iugu, Pagar.me — rejected for MVP because the partner uses a direct bank
+      relationship and Cora supports invoice APIs without acting as a payment aggregator.
+- [x] **Provider invoice reference — decided:** `charge_issuances` holds canonical
+      issuance history (`provider_invoice_id`, idempotency key, slip artifacts); `charges`
+      caches the active invoice id and display URLs for guardian APIs.
 - [ ] Migrated payment history (`source: migrated`, `external_reference`) — column or
       join table when import scope is defined.
 - [ ] Collection régua channel: email, WhatsApp, SMS, or combination per school.
