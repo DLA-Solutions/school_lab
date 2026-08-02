@@ -68,8 +68,9 @@ Recorded from a conversation with the partner director (escola NSR). Details in
 School Lab MVP billing questions remain here. Fintech-first–specific items are tracked
 in `docs/prds/fintech-first.md` (Open items).
 
-- [ ] Who generates the boleto (school manually vs. automatically) and what
-      recurrence?
+- [x] **Charge generation recurrence** — automatic monthly fan-out on the 1st at
+      6:00 `America/Sao_Paulo` (`Billing::MonthlyChargeGenerationJob`) plus manual
+      trigger via `POST /api/v1/schools/:school_id/billing/charge_generations`.
 - [ ] Payment/boleto-issuance integration (bank, gateway)?
 - [ ] Delinquency handling (notices, blocks)?
 - [ ] **Fintech-first — PSP charge reference** — persist `psp_charge_id`/URLs on

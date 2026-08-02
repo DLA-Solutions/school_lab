@@ -52,6 +52,7 @@ Rails.application.routes.draw do
             resource :settings, only: %i[show update]
             resources :plans
             resources :contracts
+            resources :charge_generations, only: :create
             resources :charges, only: %i[index show destroy] do
               member do
                 post :cancel

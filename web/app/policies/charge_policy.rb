@@ -19,6 +19,10 @@ class ChargePolicy < ApplicationPolicy
     show?
   end
 
+  def generate?
+    school_staff?
+  end
+
   def destroy?
     show?
   end
