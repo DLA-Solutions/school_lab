@@ -35,7 +35,7 @@ module Billing
         )
       end
 
-      def unissued_charges(school:, never_attempted:, permanently_failed:)
+      def unissued_charges(school:, never_attempted:, permanently_failed:, stuck_pending: [])
         Rails.logger.warn(
           log_payload(
             event: "billing.alert.unissued_charges",
@@ -43,8 +43,10 @@ module Billing
             school_id: school.id,
             never_attempted_count: never_attempted.size,
             permanently_failed_count: permanently_failed.size,
+            stuck_pending_count: stuck_pending.size,
             never_attempted_charge_ids: never_attempted.map(&:id),
-            permanently_failed_charge_ids: permanently_failed.map(&:id)
+            permanently_failed_charge_ids: permanently_failed.map(&:id),
+            stuck_pending_charge_ids: stuck_pending.map(&:id)
           )
         )
       end

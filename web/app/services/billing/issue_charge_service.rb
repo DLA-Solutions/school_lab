@@ -20,9 +20,16 @@ module Billing
       persist_success!(issuance, result)
 
       ResponseService.success(data: issuance.reload)
+    rescue Gateways::BankSlip::TransientError
+      raise
     rescue Gateways::BankSlip::ValidationError => e
       handle_permanent_failure!(charge.current_issuance, e)
       ResponseService.failure(code: :validation_error, details: e.details)
+    rescue Gateways::BankSlip::Error => e
+      # Authentication (mTLS/token), unmapped provider responses and missing provider
+      # configuration are permanent — the same input cannot succeed on retry.
+      handle_permanent_failure!(charge.current_issuance, e)
+      ResponseService.failure(code: :provider_error, details: { message: redact(e) })
     end
 
     private
@@ -70,8 +77,12 @@ module Billing
     def handle_permanent_failure!(issuance, error)
       return unless issuance&.may_mark_failed?
 
-      issuance.update!(last_error: Billing::PiiRedactor.call(error.message))
+      issuance.update!(last_error: redact(error))
       issuance.mark_failed!
+    end
+
+    def redact(error)
+      Billing::PiiRedactor.call(error.message)
     end
   end
 end

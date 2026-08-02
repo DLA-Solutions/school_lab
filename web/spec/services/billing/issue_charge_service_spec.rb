@@ -75,6 +75,48 @@ RSpec.describe Billing::IssueChargeService do
     expect(charge.status).to eq("pending")
   end
 
+  it "marks authentication failures as failed with a redacted error" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::AuthenticationError, "mTLS handshake failed for 123.456.789-00"
+    )
+
+    expect { result }.not_to raise_error
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:provider_error)
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("failed")
+    expect(issuance.last_error).to include("[CPF]")
+    expect(issuance.last_error).not_to include("123.456.789-00")
+  end
+
+  it "marks unexpected provider responses as failed" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::ProviderError, "Unexpected provider response (418)"
+    )
+
+    expect { result }.not_to raise_error
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:provider_error)
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("failed")
+    expect(issuance.last_error).to be_present
+  end
+
+  it "marks a missing provider configuration as failed instead of losing the attempt" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::Registry::UnknownProviderError, "No active bank_slip configuration for school 1"
+    )
+
+    expect { result }.not_to raise_error
+    expect(result).to be_failure
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("failed")
+    expect(issuance.last_error).to be_present
+  end
+
   it "propagates transient errors for the job to retry" do
     allow(adapter).to receive(:issue).and_raise(Gateways::BankSlip::TransientError, "Provider timeout")
 

@@ -121,14 +121,24 @@ All bank slip errors inherit from `Gateways::BankSlip::Error`.
 | Class | Meaning | Job retry? |
 |-------|---------|------------|
 | `TransientError` | Timeout, 5xx, rate limit — may succeed on retry | **Yes** (`retry_on`) |
-| `ValidationError` | Bad payload, 4xx field errors — same input will fail again | No (`discard_on`) |
-| `AuthenticationError` | mTLS / token failure — config or credentials | No — alert ops |
-| `ProviderError` | Unexpected provider response, unmapped status | No — record and alert |
+| `ValidationError` | Bad payload, 4xx field errors — same input will fail again | No — service records it |
+| `AuthenticationError` | mTLS / token failure — config or credentials | No — service records it, alert ops |
+| `ProviderError` | Unexpected provider response, unmapped status | No — service records it, alert ops |
+| `Registry::UnknownProviderError` | Unregistered provider or no active configuration row | No — service records it, alert ops |
 
 **Only `TransientError` is retriable.** Jobs such as `Billing::IssueChargeJob` use
 Solid Queue `retry_on Gateways::BankSlip::TransientError` with bounded backoff.
-Permanent failures transition `charge_issuances` to `failed` and set `last_error`
-(redacted — no CPF, email, or PEM content in logs or DB).
+
+Everything else is permanent and is handled in the **service**, not by `discard_on`:
+`Billing::IssueChargeService` re-raises `TransientError` for the job and rescues the rest
+of `Gateways::BankSlip::Error`, transitioning `charge_issuances` to `failed` with
+`last_error` set (redacted via `Billing::PiiRedactor` — no CPF, email, or PEM content in
+logs or DB) and returning `ResponseService.failure`. Rescuing the base error class rather
+than a list means a new permanent error type is recorded instead of escaping silently.
+
+An issuance left in `pending` is invisible to a monitor that only looks for `failed`, so
+`Billing::UnissuedCharges` also reports a `stuck_pending` bucket (attempted, neither issued
+nor recorded as failed) alongside `never_attempted` and `permanently_failed`.
 
 ## Capabilities
 
@@ -152,7 +162,8 @@ due date on a registered slip.
   provider sandboxes when validating a new adapter or payload change. Filters must
   redact tokens, PEM, and `client_id` before any cassette is committed. Do not add
   cassettes to the default test suite unless the team explicitly opts in.
-- **Job specs** assert `retry_on TransientError` and no retry on `ValidationError`.
+- **Job specs** assert that a `TransientError` re-enqueues the job and that a permanent
+  error does not, leaving the issuance `failed` with `last_error` set.
 
 **Decision (Cora closure):** WebMock-only in repo; VCR is a maintainer tool, not a CI
 dependency. Cora stage smoke tests against live APIs are operational (credentials +

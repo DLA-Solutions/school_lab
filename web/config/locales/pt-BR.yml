@@ -11,5 +11,6 @@ pt-BR:
       not_implemented: "Recurso ainda não implementado."
       validation_error: "Dados inválidos."
       invalid_state_transition: "Transição de estado inválida."
+      provider_error: "Falha na comunicação com o provedor de pagamento."
       membership_suspended: "Acesso suspenso nesta escola."
       membership_invited: "Convite pendente para esta escola."

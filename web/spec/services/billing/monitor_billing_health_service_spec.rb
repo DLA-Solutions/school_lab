@@ -87,6 +87,19 @@ RSpec.describe Billing::MonitorBillingHealthService do
     expect(Rails.logger).to have_received(:warn).with(include("billing.alert.unissued_charges"))
   end
 
+  it "alerts on charges whose issuance is stuck pending" do
+    config.update!(settings: { "certificate_alert_thresholds_sent" => [ 30 ] })
+    stuck_charge = create(:charge, school: school, due_date: 2.days.from_now.to_date)
+    create(:charge_issuance, charge: stuck_charge, school: school)
+
+    allow(Rails.logger).to receive(:warn)
+
+    described_class.call(school: school)
+
+    expect(Rails.logger).to have_received(:warn)
+      .with(include("billing.alert.unissued_charges").and(include('"stuck_pending_count":1')))
+  end
+
   it "continues evaluating other schools when one raises" do
     config.update!(settings: { "certificate_alert_thresholds_sent" => [ 30, 7, 1, 0 ] })
     school_two = create(:school)
