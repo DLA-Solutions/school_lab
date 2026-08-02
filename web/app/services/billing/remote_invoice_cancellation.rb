@@ -34,8 +34,10 @@ module Billing
       @adapter ||= Gateways::BankSlip::Registry.resolve(school: charge.school, provider: provider_name)
     end
 
+    # Only reached after #call returns early for a charge without an issued issuance, so the
+    # provider is always the persisted one — there is nothing to fall back to.
     def provider_name
-      charge.current_issuance&.provider || Gateways::BankSlip::Registry.default_provider
+      charge.current_issuance.provider
     end
 
     def redact_error(error)

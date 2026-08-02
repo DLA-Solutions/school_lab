@@ -37,12 +37,18 @@ module Billing
     attr_reader :charge
 
     def adapter
-      @adapter ||= Gateways::BankSlip::Registry.resolve(school: charge.school, provider: provider_name)
+      @adapter ||= Gateways::BankSlip::Registry.resolve(
+        school: charge.school,
+        provider: provider_config.provider,
+        environment: provider_config.environment
+      )
     end
 
-    def provider_name
-      @provider_name ||= Gateways::BankSlip::Registry.active_provider(school: charge.school) ||
-                         Gateways::BankSlip::Registry.default_provider
+    # Raises UnknownProviderError when the school has no active configuration. There is no
+    # fallback provider: the fake adapter would report success and hand the guardian a boleto
+    # that collects nothing. The rescue in #call records that as a permanent failure.
+    def provider_config
+      @provider_config ||= Gateways::BankSlip::Registry.active_config(school: charge.school)
     end
 
     def find_or_create_pending_issuance!
@@ -51,7 +57,7 @@ module Billing
 
       charge.charge_issuances.create!(
         school: charge.school,
-        provider: provider_name,
+        provider: provider_config.provider,
         idempotency_key: SecureRandom.uuid,
         amount_cents: charge.total_amount_cents,
         due_date: charge.due_date

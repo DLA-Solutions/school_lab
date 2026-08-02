@@ -13,9 +13,11 @@ module Gateways
       class UnknownProviderError < Gateways::BankSlip::Error; end
 
       class << self
-        # `environment` is per school and lives on the active school_payment_providers row.
-        # Leave it nil so adapters derive it from that row instead of assuming one.
-        def resolve(school:, provider: default_provider, environment: nil)
+        # There is no default provider: `provider` is required so no caller can silently get
+        # the fake adapter, which reports success and fabricates a boleto that collects nothing.
+        # `environment` is per school and lives on the active school_payment_providers row —
+        # leave it nil so adapters derive it from that row instead of assuming one.
+        def resolve(school:, provider:, environment: nil)
           adapter_class = ADAPTERS[provider]
           raise UnknownProviderError, "No bank slip adapter registered for provider #{provider.inspect}" unless adapter_class
 
@@ -26,10 +28,6 @@ module Gateways
           ADAPTERS.key?(provider)
         end
 
-        def default_provider
-          "fake"
-        end
-
         # Without `environment`, the most recently created active row wins — a school may
         # keep a superseded stage row active while running production.
         def active_config(school:, instrument: INSTRUMENT, environment: nil)
@@ -38,11 +36,6 @@ module Gateways
 
           log_missing_configuration(school: school, instrument: instrument, environment: environment)
           raise UnknownProviderError, missing_configuration_message(school, instrument, environment)
-        end
-
-        # Provider name from the same row `active_config` would pick, or nil when unconfigured.
-        def active_provider(school:, instrument: INSTRUMENT)
-          active_scope(school: school, instrument: instrument, environment: nil).first&.provider
         end
 
         private

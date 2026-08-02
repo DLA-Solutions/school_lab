@@ -82,14 +82,27 @@ stage while another is live, so a process-wide `config.x` key would be wrong.
 - `Registry.active_config(school:, environment: nil)` — with `environment` nil, the most
   recently created active row wins; passing `environment:` narrows the lookup (ops tooling,
   specs asserting a specific host).
-- `Registry.active_provider(school:)` — provider name from that same row, or nil.
-- `Registry.resolve(school:, provider:, environment: nil)` — leave `environment` nil so the
-  adapter derives it; pass it only when the caller already holds the config row.
+- `Registry.resolve(school:, provider:, environment: nil)` — `provider` is required; leave
+  `environment` nil so the adapter derives it, or pass it when you already hold the config row.
 - Adapters take `school:` and `environment:` so any adapter can be substituted. No adapter
   may default `environment` to a literal — a hardcoded default silently sends a production
   school to stage or makes it unreachable.
 - No active row → `Registry::UnknownProviderError`, logged as
   `bank_slip.configuration_missing`. Never fall back to a default environment.
+
+### There is no default provider
+
+`fake` is a registered adapter, not a fallback. It reports success unconditionally and returns
+a fabricated digitable line, so choosing it implicitly hands the guardian a boleto that
+collects nothing — with no error, no alert, and the issuance marked `issued`.
+
+- The issuance path derives the provider from `Registry.active_config(school:).provider`, so an
+  unconfigured school raises `UnknownProviderError` and is recorded as a permanent failure.
+- Cancellation and reissue derive it from the persisted `charge_issuances.provider`, reissuing
+  through the provider that issued.
+- To use `fake` (development, manual QA), give the school an explicit `school_payment_providers`
+  row with `provider: "fake"` — the demo seed does this. Never guard on `Rails.env`: a default
+  that changes with the environment is how this class of bug reaches production.
 
 ```ruby
 class Billing::IssueChargeService < ApplicationService
@@ -99,10 +112,11 @@ class Billing::IssueChargeService < ApplicationService
   end
 
   def call
+    config = Gateways::BankSlip::Registry.active_config(school: charge.school)
     adapter = @adapter || Gateways::BankSlip::Registry.resolve(
       school: charge.school,
-      provider: Gateways::BankSlip::Registry.active_provider(school: charge.school) ||
-                Gateways::BankSlip::Registry.default_provider
+      provider: config.provider,
+      environment: config.environment
     )
     # build IssueRequest, persist charge_issuance with idempotency_key, then:
     issuance = adapter.issue(request)
