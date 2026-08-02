@@ -28,4 +28,22 @@ RSpec.describe WebhookEvent, type: :model do
       end.to raise_error(ActiveRecord::RecordNotUnique)
     end
   end
+
+  describe "retention scopes" do
+    let(:cutoff) { 180.days.ago }
+
+    it "selects processed rows before a cutoff" do
+      stale = create(:webhook_event, processed_at: 200.days.ago)
+      create(:webhook_event, processed_at: 10.days.ago)
+      create(:webhook_event, processed_at: nil)
+
+      expect(described_class.processed_before(cutoff)).to contain_exactly(stale)
+    end
+
+    it "excludes unprocessed rows regardless of age" do
+      create(:webhook_event, processed_at: nil, created_at: 400.days.ago)
+
+      expect(described_class.processed_before(cutoff)).to be_empty
+    end
+  end
 end

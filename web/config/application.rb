@@ -47,5 +47,8 @@ module SchoolLab
     config.api_only = true
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore
+
+    config.x.billing = ActiveSupport::OrderedOptions.new
+    config.x.billing.webhook_events_retention_days = ENV.fetch("WEBHOOK_EVENTS_RETENTION_DAYS", 180).to_i
   end
 end
