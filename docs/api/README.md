@@ -135,8 +135,8 @@ Workflow:
 2. Run `rake rswag:specs:swaggerize` → `swagger/v1/swagger.yaml`.
 3. Commit generated YAML; optional copy to `docs/api/` for review without running Rails.
 
-OpenAPI **tags**: `Auth`, `Me`, `Schools`, `Billing`, `People`, `Documents`,
-`Communication`, `Academic`, `Backoffice`.
+OpenAPI **tags** currently emitted in `swagger/v1/swagger.yaml`: `Auth`, `Backoffice`,
+`Billing`, `Communication`, `Documents`, `Guardian Me`, `Me`, `People`.
 
 Optional client codegen: `openapi-typescript` or `orval` in `web-ui/` and `app/`.
 
@@ -147,11 +147,27 @@ Mobile apps do not use CORS.
 
 ## Webhooks (not in public OpenAPI)
 
-PSP reconciliation — separate path, HMAC auth, no user JWT:
+Payment-provider reconciliation — separate path, no user JWT:
 
 ```
-POST /webhooks/psp
+POST /webhooks/:provider/:token
 ```
+
+`:provider` is the provider key (`cora`, `fake`) and `:token` is the per-school
+`school_payment_providers.webhook_endpoint_token`. An unknown pair returns `404`.
+
+**There is no HMAC signature, and that is deliberate.** Cora's Direct Integration
+notification has **no request body and no signature header** — it carries only event
+headers (`Webhook-Event-Id`, `Webhook-Event-Type`, `Webhook-Resource-Id`), so there is
+nothing to compute a signature over. Authenticity rests on two controls:
+
+1. The secret, rotatable token in the URL, unique per school and provider.
+2. The notification is **never a source of truth**. It only records a `webhook_events`
+   row and enqueues a job; the outcome is decided by an authenticated mTLS read of the
+   invoice (`fetch_invoice`) against the school's own Cora account. A forged
+   notification can at most trigger a re-read that confirms the invoice is unpaid.
+
+Do not "restore" HMAC verification here assuming it was left out by mistake.
 
 ## Domain route map (overview)
 
@@ -162,8 +178,8 @@ POST /webhooks/psp
 | `schools/:id/people/*` | Fintech-first | `v1/fintech-first.md` |
 | `schools/:id/documents/*` | Fintech-first | `v1/fintech-first.md` |
 | `schools/:id/me/*` | Fintech-first (guardian app) | `v1/fintech-first.md` |
-| `schools/:id/communication/*` | Phase 2 (skeleton in OpenAPI) | future PRD |
-| `schools/:id/academic/*` | Phase 2 (skeleton in OpenAPI) | future PRD |
+| `schools/:id/communication/*` | Phase 2 — only `conversations#index` is routed, returning `501` | future PRD |
+| `schools/:id/academic/*` | Phase 2 — **not routed yet**; no academic path in OpenAPI | future PRD |
 
 ## Related documents
 

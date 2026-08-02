@@ -13,7 +13,8 @@ Narrative DSL for the fintech-first billing MVP. The authoritative schema for mi
 |-------|------|
 | `users` | Devise account — email/password, confirmation, lock/unlock, platform-wide `status` |
 | `memberships` | User ↔ school (or platform) with per-school `status` and Discard |
-| `refresh_tokens` | Hashed refresh tokens for API JWT (mobile) — no Discard |
+| `refresh_tokens` | Hashed refresh tokens for API JWT — web (httpOnly cookie) and mobile (secure storage); no Discard |
+| `device_tokens` | FCM registration tokens per user and platform — Discard on logout/rotation |
 
 Roles on `memberships.role`: `backoffice`, `school`, `teacher`, `guardian`.  
 Membership status flow: `invited` → `active` (also `suspended` per school).
@@ -28,7 +29,7 @@ User platform status: `active` | `disabled` (blocks all schools; distinct from p
 | `schools` | Tenant root; optional `school_group_id` |
 | `guardians` | Financially responsible parties; `user_id` when portal account exists |
 | `students` | Minimal student record for billing linkage |
-| `teachers` | Stub for future polymorphism (`documents`, roles); not MVP billing scope |
+| `teachers` | Modeled stub for future polymorphism (`documents`, roles) — **not migrated**; no table exists yet in `web/` |
 | `student_guardians` | Many-to-many with `financial_percentage`, `primary_guardian` |
 
 ### Billing
@@ -43,7 +44,7 @@ User platform status: `active` | `disabled` (blocks all schools; distinct from p
 | `charge_issuances` | One row per provider invoice attempt — idempotency key, slip URLs, immutable issuance history |
 | `applied_discounts` | Discount lines on a charge |
 | `payments` | Confirmed payments (boleto, Pix, card) — **no Discard** |
-| `webhook_events` | Raw provider webhooks for idempotent processing — **no Discard** |
+| `webhook_events` | Provider notifications recorded for idempotent processing — **no Discard**; `payload` is NULL for Cora, whose notification has no body |
 
 ### Documents
 
@@ -68,6 +69,13 @@ Three layers keep business billing separate from provider invoice lifecycle:
  late webhooks about a cancelled invoice still resolve via `charge_issuances.provider_invoice_id`.
  `charges` caches the active invoice id and display URLs for guardian APIs — canonical
  history lives on `charge_issuances`.
+
+**Why reconciliation reads instead of parsing:** the provider notification is only a
+ trigger. `webhook_events` stores the event id (for idempotency) and the resource id;
+ the job resolves `charge_issuances` from that resource id and then re-reads the invoice
+ over mTLS (`fetch_invoice`). `observed_status` records what that authenticated read
+ returned — it is the fact that drives `payments` and `charges.status`, never a status
+ taken from the notification itself. Cora's notification has no body to parse.
 
 **Provider configuration:** `school_payment_providers` is keyed by `(school_id, instrument,
  environment)` with a partial unique index on active rows. Each school selects a provider
@@ -115,7 +123,7 @@ Lifecycle: `active` → (optional disable/suspend) → `discard` → [retention 
 
 All domain tables except ephemeral/audit ingress:
 
-`school_groups`, `schools`, `users`, `memberships`, `device_tokens`, `guardians`, `students`, `teachers`, `student_guardians`, `billing_plans`, `contracts`, `charges`, `applied_discounts`, `documents`.
+`school_groups`, `schools`, `users`, `memberships`, `device_tokens`, `guardians`, `students`, `student_guardians`, `billing_plans`, `contracts`, `charges`, `applied_discounts`, `documents` — plus `teachers` when that table is migrated.
 
 `discarded_by_id` (→ `users.id`) on entities school/backoffice staff typically remove: `schools`, `guardians`, `students`, `charges`, `documents`.
 
@@ -125,7 +133,7 @@ All domain tables except ephemeral/audit ingress:
 |-------|--------|---------|
 | `refresh_tokens` | Ephemeral session artifact | `revoked_at` + purge after `expires_at` |
 | `charge_issuances` | Immutable provider invoice record | Cancel via `status`; no UI discard |
-| `webhook_events` | Immutable ingress audit log | Purge by `created_at` after processing + retention |
+| `webhook_events` | Immutable ingress audit log | Purge processed rows **180 days** after `processed_at` (`Billing::PurgeWebhookEventsJob`); unprocessed rows are never purged |
 | `payments` | Immutable financial fact | Hard delete only after legal retention — no UI discard |
 
 ### Partial unique indexes
@@ -203,7 +211,7 @@ Retention policy for financial and child data beyond the defaults above is **pen
 ## Scope boundaries
 
 - **`documents`** — enrollment and KYC in MVP only; full digital archive is a separate domain (see `product-map.md` §5).
-- **`teachers`** — schema stub for polymorphic consistency; no teacher MVP flows in this PRD.
+- **`teachers`** — modeled in DBML for polymorphic consistency but **not migrated**; the teacher role lives on `memberships.role` today. No teacher MVP flows in this PRD.
 - **`school_groups`** — multi-unit network support in schema; product UX deferred until a multi-unit client exists.
 - **`students.status`** — enrollment state (e.g. `active`, `transferred`); distinct from `discarded_at` (removed from active school records).
 

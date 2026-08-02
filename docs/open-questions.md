@@ -61,7 +61,11 @@ Recorded from a conversation with the partner director (escola NSR). Details in
       cards, attendance) + billing (boleto) + digital archive. What is left out
       in this first cut?
 - [ ] Backoffice in the MVP: only school registration, or also platform billing?
-- [ ] Parents in the MVP: app only, or web too?
+- [ ] Parents in the MVP: app only, or web too? **Docs currently disagree** —
+      `docs/prds/fintech-first.md` (Surfaces) says responsive web portal in the MVP with
+      the Wave 2 API contract-ready for React Native, while `docs/web-stack.md` and
+      `docs/actors-and-surfaces.md` say app first with web in phase 2. Resolve and align
+      all four documents; the API itself is channel-agnostic either way.
 
 ## Billing
 
@@ -81,12 +85,26 @@ in `docs/prds/fintech-first.md` (Open items).
       recordings only; CI does not depend on cassettes.
 - [ ] **Cora stage validation** — end-to-end issuance against Cora stage requires a
       live school account and credentials (operational checklist; not a code deliverable).
-- [ ] Payment/boleto-issuance integration (bank, gateway)?
-- [ ] Delinquency handling (notices, blocks)?
-- [ ] **Fintech-first — PSP charge reference** — persist `psp_charge_id`/URLs on
-      `charges` vs fetch on read from gateway adapter (`docs/prds/fintech-first.md`).
-- [ ] **Fintech-first — `device_tokens` table** — schema for `POST /me/device_tokens`
-      (API Wave 1; not yet in `schema.dbml`).
+- [x] **Payment/boleto-issuance integration — decided:** **Cora** in *Integração Direta*
+      (Direct Integration) on **the school's own Cora account** — the platform is not a
+      payment aggregator and does not hold school funds. Transport is mTLS with a
+      per-school certificate/private key on `school_payment_providers`; the product is a
+      registered boleto with embedded Pix. Asaas, Iugu, and Pagar.me were considered and
+      rejected for the MVP because the partner school already has a direct bank
+      relationship. Implemented in `Gateways::BankSlip::Cora::Adapter`; details in
+      `docs/prds/fintech-first.md` (Open items) and `docs/guidelines/web/gateways.md`.
+- [ ] Delinquency handling (notices, blocks)? — overdue detection shipped
+      (`Billing::MarkOverdueChargesService` + `GET /billing/summary`); the notice channel
+      and any access block remain open (see the collection régua item below).
+- [x] **Fintech-first — provider charge reference — decided:** the canonical reference is
+      `charge_issuances.provider_invoice_id` (one row per bank invoice, partial-unique when
+      present), **not** a `psp_charge_id` column on `charges`. `charges` only caches the
+      active issuance's `provider_invoice_id`, `boleto_url`, and `pix_copy_paste` so
+      guardian reads never call the provider. Reconciliation resolves the issuance from the
+      notification's resource id and then re-reads the invoice via `fetch_invoice`.
+- [x] **Fintech-first — `device_tokens` table** — shipped: table is in `schema.dbml` and
+      `web/db/schema.rb` (`user_id`, `token`, `platform`, partial-unique `token` on kept
+      rows), serving `POST /api/v1/me/device_tokens`.
 - [ ] **Fintech-first — migrated payment history** — storage for `source: migrated`
       and `external_reference` on guardian charge history.
 - [x] **Fintech-first — reissue default due date** — `today + 7 business days`
@@ -94,6 +112,19 @@ in `docs/prds/fintech-first.md` (Open items).
       (`Billing::BusinessDayCalendar`).
 - [x] **Fintech-first — municipal/state banking holidays** — out of scope for
       overdue evaluation; national calendar only (`Billing::BusinessDayCalendar`).
+- [x] **Webhook authentication — decided:** secret token in the URL
+      (`POST /webhooks/:provider/:token`), **no HMAC signature**. Cora's notification
+      carries no body and no signature — only event headers — so there is nothing to sign
+      over. Authenticity comes from the per-school `webhook_endpoint_token` plus the rule
+      that the notification is never a source of truth: it only triggers an authenticated
+      `fetch_invoice` read that decides the outcome. Do not add HMAC verification
+      expecting it to be the missing control.
+- [ ] **Late fee / interest rule** — per school or per billing plan, and the actual
+      fee/interest formula. `Billing::LateFeeCalculator` is a zero-returning placeholder,
+      so overdue charges currently keep `late_fee_amount_cents: 0`.
+- [ ] **Collection régua channel** — email, WhatsApp, SMS, or a per-school combination.
+      `Billing::CollectionReguaNotifier` only writes a log line today; no reminder is
+      delivered to guardians.
 
 ## Digital archive / auditing
 
@@ -233,5 +264,6 @@ Decisions finalized in `docs/web-stack.md`. Open items:
 - [x] **API serialization** — blueprinter (provisional).
 - [x] **Firebase Authentication** — not used for login; FCM only for push.
 - [ ] Email provider (Postmark, SES, etc.)?
-- [ ] Boleto integration (gateway/bank)?
+- [x] **Boleto integration** — Cora Direct Integration on the school's own account
+      (mTLS); see the Billing section above.
 - [ ] When to add Redis (cache only) — scaling criterion?
