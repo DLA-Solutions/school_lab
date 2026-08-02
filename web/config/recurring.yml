@@ -23,6 +23,11 @@ production:
     queue: billing
     schedule: at 6:30am every day
     timezone: America/Sao_Paulo
+  billing_monitor_health:
+    class: Billing::MonitorBillingHealthJob
+    queue: billing
+    schedule: at 7am every day
+    timezone: America/Sao_Paulo
 
 development:
   billing_daily_reconciliation:
@@ -34,4 +39,9 @@ development:
     class: Billing::MarkOverdueChargesJob
     queue: billing
     schedule: at 6:30am every day
+    timezone: America/Sao_Paulo
+  billing_monitor_health:
+    class: Billing::MonitorBillingHealthJob
+    queue: billing
+    schedule: at 7am every day
     timezone: America/Sao_Paulo
