@@ -70,12 +70,8 @@ module Billing
     def handle_permanent_failure!(issuance, error)
       return unless issuance&.may_mark_failed?
 
-      issuance.update!(last_error: sanitized_error_message(error))
+      issuance.update!(last_error: Billing::PiiRedactor.call(error.message))
       issuance.mark_failed!
-    end
-
-    def sanitized_error_message(error)
-      error.message.to_s
     end
   end
 end

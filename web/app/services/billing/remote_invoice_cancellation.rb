@@ -21,9 +21,9 @@ module Billing
       charge.clear_invoice_cache!
       ResponseService.success
     rescue Gateways::BankSlip::ValidationError, Gateways::BankSlip::ProviderError => e
-      ResponseService.failure(code: :provider_rejected, details: { message: sanitized_error_message(e) })
+      ResponseService.failure(code: :provider_rejected, details: { message: redact_error(e) })
     rescue Gateways::BankSlip::TransientError => e
-      ResponseService.failure(code: :provider_unavailable, details: { message: sanitized_error_message(e) })
+      ResponseService.failure(code: :provider_unavailable, details: { message: redact_error(e) })
     end
 
     private
@@ -38,8 +38,8 @@ module Billing
       charge.current_issuance&.provider || Gateways::BankSlip::Registry.default_provider
     end
 
-    def sanitized_error_message(error)
-      error.message.to_s
+    def redact_error(error)
+      Billing::PiiRedactor.call(error.message)
     end
   end
 end
