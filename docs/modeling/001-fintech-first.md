@@ -118,7 +118,7 @@ Documented in DBML `indexes` notes; dbdiagram.io does not render partial indexes
 | School domain | Discard | TBD — aligned with identity |
 | Billing (`charges`, `contracts`, `billing_plans`) | Discard | TBD — long (fiscal/audit) |
 | `payments` | No Discard | TBD — hard delete by `created_at` |
-| `webhook_events` | No Discard | TBD — e.g. 90d–1y after `processed_at` |
+| `webhook_events` | No Discard | **180 days** after `processed_at` (engineering default; legal validation pending) |
 | `refresh_tokens` | No Discard | Immediately after `expires_at` |
 
 Do not assume indefinite storage. Record final windows in this file and `docs/open-questions.md` (LGPD section) when legal validates.
@@ -158,7 +158,19 @@ Per-request checks after JWT validation:
 | `phone` | `guardians` | Contact for billing régua |
 | `birth_date` | `students` | Child data — guardian consent required |
 
-Retention policy for financial and child data is **pending legal validation** — do not assume indefinite storage.
+### Billing provider data flow (Cora)
+
+Issuance requests include guardian **name, CPF, email, and phone** — treat Cora as
+a processor; contractual basis is an open product/legal item (`docs/open-questions.md`).
+
+| Surface | Personal data | Retention / handling |
+|---------|---------------|----------------------|
+| Provider API payload | Guardian identity fields on boleto issuance | Provider contract — not stored beyond request/response handling |
+| Application logs | May echo provider errors | Redacted via `Billing::PiiRedactor`; correlation via `charge_issuances.idempotency_key` |
+| `webhook_events` | Provider resource ids tied to charges/guardians | Purge processed rows **180 days** after `processed_at`; unprocessed rows retained |
+| `charge_issuances.last_error` | May contain provider error text | Stored redacted after issuance failures |
+
+Retention policy for financial and child data beyond the defaults above is **pending legal validation** — do not assume indefinite storage.
 
 ## Scope boundaries
 

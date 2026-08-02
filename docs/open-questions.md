@@ -185,6 +185,25 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
 - [ ] Consent form / privacy policy — proprietary legal text or external support
       (legal counsel specialized in education)?
 
+### Billing integration (Cora) — recorded Aug 2026
+
+Pending legal validation; implementation defaults documented here so engineering
+does not assume indefinite storage.
+
+- **Provider payload (personal data sent to Cora):** guardian name, CPF, email,
+  and phone on bank-slip issuance requests. Cora acts as a personal-data
+  processor for this flow — contractual and privacy-policy implications remain
+  open.
+- **Application logs:** structured billing logs redact CPF, email, phone, PEM
+  material, bearer tokens, and client credentials via `Billing::PiiRedactor`.
+  Request parameter filtering covers certificate and credential uploads.
+- **`webhook_events` retention:** processed rows are purged **180 days** after
+  `processed_at` (`Billing::PurgeWebhookEventsJob`; override via
+  `WEBHOOK_EVENTS_RETENTION_DAYS`). Unprocessed rows are never deleted — they
+  represent unreconciled money movement.
+- [ ] **Legal sign-off** on 180-day webhook retention and whether issuance error
+      text stored on `charge_issuances.last_error` may retain redacted-only form.
+
 ## GTM / business
 
 - [ ] Format of the partnership with the Sindicato (commercial, pricing)?
