@@ -13,6 +13,11 @@ production:
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12
+  billing_monthly_charge_generation:
+    class: Billing::MonthlyChargeGenerationJob
+    queue: billing
+    schedule: at 6am on the 1st of every month
+    timezone: America/Sao_Paulo
   billing_daily_reconciliation:
     class: Billing::DailyReconciliationJob
     queue: billing
@@ -35,6 +40,11 @@ production:
     timezone: America/Sao_Paulo
 
 development:
+  billing_monthly_charge_generation:
+    class: Billing::MonthlyChargeGenerationJob
+    queue: billing
+    schedule: at 6am on the 1st of every month
+    timezone: America/Sao_Paulo
   billing_daily_reconciliation:
     class: Billing::DailyReconciliationJob
     queue: billing

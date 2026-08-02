@@ -296,6 +296,67 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/billing/charge_generations": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Generate charges for billing period",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "idempotent re-run skips existing contracts"
+          },
+          "403": {
+            "description": "forbidden for teacher"
+          },
+          "404": {
+            "description": "not found for another school"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "billing_period": {
+                    "type": "string",
+                    "example": "2026-08"
+                  }
+                },
+                "required": [
+                  "billing_period"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/billing/charges": {
       "parameters": [
         {
