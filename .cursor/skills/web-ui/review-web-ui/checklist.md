@@ -2,6 +2,15 @@
 
 Use during `review-web-ui`. Check only what the diff touches.
 
+`frontend/main` today is React 19 + Vite 7 + TypeScript with **MUI v7 and Emotion** for styling
+and **React Router v7**, plus a small `src/services/` API client and `src/providers/AuthProvider`.
+No test runner, i18n library, or data-fetching library is installed yet.
+
+That means the **Testing**, **i18n**, and **State and data fetching** sections below describe the
+target once those pieces land — do not report their absence as a violation on code that predates
+them. `docs/web-stack.md` §3 still lists Tailwind as the planned styling approach; the installed
+stack is MUI, so treat styling-library expectations as unresolved rather than as a rule to enforce.
+
 ## Architecture — thin client
 
 - [ ] No business rules duplicated from the API (amounts, status transitions, eligibility)

@@ -2,11 +2,16 @@
 
 Use during `review-mobile`. Check only what the diff touches.
 
+`app/` today is Expo managed with React Navigation, `expo-secure-store`, and a small
+`src/services/` API client. **Push (FCM), a test runner, and native `android/`/`ios/`
+directories are not in the project yet** — the sections covering them apply to new code
+that introduces those capabilities, not to the current tree.
+
 ## Architecture — thin client
 
 - [ ] No business rules duplicated from the API (billing state, attendance rules, eligibility)
 - [ ] Client-side validation is UX-only; server remains authoritative
-- [ ] API client patterns align with `web-ui/` where shared (errors, auth interceptor, types)
+- [ ] API client patterns align with the web SPA (`frontend/main/src/services/`) where shared (errors, auth interceptor, types)
 - [ ] OpenAPI-generated or shared types — no divergent hand-written DTOs
 
 ## Authentication and secure storage
@@ -75,7 +80,9 @@ Use during `review-mobile`. Check only what the diff touches.
 
 ## Native and permissions
 
-- [ ] `Info.plist` / `AndroidManifest` permissions justified by feature
+Expo managed: permissions are declared in `app/app.json` unless the project has been prebuilt.
+
+- [ ] `app.json` (or `Info.plist` / `AndroidManifest` after prebuild) permissions justified by feature
 - [ ] Background modes only when required (e.g. remote notifications)
 - [ ] Env/secrets not committed; use `.env` pattern from `app/.env.example`
 
