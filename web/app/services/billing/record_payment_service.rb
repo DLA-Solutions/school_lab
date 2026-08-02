@@ -11,6 +11,11 @@ module Billing
       existing = Payment.find_by(provider_payment_id: remote_payment.provider_payment_id)
       return ResponseService.success(data: existing) if existing
 
+      # Guard before opening the transaction: `return` from inside a transaction block
+      # commits instead of rolling back (Rails >= 6.1), which would leave a confirmed
+      # payment attached to a charge that cannot be paid.
+      return ResponseService.failure(code: :invalid_state_transition) unless charge.paid? || charge.may_pay?
+
       payment = nil
       ActiveRecord::Base.transaction do
         payment = Payment.create!(
@@ -25,11 +30,7 @@ module Billing
           status: "confirmed"
         )
 
-        unless charge.paid?
-          return ResponseService.failure(code: :invalid_state_transition) unless charge.may_pay?
-
-          charge.pay!
-        end
+        charge.pay! unless charge.paid?
       end
 
       ResponseService.success(data: payment)
