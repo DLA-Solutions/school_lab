@@ -8,10 +8,9 @@ module Gateways
 
         PROVIDER = "cora"
 
-        # A nil environment means "use the one on the school's active configuration row".
-        def initialize(school:, environment: nil, client: nil)
+        def initialize(school:, client: nil)
           @school = school
-          @client = client || Client.for_school(school: school, environment: environment)
+          @client = client || Client.for_school(school: school)
         end
 
         def issue(request)

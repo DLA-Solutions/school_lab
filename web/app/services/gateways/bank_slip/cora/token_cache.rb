@@ -4,6 +4,9 @@ module Gateways
   module BankSlip
     module Cora
       class TokenCache
+        # `environment` is the deploy's Cora environment, not a school attribute: it keeps a
+        # token minted for the sandbox from being replayed against the live endpoints when a
+        # deploy flips over a shared cache.
         def initialize(school_id:, provider:, environment:, cache: Rails.cache)
           @school_id = school_id
           @provider = provider

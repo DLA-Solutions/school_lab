@@ -42,8 +42,7 @@ module Billing
     def adapter
       @adapter ||= Gateways::BankSlip::Registry.resolve(
         school: config.school,
-        provider: config.provider,
-        environment: config.environment
+        provider: config.provider
       )
     end
 

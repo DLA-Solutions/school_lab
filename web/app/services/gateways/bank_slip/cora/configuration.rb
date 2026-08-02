@@ -21,9 +21,21 @@ module Gateways
 
         module_function
 
+        # Which endpoints this deploy talks to. A school is either correctly registered for the
+        # integration or not; the sandbox is a property of the deploy, not of the school.
+        def deploy_environment
+          Rails.application.config.x.billing.cora_environment
+        end
+
+        def current
+          for_environment(deploy_environment)
+        end
+
         def for_environment(environment)
           ENVIRONMENTS.fetch(environment) do
-            raise Gateways::BankSlip::ProviderError, "Unknown Cora environment: #{environment.inspect}"
+            raise Gateways::BankSlip::ProviderError,
+                  "config.x.billing.cora_environment must be one of #{ENVIRONMENTS.keys.join(', ')}, " \
+                  "got #{environment.inspect}"
           end
         end
 

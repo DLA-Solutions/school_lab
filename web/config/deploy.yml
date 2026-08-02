@@ -41,6 +41,10 @@ env:
   secret:
     - RAILS_MASTER_KEY
   clear:
+    # Which Cora endpoints this deploy talks to: "production" for the live deploy, "stage" for
+    # staging. Staging also runs with RAILS_ENV=production, so it must set this explicitly.
+    CORA_ENVIRONMENT: production
+
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
     SOLID_QUEUE_IN_PUMA: true

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_01_230440) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_02_140325) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -290,7 +290,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_230440) do
     t.text "certificate_pem"
     t.string "client_id"
     t.datetime "created_at", null: false
-    t.string "environment", null: false
     t.string "instrument", null: false
     t.text "private_key_pem"
     t.string "provider", null: false
@@ -300,11 +299,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_230440) do
     t.datetime "uploaded_at"
     t.bigint "uploaded_by_id"
     t.string "webhook_endpoint_token", null: false
-    t.index ["school_id", "instrument", "environment"], name: "index_school_payment_providers_active_triple", unique: true, where: "(active = true)"
+    t.index ["school_id", "instrument"], name: "index_school_payment_providers_active_pair", unique: true, where: "(active = true)"
     t.index ["school_id"], name: "index_school_payment_providers_on_school_id"
     t.index ["uploaded_by_id"], name: "index_school_payment_providers_on_uploaded_by_id"
     t.index ["webhook_endpoint_token"], name: "index_school_payment_providers_on_webhook_endpoint_token", unique: true
-    t.check_constraint "environment::text = ANY (ARRAY['stage'::character varying::text, 'production'::character varying::text])", name: "school_payment_providers_environment_allowed"
     t.check_constraint "instrument::text = 'bank_slip'::text", name: "school_payment_providers_instrument_allowed"
   end
 

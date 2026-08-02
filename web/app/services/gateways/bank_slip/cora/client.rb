@@ -7,12 +7,12 @@ module Gateways
   module BankSlip
     module Cora
       class Client
-        def self.for_school(school:, environment: nil)
-          config = Gateways::BankSlip::Registry.active_config(school: school, environment: environment)
+        def self.for_school(school:)
+          config = Gateways::BankSlip::Registry.active_config(school: school)
           token_cache = TokenCache.new(
             school_id: school.id,
             provider: config.provider,
-            environment: config.environment
+            environment: Configuration.deploy_environment
           )
           new(config: config, token_cache: token_cache)
         end
@@ -20,7 +20,7 @@ module Gateways
         def initialize(config:, token_cache:)
           @config = config
           @token_cache = token_cache
-          @environment_config = Configuration.for_environment(config.environment)
+          @environment_config = Configuration.current
         end
 
         def get(path)

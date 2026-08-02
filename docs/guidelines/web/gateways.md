@@ -71,24 +71,35 @@ Card will be a **sibling port** (`app/services/gateways/card/`), not methods add
 | `capabilities` | Return `Capabilities` flags so services branch on behavior, not provider name |
 
 Services load the active provider from `school_payment_providers`, then resolve the
-adapter class via `Gateways::BankSlip::Registry.resolve(school:, provider:, environment: nil)`.
+adapter class via `Gateways::BankSlip::Registry.resolve(school:, provider:)`.
 
-### Environment is per school, not global
+### The sandbox is a deploy, not a school attribute
 
-`stage` vs `production` comes from the `environment` column of the school's **active**
-`school_payment_providers` row — there is no global setting. One school may still run
-stage while another is live, so a process-wide `config.x` key would be wrong.
+A school is either registered correctly for the integration or it is not — there is no
+"school in stage". Real data only exists in production; staging holds test schools with
+sandbox credentials, in its own database. So `stage` vs `production` selects **Cora hosts**
+and nothing else, and lives in deploy configuration:
 
-- `Registry.active_config(school:, environment: nil)` — with `environment` nil, the most
-  recently created active row wins; passing `environment:` narrows the lookup (ops tooling,
-  specs asserting a specific host).
-- `Registry.resolve(school:, provider:, environment: nil)` — `provider` is required; leave
-  `environment` nil so the adapter derives it, or pass it when you already hold the config row.
-- Adapters take `school:` and `environment:` so any adapter can be substituted. No adapter
-  may default `environment` to a literal — a hardcoded default silently sends a production
-  school to stage or makes it unreachable.
-- No active row → `Registry::UnknownProviderError`, logged as
-  `bank_slip.configuration_missing`. Never fall back to a default environment.
+- `config.x.billing.cora_environment` (`"stage"` / `"production"`), set per environment file:
+  `stage` in development and test, `ENV.fetch("CORA_ENVIRONMENT", "production")` in production.
+- **Never derive it from `Rails.env`.** A staging deploy also runs with `RAILS_ENV=production`
+  and would reach the live endpoints with sandbox credentials.
+- `Cora::Configuration.current` resolves the hosts; an unset or unknown value raises
+  `ProviderError` naming the key, so the deploy fails loudly instead of guessing.
+
+### One configuration per school and instrument
+
+`school_payment_providers` holds who the provider is, its credentials, and whether the row is
+active. A partial unique index on `(school_id, instrument) WHERE active` makes a single active
+configuration the invariant, and `UploadBankCredentialsService` supersedes the previous one on
+upload — including when the provider changes.
+
+- `Registry.active_config(school:)` returns that row, or raises `UnknownProviderError` (logged
+  as `bank_slip.configuration_missing`) with a message telling the operator what to upload.
+- A configuration must be **complete to exist**: `SchoolPaymentProvider::REQUIRED_CREDENTIALS`
+  lists what each provider needs (`cora` needs `client_id` plus the certificate pair, `fake`
+  needs nothing) and validation rejects the rest. A half-filled row would otherwise sit
+  `active: true` and only fail against the bank, with a real family's charge in flight.
 
 ### There is no default provider
 
@@ -115,8 +126,7 @@ class Billing::IssueChargeService < ApplicationService
     config = Gateways::BankSlip::Registry.active_config(school: charge.school)
     adapter = @adapter || Gateways::BankSlip::Registry.resolve(
       school: charge.school,
-      provider: config.provider,
-      environment: config.environment
+      provider: config.provider
     )
     # build IssueRequest, persist charge_issuance with idempotency_key, then:
     issuance = adapter.issue(request)
@@ -187,13 +197,14 @@ account) and are not automated in CI.
 
 1. **Adapter** — implement `Gateways::BankSlip::Interface` under
    `app/services/gateways/bank_slip/<provider>/adapter.rb`.
-2. **Register** — add the class to `Gateways::BankSlip::Registry::ADAPTERS`.
+2. **Register** — add the class to `Gateways::BankSlip::Registry::ADAPTERS` and its credential
+   requirements to `SchoolPaymentProvider::REQUIRED_CREDENTIALS`.
 3. **Webhook parser** — add `Webhooks::Parsers::<Provider>` and register in
    `Webhooks::Parsers::Registry` (ingress is separate from the port).
 4. **Shared contract** — pass `spec/support/shared_examples/bank_slip_adapter.rb`.
 5. **Configuration** — document required `school_payment_providers` columns/settings;
-   seed or backoffice flow creates the row (`instrument: bank_slip`, `environment`,
-   credentials).
+   seed or backoffice flow creates the row (`instrument: bank_slip`, provider, credentials).
+   Host selection per deploy belongs in `config.x.billing`, never on the row.
 6. **Capabilities** — declare honest flags; do not copy another provider's map blindly.
 
 No change to `Billing::` service orchestration should be required when the port contract

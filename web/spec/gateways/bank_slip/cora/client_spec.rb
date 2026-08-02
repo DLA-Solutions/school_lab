@@ -8,7 +8,7 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
   let(:school) { create(:school) }
   let(:pair) { OpensslCertificateHelper.generate_certificate_pair }
   let!(:provider_config) do
-    create(:school_payment_provider, school: school, environment: "stage",
+    create(:school_payment_provider, school: school, provider: "cora",
                                      certificate_pem: pair[:certificate_pem],
                                      private_key_pem: pair[:private_key_pem],
                                      client_id: "client-stage-001")
@@ -108,11 +108,11 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
   it "uses separate token requests for different schools" do
     other_school = create(:school)
     other_pair = OpensslCertificateHelper.generate_certificate_pair
-    create(:school_payment_provider, school: other_school, environment: "stage",
+    create(:school_payment_provider, school: other_school, provider: "cora",
                                      certificate_pem: other_pair[:certificate_pem],
                                      private_key_pem: other_pair[:private_key_pem],
                                      client_id: "client-other")
-    other_client = described_class.for_school(school: other_school, environment: "stage")
+    other_client = described_class.for_school(school: other_school)
 
     stub_request(:get, "https://api.stage.cora.com.br/v1/invoices")
       .to_return(status: 200, body: '{"ok":true}')
@@ -152,23 +152,31 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
     expect { client.get("/v1/timeout") }.to raise_error(Gateways::BankSlip::TransientError, /connection error/)
   end
 
-  it "targets the hosts of the environment on the school's active configuration" do
-    production_pair = OpensslCertificateHelper.generate_certificate_pair
-    create(:school_payment_provider, school: school, environment: "production",
-                                     certificate_pem: production_pair[:certificate_pem],
-                                     private_key_pem: production_pair[:private_key_pem],
-                                     client_id: "client-prod")
-    prod_client = described_class.for_school(school: school)
-
+  it "targets the hosts of the deploy environment, not a school attribute" do
     stub_request(:post, "https://matls-clients.api.cora.com.br/token")
       .to_return(status: 200, body: { access_token: "prod-token", expires_in: 86_400 }.to_json)
     stub_request(:get, "https://api.cora.com.br/v1/invoices")
       .to_return(status: 200, body: '{"ok":true}')
 
-    prod_client.get("/v1/invoices")
+    with_cora_environment("production") do
+      described_class.for_school(school: school).get("/v1/invoices")
+    end
 
     expect(WebMock).to have_requested(:get, "https://api.cora.com.br/v1/invoices")
     expect(WebMock).not_to have_requested(:get, "https://api.stage.cora.com.br/v1/invoices")
+  end
+
+  it "does not reuse a token minted for another deploy environment" do
+    stage_cache = Gateways::BankSlip::Cora::TokenCache.new(
+      school_id: school.id, provider: "cora", environment: "stage", cache: cache
+    )
+    production_cache = Gateways::BankSlip::Cora::TokenCache.new(
+      school_id: school.id, provider: "cora", environment: "production", cache: cache
+    )
+    stage_cache.write("stage-token", expires_in: 3_600)
+
+    expect(production_cache.fetch { "freshly-minted" }).to eq("freshly-minted")
+    expect(stage_cache.fetch { "freshly-minted" }).to eq("stage-token")
   end
 
   it "does not include secrets in raised errors" do

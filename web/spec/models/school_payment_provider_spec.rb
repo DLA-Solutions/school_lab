@@ -59,14 +59,46 @@ RSpec.describe SchoolPaymentProvider, type: :model do
     expect(audit_values).not_to include("BEGIN RSA PRIVATE KEY")
   end
 
-  it "enforces one active row per school, instrument and environment" do
-    create(:school_payment_provider, :active, school: school, environment: "stage",
-                                              certificate_pem: pair[:certificate_pem],
-                                              private_key_pem: pair[:private_key_pem])
-    duplicate = build(:school_payment_provider, :active, school: school, environment: "stage",
-                                                           certificate_pem: pair[:certificate_pem],
-                                                           private_key_pem: pair[:private_key_pem])
+  it "enforces one active configuration per school and instrument" do
+    create(:school_payment_provider, :active, school: school, provider: "fake")
+    duplicate = build_provider(active: true, provider: "cora")
 
     expect { duplicate.save! }.to raise_error(ActiveRecord::RecordNotUnique)
+  end
+
+  describe "completeness" do
+    it "rejects a cora configuration without credentials" do
+      provider = build(:school_payment_provider, school: school, provider: "cora",
+                                                 client_id: nil,
+                                                 certificate_pem: nil,
+                                                 private_key_pem: nil)
+
+      expect(provider).not_to be_valid
+      expect(provider.errors[:client_id]).to be_present
+      expect(provider.errors[:certificate_pem]).to be_present
+      expect(provider.errors[:private_key_pem]).to be_present
+    end
+
+    it "rejects a cora configuration missing only the client id" do
+      expect(build_provider(provider: "cora", client_id: nil)).not_to be_valid
+    end
+
+    it "accepts a fake configuration with no credentials" do
+      provider = build(:school_payment_provider, school: school, provider: "fake",
+                                                 client_id: nil,
+                                                 certificate_pem: nil,
+                                                 private_key_pem: nil)
+
+      expect(provider).to be_valid
+    end
+
+    it "rejects an unregistered provider" do
+      expect(build_provider(provider: "banco_inexistente")).not_to be_valid
+    end
+
+    it "states the credential requirements of every registered adapter" do
+      expect(described_class::REQUIRED_CREDENTIALS.keys)
+        .to match_array(Gateways::BankSlip::Registry::ADAPTERS.keys)
+    end
   end
 end

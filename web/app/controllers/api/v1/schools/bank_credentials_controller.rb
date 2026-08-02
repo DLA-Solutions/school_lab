@@ -21,7 +21,6 @@ module Api
             actor: Current.user,
             provider: upload_params[:provider],
             instrument: upload_params[:instrument],
-            environment: upload_params[:environment],
             client_id: upload_params[:client_id],
             certificate_io: params[:certificate],
             private_key_io: params[:private_key]
@@ -39,7 +38,7 @@ module Api
         end
 
         def upload_params
-          params.permit(:provider, :instrument, :environment, :client_id)
+          params.permit(:provider, :instrument, :client_id)
         end
       end
     end

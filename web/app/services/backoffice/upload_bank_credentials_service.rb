@@ -4,13 +4,12 @@ module Backoffice
   class UploadBankCredentialsService < ApplicationService
     MAX_FILE_BYTES = 64.kilobytes
 
-    def initialize(school:, actor:, provider:, instrument:, environment:, client_id:,
+    def initialize(school:, actor:, provider:, instrument:, client_id:,
                    certificate_io:, private_key_io:)
       @school = school
       @actor = actor
       @provider = provider
       @instrument = instrument
-      @environment = environment
       @client_id = client_id
       @certificate_io = certificate_io
       @private_key_io = private_key_io
@@ -29,7 +28,6 @@ module Backoffice
         record = school.school_payment_providers.create!(
           instrument: instrument,
           provider: provider,
-          environment: environment,
           active: true,
           client_id: client_id,
           certificate_pem: certificate_pem,
@@ -46,7 +44,7 @@ module Backoffice
 
     private
 
-    attr_reader :school, :actor, :provider, :instrument, :environment, :client_id,
+    attr_reader :school, :actor, :provider, :instrument, :client_id,
                 :certificate_io, :private_key_io
 
     def api_error_details(record)
@@ -70,8 +68,10 @@ module Backoffice
       bytes.to_s
     end
 
+    # One active configuration per instrument, so uploading new credentials replaces whatever
+    # was active — including a different provider.
     def supersede_active_configuration!
-      school.school_payment_providers.active.where(instrument: instrument, environment: environment)
+      school.school_payment_providers.active.where(instrument: instrument)
             .find_each { |config| config.update!(active: false) }
     end
   end

@@ -72,8 +72,7 @@ module DemoSchool
     SchoolPaymentProvider.find_or_create_by!(
       school: school,
       instrument: "bank_slip",
-      provider: "fake",
-      environment: "stage"
+      provider: "fake"
     ) do |record|
       record.active = true
     end
