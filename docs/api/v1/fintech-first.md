@@ -10,14 +10,16 @@ return `501` until their PRDs ship.
 
 ## Delivery order
 
+Must stay in sync with the PRD's wave table (`docs/prds/fintech-first.md` — Delivery waves).
+
 | Wave | Scope |
 |------|--------|
-| **1** | `auth/*`, `GET /me` |
-| **2** | Guardian `me/charges`, `me/payments` (mobile value) |
+| **1** | `auth/*`, `GET /me`, `POST /me/device_tokens` |
+| **2** | Guardian `me/charges`, `me/payments`, `me/students`, `me/documents` |
 | **3** | School `billing/*`, `billing/summary` |
 | **4** | `people/*`, `memberships` |
-| **5** | `documents/*` |
-| **6** | Backoffice `schools`, user disable |
+| **5** | `documents/*` (school write) |
+| **6** | Backoffice `schools`, user disable/enable |
 
 ---
 
@@ -34,6 +36,7 @@ See [`002-api-auth.md`](../modeling/002-api-auth.md) for full login/refresh cont
 | `PUT` | `/api/v1/auth/password` | Change password |
 | `GET` | `/api/v1/me` | User + memberships |
 | `POST` | `/api/v1/me/device_tokens` | Register FCM token |
+| `POST` | `/api/v1/me/memberships/:id/accept` | Accept a school invite (`invited` → `active`) |
 
 ### `GET /api/v1/me`
 
@@ -67,11 +70,27 @@ See [`002-api-auth.md`](../modeling/002-api-auth.md) for full login/refresh cont
 |--------|------|-------------|
 | `GET` | `/api/v1/schools` | List schools |
 | `POST` | `/api/v1/schools` | Create school |
-| `GET` | `/api/v1/schools/:school_id` | School detail |
-| `PATCH` | `/api/v1/schools/:school_id` | Update school |
-| `DELETE` | `/api/v1/schools/:school_id` | Soft delete school |
-| `POST` | `/api/v1/users/:user_id/disable` | Platform-wide disable |
-| `POST` | `/api/v1/users/:user_id/enable` | Re-enable user |
+| `GET` | `/api/v1/schools/:id` | School detail |
+| `PATCH` | `/api/v1/schools/:id` | Update school |
+| `DELETE` | `/api/v1/schools/:id` | Soft delete school |
+| `POST` | `/api/v1/users/:id/disable` | Platform-wide disable |
+| `POST` | `/api/v1/users/:id/enable` | Re-enable user |
+
+---
+
+## Bank credentials (provider onboarding)
+
+Base: `/api/v1/schools/:school_id/bank_credentials` — backs `school_payment_providers`.
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/bank_credentials` | List configured providers per `instrument` / `environment`; never returns PEM material |
+| `POST` | `/bank_credentials` | Upload mTLS certificate + private key (multipart: `certificate`, `private_key`) with `provider`, `instrument`, `environment`, `client_id` |
+
+Uploading an active configuration for the same `(school_id, instrument, environment)`
+replaces the previous active row (partial unique index on `active = true`). The
+`webhook_endpoint_token` is generated server-side and is what the provider webhook URL
+carries.
 
 ---
 
@@ -123,6 +142,21 @@ Base: `/api/v1/schools/:school_id/people`
 
 Base: `/api/v1/schools/:school_id/billing`
 
+### Billing settings (`school_billing_settings`)
+
+Singular resource — one settings row per school.
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `GET` | `/settings` | Grace days, boleto service description, notification schedule |
+| `PATCH` | `/settings` | Update per-school billing policy (not provider credentials) |
+
+### Charge generation
+
+| Method | Path | Notes |
+|--------|------|-------|
+| `POST` | `/charge_generations` | Manual trigger for a billing period; the scheduled `Billing::MonthlyChargeGenerationJob` runs the same service |
+
 ### Plans (`billing_plans`)
 
 | Method | Path |
@@ -150,7 +184,7 @@ Base: `/api/v1/schools/:school_id/billing`
 | `GET` | `/charges` | Filters: `status`, `guardian_id`, `due_date` range |
 | `GET` | `/charges/:id` | |
 | `POST` | `/charges/:id/cancel` | Business cancel (`status: cancelled`) |
-| `POST` | `/charges/:id/reissue` | Reissue boleto/Pix via PSP |
+| `POST` | `/charges/:id/reissue` | Reissue boleto/Pix via the bank slip gateway (new `charge_issuances` row) |
 | `DELETE` | `/charges/:id` | Soft delete erroneous charge |
 
 ### Payments (read-only)
@@ -233,7 +267,7 @@ Family-scoped — Pundit ensures only the logged-in guardian's charges.
       "status": "pending",
       "student": { "id": 1, "name": "Pedro Silva" },
       "payment_methods": {
-        "boleto_url": "https://psp.example/boleto/abc",
+        "boleto_url": "https://provider.example/boleto/abc",
         "pix_copy_paste": "00020126580014br.gov.bcb.pix..."
       }
     }
@@ -296,22 +330,24 @@ Base: `/api/v1/schools/:school_id/documents`
 
 ## Planned — phase 2 (OpenAPI skeleton, `501` until PRD)
 
-Document in rswag with `x-phase: 2` extension. Do not implement until PRD exists.
+Do not implement until the domain PRD exists. Routed skeletons return `501`; there is no
+`x-phase` OpenAPI extension in the generated spec today.
 
 ### Communication
 
 Base: `/api/v1/schools/:school_id/communication`
 
-| Method | Path |
-|--------|------|
-| `GET` | `/conversations` |
-| `POST` | `/conversations` |
-| `GET` | `/conversations/:id/messages` |
-| `POST` | `/conversations/:id/messages` |
+| Method | Path | Routed today |
+|--------|------|--------------|
+| `GET` | `/conversations` | Yes — skeleton returning `501` |
+| `POST` | `/conversations` | No |
+| `GET` | `/conversations/:id/messages` | No |
+| `POST` | `/conversations/:id/messages` | No |
 
 ### Academic
 
-Base: `/api/v1/schools/:school_id/academic`
+Base: `/api/v1/schools/:school_id/academic` — **none of these are routed yet**; they are
+the intended shape, not a skeleton.
 
 | Method | Path |
 |--------|------|
@@ -327,9 +363,18 @@ Base: `/api/v1/schools/:school_id/academic`
 
 | Method | Path | Auth |
 |--------|------|------|
-| `POST` | `/webhooks/psp` | PSP HMAC signature |
+| `POST` | `/webhooks/:provider/:token` | Secret per-school token in the URL (`school_payment_providers.webhook_endpoint_token`) — no HMAC |
 
-Processes `webhook_events` → updates `payments` and `charges.status`.
+`:provider` is `cora` or `fake`; an unknown provider/token pair returns `404`.
+
+Cora's notification has **no body and no signature** — only the event headers
+(`Webhook-Event-Id`, `Webhook-Event-Type`, `Webhook-Resource-Id`) — so there is nothing
+to sign over. The request is stored as a `webhook_events` row (idempotent on
+`provider` + `provider_event_id`) and processed asynchronously: the job resolves the
+`charge_issuances` row from the resource id, re-reads the invoice over mTLS via
+`fetch_invoice`, and only then writes `payments` and transitions `charges.status`.
+The notification is a trigger, never the source of truth — see `docs/api/README.md`
+for why HMAC is intentionally absent.
 
 ---
 
@@ -367,7 +412,11 @@ Run: `bundle exec rake rswag:specs:swaggerize`
 | `billing_plans` | `billing/plans` |
 | `contracts` | `billing/contracts` |
 | `charges` | `billing/charges`, `me/charges` |
+| `charge_issuances` | No direct route — created by issuance/reissue; surfaced through `charges` display fields |
 | `payments` | `billing/payments`, `me/payments` |
+| `school_billing_settings` | `billing/settings` |
+| `school_payment_providers` | `bank_credentials` (and the `/webhooks/:provider/:token` token) |
+| `device_tokens` | `me/device_tokens` |
 | `guardians` | `people/guardians` |
 | `students` | `people/students` |
 | `memberships` | `people/memberships` |

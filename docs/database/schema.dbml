@@ -8,6 +8,12 @@
 // Hard delete: scheduled job removes rows past retention (discarded_at + entity window).
 //   Financial/audit tables may skip Discard and purge only by age (see per-table notes).
 // Do not use Discard on ephemeral/ingress logs — use revoked_at, expires_at, or age-based purge.
+//
+// Indexes: unique, partial, and composite indexes are documented explicitly. Plain
+//   single-column indexes that Rails creates automatically for `t.references` are
+//   documented only on billing/financial tables, where query paths matter for review.
+// Check constraints have no DBML representation — they are recorded in column notes
+//   (non-negative money, allowed enum values, numeric ranges). Source: web/db/schema.rb.
 
 Table school_groups {
   id integer [primary key, increment]
@@ -35,12 +41,12 @@ Table schools {
 
 Table users {
   id integer [primary key, increment]
-  email varchar [not null, note: 'LGPD: personal data — partial unique WHERE discarded_at IS NULL']
+  email varchar [not null, default: '', note: 'LGPD: personal data — partial unique WHERE discarded_at IS NULL']
   encrypted_password varchar [not null, default: '']
   reset_password_token varchar [unique]
   reset_password_sent_at timestamp
   remember_created_at timestamp
-  sign_in_count integer [default: 0]
+  sign_in_count integer [not null, default: 0]
   current_sign_in_at timestamp
   last_sign_in_at timestamp
   current_sign_in_ip varchar
@@ -49,7 +55,7 @@ Table users {
   confirmed_at timestamp
   confirmation_sent_at timestamp
   unconfirmed_email varchar
-  failed_attempts integer [default: 0]
+  failed_attempts integer [not null, default: 0]
   unlock_token varchar [unique]
   locked_at timestamp [note: 'Devise lock — failed login attempts; distinct from status disabled']
   status varchar [not null, default: 'active', note: 'active | disabled — platform-wide auth block; revokes refresh_tokens']
@@ -125,11 +131,15 @@ Table students {
   school_id integer [not null]
   name varchar
   birth_date date [note: 'LGPD: child data — guardian consent required']
-  status varchar [note: 'Enrollment state — e.g. active | transferred; distinct from discarded_at']
+  status varchar [not null, default: 'active', note: 'Enrollment state — e.g. active | transferred; distinct from discarded_at']
   discarded_at timestamp [note: 'Discard gem — removed from active school records']
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
+
+  indexes {
+    (school_id, status)
+  }
 }
 
 Table teachers {
@@ -141,6 +151,7 @@ Table teachers {
   discarded_at timestamp [note: 'Discard gem — null = kept']
   created_at timestamp
   updated_at timestamp
+  Note: 'PLANNED — not migrated. No teachers table exists in web/db/schema.rb; the academic phase creates it. Teacher role is carried by memberships.role today.'
 }
 
 Table student_guardians {
@@ -148,7 +159,7 @@ Table student_guardians {
   guardian_id integer [not null]
   student_id integer [not null]
   school_id integer [not null]
-  financial_percentage decimal
+  financial_percentage decimal(5,2) [note: 'Check constraint: NULL or between 0 and 100']
   primary_guardian boolean
   discarded_at timestamp [note: 'Discard gem — unlink guardian↔student']
   created_at timestamp
@@ -166,7 +177,7 @@ Table billing_plans {
   school_id integer [not null]
   name varchar
   plan_type varchar [note: 'tuition | enrollment | fee']
-  base_amount_cents integer [note: 'Integer cents; nullable — optional template default when every contract carries negotiated_amount_cents. Charge generation resolves negotiated_amount_cents → base_amount_cents → 0.']
+  base_amount_cents integer [note: 'Integer cents; nullable — optional template default when every contract carries negotiated_amount_cents. Charge generation resolves negotiated_amount_cents → base_amount_cents → 0. Check constraint: base_amount_cents IS NULL OR base_amount_cents >= 0.']
   discarded_at timestamp [note: 'Discard gem — archived plan']
   created_at timestamp
   updated_at timestamp
@@ -175,9 +186,9 @@ Table billing_plans {
 Table school_payment_providers {
   id integer [primary key, increment]
   school_id integer [not null]
-  instrument varchar [not null, note: 'bank_slip — card added later without migration']
+  instrument varchar [not null, note: 'bank_slip — card added later without migration. Check constraint: instrument = bank_slip.']
   provider varchar [not null, note: 'cora | fake']
-  environment varchar [not null, note: 'stage | production']
+  environment varchar [not null, note: 'stage | production. Check constraint: environment IN (stage, production).']
   active boolean [not null, default: true]
   settings jsonb [not null, default: '{}']
   client_id varchar
@@ -200,7 +211,7 @@ Table school_payment_providers {
 Table school_billing_settings {
   id integer [primary key, increment]
   school_id integer [not null, unique]
-  overdue_grace_days integer [not null, default: 3, note: '0–30 days before a charge is marked overdue']
+  overdue_grace_days integer [not null, default: 3, note: '0–30 days before a charge is marked overdue. Check constraint: BETWEEN 0 AND 30.']
   service_description varchar(100) [note: 'Guardian-facing boleto line; default from i18n']
   notification_schedule jsonb [not null, default: '{}', note: 'Provider-agnostic reminder rules relative to due date']
   created_at timestamp
@@ -212,11 +223,11 @@ Table contracts {
   student_id integer [not null]
   school_id integer [not null]
   billing_plan_id integer [not null]
-  negotiated_amount_cents integer [note: 'Monetary amounts stored as integer cents']
+  negotiated_amount_cents integer [note: 'Monetary amounts stored as integer cents. Check constraint: negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0.']
   due_day integer [note: '1–28']
   starts_on date
   ends_on date
-  status varchar [note: 'active | suspended | ended']
+  status varchar [not null, default: 'active', note: 'active | suspended | ended']
   discarded_at timestamp [note: 'Discard gem — distinct from status ended']
   created_at timestamp
   updated_at timestamp
@@ -232,10 +243,10 @@ Table charges {
   school_id integer [not null]
   guardian_id integer [not null, note: 'Financially responsible guardian for this charge']
   billing_period date [not null, note: 'First day of billing month — e.g. 2026-08-01']
-  original_amount_cents integer [not null, note: 'Monetary amounts stored as integer cents']
-  discount_amount_cents integer [not null, default: 0]
-  late_fee_amount_cents integer [not null, default: 0]
-  total_amount_cents integer [not null]
+  original_amount_cents integer [not null, note: 'Monetary amounts stored as integer cents. Check constraint: >= 0.']
+  discount_amount_cents integer [not null, default: 0, note: 'Check constraint: >= 0']
+  late_fee_amount_cents integer [not null, default: 0, note: 'Check constraint: >= 0. Stays 0 today — Billing::LateFeeCalculator is a zero-returning placeholder until the fee rule is decided.']
+  total_amount_cents integer [not null, note: 'original - discount + late fee. Check constraint: >= 0.']
   due_date date
   status varchar [not null, default: 'pending', note: 'pending | paid | overdue | cancelled — business state; discard for erroneous removal']
   provider_invoice_id varchar [note: 'Cached active provider invoice id — canonical history in charge_issuances']
@@ -254,6 +265,10 @@ Table charges {
     (school_id, status)
     (school_id, due_date)
     provider_invoice_id [unique, note: 'WHERE provider_invoice_id IS NOT NULL']
+    contract_id
+    guardian_id
+    school_id
+    discarded_by_id
   }
 }
 
@@ -265,7 +280,7 @@ Table charge_issuances {
   provider_invoice_id varchar [note: 'Provider invoice id; partial unique when present']
   idempotency_key varchar [not null, note: 'Persisted before HTTP — retry-safe issuance']
   status varchar [not null, default: 'pending', note: 'pending | issued | failed | cancelled']
-  amount_cents integer [not null, note: 'Snapshot of charge total at issuance time']
+  amount_cents integer [not null, note: 'Snapshot of charge total at issuance time. Check constraint: >= 0.']
   due_date date [not null, note: 'Snapshot of charge due date at issuance time']
   boleto_url varchar
   digitable_line varchar
@@ -283,6 +298,7 @@ Table charge_issuances {
     idempotency_key [unique]
     provider_invoice_id [unique, note: 'WHERE provider_invoice_id IS NOT NULL']
     (charge_id, status)
+    charge_id
     school_id
   }
 }
@@ -292,19 +308,24 @@ Table applied_discounts {
   charge_id integer [not null]
   school_id integer [not null]
   discount_type varchar
-  amount_cents integer [note: 'Integer cents; nullable until discount application ships. Fixed-amount discount lines must set amount_cents; percentage discounts may leave NULL until a rate column exists.']
+  amount_cents integer [note: 'Integer cents; nullable until discount application ships. Fixed-amount discount lines must set amount_cents; percentage discounts may leave NULL until a rate column exists. Check constraint: amount_cents IS NULL OR amount_cents >= 0.']
   discarded_at timestamp [note: 'Discard gem — discount line removed']
   created_at timestamp
   updated_at timestamp
+
+  indexes {
+    charge_id
+    school_id
+  }
 }
 
 Table payments {
   id integer [primary key, increment]
   charge_id integer [not null]
   school_id integer [not null]
-  paid_amount_cents integer [not null, note: 'Monetary amounts stored as integer cents']
-  fine_amount_cents integer [not null, default: 0, note: 'Bank-reported fine component at settlement']
-  interest_amount_cents integer [not null, default: 0, note: 'Bank-reported interest component at settlement']
+  paid_amount_cents integer [not null, note: 'Monetary amounts stored as integer cents. Check constraint: >= 0.']
+  fine_amount_cents integer [not null, default: 0, note: 'Bank-reported fine component at settlement. Check constraint: >= 0.']
+  interest_amount_cents integer [not null, default: 0, note: 'Bank-reported interest component at settlement. Check constraint: >= 0.']
   payment_method varchar [note: 'boleto | pix | card']
   provider_payment_id varchar [note: 'Provider settlement id; partial unique when present']
   paid_at timestamp
@@ -315,6 +336,8 @@ Table payments {
 
   indexes {
     provider_payment_id [unique, note: 'WHERE provider_payment_id IS NOT NULL']
+    charge_id
+    school_id
   }
 }
 
@@ -325,13 +348,13 @@ Table webhook_events {
   provider_event_id varchar [not null, note: 'Idempotency key from provider — unique per provider']
   event_type varchar
   provider_resource_id varchar [note: 'Normalized invoice/resource id from the notification']
-  payload text
+  payload text [note: 'Raw notification body when the provider sends one; NULL for Cora, whose notification carries only event headers']
   processing_error text [note: 'Mismatch or permanent failure details — no PII']
   observed_status varchar [note: 'Invoice status observed during reconciliation']
-  processed_at timestamp
+  processed_at timestamp [note: 'Set when reconciliation finishes; drives the purge window']
   created_at timestamp
   updated_at timestamp
-  Note: 'No Discard — ingress audit log; purge by created_at after processing + retention'
+  Note: 'No Discard — ingress audit log. Processed rows are purged 180 days after processed_at (Billing::PurgeWebhookEventsJob; window from config.x.billing.webhook_events_retention_days, override via WEBHOOK_EVENTS_RETENTION_DAYS). Unprocessed rows (processed_at IS NULL) are never purged — they represent unreconciled money movement.'
 
   indexes {
     (provider, provider_event_id) [unique]
@@ -344,10 +367,10 @@ Table webhook_events {
 Table documents {
   id integer [primary key, increment]
   school_id integer [not null, note: 'Per-school isolation — required even for polymorphic parent']
-  documentable_type varchar [note: 'School | Guardian | Student — Teacher deferred to academic phase']
+  documentable_type varchar [not null, note: 'School | Guardian | Student — Teacher deferred to academic phase']
   documentable_id integer [not null]
   document_type varchar
-  status varchar [note: 'pending | approved | rejected']
+  status varchar [not null, default: 'pending', note: 'pending | approved | rejected']
   rejection_reason varchar
   uploaded_by_id integer
   reviewed_at timestamp
@@ -355,6 +378,11 @@ Table documents {
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
+
+  indexes {
+    (documentable_type, documentable_id)
+    (school_id, status)
+  }
 }
 
 // --- Relationships ---

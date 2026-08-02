@@ -1,6 +1,6 @@
 # PRD — Billing Module ("Fintech-first" Strategy for Schools)
 
-> Status: draft for partner validation (early childhood school director)  
+> Status: implemented in `web/` (billing domain, Cora integration); open items below remain  
 > Scope: domain bundle (identity, schools, people, billing, documents)  
 > API: [`docs/api/v1/fintech-first.md`](../api/v1/fintech-first.md)  
 > Relation to School Lab: derived front — does not replace the MVP order validated in  
@@ -122,8 +122,16 @@ computes `total_amount_cents` (original − discount + late fees when applicable
 
 BR-011
 
-Late fee/interest is configurable per school (rule details pending — see Open items).
-Overdue charges update `late_fee_amount_cents` and `total_amount_cents` before régua notifications.
+A charge becomes `overdue` after `due_date` plus the school's `overdue_grace_days`
+(`school_billing_settings`, 0–30, default 3), evaluated in the school timezone against
+the national business-day calendar (`Billing::BusinessDayCalendar`).
+
+When a charge is marked overdue the system recomputes
+`total_amount_cents = original − discount + late fee` and writes `late_fee_amount_cents`.
+**The late fee is 0 in the MVP:** `Billing::LateFeeCalculator` is a placeholder that
+returns zero, because the fee/interest rule (per school or per billing plan, and the
+formula itself) is still undecided — see Open items. The recomputation path is wired so
+that shipping the rule requires only the calculator, not a change to the overdue flow.
 
 BR-012
 
@@ -179,13 +187,21 @@ Input: provider webhook at `POST /webhooks/:provider/:token` (school resolved fr
 
 Flow:
 
-1. Persist raw payload in `webhook_events` (idempotent on `provider` + `provider_event_id`).
+1. Record a `webhook_events` row (idempotent on `provider` + `provider_event_id`) with the
+   event type and resource id from the notification headers. `payload` is NULL for Cora —
+   the notification has no body.
 2. Enqueue async job.
 3. Resolve target `charge_issuance` via `provider_resource_id` (provider invoice id).
 4. Call `fetch_invoice` on the bank slip adapter to confirm current invoice state.
 5. Create/update `payments` with `provider_payment_id`, `paid_amount_cents`, `paid_at`.
 6. Invoke `charge.pay!` when payment confirmed.
-7. Notify guardian and school. Emit `PaymentConfirmed`.
+7. Record `observed_status` and `processed_at` on the `webhook_events` row.
+   Emit `PaymentConfirmed`. Guardian/school notification is pending the channel decision.
+
+Because the notification is only a trigger, a lost or forged webhook cannot corrupt or
+silently drop a settlement: `Billing::DailyReconciliationJob` lists the last 14 days of
+provider invoices for each school every morning and settles anything the webhook path
+missed.
 
 ### UC-03 — Collection régua (dunning)
 
@@ -193,10 +209,19 @@ Input: overdue `charges`, school régua configuration.
 
 Flow:
 
-1. Daily job marks eligible `pending` charges past `due_date` as `overdue`.
-2. Apply late fee/interest per BR-011.
-3. Send reminders (D−N before due, on due date, D+1, D+3, D+7 — configurable).
-4. Reflect counts and amounts on `GET /billing/summary`.
+1. Daily job marks eligible `pending` charges past `due_date` + grace days as `overdue`
+   (`Billing::MarkOverdueChargesService`). **Implemented.**
+2. Recompute amounts per BR-011 — late fee resolves to 0 until the rule ships.
+   **Wired, fee rule pending.**
+3. Send reminders (D−N before due, on due date, D+1, D+3, D+7 — configurable per school
+   via `school_billing_settings.notification_schedule`). **Not implemented:**
+   `Billing::CollectionReguaNotifier` is invoked on each overdue transition but only
+   writes a log line — no guardian is contacted, because the channel (email, WhatsApp,
+   SMS) is still open. The schedule column exists but is not yet consumed.
+4. Reflect counts and amounts on `GET /billing/summary`. **Implemented.**
+
+MVP delivery therefore covers overdue *detection and visibility*; automated dunning
+(fee application and guardian reminders) is deliberately deferred, not forgotten.
 
 ### UC-04 — Guardian views and pays charges
 
@@ -283,7 +308,12 @@ guardian, documents.)
 
 | Method | Path | Auth |
 |--------|------|------|
-| `POST` | `/webhooks/:provider/:token` | Secret token in URL (per-school `webhook_endpoint_token`) |
+| `POST` | `/webhooks/:provider/:token` | Secret token in URL (per-school `webhook_endpoint_token`) — no HMAC signature |
+
+Cora's notification has no body and no signature, so there is nothing to sign. Security
+comes from the secret URL token plus the rule that reconciliation is decided by an
+authenticated `fetch_invoice` read, never by the notification content (see
+`docs/api/README.md`).
 
 ### Key endpoints by role
 
@@ -337,7 +367,7 @@ Do not duplicate full table definitions here. Update `schema.dbml` before migrat
 | Group | Tables |
 |-------|--------|
 | Identity | `users`, `memberships`, `refresh_tokens`, `device_tokens` |
-| School | `school_groups`, `schools`, `guardians`, `students`, `teachers`, `student_guardians` |
+| School | `school_groups`, `schools`, `guardians`, `students`, `student_guardians` (plus `teachers`, modeled in DBML but not migrated) |
 | Billing | `billing_plans`, `school_payment_providers`, `school_billing_settings`, `contracts`, `charges`, `charge_issuances`, `applied_discounts`, `payments`, `webhook_events` |
 | Documents (enrollment/KYC) | `documents` |
 | Auditing | `audits` (audited gem — not a domain entity) |
@@ -354,7 +384,7 @@ Any PRD entity change must be reflected in `schema.dbml` before `web/` implement
 |-------|---------|-----------|
 | `ChargeGenerated` | Job creates charge + enqueues issuance | Notifications, audit |
 | `ChargeOverdue` | Daily job marks overdue | Régua notifications, dashboard |
-| `ChargeCancelled` | `Billing::CancelCharge` | Provider void (if applicable), audit |
+| `ChargeCancelled` | `Billing::CancelChargeService` | Provider void (if applicable), audit |
 | `PaymentConfirmed` | Webhook job completes | Guardian + school notifications |
 | `WebhookReceived` | `POST /webhooks/:provider/:token` | Async job enqueue |
 | `WebhookProcessed` | Job success/failure | Monitoring/alerting on failure |
@@ -364,6 +394,20 @@ Any PRD entity change must be reflected in `schema.dbml` before `web/` implement
 | `DocumentApproved` / `DocumentRejected` | Review actions | Guardian notification (optional) |
 
 Payloads are internal (Solid Queue jobs / future event bus). No public event API in MVP.
+
+---
+
+## Scheduled jobs
+
+Configured in `web/config/recurring.yml` (Solid Queue), all on the `billing` queue.
+
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| `Billing::MonthlyChargeGenerationJob` | 6:00 on the 1st | Fan out charges for active contracts (manual trigger: `POST /billing/charge_generations`) |
+| `Billing::PurgeWebhookEventsJob` | 5:30 daily | Delete processed `webhook_events` older than the retention window (180 days) |
+| `Billing::DailyReconciliationJob` | 6:00 daily | List provider invoices from the last 14 days per active config and settle any paid invoice the webhook path missed; also reports charges still unissued |
+| `Billing::MarkOverdueChargesJob` | 6:30 daily | Apply grace days and transition charges to `overdue` |
+| `Billing::MonitorBillingHealthJob` | 7:00 daily | Surface issuance/reconciliation failures for alerting |
 
 ---
 
@@ -542,7 +586,9 @@ answers in implementation.
 - [ ] Migrated payment history (`source: migrated`, `external_reference`) — column or
       join table when import scope is defined.
 - [ ] Collection régua channel: email, WhatsApp, SMS, or combination per school.
-- [ ] Late fee/interest rule: per school or per billing plan.
+      Blocks `Billing::CollectionReguaNotifier`, which logs instead of notifying.
+- [ ] Late fee/interest rule: per school or per billing plan, plus the formula.
+      Blocks `Billing::LateFeeCalculator`, which returns 0.
 - [ ] Manually negotiated discount approval flow (scholarship, one-off agreement).
 - [ ] Invoice issuance (NFS-e) in MVP or later phase.
 - [ ] Platform SaaS billing model for schools.
@@ -557,8 +603,10 @@ answers in implementation.
 This PRD proposes an **inverted** build order relative to School Lab's validated MVP
 (communication as priority #1, Jul 2026). That is intentional for the billing-first partner.
 
-Foundational modeling has started in this monorepo: `docs/database/schema.dbml`,
-`docs/modeling/001-fintech-first.md`.
+The billing domain is now implemented in this monorepo (`web/`), on the schema in
+`docs/database/schema.dbml` and the narrative in `docs/modeling/001-fintech-first.md`.
+The convergence question below is therefore about how School Lab's communication and
+academic domains join these entities — not about whether to start.
 
 Two readings still open (`open-questions.md` — MVP and scope):
 
