@@ -112,10 +112,8 @@ module Gateways
           when 200
             payload = JSON.parse(response.body)
             token = payload.fetch("access_token")
-            expires_in = payload.fetch("expires_in", 86_400).to_i
-            margin = Configuration::TOKEN_SAFETY_MARGIN_SECONDS
-            token_cache.write(token, expires_in: [expires_in - margin, 60].max)
-            token
+            expires_in = payload.fetch("expires_in", 86_400)
+            token_cache.write(token, expires_in: Configuration.token_cache_ttl(expires_in))
           else
             map_response!(response)
           end

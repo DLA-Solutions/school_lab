@@ -20,8 +20,8 @@ gateways only translate request/response and raise typed errors.
 | Email | — | Open | Mailer + provider config |
 | S3 | — | Active Storage | `config/storage.yml` |
 
-Legacy `Gateways::Psp` remains in the tree until callers are fully migrated; new billing
-code uses `Gateways::BankSlip` only.
+All billing code uses `Gateways::BankSlip`; the legacy `Gateways::Psp` namespace no longer
+exists in the tree.
 
 ## Layout
 

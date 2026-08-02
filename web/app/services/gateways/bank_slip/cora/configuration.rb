@@ -26,6 +26,12 @@ module Gateways
             raise Gateways::BankSlip::ProviderError, "Unknown Cora environment: #{environment.inspect}"
           end
         end
+
+        # How long a token may be cached: the provider lifetime minus the safety margin.
+        # Never longer than the provider allows, so a short-lived token is not cached at all.
+        def token_cache_ttl(expires_in)
+          [ expires_in.to_i - TOKEN_SAFETY_MARGIN_SECONDS, 0 ].max
+        end
       end
     end
   end
