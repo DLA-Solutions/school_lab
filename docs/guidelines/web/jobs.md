@@ -62,8 +62,10 @@ Only `Gateways::BankSlip::TransientError` is retriable; `ValidationError`,
 
 - Services invoke AASM `event!` — not controllers or jobs directly.
 - Jobs may call a service that transitions state (e.g. push delivery after FCM success).
-- Do **not** enqueue jobs from model `after_*` callbacks — enqueue from services after
-  successful persistence (see `state-machines.md`).
+- Do **not** enqueue jobs from model `after_*` callbacks — enqueue from services, in the same
+  transaction that persists the record (see [Enqueueing](#enqueueing)). The callback ban is
+  about coupling and unpredictable ordering; it holds wherever the enqueue lives
+  (see `state-machines.md`).
 
 ## Error handling
 
@@ -77,14 +79,37 @@ Unexpected exceptions propagate for Solid Queue retry; fix the bug or add explic
 
 ## Enqueueing
 
-Enqueue from **services** after the transaction commits:
+Enqueue from **services**, **inside** the transaction that persists the record:
 
 ```ruby
-ActiveRecord::Base.transaction do
-  charge.save!
+# app/services/billing/generate_charges_service.rb
+def create_charge_for(contract, guardian, created, skipped_contract_ids)
+  ActiveRecord::Base.transaction do
+    charge = build_charge(contract, guardian)
+    charge.save!
+    Billing::IssueChargeJob.perform_later(charge.id, school.id)
+    created << charge
+  end
+rescue ActiveRecord::RecordNotUnique
+  skipped_contract_ids << contract.id
 end
-Billing::IssueChargeJob.perform_later(charge.id, school.id)
 ```
+
+Solid Queue shares the **primary connection** here: in `config/database.yml` the production
+`queue` database points at `primary_production`, and `config/environments/production.rb`
+deliberately omits `connects_to`. `perform_later` is therefore just another INSERT in the
+same transaction — a rollback discards the job together with the charge, and a worker cannot
+pick the job up before the commit makes its row visible. Enqueueing after the commit would
+open a window where the process dies and leaves a charge that is never issued.
+
+> **This depends on a condition that is invisible at the call site.** It holds only while the
+> queue lives in the primary database. If Solid Queue is ever moved to its own database, or
+> the adapter changes, the enqueue stops being transactional and must move **after** the
+> commit (`after_commit_everywhere`, or past the `transaction` block) — and every
+> in-transaction `perform_later` has to be revisited.
+
+Side effects that leave the database **synchronously** — inline gateway HTTP calls,
+`deliver_now` — still belong after the commit: a rollback cannot undo them.
 
 Issuance lifecycle lives on **`ChargeIssuance`**, not on `Charge`: `issue`, `mark_failed`,
 and `cancel` are `ChargeIssuance` events, invoked by `Billing::IssueChargeService` after the

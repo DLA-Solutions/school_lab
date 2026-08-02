@@ -98,8 +98,10 @@ app/services/
 4. **Transactions** — `ActiveRecord::Base.transaction` when multiple models must commit together.
 5. **State machines** — `return ResponseService.failure(code: :invalid_state_transition) unless record.may_cancel?` then
    `record.cancel!`. See [`state-machines.md`](state-machines.md).
-6. **Side effects** — enqueue jobs, send email, call gateways **after** successful persistence
-   (inside the transaction only when rollback must undo them; otherwise after commit).
+6. **Side effects** — enqueue jobs (`perform_later`, `deliver_later`) **inside** the
+   transaction: Solid Queue shares the primary connection, so a rollback discards the job too
+   (see [`jobs.md`](jobs.md)). Only synchronous external calls — inline gateway HTTP,
+   `deliver_now` — go after the commit, since the database cannot undo them.
 
 ```ruby
 # app/services/billing/cancel_charge_service.rb
