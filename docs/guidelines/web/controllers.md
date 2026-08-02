@@ -8,7 +8,7 @@ Rule: `.cursor/rules/web/controllers.mdc`. Skill: `review-api`.
 ## Role
 
 `web/` is **API-only** — JSON under `/api/v1`. Controllers orchestrate; they do not own
-business rules. Clients (`web-ui/`, `app/`) consume the same API.
+business rules. Clients (`frontend/main`, `app/`) consume the same API.
 
 ## Creating controllers
 

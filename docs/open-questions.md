@@ -8,9 +8,9 @@ a recorded decision (in vision/actors) or a PRD.
 Recorded from API planning session. Details in `docs/web-stack.md`, `docs/api/`,
 and `docs/modeling/002-api-auth.md`.
 
-- [x] **Web UI: React SPA** (`web-ui/`) — not Hotwire as primary UI.
+- [x] **Web UI: React SPA** (`frontend/main`) — not Hotwire as primary UI.
 - [x] **Mobile: React Native** (`app/`) — same API contract as web.
-- [x] **One API** — `/api/v1` serves both `web-ui` and `app`.
+- [x] **One API** — `/api/v1` serves both the web SPA and `app`.
 - [x] **API docs: rswag** — OpenAPI from request specs; Swagger UI in dev.
 - [x] **Auth: Devise + JWT** — access 20 min; refresh 90 days sliding (180 remember me);
       rotation on refresh; web refresh in httpOnly cookie; mobile in secure storage.
@@ -255,7 +255,7 @@ does not assume indefinite storage.
 
 Decisions finalized in `docs/web-stack.md`. Open items:
 
-- [x] **Web UI** — React SPA in `web-ui/` (not Hotwire).
+- [x] **Web UI** — React SPA in `frontend/main` (not Hotwire).
 - [x] **Mobile** — React Native in `app/`.
 - [x] **API** — single `/api/v1` for web and mobile; conventions in `docs/api/README.md`.
 - [x] **Web auth** — Devise credentials + JWT access + `refresh_tokens`. Schema:

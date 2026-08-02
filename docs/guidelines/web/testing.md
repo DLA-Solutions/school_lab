@@ -110,5 +110,5 @@ the state graph. See [`state-machines.md`](state-machines.md).
 
 ## Cross-surface note
 
-The same behavior-first principle applies to `web-ui/` (Vitest + RTL) and `app/` (Jest +
+The same behavior-first principle applies to `frontend/main` (Vitest + RTL) and `app/` (Jest +
 RN Testing Library). Surface-specific guidelines will expand when those codebases land.
