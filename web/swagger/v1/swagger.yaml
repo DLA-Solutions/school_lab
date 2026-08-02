@@ -256,6 +256,54 @@
       },
       "post": {
         "summary": "Upload bank credentials",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "instrument",
+                  "client_id",
+                  "certificate",
+                  "private_key"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": [
+                      "cora",
+                      "fake"
+                    ],
+                    "description": "Payment provider the credentials belong to"
+                  },
+                  "instrument": {
+                    "type": "string",
+                    "enum": [
+                      "bank_slip"
+                    ],
+                    "description": "Payment instrument the configuration is used for"
+                  },
+                  "client_id": {
+                    "type": "string",
+                    "description": "Client identifier issued by the provider"
+                  },
+                  "certificate": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "mTLS client certificate, PEM encoded"
+                  },
+                  "private_key": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Private key matching the certificate, PEM encoded"
+                  }
+                }
+              }
+            }
+          }
+        },
         "tags": [
           "Backoffice"
         ],
@@ -283,16 +331,6 @@
           "403": {
             "description": "forbidden for teacher"
           }
-        },
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          },
-          "required": true
         }
       }
     },
