@@ -2,11 +2,7 @@
 
 module Billing
   class MarkOverdueChargesService < ApplicationService
-    def self.grace_cutoff_for(school:, as_of: Date.current)
-      SchoolSettings.for(school).overdue_grace_cutoff(as_of: as_of)
-    end
-
-    def initialize(school: nil, as_of: Date.current)
+    def initialize(school: nil, as_of: nil)
       @school = school
       @as_of = as_of
     end
@@ -16,6 +12,7 @@ module Billing
 
       scope.find_each do |charge|
         next unless charge.may_mark_overdue?
+        next unless overdue?(charge)
 
         late_fee_cents = LateFeeCalculator.call(charge: charge)
         total_amount_cents = charge.original_amount_cents - charge.discount_amount_cents + late_fee_cents
@@ -31,12 +28,25 @@ module Billing
 
     private
 
-    attr_reader :school, :as_of
+    attr_reader :school
 
     def scope
-      charges = Charge.kept.pending.where("due_date < ?", as_of)
+      charges = Charge.kept.pending
       charges = charges.where(school_id: school.id) if school
       charges
+    end
+
+    def overdue?(charge)
+      settings = SchoolSettings.for(charge.school)
+      BusinessDayCalendar.overdue?(
+        due_date: charge.due_date,
+        grace_days: settings.overdue_grace_days,
+        as_of: evaluation_date_for(charge.school)
+      )
+    end
+
+    def evaluation_date_for(charge_school)
+      @as_of || SchoolTimezone.today_for(charge_school)
     end
   end
 end

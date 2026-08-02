@@ -70,7 +70,10 @@ module Billing
     end
 
     def default_due_date
-      Billing::SchoolTimezone.today_for(charge.school) + REISSUE_DUE_DATE_OFFSET_DAYS
+      BusinessDayCalendar.add_business_days(
+        SchoolTimezone.today_for(charge.school),
+        REISSUE_DUE_DATE_OFFSET_DAYS
+      )
     end
 
     def persist_issuance!(issuance, result)
