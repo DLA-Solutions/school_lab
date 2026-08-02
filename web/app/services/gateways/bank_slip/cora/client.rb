@@ -7,7 +7,7 @@ module Gateways
   module BankSlip
     module Cora
       class Client
-        def self.for_school(school:, environment: "stage")
+        def self.for_school(school:, environment: nil)
           config = Gateways::BankSlip::Registry.active_config(school: school, environment: environment)
           token_cache = TokenCache.new(
             school_id: school.id,

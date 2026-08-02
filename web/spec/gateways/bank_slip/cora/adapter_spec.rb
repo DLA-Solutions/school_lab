@@ -94,7 +94,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
     stub_request(:get, %r{\Ahttps://api\.stage\.cora\.com\.br/v2/invoices/\?})
       .to_return(
         status: 200,
-        body: { items: [invoice_payload] }.to_json,
+        body: { items: [ invoice_payload ] }.to_json,
         headers: { "Content-Type" => "application/json" }
       )
   end
@@ -146,7 +146,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
 
     it "raises ValidationError for provider validation failures" do
       stub_request(:post, "https://api.stage.cora.com.br/v2/invoices/")
-        .to_return(status: 422, body: { errors: [{ field: "customer.email" }] }.to_json)
+        .to_return(status: 422, body: { errors: [ { field: "customer.email" } ] }.to_json)
 
       expect { adapter.issue(issue_request) }
         .to raise_error(Gateways::BankSlip::ValidationError) { |error|
@@ -162,6 +162,53 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
 
       expect { adapter.issue(issue_request) }
         .to raise_error(Gateways::BankSlip::TransientError)
+    end
+  end
+
+  describe "environment resolution" do
+    let(:production_school) { create(:school) }
+    let(:production_pair) { OpensslCertificateHelper.generate_certificate_pair }
+
+    before do
+      create(:school_payment_provider, school: production_school, environment: "production",
+                                       certificate_pem: production_pair[:certificate_pem],
+                                       private_key_pem: production_pair[:private_key_pem],
+                                       client_id: "client-prod")
+
+      stub_request(:post, "https://matls-clients.api.cora.com.br/token")
+        .to_return(
+          status: 200,
+          body: { access_token: "prod-token", expires_in: 86_400 }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+      stub_request(:post, "https://api.cora.com.br/v2/invoices/")
+        .to_return(status: 200, body: invoice_payload.to_json, headers: { "Content-Type" => "application/json" })
+    end
+
+    it "issues against production hosts for a school configured as production" do
+      resolved = Gateways::BankSlip::Registry.resolve(school: production_school, provider: "cora")
+
+      resolved.issue(issue_request)
+
+      expect(WebMock).to have_requested(:post, "https://api.cora.com.br/v2/invoices/")
+      expect(WebMock).not_to have_requested(:post, "https://api.stage.cora.com.br/v2/invoices/")
+    end
+
+    it "never reaches production hosts for a school configured as stage" do
+      resolved = Gateways::BankSlip::Registry.resolve(school: school, provider: "cora")
+
+      resolved.issue(issue_request)
+
+      expect(WebMock).to have_requested(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      expect(WebMock).not_to have_requested(:post, "https://api.cora.com.br/v2/invoices/")
+      expect(WebMock).not_to have_requested(:post, "https://matls-clients.api.cora.com.br/token")
+    end
+
+    it "fails explicitly when the school has no active configuration" do
+      unconfigured = create(:school)
+
+      expect { Gateways::BankSlip::Registry.resolve(school: unconfigured, provider: "cora") }
+        .to raise_error(Gateways::BankSlip::Registry::UnknownProviderError, /No active bank_slip configuration/)
     end
   end
 

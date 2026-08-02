@@ -113,13 +113,13 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
     expect { client.get("/v1/timeout") }.to raise_error(Gateways::BankSlip::TransientError, /connection error/)
   end
 
-  it "targets environment-specific hosts" do
+  it "targets the hosts of the environment on the school's active configuration" do
     production_pair = OpensslCertificateHelper.generate_certificate_pair
     create(:school_payment_provider, school: school, environment: "production",
                                      certificate_pem: production_pair[:certificate_pem],
                                      private_key_pem: production_pair[:private_key_pem],
                                      client_id: "client-prod")
-    prod_client = described_class.for_school(school: school, environment: "production")
+    prod_client = described_class.for_school(school: school)
 
     stub_request(:post, "https://matls-clients.api.cora.com.br/token")
       .to_return(status: 200, body: { access_token: "prod-token", expires_in: 86_400 }.to_json)
