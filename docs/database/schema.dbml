@@ -297,6 +297,8 @@ Table payments {
   charge_id integer [not null]
   school_id integer [not null]
   paid_amount decimal
+  fine_amount decimal [note: 'Bank-reported fine component at settlement']
+  interest_amount decimal [note: 'Bank-reported interest component at settlement']
   payment_method varchar [note: 'boleto | pix | card']
   psp_transaction_id varchar
   paid_at timestamp
@@ -315,6 +317,7 @@ Table webhook_events {
   provider_resource_id varchar [note: 'Normalized invoice/resource id from the notification']
   payload text
   processing_error text [note: 'Mismatch or permanent failure details — no PII']
+  observed_status varchar [note: 'Invoice status observed during reconciliation']
   processed_at timestamp
   created_at timestamp
   updated_at timestamp

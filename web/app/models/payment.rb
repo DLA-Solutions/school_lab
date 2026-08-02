@@ -10,4 +10,6 @@ class Payment < ApplicationRecord
   validates :provider_payment_id, uniqueness: true, allow_nil: true
   validates :paid_amount_cents, presence: true
   validates :paid_amount_cents, numericality: { only_integer: true, greater_than: 0 }
+  validates :fine_amount_cents, :interest_amount_cents,
+            numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 end

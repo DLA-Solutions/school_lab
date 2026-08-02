@@ -79,6 +79,38 @@ module Gateways
                   .first(limit)
       end
 
+      def settle_invoice!(provider_invoice_id:, payment_method: "pix", fine_amount_cents: 0, interest_amount_cents: 0,
+                          paid_at: Time.current)
+        invoice = fetch_invoice(provider_invoice_id: provider_invoice_id)
+        payment = ValueObjects::RemotePayment.new(
+          provider_payment_id: "fake-pay-#{provider_invoice_id}",
+          paid_amount_cents: invoice.total_amount_cents + fine_amount_cents + interest_amount_cents,
+          paid_at: paid_at,
+          payment_method: payment_method,
+          fine_amount_cents: fine_amount_cents,
+          interest_amount_cents: interest_amount_cents
+        )
+        updated = ValueObjects::RemoteInvoice.new(
+          provider_invoice_id: invoice.provider_invoice_id,
+          status: "paid",
+          total_amount_cents: invoice.total_amount_cents,
+          due_date: invoice.due_date,
+          payments: [ payment ]
+        )
+        @invoices[provider_invoice_id] = updated
+        updated
+      end
+
+      def seed_open_invoice!(issuance:, charge:)
+        @invoices[issuance.provider_invoice_id] = ValueObjects::RemoteInvoice.new(
+          provider_invoice_id: issuance.provider_invoice_id,
+          status: "open",
+          total_amount_cents: charge.total_amount_cents,
+          due_date: charge.due_date,
+          payments: []
+        )
+      end
+
       def capabilities
         Capabilities.full
       end

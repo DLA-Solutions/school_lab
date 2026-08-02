@@ -47,7 +47,9 @@ module Gateways
             provider_payment_id: payment.fetch("id"),
             paid_amount_cents: coerce_amount_cents(payment.fetch("amount")),
             paid_at: Time.zone.parse(payment.fetch("occurrence_date")),
-            payment_method: normalize_payment_method(payment.fetch("method"))
+            payment_method: normalize_payment_method(payment.fetch("method")),
+            fine_amount_cents: coerce_optional_amount_cents(payment["fine"]),
+            interest_amount_cents: coerce_optional_amount_cents(payment["interest"])
           )
         end
 
@@ -76,6 +78,12 @@ module Gateways
           Integer(value)
         rescue ArgumentError, TypeError
           raise ProviderError, "Invalid amount from provider"
+        end
+
+        def coerce_optional_amount_cents(value)
+          return 0 if value.nil?
+
+          coerce_amount_cents(value)
         end
       end
     end

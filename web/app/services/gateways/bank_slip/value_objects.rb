@@ -80,14 +80,19 @@ module Gateways
         :provider_payment_id,
         :paid_amount_cents,
         :paid_at,
-        :payment_method
+        :payment_method,
+        :fine_amount_cents,
+        :interest_amount_cents
       ) do
-        def initialize(provider_payment_id:, paid_amount_cents:, paid_at:, payment_method:)
+        def initialize(provider_payment_id:, paid_amount_cents:, paid_at:, payment_method:,
+                       fine_amount_cents: 0, interest_amount_cents: 0)
           super(
             provider_payment_id: provider_payment_id,
             paid_amount_cents: IntegerCents.coerce!(paid_amount_cents, :paid_amount_cents),
             paid_at: paid_at,
-            payment_method: payment_method
+            payment_method: payment_method,
+            fine_amount_cents: IntegerCents.coerce!(fine_amount_cents, :fine_amount_cents),
+            interest_amount_cents: IntegerCents.coerce!(interest_amount_cents, :interest_amount_cents)
           )
         end
       end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_01_230335) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_01_230440) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -237,6 +237,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_230335) do
   create_table "payments", force: :cascade do |t|
     t.bigint "charge_id", null: false
     t.datetime "created_at", null: false
+    t.integer "fine_amount_cents", default: 0, null: false
+    t.integer "interest_amount_cents", default: 0, null: false
     t.integer "paid_amount_cents", null: false
     t.datetime "paid_at"
     t.string "payment_method"
@@ -247,6 +249,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_230335) do
     t.index ["charge_id"], name: "index_payments_on_charge_id"
     t.index ["provider_payment_id"], name: "index_payments_on_provider_payment_id", unique: true, where: "(provider_payment_id IS NOT NULL)"
     t.index ["school_id"], name: "index_payments_on_school_id"
+    t.check_constraint "fine_amount_cents >= 0", name: "payments_fine_amount_cents_non_negative"
+    t.check_constraint "interest_amount_cents >= 0", name: "payments_interest_amount_cents_non_negative"
     t.check_constraint "paid_amount_cents >= 0", name: "payments_paid_amount_cents_non_negative"
   end
 
@@ -514,6 +518,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_230335) do
   create_table "webhook_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "event_type"
+    t.string "observed_status"
     t.text "payload"
     t.datetime "processed_at"
     t.text "processing_error"
