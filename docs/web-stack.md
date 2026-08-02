@@ -1,6 +1,6 @@
 # Web Stack — School Lab
 
-> Folders: `web/` (Rails API), `web-ui/` (React SPA), `app/` (React Native)  
+> Folders: `web/` (Rails API), `frontend/main` (React SPA), `app/` (React Native)  
 > Status: finalized decision (web layer)
 
 Rails 8.1 API monolith with a versioned JSON REST API consumed by **React web** and
@@ -14,7 +14,7 @@ the MVP: app + PostgreSQL + S3.
 | Language | Ruby 4.0.x |
 | Framework | Rails 8.1.x |
 | API | REST JSON `/api/v1` |
-| Web UI | **React** SPA (`web-ui/`) — Vite |
+| Web UI | **React** SPA (`frontend/main`) — Vite |
 | Mobile UI | **React Native** (`app/`) |
 | API docs | **rswag** → OpenAPI (`swagger/v1/swagger.yaml`) |
 | Database | PostgreSQL 16+ |
@@ -30,23 +30,25 @@ the MVP: app + PostgreSQL + S3.
 
 ```
 school_lab/
-  web/       # Rails — API, services, models, jobs (no Hotwire UI)
-  web-ui/    # React SPA — backoffice, school, teacher, guardian (web)
-  app/       # React Native — school, teacher, parents (mobile)
-  docs/api/  # API conventions + route narratives
+  web/            # Rails — API, services, models, jobs (no Hotwire UI)
+  frontend/main/  # React SPA — backoffice, school, teacher, guardian (web)
+  frontend/base/  # upstream template the SPA started from — reference only
+  app/            # React Native — school, teacher, parents (mobile)
+  docs/api/       # API conventions + route narratives
 ```
 
 | Folder | Role |
 |--------|------|
 | `web/` | Single source of business rules; `/api/v1` only for product UI |
-| `web-ui/` | Consumes API with JWT; refresh via httpOnly cookie |
+| `frontend/main` | Consumes API with JWT; refresh via httpOnly cookie |
+| `frontend/base` | Upstream template (`dashdark-x`); reference only, not the product |
 | `app/` | Consumes same API; refresh in secure device storage |
 
 All product controllers delegate to the same service objects — rules are not duplicated.
 
-## 3. Web frontend (`web-ui/`)
+## 3. Web frontend (`frontend/main`)
 
-React SPA (planned: Vite + TypeScript + Tailwind).
+React SPA on Vite + TypeScript; Tailwind planned.
 
 | Concern | Approach |
 |---------|----------|
@@ -66,13 +68,13 @@ React Native consuming the same `/api/v1` contract.
 |---------|----------|
 | Auth | JWT access in memory; refresh in Keychain/Keystore |
 | Push | FCM device tokens via `POST /api/v1/me/device_tokens` |
-| API client | Shared patterns with `web-ui` where possible |
+| API client | Shared patterns with the web SPA where possible |
 
 ## 5. Authentication and authorization
 
 | Channel | Mechanism |
 |-------|-----------|
-| **Web (`web-ui`)** | JWT access (Bearer) + refresh **httpOnly cookie** |
+| **Web SPA** | JWT access (Bearer) + refresh **httpOnly cookie** |
 | **Mobile (`app`)** | JWT access + refresh token (secure storage) |
 | **Credentials** | **Devise** on `users` (password, reset, lock) |
 
@@ -127,13 +129,13 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Push** | FCM via Solid Queue | Async delivery |
 | **Storage** | Active Storage → S3 | Documents |
 | **Server** | Puma | Rails default |
-| **CORS** | rack-cors | `web-ui` origins |
+| **CORS** | rack-cors | Web SPA origins |
 
 ### Minimal infrastructure (MVP)
 
 ```
 Rails API  →  PostgreSQL  →  S3
-web-ui SPA →  CDN or static host
+React SPA  →  CDN or static host
 React Native → stores
 ```
 
@@ -157,7 +159,7 @@ Event (e.g., attendance recorded)
 |------|------|
 | Unit / model / service | RSpec |
 | API + OpenAPI | RSpec request specs + **rswag** |
-| Web UI | Vitest + React Testing Library (in `web-ui/`) |
+| Web UI | Vitest + React Testing Library (in `frontend/main`) |
 | Mobile | Jest + RN Testing Library (in `app/`) |
 | Factories | FactoryBot |
 
@@ -167,10 +169,10 @@ Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testin
 
 | Surface | Channel | MVP |
 |---------|---------|-----|
-| DLA backoffice | `web-ui` | Yes |
-| School admin | `web-ui` (+ light `app`) | Yes |
-| Teacher | `web-ui` + `app` | Yes |
-| Parents | `app` (+ `web-ui` phase 2) | App first for boletos |
+| DLA backoffice | Web SPA | Yes |
+| School admin | Web SPA (+ light `app`) | Yes |
+| Teacher | Web SPA + `app` | Yes |
+| Parents | `app` (+ web SPA phase 2) | App first for boletos |
 
 ## 11. Conventions
 
@@ -191,7 +193,7 @@ Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testin
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
-        WebUI[web-ui React SPA]
+        WebUI[React SPA]
         MobileApp[app React Native]
     end
 
@@ -236,7 +238,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
-        WebUI[web-ui]
+        WebUI[Web SPA]
         MobileApp[app]
     end
 
@@ -292,7 +294,7 @@ See `docs/open-questions.md` (Web stack section):
 **Finalized decisions (Jul 2026):**
 
 - Language & framework: Ruby 4.0.5, Rails 8.1.3.
-- **Web UI: React SPA** (`web-ui/`), not Hotwire.
+- **Web UI: React SPA** (`frontend/main`), not Hotwire.
 - **Mobile: React Native** (`app/`).
 - **One API** for web and mobile (`/api/v1`).
 - Auth: Devise credentials + JWT access + `refresh_tokens`.

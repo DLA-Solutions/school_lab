@@ -82,9 +82,9 @@
 
 ## 5. Stack by channel
 
-### web-ui + app (finalized decision)
+### Web SPA + app (finalized decision)
 
-**React web** (`web-ui/`) and **React Native** (`app/`) both consume the same
+**React web** (`frontend/main`) and **React Native** (`app/`) both consume the same
 versioned JSON REST API (`/api/v1`) from Rails (`web/`). Details in `docs/web-stack.md`
 and `docs/api/README.md`.
 

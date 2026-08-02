@@ -1,11 +1,11 @@
 ---
 name: review-web-ui
-description: Reviews React SPA changes in web-ui/ against School Lab conventions, API contract, and official library documentation via Context7. Use when reviewing web-ui components, pages, hooks, API client, auth, routing, state, i18n, or Vitest tests.
+description: Reviews React SPA changes in frontend/main against School Lab conventions, API contract, and official library documentation via Context7. Use when reviewing web SPA components, pages, hooks, API client, auth, routing, state, i18n, or Vitest tests.
 ---
 
 # Review Web UI
 
-School Lab–specific code review for the React SPA (`web-ui/`). Complements `review-api`
+School Lab–specific code review for the React SPA (`frontend/main`). Complements `review-api`
 (contract on the server), `review-bugbot`, and `review-security` — use this skill when the
 change touches browser UI, client auth, or API consumption patterns.
 
@@ -13,15 +13,17 @@ change touches browser UI, client auth, or API consumption patterns.
 
 | Area | Paths |
 |------|-------|
-| UI | `web-ui/src/components/**`, `web-ui/src/pages/**`, `web-ui/src/features/**` |
-| Routing | `web-ui/src/routes/**`, router config |
-| API client | `web-ui/src/api/**`, `web-ui/src/lib/api/**` |
-| Auth | `web-ui/src/auth/**`, token/refresh handling |
-| State | `web-ui/src/stores/**`, feature contexts |
-| i18n | `web-ui/src/locales/**`, `web-ui/public/locales/**` |
-| Types | `web-ui/src/types/**` (OpenAPI-generated or hand-written) |
-| Tests | `web-ui/**/*.test.ts`, `web-ui/**/*.test.tsx`, `web-ui/**/*.spec.ts(x)` |
-| Config | `web-ui/vite.config.*`, `web-ui/tsconfig.*` when affecting API/auth |
+| UI | `frontend/main/src/components/**`, `frontend/main/src/pages/**`, `frontend/main/src/features/**` |
+| Routing | `frontend/main/src/routes/**`, router config |
+| API client | `frontend/main/src/api/**`, `frontend/main/src/lib/api/**` |
+| Auth | `frontend/main/src/auth/**`, token/refresh handling |
+| State | `frontend/main/src/stores/**`, feature contexts |
+| i18n | `frontend/main/src/locales/**`, `frontend/main/public/locales/**` |
+| Types | `frontend/main/src/types/**` (OpenAPI-generated or hand-written) |
+| Tests | `frontend/main/**/*.test.ts`, `frontend/main/**/*.test.tsx`, `frontend/main/**/*.spec.ts(x)` |
+| Config | `frontend/main/vite.config.*`, `frontend/main/tsconfig.*` when affecting API/auth |
+
+`frontend/base` is the upstream template the SPA started from — out of scope for review.
 
 Skip unrelated tooling unless it changes runtime behavior (auth, API base URL, CORS assumptions).
 

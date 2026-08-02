@@ -4,7 +4,7 @@
 > Narrative auth model: [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md)  
 > Fintech-first routes (MVP): [`v1/fintech-first.md`](v1/fintech-first.md)
 
-Versioned JSON REST API consumed by **React web** (`web-ui/`) and **React Native** (`app/`).
+Versioned JSON REST API consumed by **React web** (`frontend/main`) and **React Native** (`app/`).
 Business rules live in Rails service objects — clients never duplicate domain logic.
 
 ## Base URL and versioning
@@ -20,7 +20,7 @@ Business rules live in Rails service objects — clients never duplicate domain 
 
 ```mermaid
 flowchart LR
-  WebUI[web-ui React SPA]
+  WebUI[React SPA]
   Mobile[app React Native]
   API["/api/v1"]
   Rails[web/ Rails API]
@@ -31,7 +31,7 @@ flowchart LR
 ```
 
 - **`web/`** — Rails 8.1: API controllers, services, models, jobs.
-- **`web-ui/`** — React SPA (Vite); planned folder at monorepo root.
+- **`frontend/main`** — React SPA (Vite); the product web UI.
 - **`app/`** — React Native mobile apps.
 
 ## Multi-school context
@@ -138,11 +138,11 @@ Workflow:
 OpenAPI **tags** currently emitted in `swagger/v1/swagger.yaml`: `Auth`, `Backoffice`,
 `Billing`, `Communication`, `Documents`, `Guardian Me`, `Me`, `People`.
 
-Optional client codegen: `openapi-typescript` or `orval` in `web-ui/` and `app/`.
+Optional client codegen: `openapi-typescript` or `orval` in `frontend/main` and `app/`.
 
 ## CORS
 
-`rack-cors` allows `web-ui` origin in development and production deploy URLs.
+`rack-cors` allows the web SPA origin in development and production deploy URLs.
 Mobile apps do not use CORS.
 
 ## Webhooks (not in public OpenAPI)

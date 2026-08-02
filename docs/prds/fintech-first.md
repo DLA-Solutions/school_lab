@@ -53,7 +53,7 @@ expanding later into academic management and communication.
 
 **Surfaces (MVP)**
 
-- **School admin**: responsive web (`web-ui/`) — plans, contracts, charges, dashboard.
+- **School admin**: responsive web SPA (`frontend/main`) — plans, contracts, charges, dashboard.
 - **Guardian**: responsive web portal in MVP; Wave 2 API is contract-ready for
   React Native (`app/`) when that channel ships. Fintech-first partner validation does
   not block on a dedicated mobile release.
