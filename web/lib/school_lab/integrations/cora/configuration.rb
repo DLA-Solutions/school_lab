@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module Gateways
-  module BankSlip
+module SchoolLab
+  module Integrations
     module Cora
       module Configuration
         CONNECT_TIMEOUT = 5
@@ -15,7 +15,7 @@ module Gateways
           token_url = ENV["CORA_TOKEN_URL"]
 
           if api_base_url.blank? || token_url.blank?
-            raise Gateways::BankSlip::ProviderError,
+            raise ConfigurationError,
                   "CORA_API_BASE_URL and CORA_TOKEN_URL must be set"
           end
 

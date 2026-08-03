@@ -2,27 +2,25 @@
 
 require "rails_helper"
 
-RSpec.describe Gateways::BankSlip::Cora::Client do
+RSpec.describe SchoolLab::Integrations::Cora::Client do
   include ActiveSupport::Testing::TimeHelpers
 
-  let(:school) { create(:school) }
   let(:pair) { OpensslCertificateHelper.generate_certificate_pair }
-  let!(:provider_config) do
-    create(:school_payment_provider, school: school, provider: "cora",
-                                     certificate_pem: pair[:certificate_pem],
-                                     private_key_pem: pair[:private_key_pem],
-                                     client_id: "client-stage-001")
-  end
   let(:cache) { ActiveSupport::Cache.lookup_store(:memory_store) }
+  let(:token_cache) do
+    SchoolLab::Integrations::Cora::TokenCache.new(
+      school_id: 1,
+      provider: "cora",
+      token_url: CORA_TEST_TOKEN_URL,
+      cache: cache
+    )
+  end
   let(:client) do
     described_class.new(
-      config: provider_config,
-      token_cache: Gateways::BankSlip::Cora::TokenCache.new(
-        school_id: school.id,
-        provider: "cora",
-        token_url: CORA_TEST_TOKEN_URL,
-        cache: cache
-      )
+      client_id: "client-stage-001",
+      certificate_pem: pair[:certificate_pem],
+      private_key_pem: pair[:private_key_pem],
+      token_cache: token_cache
     )
   end
 
@@ -64,7 +62,7 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
 
     client.get("/v1/invoices")
 
-    cache_ttl = Gateways::BankSlip::Cora::Configuration.token_cache_ttl(3_600)
+    cache_ttl = SchoolLab::Integrations::Cora::Configuration.token_cache_ttl(3_600)
 
     travel(cache_ttl - 60) { client.get("/v1/invoices") }
     expect(WebMock).to have_requested(:post, CORA_TEST_TOKEN_URL).once
@@ -84,13 +82,18 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
   end
 
   it "uses separate token requests for different schools" do
-    other_school = create(:school)
-    other_pair = OpensslCertificateHelper.generate_certificate_pair
-    create(:school_payment_provider, school: other_school, provider: "cora",
-                                     certificate_pem: other_pair[:certificate_pem],
-                                     private_key_pem: other_pair[:private_key_pem],
-                                     client_id: "client-other")
-    other_client = described_class.for_school(school: other_school)
+    other_token_cache = SchoolLab::Integrations::Cora::TokenCache.new(
+      school_id: 2,
+      provider: "cora",
+      token_url: CORA_TEST_TOKEN_URL,
+      cache: cache
+    )
+    other_client = described_class.new(
+      client_id: "client-other",
+      certificate_pem: pair[:certificate_pem],
+      private_key_pem: pair[:private_key_pem],
+      token_cache: other_token_cache
+    )
 
     stub_cora_api(:get, "/v1/invoices", status: 200, body: '{"ok":true}')
 
@@ -104,7 +107,7 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
     stub_cora_api(:get, "/v1/invoices", status: 401, body: "unauthorized")
       .times(2)
 
-    expect { client.get("/v1/invoices") }.to raise_error(Gateways::BankSlip::AuthenticationError)
+    expect { client.get("/v1/invoices") }.to raise_error(SchoolLab::Integrations::Cora::AuthenticationError)
     expect(WebMock).to have_requested(:post, CORA_TEST_TOKEN_URL).twice
   end
 
@@ -113,15 +116,15 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
     stub_cora_api(:get, "/v1/validation", status: 422, body: '{"code":"invalid"}')
     stub_cora_api(:get, "/v1/forbidden", status: 403, body: "forbidden")
 
-    expect { client.get("/v1/bad") }.to raise_error(Gateways::BankSlip::TransientError)
-    expect { client.get("/v1/validation") }.to raise_error(Gateways::BankSlip::ValidationError)
-    expect { client.get("/v1/forbidden") }.to raise_error(Gateways::BankSlip::AuthenticationError)
+    expect { client.get("/v1/bad") }.to raise_error(SchoolLab::Integrations::Cora::TransientError)
+    expect { client.get("/v1/validation") }.to raise_error(SchoolLab::Integrations::Cora::ValidationError)
+    expect { client.get("/v1/forbidden") }.to raise_error(SchoolLab::Integrations::Cora::AuthenticationError)
   end
 
   it "maps connection timeouts to TransientError" do
     stub_cora_api(:get, "/v1/timeout").to_timeout
 
-    expect { client.get("/v1/timeout") }.to raise_error(Gateways::BankSlip::TransientError, /connection error/)
+    expect { client.get("/v1/timeout") }.to raise_error(SchoolLab::Integrations::Cora::TransientError, /connection error/)
   end
 
   it "targets the billing URLs from ENV, not a school attribute" do
@@ -131,7 +134,15 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
       stub_request(:get, "#{CORA_ALT_API_BASE_URL}/v1/invoices")
         .to_return(status: 200, body: '{"ok":true}')
 
-      described_class.for_school(school: school).get("/v1/invoices")
+      described_class.new(
+        client_id: "client-stage-001",
+        certificate_pem: pair[:certificate_pem],
+        private_key_pem: pair[:private_key_pem],
+        token_cache: SchoolLab::Integrations::Cora::TokenCache.new(
+          school_id: 1, provider: "cora", token_url: CORA_ALT_TOKEN_URL, cache: cache
+        ),
+        billing_urls: SchoolLab::Integrations::Cora::Configuration.current
+      ).get("/v1/invoices")
     end
 
     expect(WebMock).to have_requested(:get, "#{CORA_ALT_API_BASE_URL}/v1/invoices")
@@ -139,11 +150,11 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
   end
 
   it "does not reuse a token minted for another token URL" do
-    primary_cache = Gateways::BankSlip::Cora::TokenCache.new(
-      school_id: school.id, provider: "cora", token_url: CORA_TEST_TOKEN_URL, cache: cache
+    primary_cache = SchoolLab::Integrations::Cora::TokenCache.new(
+      school_id: 1, provider: "cora", token_url: CORA_TEST_TOKEN_URL, cache: cache
     )
-    alternate_cache = Gateways::BankSlip::Cora::TokenCache.new(
-      school_id: school.id, provider: "cora", token_url: CORA_ALT_TOKEN_URL, cache: cache
+    alternate_cache = SchoolLab::Integrations::Cora::TokenCache.new(
+      school_id: 1, provider: "cora", token_url: CORA_ALT_TOKEN_URL, cache: cache
     )
     primary_cache.write("primary-token", expires_in: 3_600)
 
@@ -154,7 +165,7 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
   it "does not include secrets in raised errors" do
     stub_cora_api(:get, "/v1/secret", status: 403, body: "forbidden")
 
-    expect { client.get("/v1/secret") }.to raise_error(Gateways::BankSlip::AuthenticationError) do |error|
+    expect { client.get("/v1/secret") }.to raise_error(SchoolLab::Integrations::Cora::AuthenticationError) do |error|
       message = error.message
       aggregate_failures do
         expect(message).not_to include("BEGIN")
@@ -165,16 +176,16 @@ RSpec.describe Gateways::BankSlip::Cora::Client do
   end
 end
 
-RSpec.describe Gateways::BankSlip::Cora::Configuration do
+RSpec.describe SchoolLab::Integrations::Cora::Configuration do
   it "sets explicit timeouts on the client" do
     expect(described_class::CONNECT_TIMEOUT).to eq(5)
     expect(described_class::READ_TIMEOUT).to eq(10)
   end
 
-  it "raises ProviderError when billing URLs are missing" do
+  it "raises ConfigurationError when billing URLs are missing" do
     with_cora_billing_urls(api_base_url: nil, token_url: nil) do
       expect { described_class.current }
-        .to raise_error(Gateways::BankSlip::ProviderError, /CORA_API_BASE_URL/)
+        .to raise_error(SchoolLab::Integrations::Cora::ConfigurationError, /CORA_API_BASE_URL/)
     end
   end
 end
