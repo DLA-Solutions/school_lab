@@ -38,7 +38,7 @@ module Auth
         expires_at: ttl.from_now,
         created_at: Time.current
       )
-      [raw_token, record]
+      [ raw_token, record ]
     end
   end
 end

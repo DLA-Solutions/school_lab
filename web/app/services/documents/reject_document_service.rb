@@ -11,7 +11,7 @@ module Documents
       if rejection_reason.blank?
         return ResponseService.failure(
           code: :validation_error,
-          details: { rejection_reason: ["can't be blank"] }
+          details: { rejection_reason: [ "can't be blank" ] }
         )
       end
 

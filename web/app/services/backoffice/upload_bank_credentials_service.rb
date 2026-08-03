@@ -58,11 +58,11 @@ module Backoffice
     end
 
     def read_limited_pem(io, field:)
-      return ResponseService.failure(code: :validation_error, details: { field => ["blank"] }) if io.blank?
+      return ResponseService.failure(code: :validation_error, details: { field => [ "blank" ] }) if io.blank?
 
       bytes = io.read(MAX_FILE_BYTES + 1)
       if bytes.bytesize > MAX_FILE_BYTES
-        return ResponseService.failure(code: :validation_error, details: { field => ["too_large"] })
+        return ResponseService.failure(code: :validation_error, details: { field => [ "too_large" ] })
       end
 
       bytes.to_s

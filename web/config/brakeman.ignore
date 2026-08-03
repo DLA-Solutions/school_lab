@@ -1,0 +1,23 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "bcc9ea8410d2484e953fa2361cd45b3cda849baf35932c90db44037eda0fd4c5",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/api/v1/schools/people/memberships_controller.rb",
+      "line": 66,
+      "code": "params.require(:membership).permit(:email, :role, :guardian_id)",
+      "location": {
+        "type": "method",
+        "class": "Api::V1::Schools::People::MembershipsController",
+        "method": "membership_params"
+      },
+      "user_input": ":role",
+      "confidence": "Medium",
+      "note": "False positive. Brakeman flags :role from its default dangerous-key list, but choosing the role is the purpose of the invite endpoint and MembershipPolicy#create? already limits it to active school staff of the current school. It is not a path to the privileged tier: User#backoffice? requires role 'backoffice' AND school_id nil AND an active membership, while People::CreateMembershipService builds through school.memberships (school_id is always the current school, never nil) and hardcodes status 'invited'. Role values are further constrained by Membership::ROLES. The :guardian_id key in the same permit list is dead - memberships has no guardian_id column and the service never reads it - and should be dropped, but that is a cleanup, not a vulnerability."
+    }
+  ],
+  "brakeman_version": "8.0.5"
+}

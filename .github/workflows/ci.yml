@@ -1,0 +1,137 @@
+name: CI
+
+# GitHub Actions only reads workflows from .github/workflows at the repository root, so this
+# lives here even though the Rails app is in web/. Every job below therefore runs from web/.
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+# Deliberately unfiltered by path: this is the merge gate, and a workflow skipped by a paths
+# filter never reports a status, which leaves a required check pending forever.
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: web
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    env:
+      RUBOCOP_CACHE_ROOT: tmp/rubocop
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: web
+
+      - name: Prepare RuboCop cache
+        uses: actions/cache@v4
+        env:
+          DEPENDENCIES_HASH: ${{ hashFiles('web/.ruby-version', 'web/.rubocop.yml', 'web/.rubocop_todo.yml', 'web/Gemfile.lock') }}
+        with:
+          path: web/${{ env.RUBOCOP_CACHE_ROOT }}
+          key: rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-${{ github.ref_name == github.event.repository.default_branch && github.run_id || 'default' }}
+          restore-keys: |
+            rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-
+
+      - name: Lint code for consistent style
+        run: bin/rubocop -f github
+
+  scan_ruby:
+    name: Security scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: web
+
+      - name: Scan for common Rails security vulnerabilities using static analysis
+        run: bin/brakeman --no-pager --exit-on-error
+
+      - name: Scan for known security vulnerabilities in gems used
+        run: bin/bundler-audit
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: school_lab
+          POSTGRES_PASSWORD: school_lab
+          POSTGRES_DB: school_lab_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U school_lab -d school_lab_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: school_lab
+      POSTGRES_PASSWORD: school_lab
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: web
+
+      - name: Prepare test database
+        run: bin/rails db:test:prepare
+
+      - name: Run the test suite
+        run: bundle exec rspec
+
+      # The root openapi.yml workflow only fires on a handful of paths, so a change to a
+      # blueprint or a controller can drift the contract without it ever running.
+      - name: Regenerate OpenAPI from request specs
+        run: bundle exec rake rswag:specs:swaggerize
+
+      - name: Fail on OpenAPI drift
+        run: git diff --exit-code swagger/v1/swagger.yaml
+
+  build_image:
+    name: Production image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Nothing else exercises the production bundle, so a gem that is absent outside the
+      # development group only surfaces here.
+      - name: Build the production image
+        uses: docker/build-push-action@v6
+        with:
+          context: web
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
