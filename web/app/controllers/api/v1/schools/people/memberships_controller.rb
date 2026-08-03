@@ -63,7 +63,7 @@ module Api
           private
 
           def membership_params
-            params.require(:membership).permit(:email, :role, :guardian_id)
+            params.require(:membership).permit(:email, :role)
           end
 
           def membership_update_params

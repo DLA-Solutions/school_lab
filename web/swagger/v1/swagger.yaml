@@ -1459,9 +1459,6 @@
                       },
                       "role": {
                         "type": "string"
-                      },
-                      "guardian_id": {
-                        "type": "integer"
                       }
                     },
                     "required": [

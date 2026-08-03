@@ -27,8 +27,7 @@ RSpec.describe "Api::V1::Schools::People::Memberships", type: :request do
             type: :object,
             properties: {
               email: { type: :string },
-              role: { type: :string },
-              guardian_id: { type: :integer }
+              role: { type: :string }
             },
             required: %w[email role]
           }
@@ -42,8 +41,7 @@ RSpec.describe "Api::V1::Schools::People::Memberships", type: :request do
           {
             membership: {
               email: "invite@example.com",
-              role: "guardian",
-              guardian_id: guardian.id
+              role: "guardian"
             }
           }
         end
@@ -52,6 +50,8 @@ RSpec.describe "Api::V1::Schools::People::Memberships", type: :request do
           body = JSON.parse(response.body)
           expect(body.dig("data", "status")).to eq("invited")
           expect(body.dig("data", "role")).to eq("guardian")
+          # The guardian profile is linked when the invite is accepted, matched by email — an
+          # invite on its own leaves it unlinked.
           expect(guardian.reload.user_id).to be_nil
 
           membership = Membership.kept.find(body.dig("data", "id"))
