@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "net/http"
 require "uri"
 
 module Gateways
@@ -40,26 +39,29 @@ module Gateways
         attr_reader :config, :token_cache, :billing_urls
 
         def request(method, path, body: nil, content_type: "application/json", idempotency_key: nil, retried: false)
-          response = with_connection_rescue do
-            authenticated_request(method, path, body: body, content_type: content_type, idempotency_key: idempotency_key)
+          response = SchoolLab::Http.execute do
+            authenticated_request(method, path, body: body, content_type: content_type,
+                                                idempotency_key: idempotency_key)
           end
 
-          if response.code.to_i == 401 && !retried
+          if response.status == 401 && !retried
             token_cache.delete
             return request(method, path, body: body, content_type: content_type, idempotency_key: idempotency_key,
                              retried: true)
           end
 
           map_response!(response)
+        rescue SchoolLab::Http::ConnectionError
+          raise Gateways::BankSlip::TransientError, "Provider connection error"
         end
 
         def authenticated_request(method, path, body:, content_type:, idempotency_key:)
           token = access_token
-          uri = URI.join(billing_urls.fetch(:api_base_url), path)
-          http = build_http(uri)
-          request = build_request(method, uri, body: body, content_type: content_type, token: token,
-                                                  idempotency_key: idempotency_key)
-          http.request(request)
+          headers = { "Authorization" => "Bearer #{token}" }
+          headers["Content-Type"] = content_type if body
+          headers["Idempotency-Key"] = idempotency_key if idempotency_key.present?
+
+          api_connection.run_request(method, path, body, headers)
         end
 
         def access_token
@@ -67,48 +69,49 @@ module Gateways
         end
 
         def fetch_access_token
-          with_connection_rescue do
-            uri = URI(billing_urls.fetch(:token_url))
-            http = build_http(uri)
-            request = Net::HTTP::Post.new(uri)
-            request["Content-Type"] = "application/x-www-form-urlencoded"
-            request.body = URI.encode_www_form(grant_type: "client_credentials", client_id: config.client_id)
-            http.request(request)
+          SchoolLab::Http.execute do
+            token_connection.post(token_path) do |request|
+              request.headers["Content-Type"] = "application/x-www-form-urlencoded"
+              request.body = URI.encode_www_form(grant_type: "client_credentials", client_id: config.client_id)
+            end
           end.then { |response| map_token_response!(response) }
+        rescue SchoolLab::Http::ConnectionError
+          raise Gateways::BankSlip::TransientError, "Provider connection error"
         end
 
-        def build_http(uri)
-          http = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl = true
-          http.open_timeout = Configuration::CONNECT_TIMEOUT
-          http.read_timeout = Configuration::READ_TIMEOUT
-          http.cert = OpenSSL::X509::Certificate.new(config.certificate_pem)
-          http.key = OpenSSL::PKey.read(config.private_key_pem)
-          http
+        def api_connection
+          @api_connection ||= build_connection(billing_urls.fetch(:api_base_url))
         end
 
-        def build_request(method, uri, body:, content_type:, token:, idempotency_key:)
-          request_class = request_class_for(method)
-          request = request_class.new(uri)
-          request["Authorization"] = "Bearer #{token}"
-          request["Content-Type"] = content_type if body
-          request["Idempotency-Key"] = idempotency_key if idempotency_key.present?
-          request.body = body if body
-          request
+        def token_connection
+          @token_connection ||= build_connection(token_base_url)
         end
 
-        def request_class_for(method)
-          case method
-          when :get then Net::HTTP::Get
-          when :post then Net::HTTP::Post
-          when :delete then Net::HTTP::Delete
-          else
-            raise ArgumentError, "Unsupported HTTP method: #{method}"
-          end
+        def token_base_url
+          uri = token_uri
+          "#{uri.scheme}://#{uri.host}:#{uri.port}"
+        end
+
+        def token_path
+          token_uri.request_uri
+        end
+
+        def token_uri
+          @token_uri ||= URI(billing_urls.fetch(:token_url))
+        end
+
+        def build_connection(base_url)
+          SchoolLab::Http.build_connection(
+            base_url: base_url,
+            certificate_pem: config.certificate_pem,
+            private_key_pem: config.private_key_pem,
+            open_timeout: Configuration::CONNECT_TIMEOUT,
+            read_timeout: Configuration::READ_TIMEOUT
+          )
         end
 
         def map_token_response!(response)
-          case response.code.to_i
+          case response.status
           when 200
             payload = JSON.parse(response.body)
             token = payload.fetch("access_token")
@@ -122,7 +125,7 @@ module Gateways
         end
 
         def map_response!(response)
-          code = response.code.to_i
+          code = response.status
           body = response.body.to_s
 
           case code
@@ -137,12 +140,6 @@ module Gateways
           else
             raise Gateways::BankSlip::ProviderError, "Unexpected provider response (#{code})"
           end
-        end
-
-        def with_connection_rescue
-          yield
-        rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, SocketError
-          raise Gateways::BankSlip::TransientError, "Provider connection error"
         end
 
         def safe_error_body(body)
