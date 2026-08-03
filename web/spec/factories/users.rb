@@ -111,7 +111,11 @@ FactoryBot.define do
     discount_amount_cents { 5_000 }
     late_fee_amount_cents { 0 }
     total_amount_cents { 85_000 }
-    due_date { Date.new(2026, 8, 10) }
+    # Comfortably in the future, so a charge is neither overdue nor inside the "due soon"
+    # window unless an example says so. A fixed calendar date silently changes meaning as the
+    # real clock passes it: the previous 2026-08-10 default was about to put every charge
+    # inside Billing::UnissuedCharges' alert window for good.
+    due_date { 30.days.from_now.to_date }
 
     trait :overdue do
       due_date { Date.yesterday }

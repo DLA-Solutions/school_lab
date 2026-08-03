@@ -26,6 +26,21 @@ end
 RSpec.describe Billing::MarkOverdueChargesService do
   include ActiveSupport::Testing::TimeHelpers
 
+  # BusinessDayCalendar rolls due dates forward over weekends and national holidays, so an
+  # example built from relative dates (`2.days.ago`) reaches a different verdict depending on
+  # which weekday the suite happens to run, and on whether Time.zone and the machine clock
+  # agree on today's date. Every example below pins an absolute instant and derives its dates
+  # from it. 2026-08-07 is a Friday and its surrounding week holds no national holiday.
+  let(:today) { Date.new(2026, 8, 7) }
+
+  # Examples that let the service resolve "today" itself pin the clock to that Friday; the ones
+  # that pass an explicit `as_of`, or that travel to a boundary instant of their own, do not.
+  shared_context "with the clock pinned to the reference Friday" do
+    around do |example|
+      travel_to(Time.utc(2026, 8, 7, 15, 0, 0)) { example.run } # 12:00 in America/Sao_Paulo
+    end
+  end
+
   let(:school) { create(:school) }
   let(:guardian) { create(:guardian, school: school) }
   let(:student) { create(:student, school: school) }
@@ -39,20 +54,22 @@ RSpec.describe Billing::MarkOverdueChargesService do
   end
 
   context "with a grace window" do
+    include_context "with the clock pinned to the reference Friday"
+
     it "does not mark a charge overdue inside the grace window" do
       charge = create(:charge, school: school, contract: contract, guardian: guardian,
-                               due_date: 1.day.ago.to_date)
+                               due_date: today - 1) # Thursday, one day inside the 2-day grace
 
-      described_class.call(school: school, as_of: Date.current)
+      described_class.call(school: school)
 
       expect(charge.reload.status).to eq("pending")
     end
 
     it "marks a charge overdue past the grace window" do
       charge = create(:charge, school: school, contract: contract, guardian: guardian,
-                               due_date: 3.days.ago.to_date)
+                               due_date: today - 3) # Tuesday, one day past the 2-day grace
 
-      described_class.call(school: school, as_of: Date.current)
+      described_class.call(school: school)
 
       expect(charge.reload.status).to eq("overdue")
       expect(charge.overdue_at).to be_present
@@ -60,6 +77,8 @@ RSpec.describe Billing::MarkOverdueChargesService do
   end
 
   context "with per-school grace settings" do
+    include_context "with the clock pinned to the reference Friday"
+
     let(:grace_days) { 0 }
     let(:school_two) { create(:school) }
 
@@ -68,15 +87,16 @@ RSpec.describe Billing::MarkOverdueChargesService do
     end
 
     it "applies each school's grace window independently" do
+      # Wednesday, two days before the reference Friday: past a 0-day grace, inside a 5-day one.
       charge_one = create(:charge, school: school, contract: contract, guardian: guardian,
-                                 due_date: 2.days.ago.to_date)
+                                 due_date: today - 2)
       contract_two = create(:contract, school: school_two, student: create(:student, school: school_two),
                                        billing_plan: create(:billing_plan, school: school_two))
       charge_two = create(:charge, school: school_two, contract: contract_two,
                                    guardian: create(:guardian, school: school_two),
-                                   due_date: 2.days.ago.to_date)
+                                   due_date: today - 2)
 
-      described_class.call(as_of: Date.current)
+      described_class.call
 
       expect(charge_one.reload.status).to eq("overdue")
       expect(charge_two.reload.status).to eq("pending")
@@ -130,24 +150,42 @@ RSpec.describe Billing::MarkOverdueChargesService do
         expect(charge.reload.status).to eq("overdue")
       end
     end
+
+    # Between 21:00 and midnight in Sao Paulo the UTC calendar is already on the next day.
+    # Reading the boundary in UTC marks the charge overdue on its own due date, which bills a
+    # late fee and fires the collection notice a day early.
+    it "does not mark a charge overdue on its due date late in the school evening" do
+      charge = create(:charge, school: school, contract: contract, guardian: guardian,
+                               due_date: Date.new(2026, 8, 8)) # Saturday -> effective Monday Aug 10
+
+      travel_to Time.utc(2026, 8, 11, 0, 30, 0) do # Aug 10 21:30 in America/Sao_Paulo
+        described_class.call(school: school)
+
+        expect(charge.reload.status).to eq("pending")
+      end
+    end
   end
 
-  it "only marks kept pending charges overdue" do
-    school.school_billing_settings&.destroy
-    create(:school_billing_settings, school: school, overdue_grace_days: 0)
-    pending = create(:charge, school: school, contract: contract, guardian: guardian, due_date: 5.days.ago.to_date)
-    paid = create(:charge, :paid, school: school, contract: contract, guardian: guardian,
-                                   due_date: 5.days.ago.to_date)
-    cancelled = create(:charge, :cancelled, school: school, contract: contract, guardian: guardian,
-                                            due_date: 5.days.ago.to_date)
-    discarded = create(:charge, school: school, contract: contract, guardian: guardian, due_date: 5.days.ago.to_date)
-    discarded.discard!
+  context "with charges in other states" do
+    include_context "with the clock pinned to the reference Friday"
 
-    described_class.call(school: school, as_of: Date.current)
+    it "only marks kept pending charges overdue" do
+      school.school_billing_settings&.destroy
+      create(:school_billing_settings, school: school, overdue_grace_days: 0)
+      pending = create(:charge, school: school, contract: contract, guardian: guardian, due_date: today - 4)
+      paid = create(:charge, :paid, school: school, contract: contract, guardian: guardian,
+                                     due_date: today - 4)
+      cancelled = create(:charge, :cancelled, school: school, contract: contract, guardian: guardian,
+                                              due_date: today - 4)
+      discarded = create(:charge, school: school, contract: contract, guardian: guardian, due_date: today - 4)
+      discarded.discard!
 
-    expect(pending.reload.status).to eq("overdue")
-    expect(paid.reload.status).to eq("paid")
-    expect(cancelled.reload.status).to eq("cancelled")
-    expect(discarded.reload.status).to eq("pending")
+      described_class.call(school: school)
+
+      expect(pending.reload.status).to eq("overdue")
+      expect(paid.reload.status).to eq("paid")
+      expect(cancelled.reload.status).to eq("cancelled")
+      expect(discarded.reload.status).to eq("pending")
+    end
   end
 end
