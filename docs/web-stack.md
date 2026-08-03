@@ -149,7 +149,7 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Cache** | Solid Cache (MVP) → Redis (scale) | Redis optional, cache only |
 | **Real-time** | WebSocket client (phase 2) | Polling or push-first in MVP |
 | **Push** | FCM via Solid Queue | Async delivery |
-| **Outbound HTTP** | **Faraday** via `SchoolLab::Http` | All third-party REST (Cora, FCM, …); see `docs/guidelines/web/http-client.md` |
+| **Outbound HTTP** | **Faraday** via `SchoolLab::Http` + `SchoolLab::Integrations::*` | Transport + vendor clients; see `docs/guidelines/web/http-client.md` and `integrations.md` |
 | **Storage** | Active Storage → S3 | Documents |
 | **Server** | Puma | Rails default |
 | **CORS** | rack-cors | Web SPA origins |

@@ -1,24 +1,25 @@
 ---
-description: External API adapters — boleto, FCM, injectable fakes for tests
+description: External API adapters — boleto, FCM; thin port over integrations lib
 globs: web/app/services/gateways/**/*.rb,web/spec/gateways/**/*.rb,web/app/services/**/*.rb
 alwaysApply: false
 ---
 
 # web/ — Gateway Adapters
 
-Full guide: `docs/guidelines/web/gateways.md`. HTTP transport: rule `http-client`, skill `use-http-client`. Related: `services`, `jobs`.
+Full guide: `docs/guidelines/web/gateways.md`. Integrations: rule `integrations`, skill `use-vendor-integration`. Transport: rule `http-client`. Related: `services`, `jobs`.
 
 ## Role
 
-- Wrap third-party APIs (boleto, FCM) behind small interfaces — services stay provider-agnostic.
+- Wrap third-party APIs (boleto, FCM) behind small port interfaces — services stay provider-agnostic.
 - Inject via constructor — no `Client.new` hidden in services.
 
 ## Design
 
-- Outbound HTTP via `SchoolLab::Http` — gateway `Client` classes only; see `http-client` rule.
-- Plain Ruby in/out; domain errors (`TransientError`) for job `retry_on`.
+- Vendor HTTP lives in `lib/school_lab/integrations/` — adapter + mappers only under `gateways/`.
+- Adapter owns `ErrorMapper` (lib errors → port errors) and client factory wiring.
+- Plain Ruby in/out; port `TransientError` for job `retry_on`.
 - Gateway does not query tenant data globally — services pass scoped records.
-- `Fake` implementation for tests; WebMock/VCR only for gateway unit specs if needed.
+- `Fake` implementation for tests; WebMock only for integration/adapter unit specs.
 
 ## When to skip
 

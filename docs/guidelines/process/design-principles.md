@@ -40,7 +40,8 @@ them without cause:
 | Pundit policies | Authorization |
 | Serializers (blueprinter) | API output shape |
 | Return / result objects | Service success and failure channels |
-| Gateway adapters | External integrations (bank slip, email, FCM) |
+| `SchoolLab::Integrations::<Vendor>` | Vendor HTTP client, OAuth, ENV config, vendor errors |
+| Gateway adapters | Port contract — domain ↔ vendor mapping, registry |
 
 ## Coupling and cohesion
 

@@ -1,44 +1,47 @@
 ---
 name: use-http-client
-description: Implements outbound HTTP to third-party APIs using SchoolLab::Http (Faraday). Use when adding or changing gateway clients, FCM HTTP calls, provider adapters, or lib/school_lab/http.rb.
+description: Implements SchoolLab::Http transport layer (Faraday, mTLS, timeouts). Use when changing lib/school_lab/http.rb or adding shared HTTP infrastructure — not for vendor integration clients.
 ---
 
 # Use SchoolLab::Http
 
-Follow `docs/guidelines/web/http-client.md` and rules `http-client`, `gateways`.
+Follow `docs/guidelines/web/http-client.md` and rule `http-client`.
+
+**Scope:** layer 1 transport only (`web/lib/school_lab/http.rb`). For vendor clients
+(OAuth, token cache, status mapping), use skill `use-vendor-integration`.
 
 ## Before coding
 
-1. Confirm the work belongs in a **gateway client** (`app/services/gateways/.../client.rb`) or
-   a new integration namespace — not in a service or controller.
-2. Read the reference client: `web/app/services/gateways/bank_slip/cora/client.rb`.
+1. Confirm the work is **transport infrastructure** — not a vendor client or gateway adapter.
+2. Read `web/lib/school_lab/http.rb` and `spec/lib/school_lab/http_spec.rb`.
 3. For Faraday API details, use skill `consult-context7`.
 
 ## Implementation checklist
 
-- [ ] Use `SchoolLab::Http.build_connection` — no `Net::HTTP.new`, no `Faraday.new` outside `lib/`
+- [ ] Changes stay in `lib/school_lab/http.rb` — no OAuth, token cache, or port errors here
+- [ ] Use `Faraday.new` only inside `build_connection` — nowhere else in product code
 - [ ] Wrap outbound calls in `SchoolLab::Http.execute`
-- [ ] Map `SchoolLab::Http::ConnectionError` → port `TransientError` in the client
-- [ ] Map HTTP status codes → port error classes in the client (not in `lib/`)
-- [ ] Memoize one connection per base URL (API vs token/OAuth host)
-- [ ] Pass mTLS PEM from school/provider config — in memory only
-- [ ] Source `open_timeout` / read timeout from the provider `Configuration` module
-- [ ] Keep secrets and response bodies out of exception messages (LGPD)
+- [ ] Raise `SchoolLab::Http::ConnectionError` on transport failure — message must not include secrets
+- [ ] mTLS PEM loaded in memory — no temp files
+- [ ] Timeouts passed as keyword args — not hardcoded magic numbers in `lib/`
 
 ## Specs
 
-- New/changed `SchoolLab::Http` behavior → `spec/lib/school_lab/http_spec.rb`
-- New/changed gateway client → `spec/gateways/<port>/<provider>/client_spec.rb` with WebMock
-- Service specs → inject `Fake` adapter; no HTTP stubs
+- All changes → `spec/lib/school_lab/http_spec.rb`
+- Also run `spec/config/http_isolation_spec.rb` when touching the wrapper
 
 Verify:
 
 ```bash
-bundle exec rspec spec/lib/school_lab/http_spec.rb spec/gateways/<relevant>/
-bundle exec rspec spec/config/http_isolation_spec.rb
+bundle exec rspec spec/lib/school_lab/http_spec.rb spec/config/http_isolation_spec.rb
 ```
 
 ## Do not add yet
 
 JSON middleware, retry middleware, or logging middleware in `lib/` until a **third** HTTP
 consumer needs the same behavior (see design-principles rule).
+
+## Related
+
+- `use-vendor-integration` — vendor client in `lib/school_lab/integrations/`
+- `review-http-client` — review transport changes

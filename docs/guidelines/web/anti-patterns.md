@@ -75,5 +75,15 @@ the database; mock only external gateways. See `testing.md`.
 ## Raw outbound HTTP
 
 Do not call third-party APIs with `Net::HTTP`, `HTTParty`, or ad-hoc `Faraday.new` in
-product code. Use `SchoolLab::Http` (`web/lib/school_lab/http.rb`) from gateway clients —
-see [`http-client.md`](http-client.md).
+product code. Use `SchoolLab::Http` (`web/lib/school_lab/http.rb`) — see
+[`http-client.md`](http-client.md).
+
+## Vendor HTTP in the wrong layer
+
+Do not put vendor HTTP clients, OAuth, or token cache under `app/services/gateways/` — they
+belong in `lib/school_lab/integrations/<vendor>/`. The gateway adapter keeps only port
+mapping (`RequestPayload`, `ResponseParser`, `ErrorMapper`) and client factory wiring.
+
+Do not raise **port** errors (`Gateways::BankSlip::ValidationError`, etc.) from
+`lib/school_lab/integrations/`. Lib raises vendor errors; the adapter's `ErrorMapper`
+translates to the port taxonomy. See [`integrations.md`](integrations.md).

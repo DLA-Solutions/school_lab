@@ -49,10 +49,12 @@ State transition (AASM):
 ## Skills and tools
 
 - Write tests: skill `write-rspec-spec` (`docs/guidelines/web/testing.md`)
-- Third-party HTTP / gateway clients: skill `use-http-client` (`docs/guidelines/web/http-client.md`)
+- HTTP transport (`SchoolLab::Http`): skill `use-http-client` (`docs/guidelines/web/http-client.md`)
+- Vendor integrations + gateway adapters: skill `use-vendor-integration` (`docs/guidelines/web/integrations.md`)
 - Library docs: skill `consult-context7` (Context7 MCP)
 - API review: skill `review-api`
-- Gateway transport review: skill `review-http-client`
+- HTTP transport review: skill `review-http-client`
+- Vendor integration review: skill `review-vendor-integration`
 - DBML publish: skill `publish-dbdocs` after schema changes
 - Design principles: `docs/guidelines/process/design-principles.md`
 

@@ -28,7 +28,8 @@ and architecture) — it does not repeat it.
 | **Jobs** | [`jobs.md`](jobs.md) | `jobs` | — |
 | **Serializers** | [`serializers.md`](serializers.md) | `serializers` | `review-api` |
 | **Mailers** | [`mailers.md`](mailers.md) | `mailers` | — |
-| **Gateways** | [`gateways.md`](gateways.md) | `gateways` | `use-http-client`, `review-http-client` |
+| **Gateways** | [`gateways.md`](gateways.md) | `gateways` | `use-vendor-integration`, `review-vendor-integration` |
+| **Integrations** | [`integrations.md`](integrations.md) | `integrations` | `use-vendor-integration`, `review-vendor-integration` |
 | **HTTP client** | [`http-client.md`](http-client.md) | `http-client` | `use-http-client`, `review-http-client` |
 | **Anti-patterns** | [`anti-patterns.md`](anti-patterns.md) | `anti-patterns` | — |
 
