@@ -154,4 +154,14 @@ make setup
 
 ## Production
 
-The Rails app ships with Kamal + a production `Dockerfile` under `web/`. `web/Dockerfile.dev` is for local development only.
+The Rails app is deployed with Kamal 2 using the production `Dockerfile` under `web/`. `web/Dockerfile.dev` is for local development only.
+
+Two destinations share one app server: `production` (`scholarpremium.com.br`) and `staging` (`staging.scholarpremium.com.br`). PostgreSQL and Redis run natively on a separate VPS and are not managed by Kamal.
+
+```bash
+cd web
+kamal deploy -d staging
+kamal deploy -d production
+```
+
+Topology, required environment variables, first-deploy steps, and rollback: [`docs/guidelines/process/deployment.md`](docs/guidelines/process/deployment.md).
