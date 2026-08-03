@@ -52,5 +52,4 @@ Rails.application.configure do
   config.action_controller.raise_on_missing_callback_actions = true
 
   config.active_job.queue_adapter = :solid_queue
-
 end
