@@ -4,13 +4,19 @@ Conventions for external payment integrations in `web/app/services/gateways/`.
 Complements `docs/guidelines/process/design-principles.md` (Liskov substitution,
 dependency inversion).
 
-Rule: `.cursor/rules/web/gateways.mdc`. Related: `services`, `jobs`, `state-machines`.
+Rule: `.cursor/rules/web/gateways.mdc`. HTTP transport: [`http-client.md`](http-client.md),
+rule `http-client`, skills `use-http-client` / `review-http-client`. Related: `services`,
+`jobs`, `state-machines`.
 
 ## Role
 
 Gateways wrap **third-party payment APIs** behind a small Ruby interface so billing
 services stay provider-agnostic and tests use fakes. Business rules remain in services —
 gateways only translate request/response and raise typed errors.
+
+**Outbound HTTP** (REST calls to Cora, future FCM, card providers) goes through
+`SchoolLab::Http` — see [`http-client.md`](http-client.md). Gateway `Client` classes own
+auth, idempotency, and error mapping; the shared wrapper owns Faraday, mTLS, and timeouts.
 
 | Integration | Port | Status | Adapters |
 |-------------|------|--------|----------|

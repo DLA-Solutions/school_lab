@@ -8,7 +8,7 @@ alwaysApply: true
 Multi-school management SaaS for private Brazilian schools. Product UI locale is `pt-BR`; repository language is English (see the `core/language-conventions` rule).
 
 ## Monorepo layout
-- `web/` — Rails 8.1, API-only (`config.api_only = true`), serving the versioned REST API (single source of business rules). Stack is locked; see the `web/web-rails` rule.
+- `web/` — Rails 8.1, API-only (`config.api_only = true`), serving the versioned REST API (single source of business rules). Stack is locked; see the `web/web-rails` rule. Outbound third-party HTTP uses `web/lib/school_lab/http.rb` (rule `http-client`).
 - `frontend/main` — React + Vite SPA, the product web UI. Consumes the API; never duplicates business rules.
 - `frontend/base` — upstream template the SPA started from. Reference only; not the product.
 - `app/` — React Native mobile. Consumes the API; never duplicates business rules.

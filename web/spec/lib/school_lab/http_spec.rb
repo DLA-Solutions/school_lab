@@ -33,6 +33,17 @@ RSpec.describe SchoolLab::Http do
       after_files = Dir.children(Dir.tmpdir)
       expect(after_files - before_files).to be_empty
     end
+
+    it "builds a connection without client certificates when PEM args are omitted" do
+      connection = described_class.build_connection(
+        base_url: base_url,
+        open_timeout: 5,
+        read_timeout: 10
+      )
+
+      expect(connection.ssl.client_cert).to be_nil
+      expect(connection.ssl.client_key).to be_nil
+    end
   end
 
   describe ".execute" do
