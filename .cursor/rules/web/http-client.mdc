@@ -1,27 +1,25 @@
 ---
-description: Outbound HTTP to third parties — SchoolLab::Http (Faraday), no raw Net::HTTP
-globs: web/lib/school_lab/**/*.rb,web/app/services/gateways/**/*.rb,web/spec/gateways/**/*.rb,web/spec/lib/school_lab/**/*.rb
+description: Outbound HTTP transport — SchoolLab::Http (Faraday) only; vendor clients in integrations lib
+globs: web/lib/school_lab/http.rb,web/spec/lib/school_lab/http_spec.rb
 alwaysApply: false
 ---
 
-# web/ — HTTP Client
+# web/ — HTTP Client (transport)
 
-Full guide: `docs/guidelines/web/http-client.md`. Gateways: rule `gateways`. Skill: `use-http-client`.
+Full guide: `docs/guidelines/web/http-client.md`. Integrations: rule `integrations`. Skill: `use-http-client`.
+
+## Scope — layer 1 only
+
+- **`SchoolLab::Http`** — Faraday setup, mTLS from in-memory PEM, timeouts, `ConnectionError`.
+- Vendor OAuth, token cache, status mapping → `lib/school_lab/integrations/` (rule `integrations`).
 
 ## Mandatory
 
-- **All third-party HTTP** uses `SchoolLab::Http` — never raw `Net::HTTP` or ad-hoc Faraday in product code.
-- **`build_connection`** for Faraday setup; **`execute`** for requests; rescue `ConnectionError` → port `TransientError` in gateway clients.
+- **`build_connection`** for Faraday setup; **`execute`** for requests.
 - **mTLS** — pass PEM strings in memory; never write certs/keys to temp files.
-- **Timeouts** — set in the gateway `Configuration` module; pass into `build_connection`, do not hardcode in `lib/`.
-
-## Gateway clients keep
-
-- Token cache, Bearer/API-key headers, idempotency headers, OAuth form bodies.
-- Status → domain error taxonomy (`ValidationError`, `AuthenticationError`, …).
-- Memoized connections per base URL.
+- **Timeouts** — pass into `build_connection` from integration `Configuration`, not hardcoded in `lib/`.
 
 ## Testing
 
-- Wrapper: `spec/lib/school_lab/http_spec.rb`.
-- Gateways: WebMock + placeholder hosts; service specs use `Fake` adapters.
+- Wrapper: `spec/lib/school_lab/http_spec.rb` only.
+- Vendor clients: `spec/lib/school_lab/integrations/`.

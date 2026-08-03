@@ -114,6 +114,7 @@ project-vs-official-doc conflicts found.
 
 - `consult-context7` — official library docs during review
 - `write-rspec-spec` — expected request-spec coverage
-- `review-http-client` — outbound HTTP and gateway client transport
+- `review-vendor-integration` — vendor lib clients and gateway adapter mapping
+- `review-http-client` — `SchoolLab::Http` transport wrapper only
 - `review-bugbot` — logic bugs across all layers
 - `review-security` — security-focused pass (auth, injection, data exposure)

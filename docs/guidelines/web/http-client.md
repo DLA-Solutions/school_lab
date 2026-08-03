@@ -1,21 +1,24 @@
 # HTTP Client (`SchoolLab::Http`)
 
-Conventions for **outbound HTTP** to third-party APIs in `web/`. Complements
-[`gateways.md`](gateways.md) (domain adapters) and `docs/guidelines/process/design-principles.md`.
+Conventions for **outbound HTTP transport** in `web/`. Complements
+[`integrations.md`](integrations.md) (vendor clients), [`gateways.md`](gateways.md) (domain
+ports), and `docs/guidelines/process/design-principles.md`.
 
 Rule: `.cursor/rules/web/http-client.mdc`. Skills: `use-http-client`, `review-http-client`.
+For vendor integration clients, see skill `use-vendor-integration`.
 
 ## Role
 
-All product code that calls an external HTTP API goes through **`SchoolLab::Http`**
-(`web/lib/school_lab/http.rb`). Gateway adapters (`app/services/gateways/`), future FCM
-clients, and any other third-party REST integration share the same transport layer.
+All product code that calls an external HTTP API uses **`SchoolLab::Http`**
+(`web/lib/school_lab/http.rb`) as **layer 1** of the outbound stack. Vendor-specific clients
+(`SchoolLab::Integrations::*`) and gateway adapters sit above it — see
+[`integrations.md`](integrations.md).
 
 | Layer | Responsibility |
 |-------|----------------|
 | `SchoolLab::Http` | Faraday setup, optional mTLS from in-memory PEM, timeouts, infra `ConnectionError` |
-| Gateway `Client` | OAuth/token cache, auth headers, idempotency, status → domain errors |
-| Gateway `Adapter` | Port contract, value objects, capabilities |
+| `SchoolLab::Integrations::<Vendor>` | OAuth/token cache, auth headers, idempotency, vendor HTTP errors |
+| Gateway `Adapter` | Port contract, value objects, error mapping to port taxonomy |
 | Service | Orchestration, persistence, `ResponseService` |
 
 Do **not** use raw `Net::HTTP`, `HTTParty`, or ad-hoc Faraday setup in product code.
@@ -42,8 +45,8 @@ SchoolLab::Http.execute { connection.get("/path") }
 **`build_connection`**
 
 - `Faraday.new(url: base_url.chomp("/"))`
-- `open_timeout` / `timeout` (read) from keyword args — gateway clients source values from
-  their provider `Configuration` module, not duplicated in `lib/`
+- `open_timeout` / `timeout` (read) from keyword args — integration `Configuration` modules
+  source values, not duplicated in `lib/`
 - When both PEM strings are present: `ssl.client_cert` / `ssl.client_key` in memory — **no
   temp files** (LGPD / credential hygiene)
 - `adapter Faraday.default_adapter` (Net::HTTP — WebMock-compatible in specs)
@@ -54,27 +57,25 @@ SchoolLab::Http.execute { connection.get("/path") }
   `Errno::ECONNREFUSED`, and `SocketError` to `SchoolLab::Http::ConnectionError`
 - Message must not include response bodies or secrets
 
-Gateway clients rescue `ConnectionError` and raise the port's **`TransientError`** (e.g.
-`Gateways::BankSlip::TransientError`) so jobs can `retry_on` it.
+Integration clients rescue `ConnectionError` and raise the vendor's **`TransientError`**
+(e.g. `SchoolLab::Integrations::Cora::TransientError`). The gateway adapter maps that to
+the port's `TransientError` so jobs can `retry_on` it.
 
-## Gateway client pattern
+## What belongs here vs integrations
 
-Reference: `Gateways::BankSlip::Cora::Client`.
+**`SchoolLab::Http`** owns transport only. Do **not** add OAuth, token cache, status-code
+mapping, or port error classes to `lib/school_lab/http.rb`.
 
-1. **Memoized connections** — one Faraday instance per base URL (API vs token endpoint).
-2. **Authenticated requests** — `connection.run_request(method, path, body, headers)`.
-3. **Token / OAuth** — separate connection when the token host differs from the API host.
-4. **Response mapping** — use `response.status` and `response.body`; map HTTP codes to the
-   port error taxonomy in the client, not in `SchoolLab::Http`.
-5. **No business rules** — no tenant queries, no idempotency persistence in the client
-   beyond headers the provider requires.
+Reference integration client: `web/lib/school_lab/integrations/cora/client.rb` (uses
+`SchoolLab::Http.build_connection` + `execute`; raises `Integrations::Cora::*Error`).
 
 ## Testing
 
 - **Wrapper specs** — `spec/lib/school_lab/http_spec.rb`: SSL config, timeouts,
   `ConnectionError` on timeout, no temp PEM files.
-- **Gateway specs** — WebMock against placeholder hosts (see `spec/support/cora_http_mock.rb`);
-  never live provider domains in CI.
+- **Integration specs** — `spec/lib/school_lab/integrations/<vendor>/` with WebMock against
+  placeholder hosts; never live provider domains in CI.
+- **Gateway adapter specs** — port contract and error mapping; see `spec/gateways/`.
 - **Service specs** — inject `Gateways::*::Fake`; no HTTP stubs.
 
 Run after changes:
@@ -88,10 +89,12 @@ bundle exec rspec spec/config/http_isolation_spec.rb
 
 1. Extend or reuse `SchoolLab::Http.build_connection` — add optional PEM for mTLS providers;
    omit PEM for API-key-only providers (FCM, etc.).
-2. Add a `Client` under the gateway namespace that wraps `execute` + domain error mapping.
-3. Add unit specs for the client with WebMock; add wrapper specs only when changing
-   `SchoolLab::Http` itself.
-4. Extract shared Faraday middleware (JSON, retry, logging) into `lib/` only when a **third**
+2. Add a vendor client under `lib/school_lab/integrations/<vendor>/` — see
+   [`integrations.md`](integrations.md) and skill `use-vendor-integration`.
+3. Add a gateway adapter under `app/services/gateways/<instrument>/<vendor>/` with
+   `ErrorMapper` for port error translation.
+4. Add lib specs with WebMock; add wrapper specs only when changing `SchoolLab::Http` itself.
+5. Extract shared Faraday middleware (JSON, retry, logging) into `lib/` only when a **third**
    consumer needs the same behavior — not before.
 
 ## Out of scope for `SchoolLab::Http`

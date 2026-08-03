@@ -4,8 +4,9 @@ Conventions for external payment integrations in `web/app/services/gateways/`.
 Complements `docs/guidelines/process/design-principles.md` (Liskov substitution,
 dependency inversion).
 
-Rule: `.cursor/rules/web/gateways.mdc`. HTTP transport: [`http-client.md`](http-client.md),
-rule `http-client`, skills `use-http-client` / `review-http-client`. Related: `services`,
+Rule: `.cursor/rules/web/gateways.mdc`. Vendor HTTP: [`integrations.md`](integrations.md),
+rule `integrations`, skills `use-vendor-integration` / `review-vendor-integration`.
+Transport: [`http-client.md`](http-client.md), rule `http-client`. Related: `services`,
 `jobs`, `state-machines`.
 
 ## Role
@@ -14,9 +15,10 @@ Gateways wrap **third-party payment APIs** behind a small Ruby interface so bill
 services stay provider-agnostic and tests use fakes. Business rules remain in services —
 gateways only translate request/response and raise typed errors.
 
-**Outbound HTTP** (REST calls to Cora, future FCM, card providers) goes through
-`SchoolLab::Http` — see [`http-client.md`](http-client.md). Gateway `Client` classes own
-auth, idempotency, and error mapping; the shared wrapper owns Faraday, mTLS, and timeouts.
+**Outbound HTTP** (REST calls to Cora, future FCM, card providers) follows the three-layer
+stack in [`integrations.md`](integrations.md): `SchoolLab::Http` →
+`SchoolLab::Integrations::<Vendor>` → gateway adapter. Vendor clients live in `lib/`; the
+adapter owns port mapping and error translation.
 
 | Integration | Port | Status | Adapters |
 |-------------|------|--------|----------|
@@ -49,12 +51,16 @@ app/services/gateways/bank_slip/
   field_normalizer.rb
   status_normalizer.rb
   cora/
-    adapter.rb           # Cora Direct Integration
-    client.rb
-    configuration.rb
-    request_payload.rb
-    response_parser.rb
-    token_cache.rb
+    adapter.rb           # port implementation + client factory
+    error_mapper.rb      # lib errors → port errors
+    request_payload.rb   # IssueRequest → Cora JSON
+    response_parser.rb   # Cora JSON → value objects
+
+lib/school_lab/integrations/cora/   # vendor HTTP — see integrations.md
+  client.rb
+  configuration.rb
+  token_cache.rb
+  error.rb (+ vendor error subclasses)
 ```
 
 Namespace by **payment instrument** (`bank_slip`, future `card`), not by vendor. Inject
@@ -95,8 +101,9 @@ Set both in `.env` for local development (see `web/.env.example`), in Kamal `dep
 each deploy target, and in staging secrets when that environment uses sandbox URLs while
 `RAILS_ENV=production`. **Never derive them from `Rails.env`.**
 
-`Cora::Configuration.current` reads `ENV` lazily when the Cora client is invoked; missing
-values raise `ProviderError` naming both keys, so the deploy fails loudly instead of
+`SchoolLab::Integrations::Cora::Configuration.current` reads `ENV` lazily when the Cora
+client is built; missing values raise `Integrations::Cora::ConfigurationError`, mapped to
+`ProviderError` by the adapter's `ErrorMapper`, so the deploy fails loudly instead of
 guessing.
 
 ### One configuration per school and instrument
@@ -196,7 +203,9 @@ due date on a registered slip.
 
 - **Service specs** inject `Gateways::BankSlip::Fake` — assert persisted
   `charge_issuances` and charge state, not HTTP stubs. They never read `CORA_*` env vars.
-- **Gateway specs** (`spec/gateways/bank_slip/cora/`) set **placeholder billing URLs**
+- **Integration lib specs** (`spec/lib/school_lab/integrations/cora/`) assert vendor client
+  behavior and `Integrations::Cora::*Error` — not port errors.
+- **Gateway adapter specs** (`spec/gateways/bank_slip/cora/`) set **placeholder billing URLs**
   (`https://cora.test`, `https://cora.test/token`) via `spec/support/cora_http_mock.rb` and
   stub HTTP with **WebMock** against those hosts only — never `*.cora.com.br` in CI.
 - **VCR** (`spec/support/vcr.rb`) remains for **optional** manual recordings against
@@ -212,21 +221,24 @@ not a CI dependency. Cora sandbox smoke tests against live APIs are **manual / o
 
 ## Adding a new bank slip provider
 
-1. **Adapter** — implement `Gateways::BankSlip::Interface` under
-   `app/services/gateways/bank_slip/<provider>/adapter.rb`.
-2. **Register** — add the class to `Gateways::BankSlip::Registry::ADAPTERS` and its credential
+1. **Integration lib** — add `lib/school_lab/integrations/<provider>/` (client, configuration,
+   vendor errors). See [`integrations.md`](integrations.md).
+2. **Adapter** — implement `Gateways::BankSlip::Interface` under
+   `app/services/gateways/bank_slip/<provider>/` (`adapter.rb`, `error_mapper.rb`,
+   `request_payload.rb`, `response_parser.rb`).
+3. **Register** — add the class to `Gateways::BankSlip::Registry::ADAPTERS` and its credential
    requirements to `SchoolPaymentProvider::REQUIRED_CREDENTIALS`. To let backoffice upload
    credentials for it, add it to `Registry::API_SELECTABLE_PROVIDERS` as well; if it needs a
    different set of credentials than the ones the upload contract marks required, revisit that
    contract in the same change.
-3. **Webhook parser** — add `Webhooks::Parsers::<Provider>` and register in
+4. **Webhook parser** — add `Webhooks::Parsers::<Provider>` and register in
    `Webhooks::Parsers::Registry` (ingress is separate from the port).
-4. **Shared contract** — pass `spec/support/shared_examples/bank_slip_adapter.rb`.
-5. **Configuration** — document required `school_payment_providers` columns/settings;
+5. **Shared contract** — pass `spec/support/shared_examples/bank_slip_adapter.rb`.
+6. **Configuration** — document required `school_payment_providers` columns/settings;
    seed or backoffice flow creates the row (`instrument: bank_slip`, provider, credentials).
    Billing URL env vars (`CORA_API_BASE_URL`, `CORA_TOKEN_URL`) belong in deploy config,
    never on the row.
-6. **Capabilities** — declare honest flags; do not copy another provider's map blindly.
+7. **Capabilities** — declare honest flags; do not copy another provider's map blindly.
 
 No change to `Billing::` service orchestration should be required when the port contract
 and capabilities are honored. If a service needs a provider name conditional, prefer
