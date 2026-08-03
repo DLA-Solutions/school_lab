@@ -20,3 +20,4 @@ Full guide: `docs/guidelines/web/anti-patterns.md`. Principles: `design-principl
 - **Premature abstraction** — extract on third stable case, not before.
 - **Direct AASM** — controllers/jobs → services → `event!`.
 - **Mocking domain in tests** — real AR + DB; mock external gateways only.
+- **Raw outbound HTTP** — no `Net::HTTP` or ad-hoc Faraday in product code; use `SchoolLab::Http` (rule `http-client`).

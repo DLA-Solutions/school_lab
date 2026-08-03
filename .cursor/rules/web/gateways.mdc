@@ -6,7 +6,7 @@ alwaysApply: false
 
 # web/ — Gateway Adapters
 
-Full guide: `docs/guidelines/web/gateways.md`. Principles: `design-principles`. Related: `services`, `jobs`.
+Full guide: `docs/guidelines/web/gateways.md`. HTTP transport: rule `http-client`, skill `use-http-client`. Related: `services`, `jobs`.
 
 ## Role
 
@@ -15,6 +15,7 @@ Full guide: `docs/guidelines/web/gateways.md`. Principles: `design-principles`. 
 
 ## Design
 
+- Outbound HTTP via `SchoolLab::Http` — gateway `Client` classes only; see `http-client` rule.
 - Plain Ruby in/out; domain errors (`TransientError`) for job `retry_on`.
 - Gateway does not query tenant data globally — services pass scoped records.
 - `Fake` implementation for tests; WebMock/VCR only for gateway unit specs if needed.

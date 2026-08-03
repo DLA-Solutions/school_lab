@@ -30,6 +30,9 @@ Before adding a mock, ask: can I use a real record, fake adapter, or `travel_to`
 | FCM client when push is not under test | Stubbing ActiveRecord |
 | `travel_to` for time | Stubbing Pundit or same-domain services |
 
+Gateway HTTP client specs live under `spec/gateways/` and `spec/lib/school_lab/` — see skill
+`use-http-client` and `docs/guidelines/web/http-client.md`.
+
 ## Request spec minimum
 
 - Happy path (status + JSON shape)

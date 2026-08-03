@@ -1,0 +1,27 @@
+---
+description: Outbound HTTP to third parties — SchoolLab::Http (Faraday), no raw Net::HTTP
+globs: web/lib/school_lab/**/*.rb,web/app/services/gateways/**/*.rb,web/spec/gateways/**/*.rb,web/spec/lib/school_lab/**/*.rb
+alwaysApply: false
+---
+
+# web/ — HTTP Client
+
+Full guide: `docs/guidelines/web/http-client.md`. Gateways: rule `gateways`. Skill: `use-http-client`.
+
+## Mandatory
+
+- **All third-party HTTP** uses `SchoolLab::Http` — never raw `Net::HTTP` or ad-hoc Faraday in product code.
+- **`build_connection`** for Faraday setup; **`execute`** for requests; rescue `ConnectionError` → port `TransientError` in gateway clients.
+- **mTLS** — pass PEM strings in memory; never write certs/keys to temp files.
+- **Timeouts** — set in the gateway `Configuration` module; pass into `build_connection`, do not hardcode in `lib/`.
+
+## Gateway clients keep
+
+- Token cache, Bearer/API-key headers, idempotency headers, OAuth form bodies.
+- Status → domain error taxonomy (`ValidationError`, `AuthenticationError`, …).
+- Memoized connections per base URL.
+
+## Testing
+
+- Wrapper: `spec/lib/school_lab/http_spec.rb`.
+- Gateways: WebMock + placeholder hosts; service specs use `Fake` adapters.

@@ -71,3 +71,9 @@ rules and side effects in one place.
 
 Do not mock ActiveRecord, Pundit, or same-domain services in specs. Use real records and
 the database; mock only external gateways. See `testing.md`.
+
+## Raw outbound HTTP
+
+Do not call third-party APIs with `Net::HTTP`, `HTTParty`, or ad-hoc `Faraday.new` in
+product code. Use `SchoolLab::Http` (`web/lib/school_lab/http.rb`) from gateway clients —
+see [`http-client.md`](http-client.md).
