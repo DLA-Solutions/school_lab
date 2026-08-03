@@ -2,24 +2,17 @@
 
 require "uri"
 
-module Gateways
-  module BankSlip
+module SchoolLab
+  module Integrations
     module Cora
       class Client
-        def self.for_school(school:)
-          config = Gateways::BankSlip::Registry.active_config(school: school)
-          token_cache = TokenCache.new(
-            school_id: school.id,
-            provider: config.provider,
-            token_url: Configuration.current.fetch(:token_url)
-          )
-          new(config: config, token_cache: token_cache)
-        end
-
-        def initialize(config:, token_cache:)
-          @config = config
+        def initialize(client_id:, certificate_pem:, private_key_pem:, token_cache:,
+                       billing_urls: Configuration.current)
+          @client_id = client_id
+          @certificate_pem = certificate_pem
+          @private_key_pem = private_key_pem
           @token_cache = token_cache
-          @billing_urls = Configuration.current
+          @billing_urls = billing_urls
         end
 
         def get(path)
@@ -36,7 +29,7 @@ module Gateways
 
         private
 
-        attr_reader :config, :token_cache, :billing_urls
+        attr_reader :client_id, :certificate_pem, :private_key_pem, :token_cache, :billing_urls
 
         def request(method, path, body: nil, content_type: "application/json", idempotency_key: nil, retried: false)
           response = SchoolLab::Http.execute do
@@ -52,7 +45,7 @@ module Gateways
 
           map_response!(response)
         rescue SchoolLab::Http::ConnectionError
-          raise Gateways::BankSlip::TransientError, "Provider connection error"
+          raise TransientError, "Provider connection error"
         end
 
         def authenticated_request(method, path, body:, content_type:, idempotency_key:)
@@ -72,11 +65,11 @@ module Gateways
           SchoolLab::Http.execute do
             token_connection.post(token_path) do |request|
               request.headers["Content-Type"] = "application/x-www-form-urlencoded"
-              request.body = URI.encode_www_form(grant_type: "client_credentials", client_id: config.client_id)
+              request.body = URI.encode_www_form(grant_type: "client_credentials", client_id: client_id)
             end
           end.then { |response| map_token_response!(response) }
         rescue SchoolLab::Http::ConnectionError
-          raise Gateways::BankSlip::TransientError, "Provider connection error"
+          raise TransientError, "Provider connection error"
         end
 
         def api_connection
@@ -103,8 +96,8 @@ module Gateways
         def build_connection(base_url)
           SchoolLab::Http.build_connection(
             base_url: base_url,
-            certificate_pem: config.certificate_pem,
-            private_key_pem: config.private_key_pem,
+            certificate_pem: certificate_pem,
+            private_key_pem: private_key_pem,
             open_timeout: Configuration::CONNECT_TIMEOUT,
             read_timeout: Configuration::READ_TIMEOUT
           )
@@ -121,7 +114,7 @@ module Gateways
             map_response!(response)
           end
         rescue JSON::ParserError
-          raise Gateways::BankSlip::ProviderError, "Invalid token response from provider"
+          raise UnexpectedResponseError, "Invalid token response from provider"
         end
 
         def map_response!(response)
@@ -132,13 +125,13 @@ module Gateways
           when 200..299
             body
           when 400, 422
-            raise Gateways::BankSlip::ValidationError.new("Provider validation error", details: safe_error_body(body))
+            raise ValidationError.new("Provider validation error", details: safe_error_body(body))
           when 401, 403
-            raise Gateways::BankSlip::AuthenticationError, "Provider authentication failed (#{code})"
+            raise AuthenticationError, "Provider authentication failed (#{code})"
           when 500..599
-            raise Gateways::BankSlip::TransientError, "Provider server error (#{code})"
+            raise TransientError, "Provider server error (#{code})"
           else
-            raise Gateways::BankSlip::ProviderError, "Unexpected provider response (#{code})"
+            raise UnexpectedResponseError, "Unexpected provider response (#{code})"
           end
         end
 

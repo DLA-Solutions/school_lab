@@ -2,8 +2,8 @@
 
 require "digest"
 
-module Gateways
-  module BankSlip
+module SchoolLab
+  module Integrations
     module Cora
       class TokenCache
         # `token_url` is the deploy's Cora token endpoint, not a school attribute: it keeps a
