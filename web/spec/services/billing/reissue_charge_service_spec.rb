@@ -9,7 +9,10 @@ RSpec.describe Billing::ReissueChargeService do
   let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
   let(:charge) { create(:charge, :issued, :overdue, school: school, guardian: guardian) }
-  let(:new_due_date) { Date.new(2026, 12, 20) }
+  # Reissuing goes back through issuance, which rejects a due date already in the past, so the
+  # new date stays ahead of the clock. It is used verbatim — the service only runs a date through
+  # BusinessDayCalendar when it has to pick one itself — so no weekend or holiday rolling applies.
+  let(:new_due_date) { 10.days.from_now.to_date }
   let(:adapter) { instance_double(Gateways::BankSlip::Fake) }
   let(:capabilities) do
     Gateways::BankSlip::Capabilities.new(
@@ -61,7 +64,9 @@ RSpec.describe Billing::ReissueChargeService do
     expect(result).to be_success
     expect(adapter).to have_received(:cancel)
 
-    issuances = charge.reload.charge_issuances.order(:created_at)
+    # Ordered by id, not by created_at: both rows are written within the same clock tick when the
+    # clock is frozen, and created_at then leaves the order undefined.
+    issuances = charge.reload.charge_issuances.order(:id)
     expect(issuances.count).to eq(2)
     expect(issuances.first.status).to eq("cancelled")
     expect(issuances.last.status).to eq("issued")
@@ -118,7 +123,7 @@ RSpec.describe Billing::ReissueChargeService do
     it "leaves a pending issuance for retry" do
       expect { result }.to raise_error(Gateways::BankSlip::TransientError)
 
-      pending_issuance = charge.reload.charge_issuances.order(:created_at).last
+      pending_issuance = charge.reload.charge_issuances.order(:id).last
       expect(pending_issuance.status).to eq("pending")
     end
   end

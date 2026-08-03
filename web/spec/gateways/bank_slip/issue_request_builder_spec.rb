@@ -15,13 +15,17 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
       phone: "(11) 98765-4321"
     )
   end
+  # A charge the provider would accept: the builder rejects a due date already in the past, so
+  # this stays ahead of whatever the clock reads. An absolute date instead turns every example
+  # below into a failure once the real calendar passes it.
+  let(:due_date) { 30.days.from_now.to_date }
   let(:charge) do
     create(
       :charge,
       school: school,
       guardian: guardian,
       total_amount_cents: 150_000,
-      due_date: Date.new(2026, 12, 10)
+      due_date: due_date
     )
   end
 
@@ -46,7 +50,7 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
       request = described_class.from_charge(charge)
 
       expect(request.total_amount_cents).to eq(150_000)
-      expect(request.due_date).to eq(Date.new(2026, 12, 10))
+      expect(request.due_date).to eq(due_date)
       expect(request.customer.name).to eq("Maria Silva")
       expect(request.customer.document_number).to eq("12345678909")
       expect(request.customer.email).to eq("maria@example.com")
@@ -129,7 +133,6 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
     end
 
     it "rejects a guardian missing a CPF" do
-      charge.update!(due_date: Date.new(2026, 12, 10))
       guardian.update!(cpf: nil)
 
       expect { described_class.from_charge(charge) }

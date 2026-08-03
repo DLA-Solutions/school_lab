@@ -8,9 +8,9 @@ RSpec.describe Billing::IssueChargeService do
   let(:school) { create(:school) }
   let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
-  let(:charge) do
-    create(:charge, school: school, guardian: guardian, due_date: Date.new(2026, 12, 10))
-  end
+  # No due date override: the factory default sits ahead of the clock, and issuance rejects a
+  # charge already past due. An absolute date breaks every example here once the clock passes it.
+  let(:charge) { create(:charge, school: school, guardian: guardian) }
   let(:adapter) { instance_double(Gateways::BankSlip::Fake) }
   let(:issuance_result) do
     Gateways::BankSlip::ValueObjects::Issuance.new(
@@ -129,9 +129,7 @@ RSpec.describe Billing::IssueChargeService do
 
   context "when the school has no active bank slip configuration" do
     let(:unconfigured_school) { create(:school) }
-    let(:unconfigured_charge) do
-      create(:charge, school: unconfigured_school, due_date: Date.new(2026, 12, 10))
-    end
+    let(:unconfigured_charge) { create(:charge, school: unconfigured_school) }
 
     it "fails instead of issuing through the fake adapter" do
       outcome = described_class.call(charge: unconfigured_charge)

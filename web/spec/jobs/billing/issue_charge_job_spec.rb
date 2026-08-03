@@ -8,9 +8,9 @@ RSpec.describe Billing::IssueChargeJob, type: :job do
   let(:school) { create(:school) }
   let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
-  let(:charge) do
-    create(:charge, school: school, guardian: guardian, due_date: Date.new(2026, 12, 10))
-  end
+  # No due date override: the factory default sits ahead of the clock, and issuance rejects a
+  # charge already past due. An absolute date breaks every example here once the clock passes it.
+  let(:charge) { create(:charge, school: school, guardian: guardian) }
   let(:adapter) { instance_double(Gateways::BankSlip::Fake) }
   let(:issuance_result) do
     Gateways::BankSlip::ValueObjects::Issuance.new(
@@ -68,7 +68,7 @@ RSpec.describe Billing::IssueChargeJob, type: :job do
     allow(Billing::IssueChargeJob).to receive(:perform_later).and_raise(ActiveRecord::Rollback)
 
     expect do
-      Billing::GenerateChargesService.call(school: school, billing_period: "2026-12")
+      Billing::GenerateChargesService.call(school: school, billing_period: Date.current.next_month.strftime("%Y-%m"))
     end.not_to change(Charge, :count)
 
     expect(SolidQueue::Job.where(class_name: Billing::IssueChargeJob.name)).to be_empty
