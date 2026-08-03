@@ -8,7 +8,9 @@
 
 require_relative "seeds/demo_school"
 
-DemoSchool.seed!
+# db:prepare runs seeds on an empty database, including the first production boot.
+# Demo data carries well-known credentials and must never reach a deployed environment.
+DemoSchool.seed! if Rails.env.local?
 
 if Rails.env.development?
   puts "Demo school seeded."

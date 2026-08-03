@@ -298,3 +298,25 @@ Decisions finalized in `docs/web-stack.md`. Open items:
 - [x] **Boleto integration** — Cora Direct Integration on the school's own account
       (mTLS); see the Billing section above.
 - [ ] When to add Redis (cache only) — scaling criterion?
+
+## Infrastructure & deployment
+
+Deploy setup is documented in `docs/guidelines/process/deployment.md`.
+
+- [x] **Deploy tooling — Kamal 2**, manual, two destinations (`production`, `staging`)
+      sharing one app server. PostgreSQL 17 and Redis run natively on a separate VPS and
+      are **not** Kamal accessories.
+- [x] **Solid Queue / Solid Cache stay in the primary database** — enqueue participates
+      in the same transaction as the domain writes. Only Solid Cable uses a separate
+      database (`*_cable`).
+- [ ] **Active Storage backend in production** — currently `:local` on a Kamal volume on
+      the app server, which is not covered by the deploy process's backups. Move to S3
+      (or compatible object storage) before onboarding schools that upload documents?
+      `docs/web-stack.md` already assumes S3 for the MVP — resolve the divergence.
+- [ ] **`schema_format = :sql` for pgvector** — the extension is available in the
+      databases but no `vector` column exists, so `schema.rb` loses nothing today. The
+      first embedding migration (arriving with `ruby_llm`) requires switching to
+      `:sql` **and** ensuring the extension is created by migration, not by hand.
+- [ ] **Continuous deployment** — CI builds the production image but never pushes it
+      (`.github/workflows/ci.yml`). Automate deploys via GitHub Actions, or keep them
+      manual?

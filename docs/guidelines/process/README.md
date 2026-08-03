@@ -56,3 +56,9 @@ anchor docs  ──▶  domain PRD  ──▶  data modeling  ──▶  impleme
 
 - Prerequisites, Context7 workflow, checklist: [`implementation.md`](implementation.md).
 - Rule: `rules/core/use-context7`. Skill: `consult-context7`.
+
+## Deployment
+
+- Kamal 2 topology, destinations, secrets, first deploy, rollback:
+  [`deployment.md`](deployment.md).
+- Deploys are manual and always take an explicit destination (`-d production|staging`).

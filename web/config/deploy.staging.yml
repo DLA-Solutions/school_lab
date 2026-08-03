@@ -1,0 +1,16 @@
+# Staging runs with RAILS_ENV=production against Cora sandbox credentials.
+proxy:
+  hosts:
+    - staging.scholarpremium.com.br
+
+env:
+  clear:
+    CORA_API_BASE_URL: https://api.stage.cora.com.br
+    CORA_TOKEN_URL: https://matls-clients.api.stage.cora.com.br/token
+    CORS_ORIGINS: https://staging.scholarpremium.com.br
+    APP_HOST: staging.scholarpremium.com.br
+    WEB_CONCURRENCY: 1
+
+# Separate volume so staging uploads never land in the production Active Storage tree.
+volumes:
+  - "scholarpremium_staging_storage:/rails/storage"

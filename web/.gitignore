@@ -26,6 +26,10 @@
 /config/master.key
 /config/credentials/*.key
 
+# Kamal secrets — only the .example templates are versioned.
+/.kamal/secrets*
+!/.kamal/secrets*.example
+
 # Client certificates and private keys (Cora / PSP integration)
 *.pem
 *.key

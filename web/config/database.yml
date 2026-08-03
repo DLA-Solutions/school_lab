@@ -20,12 +20,15 @@ test:
   <<: *default
   database: school_lab_test
 
+# Connection details come from Kamal secrets (see docs/guidelines/process/deployment.md).
+# Solid Queue and Solid Cache share the primary database on purpose; only Solid Cable
+# is separate, because its writes are high-volume and disposable.
 production:
   primary: &primary_production
-    <<: *default
-    database: school_lab_production
-    username: school_lab
-    password: <%= ENV["SCHOOL_LAB_DATABASE_PASSWORD"] %>
+    adapter: postgresql
+    encoding: unicode
+    max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    url: <%= ENV["DATABASE_URL"] %>
   cache:
     <<: *primary_production
     schema_dump: false
@@ -34,5 +37,5 @@ production:
     schema_dump: false
   cable:
     <<: *primary_production
-    database: school_lab_production_cable
+    url: <%= ENV["CABLE_DATABASE_URL"] %>
     migrations_paths: db/cable_migrate
