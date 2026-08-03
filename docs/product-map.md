@@ -74,6 +74,11 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
    `docs/database/`); hybrid pattern: narrative DSL + DBML/DER for executable schema.
 4. Implementation (`web/` with the stack defined in `web-stack.md`).
 
+**Billing-first partner slice (Aug 2026):** `fintech-first` billing ships as the first
+live School Lab module in this monorepo (same product, shared schema). Communication and
+academic PRDs follow the validated MVP order once billing surfaces for the partner school
+are stable. See `docs/prds/fintech-first.md` (Positioning note).
+
 ## 5. Requirement domains (PRD candidates)
 
 Suggested order to mature — from foundational to operational. Priorities
@@ -94,5 +99,6 @@ focus):
    high priority).
 10. Landing / sales — commercial page (later).
 
-**Note:** `fintech-first` is a derived front (partner billing pain) outside the main
-MVP order above — see `docs/prds/fintech-first.md` (Positioning note).
+**Note:** `fintech-first` is the **billing-first partner slice** within School Lab (same
+product and monorepo) — it ships before the communication MVP order in §5 below. See
+`docs/prds/fintech-first.md` (Positioning note).

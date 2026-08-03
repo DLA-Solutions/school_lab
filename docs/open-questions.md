@@ -51,12 +51,30 @@ Recorded from a conversation with the partner director (escola NSR). Details in
       identifiers only for approved domain exceptions (`docs/glossary.md`); ask
       before adding new ones.
 
+## Recent decisions (fintech-first discovery #21 — Aug 2026)
+
+Recorded from discovery issue #21. Details in `docs/prds/fintech-first.md` (BR-011,
+UC-03, Open items, Positioning note).
+
+- [x] **Single School Lab product** — billing is the first live module in this monorepo;
+      communication and academic domains join the same codebase and schema later (not
+      separate products or parallel entity tables).
+- [x] **Mora interest (late payment)** — MVP charges mora interest only (no fine, no
+      early-payment discount until ~2027). Rate is **per school** in `school_billing_settings`
+      with **no platform default** — school must configure before issuance; platform sends
+      `interest.rate` to Cora on boleto emission; bank reports settled interest on
+      `payments.interest_amount_cents`. `Billing::LateFeeCalculator` stays zero in MVP.
+- [x] **Collection régua (MVP)** — **out of scope** for platform implementation; no
+      `notification` payload on Cora issuance and no platform mailer yet. Overdue detection
+      and dashboard remain. **Future channel:** platform email via `CollectionReguaNotifier`.
+- [x] **Guardian payment history (MVP)** — forward-only paid charges on the platform
+      (`source: platform`); no CSV import, no Cora backfill in MVP.
+
 ## MVP and scope
 
-- [ ] **Fintech-first vs School Lab monorepo** — separate product or same codebase
-      with two entry points? Foundational modeling started in `docs/database/` and
-      `docs/modeling/001-fintech-first.md`; decision affects convergence with main
-      MVP entities. See `docs/prds/fintech-first.md` (Positioning note).
+- [x] **Fintech-first vs School Lab monorepo** — **decided:** single School Lab product;
+      billing-first partner slice, then communication/academic on shared entities. See
+      `docs/prds/fintech-first.md` (Positioning note) and `docs/product-map.md` §4.
 - [ ] Confirm the full MVP scope: communication + academic (grades, report
       cards, attendance) + billing (boleto) + digital archive. What is left out
       in this first cut?
@@ -94,9 +112,10 @@ in `docs/prds/fintech-first.md` (Open items).
       rejected for the MVP because the partner school already has a direct bank
       relationship. Implemented in `Gateways::BankSlip::Cora::Adapter`; details in
       `docs/prds/fintech-first.md` (Open items) and `docs/guidelines/web/gateways.md`.
-- [ ] Delinquency handling (notices, blocks)? — overdue detection shipped
-      (`Billing::MarkOverdueChargesService` + `GET /billing/summary`); the notice channel
-      and any access block remain open (see the collection régua item below).
+- [x] **Delinquency handling (notices, blocks) — partial:** overdue detection shipped
+      (`Billing::MarkOverdueChargesService` + `GET /billing/summary`). Automated guardian
+      notices are **out of MVP scope** (bank-native behaviour only; platform email régua
+      is phase 2). Access blocks for delinquency remain open.
 - [x] **Fintech-first — provider charge reference — decided:** the canonical reference is
       `charge_issuances.provider_invoice_id` (one row per bank invoice, partial-unique when
       present), **not** a `psp_charge_id` column on `charges`. `charges` only caches the
@@ -106,8 +125,9 @@ in `docs/prds/fintech-first.md` (Open items).
 - [x] **Fintech-first — `device_tokens` table** — shipped: table is in `schema.dbml` and
       `web/db/schema.rb` (`user_id`, `token`, `platform`, partial-unique `token` on kept
       rows), serving `POST /api/v1/me/device_tokens`.
-- [ ] **Fintech-first — migrated payment history** — storage for `source: migrated`
-      and `external_reference` on guardian charge history.
+- [x] **Fintech-first — guardian payment history (MVP)** — forward-only; history returns
+      `source: platform` for charges paid in this system. Storage/import for
+      `source: migrated` / `external_reference` deferred until import scope is defined.
 - [x] **Fintech-first — reissue default due date** — `today + 7 business days`
       in the school timezone, skipping weekends and Brazilian national holidays
       (`Billing::BusinessDayCalendar`).
@@ -120,12 +140,15 @@ in `docs/prds/fintech-first.md` (Open items).
       that the notification is never a source of truth: it only triggers an authenticated
       `fetch_invoice` read that decides the outcome. Do not add HMAC verification
       expecting it to be the missing control.
-- [ ] **Late fee / interest rule** — per school or per billing plan, and the actual
-      fee/interest formula. `Billing::LateFeeCalculator` is a zero-returning placeholder,
-      so overdue charges currently keep `late_fee_amount_cents: 0`.
-- [ ] **Collection régua channel** — email, WhatsApp, SMS, or a per-school combination.
-      `Billing::CollectionReguaNotifier` only writes a log line today; no reminder is
-      delivered to guardians.
+- [x] **Late fee / interest rule — decided:** mora **interest only**, configured **per
+      school** (no default rate); sent to Cora as `payment_terms.interest.rate` on
+      issuance; no fine in MVP. `Billing::LateFeeCalculator` remains a zero-returning
+      placeholder — portal shows original amount + mora notice; interest estimate is
+      phase 2. Issuance blocked when the school has not configured a rate.
+- [x] **Collection régua channel — decided (MVP):** platform régua **not implemented**;
+      reminders are the bank's native behaviour until phase 2. **Future channel:** email via
+      `Billing::CollectionReguaNotifier` and `notification_schedule`. WhatsApp/SMS out of
+      MVP.
 
 ## Digital archive / auditing
 

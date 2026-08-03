@@ -247,7 +247,7 @@ Family-scoped — Pundit ensures only the logged-in guardian's charges.
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/charges` | Open charges (`pending`, `overdue`) |
-| `GET` | `/charges/history` | Paid + migrated historical |
+| `GET` | `/charges/history` | Paid charges on the platform (`source: platform`) |
 | `GET` | `/charges/:id` | Detail + payment methods |
 | `POST` | `/charges/:id/reissue` | Second copy boleto/Pix |
 | `GET` | `/payments` | Payment history |
@@ -278,7 +278,7 @@ Family-scoped — Pundit ensures only the logged-in guardian's charges.
 
 ### `GET /me/charges/history` response (example)
 
-Includes migrated records from legacy system when present:
+MVP returns paid charges generated and settled on the platform only:
 
 ```json
 {
@@ -291,24 +291,14 @@ Includes migrated records from legacy system when present:
       "paid_at": "2025-12-08T14:30:00Z",
       "source": "platform",
       "student": { "id": 1, "name": "Pedro Silva" }
-    },
-    {
-      "id": null,
-      "billing_period": "2024-06",
-      "total_amount": "750.00",
-      "status": "paid",
-      "paid_at": "2024-06-12T00:00:00Z",
-      "source": "migrated",
-      "external_reference": "legacy-boleto-9912",
-      "student": { "id": 1, "name": "Pedro Silva" }
     }
   ],
-  "meta": { "page": 1, "per_page": 25, "total": 24 }
+  "meta": { "page": 1, "per_page": 25, "total": 1 }
 }
 ```
 
-`source` and `external_reference` require a migration strategy — column or join table
-to be added when import scope is defined.
+Phase 2 may add `source: migrated` rows with `external_reference` when import scope is
+defined. Cora backfill and CSV import are out of MVP scope.
 
 ---
 

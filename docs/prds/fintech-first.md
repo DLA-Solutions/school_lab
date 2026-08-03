@@ -128,10 +128,13 @@ the national business-day calendar (`Billing::BusinessDayCalendar`).
 
 When a charge is marked overdue the system recomputes
 `total_amount_cents = original − discount + late fee` and writes `late_fee_amount_cents`.
-**The late fee is 0 in the MVP:** `Billing::LateFeeCalculator` is a placeholder that
-returns zero, because the fee/interest rule (per school or per billing plan, and the
-formula itself) is still undecided — see Open items. The recomputation path is wired so
-that shipping the rule requires only the calculator, not a change to the overdue flow.
+**Mora interest is applied by the bank on the registered boleto**, not by
+`Billing::LateFeeCalculator` in MVP: the calculator remains a zero-returning placeholder
+for internal estimates (phase 2). Each school configures `interest_rate_percent` in
+`school_billing_settings` (no platform default — issuance is blocked until set). On
+issuance the adapter sends `payment_terms.interest.rate` to Cora; settlement interest is
+persisted on `payments.interest_amount_cents`. **No fine** and **no early-payment
+discount** in MVP (discount phase ~2027).
 
 BR-012
 
@@ -177,7 +180,7 @@ Flow:
 2. Create `charge` with `billing_period`, amount fields (cents), `due_date`, `guardian_id`.
 3. Apply `applied_discounts` if any.
 4. Enqueue `Billing::IssueChargeJob` — issuance runs outside the DB transaction.
-5. Notify guardian (email/WhatsApp — channel pending).
+5. Guardian notification deferred — collection régua is out of MVP scope (see UC-03).
 6. Emit `ChargeGenerated`.
 
 ### UC-02 — Payment reconciliation (provider webhook)
@@ -196,7 +199,7 @@ Flow:
 5. Create/update `payments` with `provider_payment_id`, `paid_amount_cents`, `paid_at`.
 6. Invoke `charge.pay!` when payment confirmed.
 7. Record `observed_status` and `processed_at` on the `webhook_events` row.
-   Emit `PaymentConfirmed`. Guardian/school notification is pending the channel decision.
+   Emit `PaymentConfirmed`. Guardian/school notification deferred (UC-03).
 
 Because the notification is only a trigger, a lost or forged webhook cannot corrupt or
 silently drop a settlement: `Billing::DailyReconciliationJob` lists the last 14 days of
@@ -211,17 +214,16 @@ Flow:
 
 1. Daily job marks eligible `pending` charges past `due_date` + grace days as `overdue`
    (`Billing::MarkOverdueChargesService`). **Implemented.**
-2. Recompute amounts per BR-011 — late fee resolves to 0 until the rule ships.
-   **Wired, fee rule pending.**
-3. Send reminders (D−N before due, on due date, D+1, D+3, D+7 — configurable per school
-   via `school_billing_settings.notification_schedule`). **Not implemented:**
-   `Billing::CollectionReguaNotifier` is invoked on each overdue transition but only
-   writes a log line — no guardian is contacted, because the channel (email, WhatsApp,
-   SMS) is still open. The schedule column exists but is not yet consumed.
+2. Recompute amounts per BR-011 — `late_fee_amount_cents` stays 0 in MVP; mora is on
+   the bank slip via Cora `interest.rate` configured per school. **Implemented (bank-side).**
+3. Send reminders — **out of MVP scope.** `Billing::CollectionReguaNotifier` is invoked
+   on each overdue transition but only writes a log line. Platform email régua (future
+   channel) and Cora `notification` payload on issuance are **not** implemented in MVP;
+   any pre/post-due reminders are the bank's native behaviour until phase 2.
 4. Reflect counts and amounts on `GET /billing/summary`. **Implemented.**
 
-MVP delivery therefore covers overdue *detection and visibility*; automated dunning
-(fee application and guardian reminders) is deliberately deferred, not forgotten.
+MVP delivery covers overdue *detection and visibility* plus mora on the boleto once
+`interest_rate_percent` is configured. Automated platform dunning is phase 2.
 
 ### UC-04 — Guardian views and pays charges
 
@@ -372,7 +374,8 @@ Do not duplicate full table definitions here. Update `schema.dbml` before migrat
 | Documents (enrollment/KYC) | `documents` |
 | Auditing | `audits` (audited gem — not a domain entity) |
 
-**Pending schema work** (see Open items): migrated payment history storage.
+**Pending schema work** (see Open items): `interest_rate_percent` on
+`school_billing_settings`; migrated payment history storage (phase 2).
 
 Any PRD entity change must be reflected in `schema.dbml` before `web/` implementation.
 
@@ -583,18 +586,27 @@ answers in implementation.
 - [x] **Provider invoice reference — decided:** `charge_issuances` holds canonical
       issuance history (`provider_invoice_id`, idempotency key, slip artifacts); `charges`
       caches the active invoice id and display URLs for guardian APIs.
-- [ ] Migrated payment history (`source: migrated`, `external_reference`) — column or
-      join table when import scope is defined.
-- [ ] Collection régua channel: email, WhatsApp, SMS, or combination per school.
-      Blocks `Billing::CollectionReguaNotifier`, which logs instead of notifying.
-- [ ] Late fee/interest rule: per school or per billing plan, plus the formula.
-      Blocks `Billing::LateFeeCalculator`, which returns 0.
+- [x] **Migrated payment history — decided (MVP):** forward-only; guardian history returns
+      `source: platform` for charges paid in this system. Column/join table for
+      `source: migrated` / `external_reference` deferred until import scope is defined.
+- [x] **Collection régua — decided:** MVP platform régua **not implemented** (stub
+      notifier only). Future channel: **email** via platform mailer +
+      `notification_schedule`. WhatsApp/SMS out of MVP. Cora `notification` on issuance
+      not sent by platform in MVP.
+- [x] **Late fee/interest — decided:** mora **interest only**, per school
+      (`interest_rate_percent`, no default); Cora `payment_terms.interest.rate` on issuance;
+      no fine in MVP. `LateFeeCalculator` stays zero until portal interest estimate (phase 2).
+      Issuance blocked when rate unset.
 - [ ] Manually negotiated discount approval flow (scholarship, one-off agreement).
 - [ ] Invoice issuance (NFS-e) in MVP or later phase.
 - [ ] Platform SaaS billing model for schools.
+- [ ] Early payment discount (pontualidade) — phase ~2027; Cora supports
+      `payment_terms.discount` when product ships.
 - [x] **Guardian access — decided:** Devise account (`users` + `memberships` +
       `guardians.user_id`). Magic link per charge is a future alternative.
-- [ ] Fintech-first vs School Lab monorepo convergence — see Positioning note.
+- [x] **Fintech-first vs School Lab monorepo — decided:** single **School Lab** product;
+      billing is the first live module; communication and academic join the same codebase
+      and shared entities later. See Positioning note.
 
 ---
 
@@ -605,13 +617,8 @@ This PRD proposes an **inverted** build order relative to School Lab's validated
 
 The billing domain is now implemented in this monorepo (`web/`), on the schema in
 `docs/database/schema.dbml` and the narrative in `docs/modeling/001-fintech-first.md`.
-The convergence question below is therefore about how School Lab's communication and
-academic domains join these entities — not about whether to start.
 
-Two readings still open (`open-questions.md` — MVP and scope):
-
-1. **Separate products** — School Lab ("communication pain #1") vs this billing module.
-2. **Same codebase, two entry points** — schema must converge with School Lab entities
-   (`School`, `User`, `Membership`, `Student`, `StudentGuardian`) without parallel tables.
-
-Decide before full implementation — it affects repository boundaries and entity naming.
+**Decided (Aug 2026, discovery #21):** School Lab is a **single product**. The
+billing-first partner slice ships first; communication and academic domains join the same
+`web/` API, shared entities (`School`, `User`, `Membership`, `Student`, `StudentGuardian`),
+and client surfaces — without parallel tables or a separate repository.
