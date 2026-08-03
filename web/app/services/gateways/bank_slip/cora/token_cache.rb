@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
+require "digest"
+
 module Gateways
   module BankSlip
     module Cora
       class TokenCache
-        # `environment` is the deploy's Cora environment, not a school attribute: it keeps a
-        # token minted for the sandbox from being replayed against the live endpoints when a
-        # deploy flips over a shared cache.
-        def initialize(school_id:, provider:, environment:, cache: Rails.cache)
+        # `token_url` is the deploy's Cora token endpoint, not a school attribute: it keeps a
+        # token minted for one deploy from being replayed against another when URLs change
+        # over a shared cache.
+        def initialize(school_id:, provider:, token_url:, cache: Rails.cache)
           @school_id = school_id
           @provider = provider
-          @environment = environment
+          @token_url = token_url
           @cache = cache
         end
 
@@ -38,10 +40,11 @@ module Gateways
 
         private
 
-        attr_reader :school_id, :provider, :environment, :cache
+        attr_reader :school_id, :provider, :token_url, :cache
 
         def cache_key
-          "bank_slip/token/#{school_id}/#{provider}/#{environment}"
+          token_url_digest = Digest::SHA256.hexdigest(token_url)
+          "bank_slip/token/#{school_id}/#{provider}/#{token_url_digest}"
         end
       end
     end

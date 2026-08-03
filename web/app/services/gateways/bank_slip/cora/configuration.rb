@@ -4,39 +4,22 @@ module Gateways
   module BankSlip
     module Cora
       module Configuration
-        ENVIRONMENTS = {
-          "stage" => {
-            api_base_url: "https://api.stage.cora.com.br",
-            token_url: "https://matls-clients.api.stage.cora.com.br/token"
-          },
-          "production" => {
-            api_base_url: "https://api.cora.com.br",
-            token_url: "https://matls-clients.api.cora.com.br/token"
-          }
-        }.freeze
-
         CONNECT_TIMEOUT = 5
         READ_TIMEOUT = 10
         TOKEN_SAFETY_MARGIN_SECONDS = 300
 
         module_function
 
-        # Which endpoints this deploy talks to. A school is either correctly registered for the
-        # integration or not; the sandbox is a property of the deploy, not of the school.
-        def deploy_environment
-          Rails.application.config.x.billing.cora_environment
-        end
-
         def current
-          for_environment(deploy_environment)
-        end
+          api_base_url = ENV["CORA_API_BASE_URL"]
+          token_url = ENV["CORA_TOKEN_URL"]
 
-        def for_environment(environment)
-          ENVIRONMENTS.fetch(environment) do
+          if api_base_url.blank? || token_url.blank?
             raise Gateways::BankSlip::ProviderError,
-                  "config.x.billing.cora_environment must be one of #{ENVIRONMENTS.keys.join(', ')}, " \
-                  "got #{environment.inspect}"
+                  "CORA_API_BASE_URL and CORA_TOKEN_URL must be set"
           end
+
+          { api_base_url: api_base_url.chomp("/"), token_url: token_url }
         end
 
         # How long a token may be cached: the provider lifetime minus the safety margin.

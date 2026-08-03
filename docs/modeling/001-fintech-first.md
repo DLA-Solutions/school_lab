@@ -37,7 +37,7 @@ User platform status: `active` | `disabled` (blocks all schools; distinct from p
 | Table | Role |
 |-------|------|
 | `billing_plans` | Tuition, enrollment, fee templates per school |
-| `school_payment_providers` | Per-school provider credentials keyed by `instrument` (`bank_slip`) and `environment` |
+| `school_payment_providers` | Per-school provider credentials keyed by `instrument` (`bank_slip`) |
 | `school_billing_settings` | Per-school billing policy — grace days, boleto service description, notification schedule (not provider credentials) |
 | `contracts` | Per-student negotiated terms and due day |
 | `charges` | Generated billing periods; links to financially responsible `guardian`; caches latest invoice display fields |
@@ -77,8 +77,8 @@ Three layers keep business billing separate from provider invoice lifecycle:
  returned — it is the fact that drives `payments` and `charges.status`, never a status
  taken from the notification itself. Cora's notification has no body to parse.
 
-**Provider configuration:** `school_payment_providers` is keyed by `(school_id, instrument,
- environment)` with a partial unique index on active rows. Each school selects a provider
+**Provider configuration:** `school_payment_providers` is keyed by `(school_id, instrument)`
+with a partial unique index on active rows. Each school selects a provider
  per payment instrument (MVP: `bank_slip` → Cora or `fake`); card will add rows with
  `instrument: card` without changing the bank slip port.
 

@@ -68,15 +68,18 @@ RSpec.describe Billing::MarkOverdueChargesService do
     end
 
     it "applies each school's grace window independently" do
+      as_of = Date.new(2026, 8, 11) # Tuesday
+      due_date = Date.new(2026, 8, 7) # Friday — effective due date stays Friday with grace 0
+
       charge_one = create(:charge, school: school, contract: contract, guardian: guardian,
-                                 due_date: 2.days.ago.to_date)
+                                 due_date: due_date)
       contract_two = create(:contract, school: school_two, student: create(:student, school: school_two),
                                        billing_plan: create(:billing_plan, school: school_two))
       charge_two = create(:charge, school: school_two, contract: contract_two,
                                    guardian: create(:guardian, school: school_two),
-                                   due_date: 2.days.ago.to_date)
+                                   due_date: due_date)
 
-      described_class.call(as_of: Date.current)
+      described_class.call(as_of: as_of)
 
       expect(charge_one.reload.status).to eq("overdue")
       expect(charge_two.reload.status).to eq("pending")

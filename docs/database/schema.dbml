@@ -188,7 +188,6 @@ Table school_payment_providers {
   school_id integer [not null]
   instrument varchar [not null, note: 'bank_slip — card added later without migration. Check constraint: instrument = bank_slip.']
   provider varchar [not null, note: 'cora | fake']
-  environment varchar [not null, note: 'stage | production. Check constraint: environment IN (stage, production).']
   active boolean [not null, default: true]
   settings jsonb [not null, default: '{}']
   client_id varchar
@@ -203,7 +202,7 @@ Table school_payment_providers {
   updated_at timestamp
 
   indexes {
-    (school_id, instrument, environment) [unique, note: 'Partial: WHERE active = true']
+    (school_id, instrument) [unique, note: 'Partial: WHERE active = true']
     webhook_endpoint_token [unique]
   }
 }

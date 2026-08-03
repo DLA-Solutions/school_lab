@@ -83,8 +83,9 @@ in `docs/prds/fintech-first.md` (Open items).
 - [x] **Gateway adapter HTTP tests** — WebMock stubs in `spec/gateways/bank_slip/`;
       no VCR cassettes committed. VCR stays configured for optional manual sandbox
       recordings only; CI does not depend on cassettes.
-- [ ] **Cora stage validation** — end-to-end issuance against Cora stage requires a
-      live school account and credentials (operational checklist; not a code deliverable).
+- [ ] **Cora sandbox validation** — end-to-end issuance against Cora sandbox requires a
+      live school account and credentials. Manual smoke test only — **outside CI**; automated
+      tests use `Gateways::BankSlip::Fake` and WebMock with placeholder URLs.
 - [x] **Payment/boleto-issuance integration — decided:** **Cora** in *Integração Direta*
       (Direct Integration) on **the school's own Cora account** — the platform is not a
       payment aggregator and does not hold school funds. Transport is mTLS with a

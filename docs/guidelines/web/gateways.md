@@ -73,19 +73,25 @@ Card will be a **sibling port** (`app/services/gateways/card/`), not methods add
 Services load the active provider from `school_payment_providers`, then resolve the
 adapter class via `Gateways::BankSlip::Registry.resolve(school:, provider:)`.
 
-### The sandbox is a deploy, not a school attribute
+### Cora billing URLs are deploy configuration, not a school attribute
 
 A school is either registered correctly for the integration or it is not — there is no
 "school in stage". Real data only exists in production; staging holds test schools with
-sandbox credentials, in its own database. So `stage` vs `production` selects **Cora hosts**
-and nothing else, and lives in deploy configuration:
+sandbox credentials, in its own database. Which Cora hosts the deploy talks to is selected
+by two environment variables and nothing else:
 
-- `config.x.billing.cora_environment` (`"stage"` / `"production"`), set per environment file:
-  `stage` in development and test, `ENV.fetch("CORA_ENVIRONMENT", "production")` in production.
-- **Never derive it from `Rails.env`.** A staging deploy also runs with `RAILS_ENV=production`
-  and would reach the live endpoints with sandbox credentials.
-- `Cora::Configuration.current` resolves the hosts; an unset or unknown value raises
-  `ProviderError` naming the key, so the deploy fails loudly instead of guessing.
+- `CORA_API_BASE_URL` — REST API base (e.g. `https://api.stage.cora.com.br` for sandbox,
+  `https://api.cora.com.br` for live).
+- `CORA_TOKEN_URL` — mTLS token endpoint (e.g.
+  `https://matls-clients.api.stage.cora.com.br/token` for sandbox).
+
+Set both in `.env` for local development (see `web/.env.example`), in Kamal `deploy.yml` for
+each deploy target, and in staging secrets when that environment uses sandbox URLs while
+`RAILS_ENV=production`. **Never derive them from `Rails.env`.**
+
+`Cora::Configuration.current` reads `ENV` lazily when the Cora client is invoked; missing
+values raise `ProviderError` naming both keys, so the deploy fails loudly instead of
+guessing.
 
 ### One configuration per school and instrument
 
@@ -178,10 +184,10 @@ due date on a registered slip.
 ## Testing
 
 - **Service specs** inject `Gateways::BankSlip::Fake` — assert persisted
-  `charge_issuances` and charge state, not HTTP stubs.
-- **Adapter specs** use shared examples (`it_behaves_like "a bank slip adapter"`) and
-  **WebMock** request stubs (`spec/gateways/bank_slip/<provider>/`). This is the
-  default for CI — no committed VCR cassettes.
+  `charge_issuances` and charge state, not HTTP stubs. They never read `CORA_*` env vars.
+- **Gateway specs** (`spec/gateways/bank_slip/cora/`) set **placeholder billing URLs**
+  (`https://cora.test`, `https://cora.test/token`) via `spec/support/cora_http_mock.rb` and
+  stub HTTP with **WebMock** against those hosts only — never `*.cora.com.br` in CI.
 - **VCR** (`spec/support/vcr.rb`) remains for **optional** manual recordings against
   provider sandboxes when validating a new adapter or payload change. Filters must
   redact tokens, PEM, and `client_id` before any cassette is committed. Do not add
@@ -189,9 +195,9 @@ due date on a registered slip.
 - **Job specs** assert that a `TransientError` re-enqueues the job and that a permanent
   error does not, leaving the issuance `failed` with `last_error` set.
 
-**Decision (Cora closure):** WebMock-only in repo; VCR is a maintainer tool, not a CI
-dependency. Cora stage smoke tests against live APIs are operational (credentials +
-account) and are not automated in CI.
+**Decision (Cora closure):** WebMock + placeholder URLs in repo; VCR is a maintainer tool,
+not a CI dependency. Cora sandbox smoke tests against live APIs are **manual / operational**
+(credentials + account) and are **not** automated in CI.
 
 ## Adding a new bank slip provider
 
@@ -204,7 +210,8 @@ account) and are not automated in CI.
 4. **Shared contract** — pass `spec/support/shared_examples/bank_slip_adapter.rb`.
 5. **Configuration** — document required `school_payment_providers` columns/settings;
    seed or backoffice flow creates the row (`instrument: bank_slip`, provider, credentials).
-   Host selection per deploy belongs in `config.x.billing`, never on the row.
+   Billing URL env vars (`CORA_API_BASE_URL`, `CORA_TOKEN_URL`) belong in deploy config,
+   never on the row.
 6. **Capabilities** — declare honest flags; do not copy another provider's map blindly.
 
 No change to `Billing::` service orchestration should be required when the port contract

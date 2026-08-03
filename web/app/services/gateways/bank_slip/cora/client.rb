@@ -12,7 +12,7 @@ module Gateways
           token_cache = TokenCache.new(
             school_id: school.id,
             provider: config.provider,
-            environment: Configuration.deploy_environment
+            token_url: Configuration.current.fetch(:token_url)
           )
           new(config: config, token_cache: token_cache)
         end
@@ -20,7 +20,7 @@ module Gateways
         def initialize(config:, token_cache:)
           @config = config
           @token_cache = token_cache
-          @environment_config = Configuration.current
+          @billing_urls = Configuration.current
         end
 
         def get(path)
@@ -37,7 +37,7 @@ module Gateways
 
         private
 
-        attr_reader :config, :token_cache, :environment_config
+        attr_reader :config, :token_cache, :billing_urls
 
         def request(method, path, body: nil, content_type: "application/json", idempotency_key: nil, retried: false)
           response = with_connection_rescue do
@@ -55,7 +55,7 @@ module Gateways
 
         def authenticated_request(method, path, body:, content_type:, idempotency_key:)
           token = access_token
-          uri = URI.join(environment_config.fetch(:api_base_url), path)
+          uri = URI.join(billing_urls.fetch(:api_base_url), path)
           http = build_http(uri)
           request = build_request(method, uri, body: body, content_type: content_type, token: token,
                                                   idempotency_key: idempotency_key)
@@ -68,7 +68,7 @@ module Gateways
 
         def fetch_access_token
           with_connection_rescue do
-            uri = URI(environment_config.fetch(:token_url))
+            uri = URI(billing_urls.fetch(:token_url))
             http = build_http(uri)
             request = Net::HTTP::Post.new(uri)
             request["Content-Type"] = "application/x-www-form-urlencoded"

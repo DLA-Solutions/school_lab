@@ -53,6 +53,4 @@ Rails.application.configure do
 
   config.active_job.queue_adapter = :solid_queue
 
-  # Specs stub the Cora endpoints; stage keeps the production hosts out of any stub by default.
-  config.x.billing.cora_environment = "stage"
 end
