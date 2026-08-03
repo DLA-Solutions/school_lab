@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # `environment` only ever selected which Cora hosts to talk to, which is a property of the
-# deploy (see `config.x.billing.cora_environment`), not of the school. Keeping it here allowed
+# deploy (via `CORA_API_BASE_URL` / `CORA_TOKEN_URL`), not of the school. Keeping it here
 # two active configurations per school and instrument, and a sandbox row to be picked inside a
 # production deploy. A school now has one configuration per instrument: provider, credentials
 # and whether it is active.

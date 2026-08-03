@@ -50,9 +50,5 @@ module SchoolLab
 
     config.x.billing = ActiveSupport::OrderedOptions.new
     config.x.billing.webhook_events_retention_days = ENV.fetch("WEBHOOK_EVENTS_RETENTION_DAYS", 180).to_i
-    # Which Cora endpoints this deploy talks to ("stage" or "production"). Set per environment
-    # file — never derived from Rails.env, because a staging deploy runs with
-    # RAILS_ENV=production and would reach the production endpoints with sandbox credentials.
-    config.x.billing.cora_environment = nil
   end
 end
