@@ -62,17 +62,77 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
       end
     end
 
-    post "Upload bank credentials" do
+    upload_body = {
+      required: true,
+      content: {
+        "multipart/form-data" => {
+          schema: {
+            type: :object,
+            required: %w[provider instrument client_id certificate private_key],
+            properties: {
+              provider: {
+                type: :string,
+                enum: Gateways::BankSlip::Registry::API_SELECTABLE_PROVIDERS,
+                description: "Payment provider the credentials belong to"
+              },
+              instrument: {
+                type: :string,
+                enum: SchoolPaymentProvider::INSTRUMENTS,
+                description: "Payment instrument the configuration is used for"
+              },
+              client_id: {
+                type: :string,
+                description: "Client identifier issued by the provider"
+              },
+              certificate: {
+                type: :string,
+                format: :binary,
+                description: "mTLS client certificate, PEM encoded"
+              },
+              private_key: {
+                type: :string,
+                format: :binary,
+                description: "Private key matching the certificate, PEM encoded"
+              }
+            }
+          }
+        }
+      }
+    }
+
+    # The body is declared here instead of through the `formData` parameters below because
+    # rswag 2.17 turns the first parameter carrying a schema into the whole request body —
+    # which published this form as a bare string. The parameters stay schema-less so they
+    # only feed the request payload the examples send.
+    post "Upload bank credentials", operation: { requestBody: upload_body } do
       tags "Backoffice"
       consumes "multipart/form-data"
       produces "application/json"
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
-      parameter name: :provider, in: :formData, type: :string, required: true
-      parameter name: :instrument, in: :formData, type: :string, required: true
-      parameter name: :client_id, in: :formData, type: :string, required: true
-      parameter name: :certificate, in: :formData, type: :file, required: true
-      parameter name: :private_key, in: :formData, type: :file, required: true
+      parameter name: :provider, in: :formData, required: true
+      parameter name: :instrument, in: :formData, required: true
+      parameter name: :client_id, in: :formData, required: true
+      parameter name: :certificate, in: :formData, required: true
+      parameter name: :private_key, in: :formData, required: true
+
+      # The published body has to keep agreeing with what the endpoint accepts. `fake` fabricates
+      # a boleto that collects nothing, so it must never be offered; and a field may only be
+      # marked required while every offered provider actually needs it.
+      it "offers only the providers the API accepts" do
+        published = upload_body.dig(:content, "multipart/form-data", :schema, :properties, :provider, :enum)
+
+        expect(published).to include("cora")
+        expect(published).not_to include("fake")
+      end
+
+      it "requires the credentials every offered provider needs" do
+        needed = Gateways::BankSlip::Registry::API_SELECTABLE_PROVIDERS.map do |provider|
+          SchoolPaymentProvider::REQUIRED_CREDENTIALS.fetch(provider)
+        end
+
+        expect(needed.uniq).to eq([ %i[client_id certificate_pem private_key_pem] ])
+      end
 
       response "201", "valid certificate pair uploaded" do
         let(:provider) { "cora" }
@@ -107,6 +167,21 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
 
           expect(configs.count).to eq(2)
           expect(configs.active.pluck(:client_id)).to eq([ "client-prod-002" ])
+        end
+      end
+
+      response "422", "provider not accepted by the API" do
+        let(:provider) { "fake" }
+        let(:instrument) { "bank_slip" }
+        let(:client_id) { "client-stage-001" }
+        let(:certificate) { uploaded_pem(pair[:certificate_pem], "cert.pem") }
+        let(:private_key) { uploaded_pem(pair[:private_key_pem], "key.pem") }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("validation_error")
+          expect(body.dig("error", "details")).to have_key("provider")
+          expect(SchoolPaymentProvider.count).to eq(0)
         end
       end
 

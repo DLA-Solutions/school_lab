@@ -35,7 +35,7 @@ Each scenario must be **specific, testable, and unambiguous**:
 | `jobs` | Happy path + idempotent retry + failure/alert path |
 | `modeling` / `docs` | Artifact exists + cross-references PRD entities + open questions flagged |
 | `discovery` | Decision recorded + downstream tasks unblocked or explicitly still blocked |
-| `web-ui` / `app` | Happy path + error/empty state + role guard (when applicable) |
+| `web-spa` / `app` | Happy path + error/empty state + role guard (when applicable) |
 
 ## Mapping to RSpec
 

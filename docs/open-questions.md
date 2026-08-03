@@ -8,9 +8,9 @@ a recorded decision (in vision/actors) or a PRD.
 Recorded from API planning session. Details in `docs/web-stack.md`, `docs/api/`,
 and `docs/modeling/002-api-auth.md`.
 
-- [x] **Web UI: React SPA** (`web-ui/`) — not Hotwire as primary UI.
+- [x] **Web UI: React SPA** (`frontend/main`) — not Hotwire as primary UI.
 - [x] **Mobile: React Native** (`app/`) — same API contract as web.
-- [x] **One API** — `/api/v1` serves both `web-ui` and `app`.
+- [x] **One API** — `/api/v1` serves both the web SPA and `app`.
 - [x] **API docs: rswag** — OpenAPI from request specs; Swagger UI in dev.
 - [x] **Auth: Devise + JWT** — access 20 min; refresh 90 days sliding (180 remember me);
       rotation on refresh; web refresh in httpOnly cookie; mobile in secure storage.
@@ -256,7 +256,7 @@ does not assume indefinite storage.
 
 Decisions finalized in `docs/web-stack.md`. Open items:
 
-- [x] **Web UI** — React SPA in `web-ui/` (not Hotwire).
+- [x] **Web UI** — React SPA in `frontend/main` (not Hotwire).
 - [x] **Mobile** — React Native in `app/`.
 - [x] **API** — single `/api/v1` for web and mobile; conventions in `docs/api/README.md`.
 - [x] **Web auth** — Devise credentials + JWT access + `refresh_tokens`. Schema:
@@ -264,6 +264,13 @@ Decisions finalized in `docs/web-stack.md`. Open items:
 - [x] **API documentation** — rswag → OpenAPI.
 - [x] **API serialization** — blueprinter (provisional).
 - [x] **Firebase Authentication** — not used for login; FCM only for push.
+- [x] **SPA UI kit — MUI v7 + Emotion** in `frontend/main`, not Tailwind. Inherited from the
+      `dashdark-x` template (`frontend/base`) and kept; no migration planned.
+- [ ] SPA test runner — nothing installed; Vitest + Testing Library is the likely choice.
+- [ ] SPA i18n library — strings are currently hardcoded in components.
+- [ ] SPA data fetching — keep hand-rolled `fetch`, or adopt TanStack Query / SWR?
+- [ ] SPA global state — stay on React Context, or add a store?
+- [ ] SPA API types — hand-written in `src/types/`, or generated from the OpenAPI spec?
 - [ ] Email provider (Postmark, SES, etc.)?
 - [x] **Boleto integration** — Cora Direct Integration on the school's own account
       (mTLS); see the Billing section above.

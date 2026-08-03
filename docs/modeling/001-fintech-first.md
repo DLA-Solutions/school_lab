@@ -163,7 +163,7 @@ Do not assume indefinite storage. Record final windows in this file and `docs/op
 
 | Channel | Mechanism |
 |---------|-----------|
-| Web (`web-ui/`) | JWT access + refresh httpOnly cookie |
+| Web SPA | JWT access + refresh httpOnly cookie |
 | Mobile (`app/`) | JWT access + refresh in secure storage |
 | Credential validation | Devise on `users` |
 

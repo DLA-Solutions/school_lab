@@ -1,6 +1,6 @@
 # Web Stack — School Lab
 
-> Folders: `web/` (Rails API), `web-ui/` (React SPA), `app/` (React Native)  
+> Folders: `web/` (Rails API), `frontend/main` (React SPA), `app/` (React Native)  
 > Status: finalized decision (web layer)
 
 Rails 8.1 API monolith with a versioned JSON REST API consumed by **React web** and
@@ -14,7 +14,7 @@ the MVP: app + PostgreSQL + S3.
 | Language | Ruby 4.0.x |
 | Framework | Rails 8.1.x |
 | API | REST JSON `/api/v1` |
-| Web UI | **React** SPA (`web-ui/`) — Vite |
+| Web UI | **React 19** SPA (`frontend/main`) — Vite 7 + TypeScript, **MUI v7** |
 | Mobile UI | **React Native** (`app/`) |
 | API docs | **rswag** → OpenAPI (`swagger/v1/swagger.yaml`) |
 | Database | PostgreSQL 16+ |
@@ -30,33 +30,57 @@ the MVP: app + PostgreSQL + S3.
 
 ```
 school_lab/
-  web/       # Rails — API, services, models, jobs (no Hotwire UI)
-  web-ui/    # React SPA — backoffice, school, teacher, guardian (web)
-  app/       # React Native — school, teacher, parents (mobile)
-  docs/api/  # API conventions + route narratives
+  web/            # Rails — API, services, models, jobs (no Hotwire UI)
+  frontend/main/  # React SPA — backoffice, school, teacher, guardian (web)
+  frontend/base/  # upstream template the SPA started from — reference only
+  app/            # React Native — school, teacher, parents (mobile)
+  docs/api/       # API conventions + route narratives
 ```
 
 | Folder | Role |
 |--------|------|
 | `web/` | Single source of business rules; `/api/v1` only for product UI |
-| `web-ui/` | Consumes API with JWT; refresh via httpOnly cookie |
+| `frontend/main` | Consumes API with JWT; refresh via httpOnly cookie |
+| `frontend/base` | Upstream template (`dashdark-x`); reference only, not the product |
 | `app/` | Consumes same API; refresh in secure device storage |
 
 All product controllers delegate to the same service objects — rules are not duplicated.
 
-## 3. Web frontend (`web-ui/`)
+## 3. Web frontend (`frontend/main`)
 
-React SPA (planned: Vite + TypeScript + Tailwind).
+React 19 SPA on Vite 7 + TypeScript 5.9 (SWC via `@vitejs/plugin-react-swc`). The table below
+describes what is **installed today** (`frontend/main/package.json`), not a plan.
 
 | Concern | Approach |
 |---------|----------|
-| Routing | React Router (or TanStack Router) |
-| API client | Fetch/axios + OpenAPI types (optional `openapi-typescript`) |
-| Auth | Access token in memory; refresh in httpOnly cookie |
-| State | Context / Zustand per feature |
-| Styling | Tailwind CSS |
+| UI kit / styling | **MUI v7** (`@mui/material`) on Emotion (`@emotion/react`, `@emotion/styled`); custom theme and component overrides in `src/theme/` |
+| Rich components | `@mui/x-data-grid` v8 (tables), `@mui/x-date-pickers` v8 (dates) |
+| Routing | **React Router v7** (`react-router`) — data router via `createBrowserRouter`; guards in `src/routes/guards.tsx` |
+| API client | Hand-written `fetch` wrapper (`src/services/api.ts`) — no axios and no generated client; unwraps `{ error: { code, message, details } }` |
+| Auth | Access token in memory (`src/services/tokenStore.ts`); refresh via httpOnly cookie (`credentials: 'include'`) with one transparent 401 retry |
+| State | React Context only — `src/providers/AuthProvider.tsx` for the session; local `useState` elsewhere |
+| Forms | Controlled components with `useState` + native `onSubmit`; no form library |
+| Charts | ECharts (`echarts`, `echarts-for-react`) |
+| Icons / scrolling | `@iconify/react`, `simplebar` |
+| Dates | `date-fns` and `dayjs` (dayjs backs the MUI date pickers) |
+| Lint / format | ESLint 9 flat config + Prettier, enforced during `vite dev`/`build` by `vite-plugin-checker` |
+| Config | `VITE_API_BASE_URL` (`frontend/main/.env.example`); dev server on port 5173 to match the API's default `CORS_ORIGINS` |
 
 **Principle:** thin client — validation and business rules stay in the API.
+
+### Not in the SPA yet
+
+Absent from `frontend/main` as of Aug 2026. Planning work there means introducing these, not
+consuming them — the corresponding choices are open items in §14.
+
+| Missing | What that means today |
+|---------|-----------------------|
+| **Test runner** | No Vitest, Testing Library, or MSW, and no test files — the SPA has no automated tests |
+| **i18n** | No i18next or equivalent; strings are hardcoded in components (mixed English and pt-BR). The topbar `LanguageSelect` is inert template UI |
+| **Data fetching library** | No TanStack Query or SWR — components call `src/services/` directly and track loading/error state by hand |
+| **Global state library** | No Zustand or Redux — React Context is the only shared state |
+| **Generated API types** | No `openapi-typescript` or orval; request/response types are hand-written in `src/types/` |
+| **Tailwind CSS** | Not installed anywhere under `frontend/` — MUI is the UI kit (§14) |
 
 ## 4. Mobile frontend (`app/`)
 
@@ -66,13 +90,13 @@ React Native consuming the same `/api/v1` contract.
 |---------|----------|
 | Auth | JWT access in memory; refresh in Keychain/Keystore |
 | Push | FCM device tokens via `POST /api/v1/me/device_tokens` |
-| API client | Shared patterns with `web-ui` where possible |
+| API client | Shared patterns with the web SPA where possible |
 
 ## 5. Authentication and authorization
 
 | Channel | Mechanism |
 |-------|-----------|
-| **Web (`web-ui`)** | JWT access (Bearer) + refresh **httpOnly cookie** |
+| **Web SPA** | JWT access (Bearer) + refresh **httpOnly cookie** |
 | **Mobile (`app`)** | JWT access + refresh token (secure storage) |
 | **Credentials** | **Devise** on `users` (password, reset, lock) |
 
@@ -127,13 +151,13 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Push** | FCM via Solid Queue | Async delivery |
 | **Storage** | Active Storage → S3 | Documents |
 | **Server** | Puma | Rails default |
-| **CORS** | rack-cors | `web-ui` origins |
+| **CORS** | rack-cors | Web SPA origins |
 
 ### Minimal infrastructure (MVP)
 
 ```
 Rails API  →  PostgreSQL  →  S3
-web-ui SPA →  CDN or static host
+React SPA  →  CDN or static host
 React Native → stores
 ```
 
@@ -157,7 +181,7 @@ Event (e.g., attendance recorded)
 |------|------|
 | Unit / model / service | RSpec |
 | API + OpenAPI | RSpec request specs + **rswag** |
-| Web UI | Vitest + React Testing Library (in `web-ui/`) |
+| Web UI | **None yet** — no test runner installed in `frontend/main` (§3) |
 | Mobile | Jest + RN Testing Library (in `app/`) |
 | Factories | FactoryBot |
 
@@ -167,10 +191,10 @@ Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testin
 
 | Surface | Channel | MVP |
 |---------|---------|-----|
-| DLA backoffice | `web-ui` | Yes |
-| School admin | `web-ui` (+ light `app`) | Yes |
-| Teacher | `web-ui` + `app` | Yes |
-| Parents | `app` (+ `web-ui` phase 2) | App first for boletos |
+| DLA backoffice | Web SPA | Yes |
+| School admin | Web SPA (+ light `app`) | Yes |
+| Teacher | Web SPA + `app` | Yes |
+| Parents | `app` (+ web SPA phase 2) | App first for boletos |
 
 ## 11. Conventions
 
@@ -185,13 +209,14 @@ Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testin
 - Microservices
 - Redis for background jobs (Sidekiq)
 - Server-rendered Hotwire as primary web UI (superseded by React SPA)
+- Tailwind CSS in `frontend/main` (superseded by MUI — §14)
 
 ## 13. Architecture
 
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
-        WebUI[web-ui React SPA]
+        WebUI[React SPA]
         MobileApp[app React Native]
     end
 
@@ -236,7 +261,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
-        WebUI[web-ui]
+        WebUI[Web SPA]
         MobileApp[app]
     end
 
@@ -282,8 +307,21 @@ See `docs/open-questions.md` (Web stack section):
 - Email provider (Postmark, SES, etc.)
 - When to add Redis (cache only)
 
+Open for the SPA — each is missing from `frontend/main` today (§3):
+
+- **Test runner** for the SPA (Vitest + Testing Library is the likely choice, nothing installed).
+- **i18n library** — needed before the UI can honor the `pt-BR` product locale properly.
+- **Data fetching** — keep hand-rolled `fetch` calls, or adopt TanStack Query / SWR.
+- **Global state** — stay on React Context, or adopt a store once more than one feature needs it.
+- **API types** — hand-written, or generated from `swagger/v1/swagger.yaml`.
+
 **Finalized decisions (Aug 2026):**
 
+- **SPA UI kit: MUI v7 + Emotion** in `frontend/main` — **not Tailwind**. The SPA was generated
+  from the `dashdark-x` template (kept as `frontend/base`); MUI, its theme, and the MUI X
+  DataGrid/Date Pickers came with the template and were kept instead of re-styling the app.
+  No migration to Tailwind is planned, and no Tailwind code exists under `frontend/`. Any
+  Tailwind reference elsewhere in the repo concerns `web/` (Rails), not the SPA.
 - **Bank slip (boleto): Cora** in *Integração Direta* (Direct Integration) on the school's
   own Cora account — the platform is not the payee. mTLS client certificate plus OAuth
   token, registered boleto with embedded Pix. Implemented behind the `Gateways::BankSlip`
@@ -292,7 +330,7 @@ See `docs/open-questions.md` (Web stack section):
 **Finalized decisions (Jul 2026):**
 
 - Language & framework: Ruby 4.0.5, Rails 8.1.3.
-- **Web UI: React SPA** (`web-ui/`), not Hotwire.
+- **Web UI: React SPA** (`frontend/main`), not Hotwire.
 - **Mobile: React Native** (`app/`).
 - **One API** for web and mobile (`/api/v1`).
 - Auth: Devise credentials + JWT access + `refresh_tokens`.

@@ -11,6 +11,12 @@ RSpec.describe Gateways::BankSlip::Registry do
     expect(adapter).to be_a(Gateways::BankSlip::Fake)
   end
 
+  it "keeps the fake adapter registered but out of what the API may register" do
+    expect(described_class.registered?("fake")).to be(true)
+    expect(described_class.api_selectable?("fake")).to be(false)
+    expect(described_class.api_selectable?("cora")).to be(true)
+  end
+
   it "raises for unknown providers without constantize" do
     expect do
       described_class.resolve(school: school, provider: "unknown_bank")

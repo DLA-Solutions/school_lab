@@ -46,7 +46,7 @@ users.status disabled → refresh fails → forced logout + i18n message
 
 ## Transport by client
 
-### React web (`web-ui/`)
+### React web (`frontend/main`)
 
 | Token | Storage |
 |-------|---------|
@@ -169,7 +169,7 @@ After JWT signature and expiry:
 
 - `Auth::IssueTokensService`, `Auth::RefreshTokensService`, `Auth::RevokeTokensService`.
 - `Api::V1::BaseController` — Bearer parsing, `Current.user`.
-- `rack-cors` for `web-ui` origins.
+- `rack-cors` for web SPA origins.
 - `CleanExpiredRefreshTokensJob` on Solid Queue (recurring).
 
 ## Open items

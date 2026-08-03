@@ -59,10 +59,10 @@ Use for whole-product or MVP-scope documents. Prefer updating anchor docs when c
 
 ## Layer PRD
 
-Use for `web/`, `web-ui/`, or `app/` — technical and surface requirements without redefining domain business rules.
+Use for `web/`, `frontend/main`, or `app/` — technical and surface requirements without redefining domain business rules.
 
 ```markdown
-# Layer PRD — [web | web-ui | app]
+# Layer PRD — [web | web-spa | app]
 
 > Status: [draft | validated]
 > Stack reference: `docs/web-stack.md`
@@ -95,7 +95,7 @@ Use for `web/`, `web-ui/`, or `app/` — technical and surface requirements with
 
 ## Interfaces
 
-### API consumption (web-ui / app only)
+### API consumption (web-spa / app only)
 [Auth flow, error handling, pagination, i18n locale pt-BR.]
 
 ### API provision (web only)
@@ -116,7 +116,7 @@ Use for `web/`, `web-ui/`, or `app/` — technical and surface requirements with
 | Layer | Key acceptance themes |
 |-------|----------------------|
 | `web` | Service-per-use-case, Pundit policies, `school_id` scoping, job idempotency, rswag coverage |
-| `web-ui` | Role-based routes, refresh token in httpOnly cookie, pt-BR UI via i18n keys |
+| `web-spa` | Role-based routes, refresh token in httpOnly cookie, pt-BR UI via i18n keys |
 | `app` | Secure token storage, push notifications, offline-tolerant reads where applicable |
 
 ---
