@@ -39,6 +39,16 @@ RSpec.describe Backoffice::UploadBankCredentialsService do
       .to raise_error(Gateways::BankSlip::Registry::UnknownProviderError)
   end
 
+  it "refuses a provider the API does not accept, so no school is pointed at the fake adapter" do
+    result = nil
+
+    expect { result = upload(provider: "fake") }.not_to change(SchoolPaymentProvider, :count)
+
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:validation_error)
+    expect(result.details).to have_key(:provider)
+  end
+
   it "supersedes the previous active configuration, whatever its provider" do
     create(:school_payment_provider, school: school, provider: "fake")
 

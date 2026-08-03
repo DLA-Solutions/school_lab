@@ -84,7 +84,7 @@ bin/dev
 
 Open [http://localhost:3000/up](http://localhost:3000/up).
 
-`bin/dev` starts Puma and Tailwind watch (via Foreman).
+`bin/dev` starts Puma (via Foreman). The API renders JSON only — there is no asset build step.
 
 ## Services
 

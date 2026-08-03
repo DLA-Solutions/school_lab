@@ -14,6 +14,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
                                      client_id: "client-stage-001")
   end
   let(:adapter) { described_class.new(school: school) }
+  let(:api_base) { CORA_TEST_API_BASE_URL.chomp("/") }
 
   let(:customer) do
     Gateways::BankSlip::ValueObjects::Customer.new(
@@ -62,26 +63,21 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
   end
 
   before do
-    stub_request(:post, "https://matls-clients.api.stage.cora.com.br/token")
-      .to_return(
-        status: 200,
-        body: { access_token: "token-abc", expires_in: 86_400 }.to_json,
-        headers: { "Content-Type" => "application/json" }
-      )
+    stub_cora_token
 
-    stub_request(:post, %r{\Ahttps://api\.stage\.cora\.com\.br/v2/invoices/?\z})
+    stub_request(:post, %r{\A#{Regexp.escape(api_base)}/v2/invoices/?\z})
       .to_return(status: 200, body: invoice_payload.to_json, headers: { "Content-Type" => "application/json" })
 
-    stub_request(:delete, %r{\Ahttps://api\.stage\.cora\.com\.br/v2/invoices/})
+    stub_request(:delete, %r{\A#{Regexp.escape(api_base)}/v2/invoices/})
       .to_return do |_request|
         @invoice_cancelled = true
         { status: 200, body: "{}" }
       end
 
-    stub_request(:get, %r{\Ahttps://api\.stage\.cora\.com\.br/v2/invoices/missing-})
+    stub_request(:get, %r{\A#{Regexp.escape(api_base)}/v2/invoices/missing-})
       .to_return(status: 404, body: "{}")
 
-    stub_request(:get, %r{\Ahttps://api\.stage\.cora\.com\.br/v2/invoices/inv_test123\z})
+    stub_request(:get, %r{\A#{Regexp.escape(api_base)}/v2/invoices/inv_test123\z})
       .to_return do |_request|
         status = @invoice_cancelled ? "CANCELLED" : "OPEN"
         {
@@ -91,7 +87,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
         }
       end
 
-    stub_request(:get, %r{\Ahttps://api\.stage\.cora\.com\.br/v2/invoices/\?})
+    stub_request(:get, %r{\A#{Regexp.escape(api_base)}/v2/invoices/\?})
       .to_return(
         status: 200,
         body: { items: [ invoice_payload ] }.to_json,
@@ -106,13 +102,13 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
 
   describe "#issue" do
     it "posts to Cora with payment forms and the persisted idempotency key" do
-      stub_request(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      stub_request(:post, "#{api_base}/v2/invoices/")
         .with(headers: { "Idempotency-Key" => "idempotent-key-123" })
         .to_return(status: 200, body: invoice_payload.to_json, headers: { "Content-Type" => "application/json" })
 
       issuance = adapter.issue(issue_request)
 
-      expect(WebMock).to have_requested(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      expect(WebMock).to have_requested(:post, "#{api_base}/v2/invoices/")
         .with { |req| JSON.parse(req.body)["payment_forms"] == %w[BANK_SLIP PIX] }
       expect(issuance.provider_invoice_id).to eq("inv_test123")
       expect(issuance.boleto_url).to be_present
@@ -125,7 +121,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
     end
 
     it "returns nil pix_emv when the provider response has no pix payload" do
-      stub_request(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      stub_request(:post, "#{api_base}/v2/invoices/")
         .to_return(status: 200, body: invoice_payload(pix_emv: nil).to_json)
 
       issuance = adapter.issue(issue_request)
@@ -135,7 +131,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
     end
 
     it "returns the same invoice for duplicate idempotency keys" do
-      stub_request(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      stub_request(:post, "#{api_base}/v2/invoices/")
         .to_return(status: 200, body: invoice_payload(id: "inv_original").to_json)
 
       first = adapter.issue(issue_request)
@@ -145,7 +141,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
     end
 
     it "raises ValidationError for provider validation failures" do
-      stub_request(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      stub_request(:post, "#{api_base}/v2/invoices/")
         .to_return(status: 422, body: { errors: [ { field: "customer.email" } ] }.to_json)
 
       expect { adapter.issue(issue_request) }
@@ -157,43 +153,50 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
     end
 
     it "raises TransientError for provider outages" do
-      stub_request(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      stub_request(:post, "#{api_base}/v2/invoices/")
         .to_return(status: 503, body: "unavailable")
 
       expect { adapter.issue(issue_request) }
         .to raise_error(Gateways::BankSlip::TransientError)
     end
+
+    it "raises ProviderError when billing URLs are missing" do
+      with_cora_billing_urls(api_base_url: nil, token_url: nil) do
+        expect { adapter.issue(issue_request) }
+          .to raise_error(Gateways::BankSlip::ProviderError, /CORA_API_BASE_URL/)
+      end
+    end
   end
 
   describe "endpoint selection" do
+    let(:alt_api_base) { CORA_ALT_API_BASE_URL.chomp("/") }
+
     before do
-      stub_request(:post, "https://matls-clients.api.cora.com.br/token")
+      stub_request(:post, CORA_ALT_TOKEN_URL)
         .to_return(
           status: 200,
-          body: { access_token: "prod-token", expires_in: 86_400 }.to_json,
+          body: { access_token: "alt-token", expires_in: 86_400 }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
-      stub_request(:post, "https://api.cora.com.br/v2/invoices/")
+      stub_request(:post, "#{alt_api_base}/v2/invoices/")
         .to_return(status: 200, body: invoice_payload.to_json, headers: { "Content-Type" => "application/json" })
     end
 
-    it "issues against the production hosts on a production deploy" do
-      with_cora_environment("production") do
+    it "issues against alternate billing URLs when ENV points there" do
+      with_cora_billing_urls(api_base_url: CORA_ALT_API_BASE_URL, token_url: CORA_ALT_TOKEN_URL) do
         Gateways::BankSlip::Registry.resolve(school: school, provider: "cora").issue(issue_request)
       end
 
-      expect(WebMock).to have_requested(:post, "https://api.cora.com.br/v2/invoices/")
-      expect(WebMock).not_to have_requested(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      expect(WebMock).to have_requested(:post, "#{alt_api_base}/v2/invoices/")
+      expect(WebMock).not_to have_requested(:post, "#{api_base}/v2/invoices/")
     end
 
-    it "never reaches the production hosts on a stage deploy" do
-      with_cora_environment("stage") do
-        Gateways::BankSlip::Registry.resolve(school: school, provider: "cora").issue(issue_request)
-      end
+    it "uses the default test billing URLs from the suite setup" do
+      Gateways::BankSlip::Registry.resolve(school: school, provider: "cora").issue(issue_request)
 
-      expect(WebMock).to have_requested(:post, "https://api.stage.cora.com.br/v2/invoices/")
-      expect(WebMock).not_to have_requested(:post, "https://api.cora.com.br/v2/invoices/")
-      expect(WebMock).not_to have_requested(:post, "https://matls-clients.api.cora.com.br/token")
+      expect(WebMock).to have_requested(:post, "#{api_base}/v2/invoices/")
+      expect(WebMock).not_to have_requested(:post, "#{alt_api_base}/v2/invoices/")
+      expect(WebMock).not_to have_requested(:post, CORA_ALT_TOKEN_URL)
     end
 
     it "fails explicitly when the school has no active configuration" do
@@ -201,13 +204,6 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
 
       expect { Gateways::BankSlip::Registry.resolve(school: unconfigured, provider: "cora") }
         .to raise_error(Gateways::BankSlip::Registry::UnknownProviderError, /No active bank_slip configuration/)
-    end
-
-    it "fails on a deploy whose Cora environment is not configured" do
-      with_cora_environment(nil) do
-        expect { Gateways::BankSlip::Registry.resolve(school: school, provider: "cora") }
-          .to raise_error(Gateways::BankSlip::ProviderError, /cora_environment must be one of/)
-      end
     end
   end
 
@@ -225,12 +221,12 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
 
   describe "status normalization" do
     it "maps known Cora statuses and raises for unknown values" do
-      stub_request(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      stub_request(:post, "#{api_base}/v2/invoices/")
         .to_return(status: 200, body: invoice_payload(status: "OPEN").to_json)
 
       expect(adapter.issue(issue_request).status).to eq("open")
 
-      stub_request(:post, "https://api.stage.cora.com.br/v2/invoices/")
+      stub_request(:post, "#{api_base}/v2/invoices/")
         .to_return(status: 200, body: invoice_payload(status: "MYSTERY").to_json)
 
       expect { adapter.issue(issue_request) }

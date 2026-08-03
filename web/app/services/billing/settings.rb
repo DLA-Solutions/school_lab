@@ -7,12 +7,6 @@ module Billing
   module Settings
     module_function
 
-    # Which Cora endpoints this deploy talks to ("stage" or "production"). Set per environment
-    # file and never derived from Rails.env — a staging deploy also runs with
-    # RAILS_ENV=production (see config/application.rb).
-    def cora_environment
-      billing_config.cora_environment
-    end
 
     # How long a processed webhook event is kept before Billing::PurgeWebhookEventsService
     # deletes it.

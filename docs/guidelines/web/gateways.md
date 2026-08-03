@@ -73,20 +73,25 @@ Card will be a **sibling port** (`app/services/gateways/card/`), not methods add
 Services load the active provider from `school_payment_providers`, then resolve the
 adapter class via `Gateways::BankSlip::Registry.resolve(school:, provider:)`.
 
-### The sandbox is a deploy, not a school attribute
+### Cora billing URLs are deploy configuration, not a school attribute
 
 A school is either registered correctly for the integration or it is not — there is no
 "school in stage". Real data only exists in production; staging holds test schools with
-sandbox credentials, in its own database. So `stage` vs `production` selects **Cora hosts**
-and nothing else, and lives in deploy configuration:
+sandbox credentials, in its own database. Which Cora hosts the deploy talks to is selected
+by two environment variables and nothing else:
 
-- `Billing::Settings.cora_environment` (`"stage"` / `"production"`) is how code reads it. The
-  value is stored in `config.x.billing.cora_environment` and set per environment file: `stage`
-  in development and test, `ENV.fetch("CORA_ENVIRONMENT", "production")` in production.
-- **Never derive it from `Rails.env`.** A staging deploy also runs with `RAILS_ENV=production`
-  and would reach the live endpoints with sandbox credentials.
-- `Cora::Configuration.current` resolves the hosts; an unset or unknown value raises
-  `ProviderError` naming the key, so the deploy fails loudly instead of guessing.
+- `CORA_API_BASE_URL` — REST API base (e.g. `https://api.stage.cora.com.br` for sandbox,
+  `https://api.cora.com.br` for live).
+- `CORA_TOKEN_URL` — mTLS token endpoint (e.g.
+  `https://matls-clients.api.stage.cora.com.br/token` for sandbox).
+
+Set both in `.env` for local development (see `web/.env.example`), in Kamal `deploy.yml` for
+each deploy target, and in staging secrets when that environment uses sandbox URLs while
+`RAILS_ENV=production`. **Never derive them from `Rails.env`.**
+
+`Cora::Configuration.current` reads `ENV` lazily when the Cora client is invoked; missing
+values raise `ProviderError` naming both keys, so the deploy fails loudly instead of
+guessing.
 
 ### One configuration per school and instrument
 
@@ -115,6 +120,11 @@ collects nothing — with no error, no alert, and the issuance marked `issued`.
 - To use `fake` (development, manual QA), give the school an explicit `school_payment_providers`
   row with `provider: "fake"` — the demo seed does this. Never guard on `Rails.env`: a default
   that changes with the environment is how this class of bug reaches production.
+- The API refuses to register it, in every environment. `Registry::API_SELECTABLE_PROVIDERS` is
+  the subset of `ADAPTERS` a caller may upload credentials for; `UploadBankCredentialsService`
+  rejects the rest with `validation_error` (422), and the published contract offers the same
+  list. The model still accepts `fake` — the restriction is the API boundary, so seeds and
+  factories keep working.
 
 ```ruby
 class Billing::IssueChargeService < ApplicationService
@@ -179,10 +189,10 @@ due date on a registered slip.
 ## Testing
 
 - **Service specs** inject `Gateways::BankSlip::Fake` — assert persisted
-  `charge_issuances` and charge state, not HTTP stubs.
-- **Adapter specs** use shared examples (`it_behaves_like "a bank slip adapter"`) and
-  **WebMock** request stubs (`spec/gateways/bank_slip/<provider>/`). This is the
-  default for CI — no committed VCR cassettes.
+  `charge_issuances` and charge state, not HTTP stubs. They never read `CORA_*` env vars.
+- **Gateway specs** (`spec/gateways/bank_slip/cora/`) set **placeholder billing URLs**
+  (`https://cora.test`, `https://cora.test/token`) via `spec/support/cora_http_mock.rb` and
+  stub HTTP with **WebMock** against those hosts only — never `*.cora.com.br` in CI.
 - **VCR** (`spec/support/vcr.rb`) remains for **optional** manual recordings against
   provider sandboxes when validating a new adapter or payload change. Filters must
   redact tokens, PEM, and `client_id` before any cassette is committed. Do not add
@@ -190,22 +200,26 @@ due date on a registered slip.
 - **Job specs** assert that a `TransientError` re-enqueues the job and that a permanent
   error does not, leaving the issuance `failed` with `last_error` set.
 
-**Decision (Cora closure):** WebMock-only in repo; VCR is a maintainer tool, not a CI
-dependency. Cora stage smoke tests against live APIs are operational (credentials +
-account) and are not automated in CI.
+**Decision (Cora closure):** WebMock + placeholder URLs in repo; VCR is a maintainer tool,
+not a CI dependency. Cora sandbox smoke tests against live APIs are **manual / operational**
+(credentials + account) and are **not** automated in CI.
 
 ## Adding a new bank slip provider
 
 1. **Adapter** — implement `Gateways::BankSlip::Interface` under
    `app/services/gateways/bank_slip/<provider>/adapter.rb`.
 2. **Register** — add the class to `Gateways::BankSlip::Registry::ADAPTERS` and its credential
-   requirements to `SchoolPaymentProvider::REQUIRED_CREDENTIALS`.
+   requirements to `SchoolPaymentProvider::REQUIRED_CREDENTIALS`. To let backoffice upload
+   credentials for it, add it to `Registry::API_SELECTABLE_PROVIDERS` as well; if it needs a
+   different set of credentials than the ones the upload contract marks required, revisit that
+   contract in the same change.
 3. **Webhook parser** — add `Webhooks::Parsers::<Provider>` and register in
    `Webhooks::Parsers::Registry` (ingress is separate from the port).
 4. **Shared contract** — pass `spec/support/shared_examples/bank_slip_adapter.rb`.
 5. **Configuration** — document required `school_payment_providers` columns/settings;
    seed or backoffice flow creates the row (`instrument: bank_slip`, provider, credentials).
-   Host selection per deploy belongs in deploy configuration (`Billing::Settings`), never on the row.
+   Billing URL env vars (`CORA_API_BASE_URL`, `CORA_TOKEN_URL`) belong in deploy config,
+   never on the row.
 6. **Capabilities** — declare honest flags; do not copy another provider's map blindly.
 
 No change to `Billing::` service orchestration should be required when the port contract

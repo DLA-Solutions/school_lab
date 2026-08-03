@@ -84,10 +84,10 @@ Base: `/api/v1/schools/:school_id/bank_credentials` — backs `school_payment_pr
 
 | Method | Path | Notes |
 |--------|------|-------|
-| `GET` | `/bank_credentials` | List configured providers per `instrument` / `environment`; never returns PEM material |
-| `POST` | `/bank_credentials` | Upload mTLS certificate + private key (multipart: `certificate`, `private_key`) with `provider`, `instrument`, `environment`, `client_id` |
+| `GET` | `/bank_credentials` | List configured providers per `instrument`; never returns PEM material |
+| `POST` | `/bank_credentials` | Upload mTLS certificate + private key (multipart: `certificate`, `private_key`) with `provider`, `instrument`, `client_id` |
 
-Uploading an active configuration for the same `(school_id, instrument, environment)`
+Uploading an active configuration for the same `(school_id, instrument)`
 replaces the previous active row (partial unique index on `active = true`). The
 `webhook_endpoint_token` is generated server-side and is what the provider webhook URL
 carries.
