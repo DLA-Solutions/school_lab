@@ -13,9 +13,12 @@ servers:
   web:
     - 77.42.33.33
 
+# Both credentials are resolved from .kamal/secrets-common, so no one's GitHub
+# account is pinned in the repository.
 registry:
   server: ghcr.io
-  username: SEU_USUARIO_GITHUB
+  username:
+    - KAMAL_REGISTRY_USERNAME
   password:
     - KAMAL_REGISTRY_PASSWORD
 

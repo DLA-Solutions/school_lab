@@ -94,9 +94,28 @@ environment variables you export before deploying:
 | `POSTGRES_PASSWORD` | password of the `scholarpremium` PostgreSQL role |
 | `REDIS_PASSWORD` | `requirepass` value of the Redis instance |
 
-URL-encode the passwords. A literal `@`, `:`, `/`, `?`, or `#` inside a password breaks
-`DATABASE_URL` parsing, and the failure looks like a wrong host rather than a bad
-password.
+URL-encode the database and Redis passwords. A literal `@`, `:`, `/`, `?`, or `#` inside
+a password breaks `DATABASE_URL` parsing, and the failure looks like a wrong host rather
+than a bad password.
+
+The GHCR username is not in that table because `secrets-common` derives it from
+`gh config get -h github.com user`, so each developer authenticates as themselves and no
+account is pinned in the repository.
+
+`KAMAL_REGISTRY_PASSWORD` must be a **classic** personal access token with
+`write:packages` and `read:packages`, and your account needs write access to packages in
+the `DLA-Solutions` organization. Do not point it at a general-purpose `GITHUB_TOKEN`:
+tokens minted for the API and the `gh` CLI normally lack the packages scopes, and GHCR
+rejects them with a 401 that looks like a wrong password. Verify before deploying:
+
+```bash
+docker login ghcr.io -u "$(gh config get -h github.com user)" \
+  --password-stdin <<< "$KAMAL_REGISTRY_PASSWORD"
+```
+
+The first push creates the `scholarpremium` package under the organization. It is private
+by default, which is fine — Kamal runs `docker login` on the app server too, using these
+same credentials, before pulling.
 
 ## First deploy
 
