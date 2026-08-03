@@ -18,6 +18,7 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
   end
   let(:school_id) { school.id }
   let(:Authorization) { auth_headers_for(guardian_user)["Authorization"] }
+  let!(:billing_settings) { create(:school_billing_settings, :issuance_ready, school: school) }
 
   path "/api/v1/schools/{school_id}/me/charges" do
     parameter name: :school_id, in: :path, type: :integer
@@ -67,6 +68,19 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
           payment_methods = body.dig("data", "payment_methods")
           expect(payment_methods["boleto_url"]).to eq(charge_c1.boleto_url)
           expect(payment_methods["pix_copy_paste"]).to eq(charge_c1.pix_copy_paste)
+        end
+      end
+
+      response "200", "includes mora interest rate from school settings" do
+        let!(:charge_c1) do
+          create(:charge, :overdue, :issued, school: school, contract: contract, guardian: guardian)
+        end
+        let(:id) { charge_c1.id }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["interest_rate_percent"]).to eq(1.0)
+          expect(body["total_amount_cents"]).to eq(charge_c1.total_amount_cents)
         end
       end
 

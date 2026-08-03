@@ -18,6 +18,7 @@ module DemoSchool
     end
 
     find_or_create_bank_slip_provider!(school)
+    find_or_create_billing_settings!(school)
 
     admin_user = find_or_create_confirmed_user!(ADMIN_EMAIL)
     find_or_create_membership!(user: admin_user, school: school, role: "school")
@@ -68,6 +69,13 @@ module DemoSchool
 
   # Issuance requires an active configuration — there is no implicit fake provider. Local
   # development uses the fake adapter, which needs no certificate or client id.
+  def find_or_create_billing_settings!(school)
+    settings = SchoolBillingSettings.find_or_initialize_by(school: school)
+    settings.overdue_grace_days ||= 3
+    settings.interest_rate_percent ||= 1.0
+    settings.save!
+  end
+
   def find_or_create_bank_slip_provider!(school)
     SchoolPaymentProvider.find_or_create_by!(
       school: school,
@@ -95,6 +103,6 @@ module DemoSchool
       record.status = "active"
     end
   end
-  private_class_method :find_or_create_bank_slip_provider!, :find_or_create_confirmed_user!,
-                      :find_or_create_membership!
+  private_class_method :find_or_create_bank_slip_provider!, :find_or_create_billing_settings!,
+                      :find_or_create_confirmed_user!, :find_or_create_membership!
 end

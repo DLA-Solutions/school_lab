@@ -33,10 +33,11 @@ module Gateways
         :customer,
         :service_description,
         :school_id,
-        :charge_id
+        :charge_id,
+        :interest_rate_percent
       ) do
         def initialize(idempotency_key:, total_amount_cents:, due_date:, customer:, service_description: nil,
-                       school_id: nil, charge_id: nil)
+                       school_id: nil, charge_id: nil, interest_rate_percent: nil)
           super(
             idempotency_key: idempotency_key,
             total_amount_cents: IntegerCents.coerce!(total_amount_cents, :total_amount_cents),
@@ -44,7 +45,8 @@ module Gateways
             customer: customer,
             service_description: service_description,
             school_id: school_id,
-            charge_id: charge_id
+            charge_id: charge_id,
+            interest_rate_percent: interest_rate_percent
           )
         end
       end

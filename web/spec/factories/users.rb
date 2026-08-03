@@ -229,5 +229,9 @@ FactoryBot.define do
     overdue_grace_days { 3 }
     service_description { "Mensalidade escolar" }
     notification_schedule { SchoolBillingSettings.default_notification_schedule }
+
+    trait :issuance_ready do
+      interest_rate_percent { 1.0 }
+    end
   end
 end

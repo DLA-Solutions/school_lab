@@ -45,7 +45,7 @@ module Gateways
             inline_pix: true,
             native_notifications: true,
             cancellation: true,
-            fine_and_interest: false,
+            fine_and_interest: true,
             past_due_reissue: false
           )
         end

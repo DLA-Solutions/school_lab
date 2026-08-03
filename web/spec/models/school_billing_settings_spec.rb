@@ -39,6 +39,26 @@ RSpec.describe SchoolBillingSettings, type: :model do
 
     expect(settings).to be_valid
   end
+
+  it "rejects interest_rate_percent above the maximum" do
+    settings.interest_rate_percent = 100.01
+
+    expect(settings).not_to be_valid
+    expect(settings.errors[:interest_rate_percent]).to be_present
+  end
+
+  it "rejects zero interest_rate_percent" do
+    settings.interest_rate_percent = 0
+
+    expect(settings).not_to be_valid
+    expect(settings.errors[:interest_rate_percent]).to be_present
+  end
+
+  it "allows nil interest_rate_percent" do
+    settings.interest_rate_percent = nil
+
+    expect(settings).to be_valid
+  end
 end
 
 RSpec.describe Billing::SchoolSettings do
@@ -57,5 +77,20 @@ RSpec.describe Billing::SchoolSettings do
     settings = described_class.for(school)
 
     expect(settings.overdue_grace_cutoff(as_of: Date.new(2026, 8, 10))).to eq(Date.new(2026, 8, 7))
+  end
+
+  it "reports when interest rate is not configured" do
+    settings = described_class.for(school)
+
+    expect(settings.interest_rate_percent).to be_nil
+    expect(settings.interest_rate_configured?).to be(false)
+  end
+
+  it "reports configured interest rate from persisted settings" do
+    create(:school_billing_settings, :issuance_ready, school: school)
+    settings = described_class.for(school)
+
+    expect(settings.interest_rate_percent).to eq(BigDecimal("1.0"))
+    expect(settings.interest_rate_configured?).to be(true)
   end
 end

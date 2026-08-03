@@ -740,14 +740,14 @@
           "200": {
             "description": "school staff updates settings"
           },
+          "422": {
+            "description": "validation error for long service description"
+          },
           "403": {
             "description": "forbidden for guardian update"
           },
           "404": {
             "description": "not found for another school"
-          },
-          "422": {
-            "description": "validation error for long service description"
           }
         },
         "requestBody": {
@@ -764,6 +764,10 @@
                       },
                       "service_description": {
                         "type": "string"
+                      },
+                      "interest_rate_percent": {
+                        "type": "number",
+                        "format": "float"
                       },
                       "notification_schedule": {
                         "type": "object"
@@ -1088,7 +1092,7 @@
         ],
         "responses": {
           "200": {
-            "description": "includes payment methods"
+            "description": "includes mora interest rate from school settings"
           },
           "404": {
             "description": "cross-family charge"

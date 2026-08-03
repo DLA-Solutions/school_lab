@@ -6,6 +6,7 @@ RSpec.describe Billing::IssueChargeService do
   subject(:result) { described_class.call(charge: charge, adapter: adapter) }
 
   let(:school) { create(:school) }
+  let!(:billing_settings) { create(:school_billing_settings, :issuance_ready, school: school) }
   let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
   let(:charge) do
@@ -125,6 +126,29 @@ RSpec.describe Billing::IssueChargeService do
 
     issuance = charge.reload.current_issuance
     expect(issuance.status).to eq("pending")
+  end
+
+  context "when the school has no interest rate configured" do
+    before { billing_settings.update!(interest_rate_percent: nil) }
+
+    it "does not call the bank slip adapter" do
+      expect(adapter).not_to receive(:issue)
+
+      result
+    end
+
+    it "returns billing_interest_rate_missing" do
+      expect(result).to be_failure
+      expect(result.error_code).to eq(:billing_interest_rate_missing)
+    end
+
+    it "marks the issuance as failed" do
+      result
+
+      issuance = charge.reload.current_issuance
+      expect(issuance.status).to eq("failed")
+      expect(issuance.last_error).to be_present
+    end
   end
 
   context "when the school has no active bank slip configuration" do

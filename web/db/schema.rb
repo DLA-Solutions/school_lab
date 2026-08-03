@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_02_140325) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -266,12 +266,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_02_140325) do
 
   create_table "school_billing_settings", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.decimal "interest_rate_percent", precision: 5, scale: 2
     t.jsonb "notification_schedule", default: {}, null: false
     t.integer "overdue_grace_days", default: 3, null: false
     t.bigint "school_id", null: false
     t.string "service_description", limit: 100
     t.datetime "updated_at", null: false
     t.index ["school_id"], name: "index_school_billing_settings_on_school_id", unique: true
+    t.check_constraint "interest_rate_percent IS NULL OR interest_rate_percent > 0::numeric AND interest_rate_percent <= 100::numeric", name: "school_billing_settings_interest_rate_percent_range"
     t.check_constraint "overdue_grace_days >= 0 AND overdue_grace_days <= 30", name: "school_billing_settings_overdue_grace_days_range"
   end
 

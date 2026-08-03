@@ -54,6 +54,7 @@ RSpec.describe "Api::V1::Schools::Billing::Settings", type: :request do
             properties: {
               overdue_grace_days: { type: :integer },
               service_description: { type: :string },
+              interest_rate_percent: { type: :number, format: :float },
               notification_schedule: { type: :object }
             }
           }
@@ -66,7 +67,8 @@ RSpec.describe "Api::V1::Schools::Billing::Settings", type: :request do
           {
             billing_settings: {
               overdue_grace_days: 5,
-              service_description: "Mensalidade atualizada"
+              service_description: "Mensalidade atualizada",
+              interest_rate_percent: 1.0
             }
           }
         end
@@ -75,7 +77,19 @@ RSpec.describe "Api::V1::Schools::Billing::Settings", type: :request do
           body = JSON.parse(response.body).fetch("data")
           expect(body["overdue_grace_days"]).to eq(5)
           expect(body["service_description"]).to eq("Mensalidade atualizada")
+          expect(body["interest_rate_percent"]).to eq(1.0)
           expect(body["persisted"]).to be(true)
+        end
+      end
+
+      response "422", "validation error for invalid interest rate" do
+        let(:payload) do
+          { billing_settings: { interest_rate_percent: 0 } }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("validation_error")
         end
       end
 

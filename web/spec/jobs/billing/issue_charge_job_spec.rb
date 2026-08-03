@@ -6,6 +6,7 @@ RSpec.describe Billing::IssueChargeJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:school) { create(:school) }
+  let!(:billing_settings) { create(:school_billing_settings, :issuance_ready, school: school) }
   let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
   let(:charge) do

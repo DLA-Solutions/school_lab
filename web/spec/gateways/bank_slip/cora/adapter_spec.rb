@@ -33,7 +33,8 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
       customer: customer,
       service_description: I18n.t("billing.settings.default_service_description"),
       school_id: school.id,
-      charge_id: 42
+      charge_id: 42,
+      interest_rate_percent: BigDecimal("1.0")
     )
   end
 
@@ -110,6 +111,10 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
 
       expect(WebMock).to have_requested(:post, "#{api_base}/v2/invoices/")
         .with { |req| JSON.parse(req.body)["payment_forms"] == %w[BANK_SLIP PIX] }
+      expect(WebMock).to have_requested(:post, "#{api_base}/v2/invoices/").with { |req|
+        body = JSON.parse(req.body)
+        body.dig("payment_terms", "interest", "rate") == 1.0 && body.dig("payment_terms", "fine").nil?
+      }
       expect(issuance.provider_invoice_id).to eq("inv_test123")
       expect(issuance.boleto_url).to be_present
       expect(issuance.digitable_line).to be_present
@@ -214,7 +219,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
       expect(caps.inline_pix).to be(true)
       expect(caps.native_notifications).to be(true)
       expect(caps.cancellation).to be(true)
-      expect(caps.fine_and_interest).to be(false)
+      expect(caps.fine_and_interest).to be(true)
       expect(caps.past_due_reissue).to be(false)
     end
   end

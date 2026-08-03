@@ -6,6 +6,7 @@ RSpec.describe Billing::ReissueChargeService do
   subject(:result) { described_class.call(charge: charge, adapter: adapter, new_due_date: new_due_date) }
 
   let(:school) { create(:school) }
+  let!(:billing_settings) { create(:school_billing_settings, :issuance_ready, school: school) }
   let!(:provider_config) { create(:school_payment_provider, school: school, provider: "fake") }
   let(:guardian) { create(:guardian, school: school) }
   let(:charge) { create(:charge, :issued, :overdue, school: school, guardian: guardian) }

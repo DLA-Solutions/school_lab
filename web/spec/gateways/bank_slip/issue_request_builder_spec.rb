@@ -24,6 +24,7 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
       due_date: Date.new(2026, 12, 10)
     )
   end
+  let!(:billing_settings) { create(:school_billing_settings, :issuance_ready, school: school) }
 
   def stub_guardian_address(guardian, **attrs)
     attrs.each do |field, value|
@@ -53,6 +54,7 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
       expect(request.customer.phone).to eq("+5511987654321")
       expect(request.customer.address).to be_a(Gateways::BankSlip::ValueObjects::Address)
       expect(request.service_description).to eq(I18n.t("billing.settings.default_service_description"))
+      expect(request.interest_rate_percent).to eq(BigDecimal("1.0"))
     end
 
     it "truncates over-long text without corrupting multi-byte characters" do
