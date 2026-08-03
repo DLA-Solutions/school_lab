@@ -33,7 +33,12 @@ module SchoolLab
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
     #
-    # config.time_zone = "Central Time (US & Canada)"
+    # The product serves Brazilian schools and its billing boundaries (boleto due dates,
+    # grace windows, monthly billing periods) are calendar dates in the school's local
+    # timezone, not UTC instants. Leaving this at the UTC default made `Date.current`
+    # roll over three hours early every night, marking charges overdue a day too soon.
+    # Timestamps stay stored in UTC — `active_record.default_timezone` remains `:utc`.
+    config.time_zone = "America/Sao_Paulo"
     # config.eager_load_paths << Rails.root.join("extras")
 
     config.generators do |g|

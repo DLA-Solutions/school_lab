@@ -69,7 +69,7 @@ RSpec.shared_examples "a bank slip adapter" do |provider_name|
     caps = adapter.capabilities
 
     expect(caps).to be_a(Gateways::BankSlip::Capabilities)
-    expect(caps.inline_pix).to be_in([true, false])
+    expect(caps.inline_pix).to be_in([ true, false ])
   end
 
   it "raises ProviderError when fetching a missing invoice" do

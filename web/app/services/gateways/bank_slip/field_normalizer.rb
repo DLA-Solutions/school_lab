@@ -21,9 +21,9 @@ module Gateways
         digits = value.to_s.gsub(/\D/, "")
         return if digits.blank?
 
-        if digits.start_with?("55") && [12, 13].include?(digits.length)
+        if digits.start_with?("55") && [ 12, 13 ].include?(digits.length)
           "+#{digits}"
-        elsif [10, 11].include?(digits.length)
+        elsif [ 10, 11 ].include?(digits.length)
           "+55#{digits}"
         end
       end

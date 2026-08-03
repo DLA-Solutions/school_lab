@@ -10,7 +10,7 @@ module Gateways
           payload = {
             code: issue_request.charge_id&.to_s,
             customer: customer_payload(issue_request.customer),
-            services: [service_payload(issue_request)],
+            services: [ service_payload(issue_request) ],
             payment_terms: {
               due_date: issue_request.due_date.iso8601
             },
