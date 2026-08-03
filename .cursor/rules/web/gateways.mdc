@@ -1,6 +1,6 @@
 ---
 description: External API adapters — boleto, FCM, injectable fakes for tests
-globs: web/app/gateways/**/*.rb,web/spec/gateways/**/*.rb,web/app/services/**/*.rb
+globs: web/app/services/gateways/**/*.rb,web/spec/gateways/**/*.rb,web/app/services/**/*.rb
 alwaysApply: false
 ---
 

@@ -263,6 +263,13 @@ Decisions finalized in `docs/web-stack.md`. Open items:
 - [x] **API documentation** — rswag → OpenAPI.
 - [x] **API serialization** — blueprinter (provisional).
 - [x] **Firebase Authentication** — not used for login; FCM only for push.
+- [x] **SPA UI kit — MUI v7 + Emotion** in `frontend/main`, not Tailwind. Inherited from the
+      `dashdark-x` template (`frontend/base`) and kept; no migration planned.
+- [ ] SPA test runner — nothing installed; Vitest + Testing Library is the likely choice.
+- [ ] SPA i18n library — strings are currently hardcoded in components.
+- [ ] SPA data fetching — keep hand-rolled `fetch`, or adopt TanStack Query / SWR?
+- [ ] SPA global state — stay on React Context, or add a store?
+- [ ] SPA API types — hand-written in `src/types/`, or generated from the OpenAPI spec?
 - [ ] Email provider (Postmark, SES, etc.)?
 - [x] **Boleto integration** — Cora Direct Integration on the school's own account
       (mTLS); see the Billing section above.

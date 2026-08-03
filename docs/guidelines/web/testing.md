@@ -110,5 +110,7 @@ the state graph. See [`state-machines.md`](state-machines.md).
 
 ## Cross-surface note
 
-The same behavior-first principle applies to `frontend/main` (Vitest + RTL) and `app/` (Jest +
-RN Testing Library). Surface-specific guidelines will expand when those codebases land.
+The same behavior-first principle will apply to the client surfaces, but **neither has a test
+runner installed yet** — `frontend/main` has no Vitest or Testing Library, and `app/` has no
+Jest (see `docs/web-stack.md` §3 and §14). Surface-specific guidelines expand once a runner is
+chosen; until then, do not treat a missing client test as a violation of this document.
