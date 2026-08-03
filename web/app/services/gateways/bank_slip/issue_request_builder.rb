@@ -15,6 +15,7 @@ module Gateways
 
         guardian = charge.guardian
         description = resolve_service_description(charge, service_description)
+        settings = Billing::SchoolSettings.for(charge.school)
 
         ValueObjects::IssueRequest.new(
           idempotency_key: idempotency_key || "charge-#{charge.id}",
@@ -23,7 +24,8 @@ module Gateways
           customer: build_customer(guardian),
           service_description: FieldNormalizer.truncate_text(description, max_length: MAX_DESCRIPTION_LENGTH),
           school_id: charge.school_id,
-          charge_id: charge.id
+          charge_id: charge.id,
+          interest_rate_percent: settings.interest_rate_percent
         )
       end
 

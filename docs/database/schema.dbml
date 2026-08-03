@@ -213,7 +213,7 @@ Table school_billing_settings {
   overdue_grace_days integer [not null, default: 3, note: '0–30 days before a charge is marked overdue. Check constraint: BETWEEN 0 AND 30.']
   service_description varchar(100) [note: 'Guardian-facing boleto line; default from i18n']
   notification_schedule jsonb [not null, default: '{}', note: 'Future platform email régua rules relative to due date — not consumed in MVP']
-  interest_rate_percent decimal(5,2) [note: 'PLANNED — mora interest % sent to Cora payment_terms.interest.rate. No default; issuance blocked when NULL. Fine/discount fields phase 2.']
+  interest_rate_percent decimal(5,2) [note: 'Monthly mora interest % sent to Cora payment_terms.interest.rate. No default; issuance blocked when NULL. Fine/discount fields phase 2.']
   created_at timestamp
   updated_at timestamp
 }

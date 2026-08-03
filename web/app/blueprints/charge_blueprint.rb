@@ -18,6 +18,10 @@ class ChargeBlueprint < Blueprinter::Base
   view :guardian do
     excludes :original_amount_cents, :discount_amount_cents, :guardian
 
+    field :interest_rate_percent do |charge|
+      Billing::SchoolSettings.for(charge.school).interest_rate_percent&.to_f
+    end
+
     field :payment_methods do |charge|
       {
         boleto_url: charge.boleto_url,

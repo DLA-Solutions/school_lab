@@ -9,6 +9,7 @@ module Billing
     attribute :overdue_grace_days, :integer
     attribute :service_description, :string
     attribute :notification_schedule, default: -> { SchoolBillingSettings.default_notification_schedule }
+    attribute :interest_rate_percent, :decimal
     attribute :persisted, :boolean, default: false
 
     class << self
@@ -21,6 +22,7 @@ module Billing
           overdue_grace_days: default_overdue_grace_days,
           service_description: default_service_description,
           notification_schedule: SchoolBillingSettings.default_notification_schedule,
+          interest_rate_percent: nil,
           persisted: false
         )
       end
@@ -39,6 +41,7 @@ module Billing
           overdue_grace_days: record.overdue_grace_days,
           service_description: record.service_description.presence || default_service_description,
           notification_schedule: record.notification_schedule.presence || SchoolBillingSettings.default_notification_schedule,
+          interest_rate_percent: record.interest_rate_percent,
           persisted: true
         )
       end
@@ -46,6 +49,10 @@ module Billing
 
     def overdue_grace_cutoff(as_of: Date.current)
       as_of - overdue_grace_days.days
+    end
+
+    def interest_rate_configured?
+      interest_rate_percent.present?
     end
   end
 end

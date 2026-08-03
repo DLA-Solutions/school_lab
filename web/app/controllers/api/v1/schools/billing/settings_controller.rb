@@ -33,6 +33,7 @@ module Api
             params.require(:billing_settings).permit(
               :overdue_grace_days,
               :service_description,
+              :interest_rate_percent,
               notification_schedule: { reminders: %i[days_before_due days_after_due] }
             )
           end

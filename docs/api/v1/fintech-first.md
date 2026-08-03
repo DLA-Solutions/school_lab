@@ -148,8 +148,8 @@ Singular resource — one settings row per school.
 
 | Method | Path | Notes |
 |--------|------|-------|
-| `GET` | `/settings` | Grace days, boleto service description, notification schedule |
-| `PATCH` | `/settings` | Update per-school billing policy (not provider credentials) |
+| `GET` | `/settings` | Grace days, mora interest rate (% monthly), boleto service description, notification schedule |
+| `PATCH` | `/settings` | Update per-school billing policy (not provider credentials). `interest_rate_percent` required before issuance |
 
 ### Charge generation
 
@@ -248,7 +248,7 @@ Family-scoped — Pundit ensures only the logged-in guardian's charges.
 |--------|------|-------------|
 | `GET` | `/charges` | Open charges (`pending`, `overdue`) |
 | `GET` | `/charges/history` | Paid charges on the platform (`source: platform`) |
-| `GET` | `/charges/:id` | Detail + payment methods |
+| `GET` | `/charges/:id` | Detail + payment methods + `interest_rate_percent` (monthly mora rate; null when unset) |
 | `POST` | `/charges/:id/reissue` | Second copy boleto/Pix |
 | `GET` | `/payments` | Payment history |
 | `GET` | `/students` | Linked children |

@@ -12,5 +12,6 @@ pt-BR:
       validation_error: "Dados inválidos."
       invalid_state_transition: "Transição de estado inválida."
       provider_error: "Falha na comunicação com o provedor de pagamento."
+      billing_interest_rate_missing: "Configure a taxa de mora nas configurações de cobrança antes de emitir boletos."
       membership_suspended: "Acesso suspenso nesta escola."
       membership_invited: "Convite pendente para esta escola."

@@ -5,6 +5,7 @@ class SchoolBillingSettings < ApplicationRecord
 
   MAX_OVERDUE_GRACE_DAYS = 30
   MAX_SERVICE_DESCRIPTION_LENGTH = 100
+  MAX_INTEREST_RATE_PERCENT = 100
 
   belongs_to :school
 
@@ -12,6 +13,12 @@ class SchoolBillingSettings < ApplicationRecord
             presence: true,
             numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: MAX_OVERDUE_GRACE_DAYS }
   validates :service_description, length: { maximum: MAX_SERVICE_DESCRIPTION_LENGTH }, allow_nil: true
+  validates :interest_rate_percent,
+            numericality: {
+              greater_than: 0,
+              less_than_or_equal_to: MAX_INTEREST_RATE_PERCENT,
+              allow_nil: true
+            }
   validates :school_id, uniqueness: true
   validate :notification_schedule_shape
 

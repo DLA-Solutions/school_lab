@@ -7,13 +7,20 @@ module Gateways
         module_function
 
         def from(issue_request)
+          payment_terms = {
+            due_date: issue_request.due_date.iso8601
+          }
+          if issue_request.interest_rate_percent.present?
+            payment_terms[:interest] = {
+              rate: issue_request.interest_rate_percent.to_f
+            }
+          end
+
           payload = {
             code: issue_request.charge_id&.to_s,
             customer: customer_payload(issue_request.customer),
             services: [ service_payload(issue_request) ],
-            payment_terms: {
-              due_date: issue_request.due_date.iso8601
-            },
+            payment_terms: payment_terms,
             payment_forms: %w[BANK_SLIP PIX]
           }
 

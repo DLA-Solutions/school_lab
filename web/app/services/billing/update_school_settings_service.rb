@@ -23,7 +23,7 @@ module Billing
     attr_reader :school, :params
 
     def permitted_params
-      params.slice(:overdue_grace_days, :service_description, :notification_schedule)
+      params.slice(:overdue_grace_days, :service_description, :notification_schedule, :interest_rate_percent)
     end
   end
 end

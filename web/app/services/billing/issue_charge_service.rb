@@ -11,6 +11,12 @@ module Billing
       existing = charge.current_issuance
       return ResponseService.success(data: existing) if existing&.issued?
 
+      unless interest_rate_configured?
+        issuance = find_or_create_pending_issuance!
+        handle_permanent_failure!(issuance, MissingInterestRateError.new)
+        return ResponseService.failure(code: :billing_interest_rate_missing)
+      end
+
       issuance = find_or_create_pending_issuance!
       request = Gateways::BankSlip::IssueRequestBuilder.from_charge(
         charge,
@@ -88,6 +94,16 @@ module Billing
 
     def redact(error)
       Billing::PiiRedactor.call(error.message)
+    end
+
+    def interest_rate_configured?
+      Billing::SchoolSettings.for(charge.school).interest_rate_configured?
+    end
+
+    class MissingInterestRateError < StandardError
+      def initialize
+        super("interest_rate_percent is not configured for school")
+      end
     end
   end
 end

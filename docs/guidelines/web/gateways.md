@@ -195,9 +195,10 @@ nor recorded as failed) alongside `never_attempted` and `permanently_failed`.
 `past_due_reissue`). Services read `adapter.capabilities` instead of comparing
 `provider == "cora"`.
 
-Example: Cora sets `fine_and_interest: false` and `past_due_reissue: false` for MVP;
+Example: Cora sets `fine_and_interest: true` and `past_due_reissue: false` for MVP;
 reissue flows cancel the old invoice and create a new issuance rather than mutating
-due date on a registered slip.
+due date on a registered slip. Fine is omitted on issuance; interest is sent via
+`payment_terms.interest.rate` when configured per school.
 
 ## Testing
 
