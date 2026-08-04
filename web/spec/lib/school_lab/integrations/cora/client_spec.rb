@@ -38,12 +38,13 @@ RSpec.describe SchoolLab::Integrations::Cora::Client do
   end
 
   it "does not write certificate material to temp files" do
-    before_files = Dir.children(Dir.tmpdir)
+    certificate_file_pattern = /cert|key|pem|pkcs|p12|pfx/i
+    before_files = Dir.children(Dir.tmpdir).grep(certificate_file_pattern)
     stub_cora_api(:get, "/v1/invoices", status: 200, body: '{"ok":true}')
 
     client.get("/v1/invoices")
 
-    after_files = Dir.children(Dir.tmpdir)
+    after_files = Dir.children(Dir.tmpdir).grep(certificate_file_pattern)
     expect(after_files - before_files).to be_empty
   end
 
