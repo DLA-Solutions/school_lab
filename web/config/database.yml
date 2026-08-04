@@ -34,6 +34,10 @@ production:
     schema_dump: false
   queue:
     <<: *primary_production
+    # Solid Queue's own pool need is independent of RAILS_MAX_THREADS (that one sizes Puma's
+    # web threads): max worker threads (config/queue.yml) + 2 reserved for polling/heartbeat.
+    # See SolidQueue::Configuration#estimated_number_of_threads.
+    max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i + 2 %>
     schema_dump: false
   cable:
     <<: *primary_production

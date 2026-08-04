@@ -16,7 +16,10 @@ production:
   billing_monthly_charge_generation:
     class: Billing::MonthlyChargeGenerationJob
     queue: billing
-    schedule: at 6am on the 1st of every month
+    # Fugit only parses "on the 1st of every month" phrasing as a one-off point in time
+    # (EtOrbi::EoTime), not a recurring Fugit::Cron — Solid Queue rejects it as unsupported.
+    # This phrasing parses as a cron and passes SolidQueue::RecurringTask#ensure_schedule_supported.
+    schedule: every month on the 1st at 6am
     timezone: America/Sao_Paulo
   billing_daily_reconciliation:
     class: Billing::DailyReconciliationJob
@@ -43,7 +46,7 @@ development:
   billing_monthly_charge_generation:
     class: Billing::MonthlyChargeGenerationJob
     queue: billing
-    schedule: at 6am on the 1st of every month
+    schedule: every month on the 1st at 6am
     timezone: America/Sao_Paulo
   billing_daily_reconciliation:
     class: Billing::DailyReconciliationJob
