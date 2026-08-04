@@ -157,6 +157,22 @@ The first push creates the `scholarpremium` package under the organization. It i
 by default, which is fine — Kamal runs `docker login` on the app server too, using these
 same credentials, before pulling.
 
+## Preflight
+
+```bash
+cd web
+bin/deploy-preflight
+```
+
+Read-only. It checks the five environment variables, that the two JWT keys actually differ,
+that the registry token carries `write:packages`, that DNS resolves to the app server, that
+SSH and the Docker daemon answer, and — over SSH, since `10.0.0.3` is private — that the
+four databases and Redis accept the credentials. It exits non-zero when anything is missing,
+which is faster than reading it out of a half-finished `kamal setup`.
+
+The Active Record encryption keys are not checked there: the app validates them at boot, so
+a missing key fails the health check and the deploy never takes traffic.
+
 ## First deploy
 
 Run from `web/`, once per destination:

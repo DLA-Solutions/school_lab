@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+#
+# Checks everything a Kamal deploy depends on that Kamal itself only reports as an opaque
+# failure halfway through: missing environment variables, a registry token without the
+# packages scopes, DNS that has not propagated, and databases that were never created.
+#
+# Read-only — it changes nothing locally or on the servers.
+#
+#   bin/deploy-preflight
+#
+# See docs/guidelines/process/deployment.md.
+
+set -uo pipefail
+
+cd "$(dirname "$0")/.." || exit 1
+
+APP_SERVER="deploy@77.42.33.33"
+DB_HOST="10.0.0.3"
+DB_USER="scholarpremium"
+DOMAINS=(scholarpremium.com.br www.scholarpremium.com.br staging.scholarpremium.com.br)
+DATABASES=(
+  scholarpremium_production
+  scholarpremium_production_cable
+  scholarpremium_staging
+  scholarpremium_staging_cable
+)
+
+failures=0
+warnings=0
+
+ok()   { printf '  \033[32mok\033[0m    %s\n' "$1"; }
+bad()  { printf '  \033[31mFALHA\033[0m %s\n' "$1"; failures=$((failures + 1)); }
+warn() { printf '  \033[33maviso\033[0m %s\n' "$1"; warnings=$((warnings + 1)); }
+section() { printf '\n\033[1m%s\033[0m\n' "$1"; }
+
+section "Ferramentas locais"
+
+if command -v kamal >/dev/null; then
+  ok "kamal $(kamal version 2>/dev/null | tail -1)"
+else
+  bad "kamal nao encontrado no PATH"
+fi
+
+if docker info >/dev/null 2>&1; then
+  ok "docker respondendo"
+else
+  bad "docker nao esta rodando — o kamal builda a imagem localmente"
+fi
+
+section "Segredos da aplicacao"
+
+if [ -f config/master.key ]; then
+  ok "config/master.key presente"
+else
+  bad "config/master.key ausente — sem ele as credentials nao abrem"
+fi
+
+for f in .kamal/secrets-common .kamal/secrets.production .kamal/secrets.staging; do
+  if [ -f "$f" ]; then
+    ok "$f presente"
+  else
+    bad "$f ausente — copie do .example correspondente"
+  fi
+done
+
+# Estas cinco sao interpoladas pelos arquivos de secrets. Vazias, o deploy sobe sem
+# DATABASE_URL ou assinando token com chave em branco.
+for v in KAMAL_REGISTRY_PASSWORD JWT_SECRET_KEY_PRODUCTION JWT_SECRET_KEY_STAGING POSTGRES_PASSWORD REDIS_PASSWORD; do
+  if [ -n "${!v:-}" ]; then
+    ok "\$$v definida"
+  else
+    bad "\$$v nao definida"
+  fi
+done
+
+if [ -n "${JWT_SECRET_KEY_PRODUCTION:-}" ] && [ "${JWT_SECRET_KEY_PRODUCTION:-}" = "${JWT_SECRET_KEY_STAGING:-}" ]; then
+  bad "JWT_SECRET_KEY_PRODUCTION e _STAGING sao iguais — um token de staging valeria em producao"
+fi
+
+section "GitHub Container Registry"
+
+gh_user=$(gh config get -h github.com user 2>/dev/null)
+if [ -n "$gh_user" ]; then
+  ok "username do GHCR resolvido ($gh_user)"
+else
+  bad "gh config get -h github.com user vazio — rode gh auth login"
+fi
+
+if [ -n "${KAMAL_REGISTRY_PASSWORD:-}" ]; then
+  scopes=$(curl -sI -H "Authorization: Bearer $KAMAL_REGISTRY_PASSWORD" \
+    https://api.github.com/user | tr -d '\r' | awk -F': ' 'tolower($1)=="x-oauth-scopes"{print $2}')
+
+  if [ -z "$scopes" ]; then
+    bad "token do registry rejeitado pela API do GitHub"
+  elif printf '%s' "$scopes" | grep -q "write:packages"; then
+    ok "token do registry tem write:packages"
+  else
+    bad "token do registry sem write:packages (escopos: $scopes) — o push para o GHCR dara 401"
+  fi
+fi
+
+section "DNS"
+
+for domain in "${DOMAINS[@]}"; do
+  resolved=$(dig +short +time=3 +tries=1 "$domain" A | tail -1)
+  if [ "$resolved" = "77.42.33.33" ]; then
+    ok "$domain -> $resolved"
+  elif [ -z "$resolved" ]; then
+    bad "$domain sem registro A — o Let's Encrypt falha no kamal setup"
+  else
+    bad "$domain aponta para $resolved, esperado 77.42.33.33"
+  fi
+done
+
+section "Servidor de aplicacao"
+
+if ssh -o BatchMode=yes -o ConnectTimeout=8 "$APP_SERVER" true 2>/dev/null; then
+  ok "ssh $APP_SERVER"
+
+  if ssh -o BatchMode=yes "$APP_SERVER" 'docker info' >/dev/null 2>&1; then
+    ok "usuario deploy acessa o docker daemon"
+  else
+    bad "usuario deploy sem acesso ao docker no servidor"
+  fi
+else
+  bad "ssh $APP_SERVER falhou — verifique a chave carregada no agente"
+fi
+
+section "Banco de dados ($DB_HOST, via app server)"
+
+# 10.0.0.3 e privado: so o app server enxerga. A senha vai em base64 pelo stdin do ssh
+# para nao aparecer na linha de comando remota nem sofrer com aspas.
+if [ -n "${POSTGRES_PASSWORD:-}" ] && ssh -o BatchMode=yes -o ConnectTimeout=8 "$APP_SERVER" true 2>/dev/null; then
+  pg_b64=$(printf '%s' "$POSTGRES_PASSWORD" | base64 | tr -d '\n')
+  redis_b64=$(printf '%s' "${REDIS_PASSWORD:-}" | base64 | tr -d '\n')
+
+  remote_output=$(ssh -o BatchMode=yes "$APP_SERVER" bash -s <<REMOTE 2>&1
+export PGPASSWORD=\$(printf '%s' '$pg_b64' | base64 -d)
+export REDISCLI_AUTH=\$(printf '%s' '$redis_b64' | base64 -d)
+
+for db in ${DATABASES[*]}; do
+  if psql -h $DB_HOST -U $DB_USER -d "\$db" -tAc 'select 1' >/dev/null 2>&1; then
+    echo "DB_OK \$db"
+  else
+    echo "DB_FAIL \$db"
+  fi
+done
+
+if [ "\$(redis-cli -h $DB_HOST ping 2>/dev/null)" = "PONG" ]; then
+  echo "REDIS_OK"
+else
+  echo "REDIS_FAIL"
+fi
+REMOTE
+  )
+
+  for db in "${DATABASES[@]}"; do
+    if printf '%s' "$remote_output" | grep -q "DB_OK $db"; then
+      ok "$db acessivel"
+    else
+      bad "$db inacessivel — crie o banco ou revise o pg_hba/senha"
+    fi
+  done
+
+  if printf '%s' "$remote_output" | grep -q REDIS_OK; then
+    ok "redis respondendo"
+  else
+    bad "redis nao respondeu ao ping"
+  fi
+else
+  warn "checagem de banco pulada — depende de POSTGRES_PASSWORD e do ssh"
+fi
+
+section "Resultado"
+
+if [ "$failures" -gt 0 ]; then
+  printf '  %d verificacao(oes) falharam. Nao rode kamal setup ainda.\n\n' "$failures"
+  exit 1
+fi
+
+if [ "$warnings" -gt 0 ]; then
+  printf '  Tudo que pode ser verificado passou, com %d aviso(s).\n\n' "$warnings"
+  exit 0
+fi
+
+printf '  Tudo pronto para kamal setup -d staging.\n\n'
