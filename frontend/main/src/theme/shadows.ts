@@ -24,4 +24,14 @@ export function shadowForMode(theme: Theme, index: 0 | 1): string {
   return shadows[index];
 }
 
+/** Scheme-aware shadow styles for cssVariables themes (theme.palette.mode is static). */
+export function shadowSx(theme: Theme, index: 0 | 1) {
+  return {
+    boxShadow: darkCustomShadows[index],
+    ...theme.applyStyles('light', {
+      boxShadow: lightCustomShadows[index],
+    }),
+  };
+}
+
 export default darkCustomShadows;

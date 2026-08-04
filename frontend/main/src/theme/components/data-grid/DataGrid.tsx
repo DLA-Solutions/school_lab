@@ -2,28 +2,32 @@ import { Theme, Components } from '@mui/material/styles';
 
 const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
   styleOverrides: {
-    root: ({ theme }) => ({
-      border: 'none',
-      background: 'transparent',
-      '--DataGrid-rowBorderColor': 'transparent',
-      '&:hover, &:focus': {
-        '*::-webkit-scrollbar, *::-webkit-scrollbar-thumb': {
-          visibility: 'visible',
+    root: ({ theme }) => {
+      const palette = (theme.vars || theme).palette;
+
+      return {
+        border: 'none',
+        background: 'transparent',
+        '--DataGrid-rowBorderColor': 'transparent',
+        '&:hover, &:focus': {
+          '*::-webkit-scrollbar, *::-webkit-scrollbar-thumb': {
+            visibility: 'visible',
+          },
+          '*::-webkit-scrollbar-thumb': {
+            background: palette.background.default,
+          },
         },
-        '*::-webkit-scrollbar-thumb': {
-          background: theme.palette.background.default,
+        '& .MuiDataGrid-scrollbar--vertical': {
+          visibility: 'hidden',
         },
-      },
-      '& .MuiDataGrid-scrollbar--vertical': {
-        visibility: 'hidden',
-      },
-      '& .MuiDataGrid-filler': {
-        height: '0 !important',
-      },
-      '& .MuiDataGrid-scrollbarFiller': {
-        minWidth: 0,
-      },
-    }),
+        '& .MuiDataGrid-filler': {
+          height: '0 !important',
+        },
+        '& .MuiDataGrid-scrollbarFiller': {
+          minWidth: 0,
+        },
+      };
+    },
     virtualScroller: {
       overflowY: 'hidden',
     },
@@ -37,7 +41,7 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
       background: 'transparent !important',
     },
     columnHeader: ({ theme }) => ({
-      background: theme.palette.background.paper,
+      background: (theme.vars || theme).palette.background.paper,
       '&:focus-within': {
         outline: 'none !important',
       },
@@ -47,31 +51,35 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
       letterSpacing: 0.5,
       fontWeight: 600,
     }),
-    row: ({ theme }) => ({
-      '&:hover': {
-        background: 'transparent',
-      },
-      '&.Mui-selected': {
-        background: 'transparent',
+    row: ({ theme }) => {
+      const palette = (theme.vars || theme).palette;
+
+      return {
         '&:hover': {
           background: 'transparent',
         },
-      },
-      '&:nth-of-type(odd)': {
-        background: theme.palette.surface.alt,
-        '&:hover': {
-          background: theme.palette.surface.alt,
+        '&.Mui-selected': {
+          background: 'transparent',
+          '&:hover': {
+            background: 'transparent',
+          },
         },
-      },
-      '&.MuiDataGrid-row--editing': {
-        background: theme.palette.secondary.darker,
-        '& .MuiDataGrid-cell': {
-          background: theme.palette.secondary.darker,
+        '&:nth-of-type(odd)': {
+          background: palette.surface.alt,
+          '&:hover': {
+            background: palette.surface.alt,
+          },
         },
-      },
-    }),
+        '&.MuiDataGrid-row--editing': {
+          background: palette.secondary.darker,
+          '& .MuiDataGrid-cell': {
+            background: palette.secondary.darker,
+          },
+        },
+      };
+    },
     cell: ({ theme }) => ({
-      color: theme.palette.text.primary,
+      color: (theme.vars || theme).palette.text.primary,
       fontSize: theme.typography.caption.fontSize,
       '&:hover': {
         cursor: 'pointer',
@@ -88,7 +96,7 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
       border: 0,
       borderTop: 1,
       borderStyle: 'solid',
-      borderColor: `${theme.palette.background.default} !important`,
+      borderColor: `${(theme.vars || theme).palette.background.default} !important`,
     }),
     columnSeparator: {
       display: 'none',
@@ -100,13 +108,13 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
       background: 'transparent !important',
     },
     sortIcon: ({ theme }) => ({
-      color: theme.palette.text.secondary,
+      color: (theme.vars || theme).palette.text.secondary,
     }),
     menuIconButton: ({ theme }) => ({
-      color: theme.palette.text.secondary,
+      color: (theme.vars || theme).palette.text.secondary,
     }),
     overlay: ({ theme }) => ({
-      background: theme.palette.surface.alt,
+      background: (theme.vars || theme).palette.surface.alt,
     }),
   },
 };

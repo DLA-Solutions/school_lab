@@ -1,19 +1,23 @@
 import type { Theme, Components } from '@mui/material/styles';
 import { menuClasses } from '@mui/material';
-import { shadowForMode } from '../../shadows';
+import { shadowSx } from '../../shadows';
 
 const Paper: Components<Omit<Theme, 'components'>>['MuiPaper'] = {
   styleOverrides: {
-    root: ({ theme }) => ({
-      padding: theme.spacing(3.5),
-      backgroundColor: theme.palette.background.paper,
-      boxShadow: shadowForMode(theme, 0),
-      borderRadius: Number(theme.shape.borderRadius) * 3,
+    root: ({ theme }) => {
+      const palette = (theme.vars || theme).palette;
 
-      [`&.${menuClasses.paper}`]: {
-        padding: theme.spacing(0),
-      },
-    }),
+      return {
+        padding: theme.spacing(3.5),
+        backgroundColor: palette.background.paper,
+        ...shadowSx(theme, 0),
+        borderRadius: Number(theme.shape.borderRadius) * 3,
+
+        [`&.${menuClasses.paper}`]: {
+          padding: theme.spacing(0),
+        },
+      };
+    },
   },
 };
 

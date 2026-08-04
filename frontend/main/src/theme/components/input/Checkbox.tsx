@@ -12,7 +12,7 @@ const Checkbox: Components<Omit<Theme, 'components'>>['MuiCheckbox'] = {
   },
   styleOverrides: {
     root: ({ theme }) => ({
-      color: theme.palette.text.secondary,
+      color: (theme.vars || theme).palette.text.secondary,
     }),
     sizeMedium: ({ theme }) => ({
       [`& .${svgIconClasses.root}`]: {

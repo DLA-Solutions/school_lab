@@ -9,7 +9,8 @@ const ThemeToggle = () => {
   const isDark = mode === 'dark';
 
   const handleToggle = () => {
-    setMode(isDark ? 'light' : 'dark');
+    const next = isDark ? 'light' : 'dark';
+    setMode(next);
   };
 
   return (

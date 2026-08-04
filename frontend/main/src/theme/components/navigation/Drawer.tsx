@@ -1,5 +1,5 @@
 import type { Theme, Components } from '@mui/material/styles';
-import { shadowForMode } from '../../shadows';
+import { shadowSx } from '../../shadows';
 
 const Drawer: Components<Omit<Theme, 'components'>>['MuiDrawer'] = {
   styleOverrides: {
@@ -10,19 +10,23 @@ const Drawer: Components<Omit<Theme, 'components'>>['MuiDrawer'] = {
         },
       },
     },
-    paper: ({ theme }) => ({
-      padding: 0,
-      width: '300px',
-      height: '100vh',
-      borderRadius: 0,
-      border: 0,
-      borderRight: 1,
-      borderStyle: 'solid',
-      borderColor: theme.palette.background.paper,
-      backgroundColor: theme.palette.background.default,
-      boxShadow: shadowForMode(theme, 0),
-      boxSizing: 'border-box',
-    }),
+    paper: ({ theme }) => {
+      const palette = (theme.vars || theme).palette;
+
+      return {
+        padding: 0,
+        width: '300px',
+        height: '100vh',
+        borderRadius: 0,
+        border: 0,
+        borderRight: 1,
+        borderStyle: 'solid',
+        borderColor: palette.background.paper,
+        backgroundColor: palette.background.default,
+        ...shadowSx(theme, 0),
+        boxSizing: 'border-box',
+      };
+    },
   },
 };
 

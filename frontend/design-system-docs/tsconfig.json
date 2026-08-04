@@ -16,10 +16,15 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
+      "design-system": ["../main/src/design-system"],
       "design-system/*": ["../main/src/design-system/*"],
+      "theme": ["../main/src/theme"],
       "theme/*": ["../main/src/theme/*"],
+      "components": ["../main/src/components"],
       "components/*": ["../main/src/components/*"],
-      "providers/*": ["../main/src/providers/*"]
+      "providers": ["../main/src/providers"],
+      "providers/*": ["../main/src/providers/*"],
+      "assets/*": ["../main/src/assets/*"]
     }
   },
   "include": ["src"],
