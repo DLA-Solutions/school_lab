@@ -5,7 +5,7 @@ const MenuItem: Components<Omit<Theme, 'components'>>['MuiMenuItem'] = {
     root: ({ theme }) => ({
       transition: 'all 0.3s ease-in-out',
       '&:hover': {
-        backgroundColor: theme.palette.info.dark,
+        backgroundColor: theme.palette.surface.alt,
       },
     }),
   },

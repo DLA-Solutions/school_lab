@@ -11,7 +11,7 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
           visibility: 'visible',
         },
         '*::-webkit-scrollbar-thumb': {
-          background: theme.palette.info.darker,
+          background: theme.palette.background.default,
         },
       },
       '& .MuiDataGrid-scrollbar--vertical': {
@@ -37,7 +37,7 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
       background: 'transparent !important',
     },
     columnHeader: ({ theme }) => ({
-      background: theme.palette.info.main,
+      background: theme.palette.background.paper,
       '&:focus-within': {
         outline: 'none !important',
       },
@@ -58,9 +58,9 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
         },
       },
       '&:nth-of-type(odd)': {
-        background: theme.palette.info.dark,
+        background: theme.palette.surface.alt,
         '&:hover': {
-          background: theme.palette.info.dark,
+          background: theme.palette.surface.alt,
         },
       },
       '&.MuiDataGrid-row--editing': {
@@ -88,7 +88,7 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
       border: 0,
       borderTop: 1,
       borderStyle: 'solid',
-      borderColor: `${theme.palette.info.darker} !important`,
+      borderColor: `${theme.palette.background.default} !important`,
     }),
     columnSeparator: {
       display: 'none',
@@ -106,7 +106,7 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
       color: theme.palette.text.secondary,
     }),
     overlay: ({ theme }) => ({
-      background: theme.palette.info.dark,
+      background: theme.palette.surface.alt,
     }),
   },
 };

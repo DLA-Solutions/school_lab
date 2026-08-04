@@ -4,7 +4,7 @@ COMPOSE_APP := $(COMPOSE) --profile app
 WEB := $(COMPOSE_APP) run --rm web
 
 .PHONY: check-env build up up-d down migrate seed setup console shell logs \
-        services-up services-down services-logs services-ps services-reset
+        services-up services-down services-logs services-ps services-reset design-system-docs
 
 check-env:
 	@test -f $(ENV_FILE) || (echo "Missing $(ENV_FILE). Run: cp web/.env.example web/.env" && exit 1)
@@ -64,3 +64,8 @@ services-ps:
 # Stop containers and remove volumes (destructive — wipes local DB data).
 services-reset:
 	@test -f $(ENV_FILE) && $(COMPOSE_APP) down -v || docker compose --profile app down -v
+
+# --- Design system static docs ---
+
+design-system-docs:
+	cd frontend/design-system-docs && npm install && npm run build

@@ -7,7 +7,7 @@ const InputBase: Components<Omit<Theme, 'components'>>['MuiInputBase'] = {
       borderStyle: 'solid',
       borderColor: theme.palette.neutral.darker,
       borderRadius: theme.shape.borderRadius,
-      background: `${theme.palette.info.main} !important`,
+      background: `${theme.palette.background.paper} !important`,
       fontSize: theme.typography.subtitle2.fontSize,
       padding: theme.spacing(1.25),
       letterSpacing: 0.5,
@@ -21,7 +21,7 @@ const InputBase: Components<Omit<Theme, 'components'>>['MuiInputBase'] = {
       },
     }),
     colorSecondary: ({ theme }) => ({
-      background: `${theme.palette.info.darker} !important`,
+      background: `${theme.palette.background.default} !important`,
     }),
     sizeSmall: ({ theme }) => ({
       padding: theme.spacing(1, 1.25),

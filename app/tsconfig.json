@@ -1,6 +1,10 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@school-lab/design-tokens": ["../packages/design-tokens/index.ts"]
+    }
   }
 }

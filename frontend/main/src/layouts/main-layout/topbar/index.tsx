@@ -10,6 +10,7 @@ import IconifyIcon from 'components/base/IconifyIcon';
 import Image from 'components/base/Image';
 import LanguageSelect from './LanguageSelect';
 import ProfileMenu from './ProfileMenu';
+import { ThemeToggle } from 'design-system';
 import Logo from 'assets/images/logo.png';
 
 interface TopbarProps {
@@ -56,11 +57,12 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
           fontFamily={fontFamily.workSans}
           display={{ xs: 'none', lg: 'block' }}
         >
-          Analytics
+          Dashboard
         </Typography>
       </Stack>
 
       <Stack spacing={1} alignItems="center">
+        <ThemeToggle />
         <LanguageSelect />
 
         <Tooltip title="Notifications">

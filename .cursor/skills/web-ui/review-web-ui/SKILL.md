@@ -21,7 +21,7 @@ change touches browser UI, client auth, or API consumption patterns.
 | API client, auth transport, token storage | `frontend/main/src/services/**` (`api.ts`, `authApi.ts`, `tokenStore.ts`) |
 | Auth state | `frontend/main/src/providers/**` (`AuthProvider.tsx`, `AuthContext.ts`) |
 | Types | `frontend/main/src/types/**` — hand-written (`auth.ts`, `custom.d.ts`) |
-| Theme / styling | `frontend/main/src/theme/**` (MUI theme, palette, component overrides), `frontend/main/src/index.css` |
+| Theme / styling | `frontend/main/src/theme/**`, `frontend/main/src/design-system/**`, `packages/design-tokens/**` |
 | Template data | `frontend/main/src/data/**` — hardcoded dashboard placeholders, **not** API data |
 | Helpers | `frontend/main/src/utils/**` |
 | Config | `frontend/main/vite.config.ts`, `frontend/main/tsconfig*.json`, `frontend/main/.env.example` when affecting API/auth |

@@ -4,7 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" href="/dashdarkx.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Scholar Premium</title>
+    <title>School Lab</title>
+    <script>
+      (function () {
+        var key = 'school-lab-color-mode';
+        var mode = localStorage.getItem(key);
+        if (mode !== 'light' && mode !== 'dark') {
+          mode = 'dark';
+        }
+        document.documentElement.classList.add(mode);
+        document.documentElement.setAttribute('data-mui-color-scheme', mode);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,6 +1,7 @@
 import { type SxProps, type Theme, useTheme } from '@mui/material';
 import { fontFamily } from 'theme/typography';
 import { useMemo } from 'react';
+import useChartTheme from 'design-system/hooks/useChartTheme';
 import * as echarts from 'echarts/core';
 import { BarChart } from 'echarts/charts';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -16,7 +17,7 @@ interface PolarBarChartProps {
   sx?: SxProps;
 }
 
-const getItemColor = (theme: Theme, type: string) => {
+const getItemColor = (seriesColors: string[], type: string, theme: Theme) => {
   switch (type) {
     case 'Direct':
       return theme.palette.secondary.main;
@@ -25,12 +26,13 @@ const getItemColor = (theme: Theme, type: string) => {
     case 'Organic':
       return theme.palette.primary.main;
     default:
-      return theme.palette.grey[500];
+      return seriesColors[3] ?? theme.palette.grey[500];
   }
 };
 
 const VisitorsChart = ({ chartRef, data, ...rest }: PolarBarChartProps) => {
   const theme = useTheme();
+  const chartTheme = useChartTheme();
 
   const option = useMemo(
     () => ({
@@ -58,14 +60,17 @@ const VisitorsChart = ({ chartRef, data, ...rest }: PolarBarChartProps) => {
         type: 'category',
         data: data.map((item) => item.type),
       },
-      tooltip: {},
+      tooltip: {
+        backgroundColor: chartTheme.tooltipBg,
+        textStyle: { color: chartTheme.textColor },
+      },
       series: [
         {
           type: 'bar',
           data: data.map((item) => ({
             type: item.type,
             value: item.count,
-            itemStyle: { color: getItemColor(theme, item.type) },
+            itemStyle: { color: getItemColor(chartTheme.seriesColors, item.type, theme) },
           })),
           coordinateSystem: 'polar',
           barCategoryGap: '35%',
@@ -90,7 +95,7 @@ const VisitorsChart = ({ chartRef, data, ...rest }: PolarBarChartProps) => {
         },
       ],
     }),
-    [theme, data],
+    [theme, chartTheme, data],
   );
 
   return <ReactEchart ref={chartRef} echarts={echarts} option={option} {...rest} />;

@@ -36,8 +36,8 @@ const Button: Components<Omit<Theme, 'components'>>['MuiButton'] = {
       },
     }),
     containedSecondary: ({ theme }) => ({
-      background: theme.palette.info.dark,
-      '&:hover': { background: theme.palette.info.dark },
+      background: theme.palette.surface.alt,
+      '&:hover': { background: theme.palette.surface.alt },
     }),
     sizeLarge: ({ theme }) => ({
       padding: theme.spacing(1.25, 2.25),

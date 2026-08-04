@@ -19,7 +19,7 @@ const Product = ({ data }: ProductInfoProps) => {
   return (
     <Stack alignItems="center" justifyContent="space-between">
       <Stack spacing={2} alignItems="center">
-        <Box height={46} width={46} bgcolor="info.dark" borderRadius={1.25}>
+        <Box height={46} width={46} bgcolor="surface.alt" borderRadius={1.25}>
           <Image src={imageUrl} height={1} width={1} sx={{ objectFit: 'contain' }} />
         </Box>
 

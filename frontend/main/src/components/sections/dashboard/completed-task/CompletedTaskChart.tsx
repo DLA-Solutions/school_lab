@@ -1,5 +1,6 @@
 import { SxProps, useTheme } from '@mui/material';
 import { fontFamily } from 'theme/typography';
+import useChartTheme from 'design-system/hooks/useChartTheme';
 import { useMemo } from 'react';
 import { graphic } from 'echarts';
 import * as echarts from 'echarts/core';
@@ -12,6 +13,7 @@ interface CompletedTaskChartProps {
 
 const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
   const theme = useTheme();
+  const chartTheme = useChartTheme();
 
   const option = useMemo(
     () => ({
@@ -20,6 +22,8 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
         axisPointer: {
           type: 'none',
         },
+        backgroundColor: chartTheme.tooltipBg,
+        textStyle: { color: chartTheme.textColor },
       },
       grid: {
         top: 30,
@@ -38,7 +42,7 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
         },
         axisLabel: {
           margin: 10,
-          color: theme.palette.text.secondary,
+          color: chartTheme.axisColor,
           fontSize: theme.typography.caption.fontSize,
           fontFamily: fontFamily.monaSans,
         },
@@ -46,7 +50,7 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
       yAxis: {
         type: 'value',
         axisLabel: {
-          color: theme.palette.text.secondary,
+          color: chartTheme.axisColor,
           fontSize: theme.typography.caption.fontSize,
           fontFamily: fontFamily.monaSans,
         },
@@ -69,18 +73,18 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
             color: new graphic.LinearGradient(0, 0, 0, 1, [
               {
                 offset: 0,
-                color: 'rgba(0, 194, 255, 0.2)',
+                color: `${theme.palette.secondary.main}33`,
               },
               {
                 offset: 1,
-                color: 'rgba(0, 194, 255, 0)',
+                color: `${theme.palette.secondary.main}00`,
               },
             ]),
           },
         },
       ],
     }),
-    [theme, data],
+    [theme, chartTheme, data],
   );
 
   return <ReactEchart echarts={echarts} option={option} {...rest} />;

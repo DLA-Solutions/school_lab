@@ -74,7 +74,7 @@ const ProfileMenu = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleProfileMenuClose} sx={{ '&:hover': { bgcolor: 'info.main' } }}>
+        <MenuItem onClick={handleProfileMenuClose} sx={{ '&:hover': { bgcolor: 'background.paper' } }}>
           <Avatar
             src={AvatarImage}
             sx={{
