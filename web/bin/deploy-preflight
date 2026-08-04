@@ -89,6 +89,23 @@ else
   bad ".kamal/secrets.staging sem API_DOCS_PASSWORD — copie as linhas do .kamal/secrets.staging.example"
 fi
 
+# Shell export alone is not enough — Kamal interpolates .kamal/secrets.* at deploy time.
+staging_secrets=$(kamal secrets print -d staging 2>/dev/null) || staging_secrets=""
+api_docs_user=$(printf '%s\n' "$staging_secrets" | sed -n 's/^API_DOCS_USERNAME=//p')
+api_docs_pass=$(printf '%s\n' "$staging_secrets" | sed -n 's/^API_DOCS_PASSWORD=//p')
+
+if [ -n "$api_docs_user" ]; then
+  ok "kamal secrets (-d staging): API_DOCS_USERNAME resolvido"
+else
+  bad "kamal secrets (-d staging): API_DOCS_USERNAME vazio — exporte no shell ou defina literal em .kamal/secrets.staging"
+fi
+
+if [ -n "$api_docs_pass" ]; then
+  ok "kamal secrets (-d staging): API_DOCS_PASSWORD resolvido"
+else
+  bad "kamal secrets (-d staging): API_DOCS_PASSWORD vazio — exporte no shell ou defina literal em .kamal/secrets.staging"
+fi
+
 section "GitHub Container Registry"
 
 gh_user=$(gh config get -h github.com user 2>/dev/null)

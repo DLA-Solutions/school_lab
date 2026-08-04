@@ -210,8 +210,10 @@ Staging exposes Swagger UI at `https://staging.scholarpremium.com.br/api-docs`, 
 by HTTP Basic Auth. Production does not mount `/api-docs`.
 
 Set `API_DOCS_USERNAME` and `API_DOCS_PASSWORD` on the deploy machine before
-`kamal deploy -d staging` (see `.kamal/secrets.staging.example`). Local development
-serves `/api-docs` without credentials.
+`kamal deploy -d staging` (see `.kamal/secrets.staging.example`). Verify with
+`kamal secrets print -d staging` that both values are non-empty — an exported shell
+variable that is not interpolated into `.kamal/secrets.staging` still produces a
+failed boot. Local development serves `/api-docs` without credentials.
 
 **Kamal destination merge:** `env.secret` in `deploy.staging.yml` **replaces** the
 base list in `deploy.yml` (it does not append). Staging must repeat every secret from
