@@ -77,13 +77,11 @@ Two secrets have no usable default and the app **refuses to boot** without them 
 development and test (`config/initializers/security_secrets.rb`). A deploy missing either
 one fails its health check instead of coming up in a weak state, which is deliberate.
 
-- `active_record_encryption` — encrypts `school_payment_providers.certificate_pem` and
-  `private_key_pem`, the school's Cora mTLS banking credentials.
-- `jwt.secret_key` — signs API access tokens. A shared value would let anyone holding it
-  forge a token for any user of any school, bypassing every Pundit policy.
-
-Both live in the encrypted credentials, so `RAILS_MASTER_KEY` (already a Kamal secret) is
-the only thing that has to reach the server. Generate and store them once:
+**Active Record encryption keys** encrypt `school_payment_providers.certificate_pem` and
+`private_key_pem`, the school's Cora mTLS banking credentials. They live in the encrypted
+credentials, shared by both destinations — the databases are already separate. Generate and
+store them once, **before** the first deploy; doing it after data exists means re-encrypting
+every row:
 
 ```bash
 cd web
@@ -96,12 +94,16 @@ active_record_encryption:
   primary_key: ...
   deterministic_key: ...
   key_derivation_salt: ...
-jwt:
-  secret_key: ...   # e.g. bin/rails secret
 ```
 
-Do this **before** the first deploy. Rotating the encryption keys later means re-encrypting
-every existing row, and rotating the JWT secret invalidates every access token in flight.
+`RAILS_MASTER_KEY` is already a Kamal secret, so nothing else has to reach the server.
+
+**`JWT_SECRET_KEY`** signs API access tokens and is deliberately **not** in the credentials.
+Staging runs with `RAILS_ENV=production` and reads the same credentials file, so a single
+value would make a staging token valid in production, where that user id belongs to somebody
+else. Each destination supplies its own through Kamal secrets, and the environment takes
+precedence over the credentials for exactly this reason. Generate one per destination with
+`bin/rails secret`.
 
 Development and test deliberately use fixed throwaway values committed to the repository,
 so the suite runs without credentials — CI has no `RAILS_MASTER_KEY`. Those values protect
@@ -127,6 +129,8 @@ environment variables you export before deploying:
 | Variable | Used for |
 |---|---|
 | `KAMAL_REGISTRY_PASSWORD` | GitHub token with `write:packages` for GHCR |
+| `JWT_SECRET_KEY_PRODUCTION` | token signing key for production |
+| `JWT_SECRET_KEY_STAGING` | token signing key for staging, different from production's |
 | `POSTGRES_PASSWORD` | password of the `scholarpremium` PostgreSQL role |
 | `REDIS_PASSWORD` | `requirepass` value of the Redis instance |
 

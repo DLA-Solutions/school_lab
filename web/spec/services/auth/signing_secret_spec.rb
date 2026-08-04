@@ -24,6 +24,15 @@ RSpec.describe Auth::SigningSecret do
       ensure
         ENV.delete("JWT_SECRET_KEY")
       end
+
+      it "lets the environment win over the credentials so each destination signs its own tokens" do
+        allow(Rails.application.credentials).to receive(:dig).with(:jwt, :secret_key).and_return("from-credentials")
+        ENV["JWT_SECRET_KEY"] = "from-environment"
+
+        expect(described_class.fetch).to eq("from-environment")
+      ensure
+        ENV.delete("JWT_SECRET_KEY")
+      end
     end
   end
 end
