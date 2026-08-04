@@ -54,6 +54,10 @@ gem "audited"
 gem "aasm"
 gem "after_commit_everywhere", "~> 1.0"
 
+# OpenAPI browser and static spec — mounted in local dev/test and when EXPOSE_API_DOCS is set (staging).
+gem "rswag-api"
+gem "rswag-ui"
+
 group :test do
   gem "webmock"
   gem "vcr"
@@ -66,7 +70,6 @@ group :development, :test do
   gem "rspec-rails", "~> 8.0"
   gem "factory_bot_rails"
   gem "rswag-specs"
-  gem "rswag-api"
 
   # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
   gem "bundler-audit", require: false
@@ -81,5 +84,4 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-  gem "rswag-ui"
 end

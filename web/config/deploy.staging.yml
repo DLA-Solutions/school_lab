@@ -10,6 +10,10 @@ env:
     CORS_ORIGINS: https://staging.scholarpremium.com.br
     APP_HOST: staging.scholarpremium.com.br
     WEB_CONCURRENCY: 1
+    EXPOSE_API_DOCS: "true"
+  secret:
+    - API_DOCS_USERNAME
+    - API_DOCS_PASSWORD
 
 # Separate volume so staging uploads never land in the production Active Storage tree.
 volumes:

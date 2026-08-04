@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-# rswag-api is bundled for development and test only, so in a production install the constant
-# is missing and this initializer aborts the boot — which is what broke the production image
-# build. Guard it the way config/initializers/rswag_ui.rb already does.
+# Serves swagger/v1/swagger.yaml when SchoolLab::ApiDocs.enabled? mounts the engine.
 if defined?(Rswag::Api)
   Rswag::Api.configure do |c|
     # Specify a root folder where Swagger JSON files are located

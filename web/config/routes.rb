@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
+require Rails.root.join("lib/school_lab/api_docs")
+
 Rails.application.routes.draw do
-  if defined?(Rswag::Ui::Engine)
+  if SchoolLab::ApiDocs.enabled?
     mount Rswag::Ui::Engine => "/api-docs"
-  end
-  if defined?(Rswag::Api::Engine)
     mount Rswag::Api::Engine => "/api-docs"
   end
 

@@ -127,7 +127,8 @@ POST /api/v1/schools/:school_id/billing/charges/:id/reissue
 | Gem | Role |
 |-----|------|
 | `rswag-specs` | Request specs with OpenAPI metadata |
-| `rswag-api` | Swagger UI at `/api-docs` (development) |
+| `rswag-api` | Serves `swagger/v1/swagger.yaml` at `/api-docs/v1/swagger.yaml` |
+| `rswag-ui` | Swagger UI at `/api-docs` (local dev/test; staging when `EXPOSE_API_DOCS=true`, behind HTTP Basic Auth) |
 
 Workflow:
 
