@@ -15,7 +15,13 @@ Rails.application.configure do
     config.active_record.encryption.primary_key = "development-only-primary-key"
     config.active_record.encryption.deterministic_key = "development-only-deterministic-key"
     config.active_record.encryption.key_derivation_salt = "development-only-key-derivation-salt"
-  else
+  elsif ENV["SECRET_KEY_BASE_DUMMY"].blank?
+    # SECRET_KEY_BASE_DUMMY marks `bin/rails assets:precompile` running as a Docker build
+    # step (see the Dockerfile and the Rails asset pipeline guide): it boots the app with no
+    # RAILS_MASTER_KEY and none of these secrets available on purpose, precisely so the image
+    # can build without production credentials. Skip the check there; it still runs for every
+    # other boot of a non-local environment, including the container that actually serves
+    # traffic.
     config.after_initialize do
       begin
         # Reading an unconfigured key raises, which is the boot failure we want. Without
