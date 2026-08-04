@@ -30,6 +30,25 @@
 | `palette.transparent.*` | Semantic chip backgrounds |
 | `theme.customShadows` | Per-scheme shadow array |
 
+## Component overrides (cssVariables-safe)
+
+All `theme/components/**` overrides read palette values via `(theme.vars || theme).palette` (not `theme.palette` directly), so they resolve correctly whether `theme.vars` is generated (`cssVariables` mode) or not. When light/dark need different literal values (e.g. shadows), use `theme.applyStyles('light', {...})` — see `shadowSx()` in `theme/shadows.ts`.
+
+Registered overrides by category (`theme/components/`):
+
+| Category | Components |
+|----------|------------|
+| `button/` | Button, ButtonBase, IconButton, Toolbar |
+| `input/` | TextField, OutlinedInput, FilledInput, InputBase, InputAdornment, Checkbox, Radio, Switch, Autocomplete, FormControlLabel, FormHelperText, Select |
+| `surface/` | Paper |
+| `navigation/` | Drawer, Link, Menu, Tabs, Tab, Breadcrumbs, Stepper, StepLabel, StepConnector |
+| `data-display/` | Divider, Chip, Tooltip, Avatar, Badge |
+| `feedback/` | Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CircularProgress, LinearProgress, SnackbarContent, Skeleton |
+| `list/` | List, ListItemButton, ListItemIcon, ListItemText, MenuItem, Collapse |
+| `data-grid/`, `date-picker/`, `pagination/` | DataGrid, MonthCalendar/YearCalendar, PaginationItem |
+
+All are registered in `createAppTheme.ts`'s `componentOverrides` map.
+
 ## Charts
 
 Use `useChartTheme()` from `design-system/hooks/useChartTheme` for axis, tooltip, and series defaults.

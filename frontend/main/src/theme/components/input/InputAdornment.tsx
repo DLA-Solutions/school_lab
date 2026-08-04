@@ -4,7 +4,7 @@ import { boxClasses, iconButtonClasses } from '@mui/material';
 const InputAdornment: Components<Omit<Theme, 'components'>>['MuiInputAdornment'] = {
   styleOverrides: {
     root: ({ theme }) => ({
-      color: theme.palette.text.secondary,
+      color: (theme.vars || theme).palette.text.secondary,
       fontSize: theme.typography.h6.fontSize,
       margin: '0 !important',
       padding: 0,

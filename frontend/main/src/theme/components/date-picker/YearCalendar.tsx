@@ -5,7 +5,7 @@ const YearCalendar: Components<Omit<Theme, 'components'>>['MuiYearCalendar'] = {
   styleOverrides: {
     root: ({ theme }) => ({
       [`& .${yearCalendarClasses.button}.Mui-selected`]: {
-        background: `${theme.palette.primary.main} !important`,
+        background: `${(theme.vars || theme).palette.primary.main} !important`,
       },
     }),
   },

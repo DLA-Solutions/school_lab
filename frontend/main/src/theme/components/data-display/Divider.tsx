@@ -3,21 +3,25 @@ import { dividerClasses } from '@mui/material';
 
 const Divider: Components<Omit<Theme, 'components'>>['MuiDivider'] = {
   styleOverrides: {
-    root: ({ theme }) => ({
-      margin: theme.spacing(2, 0),
-      backgroundColor: theme.palette.neutral.darker,
+    root: ({ theme }) => {
+      const palette = (theme.vars || theme).palette;
 
-      [`&.${dividerClasses.withChildren}`]: {
-        color: theme.palette.text.secondary,
-        backgroundColor: 'transparent',
-        '&::before': {
-          backgroundColor: theme.palette.neutral.darker,
+      return {
+        margin: theme.spacing(2, 0),
+        backgroundColor: palette.neutral.darker,
+
+        [`&.${dividerClasses.withChildren}`]: {
+          color: palette.text.secondary,
+          backgroundColor: 'transparent',
+          '&::before': {
+            backgroundColor: palette.neutral.darker,
+          },
+          '&::after': {
+            backgroundColor: palette.neutral.darker,
+          },
         },
-        '&::after': {
-          backgroundColor: theme.palette.neutral.darker,
-        },
-      },
-    }),
+      };
+    },
   },
 };
 

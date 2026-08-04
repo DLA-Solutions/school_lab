@@ -1,13 +1,14 @@
-import { DataTable } from 'design-system';
-import { GridColDef } from '@mui/x-data-grid';
+import { DataTable, type DataTableProps } from 'design-system';
 import ComponentDocPage from '../../components/ComponentDocPage';
 
-const columns: GridColDef[] = [
+type Row = { id: number; name: string };
+
+const columns: NonNullable<DataTableProps['columns']> = [
   { field: 'id', headerName: 'ID', width: 80 },
   { field: 'name', headerName: 'Name', flex: 1 },
 ];
 
-const rows = [
+const rows: Row[] = [
   { id: 1, name: 'Alice' },
   { id: 2, name: 'Bob' },
 ];

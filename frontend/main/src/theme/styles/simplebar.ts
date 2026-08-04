@@ -5,7 +5,7 @@ const simplebar = (theme: Theme) => ({
     '&.simplebar-vertical': {
       '& .simplebar-scrollbar': {
         '&:before': {
-          backgroundColor: theme.palette.grey[300],
+          backgroundColor: (theme.vars || theme).palette.grey[300],
         },
         '&.simplebar-visible': {
           '&:before': {

@@ -45,7 +45,19 @@ export default defineConfig({
     },
   },
   resolve: {
-    dedupe: ['react', 'react-dom'],
+    // Theme/design-system source is reused from ../main/src via the aliases below.
+    // Without deduping, those files resolve these libs from ../main/node_modules
+    // (a separate install), splitting React context (e.g. useColorScheme) from the
+    // <ThemeProvider> mounted here, which silently no-ops setMode/mode.
+    dedupe: [
+      'react',
+      'react-dom',
+      '@mui/material',
+      '@mui/system',
+      '@mui/x-data-grid',
+      '@emotion/react',
+      '@emotion/styled',
+    ],
     alias: {
       'design-system': path.resolve(__dirname, '../main/src/design-system'),
       theme: path.resolve(__dirname, '../main/src/theme'),
