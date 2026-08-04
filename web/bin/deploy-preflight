@@ -65,7 +65,7 @@ done
 
 # Estas cinco sao interpoladas pelos arquivos de secrets. Vazias, o deploy sobe sem
 # DATABASE_URL ou assinando token com chave em branco.
-for v in KAMAL_REGISTRY_PASSWORD JWT_SECRET_KEY_PRODUCTION JWT_SECRET_KEY_STAGING POSTGRES_PASSWORD REDIS_PASSWORD; do
+for v in KAMAL_REGISTRY_PASSWORD JWT_SECRET_KEY_PRODUCTION JWT_SECRET_KEY_STAGING POSTGRES_PASSWORD REDIS_PASSWORD API_DOCS_USERNAME API_DOCS_PASSWORD; do
   if [ -n "${!v:-}" ]; then
     ok "\$$v definida"
   else
@@ -75,6 +75,18 @@ done
 
 if [ -n "${JWT_SECRET_KEY_PRODUCTION:-}" ] && [ "${JWT_SECRET_KEY_PRODUCTION:-}" = "${JWT_SECRET_KEY_STAGING:-}" ]; then
   bad "JWT_SECRET_KEY_PRODUCTION e _STAGING sao iguais — um token de staging valeria em producao"
+fi
+
+if grep -q '^API_DOCS_USERNAME=' .kamal/secrets.staging 2>/dev/null; then
+  ok ".kamal/secrets.staging mapeia API_DOCS_USERNAME"
+else
+  bad ".kamal/secrets.staging sem API_DOCS_USERNAME — copie as linhas do .kamal/secrets.staging.example"
+fi
+
+if grep -q '^API_DOCS_PASSWORD=' .kamal/secrets.staging 2>/dev/null; then
+  ok ".kamal/secrets.staging mapeia API_DOCS_PASSWORD"
+else
+  bad ".kamal/secrets.staging sem API_DOCS_PASSWORD — copie as linhas do .kamal/secrets.staging.example"
 fi
 
 section "GitHub Container Registry"

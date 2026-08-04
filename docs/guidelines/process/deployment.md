@@ -133,6 +133,8 @@ environment variables you export before deploying:
 | `JWT_SECRET_KEY_STAGING` | token signing key for staging, different from production's |
 | `POSTGRES_PASSWORD` | password of the `scholarpremium` PostgreSQL role |
 | `REDIS_PASSWORD` | `requirepass` value of the Redis instance |
+| `API_DOCS_USERNAME` | HTTP Basic Auth user for `/api-docs` on staging |
+| `API_DOCS_PASSWORD` | HTTP Basic Auth password for `/api-docs` on staging |
 
 URL-encode the database and Redis passwords. A literal `@`, `:`, `/`, `?`, or `#` inside
 a password breaks `DATABASE_URL` parsing, and the failure looks like a wrong host rather
@@ -201,6 +203,15 @@ kamal app exec -d production "bin/rails db:migrate"
 ```
 
 Deploy staging first and confirm `/up` responds before touching production.
+
+## API documentation (staging only)
+
+Staging exposes Swagger UI at `https://staging.scholarpremium.com.br/api-docs`, protected
+by HTTP Basic Auth. Production does not mount `/api-docs`.
+
+Set `API_DOCS_USERNAME` and `API_DOCS_PASSWORD` on the deploy machine before
+`kamal deploy -d staging` (see `.kamal/secrets.staging.example`). Local development
+serves `/api-docs` without credentials.
 
 ## Rollback
 
