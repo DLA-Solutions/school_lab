@@ -71,11 +71,49 @@ Schema loading and migrations run automatically: `bin/docker-entrypoint` calls
 `db:prepare` on boot. Demo seeds are guarded by `Rails.env.local?` in `db/seeds.rb`
 and never run on a deployed environment.
 
+## Application secrets
+
+Two secrets have no usable default and the app **refuses to boot** without them outside
+development and test (`config/initializers/security_secrets.rb`). A deploy missing either
+one fails its health check instead of coming up in a weak state, which is deliberate.
+
+**Active Record encryption keys** encrypt `school_payment_providers.certificate_pem` and
+`private_key_pem`, the school's Cora mTLS banking credentials. They live in the encrypted
+credentials, shared by both destinations — the databases are already separate. Generate and
+store them once, **before** the first deploy; doing it after data exists means re-encrypting
+every row:
+
+```bash
+cd web
+bin/rails db:encryption:init   # prints the three keys
+bin/rails credentials:edit
+```
+
+```yaml
+active_record_encryption:
+  primary_key: ...
+  deterministic_key: ...
+  key_derivation_salt: ...
+```
+
+`RAILS_MASTER_KEY` is already a Kamal secret, so nothing else has to reach the server.
+
+**`JWT_SECRET_KEY`** signs API access tokens and is deliberately **not** in the credentials.
+Staging runs with `RAILS_ENV=production` and reads the same credentials file, so a single
+value would make a staging token valid in production, where that user id belongs to somebody
+else. Each destination supplies its own through Kamal secrets, and the environment takes
+precedence over the credentials for exactly this reason. Generate one per destination with
+`bin/rails secret`.
+
+Development and test deliberately use fixed throwaway values committed to the repository,
+so the suite runs without credentials — CI has no `RAILS_MASTER_KEY`. Those values protect
+nothing real and must never be reused by a deployed environment.
+
 ## Prerequisites on the deploy machine
 
 1. SSH access as `deploy` to `77.42.33.33`, with the key loaded in the agent.
 2. Docker running locally (Kamal builds the image on your machine).
-3. `web/config/master.key` present.
+3. `web/config/master.key` present, and the credentials populated as described above.
 4. Kamal secrets files, copied from the versioned templates:
 
 ```bash
@@ -91,6 +129,8 @@ environment variables you export before deploying:
 | Variable | Used for |
 |---|---|
 | `KAMAL_REGISTRY_PASSWORD` | GitHub token with `write:packages` for GHCR |
+| `JWT_SECRET_KEY_PRODUCTION` | token signing key for production |
+| `JWT_SECRET_KEY_STAGING` | token signing key for staging, different from production's |
 | `POSTGRES_PASSWORD` | password of the `scholarpremium` PostgreSQL role |
 | `REDIS_PASSWORD` | `requirepass` value of the Redis instance |
 
@@ -116,6 +156,22 @@ docker login ghcr.io -u "$(gh config get -h github.com user)" \
 The first push creates the `scholarpremium` package under the organization. It is private
 by default, which is fine — Kamal runs `docker login` on the app server too, using these
 same credentials, before pulling.
+
+## Preflight
+
+```bash
+cd web
+bin/deploy-preflight
+```
+
+Read-only. It checks the five environment variables, that the two JWT keys actually differ,
+that the registry token carries `write:packages`, that DNS resolves to the app server, that
+SSH and the Docker daemon answer, and — over SSH, since `10.0.0.3` is private — that the
+four databases and Redis accept the credentials. It exits non-zero when anything is missing,
+which is faster than reading it out of a half-finished `kamal setup`.
+
+The Active Record encryption keys are not checked there: the app validates them at boot, so
+a missing key fails the health check and the deploy never takes traffic.
 
 ## First deploy
 
@@ -166,9 +222,10 @@ native gems (`pg`, `bootsnap`) takes several minutes. Uncomment `builder.remote`
 
 ## Notes
 
-- **Cora certificates** are not part of the deploy. The per-school certificate and
-  private key are stored encrypted on `school_payment_providers` and decrypted with
-  `RAILS_MASTER_KEY`. See `docs/guidelines/web/gateways.md`.
+- **Cora certificates** are not part of the deploy. The per-school certificate and private
+  key are stored encrypted on `school_payment_providers`, using the Active Record
+  encryption keys from the credentials — which is why those keys must be real before any
+  school uploads credentials. See `docs/guidelines/web/gateways.md`.
 - **CI does not deploy.** `.github/workflows/ci.yml` builds the image to verify the
   Dockerfile but never pushes it. Automating deploys is separate scope.
 - **Active Storage** writes to a Kamal volume on the app server. That disk is not
