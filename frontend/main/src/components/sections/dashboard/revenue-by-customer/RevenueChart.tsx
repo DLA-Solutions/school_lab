@@ -5,6 +5,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { SxProps, useTheme } from '@mui/material';
 import { useMediaQuery } from '@mui/material';
 import { fontFamily } from 'theme/typography';
+import useChartTheme from 'design-system/hooks/useChartTheme';
 import {
   TooltipComponent,
   GridComponent,
@@ -37,6 +38,7 @@ interface BarChartProps {
 
 const RevenueChart = ({ chartRef, data, ...rest }: BarChartProps) => {
   const theme = useTheme();
+  const chartTheme = useChartTheme();
 
   const downMd = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -47,6 +49,8 @@ const RevenueChart = ({ chartRef, data, ...rest }: BarChartProps) => {
         axisPointer: {
           type: 'shadow',
         },
+        backgroundColor: chartTheme.tooltipBg,
+        textStyle: { color: chartTheme.textColor },
       },
       grid: {
         top: 40,
@@ -66,7 +70,7 @@ const RevenueChart = ({ chartRef, data, ...rest }: BarChartProps) => {
         axisLabel: {
           interval: 0,
           rotate: downMd ? 45 : 0,
-          color: theme.palette.text.secondary,
+          color: chartTheme.axisColor,
           fontSize: theme.typography.caption.fontSize,
           fontFamily: fontFamily.monaSans,
           margin: 24,
@@ -75,7 +79,7 @@ const RevenueChart = ({ chartRef, data, ...rest }: BarChartProps) => {
       yAxis: {
         type: 'value',
         axisLabel: {
-          color: theme.palette.text.secondary,
+          color: chartTheme.axisColor,
           fontSize: theme.typography.caption.fontSize,
           fontFamily: fontFamily.monaSans,
           formatter: (value: number) => {
@@ -124,7 +128,7 @@ const RevenueChart = ({ chartRef, data, ...rest }: BarChartProps) => {
         data: item.data,
       })),
     }),
-    [theme, data, downMd],
+    [theme, chartTheme, data, downMd],
   );
 
   return <ReactEchart ref={chartRef} echarts={echarts} option={option} {...rest} />;

@@ -10,6 +10,7 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
 import IconifyIcon from 'components/base/IconifyIcon';
+import { ErrorBanner } from 'design-system';
 import { useAuth } from 'providers/AuthContext';
 import { ApiError } from 'services/api';
 import { rootPaths } from 'routes/paths';
@@ -125,11 +126,7 @@ const SignIn = () => {
             label="Remember me"
           />
         </Stack>
-        {error && (
-          <Typography variant="body2" color="error" letterSpacing={0.5} role="alert">
-            {error}
-          </Typography>
-        )}
+        {error && <ErrorBanner message={error} />}
         <Button
           type="submit"
           variant="contained"

@@ -8,8 +8,7 @@ No test runner, i18n library, or data-fetching library is installed yet.
 
 That means the **Testing**, **i18n**, and **State and data fetching** sections below describe the
 target once those pieces land — do not report their absence as a violation on code that predates
-them. `docs/web-stack.md` §3 still lists Tailwind as the planned styling approach; the installed
-stack is MUI, so treat styling-library expectations as unresolved rather than as a rule to enforce.
+them. `docs/web-stack.md` §3 documents the MUI-based design system; use `docs/guidelines/web-ui/` for token and pattern rules.
 
 ## Architecture — thin client
 
@@ -48,6 +47,13 @@ stack is MUI, so treat styling-library expectations as unresolved rather than as
 - [ ] Destructive actions confirmed; soft-delete semantics reflected in copy (i18n)
 - [ ] Pagination/filter/sort params match API conventions (`page`, `per_page`, `status`, `sort`)
 - [ ] Accessible labels and focus management for forms and modals (RTL-friendly patterns)
+
+## Design system
+
+- [ ] No `palette.info.*` for surfaces — use `background.default`, `background.paper`, `surface.alt`
+- [ ] No hardcoded hex outside tokens / theme mapping
+- [ ] New pages use `PageHeader` / `SectionCard` where appropriate
+- [ ] Pattern components imported from `design-system/` rather than duplicated layouts
 
 ## i18n and language
 

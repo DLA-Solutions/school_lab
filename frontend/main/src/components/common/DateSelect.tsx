@@ -21,7 +21,7 @@ const DateSelect = () => {
           flexShrink: 0,
           [`& .${pickersInputBaseClasses.root}`]: {
             px: 1,
-            background: `${theme.palette.info.dark} !important`,
+            background: `${theme.palette.surface.alt} !important`,
 
             '& .MuiPickersInputBase-sectionsContainer': {
               py: 1,

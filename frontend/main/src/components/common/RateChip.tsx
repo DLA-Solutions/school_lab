@@ -7,6 +7,8 @@ interface RateChipProps {
 }
 
 const RateChip = ({ rate, isUp }: RateChipProps) => {
+  const variant = isUp ? 'success' : 'error';
+
   return (
     <Chip
       variant="outlined"
@@ -27,9 +29,9 @@ const RateChip = ({ rate, isUp }: RateChipProps) => {
         width: 62,
         flexDirection: 'row-reverse',
         justifyContent: 'space-between',
-        color: isUp ? 'success.main' : 'error.main',
-        bgcolor: isUp ? 'transparent.success.main' : 'transparent.error.main',
-        borderColor: isUp ? 'transparent.success.main' : 'transparent.error.main',
+        color: `${variant}.main`,
+        bgcolor: `transparent.${variant}.main`,
+        borderColor: `transparent.${variant}.main`,
       }}
     />
   );

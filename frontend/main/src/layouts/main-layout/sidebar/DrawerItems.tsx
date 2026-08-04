@@ -25,7 +25,7 @@ const DrawerItems = () => {
         px={3.5}
         position={'sticky'}
         top={0}
-        bgcolor="info.darker"
+        bgcolor="background.default"
         alignItems="center"
         justifyContent="flex-start"
         zIndex={1000}
@@ -33,7 +33,7 @@ const DrawerItems = () => {
         <ButtonBase component={Link} href="/" disableRipple>
           <Image src={Logo} alt="logo" height={24} width={24} sx={{ mr: 1 }} />
           <Typography variant="h5" color="text.primary" fontWeight={600} letterSpacing={1}>
-            Scholar Premium
+            School Lab
           </Typography>
         </ButtonBase>
       </Stack>

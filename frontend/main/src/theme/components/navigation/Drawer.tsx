@@ -1,4 +1,5 @@
 import type { Theme, Components } from '@mui/material/styles';
+import { shadowForMode } from '../../shadows';
 
 const Drawer: Components<Omit<Theme, 'components'>>['MuiDrawer'] = {
   styleOverrides: {
@@ -17,9 +18,9 @@ const Drawer: Components<Omit<Theme, 'components'>>['MuiDrawer'] = {
       border: 0,
       borderRight: 1,
       borderStyle: 'solid',
-      borderColor: theme.palette.info.main,
-      backgroundColor: theme.palette.info.darker,
-      boxShadow: theme.customShadows[0],
+      borderColor: theme.palette.background.paper,
+      backgroundColor: theme.palette.background.default,
+      boxShadow: shadowForMode(theme, 0),
       boxSizing: 'border-box',
     }),
   },

@@ -68,6 +68,19 @@ describes what is **installed today** (`frontend/main/package.json`), not a plan
 
 **Principle:** thin client — validation and business rules stay in the API.
 
+### Design system
+
+| Piece | Location |
+|-------|----------|
+| Shared tokens | `packages/design-tokens/` (`@school-lab/design-tokens`) |
+| MUI theme | `frontend/main/src/theme/createAppTheme.ts` — `colorSchemes` light/dark, default **dark** |
+| Pattern components | `frontend/main/src/design-system/` — import via `design-system` path alias |
+| Dev catalog | Ladle — `npm run ladle` in `frontend/main` |
+| Static reference site | `docs/design-system/` — build with `make design-system-docs` |
+| Guidelines | `docs/guidelines/web-ui/` |
+
+Theme toggle persists to `localStorage` key `school-lab-color-mode`. Mobile (`app/`) imports dark tokens only.
+
 ### Not in the SPA yet
 
 Absent from `frontend/main` as of Aug 2026. Planning work there means introducing these, not
