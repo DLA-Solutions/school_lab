@@ -21,7 +21,7 @@ module Auth
     attr_reader :token
 
     def secret
-      Rails.application.credentials.dig(:jwt, :secret_key) || ENV.fetch("JWT_SECRET_KEY", "test-secret-key")
+      SigningSecret.fetch
     end
   end
 end
