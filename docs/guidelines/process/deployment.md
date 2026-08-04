@@ -213,6 +213,10 @@ Set `API_DOCS_USERNAME` and `API_DOCS_PASSWORD` on the deploy machine before
 `kamal deploy -d staging` (see `.kamal/secrets.staging.example`). Local development
 serves `/api-docs` without credentials.
 
+**Kamal destination merge:** `env.secret` in `deploy.staging.yml` **replaces** the
+base list in `deploy.yml` (it does not append). Staging must repeat every secret from
+`deploy.yml` plus the staging-only `API_DOCS_*` entries.
+
 ## Rollback
 
 ```bash
