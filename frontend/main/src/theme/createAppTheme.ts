@@ -15,7 +15,9 @@ import ButtonBase from './components/button/ButtonBase';
 import IconButton from './components/button/IconButton';
 import Toolbar from './components/button/Toolbar';
 import Stack from './components/layout/Stack';
+import Container from './components/layout/Container';
 import Paper from './components/surface/Paper';
+import Popover from './components/surface/Popover';
 import Checkbox from './components/input/Checkbox';
 import Radio from './components/input/Radio';
 import Switch from './components/input/Switch';
@@ -23,8 +25,11 @@ import Autocomplete from './components/input/Autocomplete';
 import InputBase from './components/input/InputBase';
 import FilledInput from './components/input/FilledInput';
 import InputAdornment from './components/input/InputAdornment';
+import InputLabel from './components/input/InputLabel';
+import FormControl from './components/input/FormControl';
 import FormControlLabel from './components/input/FormControlLabel';
 import FormHelperText from './components/input/FormHelperText';
+import FormLabel from './components/input/FormLabel';
 import OutlinedInput from './components/input/OutlinedInput';
 import TextField from './components/input/TextField';
 import Select from './components/input/Select';
@@ -36,12 +41,14 @@ import Breadcrumbs from './components/navigation/Breadcrumbs';
 import Stepper from './components/navigation/Stepper';
 import StepLabel from './components/navigation/StepLabel';
 import StepConnector from './components/navigation/StepConnector';
+import Typography from './components/data-display/Typography';
 import Divider from './components/data-display/Divider';
 import Chip from './components/data-display/Chip';
 import Tooltip from './components/data-display/Tooltip';
 import Avatar from './components/data-display/Avatar';
 import Badge from './components/data-display/Badge';
 import Alert from './components/feedback/Alert';
+import Backdrop from './components/feedback/Backdrop';
 import Dialog from './components/feedback/Dialog';
 import DialogTitle from './components/feedback/DialogTitle';
 import DialogContent from './components/feedback/DialogContent';
@@ -49,6 +56,7 @@ import DialogContentText from './components/feedback/DialogContentText';
 import DialogActions from './components/feedback/DialogActions';
 import CircularProgress from './components/feedback/CircularProgress';
 import LinearProgress from './components/feedback/LinearProgress';
+import Snackbar from './components/feedback/Snackbar';
 import SnackbarContent from './components/feedback/SnackbarContent';
 import Skeleton from './components/feedback/Skeleton';
 import Link from './components/navigation/Link';
@@ -61,11 +69,16 @@ import Collapse from './components/list/Collapse';
 import DataGrid from './components/data-grid/DataGrid';
 import MonthCalendar from './components/date-picker/MonthCalendar';
 import YearCalendar from './components/date-picker/YearCalendar';
+import PickersOutlinedInput from './components/date-picker/PickersOutlinedInput';
+import PickersSectionList from './components/date-picker/PickersSectionList';
+import Pagination from './components/pagination/Pagination';
 import PaginationItem from './components/pagination/PaginationItem';
 
 const componentOverrides = {
   MuiStack: Stack,
+  MuiContainer: Container,
   MuiPaper: Paper,
+  MuiPopover: Popover,
   MuiButton: Button,
   MuiButtonBase: ButtonBase,
   MuiIconButton: IconButton,
@@ -75,10 +88,13 @@ const componentOverrides = {
   MuiSwitch: Switch,
   MuiAutocomplete: Autocomplete,
   MuiFilledInput: FilledInput,
+  MuiFormControl: FormControl,
   MuiFormControlLabel: FormControlLabel,
   MuiFormHelperText: FormHelperText,
+  MuiFormLabel: FormLabel,
   MuiInputAdornment: InputAdornment,
   MuiInputBase: InputBase,
+  MuiInputLabel: InputLabel,
   MuiOutlinedInput: OutlinedInput,
   MuiTextField: TextField,
   MuiSelect: Select,
@@ -90,12 +106,14 @@ const componentOverrides = {
   MuiStepper: Stepper,
   MuiStepLabel: StepLabel,
   MuiStepConnector: StepConnector,
+  MuiTypography: Typography,
   MuiDivider: Divider,
   MuiChip: Chip,
   MuiTooltip: Tooltip,
   MuiAvatar: Avatar,
   MuiBadge: Badge,
   MuiAlert: Alert,
+  MuiBackdrop: Backdrop,
   MuiDialog: Dialog,
   MuiDialogTitle: DialogTitle,
   MuiDialogContent: DialogContent,
@@ -103,6 +121,7 @@ const componentOverrides = {
   MuiDialogActions: DialogActions,
   MuiCircularProgress: CircularProgress,
   MuiLinearProgress: LinearProgress,
+  MuiSnackbar: Snackbar,
   MuiSnackbarContent: SnackbarContent,
   MuiSkeleton: Skeleton,
   MuiLink: Link,
@@ -115,6 +134,9 @@ const componentOverrides = {
   MuiDataGrid: DataGrid,
   MuiMonthCalendar: MonthCalendar,
   MuiYearCalendar: YearCalendar,
+  MuiPickersOutlinedInput: PickersOutlinedInput,
+  MuiPickersSectionList: PickersSectionList,
+  MuiPagination: Pagination,
   MuiPaginationItem: PaginationItem,
   MuiCssBaseline: CssBaseline,
 };
