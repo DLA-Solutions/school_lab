@@ -1,11 +1,17 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "skipLibCheck": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2023"],
     "module": "ESNext",
+    "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
+    // The Vite configs are consumed by Vite itself, never imported, so this project is a
+    // type-check only pass. Emitting here would drop a vite.config.js next to the source, and
+    // Vite resolves that compiled artifact ahead of vite.config.ts for every tool it powers.
+    "noEmit": true,
     "strict": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "vite.ladle.config.ts"]
 }

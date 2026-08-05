@@ -6,10 +6,14 @@ import checker from 'vite-plugin-checker';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    // Single source of path aliases (tsconfig.json `paths`), so `theme`, `components`,
+    // `design-system`, `providers` and `assets` resolve the same way everywhere.
     tsconfigPaths(),
     react(),
     checker({
-      typescript: true,
+      // tsconfig.json is a solution file with no files of its own; point the checker at
+      // the project that actually owns `src` so the dev overlay keeps reporting errors.
+      typescript: { tsconfigPath: 'tsconfig.app.json' },
       eslint: {
         useFlatConfig: true,
         lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
