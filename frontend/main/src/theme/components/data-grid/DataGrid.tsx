@@ -1,4 +1,5 @@
 import { Theme, Components } from '@mui/material/styles';
+import focusRing, { FOCUS_RING_WIDTH } from 'theme/styles/focusRing';
 
 const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
   styleOverrides: {
@@ -42,9 +43,10 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
     },
     columnHeader: ({ theme }) => ({
       background: (theme.vars || theme).palette.background.paper,
-      '&:focus-within': {
-        outline: 'none !important',
-      },
+      // The grid is a roving-tabindex widget: the ring is the only thing telling a keyboard user
+      // where they are. Inset, because headers sit flush against each other. Repeating the slot
+      // class outranks the grid's own focus rule, which is nested under the root class.
+      '&.MuiDataGrid-columnHeader:focus-within': focusRing(theme, -FOCUS_RING_WIDTH),
     }),
     columnHeaderTitle: ({ theme }) => ({
       fontSize: theme.typography.caption.fontSize,
@@ -84,9 +86,7 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
       '&:hover': {
         cursor: 'pointer',
       },
-      '&:focus-within': {
-        outline: 'none !important',
-      },
+      '&.MuiDataGrid-cell:focus-within': focusRing(theme, -FOCUS_RING_WIDTH),
       '& .MuiDataGrid-actionsCell': {
         gap: 0,
       },

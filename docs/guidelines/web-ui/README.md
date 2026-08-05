@@ -19,6 +19,10 @@ Development playground: Ladle in `frontend/main` (`npm run ladle`).
 | [components.md](./components.md) | Pattern component APIs |
 | [page-patterns.md](./page-patterns.md) | List, form, detail page composition |
 | [theming.md](./theming.md) | colorSchemes, toggle, adding tokens |
+| [testing.md](./testing.md) | Vitest + Testing Library setup and conventions |
+| [versioning.md](./versioning.md) | When to bump `@school-lab/design-tokens` |
+| [accessibility.md](./accessibility.md) | WCAG 2.1 AA contrast audit, waivers, keyboard and ARIA baseline |
+| [contributing.md](./contributing.md) | How to add a token, an override, a pattern component, a catalog page |
 
 ## Layers
 

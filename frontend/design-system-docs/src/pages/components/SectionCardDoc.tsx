@@ -7,7 +7,11 @@ const SectionCardDoc = () => (
   <ComponentDocPage
     title="SectionCard"
     description="Themed Paper wrapper for dashboard sections."
-    whenToUse={['Grouping related content on a page', 'Tables, charts, or forms in a card']}
+    whenToUse={[
+      'Grouping related content on a page',
+      'Tables, charts, or forms in a card',
+      'Anywhere you would otherwise reach for MUI Card — it is forbidden by default, and this is the card surface',
+    ]}
     whenNotToUse={['One-off layout without a card metaphor — use Stack/Box']}
     props={[
       { name: 'title', type: 'string', description: 'Optional header title' },

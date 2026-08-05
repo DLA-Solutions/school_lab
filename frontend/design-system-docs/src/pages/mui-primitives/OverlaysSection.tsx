@@ -98,18 +98,14 @@ const OverlaysSection = () => {
       </LivePreview>
 
       <Typography variant="subtitle2" color="text.secondary" gutterBottom mt={3}>
-        Snackbar — plain toast content plus the Alert-in-Snackbar pattern for status messages.
+        Snackbar — the Alert-in-Snackbar pattern for status messages. Placement and timing come
+        from the theme; see Primitives → Snackbar.
       </Typography>
       <LivePreview>
         <Button variant="outlined" onClick={() => setSnackbarOpen(true)}>
           Show toast
         </Button>
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={4000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
+        <Snackbar open={snackbarOpen} onClose={() => setSnackbarOpen(false)}>
           <Alert severity="success" onClose={() => setSnackbarOpen(false)} sx={{ width: '100%' }}>
             Changes saved successfully.
           </Alert>

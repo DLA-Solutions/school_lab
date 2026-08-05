@@ -6,6 +6,12 @@ export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localh
   '',
 );
 
+/**
+ * Locale the API resolves its i18n error messages against (`docs/api/README.md` → Locale).
+ * The product UI locale is pt-BR; the tag is data, not an identifier.
+ */
+export const API_LOCALE = 'pt-BR';
+
 /** The API tags every error response with `{ error: { code, message, details } }`. */
 export class ApiError extends Error {
   readonly status: number;
@@ -59,7 +65,10 @@ const toApiError = (response: Response, body: unknown) => {
 };
 
 const send = async (path: string, { method = 'GET', body, auth = true }: RequestOptions) => {
-  const headers: Record<string, string> = { Accept: 'application/json' };
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Accept-Language': API_LOCALE,
+  };
 
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';

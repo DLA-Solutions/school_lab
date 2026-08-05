@@ -5,7 +5,10 @@ const simplebar = (theme: Theme) => ({
     '&.simplebar-vertical': {
       '& .simplebar-scrollbar': {
         '&:before': {
-          backgroundColor: (theme.vars || theme).palette.grey[300],
+          // See `scrollbar.ts`: `neutral.main` keeps the dark thumb at #AEB9E1 and darkens the
+          // light one to #7E89AC, which is the difference between 1.85:1 and 3.31:1 on the page
+          // backdrop the sidebar scroller sits on.
+          backgroundColor: (theme.vars || theme).palette.neutral.main,
         },
         '&.simplebar-visible': {
           '&:before': {

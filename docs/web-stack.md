@@ -64,6 +64,8 @@ describes what is **installed today** (`frontend/main/package.json`), not a plan
 | Icons / scrolling | `@iconify/react`, `simplebar` |
 | Dates | `date-fns` and `dayjs` (dayjs backs the MUI date pickers) |
 | Lint / format | ESLint 9 flat config + Prettier, enforced during `vite dev`/`build` by `vite-plugin-checker` |
+| Tests | **Vitest** + React Testing Library on jsdom; `test` block in `vite.config.ts`, shared render helper in `src/test/renderWithTheme.tsx`. `npm run test` (watch) / `npm run test:run` (CI). Conventions: `docs/guidelines/web-ui/testing.md` |
+| API mocking | **MSW** (`msw/node`) — handlers in `src/test/msw/`, server started from `src/test/setup.ts` with `onUnhandledRequest: 'error'` |
 | Config | `VITE_API_BASE_URL` (`frontend/main/.env.example`); dev server on port 5173 to match the API's default `CORS_ORIGINS` |
 
 **Principle:** thin client — validation and business rules stay in the API.
@@ -75,8 +77,8 @@ describes what is **installed today** (`frontend/main/package.json`), not a plan
 | Shared tokens | `packages/design-tokens/` (`@school-lab/design-tokens`) |
 | MUI theme | `frontend/main/src/theme/createAppTheme.ts` — `colorSchemes` light/dark, default **dark** |
 | Pattern components | `frontend/main/src/design-system/` — import via `design-system` path alias |
-| Dev catalog | Ladle — `npm run ladle` in `frontend/main` |
-| Static reference site | `docs/design-system/` — build with `make design-system-docs` |
+| **Canonical catalog** | `docs/design-system/` — built from `frontend/design-system-docs/` with `make design-system-docs`; committed, opens without a dev server |
+| Development sandbox | Ladle — `npm run ladle` in `frontend/main`. **Not** a documentation surface (§14) |
 | Guidelines | `docs/guidelines/web-ui/` |
 
 Theme toggle persists to `localStorage` key `school-lab-color-mode`. Mobile (`app/`) imports dark tokens only.
@@ -88,7 +90,6 @@ consuming them — the corresponding choices are open items in §14.
 
 | Missing | What that means today |
 |---------|-----------------------|
-| **Test runner** | No Vitest, Testing Library, or MSW, and no test files — the SPA has no automated tests |
 | **i18n** | No i18next or equivalent; strings are hardcoded in components (mixed English and pt-BR). The topbar `LanguageSelect` is inert template UI |
 | **Data fetching library** | No TanStack Query or SWR — components call `src/services/` directly and track loading/error state by hand |
 | **Global state library** | No Zustand or Redux — React Context is the only shared state |
@@ -195,11 +196,12 @@ Event (e.g., attendance recorded)
 |------|------|
 | Unit / model / service | RSpec |
 | API + OpenAPI | RSpec request specs + **rswag** |
-| Web UI | **None yet** — no test runner installed in `frontend/main` (§3) |
+| Web UI | Vitest + React Testing Library (jsdom) in `frontend/main`, API calls intercepted by MSW — `npm run test:run` (§3) |
 | Mobile | Jest + RN Testing Library (in `app/`) |
 | Factories | FactoryBot |
 
-Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testing.md`.
+Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testing.md` (API) and
+`docs/guidelines/web-ui/testing.md` (SPA).
 
 ## 10. Client surfaces
 
@@ -323,7 +325,6 @@ See `docs/open-questions.md` (Web stack section):
 
 Open for the SPA — each is missing from `frontend/main` today (§3):
 
-- **Test runner** for the SPA (Vitest + Testing Library is the likely choice, nothing installed).
 - **i18n library** — needed before the UI can honor the `pt-BR` product locale properly.
 - **Data fetching** — keep hand-rolled `fetch` calls, or adopt TanStack Query / SWR.
 - **Global state** — stay on React Context, or adopt a store once more than one feature needs it.
@@ -331,6 +332,36 @@ Open for the SPA — each is missing from `frontend/main` today (§3):
 
 **Finalized decisions (Aug 2026):**
 
+- **SPA test runner: Vitest + React Testing Library** on jsdom in `frontend/main`, configured
+  through the existing `vite.config.ts` so tests and the app share one alias source. Specs live
+  beside the component; `src/test/renderWithTheme.tsx` provides the themed render.
+  Conventions: `docs/guidelines/web-ui/testing.md`.
+- **SPA API mocking: MSW** (`msw/node`), closing the item §3 used to list as missing. The server
+  is started from `src/test/setup.ts` with `onUnhandledRequest: 'error'`, so a call to an
+  unmocked endpoint fails the test rather than reaching the network; default handlers live in
+  `src/test/msw/` and a spec overrides one endpoint at a time with `server.use()`. Specs mock at
+  the network boundary — `src/services/` and `fetch` itself are never stubbed, which is what lets
+  `src/services/api.test.ts` cover the 401 → refresh → retry path for real.
+- **Design token versioning:** `@school-lab/design-tokens` is semantically versioned with a
+  `CHANGELOG.md`; a rendered value change is at least a minor bump, never a patch. Currently
+  `1.2.0`. Policy: `docs/guidelines/web-ui/versioning.md`.
+- **Design system catalog: the static site is canonical.** `frontend/design-system-docs/` builds
+  into `docs/design-system/` with `make design-system-docs`, and that committed output is the
+  surface a reviewer checks. **Ladle is a development sandbox only** — no page or component may
+  exist solely in Ladle, and the catalog never links to it. Nav and router are kept in agreement by
+  `scripts/check-nav-routes.mjs`, and every route is render-checked by `scripts/smoke-pages.mjs`
+  against the built bundle. Recorded in `docs/prds/layer-web-spa.md` (Interfaces → Catalog).
+- **Design system accessibility target: WCAG 2.1 AA**, ratified 2026-08-04. Contrast is audited in
+  both colour schemes and every shortfall is either fixed or waived in writing
+  (`docs/guidelines/web-ui/accessibility.md`). Four waivers stand; the one that needed a product
+  call is **W3**, which keeps the `#CB3CFF` brand purple named in §14 on the contained primary
+  Button even though no flat label colour clears 4.5:1 across its gradient — white's 3.73:1 is the
+  measured ceiling, and darkening the first stop to `#B733E5` was declined rather than overlooked.
+- **MUI `Card*` and `Table*`: forbidden by default** in `frontend/main`, with no override created.
+  `SectionCard` is the card surface, `DataTable` the tabular one. Neither primitive is imported
+  anywhere today, so the ban records the status quo and keeps a single sanctioned route to each
+  result. Revisit only for genuinely static, non-paginated tabular content that `DataTable` is the
+  wrong tool for. Rationale: `docs/guidelines/web-ui/theming.md`.
 - **SPA UI kit: MUI v7 + Emotion** in `frontend/main` — **not Tailwind**. The SPA was generated
   from the `dashdark-x` template (kept as `frontend/base`); MUI, its theme, and the MUI X
   DataGrid/Date Pickers came with the template and were kept instead of re-styling the app.

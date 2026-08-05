@@ -289,8 +289,80 @@ Decisions finalized in `docs/web-stack.md`. Open items:
 - [x] **Firebase Authentication** — not used for login; FCM only for push.
 - [x] **SPA UI kit — MUI v7 + Emotion** in `frontend/main`, not Tailwind. Inherited from the
       `dashdark-x` template (`frontend/base`) and kept; no migration planned.
-- [ ] SPA test runner — nothing installed; Vitest + Testing Library is the likely choice.
-- [ ] SPA i18n library — strings are currently hardcoded in components.
+- [x] **Design system catalog — decided:** the **static site** (`frontend/design-system-docs/` →
+      `docs/design-system/`, built with `make design-system-docs`) is the **canonical** catalog —
+      committed, reviewable, opens without a dev server. **Ladle** stays a development sandbox for
+      isolated component work and is **not** a documentation surface: no page or component may
+      exist only in Ladle, and the catalog does not link to it. See
+      `docs/prds/layer-web-spa.md` (Interfaces → Catalog).
+- [x] **SPA test runner — decided:** **Vitest + React Testing Library** on jsdom, installed in
+      `frontend/main`. The `test` block lives in `frontend/main/vite.config.ts`, so specs resolve
+      the app's path aliases; `npm run test` watches and `npm run test:run` is the single-run CI
+      command. Specs sit beside the component (`Component.test.tsx`) and render through
+      `src/test/renderWithTheme.tsx`. Conventions: `docs/guidelines/web-ui/testing.md`. Required by
+      `docs/prds/layer-web-spa.md` (Non-functional requirements → Testability).
+- [x] **SPA API mocking — decided: MSW** (`msw/node`), closing the "not installed yet" note this
+      item used to carry. The server starts from `src/test/setup.ts` with
+      `onUnhandledRequest: 'error'`, so an unmocked endpoint fails the test instead of reaching the
+      network; default handlers live in `src/test/msw/` and a spec overrides one endpoint at a time
+      with `server.use()`. Specs mock at the network boundary — `src/services/` and `fetch` are
+      never stubbed — which is what lets `src/services/api.test.ts` cover the 401 → refresh → retry
+      path for real. Also recorded in `docs/web-stack.md` §3 and §14.
+- [x] **Design token versioning — decided:** `@school-lab/design-tokens` carries a semantic version
+      and a `CHANGELOG.md` entry for every released change; a change that alters a rendered value is
+      a **minor** bump at minimum and never a patch. Policy and format:
+      `docs/guidelines/web-ui/versioning.md`. Currently at `1.2.0` (`1.1.0` gave the light scheme
+      its own semantic status colours, `1.2.0` moved `light.secondary.darker`). A token change
+      without a bump and an entry is an incomplete change, not a small one.
+- [ ] **API locale negotiation — documented but unimplemented in `web/`.** `docs/api/README.md`
+      lists `Accept-Language: pt-BR` as a request convention and the SPA now sends it on every
+      call (`frontend/main/src/services/api.ts`), but **no code in `web/` reads the header**:
+      `config/initializers/locale.rb` only sets `default_locale = :"pt-BR"` with `:en` as a
+      fallback, and neither `ApplicationController` nor `Api::V1::BaseController` has an
+      `around_action` setting `I18n.locale`. Every response is therefore rendered in the default
+      locale regardless of what the client asks for — harmless while pt-BR is the only product
+      locale, but `Accept-Language: en` is silently ignored today. Decide whether the API should
+      honour the header (an `around_action` in `Api::V1::BaseController` restricted to
+      `available_locales`) or whether the convention should be documented as pt-BR-only until a
+      second locale is a real requirement. Related: the SPA i18n item below.
+- [ ] SPA i18n library — still open. The related requirement in `docs/prds/layer-web-spa.md` —
+      pattern components carry **no hardcoded user-facing strings** — is closed independently of
+      it: every string a pattern renders is now a prop with an English default (`SearchField`,
+      `ConfirmDialog`, `ErrorBanner`, `ThemeToggle`, `DataTable`, `EmptyState`; inventory in
+      `docs/guidelines/web-ui/components.md` → Strings). Defaults stayed English because that is
+      what the codebase shipped and there is no i18n layer to hold pt-BR keys, so the wording of a
+      default prejudges no library. What is open is which library supplies the translations, and
+      how its keys reach these props. Related: the API `Accept-Language` item above.
+- [x] **Design system — MUI `Card` and `Table` — decided:** **forbidden by default**, documented
+      as such, and **no override is created**. `SectionCard` (themed `Paper`) is the card surface
+      and `DataTable` (`@mui/x-data-grid`) is the tabular one; reach for those. The ban formalises
+      what the codebase already does — neither primitive is imported anywhere in `frontend/main` —
+      and keeps a single sanctioned route to each result, where an override would create a second
+      one. **Revisit if** a product screen needs genuinely static, non-paginated tabular content
+      that `DataTable` is the wrong tool for (a printable report, a fixed reference matrix): that
+      reopens the decision here first and does not authorise a local import. Recorded in
+      `docs/prds/layer-web-spa.md`, `docs/guidelines/web-ui/theming.md` and the catalog
+      (Foundations → Theming, Content → Tables).
+- [x] **Design system — WCAG 2.1 AA is the accessibility target — decided 2026-08-04** by the
+      product owner. Any token that cannot reach AA without breaking the DashdarkX visual identity
+      gets a **written waiver** naming the token, the measured ratio and the reason. The audit is
+      `docs/guidelines/web-ui/accessibility.md`: 48 pairings measured per scheme, twelve fixes
+      applied, and **no blocking AA failure left in either scheme**. Four waivers stand — W1
+      disabled text (exempt under SC 1.4.3), W2 decorative surface adjacency, W3 the contained
+      primary Button label, W4 chart series colours and their legend swatches.
+      **The gradient waiver (W3) is the one that was a product call:** the contained primary Button
+      paints `linear-gradient(128.49deg, #CB3CFF 19.86%, #7F25FB 68.34%)`, and no flat label colour
+      exists whose worst stop beats **3.73:1** — a sweep of the whole RGB cube confirms white is the
+      ceiling, against a 4.5:1 requirement. Reaching AA means darkening the first stop to about
+      `#B733E5`, which repaints the brand purple named in `docs/web-stack.md` §14 everywhere to buy
+      0.82 of a ratio point on one control. **The product owner declined that change**, so the
+      shortfall is accepted, confined to the label, and pinned by a spec that fails if the label
+      stops being white. Revisit only if the brand palette is reopened.
+      **Left for a human:** W4 accepts dark `secondary.lighter` (`#0E43FB`) at 2.69:1, light
+      `secondary.lighter` at 2.21:1 and light `secondary.light` at 2.04:1 against the card they sit
+      on. No AA threshold governs a series colour, but a deep blue on dark navy is a legibility
+      question the standard does not answer; moving any of them is a minor token bump and a repaint
+      of the DashdarkX charts.
 - [ ] SPA data fetching — keep hand-rolled `fetch`, or adopt TanStack Query / SWR?
 - [ ] SPA global state — stay on React Context, or add a store?
 - [ ] SPA API types — hand-written in `src/types/`, or generated from the OpenAPI spec?

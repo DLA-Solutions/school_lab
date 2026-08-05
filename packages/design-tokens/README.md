@@ -43,3 +43,10 @@ Theme mode toggle on React Native is a follow-up — mobile currently uses the d
 2. Update `SemanticTokens` in `index.ts` if the shape changes.
 3. Map it in `frontend/main/src/theme/createAppTheme.ts`.
 4. Document it in `docs/guidelines/web-ui/tokens.md`.
+5. Bump `version` in `package.json` and record the change in [CHANGELOG.md](./CHANGELOG.md).
+
+## Versioning
+
+The package is versioned semantically: removing or renaming a token is a major bump, adding one or
+changing a rendered value is a minor bump, and only non-rendering edits are a patch. Full policy:
+`docs/guidelines/web-ui/versioning.md`.

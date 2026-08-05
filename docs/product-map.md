@@ -54,7 +54,8 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 - `glossary.md` — approved Portuguese domain exceptions and English code mappings.
 - `database/` — executable schema (DBML + DER PNG) for implementation.
 - `modeling/` — narrative DSL per domain (`NNN-<domain>.md`, e.g. `002-api-auth.md`).
-- `prds/` — domain PRDs + `template.md` (e.g. `fintech-first.md`).
+- `prds/` — domain PRDs + `template.md` (e.g. `fintech-first.md`) and layer PRDs
+  (`layer-web-spa.md`).
 
 ## 3. Organization principles
 

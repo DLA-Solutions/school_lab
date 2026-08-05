@@ -4,9 +4,11 @@ import Button from '@mui/material/Button';
 export interface ErrorBannerProps {
   message: string;
   onRetry?: () => void;
+  /** Label of the retry action. Also its accessible name, since the button has no other text. */
+  retryLabel?: string;
 }
 
-const ErrorBanner = ({ message, onRetry }: ErrorBannerProps) => {
+const ErrorBanner = ({ message, onRetry, retryLabel = 'Retry' }: ErrorBannerProps) => {
   return (
     <Alert
       severity="error"
@@ -14,7 +16,7 @@ const ErrorBanner = ({ message, onRetry }: ErrorBannerProps) => {
       action={
         onRetry ? (
           <Button color="inherit" size="small" onClick={onRetry}>
-            Retry
+            {retryLabel}
           </Button>
         ) : undefined
       }

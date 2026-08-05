@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    // The catalog renders the real components: these resolve into ../main/src, and vite.config.ts
+    // repeats them as Vite aliases.
+    "paths": {
+      "design-system": ["../main/src/design-system"],
+      "design-system/*": ["../main/src/design-system/*"],
+      "theme": ["../main/src/theme"],
+      "theme/*": ["../main/src/theme/*"],
+      "components": ["../main/src/components"],
+      "components/*": ["../main/src/components/*"],
+      "providers": ["../main/src/providers"],
+      "providers/*": ["../main/src/providers/*"],
+      "assets/*": ["../main/src/assets/*"]
+    }
+  },
+  "include": ["src"]
+}

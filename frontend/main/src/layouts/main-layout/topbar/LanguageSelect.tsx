@@ -69,13 +69,19 @@ const LanguageSelect = () => {
   return (
     <>
       <Tooltip title={`${language.lang} - ${language.code}`}>
-        <IconButton onClick={handleFlagButtonClick} sx={{ fontSize: 'h4.fontSize' }}>
+        <IconButton
+          onClick={handleFlagButtonClick}
+          sx={{ fontSize: 'h4.fontSize' }}
+          aria-controls={open ? 'language-menu' : undefined}
+          aria-expanded={open ? 'true' : undefined}
+          aria-haspopup="true"
+        >
           <IconifyIcon icon={language.flag} />
         </IconButton>
       </Tooltip>
       <Menu
         anchorEl={anchorEl}
-        id="account-menu"
+        id="language-menu"
         open={open}
         onClose={handleFlagMenuClose}
         onClick={handleFlagMenuClose}

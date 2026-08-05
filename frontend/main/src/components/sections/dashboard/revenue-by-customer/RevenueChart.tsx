@@ -44,6 +44,10 @@ const RevenueChart = ({ chartRef, data, ...rest }: BarChartProps) => {
 
   const option = useMemo(
     () => ({
+      // The palette is applied in order across the series, which is what the customer types want:
+      // each keeps its colour as long as the list keeps its order, and a fourth type would take
+      // the next entry instead of repeating the third.
+      color: chartTheme.seriesColors,
       tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -106,7 +110,7 @@ const RevenueChart = ({ chartRef, data, ...rest }: BarChartProps) => {
         interval: 20000,
         max: 100000,
       },
-      series: data.series.map((item, index) => ({
+      series: data.series.map((item) => ({
         name: item.name,
         type: 'bar',
         stack: 'total',
@@ -116,14 +120,6 @@ const RevenueChart = ({ chartRef, data, ...rest }: BarChartProps) => {
         },
         emphasis: {
           focus: 'series',
-        },
-        itemStyle: {
-          color:
-            index === 0
-              ? theme.palette.primary.main
-              : index === 1
-                ? theme.palette.secondary.lighter
-                : theme.palette.secondary.main,
         },
         data: item.data,
       })),

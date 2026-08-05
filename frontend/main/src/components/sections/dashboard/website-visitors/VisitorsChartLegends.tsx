@@ -1,41 +1,28 @@
 import { useState, useEffect } from 'react';
-import { useTheme } from '@mui/material';
 import Stack from '@mui/material/Stack';
+import useChartTheme from 'design-system/hooks/useChartTheme';
 import VisitorsChartLegend from './VisitorsChartLegend';
 import EChartsReactCore from 'echarts-for-react/lib/core';
 import { visitorsChartLegendsData } from 'data/legendsData';
+import { seriesIndexFor } from './visitorsSeries';
 
 interface LegendsProps {
   chartRef: React.RefObject<EChartsReactCore | null>;
 }
 
 const VisitorsChartLegends = ({ chartRef }: LegendsProps) => {
-  const theme = useTheme();
+  // This writes colours straight back into the chart's option, so they have to be resolved for
+  // the scheme on screen exactly as `VisitorsChart` resolved them in the first place.
+  const chartTheme = useChartTheme();
   const [toggleColor, setToggleColor] = useState({
     organic: true,
     social: true,
     direct: true,
   });
 
-  const getActiveColor = (type: string) => {
-    if (type === 'Organic') {
-      return theme.palette.primary.main;
-    } else if (type === 'Social') {
-      return theme.palette.secondary.lighter;
-    } else if (type === 'Direct') {
-      return theme.palette.secondary.main;
-    }
-  };
+  const getActiveColor = (type: string) => chartTheme.seriesColors[seriesIndexFor(type)];
 
-  const getDisableColor = (type: string) => {
-    if (type === 'Organic') {
-      return theme.palette.primary.dark;
-    } else if (type === 'Social') {
-      return theme.palette.secondary.darker;
-    } else if (type === 'Direct') {
-      return theme.palette.secondary.dark;
-    }
-  };
+  const getDisableColor = (type: string) => chartTheme.mutedSeriesColors[seriesIndexFor(type)];
 
   const handleToggleLegend = (e: React.MouseEvent, type: string | null) => {
     e.stopPropagation();

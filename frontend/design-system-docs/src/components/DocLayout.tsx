@@ -24,6 +24,33 @@ const navSections = [
     ],
   },
   {
+    title: 'Layout',
+    items: [
+      { label: 'Breakpoints', path: '/layout/breakpoints' },
+      { label: 'Containers', path: '/layout/containers' },
+      { label: 'Grid', path: '/layout/grid' },
+      { label: 'Z-index', path: '/layout/z-index' },
+    ],
+  },
+  {
+    title: 'Content',
+    items: [
+      { label: 'Reboot / CssBaseline', path: '/content/reboot' },
+      { label: 'Images', path: '/content/images' },
+      { label: 'Tables', path: '/content/tables' },
+    ],
+  },
+  {
+    title: 'Forms',
+    items: [
+      { label: 'Overview', path: '/forms' },
+      { label: 'Controls', path: '/forms/controls' },
+      { label: 'Selection controls', path: '/forms/selection' },
+      { label: 'Form layout', path: '/forms/layout' },
+      { label: 'Validation', path: '/forms/validation' },
+    ],
+  },
+  {
     title: 'Components',
     items: [
       { label: 'Overview', path: '/components' },
@@ -36,6 +63,26 @@ const navSections = [
       { label: 'ConfirmDialog', path: '/components/confirm-dialog' },
       { label: 'DataTable', path: '/components/data-table' },
       { label: 'ThemeToggle', path: '/components/theme-toggle' },
+      { label: 'useChartTheme', path: '/components/use-chart-theme' },
+    ],
+  },
+  {
+    title: 'Primitives',
+    items: [
+      { label: 'Snackbar', path: '/primitives/snackbar' },
+      { label: 'Popover', path: '/primitives/popover' },
+      { label: 'Backdrop', path: '/primitives/backdrop' },
+      { label: 'Pagination', path: '/primitives/pagination' },
+    ],
+  },
+  {
+    title: 'Utilities',
+    items: [
+      { label: 'sx conventions', path: '/utilities/sx' },
+      { label: 'Stack & useFlexGap', path: '/utilities/stack' },
+      { label: 'Text truncation', path: '/utilities/truncation' },
+      { label: 'Visually hidden', path: '/utilities/visually-hidden' },
+      { label: 'Aspect ratio', path: '/utilities/ratio' },
     ],
   },
   {

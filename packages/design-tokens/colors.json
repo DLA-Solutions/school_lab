@@ -117,19 +117,19 @@
       "light": "#21C3FC",
       "main": "#00C2FF",
       "dark": "#177999",
-      "darker": "#082366"
+      "darker": "#E4EBFF"
     },
     "success": {
-      "main": "#14CA74"
+      "main": "#0B7A45"
     },
     "warning": {
-      "main": "#FDB52A"
+      "main": "#8A6316"
     },
     "error": {
-      "main": "#FF5A65"
+      "main": "#B03C44"
     },
     "info": {
-      "main": "#00C2FF",
+      "main": "#006F93",
       "dark": "#177999",
       "darker": "#082366"
     },

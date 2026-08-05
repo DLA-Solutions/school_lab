@@ -10,11 +10,26 @@ single menu item (Dashboard).
 
 ```bash
 npm install
-npm run dev     # http://localhost:5173
-npm run build   # type-check + lint + production build
+npm run dev       # http://localhost:5173
+npm run build     # type-check + lint + production build
+npm run test:run  # component tests (single run)
 ```
 
 Recommended `Node.js v22.x` (Vite 7 requires >= 20.19).
+
+## Tests
+
+Vitest + React Testing Library on jsdom, configured in the `test` block of
+[vite.config.ts](vite.config.ts) so specs resolve the same path aliases as the app.
+
+```bash
+npm run test      # watch mode
+npm run test:run  # single run, used by CI
+```
+
+Specs live next to the component as `Component.test.tsx` and render through
+[src/test/renderWithTheme.tsx](src/test/renderWithTheme.tsx), which applies `createAppTheme()` and
+`CssBaseline`. Conventions: [docs/guidelines/web-ui/testing.md](../../docs/guidelines/web-ui/testing.md).
 
 ## API configuration
 

@@ -1,7 +1,8 @@
-import { type SxProps, type Theme, useTheme } from '@mui/material';
+import { type SxProps, useTheme } from '@mui/material';
 import { fontFamily } from 'theme/typography';
 import { useMemo } from 'react';
 import useChartTheme from 'design-system/hooks/useChartTheme';
+import { seriesIndexFor } from './visitorsSeries';
 import * as echarts from 'echarts/core';
 import { BarChart } from 'echarts/charts';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -16,19 +17,6 @@ interface PolarBarChartProps {
   chartRef: React.RefObject<EChartsReactCore | null>;
   sx?: SxProps;
 }
-
-const getItemColor = (seriesColors: string[], type: string, theme: Theme) => {
-  switch (type) {
-    case 'Direct':
-      return theme.palette.secondary.main;
-    case 'Social':
-      return theme.palette.secondary.lighter;
-    case 'Organic':
-      return theme.palette.primary.main;
-    default:
-      return seriesColors[3] ?? theme.palette.grey[500];
-  }
-};
 
 const VisitorsChart = ({ chartRef, data, ...rest }: PolarBarChartProps) => {
   const theme = useTheme();
@@ -70,7 +58,7 @@ const VisitorsChart = ({ chartRef, data, ...rest }: PolarBarChartProps) => {
           data: data.map((item) => ({
             type: item.type,
             value: item.count,
-            itemStyle: { color: getItemColor(chartTheme.seriesColors, item.type, theme) },
+            itemStyle: { color: chartTheme.seriesColors[seriesIndexFor(item.type)] },
           })),
           coordinateSystem: 'polar',
           barCategoryGap: '35%',
@@ -86,7 +74,7 @@ const VisitorsChart = ({ chartRef, data, ...rest }: PolarBarChartProps) => {
           top: 'middle',
           style: {
             text: '150k',
-            fill: theme.palette.text.primary,
+            fill: chartTheme.strongTextColor,
             fontSize: theme.typography.h3.fontSize,
             fontFamily: fontFamily.workSans,
             fontWeight: 500,

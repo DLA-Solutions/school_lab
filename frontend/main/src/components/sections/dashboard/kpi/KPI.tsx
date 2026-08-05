@@ -33,7 +33,10 @@ const KPI = (props: KPIProps) => {
           <IconButton
             aria-label="menu"
             size="small"
-            sx={{ color: 'neutral.light', fontSize: 'h5.fontSize' }}
+            // `neutral.light` is the same #D1DBF9 in both schemes, so this glyph — the only thing
+            // identifying the control — is 1.38:1 on a white card. `text.secondary` is scheme-aware
+            // and gives 9.05:1 dark, 7.53:1 light.
+            sx={{ color: 'text.secondary', fontSize: 'h5.fontSize' }}
           >
             <IconifyIcon icon="solar:menu-dots-bold" />
           </IconButton>
