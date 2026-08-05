@@ -7,7 +7,10 @@ const Tooltip: Components<Omit<Theme, 'components'>>['MuiTooltip'] = {
 
       return {
         backgroundColor: palette.neutral.darker,
-        color: palette.text.primary,
+        // The plate is `neutral.darker` (#343B4F) in *both* schemes — deliberately inverted — so
+        // the label cannot follow `text.primary`, which is #171923 in light and lands at 1.57:1.
+        // White holds 11.14:1 on that plate regardless of scheme, and leaves dark unchanged.
+        color: palette.common.white,
         fontSize: theme.typography.caption.fontSize,
         fontWeight: 500,
         padding: theme.spacing(0.75, 1.25),
