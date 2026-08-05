@@ -19,8 +19,9 @@ const Introduction = () => (
         in localStorage (<code>school-lab-color-mode</code>).
       </Typography>
       <Typography variant="body1" paragraph>
-        Governance docs: <code>docs/guidelines/web-ui/</code>. Development catalog: Ladle (
-        <code>npm run ladle</code> in frontend/main).
+        This site is the canonical catalog. Governance docs: <code>docs/guidelines/web-ui/</code>.
+        Ladle (<code>npm run ladle</code> in frontend/main) is a development sandbox for isolated
+        component work, not a documentation surface.
       </Typography>
     </DocSection>
   </>

@@ -1,32 +1,8 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "design-system": ["../main/src/design-system"],
-      "design-system/*": ["../main/src/design-system/*"],
-      "theme": ["../main/src/theme"],
-      "theme/*": ["../main/src/theme/*"],
-      "components": ["../main/src/components"],
-      "components/*": ["../main/src/components/*"],
-      "providers": ["../main/src/providers"],
-      "providers/*": ["../main/src/providers/*"],
-      "assets/*": ["../main/src/assets/*"]
-    }
-  },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  // Solution-style root, mirroring frontend/main: it owns no files, it only builds the two real
+  // projects, so `tsc -b` type-checks the catalog source and its Vite config in one command.
+  // TypeScript rejects `noEmit` on a project referenced from a project that has files of its own,
+  // which is why the source moved out of here into tsconfig.app.json.
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
 }

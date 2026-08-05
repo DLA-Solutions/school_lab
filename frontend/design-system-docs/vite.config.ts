@@ -52,6 +52,9 @@ export default defineConfig({
     dedupe: [
       'react',
       'react-dom',
+      // The MuiLink override renders react-router's Link, so without deduping a themed <Link>
+      // reads a NavigationContext from ../main/node_modules that no Router here ever populates.
+      'react-router',
       '@mui/material',
       '@mui/system',
       '@mui/x-data-grid',

@@ -18,6 +18,17 @@ const ConfirmDialogDoc = () => {
         { name: 'onConfirm', type: '() => void', required: true, description: 'Confirm handler' },
         { name: 'onCancel', type: '() => void', required: true, description: 'Cancel/close handler' },
         { name: 'destructive', type: 'boolean', description: 'Use error color on confirm' },
+        {
+          name: 'confirmLabel',
+          type: 'string',
+          description:
+            "Label of the confirm button, default 'Confirm'. Name the action — 'Delete' beats 'Confirm' in a destructive dialog",
+        },
+        {
+          name: 'cancelLabel',
+          type: 'string',
+          description: "Label of the cancel button, default 'Cancel'",
+        },
       ]}
       code={`import { ConfirmDialog } from 'design-system';
 

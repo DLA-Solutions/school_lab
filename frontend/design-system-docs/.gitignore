@@ -2,3 +2,9 @@ node_modules
 dist
 *.local
 .DS_Store
+
+# TypeScript build output. `tsc -b` is type-check only (see tsconfig.json), but a stray
+# vite.config.js would silently shadow vite.config.ts for Vite.
+*.tsbuildinfo
+vite*.config.js
+vite*.config.d.ts
