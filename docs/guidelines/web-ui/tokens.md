@@ -14,10 +14,14 @@ Source: `packages/design-tokens/colors.json`. Consumed by `createAppTheme()` and
 | `text.disabled` | `#4A5568` | `#7E89AC` | |
 | `border.default` | `#2D3748` | `#D9E1FA` | Mapped to `palette.divider` |
 | `primary.main` | `#CB3CFF` | `#CB3CFF` | Brand purple |
-| `success.main` | `#14CA74` | `#14CA74` | |
-| `warning.main` | `#FDB52A` | `#FDB52A` | |
-| `error.main` | `#FF5A65` | `#FF5A65` | |
-| `transparent.*` | 20% alpha | 15% alpha | Semantic chips |
+| `success.main` | `#14CA74` | `#0B7A45` | Light darkened for AA on white — same hue |
+| `warning.main` | `#FDB52A` | `#8A6316` | Light darkened for AA on white — same hue |
+| `error.main` | `#FF5A65` | `#B03C44` | Light darkened for AA on white — same hue |
+| `info.main` | `#00C2FF` | `#006F93` | Legacy alias, see below; light darkened for AA |
+| `transparent.*` | 20% alpha | 15% alpha | Semantic chips; built from the dark hues in both schemes |
+
+The four light values above are scheme-specific as of tokens `1.1.0`; the dark values are the
+DashdarkX originals. Rationale and measured ratios: [accessibility.md](./accessibility.md) → F5.
 
 ## Legacy map (`info.*` → semantic)
 
@@ -40,4 +44,6 @@ Do **not** use `palette.info` for surfaces in new code.
 1. Add to `colors.json` (both schemes).
 2. Extend `SemanticTokens` in `packages/design-tokens/index.ts`.
 3. Map in `mapTokensToPalette.ts`.
-4. Rebuild the static doc site and update this table.
+4. Bump the package version and add a `CHANGELOG.md` entry — see
+   [versioning.md](./versioning.md).
+5. Rebuild the static doc site and update this table.
