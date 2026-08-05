@@ -17,9 +17,7 @@ const RateChip = ({ rate, isUp }: RateChipProps) => {
         <IconifyIcon
           icon={isUp ? 'mingcute:arrow-right-up-line' : 'mingcute:arrow-right-down-line'}
           sx={(theme) => ({
-            color: isUp
-              ? `${theme.palette.success.main} !important`
-              : `${theme.palette.error.main} !important`,
+            color: `${(theme.vars || theme).palette[variant].main} !important`,
           })}
         />
       }

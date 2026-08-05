@@ -15,6 +15,10 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
   const theme = useTheme();
   const chartTheme = useChartTheme();
 
+  // The single series is the cyan `secondary.main`, third in the chart palette, rather than the
+  // first entry a one-series chart would otherwise take.
+  const seriesColor = chartTheme.seriesColors[2];
+
   const option = useMemo(
     () => ({
       tooltip: {
@@ -66,25 +70,25 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
           type: 'line',
           showSymbol: false,
           lineStyle: {
-            color: theme.palette.secondary.main,
+            color: seriesColor,
             width: 1.2,
           },
           areaStyle: {
             color: new graphic.LinearGradient(0, 0, 0, 1, [
               {
                 offset: 0,
-                color: `${theme.palette.secondary.main}33`,
+                color: `${seriesColor}33`,
               },
               {
                 offset: 1,
-                color: `${theme.palette.secondary.main}00`,
+                color: `${seriesColor}00`,
               },
             ]),
           },
         },
       ],
     }),
-    [theme, chartTheme, data],
+    [theme, chartTheme, seriesColor, data],
   );
 
   return <ReactEchart echarts={echarts} option={option} {...rest} />;
