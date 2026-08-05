@@ -13,8 +13,12 @@ import { websiteVisitorsData } from 'data/visitorsData';
 const WebsiteVisitors = () => {
   const chartRef = useRef<EChartsReactCore | null>(null);
 
+  // The header row is pulled down over the chart by `mb={-2}`, so the Export button and the
+  // ECharts canvas share space. That overlap is local to this card: the Paper opens the stacking
+  // context and the button takes the layer above the canvas inside it, rather than bidding for a
+  // named theme layer it would then hold against the whole shell.
   return (
-    <Paper sx={{ height: 500 }}>
+    <Paper sx={{ height: 500, position: 'relative' }}>
       <Stack alignItems="center" justifyContent="space-between" mb={-2}>
         <Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
           Website Visitors
@@ -24,7 +28,7 @@ const WebsiteVisitors = () => {
           color="secondary"
           size="medium"
           endIcon={<IconifyIcon icon="mingcute:arrow-down-line" />}
-          sx={{ py: 0.875, zIndex: 1000 }}
+          sx={{ py: 0.875, zIndex: 1 }}
         >
           Export
         </Button>

@@ -28,7 +28,7 @@ const DrawerItems = () => {
         bgcolor="background.default"
         alignItems="center"
         justifyContent="flex-start"
-        zIndex={1000}
+        zIndex="appBar"
       >
         <ButtonBase component={Link} href="/" disableRipple>
           <Image src={Logo} alt="logo" height={24} width={24} sx={{ mr: 1 }} />

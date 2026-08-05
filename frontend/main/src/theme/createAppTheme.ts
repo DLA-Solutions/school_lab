@@ -4,6 +4,8 @@ import type {} from '@mui/x-date-pickers/themeAugmentation';
 import { tokens } from '@school-lab/design-tokens';
 import './palette';
 import typography from './typography';
+import breakpoints from './breakpoints';
+import zIndex from './zIndex';
 import { mapTokensToPalette } from './mapTokensToPalette';
 import { darkCustomShadows } from './shadows';
 
@@ -131,6 +133,8 @@ export function createAppTheme() {
       },
     },
     typography,
+    breakpoints,
+    zIndex,
     components: componentOverrides,
     spacing: 8,
     shape: { borderRadius: 4 },
