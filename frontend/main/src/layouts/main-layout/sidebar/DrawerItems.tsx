@@ -51,6 +51,9 @@ const DrawerItems = () => {
                 </InputAdornment>
               ),
             },
+            htmlInput: {
+              'aria-label': 'Search',
+            },
           }}
         />
       </Box>

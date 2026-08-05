@@ -32,21 +32,21 @@ const ProfileMenu = () => {
   return (
     <>
       <Tooltip title="Profile">
-        <ButtonBase onClick={handleProfileClick} disableRipple>
-          <Stack
-            spacing={1}
-            alignItems="center"
-            aria-controls={open ? 'account-menu' : undefined}
-            aria-expanded={open ? 'true' : undefined}
-            aria-haspopup="true"
-          >
+        <ButtonBase
+          onClick={handleProfileClick}
+          disableRipple
+          aria-controls={open ? 'profile-menu' : undefined}
+          aria-expanded={open ? 'true' : undefined}
+          aria-haspopup="true"
+        >
+          <Stack spacing={1} alignItems="center">
             <Avatar
               src={AvatarImage}
               sx={(theme) => ({
                 ml: 0.8,
                 height: 32,
                 width: 32,
-                bgcolor: theme.palette.primary.main,
+                bgcolor: (theme.vars || theme).palette.primary.main,
               })}
             />
             <Typography variant="subtitle2">{userName}</Typography>
@@ -56,7 +56,7 @@ const ProfileMenu = () => {
 
       <Menu
         anchorEl={anchorEl}
-        id="account-menu"
+        id="profile-menu"
         open={open}
         onClose={handleProfileMenuClose}
         onClick={handleProfileMenuClose}
