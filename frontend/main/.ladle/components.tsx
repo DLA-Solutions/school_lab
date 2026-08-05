@@ -1,21 +1,29 @@
+import { useEffect } from 'react';
 import type { GlobalProvider } from '@ladle/react';
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import { CssBaseline } from '@mui/material';
+import { ThemeProvider, useColorScheme } from '@mui/material/styles';
 import { createAppTheme } from 'theme/createAppTheme';
-import ThemeModeProvider from 'providers/ThemeModeProvider';
 
 const theme = createAppTheme();
 
-export const Provider: GlobalProvider = ({ children }) => (
+// Ladle's toolbar theme switch is the sandbox's source of truth for light/dark, so mirror it onto
+// MUI's color scheme — that is what drives the theme's CSS variables. The app pairs the same theme
+// with ThemeModeProvider instead; that provider restores a stored preference on mount, which here
+// would race the toolbar and win, so the sandbox leaves it out.
+const LadleColorScheme = ({ ladleTheme }: { ladleTheme: string }) => {
+  const { setMode } = useColorScheme();
+
+  useEffect(() => {
+    setMode(ladleTheme === 'auto' ? 'system' : ladleTheme === 'light' ? 'light' : 'dark');
+  }, [ladleTheme, setMode]);
+
+  return null;
+};
+
+export const Provider: GlobalProvider = ({ children, globalState }) => (
   <ThemeProvider theme={theme} defaultMode="dark">
     <CssBaseline enableColorScheme />
-    <ThemeModeProvider>{children}</ThemeModeProvider>
+    <LadleColorScheme ladleTheme={globalState.theme} />
+    {children}
   </ThemeProvider>
 );
-
-export const argTypes = {
-  mode: {
-    control: { type: 'select' },
-    options: ['dark', 'light'],
-    defaultValue: 'dark',
-  },
-};
