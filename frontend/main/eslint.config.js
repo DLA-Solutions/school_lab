@@ -22,6 +22,14 @@ export default defineConfig([
     },
   },
   {
+    // Specs and their helpers never take part in fast refresh, so a file may hold both a
+    // wrapper component and the helper that uses it.
+    files: ['src/test/**/*.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
     // Under `cssVariables`, `theme.palette` is pinned to the default colour scheme, so reading it
     // hands back light values while the product runs dark. Everything visible lives in these two
     // trees, and both have a correct alternative: `(theme.vars || theme).palette` resolves through
