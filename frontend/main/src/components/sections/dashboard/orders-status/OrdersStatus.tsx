@@ -22,6 +22,7 @@ const OrdersStatus = () => {
               <SearchField
                 value={searchText}
                 onChange={handleInputChange}
+                ariaLabel="Search orders"
                 sx={{ width: 220, display: { xs: 'none', sm: 'flex' } }}
               />
               <Button variant="contained" size="small">
@@ -36,6 +37,7 @@ const OrdersStatus = () => {
         <SearchField
           value={searchText}
           onChange={handleInputChange}
+          ariaLabel="Search orders"
           fullWidth
           sx={{ display: { xs: 'flex', sm: 'none' } }}
         />

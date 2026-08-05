@@ -23,3 +23,14 @@ export const Default = () => (
     checkboxSelection
   />
 );
+
+export const CustomRangeLabel = () => (
+  <DataTable
+    rows={rows}
+    columns={columns}
+    autoHeight
+    initialState={{ pagination: { paginationModel: { pageSize: 2 } } }}
+    pageSizeOptions={[2]}
+    rangeLabel={({ from, to, count }) => `Showing ${from}-${to} of ${count} records`}
+  />
+);

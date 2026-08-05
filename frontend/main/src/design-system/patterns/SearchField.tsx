@@ -7,6 +7,12 @@ export interface SearchFieldProps {
   value: string;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  /**
+   * Accessible name of the input. A placeholder is not a label — it is not exposed as the
+   * accessible name everywhere and it disappears once the user types. Override it whenever the
+   * field searches something more specific than the page it sits on.
+   */
+  ariaLabel?: string;
   fullWidth?: boolean;
   sx?: object;
 }
@@ -15,6 +21,7 @@ const SearchField = ({
   value,
   onChange,
   placeholder = 'Search for...',
+  ariaLabel = 'Search',
   fullWidth = false,
   sx,
 }: SearchFieldProps) => {
@@ -34,6 +41,9 @@ const SearchField = ({
               <IconifyIcon icon="mingcute:search-line" />
             </InputAdornment>
           ),
+        },
+        htmlInput: {
+          'aria-label': ariaLabel,
         },
       }}
     />

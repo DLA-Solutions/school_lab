@@ -20,9 +20,10 @@ export { default as ConfirmDialog } from './patterns/ConfirmDialog';
 export type { ConfirmDialogProps } from './patterns/ConfirmDialog';
 
 export { default as ThemeToggle } from './patterns/ThemeToggle';
+export type { ThemeToggleProps } from './patterns/ThemeToggle';
 
 export { default as DataTable } from './data/DataTable';
-export type { DataTableProps } from './data/DataTable';
+export type { DataTableProps, DataTableRange } from './data/DataTable';
 
 export { default as useChartTheme } from './hooks/useChartTheme';
 export type { ChartTheme } from './hooks/useChartTheme';
