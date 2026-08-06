@@ -249,7 +249,7 @@ then governance. Each phase is independently shippable.
   `PickersSectionList`). `AppBar` is still open, to add where the shell needs it.
 - `Card*` and `Table*` get **no override**: they are forbidden by default (decided — see below).
 - One catalog page per themed primitive group, extending the existing
-  `frontend/design-system-docs/src/pages/mui-primitives/` sections.
+  `frontend/design-system-docs/src/pages/primitives/` (Buttons, Form inputs, Surfaces, Overlays, Data display, Navigation) and shared demos in `mui-primitives/`.
 - Lower priority, add only when a product screen needs them: `Accordion*`, `ToggleButton*`,
   `ButtonGroup`, `ListItem`/`ListSubheader`, `Slider`, `Rating`, `Fab`, `SpeedDial`,
   `BottomNavigation`, and `PickersDay` / `DateCalendar` — the day grid, which no mounted view

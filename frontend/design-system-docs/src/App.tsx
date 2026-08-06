@@ -6,7 +6,6 @@ import TypographyPage from './pages/Typography';
 import SpacingShadows from './pages/SpacingShadows';
 import Theming from './pages/Theming';
 import PagePatterns from './pages/PagePatterns';
-import MuiPrimitives from './pages/MuiPrimitives';
 import ComponentsIndex from './pages/ComponentsIndex';
 import Breakpoints from './pages/layout/Breakpoints';
 import Containers from './pages/layout/Containers';
@@ -25,6 +24,12 @@ import StackPage from './pages/utilities/StackPage';
 import Truncation from './pages/utilities/Truncation';
 import VisuallyHidden from './pages/utilities/VisuallyHidden';
 import AspectRatio from './pages/utilities/AspectRatio';
+import ButtonsPage from './pages/primitives/ButtonsPage';
+import FormInputsPage from './pages/primitives/FormInputsPage';
+import SurfacesPage from './pages/primitives/SurfacesPage';
+import OverlaysPage from './pages/primitives/OverlaysPage';
+import DataDisplayPage from './pages/primitives/DataDisplayPage';
+import NavigationPage from './pages/primitives/NavigationPage';
 import SnackbarPage from './pages/primitives/SnackbarPage';
 import PopoverPage from './pages/primitives/PopoverPage';
 import BackdropPage from './pages/primitives/BackdropPage';
@@ -66,12 +71,18 @@ const App = () => (
         <Route path="utilities/truncation" element={<Truncation />} />
         <Route path="utilities/visually-hidden" element={<VisuallyHidden />} />
         <Route path="utilities/ratio" element={<AspectRatio />} />
+        <Route path="primitives/buttons" element={<ButtonsPage />} />
+        <Route path="primitives/form-inputs" element={<FormInputsPage />} />
+        <Route path="primitives/surfaces" element={<SurfacesPage />} />
+        <Route path="primitives/overlays" element={<OverlaysPage />} />
+        <Route path="primitives/data-display" element={<DataDisplayPage />} />
+        <Route path="primitives/navigation" element={<NavigationPage />} />
         <Route path="primitives/snackbar" element={<SnackbarPage />} />
         <Route path="primitives/popover" element={<PopoverPage />} />
         <Route path="primitives/backdrop" element={<BackdropPage />} />
         <Route path="primitives/pagination" element={<PaginationPage />} />
         <Route path="page-patterns" element={<PagePatterns />} />
-        <Route path="mui-primitives" element={<MuiPrimitives />} />
+        <Route path="mui-primitives" element={<Navigate to="/primitives/buttons" replace />} />
         <Route path="components" element={<ComponentsIndex />} />
         <Route path="components/page-header" element={<PageHeaderDoc />} />
         <Route path="components/section-card" element={<SectionCardDoc />} />
