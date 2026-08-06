@@ -6,10 +6,6 @@ COPY packages/design-tokens packages/design-tokens
 COPY frontend/package*.json frontend/
 WORKDIR /app/frontend
 RUN npm ci
-# package-lock resolves design-tokens via ../../packages (legacy path); in Docker the monorepo
-# root is /app, so relink to ../packages/design-tokens before the production build.
-RUN rm -rf node_modules/@school-lab/design-tokens \
-  && npm install --no-save file:../packages/design-tokens
 COPY frontend/ .
 
 ARG VITE_BASE_PATH=/app/
