@@ -12,11 +12,15 @@ export interface SectionCardProps {
 }
 
 const SectionCard = ({ title, headerActions, children, padding = 0 }: SectionCardProps) => {
+  const hasHeader = Boolean(title || headerActions);
+  const isFlush = padding === 0;
+
   return (
-    <Paper sx={padding === 0 ? { p: 0 } : undefined}>
-      {(title || headerActions) && (
+    <Paper sx={{ p: padding }}>
+      {hasHeader && (
         <Stack
-          px={3.5}
+          {...(isFlush ? { px: 3.5, pt: 3.5 } : {})}
+          pb={2}
           spacing={1.5}
           direction={{ xs: 'column', sm: 'row' }}
           alignItems={{ xs: 'stretch', sm: 'center' }}
