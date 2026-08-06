@@ -63,7 +63,7 @@ const FormLayout = () => (
     <LivePreview>
       <Box maxWidth={420}>
         <SectionCard title="New student">
-          <Stack direction="column" spacing={2.5} px={3.5} pt={2} pb={3.5}>
+          <Stack direction="column" spacing={2.5} px={3.5} pb={3.5}>
             <TextField variant="filled" size="small" label="Full name" fullWidth />
             <TextField
               variant="filled"
@@ -93,7 +93,7 @@ const FormLayout = () => (
     <CodeBlock
       code={`<PageHeader title={t('students.new')} />
 <SectionCard title={t('students.details')}>
-  <Stack direction="column" spacing={2.5} px={3.5} pt={2} pb={3.5} component="form" onSubmit={handleSubmit}>
+  <Stack direction="column" spacing={2.5} px={3.5} pb={3.5} component="form" onSubmit={handleSubmit}>
     {apiError && <ErrorBanner message={apiError} />}
     <TextField variant="filled" size="small" label={t('students.fields.name')} fullWidth />
     …

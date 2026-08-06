@@ -35,6 +35,9 @@ library will eventually supply the translations (`docs/open-questions.md` → We
 </SectionCard>
 ```
 
+`padding` is in theme spacing units (`0` = flush, the default for list/table layouts; `3.5` matches
+themed `Paper`). When flush, add `px={3.5}` on body content so it aligns with the card header.
+
 ## SearchField
 
 Controlled filled search input with icon. `placeholder` and `ariaLabel` are separate on purpose: a

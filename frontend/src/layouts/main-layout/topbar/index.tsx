@@ -29,7 +29,7 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
   return (
     <Stack alignItems="center" justifyContent="space-between" mb={{ xs: 0, lg: 1 }}>
       <Stack spacing={2} alignItems="center">
-        <Toolbar sx={{ display: { xm: 'block', lg: 'none' } }}>
+        <Toolbar sx={{ display: { xs: 'block', lg: 'none' } }}>
           <IconButton
             size="medium"
             edge="start"
@@ -45,7 +45,7 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
           component={Link}
           href="/"
           disableRipple
-          sx={{ display: { xm: 'block', lg: 'none' } }}
+          sx={{ display: { xs: 'block', lg: 'none' } }}
         >
           <Image src={Logo} alt="logo" height={24} width={24} />
         </ButtonBase>

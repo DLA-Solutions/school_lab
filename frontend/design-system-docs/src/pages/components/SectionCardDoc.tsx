@@ -17,7 +17,11 @@ const SectionCardDoc = () => (
       { name: 'title', type: 'string', description: 'Optional header title' },
       { name: 'headerActions', type: 'ReactNode', description: 'Actions in the card header' },
       { name: 'children', type: 'ReactNode', required: true, description: 'Card body' },
-      { name: 'padding', type: 'number', description: 'Paper padding override (0 removes default)' },
+      {
+        name: 'padding',
+        type: 'number',
+        description: 'Paper padding in theme spacing units (default 0 = flush; e.g. 3.5 matches themed Paper)',
+      },
     ]}
     code={`import { SectionCard } from 'design-system';
 
