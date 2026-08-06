@@ -2,6 +2,12 @@
 proxy:
   hosts:
     - staging.scholarpremium.com.br
+  path_prefixes:
+    - /api
+    - /up
+    - /api-docs
+    - /webhooks
+  strip_path_prefix: false
 
 env:
   clear:

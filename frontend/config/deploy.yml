@@ -1,0 +1,46 @@
+# Base Kamal configuration, shared by both destinations.
+# Always deploy with an explicit destination: `kamal deploy -d production|staging`.
+# Runbook: docs/guidelines/process/deployment.md
+
+service: scholarpremium-spa
+
+image: dla-solutions/scholarpremium-spa
+
+require_destination: true
+
+servers:
+  web:
+    - 77.42.33.33
+
+registry:
+  server: ghcr.io
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+ssh:
+  user: deploy
+
+builder:
+  arch: amd64
+  cache:
+    type: registry
+  # Monorepo root — Dockerfile COPYs frontend/* and packages/design-tokens.
+  context: ..
+  # Relative to the service dir (frontend/); Kamal expands dockerfile from cwd, not context.
+  dockerfile: Dockerfile
+
+# TLS is terminated at kamal-proxy on the root-path service (site/). Path-prefixed
+# services must not set proxy.ssl — kamal-proxy rejects --tls with path_prefixes.
+proxy:
+  app_port: 80
+  healthcheck:
+    path: /up
+    interval: 3
+    timeout: 60
+
+deploy_timeout: 60
+
+aliases:
+  logs: app logs -f

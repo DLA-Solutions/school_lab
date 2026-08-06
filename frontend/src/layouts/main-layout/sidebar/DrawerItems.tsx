@@ -1,6 +1,7 @@
 import { topListData } from 'data/sidebarListData';
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
+import { Link as RouterLink } from 'react-router';
+import paths from 'routes/paths';
 import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -12,7 +13,7 @@ import Image from 'components/base/Image';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { useAuth } from 'providers/AuthContext';
 import ListItem from './list-items/ListItem';
-import Logo from 'assets/images/logo.png';
+import Logo from 'assets/images/Logo.png';
 
 const DrawerItems = () => {
   const { logout } = useAuth();
@@ -30,7 +31,7 @@ const DrawerItems = () => {
         justifyContent="flex-start"
         zIndex="appBar"
       >
-        <ButtonBase component={Link} href="/" disableRipple>
+        <ButtonBase component={RouterLink} to={paths.dashboard} disableRipple>
           <Image src={Logo} alt="logo" height={24} width={24} sx={{ mr: 1 }} />
           <Typography variant="h5" color="text.primary" fontWeight={600} letterSpacing={1}>
             School Lab

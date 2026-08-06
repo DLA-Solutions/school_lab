@@ -1,5 +1,6 @@
 import { fontFamily } from 'theme/typography';
-import Link from '@mui/material/Link';
+import { Link as RouterLink } from 'react-router';
+import paths from 'routes/paths';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
@@ -11,7 +12,7 @@ import Image from 'components/base/Image';
 import LanguageSelect from './LanguageSelect';
 import ProfileMenu from './ProfileMenu';
 import { ThemeToggle } from 'design-system';
-import Logo from 'assets/images/logo.png';
+import Logo from 'assets/images/Logo.png';
 
 interface TopbarProps {
   isClosing: boolean;
@@ -42,8 +43,8 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
         </Toolbar>
 
         <ButtonBase
-          component={Link}
-          href="/"
+          component={RouterLink}
+          to={paths.dashboard}
           disableRipple
           sx={{ display: { xs: 'block', lg: 'none' } }}
         >

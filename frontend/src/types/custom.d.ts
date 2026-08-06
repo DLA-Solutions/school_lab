@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 declare module '*.png' {
   const value: string;
   export default value;
@@ -19,10 +21,12 @@ declare module '*.svg' {
 }
 
 interface ImportMetaEnv {
-  /** Base URL of the School Lab API. Defaults to http://localhost:3000. */
+  /** Vite `base` config — used as React Router basename. */
+  readonly BASE_URL: string;
+  /** True in development and test modes. */
+  readonly DEV: boolean;
+  /** Base URL of the School Lab API. Empty in production (same-origin `/api/...`). */
   readonly VITE_API_BASE_URL?: string;
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
+  /** Vite `base` path for deploy builds (e.g. `/app/`). */
+  readonly VITE_BASE_PATH?: string;
 }

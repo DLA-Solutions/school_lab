@@ -1,20 +1,29 @@
 # Deployment
 
-How `web/` reaches production and staging. Deploys are manual, run from a developer
-machine with Kamal 2.
+How `site/`, `frontend/`, and `web/` reach production and staging. Deploys are manual, run
+from a developer machine with Kamal 2.
 
 ## Topology
 
-Two VPS. Only the app server is exposed to the internet.
+Two VPS. Only the app server is exposed to the internet. Three Kamal services share one
+kamal-proxy on that server:
 
 ```
 Internet ──443──▶ app server (77.42.33.33)
-                    kamal-proxy ──▶ container "scholarpremium-web" (production)
-                                └──▶ container "scholarpremium-web" (staging)
+                    kamal-proxy (TLS)
+                      ├── /              → scholarpremium-site   (site/)
+                      ├── /app/*         → scholarpremium-spa    (frontend/)
+                      └── /api, /up, …   → scholarpremium        (web/)
                                         │
                                         └──▶ database server (10.0.0.3, private network)
                                                PostgreSQL 17 + Redis, both native
 ```
+
+| URL path | Folder | Kamal service | GHCR image |
+|---|---|---|---|
+| `/` | `site/` | `scholarpremium-site` | `dla-solutions/scholarpremium-site` |
+| `/app/*` | `frontend/` | `scholarpremium-spa` | `dla-solutions/scholarpremium-spa` |
+| `/api`, `/up`, `/api-docs`, `/webhooks` | `web/` | `scholarpremium` | `dla-solutions/scholarpremium` |
 
 PostgreSQL and Redis are installed natively on the database server. They are **not**
 Kamal accessories — Kamal never starts, stops, or upgrades them, and `config/deploy.yml`
@@ -24,10 +33,127 @@ outside this repository.
 Both destinations share the app server and the database server; they are separated by
 Kamal destination, database name, Redis logical database, and Active Storage volume.
 
+### Path routing order
+
+Kamal path routing is **order-sensitive** and depends on what is already registered on
+kamal-proxy. Only one service can own a hostname without path prefixes; adding site at `/`
+while the API still owns the entire host fails proxy registration.
+
+The API uses `strip_path_prefix: false` so Rails still receives full paths like
+`/api/v1/...`, not `/v1/...`.
+
+Each service has its own Kamal health check at `/up` (nginx for site and SPA; Thruster
+for API). kamal-proxy probes the container target directly — not through public host
+routing — so site and SPA nginx `location = /up` blocks are correct. Public
+`https://staging.scholarpremium.com.br/up` is routed to the API via `path_prefixes`.
+
+#### TLS and path prefixes
+
+kamal-proxy allows **automatic TLS (`--tls`) only on the root-path service** for a host.
+Path-prefixed services inherit HTTPS from that root registration.
+
+| Service | `proxy.ssl` | Reason |
+|---|---|---|
+| `scholarpremium-site` (`/`) | `true` | Root path — owns Let's Encrypt for the host |
+| `scholarpremium` (`/api`, …) | omit / `false` | `path_prefixes` — `--tls` makes proxy deploy fail |
+| `scholarpremium-spa` (`/app`) | omit / `false` | `path_prefix` — same rule |
+
+**Symptom when API or SPA set `ssl: true` with path prefixes:**
+
+```text
+Error: TLS settings must be specified on the root path service
+```
+
+The image build and `docker run` may succeed; only kamal-proxy registration fails. The
+running container may be stopped when deploy aborts.
+
+#### Fresh host (no Kamal app on the hostname yet)
+
+Deploy in this order:
+
+1. **Site** at `/` (no `path_prefix`, `ssl: true`) — first; establishes TLS
+2. **SPA** at `/app` (`path_prefix: /app`, no `ssl`) — second
+3. **API** with `path_prefixes` (no `ssl`) — **last**
+
+#### Cutover when the API already owns the host
+
+Staging (and production, if the API was deployed before site/SPA existed) often already
+has `scholarpremium` on kamal-proxy **without** `path_prefixes`, so it owns
+`staging.scholarpremium.com.br` entirely. Site cannot register the same host at root until
+the API releases that claim.
+
+**Do not deploy the API first** with `path_prefixes` while it still owns the full host —
+that was the previous cutover advice and it fails for two reasons:
+
+1. **Host conflict** — site cannot claim `/` until the API narrows or is removed from the
+   proxy.
+2. **TLS conflict** — if `proxy.ssl: true` is still merged into the API config, kamal-proxy
+   rejects `--tls` together with `--path-prefix`.
+
+**Symptom (host conflict)** — site deploy fails after the container starts:
+
+```text
+Error: host settings conflict with another service
+```
+
+**Cutover order** — release the API's full-host proxy registration, then deploy **site →
+API → SPA**:
+
+```bash
+# 0. Inspect current proxy routes (on app server)
+ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
+
+# 1. Remove API proxy registration (keeps image/volume; drops host claim)
+#    Name is usually scholarpremium-web-staging — confirm from `ls` output.
+ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy remove scholarpremium-web-staging'
+
+# 2. Site — claim domain root and TLS (ssl: true only on site/config/deploy.yml)
+cd site
+kamal deploy -d staging
+
+# 3. API — path prefixes only; no proxy.ssl in web/config/deploy.yml
+cd ../web
+kamal deploy -d staging
+
+# 4. SPA — /app path prefix; no proxy.ssl in frontend/config/deploy.yml
+cd ../frontend
+kamal deploy -d staging
+```
+
+Between steps 1 and 3, `https://staging.scholarpremium.com.br/api` (and `/up`, etc.) are
+down until step 3 completes. Between steps 1 and 2, the hostname may return 502 from
+kamal-proxy until site registers. Keep that gap short.
+
+After step 2, `/` serves the landing page. After step 3, API paths work again. After step
+4, `/app/` serves the SPA.
+
+Repeat with `-d production` for production when cutting over that hostname.
+
+**Optional check** before cutover — if the API proxy target has no path prefixes, use
+cutover order (not fresh-host order):
+
+```bash
+ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
+```
+
+Look for `scholarpremium-web-staging` (or `-production`) bound to the hostname without
+`/api`, `/up`, etc. in the path list.
+
+**After a failed API cutover deploy** — proxy registration may still show the old
+full-host route while the API container is stopped. Run step 1 (`kamal-proxy remove`) before
+deploying site; step 3 (`kamal deploy`) boots the API container again.
+
+Do **not** run `kamal proxy remove` from the Kamal CLI — that removes the entire
+kamal-proxy container. Use `docker exec kamal-proxy kamal-proxy remove <service>` for a
+single route, or let a successful deploy replace the registration.
+
+After cutover, routine deploys can follow site → SPA → API again; only the migration from
+API-only needs the remove + site-first sequence above.
+
 ## Destinations
 
-`config/deploy.yml` holds everything common. Per-environment values live in
-`config/deploy.production.yml` and `config/deploy.staging.yml`.
+Each service has its own `config/deploy.yml` under `site/`, `frontend/`, and `web/`.
+Per-environment values live in `config/deploy.production.yml` and `config/deploy.staging.yml`.
 
 | | production | staging |
 |---|---|---|
@@ -114,17 +240,31 @@ nothing real and must never be reused by a deployed environment.
 1. SSH access as `deploy` to `77.42.33.33`, with the key loaded in the agent.
 2. Docker running locally (Kamal builds the image on your machine).
 3. `web/config/master.key` present, and the credentials populated as described above.
-4. Kamal secrets files, copied from the versioned templates:
+4. Kamal secrets files. **Each service directory has its own `.kamal/` folder** — Kamal
+   reads secrets from the directory you run the command in (`site/`, `frontend/`, or `web/`).
+   Copy from the versioned templates:
 
 ```bash
-cd web
+# Registry credentials — required in all three service dirs before the first deploy
+cd site
+cp .kamal/secrets-common.example .kamal/secrets-common
+
+cd ../frontend
+cp .kamal/secrets-common.example .kamal/secrets-common
+
+# API also needs per-destination secrets
+cd ../web
 cp .kamal/secrets-common.example      .kamal/secrets-common
 cp .kamal/secrets.production.example  .kamal/secrets.production
 cp .kamal/secrets.staging.example     .kamal/secrets.staging
 ```
 
-These copies are gitignored. They contain no raw credentials — they interpolate
-environment variables you export before deploying:
+If you already created `web/.kamal/secrets-common`, you can copy that file into
+`site/.kamal/` and `frontend/.kamal/` instead — the GHCR lines are identical. Site and
+SPA ignore the `RAILS_MASTER_KEY` line that only the API uses.
+
+These copies are gitignored under `web/` (and should stay local everywhere). They contain
+no raw credentials — they interpolate environment variables you export before deploying:
 
 | Variable | Used for |
 |---|---|
@@ -177,24 +317,58 @@ a missing key fails the health check and the deploy never takes traffic.
 
 ## First deploy
 
-Run from `web/`, once per destination:
+Run from each service directory, once per destination.
+
+**Order matters.** Use **fresh-host order** only when no Kamal service already owns the
+hostname. If the API was deployed alone first (typical on staging), follow
+[Cutover when the API already owns the host](#cutover-when-the-api-already-owns-the-host)
+above — remove API proxy registration, then site → API → SPA.
+
+Fresh-host order (empty hostname):
+
 
 ```bash
+# 1. Site (domain root)
+cd site
+bin/deploy-preflight          # optional
 kamal setup -d staging
-kamal setup -d production
+kamal deploy -d staging
+
+# 2. SPA (/app)
+cd frontend
+kamal setup -d staging
+kamal deploy -d staging
+
+# 3. API (path prefixes) — last
+cd web
+kamal setup -d staging
+kamal deploy -d staging
 ```
 
-`setup` installs Docker and kamal-proxy on the server, pushes the image, and boots the
-app. TLS certificates are issued by Let's Encrypt through kamal-proxy, so the DNS
-records must already point at `77.42.33.33` — otherwise certificate issuance fails and
-the container comes up without HTTPS.
+Repeat with `-d production` for production. `setup` installs Docker and kamal-proxy on the
+server, pushes the image, and boots the app. TLS certificates are issued by Let's Encrypt
+through kamal-proxy, so the DNS records must already point at `77.42.33.33` — otherwise
+certificate issuance fails and the container comes up without HTTPS.
+
+Before the first push, create the GHCR packages `scholarpremium-site` and
+`scholarpremium-spa` (private, same org as the API image). Site and frontend only need
+`.kamal/secrets-common` (registry credentials); copy from `.kamal/secrets-common.example`.
 
 ## Day-to-day
 
 ```bash
-kamal deploy -d staging          # build, push, boot, health check, switch traffic
-kamal deploy -d production
+# Deploy staging (site → SPA → API)
+cd site && kamal deploy -d staging
+cd frontend && kamal deploy -d staging
+cd web && kamal deploy -d staging
 
+# Production
+cd site && kamal deploy -d production
+cd frontend && kamal deploy -d production
+cd web && kamal deploy -d production
+
+# Logs and console (API only)
+cd web
 kamal app logs -f -d production  # or: kamal logs -d production
 kamal console -d production      # rails console
 kamal shell -d production        # bash in the running container
@@ -202,7 +376,7 @@ kamal dbc -d production          # rails dbconsole
 kamal app exec -d production "bin/rails db:migrate"
 ```
 
-Deploy staging first and confirm `/up` responds before touching production.
+Deploy staging first and confirm `/`, `/app/`, and `/up` respond before touching production.
 
 ## API documentation (staging only)
 
@@ -221,8 +395,16 @@ base list in `deploy.yml` (it does not append). Staging must repeat every secret
 
 ## Rollback
 
+Each service rolls back independently:
+
 ```bash
-kamal rollback -d production            # previous version
+cd site && kamal rollback -d staging
+cd frontend && kamal rollback -d staging
+cd web && kamal rollback -d staging
+```
+
+```bash
+kamal rollback -d production            # previous version (run from the service dir)
 kamal app containers -d production      # list versions still on the server
 kamal rollback <version> -d production
 ```
@@ -230,6 +412,27 @@ kamal rollback <version> -d production
 Rollback swaps the container back to a previous image. **It does not roll back the
 database.** A deploy carrying a destructive migration is not safely reversible this
 way — split it into an additive deploy and a later cleanup deploy.
+
+**Risk:** rolling back the API without site/SPA in place returns the entire host to Rails.
+Plan coordinated rollbacks if needed.
+
+## Docker build context (site and SPA)
+
+`site/` and `frontend/` Dockerfiles live in each service directory but **build from the
+monorepo root**: they `COPY site/...`, `COPY frontend/...`, and (for the SPA)
+`COPY packages/design-tokens`. Kamal is always run from the service directory (`cd site`,
+`cd frontend`); `bin/kamal` in those folders keeps that cwd.
+
+In each service's `config/deploy.yml`:
+
+- `builder.context: ..` — Docker build context is the repository root.
+- `builder.dockerfile: Dockerfile` — path relative to the **service directory**, not the
+  context. Kamal checks the file with `File.expand_path(dockerfile)` from the process cwd
+  before invoking `docker buildx`; `site/Dockerfile` or `frontend/Dockerfile` would look
+  for a nested path (`site/site/Dockerfile`) and fail with `Missing site/Dockerfile`.
+
+The API (`web/`) builds from `web/` with the default Dockerfile in that folder; it does not
+set `builder.context`.
 
 ## Build performance
 
@@ -243,7 +446,7 @@ native gems (`pg`, `bootsnap`) takes several minutes. Uncomment `builder.remote`
   key are stored encrypted on `school_payment_providers`, using the Active Record
   encryption keys from the credentials — which is why those keys must be real before any
   school uploads credentials. See `docs/guidelines/web/gateways.md`.
-- **CI does not deploy.** `.github/workflows/ci.yml` builds the image to verify the
-  Dockerfile but never pushes it. Automating deploys is separate scope.
+- **CI does not deploy.** `.github/workflows/ci.yml` builds images for `web/`, `site/`, and
+  `frontend/` to verify Dockerfiles but never pushes them. Automating deploys is separate scope.
 - **Active Storage** writes to a Kamal volume on the app server. That disk is not
   backed up by the deploy process; migrating to S3 is an open decision.
