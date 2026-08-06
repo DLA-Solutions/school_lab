@@ -4,7 +4,7 @@
  * cannot see. A fresh document per route matters: one thrown render unmounts the React root, and
  * every later route in the same document would then look broken for the wrong reason.
  *
- * Requires jsdom, which lives in ../main/node_modules.
+ * Requires jsdom, which lives in ../node_modules (the SPA install).
  * Run with `node scripts/smoke-pages.mjs` after `npm run build`.
  */
 import { readFileSync } from 'node:fs';
@@ -13,7 +13,7 @@ import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const require = createRequire(pathToFileURL(resolve(here, '../../main/package.json')));
+const require = createRequire(pathToFileURL(resolve(here, '../../package.json')));
 const { JSDOM, VirtualConsole } = require('jsdom');
 
 const distDir = resolve(here, '../../../docs/design-system');

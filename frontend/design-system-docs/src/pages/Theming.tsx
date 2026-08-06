@@ -83,7 +83,7 @@ const theme = createAppTheme();
     <SpecTable headers={['Primitive', 'Status', 'Reach for']} rows={noOverride} />
     <Typography variant="body2" color="text.secondary" mb={2}>
       <code>Card*</code> and <code>Table*</code> are forbidden by default in{' '}
-      <code>frontend/main</code>, and deliberately carry no override. The ban formalises what the
+      <code>frontend</code>, and deliberately carry no override. The ban formalises what the
       codebase already does — neither is imported anywhere in the product — and keeps one sanctioned
       route to each surface. An override is not the lighter alternative to a ban; it is the second
       route, and two routes to the same surface is how a visual language drifts. (This catalog is a
