@@ -11,8 +11,8 @@ const Introduction = () => (
       <Typography variant="body1" paragraph>
         The design system lives in three layers: shared tokens in{' '}
         <code>packages/design-tokens</code>, MUI theme overrides in{' '}
-        <code>frontend/main/src/theme/</code>, and product patterns in{' '}
-        <code>frontend/main/src/design-system/</code>.
+        <code>frontend/src/theme/</code>, and product patterns in{' '}
+        <code>frontend/src/design-system/</code>.
       </Typography>
       <Typography variant="body1" paragraph>
         Stack: React 19, MUI v7 + Emotion, dark mode by default with a light/dark toggle persisted
@@ -20,7 +20,7 @@ const Introduction = () => (
       </Typography>
       <Typography variant="body1" paragraph>
         This site is the canonical catalog. Governance docs: <code>docs/guidelines/web-ui/</code>.
-        Ladle (<code>npm run ladle</code> in frontend/main) is a development sandbox for isolated
+        Ladle (<code>npm run ladle</code> in frontend/) is a development sandbox for isolated
         component work, not a documentation surface.
       </Typography>
     </DocSection>

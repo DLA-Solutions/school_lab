@@ -40,7 +40,7 @@ const Tables = () => (
     </Typography>
     <Typography variant="body1" paragraph>
       The MUI <code>Table</code> family is <strong>forbidden by default</strong> in{' '}
-      <code>frontend/main</code> and deliberately carries no override — a decided question, recorded
+      <code>frontend</code> and deliberately carries no override — a decided question, recorded
       in <code>docs/open-questions.md</code> (Web stack). It is not imported anywhere in the
       product, so the ban records the status quo rather than removing anything. A page that reaches
       for it is either presenting API data, which is <code>DataTable</code>&apos;s job, or

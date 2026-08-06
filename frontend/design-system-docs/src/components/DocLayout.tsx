@@ -72,6 +72,12 @@ const navSections = [
   {
     title: 'Primitives',
     items: [
+      { label: 'Buttons', path: '/primitives/buttons' },
+      { label: 'Form inputs', path: '/primitives/form-inputs' },
+      { label: 'Surfaces', path: '/primitives/surfaces' },
+      { label: 'Overlays', path: '/primitives/overlays' },
+      { label: 'Data display', path: '/primitives/data-display' },
+      { label: 'Navigation', path: '/primitives/navigation' },
       { label: 'Snackbar', path: '/primitives/snackbar' },
       { label: 'Popover', path: '/primitives/popover' },
       { label: 'Backdrop', path: '/primitives/backdrop' },
@@ -90,10 +96,7 @@ const navSections = [
   },
   {
     title: 'Patterns',
-    items: [
-      { label: 'Page patterns', path: '/page-patterns' },
-      { label: 'MUI primitives', path: '/mui-primitives' },
-    ],
+    items: [{ label: 'Page patterns', path: '/page-patterns' }],
   },
 ];
 
@@ -221,7 +224,7 @@ const DocLayout = () => {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', overflowX: 'clip' }}>
       <Box
         component="nav"
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
@@ -250,9 +253,21 @@ const DocLayout = () => {
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, maxWidth: 960 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
-          <Stack direction="row" alignItems="center" spacing={1}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          // Flex items default to min-width:auto; without this, wide demos (Stepper, Tabs)
+          // push the whole page into horizontal scroll.
+          minWidth: 0,
+          width: '100%',
+          maxWidth: 960,
+          p: { xs: 2, md: 4 },
+          overflowX: 'clip',
+        }}
+      >
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3} gap={2}>
+          <Stack direction="row" alignItems="center" spacing={1} minWidth={0}>
             <IconButton
               sx={{ display: { md: 'none' } }}
               onClick={() => setMobileOpen(true)}
@@ -260,7 +275,7 @@ const DocLayout = () => {
             >
               ☰
             </IconButton>
-            <Typography variant="h5" fontWeight={600}>
+            <Typography variant="h5" fontWeight={600} noWrap>
               School Lab Design System
             </Typography>
           </Stack>

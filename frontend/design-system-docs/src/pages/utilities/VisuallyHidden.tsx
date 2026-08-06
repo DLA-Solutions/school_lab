@@ -48,7 +48,7 @@ const VisuallyHidden = () => (
     </Typography>
     <Typography variant="body2" color="text.secondary" mb={2}>
       Import it — do not retype it. <code>@mui/utils</code> is an explicit dependency of{' '}
-      <code>frontend/main</code> and exports <code>visuallyHidden</code>, the same nine declarations
+      <code>frontend</code> and exports <code>visuallyHidden</code>, the same nine declarations
       MUI uses internally for its own accessible labels. Hand-rolling them is how one gets subtly
       wrong (using <code>width: 0</code>, for instance), which silently drops the text from some
       screen readers.
