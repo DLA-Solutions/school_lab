@@ -1,0 +1,34 @@
+---
+description: Kamal deploy guardrails for site, frontend SPA, and web API
+globs: site/config/**,frontend/config/**,web/config/deploy*.yml,**/Dockerfile,**/nginx.conf
+alwaysApply: false
+---
+
+# Deployment (Kamal)
+
+Full runbook: `docs/guidelines/process/deployment.md`. Executable workflow: skill **`deploy-kamal`**.
+
+## Services
+
+| Layer | Directory | Kamal service | Host path |
+|---|---|---|---|
+| Site | `site/` | `scholarpremium-site` | `/` (root) |
+| SPA | `frontend/` | `scholarpremium-spa` | `/app` |
+| API | `web/` | `scholarpremium` | `/api`, `/up`, `/api-docs`, `/webhooks` |
+
+Always pass `-d staging` or `-d production` (`require_destination: true`).
+
+## Guardrails
+
+- **Secrets per service directory** — Kamal reads `.kamal/` from the cwd (`site/`, `frontend/`, or `web/`). Copy `secrets-common` into each before the first deploy.
+- **TLS only on site** — `proxy.ssl: true` in `site/config/deploy.yml` only. API and SPA must not set `ssl` with path prefixes.
+- **Docker build (site/SPA)** — `builder.context: ..`, `builder.dockerfile: Dockerfile` (relative to service dir, not `site/Dockerfile`).
+- **Routine deploy order** — site → SPA → API.
+- **Cutover** (API already owns full host) — `kamal-proxy remove <api-service>` → site → API → SPA. Never `kamal proxy remove` (drops entire proxy).
+- **API path prefixes** — `strip_path_prefix: false` so Rails receives `/api/v1/...` intact.
+
+## Do not
+
+- Deploy without checking `KAMAL_REGISTRY_PASSWORD` and `.kamal/secrets-common` in the target service dir.
+- Commit `.kamal/secrets-common` or destination secret files (only `.example` templates are versioned).
+- Assume uncommitted Kamal config changes are in the image — `web/` builds from git; site/SPA build from local context.
