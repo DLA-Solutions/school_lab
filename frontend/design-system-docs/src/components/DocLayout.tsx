@@ -1,13 +1,16 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import Box from '@mui/material/Box';
+import Collapse from '@mui/material/Collapse';
+import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
+import ListItemText, { listItemTextClasses } from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import IconifyIcon from 'components/base/IconifyIcon';
 import { ThemeToggle } from 'design-system';
 
 const drawerWidth = 260;
@@ -94,35 +97,126 @@ const navSections = [
   },
 ];
 
+const getActiveSectionTitle = (pathname: string) =>
+  navSections.find((section) => section.items.some((item) => item.path === pathname))?.title;
+
+const buildInitialOpenSections = (pathname: string) => {
+  const activeSection = getActiveSectionTitle(pathname);
+
+  return Object.fromEntries(
+    navSections.map((section) => [section.title, section.title === activeSection]),
+  );
+};
+
 const DocLayout = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openSections, setOpenSections] = useState(() => buildInitialOpenSections(location.pathname));
+
+  useEffect(() => {
+    const activeSection = getActiveSectionTitle(location.pathname);
+    if (!activeSection) return;
+
+    setOpenSections((previous) =>
+      previous[activeSection] ? previous : { ...previous, [activeSection]: true },
+    );
+  }, [location.pathname]);
+
+  const toggleSection = (title: string) => {
+    setOpenSections((previous) => ({ ...previous, [title]: !previous[title] }));
+  };
 
   const drawer = (
-    <Box sx={{ py: 2 }}>
-      <Typography variant="h6" px={2} pb={2} fontWeight={700}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Typography variant="h6" px={2} py={2} fontWeight={700} flexShrink={0}>
         School Lab DS
       </Typography>
-      {navSections.map((section) => (
-        <Box key={section.title} mb={2}>
-          <Typography variant="overline" px={2} color="text.secondary">
-            {section.title}
-          </Typography>
-          <List dense>
-            {section.items.map((item) => (
+      <Divider />
+      <Box sx={{ flex: 1, overflow: 'auto', py: 1 }}>
+        {navSections.map((section, index) => {
+          const isOpen = openSections[section.title];
+          const hasActiveItem = section.items.some((item) => item.path === location.pathname);
+
+          return (
+            <Box key={section.title}>
+              {index > 0 && <Divider sx={{ my: 0.5 }} />}
               <ListItemButton
-                key={item.path}
-                component={Link}
-                to={item.path}
-                selected={location.pathname === item.path}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => toggleSection(section.title)}
+                aria-expanded={isOpen}
+                sx={{
+                  py: 1,
+                  px: 2,
+                  ...(hasActiveItem && !isOpen
+                    ? { bgcolor: 'action.hover' }
+                    : {}),
+                }}
               >
-                <ListItemText primary={item.label} />
+                <ListItemText
+                  primary={section.title}
+                  primaryTypographyProps={{
+                    variant: 'subtitle2',
+                    fontWeight: 600,
+                    letterSpacing: '0.02em',
+                  }}
+                />
+                <IconifyIcon
+                  icon="mdi:chevron-down"
+                  width={20}
+                  height={20}
+                  sx={{
+                    color: 'text.secondary',
+                    flexShrink: 0,
+                    transition: 'transform 0.2s',
+                    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                />
               </ListItemButton>
-            ))}
-          </List>
-        </Box>
-      ))}
+              <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                <List dense disablePadding>
+                  {section.items.map((item) => {
+                    const selected = location.pathname === item.path;
+
+                    return (
+                      <ListItemButton
+                        key={item.path}
+                        component={Link}
+                        to={item.path}
+                        selected={selected}
+                        onClick={() => setMobileOpen(false)}
+                        sx={{
+                          pl: 3.5,
+                          pr: 2,
+                          py: 0.75,
+                          borderLeft: '3px solid',
+                          borderColor: selected ? 'primary.main' : 'transparent',
+                          borderRadius: 0,
+                          ...(selected
+                            ? {
+                                bgcolor: 'action.selected',
+                                '&.Mui-selected:hover': { bgcolor: 'action.selected' },
+                              }
+                            : {}),
+                        }}
+                      >
+                        <ListItemText
+                          primary={item.label}
+                          sx={{
+                            [`& .${listItemTextClasses.primary}`]: {
+                              fontSize: '0.875rem',
+                              color: selected ? 'text.primary' : 'text.secondary',
+                              fontWeight: selected ? 600 : 400,
+                            },
+                          }}
+                        />
+                      </ListItemButton>
+                    );
+                  })}
+                </List>
+              </Collapse>
+            </Box>
+          );
+        })}
+      </Box>
     </Box>
   );
 
