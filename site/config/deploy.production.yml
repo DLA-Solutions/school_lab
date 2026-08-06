@@ -1,0 +1,4 @@
+proxy:
+  hosts:
+    - scholarpremium.com.br
+    - www.scholarpremium.com.br

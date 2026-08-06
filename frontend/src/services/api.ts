@@ -1,10 +1,8 @@
 import { ApiErrorBody, RefreshResponse } from 'types/auth';
 import { clearAccessToken, getAccessToken, setAccessToken } from './tokenStore';
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000').replace(
-  /\/$/,
-  '',
-);
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '') ||
+  (import.meta.env.DEV ? 'http://localhost:3000' : '');
 
 /**
  * Locale the API resolves its i18n error messages against (`docs/api/README.md` → Locale).

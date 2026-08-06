@@ -378,6 +378,12 @@ Deploy setup is documented in `docs/guidelines/process/deployment.md`.
 - [x] **Deploy tooling — Kamal 2**, manual, two destinations (`production`, `staging`)
       sharing one app server. PostgreSQL 17 and Redis run natively on a separate VPS and
       are **not** Kamal accessories.
+- [x] **Three-service topology** — `site/` at `/`, `frontend/` SPA at `/app`, `web/` API at
+      `/api`, `/up`, `/api-docs`, `/webhooks`. Deploy order: site → SPA → API. API uses
+      `path_prefixes` with `strip_path_prefix: false`.
+- [x] **SPA base path `/app`** — `VITE_BASE_PATH=/app/` for production builds; React Router
+      `basename` from `import.meta.env.BASE_URL`; same-origin API via empty `VITE_API_BASE_URL`.
+- [x] **Static marketing site** — `site/` serves placeholder HTML at domain root; no build step.
 - [x] **Solid Queue / Solid Cache stay in the primary database** — enqueue participates
       in the same transaction as the domain writes. Only Solid Cable uses a separate
       database (`*_cable`).

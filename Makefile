@@ -4,7 +4,8 @@ COMPOSE_APP := $(COMPOSE) --profile app
 WEB := $(COMPOSE_APP) run --rm web
 
 .PHONY: check-env build up up-d down migrate seed setup console shell logs \
-        services-up services-down services-logs services-ps services-reset design-system-docs
+        services-up services-down services-logs services-ps services-reset design-system-docs \
+        site-serve site-build
 
 check-env:
 	@test -f $(ENV_FILE) || (echo "Missing $(ENV_FILE). Run: cp web/.env.example web/.env" && exit 1)
@@ -69,3 +70,11 @@ services-reset:
 
 design-system-docs:
 	cd frontend/design-system-docs && npm install && npm run build
+
+# --- Site static landing ---
+
+site-serve:
+	npx serve site/public
+
+site-build:
+	docker build -f site/Dockerfile .

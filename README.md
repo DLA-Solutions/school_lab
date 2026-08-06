@@ -4,7 +4,9 @@ Multi-school management SaaS for private Brazilian schools.
 
 ```
 school_lab/
-  web/     # Rails 8.1 — web surfaces + REST API
+  web/     # Rails 8.1 — REST API
+  frontend/  # React SPA at /app
+  site/    # static landing at /
   app/     # React Native mobile (future)
   docs/    # product docs, PRDs, guidelines
 ```
@@ -152,16 +154,169 @@ make build
 make setup
 ```
 
-## Production
+## Deployment
 
-The Rails app is deployed with Kamal 2 using the production `Dockerfile` under `web/`. `web/Dockerfile.dev` is for local development only.
+Deploys are manual from a developer machine with [Kamal 2](https://kamal-deploy.org/).
+Three services share one app server behind kamal-proxy:
 
-Two destinations share one app server: `production` (`scholarpremium.com.br`) and `staging` (`staging.scholarpremium.com.br`). PostgreSQL and Redis run natively on a separate VPS and are not managed by Kamal.
+| Path | Directory | Kamal service |
+|------|-----------|---------------|
+| `/` | `site/` | `scholarpremium-site` |
+| `/app` | `frontend/` | `scholarpremium-spa` |
+| `/api`, `/up`, `/api-docs`, `/webhooks` | `web/` | `scholarpremium` |
+
+| Destination | Hosts |
+|-------------|-------|
+| `staging` | `staging.scholarpremium.com.br` |
+| `production` | `scholarpremium.com.br`, `www.scholarpremium.com.br` |
+
+**Always pass `-d staging` or `-d production`.** A bare `kamal deploy` is blocked by
+config (`require_destination: true`).
+
+Full runbook (secrets, databases, TLS rules, rollback):
+[`docs/guidelines/process/deployment.md`](docs/guidelines/process/deployment.md).
+
+### Prerequisites (deploy machine)
+
+- SSH as `deploy` to `77.42.33.33` (key loaded in the agent)
+- Docker running locally (`docker info`)
+- `gh auth login` done
+- Classic GitHub PAT with `write:packages` + `read:packages`, exported before each deploy:
+
+```bash
+export KAMAL_REGISTRY_PASSWORD='ghp_...'   # not a plain GITHUB_TOKEN
+```
+
+Verify registry login:
+
+```bash
+docker login ghcr.io -u "$(gh config get -h github.com user)" \
+  --password-stdin <<< "$KAMAL_REGISTRY_PASSWORD"
+```
+
+Run Kamal from the **service directory** (`site/`, `frontend/`, or `web/`). Site and
+frontend ship `bin/kamal` wrappers; you can also use a globally installed `kamal` gem.
+
+### One-time secrets setup
+
+Each service directory has its own `.kamal/` folder — Kamal reads secrets from the cwd.
+
+```bash
+# Registry credentials — all three services
+cd site      && cp .kamal/secrets-common.example .kamal/secrets-common
+cd ../frontend && cp .kamal/secrets-common.example .kamal/secrets-common
+
+# API also needs per-destination secrets
+cd ../web
+cp .kamal/secrets-common.example     .kamal/secrets-common
+cp .kamal/secrets.production.example .kamal/secrets.production
+cp .kamal/secrets.staging.example    .kamal/secrets.staging
+```
+
+If `web/.kamal/secrets-common` already exists, copy it into `site/.kamal/` and
+`frontend/.kamal/` instead — the GHCR lines are identical.
+
+Before the first API deploy, populate `web/config/master.key`, Active Record encryption
+keys, and the JWT/database secrets listed in `.kamal/secrets.*.example`. Recommended
+preflight:
+
+```bash
+cd web && bin/deploy-preflight
+```
+
+### Deploy order
+
+**Routine** (after cutover is done): **site → SPA → API**.
+
+**Fresh host** (nothing registered on the hostname yet): same order — site first so it
+claims TLS at `/`, then SPA, then API last.
+
+**Cutover** (API already owns the full hostname — typical on first site/SPA deploy):
+
+```bash
+# 0. Inspect proxy routes — confirm API has no path prefixes
+ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
+
+# 1. Remove API full-host registration (name from `ls` output)
+ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy remove scholarpremium-web-staging'
+# production: scholarpremium-web-production
+
+# 2–4. Deploy site → API → SPA (API paths are down between steps 1 and 3)
+cd site      && kamal deploy -d staging
+cd ../web    && kamal deploy -d staging
+cd ../frontend && kamal deploy -d staging
+```
+
+Between cutover steps 1 and 3, `/api` and `/up` are briefly unavailable. Do **not** run
+`kamal proxy remove` — that drops the entire kamal-proxy container. Use
+`docker exec kamal-proxy kamal-proxy remove <service>` for a single route.
+
+### First deploy
+
+Run once per service per destination (`setup` installs Docker and kamal-proxy on the
+server):
+
+```bash
+cd site && kamal setup -d staging && kamal deploy -d staging
+cd frontend && kamal setup -d staging && kamal deploy -d staging
+cd web && kamal setup -d staging && kamal deploy -d staging
+```
+
+Repeat with `-d production` for production. DNS must already point at `77.42.33.33`
+before the first deploy (Let's Encrypt via kamal-proxy).
+
+### Day-to-day deploy
+
+```bash
+# Staging — deploy only what changed, in routine order when touching multiple layers
+cd site      && kamal deploy -d staging
+cd frontend  && kamal deploy -d staging
+cd web       && kamal deploy -d staging
+
+# Production (confirm staging first)
+cd site      && kamal deploy -d production
+cd frontend  && kamal deploy -d production
+cd web       && kamal deploy -d production
+```
+
+After an API schema change:
+
+```bash
+cd web && kamal app exec -d staging "bin/rails db:migrate"
+```
+
+Logs and console (API only):
 
 ```bash
 cd web
-kamal deploy -d staging
-kamal deploy -d production
+kamal app logs -f -d production
+kamal console -d production
 ```
 
-Topology, required environment variables, first-deploy steps, and rollback: [`docs/guidelines/process/deployment.md`](docs/guidelines/process/deployment.md).
+### Post-deploy smoke tests
+
+```bash
+# Staging
+curl -sI https://staging.scholarpremium.com.br/ | head -3
+curl -sI https://staging.scholarpremium.com.br/app/ | head -3
+curl -sI https://staging.scholarpremium.com.br/up | head -3
+
+# Production — same paths on scholarpremium.com.br
+curl -sI https://scholarpremium.com.br/ | head -3
+curl -sI https://scholarpremium.com.br/up | head -3
+
+ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
+```
+
+Expect three services with path prefixes on each hostname after cutover.
+
+### Rollback
+
+Each layer rolls back independently from its service directory:
+
+```bash
+cd site && kamal rollback -d staging
+cd web  && kamal rollback -d production
+```
+
+Database migrations are **not** rolled back with the container.

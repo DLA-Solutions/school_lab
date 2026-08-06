@@ -29,3 +29,7 @@ vite*.config.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# Kamal secrets — only the .example templates are versioned.
+/.kamal/secrets*
+!/.kamal/secrets*.example

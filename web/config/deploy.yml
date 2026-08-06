@@ -33,8 +33,9 @@ builder:
   # gem compilation (pg, bootsnap) take many minutes. The app server is already amd64.
   # remote: ssh://deploy@77.42.33.33
 
+# TLS is terminated at kamal-proxy on the root-path service (site/). Path-prefixed
+# services must not set proxy.ssl — kamal-proxy rejects --tls with path_prefixes.
 proxy:
-  ssl: true
   app_port: 80
   healthcheck:
     path: /up

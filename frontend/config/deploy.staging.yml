@@ -1,0 +1,9 @@
+proxy:
+  hosts:
+    - staging.scholarpremium.com.br
+  path_prefix: /app
+
+builder:
+  args:
+    VITE_BASE_PATH: /app/
+    VITE_API_BASE_URL: ""

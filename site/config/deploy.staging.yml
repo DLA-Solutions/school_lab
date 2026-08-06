@@ -1,0 +1,3 @@
+proxy:
+  hosts:
+    - staging.scholarpremium.com.br

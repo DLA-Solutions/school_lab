@@ -1,6 +1,6 @@
 # Web Stack — School Lab
 
-> Folders: `web/` (Rails API), `frontend/main` (React SPA), `app/` (React Native)  
+> Folders: `web/` (Rails API), `frontend/` (React SPA at `/app`), `site/` (static landing at `/`), `app/` (React Native)  
 > Status: finalized decision (web layer)
 
 Rails 8.1 API monolith with a versioned JSON REST API consumed by **React web** and
@@ -14,7 +14,8 @@ the MVP: app + PostgreSQL + S3.
 | Language | Ruby 4.0.x |
 | Framework | Rails 8.1.x |
 | API | REST JSON `/api/v1` |
-| Web UI | **React 19** SPA (`frontend/main`) — Vite 7 + TypeScript, **MUI v7** |
+| Web UI | **React 19** SPA (`frontend/`) — Vite 7 + TypeScript, **MUI v7**, served at `/app` |
+| Marketing site | Static HTML (`site/`) at domain root `/` |
 | Mobile UI | **React Native** (`app/`) |
 | API docs | **rswag** → OpenAPI (`swagger/v1/swagger.yaml`) |
 | Database | PostgreSQL 16+ |
@@ -31,7 +32,8 @@ the MVP: app + PostgreSQL + S3.
 ```
 school_lab/
   web/            # Rails — API, services, models, jobs (no Hotwire UI)
-  frontend/main/  # React SPA — backoffice, school, teacher, guardian (web)
+  frontend/       # React SPA — backoffice, school, teacher, guardian (web) at /app
+  site/           # static institutional landing at /
   frontend/base/  # upstream template the SPA started from — reference only
   app/            # React Native — school, teacher, parents (mobile)
   docs/api/       # API conventions + route narratives
@@ -40,16 +42,18 @@ school_lab/
 | Folder | Role |
 |--------|------|
 | `web/` | Single source of business rules; `/api/v1` only for product UI |
-| `frontend/main` | Consumes API with JWT; refresh via httpOnly cookie |
+| `frontend/` | Consumes API with JWT; refresh via httpOnly cookie; deployed at `/app` |
+| `site/` | Static marketing placeholder; no API dependency |
 | `frontend/base` | Upstream template (`dashdark-x`); reference only, not the product |
 | `app/` | Consumes same API; refresh in secure device storage |
 
 All product controllers delegate to the same service objects — rules are not duplicated.
 
-## 3. Web frontend (`frontend/main`)
+## 3. Web frontend (`frontend/`)
 
-React 19 SPA on Vite 7 + TypeScript 5.9 (SWC via `@vitejs/plugin-react-swc`). The table below
-describes what is **installed today** (`frontend/main/package.json`), not a plan.
+React 19 SPA on Vite 7 + TypeScript 5.9 (SWC via `@vitejs/plugin-react-swc`). Deployed at
+`/app` in staging and production (`VITE_BASE_PATH=/app/`). The table below describes what is
+**installed today** (`frontend/package.json`), not a plan.
 
 | Concern | Approach |
 |---------|----------|
@@ -66,7 +70,7 @@ describes what is **installed today** (`frontend/main/package.json`), not a plan
 | Lint / format | ESLint 9 flat config + Prettier, enforced during `vite dev`/`build` by `vite-plugin-checker` |
 | Tests | **Vitest** + React Testing Library on jsdom; `test` block in `vite.config.ts`, shared render helper in `src/test/renderWithTheme.tsx`. `npm run test` (watch) / `npm run test:run` (CI). Conventions: `docs/guidelines/web-ui/testing.md` |
 | API mocking | **MSW** (`msw/node`) — handlers in `src/test/msw/`, server started from `src/test/setup.ts` with `onUnhandledRequest: 'error'` |
-| Config | `VITE_API_BASE_URL` (`frontend/main/.env.example`); dev server on port 5173 to match the API's default `CORS_ORIGINS` |
+| Config | `VITE_API_BASE_URL` (`frontend/.env.example`); empty in production for same-origin `/api/...`; `VITE_BASE_PATH=/app/` for deploy builds; dev server on port 5173 |
 
 **Principle:** thin client — validation and business rules stay in the API.
 
@@ -171,8 +175,11 @@ Details: `docs/modeling/002-api-auth.md`.
 ### Minimal infrastructure (MVP)
 
 ```
-Rails API  →  PostgreSQL  →  S3
-React SPA  →  CDN or static host
+kamal-proxy
+  ├── site/ (nginx)     → /
+  ├── frontend/ (nginx) → /app
+  └── web/ (Rails)      → /api, /up, …
+PostgreSQL, S3
 React Native → stores
 ```
 
@@ -232,12 +239,17 @@ Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testin
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
-        WebUI[React SPA]
+        Browser[Browser]
         MobileApp[app React Native]
     end
 
+    subgraph proxy [kamal-proxy TLS]
+        Site[site nginx]
+        SPA[frontend nginx]
+        API[Rails Thruster]
+    end
+
     subgraph web [web/ — Rails 8.1]
-        API[API v1 JSON]
         Services[Service Objects]
         Models[ActiveRecord]
         Jobs[ActiveJob]
@@ -251,9 +263,12 @@ flowchart TB
         FCM[FCM]
     end
 
-    WebUI -->|JWT + cookie refresh| API
+    Browser -->|"/"| Site
+    Browser -->|"/app/*"| SPA
+    Browser -->|"/api /up"| API
     MobileApp -->|JWT + secure refresh| API
 
+    SPA -->|same-origin /api| API
     API --> Services
     Services --> Models
     Services --> Jobs

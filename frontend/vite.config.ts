@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => ({
     // cookie is accepted without extra backend configuration.
     port: 5173,
   },
-  base: '/',
+  base: process.env.VITE_BASE_PATH ?? '/',
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

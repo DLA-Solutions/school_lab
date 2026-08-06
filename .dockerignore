@@ -1,0 +1,5 @@
+**/.git
+**/node_modules
+frontend/dist
+frontend/design-system-docs/node_modules
+packages/design-tokens/node_modules
