@@ -32,14 +32,35 @@ When adding a new Portuguese identifier, confirm with the team and update this t
 | Membership (user ↔ school role) | `membership` | Vínculo |
 | Billing plan | `billing_plan` | Plano de cobrança |
 | Contract (student billing) | `contract` | Contrato |
+| Enrollment contract | `enrollment_contract` | Contrato de matrícula |
+| Contract signature status | `signature_status` | Status da assinatura |
 | Payment | `payment` | Pagamento |
 | Webhook event (payment provider) | `webhook_event` | Evento webhook |
+| Onboarding status | `onboarding_status` | Status de onboarding |
+| Onboarding mode | `onboarding_mode` | Modo de onboarding |
+| Staff preset | `preset_key` | Perfil de acesso |
+
+`signature_status` values (phase 2, enrollment contracts): `pending`, `sent`, `signed`,
+`declined`, `expired` — tracked separately from `onboarding_status`.
 
 ## Roles (authorization)
 
 | Role | Code | UI (pt-BR) |
 |------|------|------------|
 | Platform admin | `backoffice` | Backoffice |
-| School admin | `school` | Escola |
+| School staff | `staff` | Equipe |
 | Teacher | `teacher` | Professor |
 | Guardian | `guardian` | Responsável |
+
+Legacy: `school` role maps to `staff` (see identity PRD D1).
+
+## Staff presets (`preset_key`)
+
+| Preset | UI (pt-BR) | Typical stakeholder |
+|--------|------------|---------------------|
+| `director` | Direção | Diretor / vice-diretor |
+| `secretary` | Secretaria | Secretária |
+| `coordination` | Coordenação | Coordenadora |
+| `teacher` | Professor | Professor |
+
+Presets expand to permission keys — not separate membership roles.

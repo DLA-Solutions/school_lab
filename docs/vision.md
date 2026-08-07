@@ -82,7 +82,7 @@ as the main focus, with academic stability and billing as complementary pillars.
 **In the MVP**
 
 - School registration and data isolation between schools.
-- Identity and roles: backoffice, school (admin), teacher, parents.
+- Identity and roles: backoffice, staff, teacher, parents.
 - User registration and login (all roles).
 - Base records: students, guardians, classes, subjects.
 - **Communication**: two-way parent↔teacher and parent↔school messaging, with

@@ -16,7 +16,10 @@ Narrative DSL for the fintech-first billing MVP. The authoritative schema for mi
 | `refresh_tokens` | Hashed refresh tokens for API JWT — web (httpOnly cookie) and mobile (secure storage); no Discard |
 | `device_tokens` | FCM registration tokens per user and platform — Discard on logout/rotation |
 
-Roles on `memberships.role`: `backoffice`, `school`, `teacher`, `guardian`.  
+Roles on `memberships.role`: `backoffice`, `staff` (migrated from `school`), `teacher`, `guardian`.  
+Extended authorization (presets, permission keys, `staff_profiles`): see
+[`003-identity-permissions.md`](003-identity-permissions.md).
+
 Membership status flow: `invited` → `active` (also `suspended` per school).
 
 User platform status: `active` | `disabled` (blocks all schools; distinct from per-school `suspended`).

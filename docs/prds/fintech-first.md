@@ -248,6 +248,10 @@ Flow:
 
 ### UC-06 — Membership invite (guardian or staff)
 
+> **Superseded by:** [`docs/prds/identity-and-onboarding/onboarding.md`](identity-and-onboarding/onboarding.md)
+> (UC-O04, UC-O07) and [`permissions.md`](identity-and-onboarding/permissions.md) (presets).
+> Token + set-password flow replaces random password stub.
+
 Input: school admin, email, role.
 
 Flow:
@@ -268,6 +272,9 @@ Flow:
 3. Guardian sees approved/pending docs for linked children only.
 
 ### UC-08 — Backoffice school onboarding
+
+> **Superseded by:** [`docs/prds/identity-and-onboarding/onboarding.md`](identity-and-onboarding/onboarding.md)
+> (UC-O01–UC-O05). Extended with onboarding modes, owner invite, and handoff.
 
 Input: backoffice user.
 
@@ -415,6 +422,10 @@ Configured in `web/config/recurring.yml` (Solid Queue), all on the `billing` que
 ---
 
 ## Permissions
+
+> **Superseded by:** [`docs/prds/identity-and-onboarding/permissions.md`](identity-and-onboarding/permissions.md)
+> for staff presets and granular permission keys. Table below remains the fintech-first
+> implementation snapshot until W1 migration.
 
 Pundit policies enforce role × action. Controller calls `authorize` before services.
 
