@@ -22,6 +22,9 @@ export type { ConfirmDialogProps } from './patterns/ConfirmDialog';
 export { default as ThemeToggle } from './patterns/ThemeToggle';
 export type { ThemeToggleProps } from './patterns/ThemeToggle';
 
+export { default as BrandLogo } from './patterns/BrandLogo';
+export type { BrandLogoProps, BrandLogoVariant } from './patterns/BrandLogo';
+
 export { default as DataTable } from './data/DataTable';
 export type { DataTableProps, DataTableRange } from './data/DataTable';
 
