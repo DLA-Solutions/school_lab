@@ -15,6 +15,7 @@ English default, so a screen changes wording by passing it rather than by forkin
 | `ErrorBanner` | `retryLabel` | `'Retry'` |
 | `SearchField` | `placeholder`, `ariaLabel` | `'Search for...'`, `'Search'` |
 | `ThemeToggle` | `switchToLightLabel`, `switchToDarkLabel` | `'Switch to light mode'`, `'Switch to dark mode'` |
+| `BrandLogo` | `alt` | `'Scholar Premium'` |
 
 `SearchField`'s `ariaLabel` and `ThemeToggle`'s tooltips are accessible names, not decoration —
 they are the only names those controls have. The product locale is pt-BR and the SPA has no i18n
@@ -121,6 +122,20 @@ since the icon carries no text.
 <ThemeToggle />
 <ThemeToggle size="small" switchToLightLabel="Use the light theme" />
 ```
+
+## BrandLogo
+
+Theme-aware Scholar Premium mark. Assets live in `frontend/src/assets/brand/` — navy/gold for
+light surfaces, white/gold for dark (the product default). Both files render; CSS on the
+`light` / `dark` document class picks the visible one, so there is no hydration flash.
+
+```tsx
+<BrandLogo />                              {/* brasão, 24px */}
+<BrandLogo variant="lockup" height={32} /> {/* icon + wordmark */}
+```
+
+Use `mark` in compact slots (mobile topbar) and `lockup` where the brand replaces a logo + name
+pair (sidebar, auth). Do not import the PNGs directly in screens.
 
 ## useChartTheme
 

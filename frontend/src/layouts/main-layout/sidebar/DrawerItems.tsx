@@ -7,13 +7,11 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import ButtonBase from '@mui/material/ButtonBase';
 import InputAdornment from '@mui/material/InputAdornment';
-import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
-import Image from 'components/base/Image';
 import IconifyIcon from 'components/base/IconifyIcon';
+import { BrandLogo } from 'design-system';
 import { useAuth } from 'providers/AuthContext';
 import ListItem from './list-items/ListItem';
-import Logo from 'assets/images/Logo.png';
 
 const DrawerItems = () => {
   const { logout } = useAuth();
@@ -32,10 +30,7 @@ const DrawerItems = () => {
         zIndex="appBar"
       >
         <ButtonBase component={RouterLink} to={paths.dashboard} disableRipple>
-          <Image src={Logo} alt="logo" height={24} width={24} sx={{ mr: 1 }} />
-          <Typography variant="h5" color="text.primary" fontWeight={600} letterSpacing={1}>
-            School Lab
-          </Typography>
+          <BrandLogo variant="lockup" height={28} />
         </ButtonBase>
       </Stack>
 

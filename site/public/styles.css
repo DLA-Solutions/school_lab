@@ -61,6 +61,10 @@ body {
   margin-bottom: 2.5rem;
 }
 
+.brand__icon {
+  border-radius: 0.5rem;
+}
+
 .brand__name {
   font-size: 1.125rem;
   font-weight: 600;

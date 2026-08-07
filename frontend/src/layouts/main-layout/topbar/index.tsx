@@ -8,11 +8,9 @@ import ButtonBase from '@mui/material/ButtonBase';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
-import Image from 'components/base/Image';
 import LanguageSelect from './LanguageSelect';
 import ProfileMenu from './ProfileMenu';
-import { ThemeToggle } from 'design-system';
-import Logo from 'assets/images/Logo.png';
+import { BrandLogo, ThemeToggle } from 'design-system';
 
 interface TopbarProps {
   isClosing: boolean;
@@ -48,7 +46,7 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
           disableRipple
           sx={{ display: { xs: 'block', lg: 'none' } }}
         >
-          <Image src={Logo} alt="logo" height={24} width={24} />
+          <BrandLogo variant="mark" height={28} />
         </ButtonBase>
 
         <Typography
