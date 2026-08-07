@@ -25,12 +25,29 @@ const DrawerItems = () => {
         position={'sticky'}
         top={0}
         bgcolor="background.default"
-        alignItems="center"
+        alignItems="flex-start"
         justifyContent="flex-start"
         zIndex="appBar"
+        width={1}
       >
-        <ButtonBase component={RouterLink} to={paths.dashboard} disableRipple>
-          <BrandLogo variant="lockup" height={28} />
+        <ButtonBase
+          component={RouterLink}
+          to={paths.dashboard}
+          disableRipple
+          sx={{ width: 1, justifyContent: 'flex-start' }}
+        >
+          <BrandLogo
+            variant="lockup"
+            sx={{
+              width: 1,
+              maxWidth: 1,
+              height: 'auto',
+              '& img': {
+                width: '100%',
+                height: 'auto',
+              },
+            }}
+          />
         </ButtonBase>
       </Stack>
 
