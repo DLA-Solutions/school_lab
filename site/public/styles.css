@@ -55,21 +55,13 @@ body {
 
 .brand {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
   margin-bottom: 2.5rem;
 }
 
-.brand__icon {
-  border-radius: 0.5rem;
-}
-
-.brand__name {
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--color-text-primary);
+.brand__lockup {
+  display: block;
+  width: clamp(14rem, 52vw, 20rem);
+  height: auto;
 }
 
 .headline {
