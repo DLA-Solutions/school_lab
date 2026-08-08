@@ -128,7 +128,7 @@ Details: `docs/modeling/002-api-auth.md`.
 
 | Component | Decision |
 |------------|---------|
-| **Authorization** | Pundit — roles: backoffice, school, teacher, guardian |
+| **Authorization** | Pundit — roles: backoffice, staff, teacher, guardian |
 | **Per-school isolation** | Path `/schools/:school_id/...` + Pundit + services |
 | **Per-family isolation** | Guardian `.../me/...` routes + policies |
 

@@ -1,6 +1,6 @@
-// Fintech-first — executable schema (DBML)
+// School Lab — executable schema (DBML)
 // Auth: Devise (web session) + refresh_tokens (API JWT)
-// Narrative DSL + LGPD notes: docs/modeling/001-fintech-first.md
+// Narrative DSL: docs/modeling/001-fintech-first.md, 003-identity-permissions.md, 004-school-onboarding.md
 //
 // Soft delete: Discard gem — default column discarded_at (nullable timestamp).
 //   kept: discarded_at IS NULL — visible in app queries (Model.kept / default_scope).
@@ -31,6 +31,10 @@ Table schools {
   cnpj varchar
   address varchar
   saas_plan varchar
+  onboarding_status varchar [not null, default: 'pending_handoff', note: 'provisioning | pending_handoff | active — see 004-school-onboarding.md']
+  onboarding_mode varchar [note: 'self_serve | white_glove — set at create; immutable after active']
+  billing_waived_at timestamp [note: 'Handoff when billing setup skipped']
+  segments_skipped_at timestamp [note: 'Handoff when segments deferred']
   discarded_at timestamp [note: 'Discard gem — null = kept']
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
@@ -74,7 +78,7 @@ Table memberships {
   id integer [primary key, increment]
   user_id integer [not null]
   school_id integer [note: 'Nullable for platform backoffice']
-  role varchar [not null, note: 'backoffice | school | teacher | guardian']
+  role varchar [not null, note: 'backoffice | staff | teacher | guardian — school deprecated, migrate to staff (003)']
   status varchar [not null, default: 'active', note: 'active | invited | suspended — per-school only; global disable is users.status']
   suspended_at timestamp [note: 'Set when status becomes suspended']
   suspended_by_id integer [note: 'School admin who suspended; nullable for system/job']
@@ -107,6 +111,55 @@ Table device_tokens {
 
   indexes {
     token [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+  }
+}
+
+// --- Identity: permissions (003) ---
+
+Table segments {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null, note: 'E.g. Early childhood, Elementary — MVP minimum']
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, name) [note: 'DB migration: UNIQUE WHERE discarded_at IS NULL per school']
+  }
+}
+
+Table staff_profiles {
+  id integer [primary key, increment]
+  membership_id integer [not null, note: 'One profile per staff or teacher membership']
+  school_id integer [not null, note: 'Denormalized for tenant scopes and owner unique index']
+  preset_key varchar [not null, note: 'director | secretary | coordination | teacher']
+  is_owner boolean [not null, default: false, note: 'At most one true per school among kept profiles']
+  segment_id integer [note: 'Nullable — scope for partial permissions']
+  display_title varchar [note: 'Cosmetic UI label — LGPD: may contain personal name']
+  also_teaches boolean [not null, default: false, note: 'Coordination preset: enables teach permission']
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    membership_id [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+    (school_id, is_owner) [note: 'Partial unique WHERE is_owner = true AND discarded_at IS NULL — one owner per school']
+  }
+}
+
+Table membership_permissions {
+  id integer [primary key, increment]
+  membership_id integer [not null]
+  school_id integer [not null]
+  permission_key varchar [not null, note: 'Fixed enum in code — see permissions PRD']
+  discarded_at timestamp [note: 'Discard — or hard delete on revoke; TBD in migration']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (membership_id, permission_key) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+    (school_id, permission_key)
   }
 }
 
@@ -385,6 +438,41 @@ Table documents {
   }
 }
 
+// --- Onboarding (004) ---
+
+Table membership_invite_tokens {
+  id integer [primary key, increment]
+  membership_id integer [not null]
+  school_id integer [not null]
+  token_digest varchar [not null, unique, note: 'SHA-256 of opaque token — never store raw token']
+  expires_at timestamp [not null, note: 'Default created_at + 7 days']
+  used_at timestamp [note: 'Set on successful POST /auth/invite/accept']
+  created_by_id integer [note: 'users.id — inviter; nullable for system']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    membership_id
+    (school_id, expires_at)
+  }
+}
+
+Table provisioning_imports {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  uploaded_by_id integer [not null, note: 'users.id — backoffice actor']
+  status varchar [not null, default: 'previewed', note: 'previewed | committed | failed']
+  row_count integer
+  error_report jsonb [note: 'Validation errors from dry_run — LGPD: may contain PII']
+  committed_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, created_at)
+  }
+}
+
 // --- Relationships ---
 
 Ref: schools.school_group_id > school_groups.id
@@ -393,6 +481,19 @@ Ref: schools.discarded_by_id > users.id
 Ref: memberships.user_id > users.id
 Ref: memberships.school_id > schools.id
 Ref: memberships.suspended_by_id > users.id
+
+Ref: segments.school_id > schools.id
+Ref: staff_profiles.membership_id > memberships.id
+Ref: staff_profiles.school_id > schools.id
+Ref: staff_profiles.segment_id > segments.id
+Ref: membership_permissions.membership_id > memberships.id
+Ref: membership_permissions.school_id > schools.id
+
+Ref: membership_invite_tokens.membership_id > memberships.id
+Ref: membership_invite_tokens.school_id > schools.id
+Ref: membership_invite_tokens.created_by_id > users.id
+Ref: provisioning_imports.school_id > schools.id
+Ref: provisioning_imports.uploaded_by_id > users.id
 Ref: refresh_tokens.user_id > users.id
 Ref: device_tokens.user_id > users.id
 Ref: users.disabled_by_id > users.id
@@ -470,9 +571,9 @@ Records school_groups(id, name) {
   0, 'Example School'
 }
 
-Records schools(id, school_group_id, name) {
-  0, 0, 'Example School — Downtown Unit'
-  1, 0, 'Example School — South Unit'
+Records schools(id, school_group_id, name, onboarding_status, onboarding_mode) {
+  0, 0, 'Example School — Downtown Unit', 'active', 'self_serve'
+  1, 0, 'Example School — South Unit', 'provisioning', 'white_glove'
 }
 
 Records users(id, email, encrypted_password, status) {
@@ -482,9 +583,13 @@ Records users(id, email, encrypted_password, status) {
 }
 
 Records memberships(id, user_id, school_id, role, status) {
-  0, 0, 0, 'school', 'active'
+  0, 0, 0, 'staff', 'active'
   1, 1, 0, 'guardian', 'active'
   2, 1, 1, 'guardian', 'suspended'
+}
+
+Records staff_profiles(id, membership_id, school_id, preset_key, is_owner) {
+  0, 0, 0, 'director', true
 }
 
 Records guardians(id, school_id, user_id, name, cpf) {

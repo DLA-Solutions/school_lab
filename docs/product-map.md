@@ -76,8 +76,9 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
    domain PRDs.
 2. Write domain PRDs (one per domain, using the template) — suggested order
    below.
-3. Data modeling from the PRDs — **in progress** for fintech-first (`docs/modeling/`,
-   `docs/database/`); hybrid pattern: narrative DSL + DBML/DER for executable schema.
+3. Data modeling from the PRDs — **in progress** for fintech-first and identity/onboarding
+   (`docs/modeling/003-identity-permissions.md`, `004-school-onboarding.md`, `docs/database/`);
+   hybrid pattern: narrative DSL + DBML/DER for executable schema.
 4. Implementation (`web/` with the stack defined in `web-stack.md`).
 
 **Billing-first partner slice (Aug 2026):** `fintech-first` billing ships as the first
@@ -92,9 +93,10 @@ adjusted after stakeholder validation (Jul 2026 — communication as the MVP
 focus):
 
 1. Product vision & scope — what is / isn't the MVP.
-2. Multi-tenancy & schools — `school_id`, isolation, school onboarding.
-3. Identity & roles — school, teacher, guardian, backoffice; registration and
-   login.
+2. Multi-tenancy & schools — `school_id`, isolation, school onboarding. **In progress:**
+   [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draft).
+3. Identity & roles — staff, teacher, guardian, backoffice; presets; registration and
+   login. **In progress:** [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draft).
 4. Students & enrollments — registration, family–student–class link.
 5. **Communication** — two-way messaging with images, push notifications.
 6. Academic — classes, subjects, grades, report cards, attendance (reliability).

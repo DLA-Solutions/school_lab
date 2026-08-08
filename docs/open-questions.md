@@ -75,6 +75,43 @@ UC-03, Open items, Positioning note).
 - [x] **Fintech-first vs School Lab monorepo** — **decided:** single School Lab product;
       billing-first partner slice, then communication/academic on shared entities. See
       `docs/prds/fintech-first.md` (Positioning note) and `docs/product-map.md` §4.
+
+## Identity & Onboarding
+
+PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draft).
+
+- [x] **Staff role rename** — `school` → `staff` in code; presets for Secretaria/Coordenação/Direção
+      (not new roles). See permissions PRD D1–D3.
+- [x] **Onboarding modes** — `self_serve` and `white_glove`; lifecycle `provisioning` →
+      `pending_handoff` → `active`.
+- [x] **Invite flow** — single-use token + set password (not random server password).
+- [x] **Enrollment contract does not block login** — signature gate deferred to phase 2 (BR-O11).
+- [ ] Transactional email provider for invites (Postmark, SES, …).
+- [ ] LGPD consent record location for staff/guardian onboarding.
+- [ ] `segments` MVP depth (full entity vs nullable stub).
+- [ ] Partner workshop to validate preset × permission matrix before PRDs marked `validated`.
+
+### Enrollment contract signature (Authentic — proposed, phase 2)
+
+Product direction: integrate digital signature for **enrollment contracts** (contrato de
+matrícula) — likely via **Authentic** (Brazilian e-signature). **Not confirmed** as vendor;
+evaluate against Authentique, Clicksign, and legal requirements in § Contracts below.
+
+- [ ] Confirm **Authentic** (or alternative) as enrollment signature vendor.
+- [ ] Authentic webhook authentication and idempotency model.
+- [ ] LGPD: retention period and processor role for signed PDFs stored in platform archive.
+- [ ] Who triggers contract send to Authentic: backoffice during white-glove vs owner/secretary
+      in self-serve.
+- [ ] Which business actions signature may gate (charge generation, enrollment activation) —
+      login explicitly **not** gated.
+
+**Boundary:** Authentic integration is for **guardian ↔ school enrollment contracts**, not the
+commercial SaaS agreement between DLA and the school.
+
+See [`onboarding.md`](prds/identity-and-onboarding/onboarding.md) § Future integration — Authentic.
+
+## MVP and scope (continued)
+
 - [ ] Confirm the full MVP scope: communication + academic (grades, report
       cards, attendance) + billing (boleto) + digital archive. What is left out
       in this first cut?
@@ -162,10 +199,10 @@ The stakeholder validated strong interest. The Livro Ata shares digital-
 signature infrastructure with contracts.
 
 - [ ] Proprietary signature vs. third parties (DocuSign, Authentique,
-      Clicksign)? Proposal under evaluation: a proprietary advanced signature
-      with a scribble (drawn field) + email + IP + hash — it needs to match the
-      standard accepted by the notary's office (DocuSign/Authentique). Legal
-      validation pending (Lei 14.063/2020).
+      Clicksign)? **Product direction (Aug 2026):** enrollment contracts likely via
+      **Authentic** — proposed, not confirmed. See Identity & Onboarding PRD and
+      `docs/open-questions.md` § Enrollment contract signature. SaaS commercial agreement
+      remains outside product scope.
 - [ ] Legal requirements for legal validity in Brazil — confirm with a
       specialized lawyer before deciding proprietary vs. third party.
 - [ ] Types of minutes in the initial scope: enrollment, Conselho de Classe
