@@ -19,7 +19,7 @@ but not for official launch with Direção, Secretaria, Coordenação, and Profe
 **Gaps today**
 
 - `school_staff?` treats all school admins equally.
-- No owner (`is_owner`) or preset model.
+- No owner (`is_owner`) or role template model.
 - `CreateSchoolService` does not provision an owner.
 - Invites use random passwords instead of secure token + set-password flow.
 - No distinction between self-serve signup and premium white-glove provisioning.
@@ -32,7 +32,7 @@ backoffice with formal handoff to the director.
 ## 2. Objective (north star)
 
 Ship **granular staff authorization** and **two onboarding modes** (self-serve + white-glove) so
-a school can go from contract to operational tenant with audited provisioning, correct presets,
+a school can go from contract to operational tenant with audited provisioning, system role templates,
 and a single owner — without blocking the communication MVP that follows.
 
 ---
@@ -52,7 +52,7 @@ and a single owner — without blocking the communication MVP that follows.
 
 ### In scope
 
-- Permissions engine (roles + presets + permission keys + segment scope) — BC1.
+- Permissions engine (role templates — system + custom — + permission keys + overrides + segment scope) — BC1.
 - School lifecycle (`provisioning` → `pending_handoff` → `active`) and modes — BC2.
 - Invite token + set password; membership accept flow.
 - Owner wizard (self-serve) and backoffice provisioning wizard (white-glove).
@@ -66,7 +66,7 @@ and a single owner — without blocking the communication MVP that follows.
 - Impersonation / "login as school" for support (future PRD).
 - Commercial SaaS contract in product.
 - Full `segments` academic model (MVP minimum or stub — D6).
-- Individual permission editor UI beyond API (phase 1.1 / W5).
+- Visual permission editor UI deferred to layer SPA PRD (APIs in W1–W2 are in scope).
 
 ---
 
@@ -74,7 +74,7 @@ and a single owner — without blocking the communication MVP that follows.
 
 | BC | Document | Answers |
 |----|----------|---------|
-| **BC1 — Permissions** | [`permissions.md`](permissions.md) | Who can do what inside a school? How do presets map to permission keys? How do policies resolve scope? |
+| **BC1 — Permissions** | [`permissions.md`](permissions.md) | Who can do what inside a school? How do role templates map to permission keys? How do overrides and policies resolve scope? |
 | **BC2 — Onboarding** | [`onboarding.md`](onboarding.md) | How does a school enter the platform? What states and modes exist? How do invites and handoff work? |
 
 ```mermaid
@@ -85,12 +85,14 @@ flowchart LR
         HAND[Handoff]
     end
     subgraph BC1 [Permissions]
-        PRE[preset_key]
+        RT[role_templates]
         PERM[permission keys]
+        OVR[overrides]
         POL[Pundit]
     end
-    INV -->|preset_key segment_id| PRE
-    PRE --> PERM
+    INV -->|role_template_id segment_id| RT
+    RT --> PERM
+    OVR --> PERM
     PERM --> POL
     LIFE -.->|does not affect| PERM
 ```
@@ -99,16 +101,18 @@ flowchart LR
 
 ## 6. Actors and surfaces
 
-Stakeholder → authorization mapping (presets, not new roles):
+Stakeholder → authorization mapping (system role templates by default, not new roles):
 
-| Stakeholder (pt-BR UI) | `memberships.role` | `preset_key` | Primary surface |
-|------------------------|-------------------|--------------|-----------------|
+| Stakeholder (pt-BR UI) | `memberships.role` | Default system template (`system_key`) | Primary surface |
+|------------------------|-------------------|----------------------------------------|-----------------|
 | Diretor / Vice-diretor | `staff` | `director` | Web SPA (school) |
 | Secretaria | `staff` | `secretary` | Web SPA |
 | Coordenação | `staff` or `teacher` | `coordination` | Web SPA |
 | Professor | `teacher` | `teacher` | Web + app |
 | Responsável | `guardian` | — | App (+ web per channel decision) |
 | DLA backoffice | `backoffice` | — | Web SPA (backoffice) |
+
+Schools may create custom templates; invites use `role_template_id`.
 
 Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md) (updated in this initiative).
 
@@ -118,9 +122,9 @@ Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md) (updated i
 
 All three PRDs share this contract:
 
-1. **Onboarding uses permissions** — every staff/teacher invite includes `preset_key` and
-   optional `segment_id`; onboarding services call `People::CreateMembershipService` (extended),
-   not a parallel authorization path.
+1. **Onboarding uses permissions** — school create provisions system role templates; every
+   staff/teacher invite includes `role_template_id` and optional `segment_id`; onboarding
+   services call `People::CreateMembershipService` (extended), not a parallel authorization path.
 2. **Permissions engine is onboarding-agnostic** — effective permissions depend on membership,
    `staff_profiles`, and grants only; not on `onboarding_mode` or `onboarding_status`.
 3. **Backoffice provisioning** — uses platform permission `provision_school` while
@@ -140,8 +144,8 @@ sequenceDiagram
     participant Perm as Permissions
     participant Pol as Policy
 
-    Onb->>Mem: POST memberships preset_key director
-    Mem->>Perm: materialize preset permissions
+    Onb->>Mem: POST memberships role_template_id director
+    Mem->>Perm: link staff_profile to template
     Note over Onb,Perm: onboarding_status not passed to Perm
     Pol->>Perm: staff_with? manage_billing
     Perm-->>Pol: allow/deny
@@ -155,14 +159,14 @@ Documentary and implementation order:
 
 | Wave | Primary doc | Deliverable |
 |------|-------------|-------------|
-| **W1** | permissions.md | Permission model, presets, `school`→`staff` migration, extended `GET /me` |
-| **W2** | onboarding.md | Invite token table, `POST /auth/invite/accept`, membership accept |
+| **W1** | permissions.md | Role templates CRUD, system template provisioning, `school`→`staff` migration, extended `GET /me` |
+| **W2** | permissions.md + onboarding.md | Membership overrides API, `staff_with?` policies; invite token + accept |
 | **W3** | onboarding.md | Self-serve: owner wizard + team invites |
 | **W4** | onboarding.md | White-glove: backoffice provisioning + handoff + CSV import |
-| **W5** | permissions.md | Individual permission adjustments (phase 1.1) |
 | **Phase 2** | onboarding.md + enrollments PRD | Enrollment contract digital signature via **Authentic** (proposed vendor) — see § Future integration |
 
-W1 is a hard dependency for W2–W4 (presets on invites). W5 can ship after schools are active.
+W1 is a hard dependency for W2–W4 (templates on invites). W2 permissions overrides can ship
+alongside invite accept. Former W5 (individual permission adjustments) is merged into W2.
 Phase 2 signature work starts after W4; it does **not** block login (BR-O11).
 
 ---
@@ -172,11 +176,12 @@ Phase 2 signature work starts after W4; it does **not** block login (BR-O11).
 | # | Decision | Status |
 |---|----------|--------|
 | D1 | Rename `school` → `staff` in code; UI "Escola/Equipe" | Documented — migration in UC-P04 |
-| D2 | Presets: `director`, `secretary`, `coordination`, `teacher` | Documented |
+| D2 | System role templates + custom templates (Level A) | Documented |
 | D3 | Coordinating teacher = `teacher` role + coordination permissions | Documented |
 | D4 | Backoffice uses `provision_school` during provisioning | Documented |
 | D5 | Single-use invite token + set password | Documented |
 | D6 | `segments` entity — MVP minimum or stub | Open — see [`open-questions.md`](../../open-questions.md) |
+| D7 | Template propagation: immediate runtime; overrides preserved | Documented |
 
 ---
 
@@ -188,7 +193,7 @@ Phase 2 signature work starts after W4; it does **not** block login (BR-O11).
 - **Security** — invite tokens single-use, time-limited; passwords never returned by API.
 - **Auditing** — permission changes and provisioning actions audited (`audited` gem).
 - **Compatibility** — fintech-first billing policies migrate to permission checks without
-  behaviour regression for existing partner school (director preset backfill).
+  behaviour regression for existing partner school (director system template backfill).
 
 ---
 
@@ -199,7 +204,7 @@ See [`docs/open-questions.md`](../../open-questions.md) § Identity & Onboarding
 - [ ] Transactional email provider for invites (Postmark, SES, …).
 - [ ] LGPD consent record location for staff/guardian onboarding.
 - [ ] `segments` MVP depth (full entity vs nullable stub).
-- [ ] Partner workshop to validate preset × permission matrix before `validated` status.
+- [ ] Partner workshop to validate system template × permission matrix before `validated` status.
 - [ ] Terms acknowledgment persistence for handoff checklists.
 - [ ] Confirm **Authentic** as enrollment signature vendor (proposed — see onboarding PRD).
 - [ ] Authentic webhook/auth model and signed PDF LGPD retention.
@@ -218,7 +223,7 @@ converge through the waves above without duplicating billing business rules.
 ## 13. Definition of Done (documentation)
 
 - [x] Three PRD files in `docs/prds/identity-and-onboarding/` with complete sections.
-- [x] Preset × permission matrix and provisioning/activation handoff checklists documented.
+- [x] System template × permission matrix (appendix) and role template model documented.
 - [x] BRs numbered; supersession notes in fintech-first.
 - [x] Modeling 003 + 004 + schema.dbml aligned.
 - [x] `open-questions.md` Identity section added.

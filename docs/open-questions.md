@@ -80,7 +80,7 @@ UC-03, Open items, Positioning note).
 
 PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draft).
 
-- [x] **Staff role rename** — `school` → `staff` in code; presets for Secretaria/Coordenação/Direção
+- [x] **Staff role rename** — `school` → `staff` in code; system role templates for Secretaria/Coordenação/Direção (Level A + overrides — see permissions PRD).
       (not new roles). See permissions PRD D1–D3.
 - [x] **Onboarding modes** — `self_serve` and `white_glove`; lifecycle `provisioning` →
       `pending_handoff` → `active`.
@@ -91,7 +91,7 @@ PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draf
 - [ ] `segments` MVP depth (full entity vs nullable stub).
 - [ ] Terms acknowledgment persistence for handoff checklists (MVP app flag vs
       `school_onboarding_acknowledgements` table — see modeling 004).
-- [ ] Partner workshop to validate preset × permission matrix before PRDs marked `validated`.
+- [ ] Partner workshop to validate system template × permission matrix (permissions PRD appendix) before PRDs marked `validated`.
 
 ### Enrollment contract signature (Authentic — proposed, phase 2)
 

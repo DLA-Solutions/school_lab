@@ -38,7 +38,7 @@ When adding a new Portuguese identifier, confirm with the team and update this t
 | Webhook event (payment provider) | `webhook_event` | Evento webhook |
 | Onboarding status | `onboarding_status` | Status de onboarding |
 | Onboarding mode | `onboarding_mode` | Modo de onboarding |
-| Staff preset | `preset_key` | Perfil de acesso |
+| Role template | `role_template_id` | Perfil de acesso |
 
 `signature_status` values (phase 2, enrollment contracts): `pending`, `sent`, `signed`,
 `declined`, `expired` — tracked separately from `onboarding_status`.
@@ -54,13 +54,21 @@ When adding a new Portuguese identifier, confirm with the team and update this t
 
 Legacy: `school` role maps to `staff` (see identity PRD D1).
 
-## Staff presets (`preset_key`)
+## Role templates
 
-| Preset | UI (pt-BR) | Typical stakeholder |
-|--------|------------|---------------------|
+Schools define **role templates** (`school_role_templates`) by combining permission keys from
+the platform catalog. API field: `role_template_id` on membership invite.
+
+**System templates** (`is_system: true`) are provisioned per school with `system_key`:
+
+| `system_key` | UI (pt-BR) | Typical stakeholder |
+|--------------|------------|---------------------|
 | `director` | Direção | Diretor / vice-diretor |
 | `secretary` | Secretaria | Secretária |
 | `coordination` | Coordenação | Coordenadora |
 | `teacher` | Professor | Professor |
 
-Presets expand to permission keys — not separate membership roles.
+Schools may create **custom templates** (e.g. receptionist) with `is_system: false`.
+Templates expand to permission keys — not separate membership roles.
+
+**Deprecated:** `preset_key` — replaced by `role_template_id` (see permissions PRD D2).

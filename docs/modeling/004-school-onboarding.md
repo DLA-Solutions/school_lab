@@ -56,6 +56,12 @@ self_serve:
 
 `onboarding_mode` is set at create and treated immutable after `active`.
 
+## System role template provisioning
+
+On school create (self-serve or white-glove), onboarding invokes
+`Identity::ProvisionSystemRoleTemplatesService` before the first staff invite — same registry
+as UC-P04 data migration. Not `db/seeds` in production.
+
 ## Invite flow (D5)
 
 1. Service generates 32+ byte random token; email contains URL with raw token once.
