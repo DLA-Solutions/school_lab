@@ -200,6 +200,7 @@ See [`docs/open-questions.md`](../../open-questions.md) § Identity & Onboarding
 - [ ] LGPD consent record location for staff/guardian onboarding.
 - [ ] `segments` MVP depth (full entity vs nullable stub).
 - [ ] Partner workshop to validate preset × permission matrix before `validated` status.
+- [ ] Terms acknowledgment persistence for handoff checklists.
 - [ ] Confirm **Authentic** as enrollment signature vendor (proposed — see onboarding PRD).
 - [ ] Authentic webhook/auth model and signed PDF LGPD retention.
 - [ ] Who triggers enrollment contract send: backoffice vs owner/secretary.
@@ -221,5 +222,5 @@ converge through the waves above without duplicating billing business rules.
 - [x] BRs numbered; supersession notes in fintech-first.
 - [x] Modeling 003 + 004 + schema.dbml aligned.
 - [x] `open-questions.md` Identity section added.
-- [ ] Internal doc-consistency pass complete; partner workshop still pending before `validated`.
+- [x] Internal doc-consistency pass complete (2026-08-08); critical diagram/handoff fixes in follow-up PR.
 - [ ] Partner workshop completed or explicitly flagged.

@@ -222,9 +222,12 @@ Input: deployment migration task.
 Flow:
 
 1. `UPDATE memberships SET role = 'staff' WHERE role = 'school'`.
-2. For each migrated membership, create `staff_profiles` with `preset_key: director`,
-   `is_owner: true` for the first active membership per school (or all if ambiguous — log for
-   manual review).
+2. For each school with migrated memberships, set `is_owner: true` on exactly one row:
+   the **earliest kept** `school` membership by `memberships.created_at` (tie-break: lowest
+   `memberships.id`). All other migrated memberships get `is_owner: false` with
+   `preset_key: director`. Schools with no kept `school` membership are logged for manual
+   review; schools where multiple memberships share the same `created_at` are logged and
+   resolved by lowest `id` only (no duplicate owners).
 3. Backfill `membership_permissions` from director preset.
 4. Update policies from `school_staff?` to `staff_with?`.
 5. Update API serializers and OpenAPI role enum.
@@ -326,7 +329,7 @@ Do not duplicate full table definitions here.
 
 | Table | Purpose |
 |-------|---------|
-| `staff_profiles` | One per staff/teacher membership: `preset_key`, `segment_id`, `display_title`, `is_owner` |
+| `staff_profiles` | One per staff/teacher membership: `preset_key`, `segment_id`, `display_title`, `is_owner`, `also_teaches` |
 | `membership_permissions` | Explicit grants (`membership_id`, `permission_key`) — optional if JSONB on profile |
 | `segments` | School education segment (MVP: stub or minimal — D6) |
 | `memberships` | `role` enum: `school` → `staff` migration |

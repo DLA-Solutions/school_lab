@@ -4,7 +4,9 @@
 > Scope: domain bundle (identity, schools, people, billing, documents)  
 > API: [`docs/api/v1/fintech-first.md`](../api/v1/fintech-first.md)  
 > Relation to School Lab: derived front — does not replace the MVP order validated in  
-> `vision.md` (communication → academic → billing). See **Positioning note** at the end.
+> `vision.md` (communication → academic → billing). See **Positioning note** at the end.  
+> **Identity & onboarding:** UC-06, UC-08, BR-009, and § Permissions are partially superseded by  
+> [`docs/prds/identity-and-onboarding/`](identity-and-onboarding/) — historical billing implementation remains until W1–W4 convergence.
 
 ---
 
@@ -110,9 +112,13 @@ BR-008
 
 BR-009
 
+> **Superseded by:** [`docs/prds/identity-and-onboarding/onboarding.md`](identity-and-onboarding/onboarding.md)
+> (UC-O04, BR-O07–O08). Token + set-password flow replaces random password stub.
+
 Guardian portal access requires `users` + `memberships` (role `guardian`, status
 `active`) + `guardians.user_id` linked after invite acceptance. Invite flow:
-create membership `invited` → guardian registers → `active`, set `guardians.user_id`.
+create membership `invited` → `POST /auth/invite/accept` → `POST /me/memberships/:id/accept`
+→ `active`, set `guardians.user_id`.
 
 BR-010
 
@@ -238,7 +244,8 @@ Flow:
 
 ### UC-05 — School delinquency dashboard
 
-Input: school admin with `role: school`.
+Input: school staff with `role: staff` (legacy `school`) and `view_billing_summary` or
+`manage_billing` permission.
 
 Flow:
 
@@ -330,8 +337,11 @@ authenticated `fetch_invoice` read, never by the notification content (see
 |------|-----------|------------|
 | — (auth) | `/api/v1/auth/*`, `/api/v1/me` | Login, refresh, profile |
 | backoffice | `/api/v1/schools`, `/api/v1/users/:id/disable` | Tenant CRUD, platform disable |
-| school | `.../people/*`, `.../billing/*`, `.../documents/*` | CRUD + billing ops |
+| staff | `.../people/*`, `.../billing/*`, `.../documents/*` | CRUD + billing ops (preset permissions) |
 | guardian | `.../me/*` | Read family billing; reissue; documents read |
+
+> **Note:** `school` role in historical implementations maps to `staff`. Permission keys
+> supersede the binary staff gate — see identity permissions PRD.
 
 ---
 

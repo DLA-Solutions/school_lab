@@ -24,6 +24,10 @@ Today `CreateSchoolService` creates a tenant without an owner; `CreateMembership
 generates a random password and does not send a real invite. Fintech-first UC-06 and UC-08
 document minimal flows that this PRD extends.
 
+**Self-serve mode** does not mean public self-registration: backoffice (or sales) still
+creates the tenant via `POST /schools`. The owner then completes setup in the school wizard
+after accepting the invite — owner-led configuration, not DLA provisioning.
+
 **Actor mapping (UI pt-BR → preset, not role)**
 
 | Stakeholder (menu) | Membership role | Preset |
@@ -277,6 +281,8 @@ sequenceDiagram
     API->>API: pending_handoff
     Owner->>API: POST /auth/invite/accept
     Owner->>API: POST /me/memberships/:id/accept
+    Note over Owner,API: Owner membership active; school still pending_handoff
+    BO->>API: POST /schools/:id/handoff (activation checklist)
     API->>API: onboarding_status=active
 ```
 
@@ -338,15 +344,18 @@ Flow:
 
 ### UC-O05 — Handoff provisioning → pending_handoff → active
 
-Input: actor (backoffice or owner), `school_id`.
+Input: authorized actor, `school_id`.
 
 Flow:
 
-1. If `onboarding_status == provisioning` (white-glove): validate **provisioning handoff
-   checklist** (BR-O05); on success transition to `pending_handoff`. Owner may still be
-   `invited`.
+1. If `onboarding_status == provisioning` (white-glove only): **backoffice** with
+   `provision_school` validates the **provisioning handoff checklist** (BR-O05); on success
+   transition to `pending_handoff`. Owner may still be `invited`.
 2. If `onboarding_status == pending_handoff`: validate **activation checklist** (owner
-   `active` plus remaining items); on success transition to `active`.
+   membership `active` plus remaining items); on success transition to `active`.
+   - **self_serve:** **owner** (`is_owner`) calls handoff.
+   - **white_glove:** **backoffice** or **owner** may call handoff after owner has accepted
+     the invite (backoffice typical when coordinating formal handoff with the director).
 3. Emit `SchoolHandedOff` and `OwnerActivated` on transition to `active`.
 
 ### UC-O06 — CSV import preview + commit (premium)
@@ -432,6 +441,7 @@ Multipart CSV; query `dry_run=true|false`.
 |----------|----------|
 | Narrative DSL | [`docs/modeling/004-school-onboarding.md`](../../modeling/004-school-onboarding.md) |
 | Executable schema | [`docs/database/schema.dbml`](../../database/schema.dbml) |
+| DER export | `docs/database/der_003.png` (shared with 003 — TBD export after DBML review) |
 
 **Entity groups**
 
@@ -440,8 +450,9 @@ Multipart CSV; query `dry_run=true|false`.
 | `schools.onboarding_status` | Lifecycle enum |
 | `schools.onboarding_mode` | `self_serve` \| `white_glove` |
 | `schools.billing_waived_at` | Handoff when billing deferred |
+| `schools.segments_skipped_at` | Handoff when segments deferred |
 | `membership_invite_tokens` | `token_digest`, `membership_id`, `expires_at`, `used_at` |
-| `provisioning_imports` | CSV batch metadata (optional MVP) |
+| `provisioning_imports` | CSV batch metadata (MVP for white-glove CSV import) |
 
 ---
 
@@ -464,7 +475,9 @@ Onboarding routes map to actors:
 |--------|--------------------------------|------------------|---------------|
 | Create school | ✓ | — | — |
 | Provisioning CRUD | while `provisioning` | — | — |
-| Handoff | ✓ | ✓ (self_serve) | — |
+| Handoff provisioning → pending_handoff | ✓ (`provision_school`) | — | — |
+| Handoff pending_handoff → active (self_serve) | — | ✓ owner | — |
+| Handoff pending_handoff → active (white_glove) | ✓ | ✓ owner | — |
 | Accept invite | — | ✓ | ✓ |
 | Owner wizard | — | ✓ | — |
 
