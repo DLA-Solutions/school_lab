@@ -89,6 +89,8 @@ PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draf
 - [ ] Transactional email provider for invites (Postmark, SES, …).
 - [ ] LGPD consent record location for staff/guardian onboarding.
 - [ ] `segments` MVP depth (full entity vs nullable stub).
+- [ ] Terms acknowledgment persistence for handoff checklists (MVP app flag vs
+      `school_onboarding_acknowledgements` table — see modeling 004).
 - [ ] Partner workshop to validate preset × permission matrix before PRDs marked `validated`.
 
 ### Enrollment contract signature (Authentic — proposed, phase 2)

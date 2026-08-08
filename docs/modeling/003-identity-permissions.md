@@ -47,7 +47,7 @@ denormalized `school_id` on profile — **prefer denormalized `school_id`** for 
 Unique `(membership_id, permission_key)` among kept rows.
 
 Alternative: JSONB `permission_overrides` on `staff_profiles` — choose one in implementation;
-DBML documents relational table for clarity.
+DBML documents relational table for clarity. Revoke uses Discard (`discarded_at`) per schema.
 
 ## segments (MVP minimum)
 
@@ -65,7 +65,8 @@ Deferred: curriculum linkage, class assignment rules — academic PRD.
 effective_permissions(membership) =
   if membership.role == guardian → role-based guardian rules
   if membership.role == backoffice → platform rules
-  if staff_profiles.is_owner → all staff permission keys
+  if staff_profiles.is_owner → all staff permission keys except teach
+    (teach only if role == teacher or also_teaches / explicit grant — BR-P04, BR-P17)
   else preset_defaults(preset_key) ∪ membership_permissions
 ```
 
@@ -100,7 +101,7 @@ request (or short-lived cache in SPA). See [`002-api-auth.md`](002-api-auth.md).
 
 ## Tables without Discard
 
-`membership_permissions` — hard delete on membership discard or cascade discard with membership.
+`membership_permissions` — use Discard (`discarded_at`) on revoke; cascade discard with membership discard.
 
 ## Relationship to onboarding (004)
 

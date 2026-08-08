@@ -32,7 +32,7 @@ Table schools {
   address varchar
   saas_plan varchar
   onboarding_status varchar [not null, default: 'pending_handoff', note: 'provisioning | pending_handoff | active — see 004-school-onboarding.md']
-  onboarding_mode varchar [note: 'self_serve | white_glove — set at create; immutable after active']
+  onboarding_mode varchar [not null, note: 'self_serve | white_glove — set at create; immutable after active']
   billing_waived_at timestamp [note: 'Handoff when billing setup skipped']
   segments_skipped_at timestamp [note: 'Handoff when segments deferred']
   discarded_at timestamp [note: 'Discard gem — null = kept']
@@ -452,7 +452,7 @@ Table membership_invite_tokens {
   updated_at timestamp
 
   indexes {
-    membership_id
+    membership_id [note: 'At most one unused token per membership — invalidate on resend; partial unique WHERE used_at IS NULL TBD']
     (school_id, expires_at)
   }
 }
