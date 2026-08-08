@@ -6,7 +6,7 @@
   administers schools; subscription/commercial management.
 - **School (administration)**: administers its own school — users, classes,
   students, billing, documents. Staff functions (Secretaria, Coordenação, Direção) map to
-  **presets** on the `staff` role, not separate membership roles — see
+  **role templates** on the `staff` role, not separate membership roles — see
   [`docs/prds/identity-and-onboarding/permissions.md`](prds/identity-and-onboarding/permissions.md).
 - **Teacher**: posts grades and academic activities for their class/subject.
 - **Parents / guardians**: follow the academic, financial, and document life of
@@ -22,7 +22,7 @@
 | Role         | web         | app         | Note                                 |
 |--------------|-------------|-------------|--------------------------------------|
 | Backoffice   | Yes         | No (phase 2)| Operation is primarily desktop       |
-| Staff        | Yes         | Yes         | Presets: director, secretary, etc.   |
+| Staff        | Yes         | Yes         | System role templates: director, secretary, etc. |
 | Teacher      | Yes         | Yes         | Grades and lesson plans on web; messages on app |
 | Parents      | Yes (phase 2)| Yes        | Boleto and documents prioritized on app |
 
@@ -37,10 +37,10 @@
 - Manage the school's subscription/plan.
 - Support and platform overview.
 
-### School (admin / staff presets)
+### School (admin / staff role templates)
 
-- Manage the school's users (teachers, parents, staff) — Secretaria and Coordenação are
-  **presets**, not separate roles.
+- Manage the school's users (teachers, parents, staff) — Secretaria and Coordenação use
+  **role templates**, not separate roles.
 - Manage classes, subjects, enrollments.
 - Track billing (boletos, delinquency).
 - Manage the digital document archive.

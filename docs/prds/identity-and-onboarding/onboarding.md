@@ -28,10 +28,10 @@ document minimal flows that this PRD extends.
 creates the tenant via `POST /schools`. The owner then completes setup in the school wizard
 after accepting the invite — owner-led configuration, not DLA provisioning.
 
-**Actor mapping (UI pt-BR → preset, not role)**
+**Actor mapping (UI pt-BR → system role template, not role)**
 
-| Stakeholder (menu) | Membership role | Preset |
-|--------------------|-----------------|--------|
+| Stakeholder (menu) | Membership role | Default system template (`system_key`) |
+|--------------------|-----------------|----------------------------------------|
 | Diretor / Vice-diretor | `staff` | `director` |
 | Secretaria | `staff` | `secretary` |
 | Coordenação | `staff` or `teacher` | `coordination` |
@@ -40,7 +40,8 @@ after accepting the invite — owner-led configuration, not DLA provisioning.
 
 **Integration contract (with permissions BC)**
 
-- Every staff/teacher invite carries `preset_key` and optional `segment_id` (permissions PRD).
+- School create invokes `Identity::ProvisionSystemRoleTemplatesService` (four system templates).
+- Every staff/teacher invite carries `role_template_id` and optional `segment_id` (permissions PRD).
 - Permissions engine does not read `onboarding_mode` or `onboarding_status`.
 - Backoffice during `provisioning` uses platform permission `provision_school` (D4), not staff
   membership on the school.
@@ -102,7 +103,8 @@ invited members (existing auth behaviour per `002-api-auth.md`).
 
 BR-O09
 
-First owner invite: `preset_key: director`, `staff_profiles.is_owner: true`, `role: staff`.
+First owner invite: director system template `role_template_id`, `staff_profiles.is_owner: true`,
+`role: staff`.
 
 BR-O10
 
@@ -274,8 +276,8 @@ sequenceDiagram
 
     BO->>API: POST /schools (white_glove)
     API->>API: onboarding_status=provisioning
-    BO->>API: POST /people/memberships (owner, preset director)
-    API->>Perm: preset_key + is_owner
+    BO->>API: POST /people/memberships (owner, director role_template_id)
+    API->>Perm: role_template_id + is_owner
     BO->>API: provisioning actions (billing, CSV, people)
     BO->>API: POST /schools/:id/handoff
     API->>API: pending_handoff
@@ -299,7 +301,7 @@ Input: `name`, `onboarding_mode`, `owner_email`, optional `cnpj`.
 Flow:
 
 1. `POST /api/v1/schools` creates school with mode and status per BR-O15/O16.
-2. `POST /people/memberships` with `preset_key: director`, `is_owner: true`.
+2. `POST /people/memberships` with director system `role_template_id`, `is_owner: true`.
 3. Create `membership_invite_tokens` row; enqueue email (provider TBD).
 4. Emit `SchoolProvisioned`.
 
@@ -323,7 +325,7 @@ Flow:
 
 1. Owner accepts token (UC-O04).
 2. Wizard: school profile, segments (D6), billing connect or waive.
-3. Owner invites team (`POST /people/memberships` with presets).
+3. Owner invites team (`POST /people/memberships` with `role_template_id`).
 4. School remains in `pending_handoff` (set at create per BR-O16).
 5. `POST /schools/:id/handoff` when **activation checklist** satisfied → `active`.
 
@@ -418,7 +420,7 @@ Multipart CSV; query `dry_run=true|false`.
 
 | Method | Path | Note |
 |--------|------|------|
-| `POST` | `/api/v1/schools/:school_id/people/memberships` | + `preset_key`, `segment_id` |
+| `POST` | `/api/v1/schools/:school_id/people/memberships` | + `role_template_id`, `segment_id` |
 | `POST` | `/api/v1/me/memberships/:id/accept` | After password set |
 | `POST` | `/api/v1/schools/:school_id/people/memberships/:id/invite` | Resend (UC-O07) |
 
@@ -502,7 +504,7 @@ Feature: Owner completes self-serve wizard
   When they complete billing setup and invite one secretary
   And POST /schools/:id/handoff with activation checklist satisfied
   Then onboarding_status becomes active
-  And the owner has director preset and is_owner true
+  And the owner has director system template and is_owner true
 ```
 
 ### White-glove mode

@@ -116,6 +116,38 @@ Table device_tokens {
 
 // --- Identity: permissions (003) ---
 
+Table school_role_templates {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null, note: 'UI label — e.g. Direção, Recepcionista']
+  system_key varchar [note: 'director | secretary | coordination | teacher — null for custom templates']
+  is_system boolean [not null, default: false, note: 'Provisioned defaults — not deletable']
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, system_key) [note: 'DB migration: UNIQUE WHERE system_key IS NOT NULL AND discarded_at IS NULL']
+    school_id
+  }
+}
+
+Table role_template_permissions {
+  id integer [primary key, increment]
+  role_template_id integer [not null]
+  school_id integer [not null, note: 'Denormalized for tenant scopes']
+  permission_key varchar [not null, note: 'Fixed enum in code — see permissions PRD']
+  scope_kind varchar [not null, default: 'full', note: 'full | segment | partial']
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (role_template_id, permission_key) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+    (school_id, permission_key)
+  }
+}
+
 Table segments {
   id integer [primary key, increment]
   school_id integer [not null]
@@ -133,11 +165,11 @@ Table staff_profiles {
   id integer [primary key, increment]
   membership_id integer [not null, note: 'One profile per staff or teacher membership']
   school_id integer [not null, note: 'Denormalized for tenant scopes and owner unique index']
-  preset_key varchar [not null, note: 'director | secretary | coordination | teacher']
+  role_template_id integer [not null, note: 'FK school_role_templates — pointer; edits propagate at runtime']
   is_owner boolean [not null, default: false, note: 'At most one true per school among kept profiles']
   segment_id integer [note: 'Nullable — scope for partial permissions']
   display_title varchar [note: 'Cosmetic UI label — LGPD: may contain personal name']
-  also_teaches boolean [not null, default: false, note: 'Coordination preset: enables teach permission']
+  also_teaches boolean [not null, default: false, note: 'Coordination template: enables teach permission']
   discarded_at timestamp [note: 'Discard gem — null = kept']
   created_at timestamp
   updated_at timestamp
@@ -153,7 +185,8 @@ Table membership_permissions {
   membership_id integer [not null]
   school_id integer [not null]
   permission_key varchar [not null, note: 'Fixed enum in code — see permissions PRD']
-  discarded_at timestamp [note: 'Discard — or hard delete on revoke; TBD in migration']
+  effect varchar [not null, default: 'grant', note: 'grant | deny — overrides only, not template snapshot']
+  discarded_at timestamp [note: 'Discard on revoke']
   created_at timestamp
   updated_at timestamp
 
@@ -483,8 +516,12 @@ Ref: memberships.school_id > schools.id
 Ref: memberships.suspended_by_id > users.id
 
 Ref: segments.school_id > schools.id
+Ref: school_role_templates.school_id > schools.id
+Ref: role_template_permissions.role_template_id > school_role_templates.id
+Ref: role_template_permissions.school_id > schools.id
 Ref: staff_profiles.membership_id > memberships.id
 Ref: staff_profiles.school_id > schools.id
+Ref: staff_profiles.role_template_id > school_role_templates.id
 Ref: staff_profiles.segment_id > segments.id
 Ref: membership_permissions.membership_id > memberships.id
 Ref: membership_permissions.school_id > schools.id
@@ -588,8 +625,12 @@ Records memberships(id, user_id, school_id, role, status) {
   2, 1, 1, 'guardian', 'suspended'
 }
 
-Records staff_profiles(id, membership_id, school_id, preset_key, is_owner) {
-  0, 0, 0, 'director', true
+Records school_role_templates(id, school_id, name, system_key, is_system) {
+  0, 0, 'Direção', 'director', true
+}
+
+Records staff_profiles(id, membership_id, school_id, role_template_id, is_owner) {
+  0, 0, 0, 0, true
 }
 
 Records guardians(id, school_id, user_id, name, cpf) {

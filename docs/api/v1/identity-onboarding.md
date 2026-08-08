@@ -14,11 +14,10 @@ Routes for the Identity & Onboarding domain. Billing routes remain in
 
 | Wave | Scope |
 |------|--------|
-| **W1** | `staff` role migration, `staff_profiles`, extended `GET /me` |
-| **W2** | `POST /auth/invite/accept`, `membership_invite_tokens` |
-| **W3** | Self-serve owner wizard endpoints (TBD in layer PRD) |
-| **W4** | `POST /schools/:id/handoff`, `POST /schools/:id/provisioning/import` |
-| **W5** | `PATCH /people/memberships/:id/permissions` |
+| **W1** | `staff` role migration, `school_role_templates`, `staff_profiles`, role template CRUD, extended `GET /me` |
+| **W2** | `PATCH /people/memberships/:id/permissions` (overrides), `staff_with?` policies; `POST /auth/invite/accept`, `membership_invite_tokens` |
+| **W3** | Self-serve: owner wizard + `POST /schools/:id/handoff` (activation) |
+| **W4** | White-glove: backoffice provisioning + handoff + CSV import |
 | **Phase 2** | Enrollment contract signature via Authentic (proposed vendor) — separate PRD |
 
 ---
@@ -65,7 +64,12 @@ Membership objects include permission payload:
         "school_name": "Example School",
         "role": "staff",
         "status": "active",
-        "preset_key": "director",
+        "role_template": {
+          "id": 1,
+          "name": "Direção",
+          "system_key": "director",
+          "is_system": true
+        },
         "is_owner": true,
         "segment_id": null,
         "display_title": "Diretor",
@@ -82,12 +86,27 @@ Membership objects include permission payload:
 
 ---
 
+## Role templates (W1)
+
+Base: `/api/v1/schools/:school_id`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/permission_definitions` | Platform permission catalog (from code registry) |
+| `GET` | `/role_templates` | List school templates — requires `manage_people` |
+| `POST` | `/role_templates` | Create custom template — owner only |
+| `PATCH` | `/role_templates/:id` | Update template — owner; response includes `affected_memberships_count` |
+| `DELETE` | `/role_templates/:id` | Delete custom template — owner |
+| `POST` | `/role_templates/:id/clone` | Clone template — owner |
+
+---
+
 ## Backoffice
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/v1/schools` | Create school — extended: `owner_email`, `onboarding_mode` |
-| `POST` | `/api/v1/schools/:school_id/handoff` | Provisioning → pending_handoff → active |
+| `POST` | `/api/v1/schools` | Create school — extended: `owner_email`, `onboarding_mode`; provisions system role templates |
+| `POST` | `/api/v1/schools/:school_id/handoff` | Provisioning → pending_handoff → active (W3 self-serve; W4 white-glove) |
 | `POST` | `/api/v1/schools/:school_id/provisioning/import` | CSV preview (`dry_run=true`) or commit |
 
 ### `POST /api/v1/schools` (extended)
@@ -114,8 +133,8 @@ Base: `/api/v1/schools/:school_id/people`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/memberships` | Invite — extended: `preset_key`, `segment_id`, `display_title` |
-| `PATCH` | `/memberships/:id/permissions` | Owner-only permission grants (W5) |
+| `POST` | `/memberships` | Invite — extended: `role_template_id`, `segment_id`, `display_title` |
+| `PATCH` | `/memberships/:id/permissions` | Owner-only overrides: `grants[]`, `denies[]` (W2) |
 | `POST` | `/memberships/:id/invite` | Resend invite token |
 
 ### `POST /api/v1/schools/:school_id/people/memberships`
@@ -124,7 +143,7 @@ Base: `/api/v1/schools/:school_id/people`
 {
   "email": "secretaria@escola.example",
   "role": "staff",
-  "preset_key": "secretary",
+  "role_template_id": 42,
   "segment_id": null,
   "display_title": "Secretária"
 }
@@ -139,6 +158,9 @@ Base: `/api/v1/schools/:school_id/people`
 | `401` | `invalid_invite_token` | Invite token invalid |
 | `422` | `validation_error` | Handoff checklist incomplete |
 | `422` | `import_validation_failed` | CSV import errors |
+| `422` | `template_in_use` | Delete template with active memberships |
+| `422` | `cannot_delete_system_template` | Delete system template |
+| `422` | `last_admin_template` | Would remove last admin-capable template |
 
 Standard envelope: [`docs/api/README.md`](../README.md).
 
