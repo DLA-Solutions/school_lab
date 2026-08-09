@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import { AA_NON_TEXT, computedColor, contrastRatio, paletteColor } from 'test/contrast';
 import { type ColorScheme, renderWithTheme } from 'test/renderWithTheme';
 import KPI from './KPI';
+import MonthMenu from './MonthMenu';
 
 const SCHEMES: ColorScheme[] = ['light', 'dark'];
 
@@ -10,7 +11,15 @@ describe('KPI', () => {
   describe.each(SCHEMES)('contrast — %s scheme', (mode) => {
     it('reads the overflow control against the card it sits on', () => {
       renderWithTheme(
-        <KPI id={1} icon="solar:bag-bold" title="Enrolments" value="756" rate="3.1%" isUp />,
+        <KPI
+          id={1}
+          icon="solar:bag-bold"
+          title="Enrolments"
+          value="756"
+          rate="3.1%"
+          isUp
+          action={<MonthMenu value="2026-09" onChange={() => {}} />}
+        />,
         { mode },
       );
 
@@ -23,5 +32,11 @@ describe('KPI', () => {
         contrastRatio(computedColor(control, 'color'), paletteColor('background.paper')),
       ).toBeGreaterThanOrEqual(AA_NON_TEXT);
     });
+  });
+
+  it('says a rise from nothing in words rather than showing a figure', () => {
+    renderWithTheme(<KPI id={1} icon="solar:bag-bold" title="Alunos" value="12" rate="novo" isUp />);
+
+    expect(screen.getByText('novo')).toBeInTheDocument();
   });
 });

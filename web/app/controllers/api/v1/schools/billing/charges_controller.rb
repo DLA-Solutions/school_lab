@@ -25,13 +25,21 @@ module Api
             render json: { data: ChargeBlueprint.render_as_hash(charge) }
           end
 
-          # Raises a charge outside the monthly schedule, against the contract's payer.
+          # Raises a charge outside the monthly schedule. A contract is optional — the school also
+          # bills for what nobody signed for — but a payer is not, so one is taken from the
+          # request or, failing that, from whoever answers for the contract.
           def create
             authorize Charge, :create?
 
-            contract = policy_scope(Contract).find(params.dig(:charge, :contract_id))
+            contract_id = params.dig(:charge, :contract_id)
+            contract = contract_id.present? ? policy_scope(Contract).find(contract_id) : nil
+
+            guardian_id = params.dig(:charge, :guardian_id)
+            guardian = guardian_id.present? ? policy_scope(Guardian).find(guardian_id) : nil
+
             result = ::Billing::CreateOneOffChargeService.call(
-              contract: contract, params: charge_params, actor: Current.user
+              school: Current.school, contract: contract, guardian: guardian,
+              params: charge_params, actor: Current.user
             )
 
             render_service_result(result, success_status: :created) do |charge|
@@ -72,7 +80,7 @@ module Api
           private
 
           def charge_params
-            params.require(:charge).permit(:contract_id, :total_amount_cents, :due_date, :description)
+            params.require(:charge).permit(:contract_id, :guardian_id, :total_amount_cents, :due_date, :description)
           end
 
           def apply_filters(scope)

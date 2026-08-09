@@ -5,7 +5,9 @@ class Charge < ApplicationRecord
   include SchoolAuditable
   include ChargeStateMachine
 
-  belongs_to :contract
+  # A tuition charge always comes from a contract. A one-off may not: the school also bills for
+  # things nobody signed a contract about, and the slip only needs a payer to exist.
+  belongs_to :contract, optional: true
   belongs_to :school
   belongs_to :guardian
   belongs_to :discarded_by, class_name: "User", optional: true
@@ -24,6 +26,9 @@ class Charge < ApplicationRecord
   KINDS = %w[tuition one_off].freeze
 
   validates :kind, inclusion: { in: KINDS }
+  # The monthly schedule reads the amount and the payer off a contract, so a tuition charge
+  # without one has nothing to have been generated from.
+  validates :contract, presence: true, if: -> { kind == "tuition" }
 
   scope :open, -> { kept.where(status: %w[pending overdue]) }
   scope :one_off, -> { kept.where(kind: "one_off") }

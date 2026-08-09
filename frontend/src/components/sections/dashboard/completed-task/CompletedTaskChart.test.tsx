@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { tokens } from '@school-lab/design-tokens';
 import { type ColorScheme, renderWithTheme } from 'test/renderWithTheme';
-import { completedTaskData } from 'data/completedTaskData';
 import CompletedTaskChart from './CompletedTaskChart';
 
 vi.mock('components/base/ReactEchart', () => ({
@@ -19,8 +18,14 @@ interface CapturedOption {
   tooltip: { backgroundColor: string };
 }
 
+const monthlyIncome = [
+  { date: 'Jan', value: 12_000 },
+  { date: 'Fev', value: 9_500 },
+  { date: 'Mar', value: 15_200 },
+];
+
 const captureOption = (mode: ColorScheme): CapturedOption => {
-  renderWithTheme(<CompletedTaskChart data={completedTaskData} />, { mode });
+  renderWithTheme(<CompletedTaskChart data={monthlyIncome} />, { mode });
 
   return JSON.parse(screen.getByTestId('option').textContent!) as CapturedOption;
 };

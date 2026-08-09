@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_213100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -121,7 +121,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_200000) do
     t.date "billing_period", null: false
     t.string "boleto_url"
     t.datetime "cancelled_at"
-    t.bigint "contract_id", null: false
+    t.bigint "contract_id"
     t.datetime "created_at", null: false
     t.string "description"
     t.datetime "discarded_at"
@@ -448,6 +448,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_200000) do
     t.index ["uploaded_by_id"], name: "index_school_signature_providers_on_uploaded_by_id"
     t.index ["webhook_endpoint_token"], name: "index_school_signature_providers_on_webhook_token", unique: true
     t.check_constraint "provider::text = ANY (ARRAY['autentique'::character varying, 'fake'::character varying]::text[])", name: "school_signature_providers_provider_allowed"
+  end
+
+  create_table "school_transactions", force: :cascade do |t|
+    t.integer "amount_cents", null: false
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "kind", null: false
+    t.date "occurred_on", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_by_id"], name: "index_school_transactions_on_discarded_by_id"
+    t.index ["school_id", "kind"], name: "index_school_transactions_on_school_id_and_kind"
+    t.index ["school_id", "occurred_on"], name: "index_school_transactions_on_school_id_and_occurred_on"
+    t.index ["school_id"], name: "index_school_transactions_on_school_id"
+    t.check_constraint "amount_cents >= 0", name: "school_transactions_amount_cents_non_negative"
+    t.check_constraint "kind::text = ANY (ARRAY['income'::character varying, 'expense'::character varying]::text[])", name: "school_transactions_kind_allowed"
   end
 
   create_table "schools", force: :cascade do |t|
@@ -806,6 +825,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_200000) do
   add_foreign_key "school_role_templates", "schools"
   add_foreign_key "school_signature_providers", "schools"
   add_foreign_key "school_signature_providers", "users", column: "uploaded_by_id"
+  add_foreign_key "school_transactions", "schools"
+  add_foreign_key "school_transactions", "users", column: "discarded_by_id"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
   add_foreign_key "segments", "schools"

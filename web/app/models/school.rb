@@ -22,6 +22,7 @@ class School < ApplicationRecord
   has_many :charges, dependent: :destroy
   has_many :charge_issuances, dependent: :destroy
   has_many :payments, dependent: :destroy
+  has_many :school_transactions, dependent: :destroy
   has_many :documents, dependent: :destroy
   has_many :school_payment_providers, dependent: :destroy
   has_one :school_signature_provider, dependent: :destroy

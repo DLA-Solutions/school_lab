@@ -178,6 +178,14 @@ FactoryBot.define do
     status { "active" }
   end
 
+  factory :school_transaction do
+    school
+    kind { "income" }
+    category { "didactic_material" }
+    amount_cents { 12_000 }
+    occurred_on { Date.new(2026, 9, 1) }
+  end
+
   factory :charge do
     school
     contract { association :contract, school: school }

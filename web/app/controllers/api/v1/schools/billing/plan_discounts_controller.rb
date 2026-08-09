@@ -41,8 +41,8 @@ module Api
               return render_error(
                 :validation_error,
                 status: :unprocessable_content,
-                details: { base: [I18n.t("api.errors.plan_discount_in_use",
-                                         count: discount.contracts.kept.count)] }
+                details: { base: [ I18n.t("api.errors.plan_discount_in_use",
+                                         count: discount.contracts.kept.count) ] }
               )
             end
 

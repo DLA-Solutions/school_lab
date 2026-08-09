@@ -6,10 +6,14 @@ class ChargeBlueprint < Blueprinter::Base
   fields :billing_period, :original_amount_cents, :discount_amount_cents, :late_fee_amount_cents,
          :total_amount_cents, :due_date, :status, :kind, :description, :boleto_url
 
+  # Null on a one-off raised outside any contract — the school bills for things no student is
+  # enrolled in, and the listing says so rather than inventing a name.
   field :student do |charge|
-    student = charge.contract.student
-    { id: student.id, name: student.name }
+    student = charge.contract&.student
+    { id: student.id, name: student.name } if student
   end
+
+  field :contract_id
 
   # The boleto is registered against this person's CPF, so the listing names both.
   field :guardian do |charge|

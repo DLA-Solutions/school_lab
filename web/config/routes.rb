@@ -32,6 +32,7 @@ Rails.application.routes.draw do
 
       resources :schools, only: %i[index show create update destroy] do
         scope module: :schools do
+          resource :dashboard, only: :show, controller: "dashboard"
           resources :bank_credentials, only: %i[index create]
           namespace :people do
             resources :guardians do
@@ -89,6 +90,9 @@ Rails.application.routes.draw do
               end
             end
             resources :charge_generations, only: :create
+            # Picking contracts by hand and billing the lot in one pass.
+            resources :charge_batches, only: %i[index create]
+            resources :transactions, only: %i[index create update destroy]
             resources :charges, only: %i[index show create destroy] do
               member do
                 post :cancel

@@ -1,17 +1,21 @@
 # frozen_string_literal: true
 
 module Billing
-  # Raises a charge outside the monthly schedule — a trip, a replacement uniform — against the
-  # contract's payer, so the boleto goes out on the CPF that already answers for that contract.
+  # Raises a charge outside the monthly schedule — a trip, a replacement uniform, a room rented
+  # for a weekend. What it always needs is a payer, so the boleto goes out on a CPF that answers
+  # for it. A contract is optional: plenty of what a school bills for was never signed for, and
+  # when one is given the payer defaults to whoever answers for it.
   class CreateOneOffChargeService < ApplicationService
-    def initialize(contract:, params:, actor: nil)
+    def initialize(school:, params:, contract: nil, guardian: nil, actor: nil)
+      @school = school
       @contract = contract
+      @guardian = guardian
       @params = params
       @actor = actor
     end
 
     def call
-      payer = contract.payer
+      payer = guardian || contract&.payer
       return no_payer if payer.blank?
 
       amount = params[:total_amount_cents].to_i
@@ -20,7 +24,7 @@ module Billing
       due_date = parse_date(params[:due_date])
       return invalid_due_date if due_date.blank?
 
-      charge = contract.school.charges.build(
+      charge = school.charges.build(
         contract: contract,
         guardian: payer,
         kind: "one_off",
@@ -41,7 +45,7 @@ module Billing
         {
           event: "charge.one_off_created",
           charge_id: charge.id,
-          contract_id: contract.id,
+          contract_id: contract&.id,
           guardian_id: payer.id,
           actor_id: actor&.id
         }.to_json
@@ -52,7 +56,7 @@ module Billing
 
     private
 
-    attr_reader :contract, :params, :actor
+    attr_reader :school, :contract, :guardian, :params, :actor
 
     def parse_date(value)
       value.is_a?(Date) ? value : Date.parse(value.to_s)
@@ -73,7 +77,7 @@ module Billing
     end
 
     def failure(message)
-      ResponseService.failure(code: :validation_error, details: { base: [message] })
+      ResponseService.failure(code: :validation_error, details: { base: [ message ] })
     end
   end
 end

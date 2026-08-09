@@ -61,8 +61,6 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
         splitLine: {
           show: false,
         },
-        interval: 100,
-        max: 300,
       },
       series: [
         {

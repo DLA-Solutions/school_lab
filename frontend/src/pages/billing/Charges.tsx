@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -23,6 +24,7 @@ import {
   SectionCard,
   SemanticChip,
 } from 'design-system';
+import ChargeBatchDialog from 'components/sections/billing/charges/ChargeBatchDialog';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { createOneOffCharge, listCharges } from 'services/chargesApi';
@@ -64,8 +66,8 @@ const formatDate = (value: string | null) => {
 
 /**
  * The school's boletos. Beyond listing what the monthly schedule produced, this is where a
- * one-off charge is raised — always against the guardian who answers for the contract, so the
- * slip carries the CPF the family already knows.
+ * one-off charge is raised — against a guardian, with a contract named only when the charge
+ * actually belongs to one — and where a whole month is billed in a single pass.
  */
 const Charges = () => {
   const school = useCurrentSchool();
@@ -78,6 +80,8 @@ const Charges = () => {
   const [error, setError] = useState('');
 
   const [formOpen, setFormOpen] = useState(false);
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [notice, setNotice] = useState('');
   const [guardianSearch, setGuardianSearch] = useState('');
   const debouncedGuardianSearch = useDebouncedValue(guardianSearch);
   const [guardians, setGuardians] = useState<Guardian[]>([]);
@@ -171,8 +175,9 @@ const Charges = () => {
 
     const cents = parseCents(amount);
 
-    if (!contractId) {
-      setFormError('Selecione o responsável e o contrato.');
+    // A contract is optional; a payer is not — the slip has to carry someone's CPF.
+    if (!guardianId) {
+      setFormError('Selecione o responsável que receberá o boleto.');
       return;
     }
     if (!cents) {
@@ -189,7 +194,8 @@ const Charges = () => {
 
     try {
       await createOneOffCharge(schoolId, {
-        contract_id: Number(contractId),
+        guardian_id: Number(guardianId),
+        contract_id: contractId ? Number(contractId) : null,
         total_amount_cents: cents,
         due_date: dueDate,
         description: description.trim() || null,
@@ -226,9 +232,15 @@ const Charges = () => {
       flex: 1,
       minWidth: 160,
       sortable: false,
-      renderCell: ({ row }: GridRenderCellParams<Charge>) => (
-        <Typography variant="body2">{row.student.name}</Typography>
-      ),
+      renderCell: ({ row }: GridRenderCellParams<Charge>) =>
+        row.student ? (
+          <Typography variant="body2">{row.student.name}</Typography>
+        ) : (
+          // A one-off raised outside any contract answers to no student.
+          <Typography variant="body2" color="text.secondary">
+            —
+          </Typography>
+        ),
     },
     {
       field: 'guardian',
@@ -325,13 +337,19 @@ const Charges = () => {
       <PageHeader
         title="Boletos"
         actions={
-          <Button variant="contained" size="small" onClick={openForm}>
-            Novo boleto avulso
-          </Button>
+          <Stack gap={1}>
+            <Button variant="outlined" size="small" onClick={() => setBatchOpen(true)}>
+              Emitir em massa
+            </Button>
+            <Button variant="contained" size="small" onClick={openForm}>
+              Novo boleto avulso
+            </Button>
+          </Stack>
         }
       />
 
       {error && <ErrorBanner message={error} />}
+      {notice && <Alert severity="success">{notice}</Alert>}
 
       <SectionCard padding={0}>
         {!loading && charges.length === 0 && !error ? (
@@ -404,25 +422,26 @@ const Charges = () => {
                 </TextField>
               </Grid>
               <Grid size={12}>
-                {/* A charge hangs off a contract; the API bills whoever answers for it. */}
+                {/* Optional: a school also bills for what nobody signed a contract about. When
+                    one is named the charge shows up in that student's history. */}
                 <TextField
                   id="charge-contract"
-                  label="Contrato"
+                  label="Contrato (opcional)"
                   value={contractId}
                   onChange={(e) => setContractId(e.target.value)}
                   variant="filled"
                   select
                   fullWidth
-                  required
                   disabled={!guardianId}
                   helperText={
                     guardianId && contracts.length === 0
-                      ? 'Este responsável não tem contrato. Emita um contrato antes de cobrar.'
+                      ? 'Este responsável não tem contrato. O boleto sai assim mesmo, sem vínculo com um aluno.'
                       : selectedGuardian
                         ? `O boleto sairá no CPF ${formatCpf(selectedGuardian.cpf)}.`
                         : ' '
                   }
                 >
+                  <MenuItem value="">Sem contrato</MenuItem>
                   {contracts.map((contract) => (
                     <MenuItem key={contract.id} value={String(contract.id)}>
                       {`${contract.student_name ?? `Contrato ${contract.id}`} — ${formatCents(
@@ -495,6 +514,30 @@ const Charges = () => {
           </DialogActions>
         </Stack>
       </Dialog>
+
+      {schoolId && (
+        <ChargeBatchDialog
+          open={batchOpen}
+          schoolId={schoolId}
+          onClose={() => setBatchOpen(false)}
+          onIssued={(result) => {
+            const skipped = result.skipped_contract_ids.length;
+            const withoutPayer = result.contract_ids_without_payer.length;
+
+            setNotice(
+              [
+                `${result.created_count} boleto(s) gerado(s) e enviado(s) ao banco.`,
+                skipped > 0 ? `${skipped} já tinha(m) cobrança nesta competência.` : '',
+                withoutPayer > 0 ? `${withoutPayer} sem responsável financeiro.` : '',
+              ]
+                .filter(Boolean)
+                .join(' '),
+            );
+            setPage(0);
+            load();
+          }}
+        />
+      )}
     </Stack>
   );
 };
