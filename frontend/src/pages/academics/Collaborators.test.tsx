@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
@@ -56,11 +57,14 @@ const authValue: AuthContextValue = {
   logout: vi.fn(),
 };
 
+// The listing keeps its term in the URL, so it needs a router around it.
 const renderPage = () =>
   renderWithTheme(
-    <AuthContext.Provider value={authValue}>
-      <Collaborators />
-    </AuthContext.Provider>,
+    <MemoryRouter>
+      <AuthContext.Provider value={authValue}>
+        <Collaborators />
+      </AuthContext.Provider>
+    </MemoryRouter>,
   );
 
 /** Records the `q` of every listing request and filters like `PersonSearchable` does. */

@@ -5,6 +5,7 @@ import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import { useSearchParams } from 'react-router';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
 import PersonDocumentsDialog from 'components/sections/documents/PersonDocumentsDialog';
@@ -56,7 +57,10 @@ const Guardians = () => {
   const [page, setPage] = useState(0); // zero-based, as the grid counts
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
+  // The term lives in the URL so it survives a reload, can be linked to, and lets the global
+  // search in the menu open this listing already filtered.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q') ?? '';
   // The API does the filtering, so the term is debounced rather than sent per keystroke.
   const debouncedSearch = useDebouncedValue(search);
 
@@ -97,7 +101,21 @@ const Guardians = () => {
   }, [load]);
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
+    const term = e.target.value;
+
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (term) {
+          next.set('q', term);
+        } else {
+          next.delete('q');
+        }
+        return next;
+      },
+      // Typing must not push a history entry per keystroke.
+      { replace: true },
+    );
     // A narrower result rarely has the page the user is on — start over at the first.
     setPage(0);
   };

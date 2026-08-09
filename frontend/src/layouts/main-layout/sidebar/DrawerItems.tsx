@@ -6,11 +6,10 @@ import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import ButtonBase from '@mui/material/ButtonBase';
-import InputAdornment from '@mui/material/InputAdornment';
-import TextField from '@mui/material/TextField';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { BrandLogo } from 'design-system';
 import { useAuth } from 'providers/AuthContext';
+import GlobalSearch from './GlobalSearch';
 import ListItem from './list-items/ListItem';
 
 const DrawerItems = () => {
@@ -52,23 +51,7 @@ const DrawerItems = () => {
       </Stack>
 
       <Box px={3.5} pb={3} pt={1}>
-        <TextField
-          variant="filled"
-          placeholder="Search for..."
-          sx={{ width: 1 }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <IconifyIcon icon="mingcute:search-line" />
-                </InputAdornment>
-              ),
-            },
-            htmlInput: {
-              'aria-label': 'Search',
-            },
-          }}
-        />
+        <GlobalSearch />
       </Box>
 
       <List component="nav" sx={{ px: 2.5 }}>

@@ -54,7 +54,7 @@ const renderSubjects = ({ row }: GridRenderCellParams<SchoolClass>) =>
       Nenhuma
     </Typography>
   ) : (
-    <Stack direction="row" gap={0.75} flexWrap="wrap" alignItems="center" height={1} py={1}>
+    <Stack direction="row" gap={0.75} flexWrap="wrap" alignItems="center" py={1}>
       {row.subjects.map((subject) => (
         <Chip key={subject.id} size="small" variant="outlined" label={subject.name} />
       ))}

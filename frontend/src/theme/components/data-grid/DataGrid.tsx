@@ -83,6 +83,10 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
     cell: ({ theme }) => ({
       color: (theme.vars || theme).palette.text.primary,
       fontSize: theme.typography.caption.fontSize,
+      // Rows with `getRowHeight: () => 'auto'` align their content to the top, which leaves a
+      // one-line cell sitting above its taller neighbours. Centring here covers both kinds of row.
+      display: 'flex',
+      alignItems: 'center',
       '&:hover': {
         cursor: 'pointer',
       },
