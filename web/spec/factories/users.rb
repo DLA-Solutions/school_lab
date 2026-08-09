@@ -294,6 +294,21 @@ FactoryBot.define do
     end
   end
 
+  factory :school_signature_provider do
+    school
+    # `fake` by default: the Autentique adapter needs a real token, and a spec that wants one
+    # passes `:autentique`.
+    provider { "fake" }
+    active { true }
+    webhook_secret { "webhook-secret" }
+    uploaded_at { Time.current }
+
+    trait :autentique do
+      provider { "autentique" }
+      api_token { "autentique-test-token" }
+    end
+  end
+
   factory :school_billing_settings do
     school
     overdue_grace_days { 3 }

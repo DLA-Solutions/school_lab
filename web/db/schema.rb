@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_09_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -152,6 +152,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_200000) do
     t.check_constraint "total_amount_cents >= 0", name: "charges_total_amount_cents_non_negative"
   end
 
+  create_table "contract_templates", force: :cascade do |t|
+    t.text "body_html", null: false
+    t.datetime "created_at", null: false
+    t.bigint "school_id", null: false
+    t.integer "signature_page", default: 1, null: false
+    t.decimal "signature_x", precision: 5, scale: 2, default: "10.0", null: false
+    t.decimal "signature_y", precision: 5, scale: 2, default: "85.0", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "updated_by_id"
+    t.index ["school_id"], name: "index_contract_templates_on_school", unique: true
+    t.index ["school_id"], name: "index_contract_templates_on_school_id"
+    t.index ["updated_by_id"], name: "index_contract_templates_on_updated_by_id"
+    t.check_constraint "signature_page >= 1", name: "contract_templates_signature_page_positive"
+    t.check_constraint "signature_x >= 0::numeric AND signature_x <= 100::numeric AND signature_y >= 0::numeric AND signature_y <= 100::numeric", name: "contract_templates_signature_position_range"
+  end
+
   create_table "contracts", force: :cascade do |t|
     t.bigint "billing_plan_id", null: false
     t.datetime "created_at", null: false
@@ -159,8 +175,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_200000) do
     t.integer "due_day"
     t.date "ends_on"
     t.integer "negotiated_amount_cents"
+    t.string "provider_document_id"
     t.bigint "school_id", null: false
     t.datetime "sent_at"
+    t.string "signature_provider"
+    t.datetime "signature_requested_at"
     t.string "signature_status", default: "pending_signature", null: false
     t.datetime "signed_at"
     t.date "starts_on"
@@ -171,6 +190,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_200000) do
     t.index ["school_id", "signature_status"], name: "index_contracts_on_school_id_and_signature_status"
     t.index ["school_id", "status"], name: "index_contracts_on_school_id_and_status"
     t.index ["school_id"], name: "index_contracts_on_school_id"
+    t.index ["signature_provider", "provider_document_id"], name: "index_contracts_on_provider_document", unique: true, where: "(provider_document_id IS NOT NULL)"
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
     t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying]::text[])", name: "contracts_signature_status_valid"
@@ -388,6 +408,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_200000) do
     t.datetime "updated_at", null: false
     t.index ["school_id", "system_key"], name: "index_school_role_templates_on_school_id_and_system_key_kept", unique: true, where: "((system_key IS NOT NULL) AND (discarded_at IS NULL))"
     t.index ["school_id"], name: "index_school_role_templates_on_school_id"
+  end
+
+  create_table "school_signature_providers", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.text "api_token"
+    t.datetime "created_at", null: false
+    t.string "provider", null: false
+    t.bigint "school_id", null: false
+    t.jsonb "settings", default: {}, null: false
+    t.datetime "updated_at", null: false
+    t.datetime "uploaded_at"
+    t.bigint "uploaded_by_id"
+    t.string "webhook_endpoint_token", null: false
+    t.text "webhook_secret"
+    t.index ["school_id"], name: "index_school_signature_providers_active_school", unique: true, where: "(active = true)"
+    t.index ["school_id"], name: "index_school_signature_providers_on_school_id"
+    t.index ["uploaded_by_id"], name: "index_school_signature_providers_on_uploaded_by_id"
+    t.index ["webhook_endpoint_token"], name: "index_school_signature_providers_on_webhook_token", unique: true
+    t.check_constraint "provider::text = ANY (ARRAY['autentique'::character varying, 'fake'::character varying]::text[])", name: "school_signature_providers_provider_allowed"
   end
 
   create_table "schools", force: :cascade do |t|
@@ -710,6 +749,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_200000) do
   add_foreign_key "charges", "guardians"
   add_foreign_key "charges", "schools"
   add_foreign_key "charges", "users", column: "discarded_by_id"
+  add_foreign_key "contract_templates", "schools"
+  add_foreign_key "contract_templates", "users", column: "updated_by_id"
   add_foreign_key "contracts", "billing_plans"
   add_foreign_key "contracts", "schools"
   add_foreign_key "contracts", "students"
@@ -738,6 +779,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_200000) do
   add_foreign_key "school_payment_providers", "schools"
   add_foreign_key "school_payment_providers", "users", column: "uploaded_by_id"
   add_foreign_key "school_role_templates", "schools"
+  add_foreign_key "school_signature_providers", "schools"
+  add_foreign_key "school_signature_providers", "users", column: "uploaded_by_id"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
   add_foreign_key "segments", "schools"

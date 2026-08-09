@@ -15,7 +15,9 @@ RSpec.describe "Contract signature lifecycle", type: :request do
   let(:base_path) { "/api/v1/schools/#{school.id}/billing/contracts" }
 
   describe "POST /billing/contracts" do
-    it "creates the contract awaiting signature and stamps when it was sent" do
+    # The send is a separate step now: the contract is saved first so a provider outage leaves
+    # something to retry rather than nothing.
+    it "creates the contract awaiting signature, before anything is dispatched" do
       post base_path,
            params: {
              contract: {
@@ -32,7 +34,8 @@ RSpec.describe "Contract signature lifecycle", type: :request do
 
       body = response.parsed_body
       expect(body.dig("data", "signature_status")).to eq("pending_signature")
-      expect(body.dig("data", "sent_at")).to be_present
+      expect(body.dig("data", "sent_at")).to be_nil
+      expect(body.dig("data", "sent_to_provider")).to be(false)
       expect(body.dig("data", "signed_at")).to be_nil
       # Saves the list a lookup per row just to name the child.
       expect(body.dig("data", "student_name")).to eq(student.name)

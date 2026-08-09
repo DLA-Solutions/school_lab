@@ -213,7 +213,7 @@ const GlobalSearch = () => {
         <TextField
           {...params}
           variant="filled"
-          placeholder="Busca menu..."
+          placeholder="Buscar pessoas e páginas..."
           slotProps={{
             input: {
               ...params.InputProps,

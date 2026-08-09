@@ -18,7 +18,17 @@ pt-BR:
       student_requires_a_guardian: "Informe o CPF do pai ou da mãe."
       guardian_cpf_not_found: "Nenhum responsável cadastrado com o CPF %{cpf}. Cadastre-o antes de matricular o estudante."
       duplicate_guardian_cpf: "O mesmo CPF foi informado para pai e mãe."
+      contract_without_guardians: "Este contrato não tem responsável vinculado ao aluno. Vincule ao menos um antes de enviar para assinatura."
+      contract_pdf_unsupported_characters: "O contrato contém caracteres que a fonte do PDF não suporta. Fale com o suporte."
+      contract_template_missing: "Nenhum modelo de contrato configurado para esta escola."
+      contract_already_sent: "Este contrato já foi enviado para assinatura."
+      signer_missing_details: "Sem e-mail ou CPF para %{names}. Complete o cadastro antes de enviar."
+      signature_provider_missing: "Nenhuma integração de assinatura configurada para esta escola."
+      signature_provider_unauthorized: "A Autentique recusou as credenciais desta escola."
+      signature_provider_unavailable: "A Autentique está indisponível no momento. Tente novamente em instantes."
       job_position_in_use: "Este cargo está em uso por %{count} colaborador(es). Altere o cargo deles antes de removê-lo."
+  signature:
+    contract_message: "Segue o contrato de prestação de serviços educacionais referente a %{student}. Confira os dados e assine."
   # `validation_error` responses carry ActiveModel messages verbatim under `details`, and the SPA
   # prints them under each field — so these are user-facing strings, not developer output.
   errors:
@@ -42,6 +52,9 @@ pt-BR:
             cpf:
               taken: "já cadastrado para outro responsável nesta escola"
     attributes:
+      contract_template:
+        logo: "Logo"
+        body_html: "Corpo do contrato"
       teacher:
         name: "Nome"
         cpf: "CPF"

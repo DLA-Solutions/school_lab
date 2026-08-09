@@ -19,7 +19,13 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { EmptyState, ErrorBanner, SemanticChip } from 'design-system';
 import { ApiError } from 'services/api';
-import { listBillingPlans, listContracts, sendContract, signContract } from 'services/contractsApi';
+import {
+  dispatchContract,
+  listBillingPlans,
+  listContracts,
+  sendContract,
+  signContract,
+} from 'services/contractsApi';
 import { listStudents } from 'services/studentsApi';
 import { BillingPlan, Contract } from 'types/contract';
 import { Guardian } from 'types/guardian';
@@ -50,6 +56,20 @@ const API_FIELD_TO_FORM: Record<string, FormField> = {
   due_day: 'due_day',
 };
 
+/**
+ * A contract that was never dispatched is not waiting on the family — it is waiting on us, and
+ * saying "aguardando assinatura" for it would send the school looking in the wrong place.
+ */
+const signatureChip = (contract: Contract) => {
+  if (contract.signature_status === 'signed') {
+    return { variant: 'success' as const, label: 'Assinado' };
+  }
+
+  return contract.sent_to_provider
+    ? { variant: 'warning' as const, label: 'Aguardando assinatura' }
+    : { variant: 'error' as const, label: 'Não enviado' };
+};
+
 const formatDate = (value: string | null) => {
   if (!value) {
     return null;
@@ -75,11 +95,11 @@ const GuardianContractsDialog = ({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [sending, setSending] = useState(false);
   const [signingId, setSigningId] = useState<number | null>(null);
+  const [dispatchingId, setDispatchingId] = useState<number | null>(null);
 
   const loadContracts = useCallback(
     async (signatureStatus: Contract['signature_status']) => {
       setLoading(true);
-      setError('');
 
       try {
         const response = await listContracts({
@@ -165,7 +185,7 @@ const GuardianContractsDialog = ({
     setError('');
 
     try {
-      await sendContract(schoolId, {
+      const contract = await sendContract(schoolId, {
         student_id: Number(form.student_id),
         billing_plan_id: Number(form.billing_plan_id),
         negotiated_amount_cents: cents as number,
@@ -173,9 +193,26 @@ const GuardianContractsDialog = ({
       });
 
       setForm(emptyForm);
-      // The contract is created awaiting signature, so show the tab it actually landed in.
+
+      // The contract exists now; dispatching it is the step that puts it in the family's inbox.
+      // A failure there leaves a contract to resend rather than losing the whole thing, so it is
+      // reported without undoing the creation.
+      let dispatchFailure = '';
+      try {
+        await dispatchContract(schoolId, contract.id);
+      } catch (dispatchError) {
+        dispatchFailure =
+          dispatchError instanceof ApiError
+            ? dispatchMessage(dispatchError)
+            : 'Contrato criado, mas o envio para assinatura falhou. Use "Reenviar".';
+      }
+
       setTab('pending_signature');
       await loadContracts('pending_signature');
+
+      if (dispatchFailure) {
+        setError(dispatchFailure);
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         const mapped = Object.entries(err.details).reduce<FieldErrors>((acc, [key, value]) => {
@@ -195,6 +232,31 @@ const GuardianContractsDialog = ({
       }
     } finally {
       setSending(false);
+    }
+  };
+
+  // The API reports what the operator has to fix under `base`.
+  const dispatchMessage = (error: ApiError) => {
+    const base = error.details.base;
+
+    return Array.isArray(base) && typeof base[0] === 'string' ? base[0] : error.message;
+  };
+
+  const handleDispatch = async (contract: Contract) => {
+    setDispatchingId(contract.id);
+    setError('');
+
+    try {
+      await dispatchContract(schoolId, contract.id);
+      await loadContracts(tab);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? dispatchMessage(err)
+          : 'Não foi possível enviar o contrato para assinatura.',
+      );
+    } finally {
+      setDispatchingId(null);
     }
   };
 
@@ -236,7 +298,14 @@ const GuardianContractsDialog = ({
       </DialogTitle>
       <DialogContent>
         <Stack direction="column" gap={2.5}>
-          <Tabs value={tab} onChange={(_, value) => setTab(value)}>
+          <Tabs
+            value={tab}
+            onChange={(_, value) => {
+              // A message about the previous action does not belong to the tab being opened.
+              setError('');
+              setTab(value);
+            }}
+          >
             <Tab value="signed" label="Assinados" />
             <Tab value="pending_signature" label="Aguardando assinatura" />
           </Tabs>
@@ -266,16 +335,30 @@ const GuardianContractsDialog = ({
                   disableGutters
                   secondaryAction={
                     contract.signature_status === 'pending_signature' ? (
-                      <Button
-                        size="small"
-                        onClick={() => handleSign(contract)}
-                        disabled={signingId === contract.id}
-                        startIcon={
-                          signingId === contract.id ? <CircularProgress size={14} /> : null
-                        }
-                      >
-                        Marcar assinado
-                      </Button>
+                      <Stack direction="row" gap={0.5}>
+                        {!contract.sent_to_provider && (
+                          <Button
+                            size="small"
+                            onClick={() => handleDispatch(contract)}
+                            disabled={dispatchingId === contract.id}
+                            startIcon={
+                              dispatchingId === contract.id ? <CircularProgress size={14} /> : null
+                            }
+                          >
+                            Reenviar
+                          </Button>
+                        )}
+                        <Button
+                          size="small"
+                          onClick={() => handleSign(contract)}
+                          disabled={signingId === contract.id}
+                          startIcon={
+                            signingId === contract.id ? <CircularProgress size={14} /> : null
+                          }
+                        >
+                          Marcar assinado
+                        </Button>
+                      </Stack>
                     ) : null
                   }
                 >
@@ -289,12 +372,8 @@ const GuardianContractsDialog = ({
                           {formatCents(contract.negotiated_amount_cents)}/mês
                         </Typography>
                         <SemanticChip
-                          variant={contract.signature_status === 'signed' ? 'success' : 'warning'}
-                          label={
-                            contract.signature_status === 'signed'
-                              ? 'Assinado'
-                              : 'Aguardando assinatura'
-                          }
+                          variant={signatureChip(contract).variant}
+                          label={signatureChip(contract).label}
                         />
                       </Stack>
                     }
@@ -302,7 +381,9 @@ const GuardianContractsDialog = ({
                       <Typography variant="caption" color="text.secondary">
                         {contract.signature_status === 'signed'
                           ? `Assinado em ${formatDate(contract.signed_at) ?? '—'}`
-                          : `Enviado em ${formatDate(contract.sent_at) ?? '—'}`}
+                          : contract.sent_to_provider
+                            ? `Enviado em ${formatDate(contract.sent_at) ?? '—'}`
+                            : 'Ainda não enviado para assinatura'}
                         {contract.due_day ? ` — vence dia ${contract.due_day}` : ''}
                       </Typography>
                     }
@@ -382,7 +463,7 @@ const GuardianContractsDialog = ({
                 disabled={sending || students.length === 0}
                 startIcon={sending ? <CircularProgress size={16} color="inherit" /> : null}
               >
-                {sending ? 'Enviando...' : 'Enviar contrato'}
+                {sending ? 'Enviando...' : 'Enviar para assinatura'}
               </Button>
             </Stack>
           </Stack>

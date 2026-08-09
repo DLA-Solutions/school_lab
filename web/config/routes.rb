@@ -66,10 +66,14 @@ Rails.application.routes.draw do
 
           namespace :billing do
             resource :settings, only: %i[show update]
+            resource :contract_template, only: %i[show update], controller: "contract_template" do
+              get :preview
+            end
             resources :plans
             resources :contracts do
               member do
                 post :sign
+                post :send_for_signature
               end
             end
             resources :charge_generations, only: :create
@@ -115,5 +119,6 @@ Rails.application.routes.draw do
     end
   end
 
+  post "webhooks/signatures/:token", to: "webhooks/signatures#create"
   post "webhooks/:provider/:token", to: "webhooks/providers#create", as: :provider_webhook
 end

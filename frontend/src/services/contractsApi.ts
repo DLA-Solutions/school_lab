@@ -36,8 +36,9 @@ export const listContracts = ({
 };
 
 /**
- * POST /api/v1/schools/:school_id/billing/contracts — sends a contract for signature. The API
- * forces `pending_signature` and stamps `sent_at`, whatever the caller passes.
+ * POST /api/v1/schools/:school_id/billing/contracts — records the contract. It starts awaiting
+ * signature whatever the caller passes; dispatching it is a separate call, so a provider outage
+ * leaves a contract to retry rather than nothing.
  */
 export const sendContract = async (
   schoolId: number,
@@ -52,8 +53,21 @@ export const sendContract = async (
 };
 
 /**
- * POST /api/v1/schools/:school_id/billing/contracts/:id/sign — records that the family returned
- * the signed contract. Stands in for an e-signature callback until a provider is integrated.
+ * POST /api/v1/schools/:school_id/billing/contracts/:id/send_for_signature — renders the
+ * agreement and sends it to the guardians through the school's e-signature provider.
+ */
+export const dispatchContract = async (schoolId: number, id: number): Promise<Contract> => {
+  const response = await request<ContractResponse>(
+    `${collectionPath(schoolId)}/${id}/send_for_signature`,
+    { method: 'POST' },
+  );
+
+  return response.data;
+};
+
+/**
+ * POST /api/v1/schools/:school_id/billing/contracts/:id/sign — records a signature by hand, for a
+ * contract returned outside the provider (a scanned copy, a school not yet integrated).
  */
 export const signContract = async (schoolId: number, id: number): Promise<Contract> => {
   const response = await request<ContractResponse>(`${collectionPath(schoolId)}/${id}/sign`, {

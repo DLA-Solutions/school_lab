@@ -30,6 +30,12 @@ class Contract < ApplicationRecord
     signature_status == "signed"
   end
 
+  # Who has to sign: the guardians of the student, one or two. The API requires a guardian to
+  # carry an e-mail and a CPF, so every signer is reachable and identifiable.
+  def signers
+    student.student_guardians.kept.includes(:guardian).map(&:guardian)
+  end
+
   # Idempotent: re-marking a signed contract keeps the original signature date rather than
   # quietly moving it forward.
   def mark_signed!

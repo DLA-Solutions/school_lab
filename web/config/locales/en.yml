@@ -34,7 +34,17 @@ en:
       student_requires_a_guardian: "Provide the CPF of the father or the mother."
       guardian_cpf_not_found: "No guardian registered with CPF %{cpf}. Register them before enrolling the student."
       duplicate_guardian_cpf: "The same CPF was given for both father and mother."
+      contract_without_guardians: "This contract has no guardian linked to the student."
+      contract_pdf_unsupported_characters: "The contract contains characters the PDF font cannot render."
+      contract_template_missing: "No contract template configured for this school."
+      contract_already_sent: "This contract has already been sent for signature."
+      signer_missing_details: "Missing e-mail or CPF for %{names}."
+      signature_provider_missing: "No signature integration configured for this school."
+      signature_provider_unauthorized: "Autentique rejected this school's credentials."
+      signature_provider_unavailable: "Autentique is unavailable right now."
       job_position_in_use: "This position is held by %{count} collaborator(s). Move them first."
+  signature:
+    contract_message: "Please review and sign the educational services agreement for %{student}."
   activerecord:
     errors:
       messages:

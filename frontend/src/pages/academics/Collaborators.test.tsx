@@ -130,7 +130,8 @@ describe('Collaborators page', () => {
 
     await waitFor(() => expect(queries).toContain('Nogueira'));
     await waitFor(() => expect(screen.queryByText('Bruno Alves')).not.toBeInTheDocument());
-    expect(screen.getByText('Carla Nogueira')).toBeInTheDocument();
+    // Awaited rather than read synchronously: the grid re-renders its rows asynchronously.
+    expect(await screen.findByText('Carla Nogueira')).toBeInTheDocument();
 
     // One request for the initial load and one for the settled term — not one per letter.
     expect(queries).toEqual([null, 'Nogueira']);

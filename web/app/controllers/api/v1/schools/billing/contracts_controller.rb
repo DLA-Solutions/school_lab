@@ -29,16 +29,29 @@ module Api
             authorize Contract
 
             # Creating a contract here means sending it to the family for signature, so it starts
-            # pending with the send stamped — not silently in force.
+            # pending — not silently in force. The send itself is a separate step: the contract is
+            # saved first so a provider outage leaves a contract to retry rather than nothing.
             contract = Current.school.contracts.build(contract_params)
             contract.signature_status = "pending_signature"
-            contract.sent_at = Time.current
 
-            if contract.save
-              render json: { data: ContractBlueprint.render_as_hash(contract) }, status: :created
-            else
-              render_error(:validation_error, status: :unprocessable_content,
-                                               details: contract.errors.to_hash)
+            unless contract.save
+              return render_error(:validation_error, status: :unprocessable_content,
+                                                     details: contract.errors.to_hash)
+            end
+
+            render json: { data: ContractBlueprint.render_as_hash(contract) }, status: :created
+          end
+
+          # Renders the agreement and sends it to the guardians through the school's e-signature
+          # provider. Separate from create so a failed send can be retried without a duplicate
+          # contract, and so an existing contract can be dispatched later.
+          def send_for_signature
+            contract = policy_scope(Contract).find(params[:id])
+            authorize contract, :update?
+
+            result = ::Contracts::SendForSignatureService.call(contract: contract, actor: Current.user)
+            render_service_result(result) do |data|
+              render json: { data: ContractBlueprint.render_as_hash(data[:contract].reload) }
             end
           end
 

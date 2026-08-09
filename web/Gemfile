@@ -14,6 +14,16 @@ gem "puma", ">= 5.0"
 
 # HTTP client for gateway adapters (Faraday + Net::HTTP adapter)
 gem "faraday"
+# Autentique uploads the contract through the GraphQL multipart spec; Faraday 2 ships the
+# multipart middleware as a separate gem.
+gem "faraday-multipart"
+
+# Contract PDFs are built in-process. Prawn is pure Ruby, so the image needs no headless browser
+# or wkhtmltopdf binary just to render a one-page agreement.
+gem "prawn"
+gem "prawn-table"
+# Prawn reaches for `matrix`, which stopped being a default gem — without it the app fails to boot.
+gem "matrix"
 
 # Authentication and API
 gem "devise"
@@ -70,6 +80,7 @@ group :development, :test do
   gem "rspec-rails", "~> 8.0"
   gem "factory_bot_rails"
   gem "rswag-specs"
+  gem "pdf-inspector", require: "pdf/inspector"
 
   # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
   gem "bundler-audit", require: false

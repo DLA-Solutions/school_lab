@@ -12,7 +12,7 @@ const Footer = () => {
       sx={{ textAlign: { xs: 'center', md: 'right' } }}
       letterSpacing={0.5}
     >
-      Made with ❤️ by{' '}
+      Made by{' '}
       <Link href="https://scholarpremium.com.br/" target="_blank" rel="noreferrer">
         {'Scholar Premium'}
       </Link>

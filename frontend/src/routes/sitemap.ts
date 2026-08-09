@@ -69,6 +69,13 @@ const sitemap: MenuItem[] = [
     active: true,
   },
   {
+    id: 'contract-template',
+    subheader: 'Contrato',
+    path: paths.contractTemplate,
+    icon: 'mingcute:document-2-line',
+    active: true,
+  },
+  {
     id: 'schools',
     subheader: 'Escolas',
     path: paths.schools,

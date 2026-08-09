@@ -45,6 +45,9 @@ const signedContract: Contract = {
   signature_status: 'signed',
   sent_at: '2026-01-02T12:00:00Z',
   signed_at: '2026-01-05T12:00:00Z',
+  signature_provider: 'autentique',
+  signature_requested_at: '2026-01-02T12:00:00Z',
+  sent_to_provider: true,
 };
 
 const pendingContract: Contract = {
@@ -52,6 +55,16 @@ const pendingContract: Contract = {
   id: 92,
   signature_status: 'pending_signature',
   signed_at: null,
+};
+
+/** Recorded but never dispatched — waiting on the school, not on the family. */
+const undispatchedContract: Contract = {
+  ...pendingContract,
+  id: 93,
+  sent_at: null,
+  signature_provider: null,
+  signature_requested_at: null,
+  sent_to_provider: false,
 };
 
 const page = <T,>(data: T[]) => ({ data, meta: { page: 1, per_page: 25, total: data.length } });
@@ -154,6 +167,9 @@ describe('GuardianContractsDialog', () => {
         received = (await request.json()) as { contract: Record<string, unknown> };
         return HttpResponse.json({ data: pendingContract }, { status: 201 });
       }),
+      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/send_for_signature`), () =>
+        HttpResponse.json({ data: pendingContract }),
+      ),
     );
 
     renderDialog();
@@ -165,7 +181,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('option', { name: 'Mensalidade Integral' }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
 
-    await user.click(screen.getByRole('button', { name: /enviar contrato/i }));
+    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
 
     await waitFor(() => expect(received).toBeDefined());
 
@@ -190,6 +206,9 @@ describe('GuardianContractsDialog', () => {
       http.post(apiUrl(CONTRACTS_PATH), () =>
         HttpResponse.json({ data: pendingContract }, { status: 201 }),
       ),
+      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/send_for_signature`), () =>
+        HttpResponse.json({ data: pendingContract }),
+      ),
     );
 
     renderDialog();
@@ -201,7 +220,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('option', { name: 'Mensalidade Integral' }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
 
-    await user.click(screen.getByRole('button', { name: /enviar contrato/i }));
+    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
 
     expect(await screen.findByRole('button', { name: /marcar assinado/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /aguardando assinatura/i })).toHaveAttribute(
@@ -218,11 +237,114 @@ describe('GuardianContractsDialog', () => {
     renderDialog();
     await screen.findByText(/nenhum contrato assinado/i);
 
-    await user.click(screen.getByRole('button', { name: /enviar contrato/i }));
+    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
 
     expect(await screen.findByText(/selecione o filho/i)).toBeInTheDocument();
     expect(screen.getByText(/selecione o plano/i)).toBeInTheDocument();
     expect(screen.getByText(/informe o valor da mensalidade/i)).toBeInTheDocument();
+  });
+
+  // Creating the contract and dispatching it are separate calls: the second is what puts the
+  // agreement in the family's inbox.
+  it('dispatches the contract to the provider right after creating it', async () => {
+    authenticate();
+    stubFormOptions();
+
+    let dispatched = false;
+    server.use(
+      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([]))),
+      http.post(apiUrl(CONTRACTS_PATH), () =>
+        HttpResponse.json({ data: pendingContract }, { status: 201 }),
+      ),
+      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/send_for_signature`), () => {
+        dispatched = true;
+        return HttpResponse.json({ data: pendingContract });
+      }),
+    );
+
+    renderDialog();
+    await screen.findByText(/nenhum contrato assinado/i);
+
+    await user.click(screen.getByRole('combobox', { name: /filho/i }));
+    await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
+    await user.click(screen.getByRole('combobox', { name: /plano/i }));
+    await user.click(screen.getByRole('option', { name: 'Mensalidade Integral' }));
+    fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), {
+      target: { value: '85000' },
+    });
+
+    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+
+    await waitFor(() => expect(dispatched).toBe(true));
+  });
+
+  // The contract must survive a provider outage: it exists and can be resent.
+  it('keeps the contract and explains when the dispatch fails', async () => {
+    authenticate();
+    stubFormOptions();
+
+    server.use(
+      // The dialog opens on the signed tab, which must be empty for the form to be reachable.
+      http.get(apiUrl(CONTRACTS_PATH), ({ request }) => {
+        const status = new URL(request.url).searchParams.get('signature_status');
+        return HttpResponse.json(page(status === 'pending_signature' ? [undispatchedContract] : []));
+      }),
+      http.post(apiUrl(CONTRACTS_PATH), () =>
+        HttpResponse.json({ data: undispatchedContract }, { status: 201 }),
+      ),
+      http.post(apiUrl(`${CONTRACTS_PATH}/${undispatchedContract.id}/send_for_signature`), () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'validation_error',
+              message: 'Dados inválidos.',
+              details: { base: ['Nenhuma integração de assinatura configurada para esta escola.'] },
+            },
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    renderDialog();
+    await screen.findByText(/nenhum contrato assinado/i);
+
+    await user.click(screen.getByRole('combobox', { name: /filho/i }));
+    await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
+    await user.click(screen.getByRole('combobox', { name: /plano/i }));
+    await user.click(screen.getByRole('option', { name: 'Mensalidade Integral' }));
+    fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), {
+      target: { value: '85000' },
+    });
+
+    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+
+    expect(await screen.findByText(/nenhuma integração de assinatura/i)).toBeInTheDocument();
+  });
+
+  // A contract that never reached the provider is waiting on the school, not on the family.
+  it('marks an undispatched contract as not sent and offers to resend it', async () => {
+    authenticate();
+    stubFormOptions();
+
+    let resent = false;
+    server.use(
+      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([undispatchedContract]))),
+      http.post(apiUrl(`${CONTRACTS_PATH}/${undispatchedContract.id}/send_for_signature`), () => {
+        resent = true;
+        return HttpResponse.json({ data: pendingContract });
+      }),
+    );
+
+    renderDialog();
+    await user.click(await screen.findByRole('tab', { name: /aguardando assinatura/i }));
+
+    expect(await screen.findByText('Não enviado')).toBeInTheDocument();
+    expect(screen.getByText(/ainda não enviado para assinatura/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /reenviar/i }));
+
+    await waitFor(() => expect(resent).toBe(true));
   });
 
   it('records a returned contract as signed', async () => {
@@ -258,7 +380,7 @@ describe('GuardianContractsDialog', () => {
 
     expect(await screen.findByText(/não tem filhos vinculados/i)).toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /enviar contrato/i })).toBeDisabled(),
+      expect(screen.getByRole('button', { name: /enviar para assinatura/i })).toBeDisabled(),
     );
   });
 });

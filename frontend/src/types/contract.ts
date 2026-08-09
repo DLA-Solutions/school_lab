@@ -12,10 +12,17 @@ export interface Contract {
   starts_on: string | null;
   ends_on: string | null;
   status: 'active' | 'suspended' | 'ended';
-  /** No e-signature provider is integrated: the school marks a returned contract as signed. */
   signature_status: 'pending_signature' | 'signed';
   sent_at: string | null;
   signed_at: string | null;
+  /** Which integration carried it — `autentique`, or `fake` in development. */
+  signature_provider: string | null;
+  signature_requested_at: string | null;
+  /**
+   * Whether the agreement actually reached the provider. A contract can exist while its send
+   * failed, so "created" and "in the family's inbox" are different things.
+   */
+  sent_to_provider: boolean;
 }
 
 export interface ContractPayload {

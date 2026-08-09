@@ -125,7 +125,9 @@ describe('Guardians page search', () => {
 
     await waitFor(() => expect(queries).toContain('Silva'));
     await waitFor(() => expect(screen.queryByText('João Souza')).not.toBeInTheDocument());
-    expect(screen.getByText('Maria Silva')).toBeInTheDocument();
+    // Awaited rather than read synchronously: the grid re-renders its rows asynchronously, so a
+    // plain `getByText` here races the refresh under load.
+    expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
   });
 
   // The CPF is stored as digits; the search box has to accept it punctuated all the same.
