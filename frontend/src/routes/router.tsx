@@ -17,9 +17,10 @@ const App = lazy(() => import('App'));
 const Dashboard = lazy(() => import('pages/Dashboard'));
 const Guardians = lazy(() => import('pages/people/Guardians'));
 const Students = lazy(() => import('pages/people/Students'));
-const Teachers = lazy(() => import('pages/academics/Teachers'));
+const Collaborators = lazy(() => import('pages/academics/Collaborators'));
 const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
 const Subjects = lazy(() => import('pages/academics/Subjects'));
+const JobPositions = lazy(() => import('pages/academics/JobPositions'));
 const Schools = lazy(() => import('pages/Schools'));
 
 const router = createBrowserRouter(
@@ -56,8 +57,8 @@ const router = createBrowserRouter(
             element: <Students />,
           },
           {
-            path: paths.teachers,
-            element: <Teachers />,
+            path: paths.collaborators,
+            element: <Collaborators />,
           },
           {
             path: paths.schoolClasses,
@@ -66,6 +67,10 @@ const router = createBrowserRouter(
           {
             path: paths.subjects,
             element: <Subjects />,
+          },
+          {
+            path: paths.jobPositions,
+            element: <JobPositions />,
           },
           {
             path: paths.schools,

@@ -4,7 +4,14 @@ class TeacherBlueprint < Blueprinter::Base
   identifier :id
 
   # `cpf` is the canonical 11 digits; clients format it for display.
-  fields :school_id, :name, :cpf, :email, :phone
+  fields :school_id, :name, :cpf, :email, :phone, :hired_on
+
+  field :job_position_id
+
+  # The post's name, so a listing reads without resolving the association client-side.
+  field :job_title do |teacher|
+    teacher.job_position&.name
+  end
 
   # The listing answers "which classes, and which subjects in each" in one row, so the screen
   # never has to fan out a request per teacher.

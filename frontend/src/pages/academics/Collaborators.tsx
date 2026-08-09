@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -8,28 +8,49 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
+import CollaboratorFormDialog from 'components/sections/academics/CollaboratorFormDialog';
 import TeacherAssignmentsDialog from 'components/sections/academics/TeacherAssignmentsDialog';
-import TeacherFormDialog from 'components/sections/academics/TeacherFormDialog';
+import PersonDocumentsDialog from 'components/sections/documents/PersonDocumentsDialog';
 import {
   ConfirmDialog,
   DataTable,
   EmptyState,
   ErrorBanner,
   PageHeader,
+  SearchField,
   SectionCard,
 } from 'design-system';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { deleteTeacher, listTeachers } from 'services/academicsApi';
+import { COLLABORATOR_DOCUMENT_TYPES } from 'services/documentsApi';
 import { Teacher } from 'types/academics';
 import { formatCpf } from 'utils/documentNumber';
 import { gradeLevelLabel } from 'utils/gradeLevels';
+import { useDebouncedValue } from 'utils/useDebouncedValue';
 
 const PAGE_SIZE = 25;
 
 const renderCpf = ({ value }: GridRenderCellParams<Teacher, string>) => (
   <Typography variant="body2">{formatCpf(value)}</Typography>
 );
+
+/** Hire dates arrive as ISO (`2024-02-01`) and are read here as pt-BR. */
+const renderHiredOn = ({ value }: GridRenderCellParams<Teacher, string | null>) => {
+  if (!value) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        —
+      </Typography>
+    );
+  }
+
+  // Split rather than `new Date(value)`: parsing a bare ISO date as UTC and rendering it in a
+  // negative-offset timezone shows the day before.
+  const [year, month, day] = value.split('-');
+
+  return <Typography variant="body2">{`${day}/${month}/${year}`}</Typography>;
+};
 
 /**
  * One chip per class, labelled with the subjects held there — the listing's whole point is to
@@ -64,7 +85,7 @@ const renderClasses = ({ row }: GridRenderCellParams<Teacher>) => {
   );
 };
 
-const Teachers = () => {
+const Collaborators = () => {
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -73,10 +94,14 @@ const Teachers = () => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  // The API does the filtering, so the term is debounced rather than sent per keystroke.
+  const debouncedSearch = useDebouncedValue(search);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Teacher | null>(null);
   const [assignmentsFor, setAssignmentsFor] = useState<Teacher | null>(null);
+  const [documentsFor, setDocumentsFor] = useState<Teacher | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -89,7 +114,7 @@ const Teachers = () => {
     setError('');
 
     try {
-      const response = await listTeachers({ schoolId, page: page + 1 });
+      const response = await listTeachers({ schoolId, page: page + 1, q: debouncedSearch });
       setTeachers(response.data);
       setTotal(response.meta.total);
     } catch (err) {
@@ -98,16 +123,22 @@ const Teachers = () => {
       setError(
         err instanceof ApiError
           ? err.message
-          : 'Não foi possível carregar os professores. Verifique sua conexão.',
+          : 'Não foi possível carregar os colaboradores. Verifique sua conexão.',
       );
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page]);
+  }, [schoolId, page, debouncedSearch]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    // A narrower result rarely has the page the user is on — start over at the first.
+    setPage(0);
+  };
 
   const handleConfirmDelete = async () => {
     if (!schoolId || !pendingDelete) {
@@ -127,7 +158,7 @@ const Teachers = () => {
       }
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : 'Não foi possível excluir o professor.',
+        err instanceof ApiError ? err.message : 'Não foi possível excluir o colaborador.',
       );
       setPendingDelete(null);
     } finally {
@@ -136,9 +167,16 @@ const Teachers = () => {
   };
 
   const columns: GridColDef<Teacher>[] = [
-    { field: 'name', headerName: 'Nome', width: 180 },
-    { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
-    { field: 'email', headerName: 'E-mail', width: 200 },
+    { field: 'name', headerName: 'Nome', width: 170 },
+    { field: 'job_title', headerName: 'Cargo', width: 160 },
+    { field: 'cpf', headerName: 'CPF', width: 140, renderCell: renderCpf },
+    {
+      field: 'hired_on',
+      headerName: 'Contratação',
+      width: 130,
+      renderCell: renderHiredOn,
+    },
+    { field: 'email', headerName: 'E-mail', width: 190 },
     {
       field: 'classes',
       headerName: 'Turmas e matérias',
@@ -150,13 +188,22 @@ const Teachers = () => {
     {
       field: 'actions',
       headerName: 'Ações',
-      width: 150,
+      width: 180,
       sortable: false,
       filterable: false,
       align: 'right',
       headerAlign: 'right',
       renderCell: ({ row }: GridRenderCellParams<Teacher>) => (
         <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+          <Tooltip title="Documentos pessoais">
+            <IconButton
+              size="small"
+              aria-label={`Documentos de ${row.name}`}
+              onClick={() => setDocumentsFor(row)}
+            >
+              <IconifyIcon icon="mingcute:file-certificate-line" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Turmas e matérias">
             <IconButton
               size="small"
@@ -195,11 +242,11 @@ const Teachers = () => {
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Professores" />
+        <PageHeader title="Colaboradores" />
         <SectionCard>
           <EmptyState
             title="Sem acesso a esta área"
-            description="O cadastro de professores está disponível apenas para usuários com vínculo ativo de escola."
+            description="O cadastro de colaboradores está disponível apenas para usuários com vínculo ativo de escola."
             headingLevel={2}
           />
         </SectionCard>
@@ -210,19 +257,28 @@ const Teachers = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title="Professores"
+        title="Colaboradores"
         subtitle={school.school_name ?? undefined}
         actions={
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => {
-              setEditing(null);
-              setFormOpen(true);
-            }}
-          >
-            Novo professor
-          </Button>
+          <>
+            <SearchField
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Buscar por nome ou CPF"
+              ariaLabel="Buscar colaboradores"
+              sx={{ width: 260 }}
+            />
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+            >
+              Novo colaborador
+            </Button>
+          </>
         }
       />
 
@@ -231,8 +287,12 @@ const Teachers = () => {
       <SectionCard padding={0}>
         {!loading && teachers.length === 0 && !error ? (
           <EmptyState
-            title="Nenhum professor cadastrado"
-            description="Cadastre um professor para depois atribuí-lo às turmas e matérias."
+            title={debouncedSearch ? 'Nenhum resultado' : 'Nenhum colaborador cadastrado'}
+            description={
+              debouncedSearch
+                ? `Nada encontrado para "${debouncedSearch}". Verifique o nome ou o CPF.`
+                : 'Cadastre um colaborador para depois atribuí-lo às turmas e matérias.'
+            }
             action={
               <Button
                 variant="contained"
@@ -242,7 +302,7 @@ const Teachers = () => {
                   setFormOpen(true);
                 }}
               >
-                Novo professor
+                Novo colaborador
               </Button>
             }
           />
@@ -265,7 +325,7 @@ const Teachers = () => {
         )}
       </SectionCard>
 
-      <TeacherFormDialog
+      <CollaboratorFormDialog
         key={`${formOpen}-${editing?.id ?? 'new'}`}
         open={formOpen}
         schoolId={school.school_id}
@@ -288,9 +348,23 @@ const Teachers = () => {
         />
       )}
 
+      {documentsFor && (
+        <PersonDocumentsDialog
+          open
+          schoolId={school.school_id}
+          documentableType="Teacher"
+          documentableId={documentsFor.id}
+          title={documentsFor.name}
+          subtitle={documentsFor.job_title ?? undefined}
+          documentTypes={COLLABORATOR_DOCUMENT_TYPES}
+          emptyDescription="Envie RG, CPF, contrato de trabalho ou diploma deste colaborador."
+          onClose={() => setDocumentsFor(null)}
+        />
+      )}
+
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Excluir professor"
+        title="Excluir colaborador"
         message={`Excluir ${pendingDelete?.name ?? ''}? Ele deixa de aparecer na listagem e perde suas turmas.`}
         confirmLabel={deleting ? 'Excluindo...' : 'Excluir'}
         cancelLabel="Cancelar"
@@ -302,4 +376,4 @@ const Teachers = () => {
   );
 };
 
-export default Teachers;
+export default Collaborators;

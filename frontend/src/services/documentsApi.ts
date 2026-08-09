@@ -3,8 +3,11 @@ import { API_BASE_URL, request } from './api';
 
 const collectionPath = (schoolId: number) => `/api/v1/schools/${schoolId}/documents`;
 
-/** Personal-document kinds a school collects from a guardian. Free text on the API side. */
-export const GUARDIAN_DOCUMENT_TYPES = [
+/** The owners a personal document can hang off — mirrors `Document::DOCUMENTABLE_TYPES`. */
+export type DocumentableType = 'Guardian' | 'Student' | 'Teacher';
+
+/** Personal-document kinds a school collects. Free text on the API side. */
+export const PERSONAL_DOCUMENT_TYPES = [
   { value: 'cpf', label: 'CPF' },
   { value: 'rg', label: 'RG' },
   { value: 'proof_of_address', label: 'Comprovante de residência' },
@@ -12,27 +15,43 @@ export const GUARDIAN_DOCUMENT_TYPES = [
   { value: 'other', label: 'Outro' },
 ] as const;
 
+/** What a collaborator's file is usually called, on top of the shared kinds. */
+export const COLLABORATOR_DOCUMENT_TYPES = [
+  ...PERSONAL_DOCUMENT_TYPES.filter((type) => type.value !== 'proof_of_income'),
+  { value: 'employment_contract', label: 'Contrato de trabalho' },
+  { value: 'diploma', label: 'Diploma / certificação' },
+] as const;
+
 export const documentTypeLabel = (value: string) =>
-  GUARDIAN_DOCUMENT_TYPES.find((type) => type.value === value)?.label ?? value;
+  [...PERSONAL_DOCUMENT_TYPES, ...COLLABORATOR_DOCUMENT_TYPES].find(
+    (type) => type.value === value,
+  )?.label ?? value;
 
 /** GET /api/v1/schools/:school_id/documents, narrowed to one owner. */
-export const listGuardianDocuments = (schoolId: number, guardianId: number, page = 1) =>
+export const listPersonDocuments = (
+  schoolId: number,
+  documentableType: DocumentableType,
+  documentableId: number,
+  page = 1,
+) =>
   request<DocumentListResponse>(
-    `${collectionPath(schoolId)}?documentable_type=Guardian&documentable_id=${guardianId}&page=${page}`,
+    `${collectionPath(schoolId)}?documentable_type=${documentableType}` +
+      `&documentable_id=${documentableId}&page=${page}`,
   );
 
 /**
  * POST /api/v1/schools/:school_id/documents as multipart — the file rides in the body, so this
  * is a FormData rather than JSON. `documents_controller` reads `document[file]`.
  */
-export const uploadGuardianDocument = async (
+export const uploadPersonDocument = async (
   schoolId: number,
-  guardianId: number,
+  documentableType: DocumentableType,
+  documentableId: number,
   { file, documentType }: { file: File; documentType: string },
 ): Promise<SchoolDocument> => {
   const body = new FormData();
-  body.append('document[documentable_type]', 'Guardian');
-  body.append('document[documentable_id]', String(guardianId));
+  body.append('document[documentable_type]', documentableType);
+  body.append('document[documentable_id]', String(documentableId));
   body.append('document[document_type]', documentType);
   body.append('document[file]', file);
 

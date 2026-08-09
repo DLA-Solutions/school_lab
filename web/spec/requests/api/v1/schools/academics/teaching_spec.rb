@@ -75,7 +75,10 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
 
     it "creates a teacher with a validated CPF" do
       post "#{base}/teachers",
-           params: { teacher: { name: "Carla", cpf: "529.982.247-25", email: "carla@example.com" } },
+           params: {
+             teacher: { name: "Carla", cpf: "529.982.247-25", email: "carla@example.com",
+                        job_position_id: create(:job_position, school: school).id }
+           },
            headers: headers, as: :json
 
       expect(response).to have_http_status(:created)
@@ -84,7 +87,10 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
 
     it "rejects an invalid CPF" do
       post "#{base}/teachers",
-           params: { teacher: { name: "Carla", cpf: "111.111.111-11", email: "c@example.com" } },
+           params: {
+             teacher: { name: "Carla", cpf: "111.111.111-11", email: "c@example.com",
+                        job_position_id: create(:job_position, school: school).id }
+           },
            headers: headers, as: :json
 
       expect(response).to have_http_status(:unprocessable_content)

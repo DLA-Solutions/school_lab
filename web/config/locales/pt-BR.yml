@@ -18,6 +18,7 @@ pt-BR:
       student_requires_a_guardian: "Informe o CPF do pai ou da mãe."
       guardian_cpf_not_found: "Nenhum responsável cadastrado com o CPF %{cpf}. Cadastre-o antes de matricular o estudante."
       duplicate_guardian_cpf: "O mesmo CPF foi informado para pai e mãe."
+      job_position_in_use: "Este cargo está em uso por %{count} colaborador(es). Altere o cargo deles antes de removê-lo."
   # `validation_error` responses carry ActiveModel messages verbatim under `details`, and the SPA
   # prints them under each field — so these are user-facing strings, not developer output.
   errors:
@@ -34,12 +35,20 @@ pt-BR:
       messages:
         invalid_cpf: "não é um CPF válido"
         must_be_in_the_past: "deve estar no passado"
+        must_not_be_in_the_future: "não pode estar no futuro"
       models:
         guardian:
           attributes:
             cpf:
               taken: "já cadastrado para outro responsável nesta escola"
     attributes:
+      teacher:
+        name: "Nome"
+        cpf: "CPF"
+        email: "E-mail"
+        phone: "Telefone"
+        job_position: "Cargo"
+        hired_on: "Início da contratação"
       guardian:
         name: "Nome"
         cpf: "CPF"

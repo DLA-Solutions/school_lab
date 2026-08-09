@@ -47,6 +47,11 @@ Rails.application.routes.draw do
           end
 
           namespace :academics do
+            resources :job_positions, only: %i[index create update destroy] do
+              collection do
+                post :provision_defaults
+              end
+            end
             resources :subjects, only: %i[index create update destroy]
             resources :school_classes, only: %i[index show create update destroy]
             resources :teachers, only: %i[index show create update destroy] do

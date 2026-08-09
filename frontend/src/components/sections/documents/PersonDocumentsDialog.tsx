@@ -19,21 +19,29 @@ import IconifyIcon from 'components/base/IconifyIcon';
 import { EmptyState, ErrorBanner, SemanticChip } from 'design-system';
 import { ApiError } from 'services/api';
 import {
-  GUARDIAN_DOCUMENT_TYPES,
+  DocumentableType,
+  PERSONAL_DOCUMENT_TYPES,
   deleteDocument,
   documentDownloadUrl,
   documentTypeLabel,
-  listGuardianDocuments,
-  uploadGuardianDocument,
+  listPersonDocuments,
+  uploadPersonDocument,
 } from 'services/documentsApi';
 import { SchoolDocument } from 'types/document';
-import { Guardian } from 'types/guardian';
-import { formatCpf } from 'utils/documentNumber';
 
-export interface GuardianDocumentsDialogProps {
+export interface PersonDocumentsDialogProps {
   open: boolean;
   schoolId: number;
-  guardian: Guardian;
+  /** Who the documents belong to — a guardian, a student or a collaborator. */
+  documentableType: DocumentableType;
+  documentableId: number;
+  /** Named in the heading, so the dialog says whose file is open. */
+  title: string;
+  subtitle?: string;
+  /** Overrides the kinds on offer; the shared personal set by default. */
+  documentTypes?: readonly { value: string; label: string }[];
+  /** Shown in the empty state — what this owner is usually asked for. */
+  emptyDescription?: string;
   onClose: () => void;
 }
 
@@ -61,16 +69,21 @@ const formatBytes = (bytes: number | null) => {
   return `${size.toFixed(exponent === 0 ? 0 : 1)} ${units[exponent]}`;
 };
 
-const GuardianDocumentsDialog = ({
+const PersonDocumentsDialog = ({
   open,
   schoolId,
-  guardian,
+  documentableType,
+  documentableId,
+  title,
+  subtitle,
+  documentTypes = PERSONAL_DOCUMENT_TYPES,
+  emptyDescription = 'Envie CPF, RG ou comprovante de residência desta pessoa.',
   onClose,
-}: GuardianDocumentsDialogProps) => {
+}: PersonDocumentsDialogProps) => {
   const [documents, setDocuments] = useState<SchoolDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [documentType, setDocumentType] = useState<string>(GUARDIAN_DOCUMENT_TYPES[0].value);
+  const [documentType, setDocumentType] = useState<string>(documentTypes[0].value);
   const [uploading, setUploading] = useState(false);
   const [removingId, setRemovingId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,7 +93,7 @@ const GuardianDocumentsDialog = ({
     setError('');
 
     try {
-      const response = await listGuardianDocuments(schoolId, guardian.id);
+      const response = await listPersonDocuments(schoolId, documentableType, documentableId);
       setDocuments(response.data);
     } catch (err) {
       setDocuments([]);
@@ -92,7 +105,7 @@ const GuardianDocumentsDialog = ({
     } finally {
       setLoading(false);
     }
-  }, [schoolId, guardian.id]);
+  }, [schoolId, documentableType, documentableId]);
 
   useEffect(() => {
     load();
@@ -110,7 +123,10 @@ const GuardianDocumentsDialog = ({
     setError('');
 
     try {
-      await uploadGuardianDocument(schoolId, guardian.id, { file, documentType });
+      await uploadPersonDocument(schoolId, documentableType, documentableId, {
+        file,
+        documentType,
+      });
       await load();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -146,7 +162,7 @@ const GuardianDocumentsDialog = ({
       <DialogTitle>
         Documentos pessoais
         <Typography variant="body2" color="text.secondary">
-          {guardian.name} — CPF {formatCpf(guardian.cpf)}
+          {subtitle ? `${title} — ${subtitle}` : title}
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -162,7 +178,7 @@ const GuardianDocumentsDialog = ({
               select
               fullWidth
             >
-              {GUARDIAN_DOCUMENT_TYPES.map((type) => (
+              {documentTypes.map((type) => (
                 <MenuItem key={type.value} value={type.value}>
                   {type.label}
                 </MenuItem>
@@ -203,10 +219,7 @@ const GuardianDocumentsDialog = ({
               <CircularProgress size={24} />
             </Stack>
           ) : documents.length === 0 ? (
-            <EmptyState
-              title="Nenhum documento enviado"
-              description="Envie CPF, RG ou comprovante de residência deste responsável."
-            />
+            <EmptyState title="Nenhum documento enviado" description={emptyDescription} />
           ) : (
             <List disablePadding>
               {documents.map((document) => {
@@ -286,4 +299,4 @@ const GuardianDocumentsDialog = ({
   );
 };
 
-export default GuardianDocumentsDialog;
+export default PersonDocumentsDialog;

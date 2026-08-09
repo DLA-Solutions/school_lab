@@ -89,11 +89,18 @@ FactoryBot.define do
     sequence(:name) { |n| "Subject #{n}" }
   end
 
+  factory :job_position do
+    school
+    sequence(:name) { |n| "Cargo #{n}" }
+  end
+
   factory :teacher do
     school
     sequence(:name) { |n| "Teacher #{n}" }
     sequence(:email) { |n| "teacher#{n}@example.com" }
     phone { "+55 11 98888-0000" }
+    job_position { association :job_position, school: school }
+    hired_on { Date.new(2024, 2, 1) }
 
     sequence(:cpf) do |n|
       base = ::Kernel.format("%09d", (n + 700_000) % 1_000_000_000)

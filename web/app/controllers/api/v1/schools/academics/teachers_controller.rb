@@ -9,7 +9,8 @@ module Api
             authorize Teacher
 
             teachers = policy_scope(Teacher)
-                       .includes(teaching_assignments: %i[school_class subject])
+                       .includes(:job_position, teaching_assignments: %i[school_class subject])
+                       .search(params[:q])
                        .order(:name)
             teachers = filter_by_class(teachers)
 
@@ -75,7 +76,7 @@ module Api
           end
 
           def teacher_params
-            params.require(:teacher).permit(:name, :cpf, :email, :phone)
+            params.require(:teacher).permit(:name, :cpf, :email, :phone, :job_position_id, :hired_on)
           end
         end
       end

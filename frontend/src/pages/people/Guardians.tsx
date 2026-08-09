@@ -7,8 +7,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
+import PersonDocumentsDialog from 'components/sections/documents/PersonDocumentsDialog';
 import GuardianContractsDialog from 'components/sections/people/guardians/GuardianContractsDialog';
-import GuardianDocumentsDialog from 'components/sections/people/guardians/GuardianDocumentsDialog';
 import GuardianFormDialog from 'components/sections/people/guardians/GuardianFormDialog';
 import {
   ConfirmDialog,
@@ -307,10 +307,14 @@ const Guardians = () => {
       )}
 
       {documentsFor && (
-        <GuardianDocumentsDialog
+        <PersonDocumentsDialog
           open
           schoolId={school.school_id}
-          guardian={documentsFor}
+          documentableType="Guardian"
+          documentableId={documentsFor.id}
+          title={documentsFor.name}
+          subtitle={`CPF ${formatCpf(documentsFor.cpf)}`}
+          emptyDescription="Envie CPF, RG ou comprovante de residência deste responsável."
           onClose={() => setDocumentsFor(null)}
         />
       )}

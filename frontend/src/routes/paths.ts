@@ -12,9 +12,10 @@ export default {
   guardians: `/${rootPaths.peopleRoot}/responsaveis`,
   students: `/${rootPaths.peopleRoot}/estudantes`,
 
-  teachers: `/${rootPaths.academicsRoot}/professores`,
+  collaborators: `/${rootPaths.academicsRoot}/colaboradores`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,
   subjects: `/${rootPaths.academicsRoot}/materias`,
+  jobPositions: `/${rootPaths.academicsRoot}/cargos`,
 
   schools: '/escolas',
 

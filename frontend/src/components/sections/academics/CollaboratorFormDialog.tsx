@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
@@ -6,15 +6,16 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { ErrorBanner } from 'design-system';
-import { createTeacher, updateTeacher } from 'services/academicsApi';
+import { createTeacher, listJobPositions, updateTeacher } from 'services/academicsApi';
 import { ApiError } from 'services/api';
-import { Teacher, TeacherPayload } from 'types/academics';
+import { JobPosition, Teacher, TeacherPayload } from 'types/academics';
 import { formatCpf, isValidCpf, normalizeCpf } from 'utils/documentNumber';
 
-export interface TeacherFormDialogProps {
+export interface CollaboratorFormDialogProps {
   open: boolean;
   schoolId: number;
   teacher?: Teacher | null;
@@ -22,13 +23,20 @@ export interface TeacherFormDialogProps {
   onSaved: (teacher: Teacher) => void;
 }
 
-type FormField = 'name' | 'cpf' | 'email' | 'phone';
+type FormField = 'name' | 'cpf' | 'email' | 'phone' | 'job_position_id' | 'hired_on';
 
 type FormState = Record<FormField, string>;
 
 type FieldErrors = Partial<Record<FormField, string>>;
 
-const emptyForm: FormState = { name: '', cpf: '', email: '', phone: '' };
+const emptyForm: FormState = {
+  name: '',
+  cpf: '',
+  email: '',
+  phone: '',
+  job_position_id: '',
+  hired_on: '',
+};
 
 const toFormState = (teacher?: Teacher | null): FormState =>
   teacher
@@ -37,6 +45,8 @@ const toFormState = (teacher?: Teacher | null): FormState =>
         cpf: formatCpf(teacher.cpf),
         email: teacher.email ?? '',
         phone: teacher.phone ?? '',
+        job_position_id: teacher.job_position_id ? String(teacher.job_position_id) : '',
+        hired_on: teacher.hired_on ?? '',
       }
     : emptyForm;
 
@@ -45,12 +55,18 @@ const toPayload = (form: FormState): TeacherPayload => ({
   cpf: normalizeCpf(form.cpf),
   email: form.email.trim(),
   phone: form.phone.trim() || null,
+  job_position_id: Number(form.job_position_id),
+  // Optional: a collaborator on file since before the field existed has no honest date.
+  hired_on: form.hired_on || null,
 });
 
 const toFieldErrors = (details: Record<string, unknown>): FieldErrors =>
   Object.entries(details).reduce<FieldErrors>((acc, [key, value]) => {
-    if (key in emptyForm && Array.isArray(value) && typeof value[0] === 'string') {
-      acc[key as FormField] = value[0];
+    // The API reports the association as `job_position`; the field here is `job_position_id`.
+    const field = key === 'job_position' ? 'job_position_id' : key;
+
+    if (field in emptyForm && Array.isArray(value) && typeof value[0] === 'string') {
+      acc[field as FormField] = value[0];
     }
     return acc;
   }, {});
@@ -59,7 +75,7 @@ const validate = (form: FormState): FieldErrors => {
   const errors: FieldErrors = {};
 
   if (!form.name.trim()) {
-    errors.name = 'Informe o nome do professor.';
+    errors.name = 'Informe o nome do colaborador.';
   }
 
   if (!normalizeCpf(form.cpf)) {
@@ -72,21 +88,46 @@ const validate = (form: FormState): FieldErrors => {
     errors.email = 'Informe o e-mail.';
   }
 
+  if (!form.job_position_id) {
+    errors.job_position_id = 'Selecione o cargo.';
+  }
+
+  // ISO dates compare correctly as strings, which avoids a timezone round trip here.
+  if (form.hired_on && form.hired_on > new Date().toISOString().slice(0, 10)) {
+    errors.hired_on = 'A data de contratação não pode estar no futuro.';
+  }
+
   return errors;
 };
 
-const TeacherFormDialog = ({
+const CollaboratorFormDialog = ({
   open,
   schoolId,
   teacher,
   onClose,
   onSaved,
-}: TeacherFormDialogProps) => {
+}: CollaboratorFormDialogProps) => {
   // Seeded once per mount; the caller remounts on open (see the `key` at the call site).
   const [form, setForm] = useState<FormState>(() => toFormState(teacher));
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [positions, setPositions] = useState<JobPosition[]>([]);
+
+  // The posts drive the "Cargo" select; they do not change while the dialog is open.
+  useEffect(() => {
+    const loadPositions = async () => {
+      try {
+        const response = await listJobPositions(schoolId);
+        setPositions(response.data);
+      } catch {
+        // An empty select is signal enough; saving would surface anything worse.
+        setPositions([]);
+      }
+    };
+
+    loadPositions();
+  }, [schoolId]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -144,7 +185,7 @@ const TeacherFormDialog = ({
 
   return (
     <Dialog open={open} onClose={submitting ? undefined : onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{teacher ? 'Editar professor' : 'Novo professor'}</DialogTitle>
+      <DialogTitle>{teacher ? 'Editar colaborador' : 'Novo colaborador'}</DialogTitle>
       <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
         <DialogContent>
           <Grid container spacing={2.5} pt={0.5}>
@@ -165,6 +206,25 @@ const TeacherFormDialog = ({
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField {...fieldProps('phone')} label="Telefone" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              {/* The posts come from the Cargos register, so two people in the same post are
+                  recorded as such rather than as two spellings of it. */}
+              <TextField {...fieldProps('job_position_id')} label="Cargo" required select>
+                {positions.map((position) => (
+                  <MenuItem key={position.id} value={String(position.id)}>
+                    {position.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                {...fieldProps('hired_on')}
+                label="Início da contratação"
+                type="date"
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
             </Grid>
             {error && (
               <Grid size={12}>
@@ -191,4 +251,4 @@ const TeacherFormDialog = ({
   );
 };
 
-export default TeacherFormDialog;
+export default CollaboratorFormDialog;

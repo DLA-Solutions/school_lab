@@ -96,9 +96,14 @@ module DemoSchool
   # A teacher covering two subjects of the demo cohort, so the teacher listing has something to
   # show on a fresh database.
   def seed_academics!(school, school_class)
+    # Every school starts with the standard set of posts; the demo teacher holds one of them.
+    JobPosition.provision_defaults!(school)
+    teaching_post = school.job_positions.kept.find_by(name: "Professor(a)")
+
     teacher = Teacher.find_or_initialize_by(school: school, cpf: "15852119075")
     teacher.assign_attributes(
-      name: "Carla Nogueira", email: "carla@demo.schoollab.local", phone: "+55 11 97777-0000"
+      name: "Carla Nogueira", email: "carla@demo.schoollab.local", phone: "+55 11 97777-0000",
+      job_position: teaching_post, hired_on: Date.new(2024, 2, 1)
     )
     teacher.save!
 

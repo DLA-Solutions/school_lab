@@ -36,6 +36,9 @@ const teacher: Teacher = {
   cpf: '15852119075',
   email: 'carla@example.com',
   phone: null,
+  job_position_id: 3,
+  job_title: 'Professora',
+  hired_on: '2024-02-01',
   classes: [
     {
       id: fifthA.id,

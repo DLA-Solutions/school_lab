@@ -5,7 +5,7 @@ class Document < ApplicationRecord
   include SchoolAuditable
   include DocumentStateMachine
 
-  DOCUMENTABLE_TYPES = %w[School Guardian Student].freeze
+  DOCUMENTABLE_TYPES = %w[School Guardian Student Teacher].freeze
   GUARDIAN_VISIBLE_STATUSES = %w[pending approved].freeze
 
   belongs_to :school
@@ -28,7 +28,7 @@ class Document < ApplicationRecord
     case documentable
     when School
       errors.add(:documentable, :invalid) unless documentable.id == school_id
-    when Student, Guardian
+    when Student, Guardian, Teacher
       errors.add(:documentable, :invalid) unless documentable.school_id == school_id
     else
       errors.add(:documentable, :invalid)

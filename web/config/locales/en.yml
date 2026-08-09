@@ -34,11 +34,13 @@ en:
       student_requires_a_guardian: "Provide the CPF of the father or the mother."
       guardian_cpf_not_found: "No guardian registered with CPF %{cpf}. Register them before enrolling the student."
       duplicate_guardian_cpf: "The same CPF was given for both father and mother."
+      job_position_in_use: "This position is held by %{count} collaborator(s). Move them first."
   activerecord:
     errors:
       messages:
         invalid_cpf: "is not a valid CPF"
         must_be_in_the_past: "must be in the past"
+        must_not_be_in_the_future: "must not be in the future"
       models:
         guardian:
           attributes:

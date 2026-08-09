@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_09_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -232,6 +232,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
     t.index ["user_id"], name: "index_guardians_on_user_id"
     t.check_constraint "state IS NULL OR state::text ~ '^[A-Z]{2}$'::text", name: "guardians_state_format"
     t.check_constraint "zip_code IS NULL OR zip_code::text ~ '^[0-9]{8}$'::text", name: "guardians_zip_code_format"
+  end
+
+  create_table "job_positions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_by_id"], name: "index_job_positions_on_discarded_by_id"
+    t.index ["school_id", "name"], name: "index_job_positions_on_school_id_and_name_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id"], name: "index_job_positions_on_school_id"
   end
 
   create_table "membership_permissions", force: :cascade do |t|
@@ -610,11 +622,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
     t.string "email"
+    t.date "hired_on"
+    t.bigint "job_position_id"
     t.string "name", null: false
     t.string "phone"
     t.bigint "school_id", null: false
     t.datetime "updated_at", null: false
     t.index ["discarded_by_id"], name: "index_teachers_on_discarded_by_id"
+    t.index ["job_position_id"], name: "index_teachers_on_job_position_id"
     t.index ["school_id", "cpf"], name: "index_teachers_on_school_id_and_cpf_kept", unique: true, where: "((discarded_at IS NULL) AND (cpf IS NOT NULL))"
     t.index ["school_id"], name: "index_teachers_on_school_id"
     t.check_constraint "cpf IS NULL OR cpf::text ~ '^[0-9]{11}$'::text", name: "teachers_cpf_format"
@@ -705,6 +720,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
   add_foreign_key "guardians", "schools"
   add_foreign_key "guardians", "users"
   add_foreign_key "guardians", "users", column: "discarded_by_id"
+  add_foreign_key "job_positions", "schools"
+  add_foreign_key "job_positions", "users", column: "discarded_by_id"
   add_foreign_key "membership_permissions", "memberships"
   add_foreign_key "membership_permissions", "schools"
   add_foreign_key "memberships", "schools"
@@ -742,6 +759,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
   add_foreign_key "students", "users", column: "discarded_by_id"
   add_foreign_key "subjects", "schools"
   add_foreign_key "subjects", "users", column: "discarded_by_id"
+  add_foreign_key "teachers", "job_positions"
   add_foreign_key "teachers", "schools"
   add_foreign_key "teachers", "users", column: "discarded_by_id"
   add_foreign_key "teaching_assignments", "school_classes"

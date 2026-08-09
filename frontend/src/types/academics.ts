@@ -1,3 +1,18 @@
+/**
+ * A post a collaborator occupies. Mirrors `JobPositionBlueprint`.
+ *
+ * Distinct from a role template, which grants a user account its permissions: a job position says
+ * what someone does, not what they may see.
+ */
+export interface JobPosition {
+  id: number;
+  school_id: number;
+  name: string;
+  /** True while collaborators still hold it — removal is refused until they move. */
+  in_use: boolean;
+  collaborator_count: number;
+}
+
 /** Mirrors `SubjectBlueprint` (web/app/blueprints/subject_blueprint.rb). */
 export interface Subject {
   id: number;
@@ -28,7 +43,10 @@ export interface TeacherClass {
   subjects: { id: number; name: string; assignment_id: number }[];
 }
 
-/** Mirrors `TeacherBlueprint` in its `with_assignments` view. */
+/**
+ * A collaborator of the school. The API resource is still `teachers` — teaching assignments hang
+ * off it — but the register covers every post, which `job_title` names.
+ */
 export interface Teacher {
   id: number;
   school_id: number;
@@ -37,6 +55,11 @@ export interface Teacher {
   cpf: string;
   email: string;
   phone: string | null;
+  job_position_id: number;
+  /** The post's name, denormalized by the blueprint so a listing reads without a join. */
+  job_title: string | null;
+  /** ISO date (`2024-02-01`), or null for a record that predates the field. */
+  hired_on: string | null;
   classes: TeacherClass[];
 }
 
@@ -45,6 +68,8 @@ export interface TeacherPayload {
   cpf: string;
   email: string;
   phone?: string | null;
+  job_position_id: number;
+  hired_on?: string | null;
 }
 
 export interface SchoolClassPayload {

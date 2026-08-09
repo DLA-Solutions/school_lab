@@ -39,6 +39,8 @@ module Documents
         school.students.kept.find_by(id: id)
       when "Guardian"
         school.guardians.kept.find_by(id: id)
+      when "Teacher"
+        school.teachers.kept.find_by(id: id)
       end
     end
   end

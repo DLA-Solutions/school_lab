@@ -5,29 +5,14 @@ import { HttpResponse, SCHOOL_ID, apiUrl, http, server } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { setAccessToken } from 'services/tokenStore';
 import { SchoolDocument } from 'types/document';
-import { Guardian } from 'types/guardian';
-import GuardianDocumentsDialog from './GuardianDocumentsDialog';
+import PersonDocumentsDialog from './PersonDocumentsDialog';
 
 const DOCUMENTS_PATH = `/api/v1/schools/${SCHOOL_ID}/documents`;
 
 const user = userEvent.setup({ delay: null });
 
-const guardian: Guardian = {
-  id: 7,
-  school_id: SCHOOL_ID,
-  user_id: null,
-  name: 'Maria Silva',
-  cpf: '12345678909',
-  email: 'maria@example.com',
-  phone: '+55 11 99999-0000',
-  zip_code: null,
-  street: null,
-  number: null,
-  complement: null,
-  neighborhood: null,
-  city: null,
-  state: null,
-};
+/** Stands in for any owner; the dialog only needs a type, an id and a heading. */
+const guardian = { id: 7, name: 'Maria Silva' };
 
 const storedDocument: SchoolDocument = {
   id: 31,
@@ -52,7 +37,14 @@ const renderDialog = () => {
   const onClose = vi.fn();
 
   renderWithTheme(
-    <GuardianDocumentsDialog open schoolId={SCHOOL_ID} guardian={guardian} onClose={onClose} />,
+    <PersonDocumentsDialog
+      open
+      schoolId={SCHOOL_ID}
+      documentableType="Guardian"
+      documentableId={guardian.id}
+      title={guardian.name}
+      onClose={onClose}
+    />,
   );
 
   return { onClose };
@@ -60,7 +52,7 @@ const renderDialog = () => {
 
 const authenticate = () => setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
 
-describe('GuardianDocumentsDialog', () => {
+describe('PersonDocumentsDialog', () => {
   it('asks the API only for this guardian’s documents', async () => {
     authenticate();
 

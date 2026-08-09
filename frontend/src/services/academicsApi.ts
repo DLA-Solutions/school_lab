@@ -1,4 +1,5 @@
 import {
+  JobPosition,
   Paginated,
   SchoolClass,
   SchoolClassPayload,
@@ -9,6 +10,49 @@ import {
 import { request } from './api';
 
 const base = (schoolId: number) => `/api/v1/schools/${schoolId}/academics`;
+
+/* ----------------------------------------------------------- job positions */
+
+export const listJobPositions = (schoolId: number, page = 1) =>
+  request<Paginated<JobPosition>>(`${base(schoolId)}/job_positions?page=${page}`);
+
+export const createJobPosition = async (schoolId: number, name: string): Promise<JobPosition> => {
+  const response = await request<{ data: JobPosition }>(`${base(schoolId)}/job_positions`, {
+    method: 'POST',
+    body: { job_position: { name } },
+  });
+
+  return response.data;
+};
+
+export const updateJobPosition = async (
+  schoolId: number,
+  id: number,
+  name: string,
+): Promise<JobPosition> => {
+  const response = await request<{ data: JobPosition }>(`${base(schoolId)}/job_positions/${id}`, {
+    method: 'PATCH',
+    body: { job_position: { name } },
+  });
+
+  return response.data;
+};
+
+export const deleteJobPosition = (schoolId: number, id: number) =>
+  request<null>(`${base(schoolId)}/job_positions/${id}`, { method: 'DELETE' });
+
+/**
+ * Creates whatever of the standard set the school is missing. A school opened before this
+ * register existed would otherwise start with no posts — and no way to add a collaborator.
+ */
+export const provisionDefaultJobPositions = async (schoolId: number): Promise<JobPosition[]> => {
+  const response = await request<{ data: JobPosition[] }>(
+    `${base(schoolId)}/job_positions/provision_defaults`,
+    { method: 'POST' },
+  );
+
+  return response.data;
+};
 
 /* ---------------------------------------------------------------- subjects */
 
@@ -80,12 +124,17 @@ export interface ListTeachersParams {
   page?: number;
   /** Reads the same listing from a cohort's side: "who teaches in this class?". */
   schoolClassId?: number;
+  /** One term matched against both the name and the CPF. */
+  q?: string;
 }
 
-export const listTeachers = ({ schoolId, page = 1, schoolClassId }: ListTeachersParams) => {
+export const listTeachers = ({ schoolId, page = 1, schoolClassId, q }: ListTeachersParams) => {
   const query = new URLSearchParams({ page: String(page) });
   if (schoolClassId !== undefined) {
     query.set('school_class_id', String(schoolClassId));
+  }
+  if (q?.trim()) {
+    query.set('q', q.trim());
   }
 
   return request<Paginated<Teacher>>(`${base(schoolId)}/teachers?${query}`);

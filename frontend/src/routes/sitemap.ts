@@ -41,9 +41,9 @@ const sitemap: MenuItem[] = [
     active: true,
   },
   {
-    id: 'teachers',
-    subheader: 'Professores',
-    path: paths.teachers,
+    id: 'collaborators',
+    subheader: 'Colaboradores',
+    path: paths.collaborators,
     icon: 'mingcute:presentation-2-line',
     active: true,
   },
@@ -59,6 +59,13 @@ const sitemap: MenuItem[] = [
     subheader: 'Matérias',
     path: paths.subjects,
     icon: 'mingcute:book-5-line',
+    active: true,
+  },
+  {
+    id: 'job-positions',
+    subheader: 'Cargos',
+    path: paths.jobPositions,
+    icon: 'mingcute:idcard-line',
     active: true,
   },
   {
