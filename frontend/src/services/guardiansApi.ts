@@ -21,13 +21,18 @@ export interface ListGuardiansParams {
   page?: number;
   /** One term matched against both the name and the CPF. */
   q?: string;
+  /** `active` (the default), `inactive` or `all`. */
+  status?: 'active' | 'inactive' | 'all';
 }
 
 /** GET /api/v1/schools/:school_id/people/guardians — ordered by name, 25 per page. */
-export const listGuardians = ({ schoolId, page = 1, q }: ListGuardiansParams) => {
+export const listGuardians = ({ schoolId, page = 1, q, status }: ListGuardiansParams) => {
   const query = new URLSearchParams({ page: String(page) });
   if (q?.trim()) {
     query.set('q', q.trim());
+  }
+  if (status && status !== 'active') {
+    query.set('status', status);
   }
 
   return request<GuardianListResponse>(`${collectionPath(schoolId)}?${query}`);
@@ -55,6 +60,15 @@ export const updateGuardian = async (
   const response = await request<GuardianResponse>(memberPath(schoolId, id), {
     method: 'PATCH',
     body: { guardian },
+  });
+
+  return response.data;
+};
+
+/** POST .../guardians/:id/activate — brings a deactivated guardian back. */
+export const activateGuardian = async (schoolId: number, id: number): Promise<Guardian> => {
+  const response = await request<GuardianResponse>(`${memberPath(schoolId, id)}/activate`, {
+    method: 'POST',
   });
 
   return response.data;

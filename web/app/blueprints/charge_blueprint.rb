@@ -4,15 +4,16 @@ class ChargeBlueprint < Blueprinter::Base
   identifier :id
 
   fields :billing_period, :original_amount_cents, :discount_amount_cents, :late_fee_amount_cents,
-         :total_amount_cents, :due_date, :status
+         :total_amount_cents, :due_date, :status, :kind, :description, :boleto_url
 
   field :student do |charge|
     student = charge.contract.student
     { id: student.id, name: student.name }
   end
 
+  # The boleto is registered against this person's CPF, so the listing names both.
   field :guardian do |charge|
-    { id: charge.guardian.id, name: charge.guardian.name }
+    { id: charge.guardian.id, name: charge.guardian.name, cpf: charge.guardian.cpf }
   end
 
   view :guardian do

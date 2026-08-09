@@ -25,6 +25,20 @@ module Api
             render json: { data: ChargeBlueprint.render_as_hash(charge) }
           end
 
+          # Raises a charge outside the monthly schedule, against the contract's payer.
+          def create
+            authorize Charge, :create?
+
+            contract = policy_scope(Contract).find(params.dig(:charge, :contract_id))
+            result = ::Billing::CreateOneOffChargeService.call(
+              contract: contract, params: charge_params, actor: Current.user
+            )
+
+            render_service_result(result, success_status: :created) do |charge|
+              render json: { data: ChargeBlueprint.render_as_hash(charge) }, status: :created
+            end
+          end
+
           def cancel
             charge = policy_scope(Charge).find(params[:id])
             authorize charge, :cancel?
@@ -56,6 +70,10 @@ module Api
           end
 
           private
+
+          def charge_params
+            params.require(:charge).permit(:contract_id, :total_amount_cents, :due_date, :description)
+          end
 
           def apply_filters(scope)
             scope = scope.where(status: params[:status]) if params[:status].present?

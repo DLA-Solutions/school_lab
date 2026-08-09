@@ -21,6 +21,8 @@ const Collaborators = lazy(() => import('pages/academics/Collaborators'));
 const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
 const Subjects = lazy(() => import('pages/academics/Subjects'));
 const JobPositions = lazy(() => import('pages/academics/JobPositions'));
+const Charges = lazy(() => import('pages/billing/Charges'));
+const Plans = lazy(() => import('pages/billing/Plans'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
 const Schools = lazy(() => import('pages/Schools'));
 
@@ -72,6 +74,14 @@ const router = createBrowserRouter(
           {
             path: paths.jobPositions,
             element: <JobPositions />,
+          },
+          {
+            path: paths.charges,
+            element: <Charges />,
+          },
+          {
+            path: paths.plans,
+            element: <Plans />,
           },
           {
             path: paths.contractTemplate,

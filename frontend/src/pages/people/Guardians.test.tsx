@@ -18,6 +18,7 @@ const guardian = (id: number, name: string, cpf: string): Guardian => ({
   id,
   school_id: SCHOOL_ID,
   user_id: null,
+  active: true,
   name,
   cpf,
   email: `${id}@example.com`,

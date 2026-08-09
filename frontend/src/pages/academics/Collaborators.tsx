@@ -276,7 +276,6 @@ const Collaborators = () => {
     <Stack direction="column" gap={3.5}>
       <PageHeader
         title="Colaboradores"
-        subtitle={school.school_name ?? undefined}
         actions={
           <>
             <SearchField

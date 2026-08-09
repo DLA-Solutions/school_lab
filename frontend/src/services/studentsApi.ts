@@ -13,16 +13,21 @@ export interface ListStudentsParams {
   guardianId?: number;
   /** One term matched against both the name and the CPF. */
   q?: string;
+  /** `active` (the default), `inactive` or `all`. */
+  status?: 'active' | 'inactive' | 'all';
 }
 
 /** GET /api/v1/schools/:school_id/people/students — ordered by name, 25 per page. */
-export const listStudents = ({ schoolId, page = 1, guardianId, q }: ListStudentsParams) => {
+export const listStudents = ({ schoolId, page = 1, guardianId, q, status }: ListStudentsParams) => {
   const query = new URLSearchParams({ page: String(page) });
   if (guardianId !== undefined) {
     query.set('guardian_id', String(guardianId));
   }
   if (q?.trim()) {
     query.set('q', q.trim());
+  }
+  if (status && status !== 'active') {
+    query.set('status', status);
   }
 
   return request<StudentListResponse>(`${collectionPath(schoolId)}?${query}`);
@@ -50,6 +55,15 @@ export const updateStudent = async (
   const response = await request<StudentResponse>(memberPath(schoolId, id), {
     method: 'PATCH',
     body: { student },
+  });
+
+  return response.data;
+};
+
+/** POST .../students/:id/activate — puts a student back on the roll. */
+export const activateStudent = async (schoolId: number, id: number): Promise<Student> => {
+  const response = await request<StudentResponse>(`${memberPath(schoolId, id)}/activate`, {
+    method: 'POST',
   });
 
   return response.data;

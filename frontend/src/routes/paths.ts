@@ -17,6 +17,8 @@ export default {
   subjects: `/${rootPaths.academicsRoot}/materias`,
   jobPositions: `/${rootPaths.academicsRoot}/cargos`,
 
+  charges: '/boletos',
+  plans: '/planos',
   contractTemplate: '/contrato',
 
   schools: '/escolas',

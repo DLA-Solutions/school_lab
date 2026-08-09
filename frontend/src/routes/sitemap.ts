@@ -69,6 +69,20 @@ const sitemap: MenuItem[] = [
     active: true,
   },
   {
+    id: 'charges',
+    subheader: 'Boletos',
+    path: paths.charges,
+    icon: 'mingcute:bill-line',
+    active: true,
+  },
+  {
+    id: 'plans',
+    subheader: 'Planos',
+    path: paths.plans,
+    icon: 'mingcute:currency-dollar-line',
+    active: true,
+  },
+  {
     id: 'contract-template',
     subheader: 'Contrato',
     path: paths.contractTemplate,

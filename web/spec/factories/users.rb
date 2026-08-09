@@ -162,6 +162,12 @@ FactoryBot.define do
     base_amount_cents { 90_000 }
   end
 
+  factory :plan_discount do
+    school
+    sequence(:name) { |n| "Desconto #{n}" }
+    percent { 10 }
+  end
+
   factory :contract do
     school
     student { association :student, school: school }

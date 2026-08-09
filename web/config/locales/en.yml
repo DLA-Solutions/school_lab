@@ -42,6 +42,10 @@ en:
       signature_provider_missing: "No signature integration configured for this school."
       signature_provider_unauthorized: "Autentique rejected this school's credentials."
       signature_provider_unavailable: "Autentique is unavailable right now."
+      charge_without_payer: "This contract has no payer."
+      charge_amount_required: "Provide an amount greater than zero."
+      charge_due_date_required: "Provide a due date."
+      plan_discount_in_use: "This discount is applied to %{count} contract(s)."
       job_position_in_use: "This position is held by %{count} collaborator(s). Move them first."
   signature:
     contract_message: "Please review and sign the educational services agreement for %{student}."

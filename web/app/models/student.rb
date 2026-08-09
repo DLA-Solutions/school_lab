@@ -41,6 +41,13 @@ class Student < ApplicationRecord
     Cpf.format(cpf)
   end
 
+  # Still attending: on the roll and not transferred out. The two ways a student stops attending
+  # — being removed and being transferred — mean the same thing to anyone reading a listing, and
+  # to the rule that keeps guardians in step with their children.
+  def enrolled?
+    kept? && status == "active"
+  end
+
   # Derived from the cohort — students no longer carry a grade of their own.
   def grade_level
     school_class&.grade_level

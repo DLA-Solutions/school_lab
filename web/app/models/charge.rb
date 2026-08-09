@@ -20,7 +20,13 @@ class Charge < ApplicationRecord
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :provider_invoice_id, uniqueness: true, allow_nil: true
 
+  # `tuition` comes from the monthly schedule; `one_off` is raised by hand for something else.
+  KINDS = %w[tuition one_off].freeze
+
+  validates :kind, inclusion: { in: KINDS }
+
   scope :open, -> { kept.where(status: %w[pending overdue]) }
+  scope :one_off, -> { kept.where(kind: "one_off") }
 
   def current_issuance
     charge_issuances.where.not(status: "cancelled").order(created_at: :desc).first

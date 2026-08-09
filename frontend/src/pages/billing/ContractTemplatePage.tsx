@@ -35,6 +35,7 @@ const ContractTemplatePage = () => {
   const [signatureY, setSignatureY] = useState('85');
   const [signaturePage, setSignaturePage] = useState('1');
   const [logo, setLogo] = useState<File | null>(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
 
   const [tab, setTab] = useState<'editor' | 'preview'>('editor');
   const [preview, setPreview] = useState<{ html: string; sample: boolean } | null>(null);
@@ -126,6 +127,8 @@ const ContractTemplatePage = () => {
 
     setError('');
     setLogo(file);
+    // Choosing a new image supersedes a pending removal.
+    setRemoveLogo(false);
   };
 
   /** Drops the token at the cursor, which is where someone typing expects it to land. */
@@ -169,10 +172,12 @@ const ContractTemplatePage = () => {
           signature_page: Number(signaturePage),
         },
         logo,
+        removeLogo,
       );
 
       applyTemplate(updated);
       setLogo(null);
+      setRemoveLogo(false);
       setSaved(true);
 
       if (tab === 'preview') {
@@ -291,7 +296,7 @@ const ContractTemplatePage = () => {
 
               <SectionCard title="Logo da escola" padding={3.5}>
                 <Stack direction="column" gap={1.5}>
-                  {template?.logo_url && !logo && (
+                  {template?.logo_url && !logo && !removeLogo && (
                     <Box
                       component="img"
                       src={template.logo_url}
@@ -300,18 +305,42 @@ const ContractTemplatePage = () => {
                     />
                   )}
                   <Typography variant="caption" color="text.secondary">
-                    {logo
-                      ? `${logo.name} — será salvo com o modelo`
-                      : (template?.logo_filename ?? 'Nenhuma imagem enviada')}
+                    {removeLogo
+                      ? 'A logo será removida ao salvar'
+                      : logo
+                        ? `${logo.name} — será salva com o modelo`
+                        : (template?.logo_filename ?? 'Nenhuma imagem enviada')}
                   </Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => fileRef.current?.click()}
-                    startIcon={<IconifyIcon icon="mingcute:upload-2-line" />}
-                  >
-                    Escolher imagem
-                  </Button>
+                  <Stack direction="row" gap={1}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => fileRef.current?.click()}
+                      startIcon={<IconifyIcon icon="mingcute:upload-2-line" />}
+                    >
+                      Escolher imagem
+                    </Button>
+                    {(template?.logo_url || logo) && !removeLogo && (
+                      <Button
+                        variant="text"
+                        size="small"
+                        color="error"
+                        onClick={() => {
+                          setLogo(null);
+                          setRemoveLogo(true);
+                          setSaved(false);
+                        }}
+                        startIcon={<IconifyIcon icon="mingcute:delete-2-line" />}
+                      >
+                        Remover
+                      </Button>
+                    )}
+                    {removeLogo && (
+                      <Button variant="text" size="small" onClick={() => setRemoveLogo(false)}>
+                        Desfazer
+                      </Button>
+                    )}
+                  </Stack>
                   <input
                     ref={fileRef}
                     type="file"

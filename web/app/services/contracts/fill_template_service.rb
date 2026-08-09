@@ -80,6 +80,8 @@ module Contracts
         "contrato.vencimento" => escape(contract.due_day),
         "contrato.inicio" => escape(format_date(contract.starts_on)),
         "data.hoje" => escape(format_date(Date.current)),
+        "contrato.responsavel" => escape(contract.payer&.name),
+        "contrato.responsavel.cpf" => escape(Cpf.format(contract.payer&.cpf)),
         "responsaveis.nomes" => escape(people.map(&:name).to_sentence(locale: :"pt-BR")),
         # The only substitution that is markup rather than text, and it is built here rather than
         # taken from input.

@@ -21,6 +21,8 @@ class ContractTemplate < ApplicationRecord
     "contrato.inicio" => "Início da vigência",
     "responsaveis" => "Bloco com os dados de todos os responsáveis (um ou dois)",
     "responsaveis.nomes" => "Nomes dos responsáveis separados por vírgula",
+    "contrato.responsavel" => "Responsável pelos boletos",
+    "contrato.responsavel.cpf" => "CPF do responsável pelos boletos",
     "data.hoje" => "Data de hoje por extenso"
   }.freeze
 
@@ -68,7 +70,14 @@ class ContractTemplate < ApplicationRecord
         {{contrato.valor}}, com vencimento todo dia {{contrato.vencimento}}, a partir de {{contrato.inicio}}.
       </p>
 
-      <h2>3. Assinaturas</h2>
+      <h2>3. Responsável financeiro</h2>
+      <p>
+        Os boletos referentes a este contrato serão emitidos em nome de
+        <strong>{{contrato.responsavel}}</strong>, CPF {{contrato.responsavel.cpf}}, que os
+        receberá e responderá pelo respectivo pagamento.
+      </p>
+
+      <h2>4. Assinaturas</h2>
       <p>Este contrato é assinado eletronicamente pelas partes, em {{data.hoje}}.</p>
     HTML
   end

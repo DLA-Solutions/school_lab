@@ -34,8 +34,15 @@ Rails.application.routes.draw do
         scope module: :schools do
           resources :bank_credentials, only: %i[index create]
           namespace :people do
-            resources :guardians
+            resources :guardians do
+              member do
+                post :activate
+              end
+            end
             resources :students do
+              member do
+                post :activate
+              end
               resources :guardians, only: %i[index create], controller: "student_guardians"
             end
             resources :student_guardians, only: :destroy
@@ -69,6 +76,11 @@ Rails.application.routes.draw do
             resource :contract_template, only: %i[show update], controller: "contract_template" do
               get :preview
             end
+            resources :plan_discounts, only: %i[index create update destroy] do
+              collection do
+                post :provision_defaults
+              end
+            end
             resources :plans
             resources :contracts do
               member do
@@ -77,7 +89,7 @@ Rails.application.routes.draw do
               end
             end
             resources :charge_generations, only: :create
-            resources :charges, only: %i[index show destroy] do
+            resources :charges, only: %i[index show create destroy] do
               member do
                 post :cancel
                 post :reissue

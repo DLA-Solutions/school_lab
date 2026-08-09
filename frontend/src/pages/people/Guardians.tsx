@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { useSearchParams } from 'react-router';
@@ -22,7 +24,7 @@ import {
 } from 'design-system';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
-import { deleteGuardian, listGuardians } from 'services/guardiansApi';
+import { activateGuardian, deleteGuardian, listGuardians } from 'services/guardiansApi';
 import { Guardian } from 'types/guardian';
 import { formatCpf } from 'utils/documentNumber';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
@@ -63,6 +65,9 @@ const Guardians = () => {
   const search = searchParams.get('q') ?? '';
   // The API does the filtering, so the term is debounced rather than sent per keystroke.
   const debouncedSearch = useDebouncedValue(search);
+  // Which records are shown. Inactive ones have to be reachable, or there is no way to bring
+  // them back.
+  const activation = (searchParams.get('status') ?? 'active') as 'active' | 'inactive' | 'all';
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Guardian | null>(null);
@@ -80,7 +85,12 @@ const Guardians = () => {
     setError('');
 
     try {
-      const response = await listGuardians({ schoolId, page: page + 1, q: debouncedSearch });
+      const response = await listGuardians({
+        schoolId,
+        page: page + 1,
+        q: debouncedSearch,
+        status: activation,
+      });
       setGuardians(response.data);
       setTotal(response.meta.total);
     } catch (err) {
@@ -94,7 +104,7 @@ const Guardians = () => {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, debouncedSearch]);
+  }, [schoolId, page, debouncedSearch, activation]);
 
   useEffect(() => {
     load();
@@ -118,6 +128,39 @@ const Guardians = () => {
     );
     // A narrower result rarely has the page the user is on — start over at the first.
     setPage(0);
+  };
+
+  const handleActivationChange = (value: string) => {
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (value === 'active') {
+          next.delete('status');
+        } else {
+          next.set('status', value);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+    setPage(0);
+  };
+
+  const handleActivate = async (record: Guardian) => {
+    if (!schoolId) {
+      return;
+    }
+
+    setError('');
+
+    try {
+      await activateGuardian(schoolId, record.id);
+      load();
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : 'Não foi possível ativar o responsável.',
+      );
+    }
   };
 
   const handleCreate = () => {
@@ -189,6 +232,20 @@ const Guardians = () => {
       headerAlign: 'right',
       renderCell: ({ row }: GridRenderCellParams<Guardian>) => (
         <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+          {/* An inactive record offers only the way back; editing or deleting it makes no sense
+              until it is on the books again. */}
+          {!row.active ? (
+            <Tooltip title="Ativar">
+              <IconButton
+                size="small"
+                aria-label={`Ativar ${row.name}`}
+                onClick={() => handleActivate(row)}
+              >
+                <IconifyIcon icon="mingcute:refresh-2-line" />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <>
           <Tooltip title="Contratos">
             <IconButton
               size="small"
@@ -225,6 +282,8 @@ const Guardians = () => {
               <IconifyIcon icon="mingcute:delete-2-line" />
             </IconButton>
           </Tooltip>
+            </>
+          )}
         </Stack>
       ),
     },
@@ -251,9 +310,22 @@ const Guardians = () => {
     <Stack direction="column" gap={3.5}>
       <PageHeader
         title="Responsáveis"
-        subtitle={school.school_name ?? undefined}
         actions={
           <>
+            <TextField
+              id="activation-filter"
+              label="Situação"
+              value={activation}
+              onChange={(e) => handleActivationChange(e.target.value)}
+              select
+              size="small"
+              variant="filled"
+              sx={{ width: 150 }}
+            >
+              <MenuItem value="active">Ativos</MenuItem>
+              <MenuItem value="inactive">Inativos</MenuItem>
+              <MenuItem value="all">Todos</MenuItem>
+            </TextField>
             <SearchField
               value={search}
               onChange={handleSearchChange}

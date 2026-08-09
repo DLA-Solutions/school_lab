@@ -36,7 +36,12 @@ module People
         end
       end
 
-      return ResponseService.success(data: student) if student.persisted?
+      if student.persisted?
+        # Brings back a guardian who had been deactivated when their last child left.
+        SyncGuardianActivationService.call(student: student)
+
+        return ResponseService.success(data: student)
+      end
 
       ResponseService.failure(code: :validation_error, details: student.errors.to_hash)
     end
@@ -44,6 +49,14 @@ module People
     private
 
     attr_reader :school, :params, :guardian_cpfs
+
+    # Prefers an active guardian, and falls back to one deactivated when their last child left:
+    # the person still exists, and enrolling a new child is exactly the reason to bring them back.
+    # `SyncGuardianActivationService` reactivates them once the link is in place.
+    def find_guardian(digits)
+      school.guardians.kept.find_by(cpf: digits) ||
+        school.guardians.discarded.find_by(cpf: digits)
+    end
 
     # At least one parent is required: a student with no responsible adult on file cannot be
     # billed or contacted.
@@ -55,7 +68,7 @@ module People
 
       guardian_cpfs.each do |relationship, cpf|
         digits = Cpf.normalize(cpf)
-        guardian = school.guardians.kept.find_by(cpf: digits) if digits.present?
+        guardian = find_guardian(digits) if digits.present?
 
         if guardian
           resolved[relationship.to_s] = guardian

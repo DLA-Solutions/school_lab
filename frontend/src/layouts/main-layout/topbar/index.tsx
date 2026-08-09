@@ -1,4 +1,3 @@
-import { fontFamily } from 'theme/typography';
 import { Link as RouterLink } from 'react-router';
 import paths from 'routes/paths';
 import Stack from '@mui/material/Stack';
@@ -6,7 +5,6 @@ import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import ButtonBase from '@mui/material/ButtonBase';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
 import LanguageSelect from './LanguageSelect';
 import ProfileMenu from './ProfileMenu';
@@ -49,15 +47,6 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
           <BrandLogo variant="mark" height={28} />
         </ButtonBase>
 
-        <Typography
-          variant="h5"
-          fontWeight={600}
-          letterSpacing={1}
-          fontFamily={fontFamily.workSans}
-          display={{ xs: 'none', lg: 'block' }}
-        >
-          Dashboard
-        </Typography>
       </Stack>
 
       <Stack spacing={1} alignItems="center">

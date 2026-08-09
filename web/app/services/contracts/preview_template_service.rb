@@ -18,6 +18,8 @@ module Contracts
       "contrato.vencimento" => "10",
       "contrato.inicio" => "01/02/2026",
       "responsaveis.nomes" => "Maria Silva e João Silva",
+      "contrato.responsavel" => "Maria Silva",
+      "contrato.responsavel.cpf" => "123.456.789-09",
       "responsaveis" =>
         "<p><strong>Mãe:</strong> Maria Silva — CPF 123.456.789-09 — maria@exemplo.com</p>\n" \
         "<p><strong>Pai:</strong> João Silva — CPF 529.982.247-25 — joao@exemplo.com</p>"

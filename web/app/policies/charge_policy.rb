@@ -23,6 +23,11 @@ class ChargePolicy < ApplicationPolicy
     school_staff?
   end
 
+  # Raising a charge by hand is staff work; a guardian may only read their own.
+  def create?
+    school_staff?
+  end
+
   def destroy?
     show?
   end

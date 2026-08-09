@@ -182,7 +182,6 @@ const Subjects = () => {
     <Stack direction="column" gap={3.5}>
       <PageHeader
         title="Matérias"
-        subtitle={school.school_name ?? undefined}
         actions={
           <Button variant="contained" size="small" onClick={() => openForm(null)}>
             Nova matéria

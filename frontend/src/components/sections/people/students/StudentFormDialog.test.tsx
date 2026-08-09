@@ -55,6 +55,7 @@ const student: Student = {
     },
   ],
   status: 'active',
+  active: true,
 };
 
 const renderDialog = (props: Partial<Parameters<typeof StudentFormDialog>[0]> = {}) => {

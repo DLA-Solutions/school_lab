@@ -8,7 +8,7 @@ module Api
           def index
             authorize Guardian
 
-            guardians = policy_scope(Guardian).search(params[:q]).order(:name)
+            guardians = by_activation(policy_scope(Guardian)).search(params[:q]).order(:name)
             pagy, records = pagy(guardians)
 
             render json: {
@@ -53,7 +53,30 @@ module Api
             end
           end
 
+          # Brings a record back. Looked up outside the policy scope on purpose: that scope is
+          # `kept`, and an inactive record is precisely what this action operates on.
+          def activate
+            record = Current.school.guardians.find(params[:id])
+            authorize record, :update?
+
+            result = ::People::ActivateGuardianService.call(guardian: record, actor: Current.user)
+            render_service_result(result) do |updated|
+              render json: { data: GuardianBlueprint.render_as_hash(updated) }
+            end
+          end
+
           private
+
+          # `active` (the default), `inactive` or `all`. Built from the school association rather
+          # than the policy scope because that scope hides discarded rows, which is the whole
+          # point of asking for the inactive ones.
+          def by_activation(scope)
+            case params[:status]
+            when "inactive" then Current.school.guardians.discarded
+            when "all" then Current.school.guardians.all
+            else scope
+            end
+          end
 
           def guardian_params
             params.require(:guardian).permit(

@@ -11,6 +11,7 @@ import GuardianContractsDialog from './GuardianContractsDialog';
 const CONTRACTS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/contracts`;
 const STUDENTS_PATH = `/api/v1/schools/${SCHOOL_ID}/people/students`;
 const PLANS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/plans`;
+const DISCOUNTS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/plan_discounts`;
 
 const user = userEvent.setup({ delay: null });
 
@@ -18,6 +19,7 @@ const guardian: Guardian = {
   id: 7,
   school_id: SCHOOL_ID,
   user_id: null,
+  active: true,
   name: 'Maria Silva',
   cpf: '12345678909',
   email: 'maria@example.com',
@@ -48,6 +50,9 @@ const signedContract: Contract = {
   signature_provider: 'autentique',
   signature_requested_at: '2026-01-02T12:00:00Z',
   sent_to_provider: true,
+  plan_discount_id: null,
+  payer_guardian_id: null,
+  payer_name: 'Maria Silva',
 };
 
 const pendingContract: Contract = {
@@ -78,11 +83,19 @@ const plans = page([
   { id: 3, school_id: SCHOOL_ID, name: 'Mensalidade Integral', plan_type: 'tuition', base_amount_cents: 90_000 },
 ]);
 
-/** The form's two selects are always loaded; specs override the contract list per case. */
+const discounts = page([
+  { id: 7, school_id: SCHOOL_ID, name: 'Desconto 10%', percent: 10, in_use: false },
+]);
+
+// The option label now carries the plan's full price alongside its name.
+const PLAN_OPTION = /Mensalidade Integral/;
+
+/** The form's selects are always loaded; specs override the contract list per case. */
 const stubFormOptions = () => {
   server.use(
     http.get(apiUrl(STUDENTS_PATH), () => HttpResponse.json(students)),
     http.get(apiUrl(PLANS_PATH), () => HttpResponse.json(plans)),
+    http.get(apiUrl(DISCOUNTS_PATH), () => HttpResponse.json(discounts)),
   );
 };
 
@@ -178,7 +191,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('combobox', { name: /filho/i }));
     await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
     await user.click(screen.getByRole('combobox', { name: /plano/i }));
-    await user.click(screen.getByRole('option', { name: 'Mensalidade Integral' }));
+    await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
 
     await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
@@ -189,8 +202,12 @@ describe('GuardianContractsDialog', () => {
     expect(received?.contract).toEqual({
       student_id: 12,
       billing_plan_id: 3,
+      plan_discount_id: null,
+      // The dialog belongs to this guardian, so the boletos go out on their CPF by default.
+      payer_guardian_id: guardian.id,
       negotiated_amount_cents: 85_000,
-      due_day: 10,
+      // The 5th is the school's usual due date and the form's default.
+      due_day: 5,
     });
   });
 
@@ -217,7 +234,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('combobox', { name: /filho/i }));
     await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
     await user.click(screen.getByRole('combobox', { name: /plano/i }));
-    await user.click(screen.getByRole('option', { name: 'Mensalidade Integral' }));
+    await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
 
     await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
@@ -227,6 +244,65 @@ describe('GuardianContractsDialog', () => {
       'aria-selected',
       'true',
     );
+  });
+
+  // The amount follows the plan's full price and the band granted, so it is explainable rather
+  // than typed from memory.
+  it('computes the tuition from the plan and the discount', async () => {
+    authenticate();
+    stubFormOptions();
+    server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([]))));
+
+    renderDialog();
+    await screen.findByText(/nenhum contrato assinado/i);
+
+    await user.click(screen.getByRole('combobox', { name: /plano/i }));
+    await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
+
+    // Full price, no band yet.
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: /mensalidade/i })).toHaveValue('900,00'),
+    );
+
+    await user.click(screen.getByRole('combobox', { name: /desconto/i }));
+    await user.click(screen.getByRole('option', { name: 'Desconto 10%' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: /mensalidade/i })).toHaveValue('810,00'),
+    );
+  });
+
+  it('sends the granted band along with the contract', async () => {
+    authenticate();
+    stubFormOptions();
+
+    let received: { contract: Record<string, unknown> } | undefined;
+    server.use(
+      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([]))),
+      http.post(apiUrl(CONTRACTS_PATH), async ({ request }) => {
+        received = (await request.json()) as { contract: Record<string, unknown> };
+        return HttpResponse.json({ data: pendingContract }, { status: 201 });
+      }),
+      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/send_for_signature`), () =>
+        HttpResponse.json({ data: pendingContract }),
+      ),
+    );
+
+    renderDialog();
+    await screen.findByText(/nenhum contrato assinado/i);
+
+    await user.click(screen.getByRole('combobox', { name: /filho/i }));
+    await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
+    await user.click(screen.getByRole('combobox', { name: /plano/i }));
+    await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
+    await user.click(screen.getByRole('combobox', { name: /desconto/i }));
+    await user.click(screen.getByRole('option', { name: 'Desconto 10%' }));
+
+    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+
+    await waitFor(() => expect(received).toBeDefined());
+    expect(received?.contract.plan_discount_id).toBe(7);
+    expect(received?.contract.negotiated_amount_cents).toBe(81_000);
   });
 
   it('requires a child, a plan and an amount before sending', async () => {
@@ -268,7 +344,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('combobox', { name: /filho/i }));
     await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
     await user.click(screen.getByRole('combobox', { name: /plano/i }));
-    await user.click(screen.getByRole('option', { name: 'Mensalidade Integral' }));
+    await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), {
       target: { value: '85000' },
     });
@@ -312,7 +388,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('combobox', { name: /filho/i }));
     await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
     await user.click(screen.getByRole('combobox', { name: /plano/i }));
-    await user.click(screen.getByRole('option', { name: 'Mensalidade Integral' }));
+    await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), {
       target: { value: '85000' },
     });

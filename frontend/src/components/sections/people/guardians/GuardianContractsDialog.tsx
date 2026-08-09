@@ -23,11 +23,12 @@ import {
   dispatchContract,
   listBillingPlans,
   listContracts,
+  listPlanDiscounts,
   sendContract,
   signContract,
 } from 'services/contractsApi';
 import { listStudents } from 'services/studentsApi';
-import { BillingPlan, Contract } from 'types/contract';
+import { BillingPlan, Contract, PlanDiscount } from 'types/contract';
 import { Guardian } from 'types/guardian';
 import { Student } from 'types/student';
 import { formatCpf } from 'utils/documentNumber';
@@ -40,13 +41,27 @@ export interface GuardianContractsDialogProps {
   onClose: () => void;
 }
 
-type FormField = 'student_id' | 'billing_plan_id' | 'amount' | 'due_day';
+type FormField =
+  | 'student_id'
+  | 'billing_plan_id'
+  | 'plan_discount_id'
+  | 'payer_guardian_id'
+  | 'amount'
+  | 'due_day';
 
 type FormState = Record<FormField, string>;
 
 type FieldErrors = Partial<Record<FormField, string>>;
 
-const emptyForm: FormState = { student_id: '', billing_plan_id: '', amount: '', due_day: '10' };
+// The 5th is the school's usual due date, so it is what the form starts on.
+const emptyForm: FormState = {
+  student_id: '',
+  billing_plan_id: '',
+  plan_discount_id: '',
+  payer_guardian_id: '',
+  amount: '',
+  due_day: '5',
+};
 
 /** The API reports errors against `negotiated_amount_cents`; the field here is `amount`. */
 const API_FIELD_TO_FORM: Record<string, FormField> = {
@@ -88,10 +103,16 @@ const GuardianContractsDialog = ({
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [plans, setPlans] = useState<BillingPlan[]>([]);
+  const [discounts, setDiscounts] = useState<PlanDiscount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState<FormState>(emptyForm);
+  // The dialog was opened from this guardian, so they are the obvious payer — the boletos go
+  // out on the CPF of whoever answers for the contract.
+  const [form, setForm] = useState<FormState>({
+    ...emptyForm,
+    payer_guardian_id: String(guardian.id),
+  });
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [sending, setSending] = useState(false);
   const [signingId, setSigningId] = useState<number | null>(null);
@@ -131,31 +152,61 @@ const GuardianContractsDialog = ({
   useEffect(() => {
     const loadFormOptions = async () => {
       try {
-        const [studentList, planList] = await Promise.all([
+        const [studentList, planList, discountList] = await Promise.all([
           listStudents({ schoolId, guardianId: guardian.id }),
           listBillingPlans(schoolId),
+          listPlanDiscounts(schoolId),
         ]);
         setStudents(studentList.data);
         setPlans(planList.data);
+        setDiscounts(discountList.data);
       } catch {
         // The list above already reports connectivity problems; leaving the selects empty is
         // enough of a signal here, and the send attempt would surface anything else.
         setStudents([]);
         setPlans([]);
+        setDiscounts([]);
       }
     };
 
     loadFormOptions();
   }, [schoolId, guardian.id]);
 
+  /**
+   * The amount follows the plan's full price and the band granted, so it is explainable rather
+   * than typed from memory. It stays editable: a negotiated figure is still a real case.
+   */
+  const amountFor = (planId: string, discountId: string) => {
+    const plan = plans.find((option) => String(option.id) === planId);
+    if (!plan?.base_amount_cents) {
+      return null;
+    }
+
+    const discount = discounts.find((option) => String(option.id) === discountId);
+    const percent = discount?.percent ?? 0;
+
+    return Math.round((plan.base_amount_cents * (100 - percent)) / 100);
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const field = name as FormField;
 
-    setForm((current) => ({
-      ...current,
-      [field]: field === 'amount' ? formatCentsInput(value) : value,
-    }));
+    setForm((current) => {
+      const next = {
+        ...current,
+        [field]: field === 'amount' ? formatCentsInput(value) : value,
+      };
+
+      if (field === 'billing_plan_id' || field === 'plan_discount_id') {
+        const cents = amountFor(next.billing_plan_id, next.plan_discount_id);
+        if (cents !== null) {
+          next.amount = formatCentsInput(String(cents));
+        }
+      }
+
+      return next;
+    });
     setFieldErrors((current) => ({ ...current, [field]: undefined }));
     setError('');
   };
@@ -189,10 +240,12 @@ const GuardianContractsDialog = ({
         student_id: Number(form.student_id),
         billing_plan_id: Number(form.billing_plan_id),
         negotiated_amount_cents: cents as number,
+        plan_discount_id: form.plan_discount_id ? Number(form.plan_discount_id) : null,
+        payer_guardian_id: form.payer_guardian_id ? Number(form.payer_guardian_id) : null,
         due_day: form.due_day ? Number(form.due_day) : null,
       });
 
-      setForm(emptyForm);
+      setForm({ ...emptyForm, payer_guardian_id: String(guardian.id) });
 
       // The contract exists now; dispatching it is the step that puts it in the family's inbox.
       // A failure there leaves a contract to resend rather than losing the whole thing, so it is
@@ -371,6 +424,11 @@ const GuardianContractsDialog = ({
                         <Typography variant="body2" color="text.secondary">
                           {formatCents(contract.negotiated_amount_cents)}/mês
                         </Typography>
+                        {contract.payer_name && (
+                          <Typography variant="caption" color="text.secondary">
+                            Boletos: {contract.payer_name}
+                          </Typography>
+                        )}
                         <SemanticChip
                           variant={signatureChip(contract).variant}
                           label={signatureChip(contract).label}
@@ -429,16 +487,31 @@ const GuardianContractsDialog = ({
                   {plans.map((plan) => (
                     <MenuItem key={plan.id} value={String(plan.id)}>
                       {plan.name}
+                      {plan.base_amount_cents ? ` — ${formatCents(plan.base_amount_cents)}` : ''}
                     </MenuItem>
                   ))}
                 </TextField>
               </Grid>
-              <Grid size={{ xs: 6, sm: 2 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField {...fieldProps('plan_discount_id')} label="Desconto" select>
+                  <MenuItem value="">Sem desconto</MenuItem>
+                  {discounts.map((discount) => (
+                    <MenuItem key={discount.id} value={String(discount.id)}>
+                      {discount.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 5 }}>
                 <TextField
                   {...fieldProps('amount')}
                   label="Mensalidade"
                   required
                   inputMode="numeric"
+                  // The hint gives way to the field's own error; a static one would hide it.
+                  helperText={
+                    fieldErrors.amount ?? 'Calculada do plano e do desconto; pode ser ajustada.'
+                  }
                   slotProps={{
                     input: {
                       startAdornment: <InputAdornment position="start">R$</InputAdornment>,
@@ -446,10 +519,17 @@ const GuardianContractsDialog = ({
                   }}
                 />
               </Grid>
-              <Grid size={{ xs: 6, sm: 2 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                {/* Only this guardian can be the payer here: the dialog belongs to them, and the
+                    other parent's contracts are reached from their own row. */}
+                <TextField {...fieldProps('payer_guardian_id')} label="Recebe os boletos" select>
+                  <MenuItem value={String(guardian.id)}>{guardian.name}</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
                   {...fieldProps('due_day')}
-                  label="Dia venc."
+                  label="Dia do vencimento"
                   type="number"
                   slotProps={{ htmlInput: { min: 1, max: 28 } }}
                 />

@@ -14,6 +14,8 @@ export interface Student {
   school_class_name: string | null;
   guardians: StudentGuardianLink[];
   status: 'active' | 'transferred';
+  /** False once removed from the roll — drives the "Ativar" action. */
+  active: boolean;
 }
 
 /** A parent (or other responsible adult) attached to the student. */

@@ -18,6 +18,10 @@ export interface Contract {
   /** Which integration carried it — `autentique`, or `fake` in development. */
   signature_provider: string | null;
   signature_requested_at: string | null;
+  plan_discount_id: number | null;
+  /** Whose CPF the boletos are registered against. */
+  payer_guardian_id: number | null;
+  payer_name: string | null;
   /**
    * Whether the agreement actually reached the provider. A contract can exist while its send
    * failed, so "created" and "in the family's inbox" are different things.
@@ -28,6 +32,8 @@ export interface Contract {
 export interface ContractPayload {
   student_id: number;
   billing_plan_id: number;
+  plan_discount_id?: number | null;
+  payer_guardian_id?: number | null;
   negotiated_amount_cents: number;
   due_day?: number | null;
   starts_on?: string | null;
@@ -40,6 +46,17 @@ export interface ContractListResponse {
 
 export interface ContractResponse {
   data: Contract;
+}
+
+/** A band the school grants against the full tuition. Mirrors `PlanDiscountBlueprint`. */
+export interface PlanDiscount {
+  id: number;
+  school_id: number;
+  name: string;
+  /** 0–100. 100 is a full scholarship. */
+  percent: number;
+  /** True while contracts still point at it — removal is refused. */
+  in_use: boolean;
 }
 
 /** Mirrors `BillingPlanBlueprint`. */

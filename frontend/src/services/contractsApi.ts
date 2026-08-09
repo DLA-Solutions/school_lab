@@ -1,10 +1,12 @@
 import {
   BillingPlanListResponse,
+  PlanDiscount,
   Contract,
   ContractListResponse,
   ContractPayload,
   ContractResponse,
 } from 'types/contract';
+import { BillingPlan } from 'types/contract';
 import { request } from './api';
 
 const collectionPath = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/contracts`;
@@ -76,6 +78,84 @@ export const signContract = async (schoolId: number, id: number): Promise<Contra
 
   return response.data;
 };
+
+/* ------------------------------------------------------------- plan discounts */
+
+const discountsPath = (schoolId: number) =>
+  `/api/v1/schools/${schoolId}/billing/plan_discounts`;
+
+export const listPlanDiscounts = (schoolId: number) =>
+  request<{ data: PlanDiscount[]; meta: { page: number; per_page: number; total: number } }>(
+    `${discountsPath(schoolId)}?page=1`,
+  );
+
+export const createPlanDiscount = async (
+  schoolId: number,
+  discount: { name: string; percent: number },
+): Promise<PlanDiscount> => {
+  const response = await request<{ data: PlanDiscount }>(discountsPath(schoolId), {
+    method: 'POST',
+    body: { plan_discount: discount },
+  });
+
+  return response.data;
+};
+
+export const updatePlanDiscount = async (
+  schoolId: number,
+  id: number,
+  discount: { name: string; percent: number },
+): Promise<PlanDiscount> => {
+  const response = await request<{ data: PlanDiscount }>(`${discountsPath(schoolId)}/${id}`, {
+    method: 'PATCH',
+    body: { plan_discount: discount },
+  });
+
+  return response.data;
+};
+
+export const deletePlanDiscount = (schoolId: number, id: number) =>
+  request<null>(`${discountsPath(schoolId)}/${id}`, { method: 'DELETE' });
+
+/** Creates whatever of the standard bands the school is missing. */
+export const provisionDefaultDiscounts = async (schoolId: number): Promise<PlanDiscount[]> => {
+  const response = await request<{ data: PlanDiscount[] }>(
+    `${discountsPath(schoolId)}/provision_defaults`,
+    { method: 'POST' },
+  );
+
+  return response.data;
+};
+
+/* ---------------------------------------------------------------- plans */
+
+export const createBillingPlan = async (
+  schoolId: number,
+  plan: { name: string; base_amount_cents: number; plan_type?: string },
+): Promise<BillingPlan> => {
+  const response = await request<{ data: BillingPlan }>(
+    `/api/v1/schools/${schoolId}/billing/plans`,
+    { method: 'POST', body: { billing_plan: plan } },
+  );
+
+  return response.data;
+};
+
+export const updateBillingPlan = async (
+  schoolId: number,
+  id: number,
+  plan: { name: string; base_amount_cents: number },
+): Promise<BillingPlan> => {
+  const response = await request<{ data: BillingPlan }>(
+    `/api/v1/schools/${schoolId}/billing/plans/${id}`,
+    { method: 'PATCH', body: { billing_plan: plan } },
+  );
+
+  return response.data;
+};
+
+export const deleteBillingPlan = (schoolId: number, id: number) =>
+  request<null>(`/api/v1/schools/${schoolId}/billing/plans/${id}`, { method: 'DELETE' });
 
 /** GET /api/v1/schools/:school_id/billing/plans — the plans a contract can be attached to. */
 export const listBillingPlans = (schoolId: number) =>

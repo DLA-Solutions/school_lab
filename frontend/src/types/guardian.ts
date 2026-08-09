@@ -17,6 +17,8 @@ export interface Guardian extends GuardianAddress {
   id: number;
   school_id: number;
   user_id: number | null;
+  /** False once deactivated — drives the "Ativar" action. */
+  active: boolean;
   name: string;
   /** Canonical 11 digits — format with `formatCpf` for display. */
   cpf: string;

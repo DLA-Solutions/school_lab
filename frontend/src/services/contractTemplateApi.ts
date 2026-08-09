@@ -23,6 +23,7 @@ export const saveContractTemplate = async (
   schoolId: number,
   payload: ContractTemplatePayload,
   logo?: File | null,
+  removeLogo = false,
 ): Promise<ContractTemplate> => {
   if (logo) {
     const body = new FormData();
@@ -42,7 +43,9 @@ export const saveContractTemplate = async (
 
   const response = await request<{ data: ContractTemplate }>(path(schoolId), {
     method: 'PUT',
-    body: { contract_template: payload },
+    // `remove_logo` only travels on the JSON path: a save that carries a new image is never
+    // also removing one.
+    body: { contract_template: { ...payload, remove_logo: removeLogo } },
   });
 
   return response.data;

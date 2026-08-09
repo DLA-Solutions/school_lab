@@ -16,6 +16,7 @@ const guardian: Guardian = {
   id: 7,
   school_id: SCHOOL_ID,
   user_id: null,
+  active: true,
   name: 'Maria Silva',
   cpf: '12345678909',
   email: 'maria@example.com',

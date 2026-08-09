@@ -26,6 +26,10 @@ pt-BR:
       signature_provider_missing: "Nenhuma integração de assinatura configurada para esta escola."
       signature_provider_unauthorized: "A Autentique recusou as credenciais desta escola."
       signature_provider_unavailable: "A Autentique está indisponível no momento. Tente novamente em instantes."
+      charge_without_payer: "Este contrato não tem responsável financeiro definido."
+      charge_amount_required: "Informe um valor maior que zero."
+      charge_due_date_required: "Informe a data de vencimento."
+      plan_discount_in_use: "Este desconto está aplicado em %{count} contrato(s) e não pode ser removido."
       job_position_in_use: "Este cargo está em uso por %{count} colaborador(es). Altere o cargo deles antes de removê-lo."
   signature:
     contract_message: "Segue o contrato de prestação de serviços educacionais referente a %{student}. Confira os dados e assine."

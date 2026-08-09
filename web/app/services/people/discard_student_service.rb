@@ -13,6 +13,10 @@ module People
       student.update!(discarded_by: actor)
       student.discard
 
+      # A guardian is on the books because a child of theirs studies here; this was possibly the
+      # last one.
+      SyncGuardianActivationService.call(student: student, actor: actor)
+
       ResponseService.success
     end
 

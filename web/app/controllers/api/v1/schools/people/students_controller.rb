@@ -8,7 +8,7 @@ module Api
           def index
             authorize Student
 
-            students = policy_scope(Student)
+            students = by_activation(policy_scope(Student))
                        .includes(:school_class, student_guardians: :guardian)
                        .search(params[:q])
                        .order(:name)
@@ -45,7 +45,9 @@ module Api
             student = policy_scope(Student).find(params[:id])
             authorize student
 
-            result = ::People::UpdateStudentService.call(student: student, params: student_params)
+            result = ::People::UpdateStudentService.call(
+              student: student, params: student_params, actor: Current.user
+            )
             render_service_result(result) do |updated|
               render json: { data: StudentBlueprint.render_as_hash(updated) }
             end
@@ -61,7 +63,30 @@ module Api
             end
           end
 
+          # Brings a record back. Looked up outside the policy scope on purpose: that scope is
+          # `kept`, and an inactive record is precisely what this action operates on.
+          def activate
+            record = Current.school.students.find(params[:id])
+            authorize record, :update?
+
+            result = ::People::ActivateStudentService.call(student: record, actor: Current.user)
+            render_service_result(result) do |updated|
+              render json: { data: StudentBlueprint.render_as_hash(updated) }
+            end
+          end
+
           private
+
+          # `active` (the default), `inactive` or `all`. Built from the school association rather
+          # than the policy scope because that scope hides discarded rows, which is the whole
+          # point of asking for the inactive ones.
+          def by_activation(scope)
+            case params[:status]
+            when "inactive" then Current.school.students.discarded
+            when "all" then Current.school.students.all
+            else scope
+            end
+          end
 
           # Narrows the list to the children linked to one guardian — what a contract form needs
           # to offer, rather than every student in the school. Discarded links do not count.

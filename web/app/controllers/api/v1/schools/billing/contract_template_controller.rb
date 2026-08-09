@@ -21,6 +21,7 @@ module Api
             template.assign_attributes(template_params)
             template.updated_by = Current.user
             attach_logo(template)
+            purge_logo(template)
 
             if template.save
               render json: { data: render_template(template) }
@@ -77,6 +78,16 @@ module Api
             html = ::Contracts::PreviewTemplateService.call(template: template).data.fetch(:html)
 
             render json: { data: { html: html, sample: true } }
+          end
+
+          # A school that would rather send an unbranded contract can drop the image entirely.
+          def purge_logo(template)
+            return unless ActiveModel::Type::Boolean.new.cast(
+              params.dig(:contract_template, :remove_logo)
+            )
+            return unless template.logo.attached?
+
+            template.logo.purge
           end
 
           def attach_logo(template)

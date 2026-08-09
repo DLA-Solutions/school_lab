@@ -239,7 +239,6 @@ const JobPositions = () => {
     <Stack direction="column" gap={3.5}>
       <PageHeader
         title="Cargos"
-        subtitle={school.school_name ?? undefined}
         actions={
           <>
             <Button
