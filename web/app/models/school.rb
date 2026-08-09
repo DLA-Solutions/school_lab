@@ -18,6 +18,10 @@ class School < ApplicationRecord
   has_many :payments, dependent: :destroy
   has_many :documents, dependent: :destroy
   has_many :school_payment_providers, dependent: :destroy
+  has_many :school_role_templates, dependent: :destroy
+  has_many :segments, dependent: :destroy
+  has_many :staff_profiles, dependent: :destroy
+  has_many :membership_permissions, dependent: :destroy
 
   validates :name, presence: true
 end
