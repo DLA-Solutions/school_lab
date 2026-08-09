@@ -15,6 +15,7 @@ const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 
 const App = lazy(() => import('App'));
 const Dashboard = lazy(() => import('pages/Dashboard'));
+const Guardians = lazy(() => import('pages/people/Guardians'));
 
 const router = createBrowserRouter(
   [
@@ -40,6 +41,10 @@ const router = createBrowserRouter(
           {
             index: true,
             element: <Dashboard />,
+          },
+          {
+            path: paths.guardians,
+            element: <Guardians />,
           },
         ],
       },

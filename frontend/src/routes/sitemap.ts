@@ -26,6 +26,13 @@ const sitemap: MenuItem[] = [
     icon: 'mingcute:home-1-fill',
     active: true,
   },
+  {
+    id: 'guardians',
+    subheader: 'Responsáveis',
+    path: paths.guardians,
+    icon: 'mingcute:user-2-fill',
+    active: true,
+  },
 ];
 
 export default sitemap;
