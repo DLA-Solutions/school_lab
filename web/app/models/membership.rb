@@ -3,12 +3,15 @@
 class Membership < ApplicationRecord
   include Discard::Model
 
-  ROLES = %w[backoffice school teacher guardian].freeze
+  ROLES = %w[backoffice school staff teacher guardian].freeze
   STATUSES = %w[active invited suspended].freeze
 
   belongs_to :user
   belongs_to :school, optional: true
   belongs_to :suspended_by, class_name: "User", optional: true
+
+  has_one :staff_profile, dependent: :destroy
+  has_many :membership_permissions, dependent: :destroy
 
   validates :role, inclusion: { in: ROLES }
   validates :status, inclusion: { in: STATUSES }
@@ -27,5 +30,9 @@ class Membership < ApplicationRecord
 
   def suspended?
     status == "suspended"
+  end
+
+  def staff_member?
+    %w[school staff teacher].include?(role)
   end
 end
