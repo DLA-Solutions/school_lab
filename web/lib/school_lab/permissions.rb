@@ -5,11 +5,11 @@ module SchoolLab
     CATALOG = {
       "manage_school_settings" => {
         domain: "school",
-        scope_kinds: ["full"].freeze
+        scope_kinds: [ "full" ].freeze
       }.freeze,
       "manage_billing" => {
         domain: "billing",
-        scope_kinds: ["full"].freeze
+        scope_kinds: [ "full" ].freeze
       }.freeze,
       "manage_people" => {
         domain: "people",
@@ -17,7 +17,7 @@ module SchoolLab
       }.freeze,
       "manage_enrollment" => {
         domain: "enrollment",
-        scope_kinds: ["full"].freeze
+        scope_kinds: [ "full" ].freeze
       }.freeze,
       "manage_documents" => {
         domain: "documents",
@@ -25,20 +25,20 @@ module SchoolLab
       }.freeze,
       "approve_lesson_plans" => {
         domain: "academic",
-        scope_kinds: ["full"].freeze
+        scope_kinds: [ "full" ].freeze
       }.freeze,
       "moderate_messages" => {
         domain: "communication",
-        scope_kinds: ["full"].freeze
+        scope_kinds: [ "full" ].freeze
       }.freeze,
       "teach" => {
         domain: "academic",
-        scope_kinds: ["full"].freeze,
+        scope_kinds: [ "full" ].freeze,
         requires_also_teaches_when_role: "staff"
       }.freeze,
       "view_billing_summary" => {
         domain: "billing",
-        scope_kinds: ["full"].freeze
+        scope_kinds: [ "full" ].freeze
       }.freeze
     }.freeze
 
