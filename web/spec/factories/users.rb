@@ -39,6 +39,10 @@ FactoryBot.define do
       role { "school" }
     end
 
+    trait :staff do
+      role { "staff" }
+    end
+
     trait :invited do
       status { "invited" }
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_09_140200) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -234,6 +234,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_140200) do
     t.check_constraint "zip_code IS NULL OR zip_code::text ~ '^[0-9]{8}$'::text", name: "guardians_zip_code_format"
   end
 
+  create_table "membership_permissions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "effect", default: "grant", null: false
+    t.bigint "membership_id", null: false
+    t.string "permission_key", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["membership_id", "permission_key"], name: "index_membership_permissions_on_membership_and_key_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["membership_id"], name: "index_membership_permissions_on_membership_id"
+    t.index ["school_id", "permission_key"], name: "index_membership_permissions_on_school_id_and_permission_key"
+    t.index ["school_id"], name: "index_membership_permissions_on_school_id"
+  end
+
   create_table "memberships", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -278,6 +292,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_140200) do
     t.bigint "user_id", null: false
     t.index ["token_digest"], name: "index_refresh_tokens_on_token_digest", unique: true
     t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
+  end
+
+  create_table "role_template_permissions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "permission_key", null: false
+    t.bigint "role_template_id", null: false
+    t.bigint "school_id", null: false
+    t.string "scope_kind", default: "full", null: false
+    t.datetime "updated_at", null: false
+    t.index ["role_template_id", "permission_key"], name: "index_role_template_permissions_on_template_and_key_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["role_template_id"], name: "index_role_template_permissions_on_role_template_id"
+    t.index ["school_id", "permission_key"], name: "idx_on_school_id_permission_key_29b8f16cf5"
+    t.index ["school_id"], name: "index_role_template_permissions_on_school_id"
   end
 
   create_table "school_billing_settings", force: :cascade do |t|
@@ -338,6 +366,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_140200) do
     t.check_constraint "instrument::text = 'bank_slip'::text", name: "school_payment_providers_instrument_allowed"
   end
 
+  create_table "school_role_templates", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.boolean "is_system", default: false, null: false
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.string "system_key"
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "system_key"], name: "index_school_role_templates_on_school_id_and_system_key_kept", unique: true, where: "((system_key IS NOT NULL) AND (discarded_at IS NULL))"
+    t.index ["school_id"], name: "index_school_role_templates_on_school_id"
+  end
+
   create_table "schools", force: :cascade do |t|
     t.string "address"
     t.string "cnpj"
@@ -350,6 +390,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_140200) do
     t.datetime "updated_at", null: false
     t.index ["discarded_by_id"], name: "index_schools_on_discarded_by_id"
     t.index ["school_group_id"], name: "index_schools_on_school_group_id"
+  end
+
+  create_table "segments", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "name"], name: "index_segments_on_school_id_and_name_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id"], name: "index_segments_on_school_id"
   end
 
   create_table "solid_cache_entries", force: :cascade do |t|
@@ -482,6 +532,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_140200) do
     t.index ["expires_at"], name: "index_solid_queue_semaphores_on_expires_at"
     t.index ["key", "value"], name: "index_solid_queue_semaphores_on_key_and_value"
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
+  end
+
+  create_table "staff_profiles", force: :cascade do |t|
+    t.boolean "also_teaches", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "display_title"
+    t.boolean "is_owner", default: false, null: false
+    t.bigint "membership_id", null: false
+    t.bigint "role_template_id", null: false
+    t.bigint "school_id", null: false
+    t.bigint "segment_id"
+    t.datetime "updated_at", null: false
+    t.index ["membership_id"], name: "index_staff_profiles_on_membership_id"
+    t.index ["membership_id"], name: "index_staff_profiles_on_membership_id_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["role_template_id"], name: "index_staff_profiles_on_role_template_id"
+    t.index ["school_id"], name: "index_staff_profiles_on_school_id"
+    t.index ["school_id"], name: "index_staff_profiles_on_school_id_owner_kept", unique: true, where: "((is_owner = true) AND (discarded_at IS NULL))"
+    t.index ["segment_id"], name: "index_staff_profiles_on_segment_id"
   end
 
   create_table "student_guardians", force: :cascade do |t|
@@ -636,25 +705,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_140200) do
   add_foreign_key "guardians", "schools"
   add_foreign_key "guardians", "users"
   add_foreign_key "guardians", "users", column: "discarded_by_id"
+  add_foreign_key "membership_permissions", "memberships"
+  add_foreign_key "membership_permissions", "schools"
   add_foreign_key "memberships", "schools"
   add_foreign_key "memberships", "users"
   add_foreign_key "memberships", "users", column: "suspended_by_id"
   add_foreign_key "payments", "charges"
   add_foreign_key "payments", "schools"
   add_foreign_key "refresh_tokens", "users"
+  add_foreign_key "role_template_permissions", "school_role_templates", column: "role_template_id"
+  add_foreign_key "role_template_permissions", "schools"
   add_foreign_key "school_billing_settings", "schools"
   add_foreign_key "school_classes", "schools"
   add_foreign_key "school_classes", "users", column: "discarded_by_id"
   add_foreign_key "school_payment_providers", "schools"
   add_foreign_key "school_payment_providers", "users", column: "uploaded_by_id"
+  add_foreign_key "school_role_templates", "schools"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
+  add_foreign_key "segments", "schools"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "staff_profiles", "memberships"
+  add_foreign_key "staff_profiles", "school_role_templates", column: "role_template_id"
+  add_foreign_key "staff_profiles", "schools"
+  add_foreign_key "staff_profiles", "segments"
   add_foreign_key "student_guardians", "guardians"
   add_foreign_key "student_guardians", "schools"
   add_foreign_key "student_guardians", "students"
