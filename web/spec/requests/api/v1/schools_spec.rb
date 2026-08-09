@@ -81,7 +81,18 @@ RSpec.describe "Api::V1::Schools", type: :request do
         run_test! do |response|
           body = JSON.parse(response.body)
           expect(body.dig("data", "name")).to eq("New Tenant School")
-          expect(School.kept.find_by(name: "New Tenant School")).to be_present
+
+          school = School.kept.find_by(name: "New Tenant School")
+          expect(school).to be_present
+
+          templates = school.school_role_templates.system_templates
+          expect(templates.count).to eq(4)
+
+          director = school.system_role_template("director")
+          expect(director).to be_present
+
+          billing_permission = director.role_template_permissions.kept.find_by(permission_key: "manage_billing")
+          expect(billing_permission).to have_attributes(scope_kind: "full")
         end
       end
 

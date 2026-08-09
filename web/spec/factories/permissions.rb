@@ -67,26 +67,9 @@ end
 
 module PermissionsFactoryHelpers
   def create_system_templates_for(school)
-    SchoolLab::Permissions::SYSTEM_TEMPLATES.map do |system_key, definition|
-      template = create(
-        :school_role_template,
-        school: school,
-        name: definition[:default_name],
-        system_key: system_key,
-        is_system: true
-      )
+    result = Identity::ProvisionSystemRoleTemplatesService.call(school: school)
+    raise "Failed to provision system templates: #{result.details}" unless result.success?
 
-      definition[:permissions].each do |permission|
-        create(
-          :role_template_permission,
-          role_template: template,
-          school: school,
-          permission_key: permission[:key],
-          scope_kind: permission[:scope_kind]
-        )
-      end
-
-      template
-    end
+    result.data[:templates].values
   end
 end

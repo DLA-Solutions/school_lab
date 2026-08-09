@@ -24,4 +24,8 @@ class School < ApplicationRecord
   has_many :membership_permissions, dependent: :destroy
 
   validates :name, presence: true
+
+  def system_role_template(system_key)
+    school_role_templates.kept.find_by(system_key: system_key.to_s)
+  end
 end

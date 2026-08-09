@@ -8,9 +8,21 @@ module Schools
 
     def call
       school = School.new(params)
+      provision_result = nil
 
-      if school.save
+      ActiveRecord::Base.transaction do
+        unless school.save
+          return ResponseService.failure(code: :validation_error, details: school.errors.to_hash)
+        end
+
+        provision_result = Identity::ProvisionSystemRoleTemplatesService.call(school: school)
+        raise ActiveRecord::Rollback unless provision_result.success?
+      end
+
+      if school.persisted? && provision_result&.success?
         ResponseService.success(data: school)
+      elsif provision_result&.failure?
+        provision_result
       else
         ResponseService.failure(code: :validation_error, details: school.errors.to_hash)
       end
