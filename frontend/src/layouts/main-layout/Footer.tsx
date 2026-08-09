@@ -13,8 +13,8 @@ const Footer = () => {
       letterSpacing={0.5}
     >
       Made with ❤️ by{' '}
-      <Link href="https://themewagon.com/" target="_blank" rel="noreferrer">
-        {'ThemeWagon'}
+      <Link href="https://scholarpremium.com.br/" target="_blank" rel="noreferrer">
+        {'Scholar Premium'}
       </Link>
     </Typography>
   );
