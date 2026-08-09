@@ -25,7 +25,7 @@ module Api
       def create
         authorize School
 
-        result = ::Schools::CreateSchoolService.call(params: school_params)
+        result = ::Schools::CreateSchoolService.call(params: school_params, actor: Current.user)
         render_service_result(result, success_status: :created) do |school|
           render json: { data: SchoolBlueprint.render_as_hash(school) }, status: :created
         end

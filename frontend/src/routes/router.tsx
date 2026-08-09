@@ -16,6 +16,11 @@ const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 const App = lazy(() => import('App'));
 const Dashboard = lazy(() => import('pages/Dashboard'));
 const Guardians = lazy(() => import('pages/people/Guardians'));
+const Students = lazy(() => import('pages/people/Students'));
+const Teachers = lazy(() => import('pages/academics/Teachers'));
+const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
+const Subjects = lazy(() => import('pages/academics/Subjects'));
+const Schools = lazy(() => import('pages/Schools'));
 
 const router = createBrowserRouter(
   [
@@ -45,6 +50,26 @@ const router = createBrowserRouter(
           {
             path: paths.guardians,
             element: <Guardians />,
+          },
+          {
+            path: paths.students,
+            element: <Students />,
+          },
+          {
+            path: paths.teachers,
+            element: <Teachers />,
+          },
+          {
+            path: paths.schoolClasses,
+            element: <SchoolClasses />,
+          },
+          {
+            path: paths.subjects,
+            element: <Subjects />,
+          },
+          {
+            path: paths.schools,
+            element: <Schools />,
           },
         ],
       },

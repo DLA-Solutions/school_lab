@@ -68,7 +68,11 @@ const send = async (path: string, { method = 'GET', body, auth = true }: Request
     'Accept-Language': API_LOCALE,
   };
 
-  if (body !== undefined) {
+  // File uploads go up as multipart. The Content-Type must be left to the browser: it is the only
+  // party that knows the boundary token it generated for the body.
+  const isMultipart = typeof FormData !== 'undefined' && body instanceof FormData;
+
+  if (body !== undefined && !isMultipart) {
     headers['Content-Type'] = 'application/json';
   }
 
@@ -80,7 +84,7 @@ const send = async (path: string, { method = 'GET', body, auth = true }: Request
   return fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined || isMultipart ? (body as BodyInit | undefined) : JSON.stringify(body),
     // Required so the httpOnly refresh cookie is sent and accepted.
     credentials: 'include',
   });

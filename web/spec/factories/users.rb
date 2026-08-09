@@ -53,8 +53,57 @@ FactoryBot.define do
     school
     sequence(:name) { |n| "Guardian #{n}" }
     sequence(:email) { |n| "guardian#{n}@example.com" }
-    cpf { "123.456.789-00" }
     phone { "+55 11 99999-0000" }
+
+    # The address is required in full, so every guardian fixture carries one.
+    zip_code { "01310100" }
+    street { "Avenida Paulista" }
+    number { "1000" }
+    neighborhood { "Bela Vista" }
+    city { "São Paulo" }
+    state { "SP" }
+
+    # CPF is unique per school and its check digits are validated, so a literal would collide the
+    # moment a spec builds two guardians in one school. Derive a real document from the sequence.
+    sequence(:cpf) do |n|
+      base = ::Kernel.format("%09d", n % 1_000_000_000)
+      first = Cpf.check_digit(base.chars.map(&:to_i))
+      second = Cpf.check_digit("#{base}#{first}".chars.map(&:to_i))
+      "#{base}#{first}#{second}"
+    end
+  end
+
+  factory :school_class do
+    school
+    sequence(:name) { |n| ("A".."Z").to_a[n % 26] }
+    grade_level { "fundamental_i_1" }
+    year { 2026 }
+  end
+
+  factory :subject do
+    school
+    sequence(:name) { |n| "Subject #{n}" }
+  end
+
+  factory :teacher do
+    school
+    sequence(:name) { |n| "Teacher #{n}" }
+    sequence(:email) { |n| "teacher#{n}@example.com" }
+    phone { "+55 11 98888-0000" }
+
+    sequence(:cpf) do |n|
+      base = ::Kernel.format("%09d", (n + 700_000) % 1_000_000_000)
+      first = Cpf.check_digit(base.chars.map(&:to_i))
+      second = Cpf.check_digit("#{base}#{first}".chars.map(&:to_i))
+      "#{base}#{first}#{second}"
+    end
+  end
+
+  factory :teaching_assignment do
+    school
+    teacher { association :teacher, school: school }
+    school_class { association :school_class, school: school }
+    subject { association :subject, school: school }
   end
 
   factory :student do
@@ -62,6 +111,16 @@ FactoryBot.define do
     sequence(:name) { |n| "Student #{n}" }
     status { "active" }
     birth_date { Date.new(2015, 3, 10) }
+    sequence(:rg) { |n| "MG-#{n.to_s.rjust(8, '0')}" }
+    school_class { association :school_class, school: school }
+
+    # Unique per school with validated check digits, exactly like the guardian factory.
+    sequence(:cpf) do |n|
+      base = ::Kernel.format("%09d", (n + 500_000) % 1_000_000_000)
+      first = Cpf.check_digit(base.chars.map(&:to_i))
+      second = Cpf.check_digit("#{base}#{first}".chars.map(&:to_i))
+      "#{base}#{first}#{second}"
+    end
   end
 
   factory :student_guardian do

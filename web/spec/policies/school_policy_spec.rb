@@ -27,10 +27,25 @@ RSpec.describe SchoolPolicy do
 
     before { create(:membership, user: user, school: school, role: "school") }
 
-    it "denies all school actions" do
-      expect(policy.index?).to be(false)
+    # School admins may open a school and manage the ones they administer.
+    it "allows listing and creating" do
+      expect(policy.index?).to be(true)
+      expect(policy.create?).to be(true)
+    end
+
+    it "allows managing a school they administer" do
+      # `record` above is an unrelated school; this is the one the membership points at.
+      own = described_class.new(user, school)
+
+      expect(own.show?).to be(true)
+      expect(own.update?).to be(true)
+      expect(own.destroy?).to be(true)
+    end
+
+    # Opening the register to school admins must not let one school's administrator rename or
+    # discard another school.
+    it "denies managing a school they do not administer" do
       expect(policy.show?).to be(false)
-      expect(policy.create?).to be(false)
       expect(policy.update?).to be(false)
       expect(policy.destroy?).to be(false)
     end
@@ -56,9 +71,11 @@ RSpec.describe SchoolPolicy do
 
       before { create(:membership, user: user, school: school, role: "school") }
 
-      it "returns no schools" do
+      it "returns only the schools they administer" do
         scope = described_class::Scope.new(user, School.all).resolve
-        expect(scope).to be_empty
+
+        expect(scope).to include(school)
+        expect(scope).not_to include(kept_school, discarded_school)
       end
     end
   end

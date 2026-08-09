@@ -46,6 +46,15 @@ Rails.application.routes.draw do
             end
           end
 
+          namespace :academics do
+            resources :subjects, only: %i[index create update destroy]
+            resources :school_classes, only: %i[index show create update destroy]
+            resources :teachers, only: %i[index show create update destroy] do
+              resources :teaching_assignments, only: :create
+            end
+            resources :teaching_assignments, only: :destroy
+          end
+
           namespace :communication do
             resources :conversations, only: :index
           end
@@ -53,7 +62,11 @@ Rails.application.routes.draw do
           namespace :billing do
             resource :settings, only: %i[show update]
             resources :plans
-            resources :contracts
+            resources :contracts do
+              member do
+                post :sign
+              end
+            end
             resources :charge_generations, only: :create
             resources :charges, only: %i[index show destroy] do
               member do

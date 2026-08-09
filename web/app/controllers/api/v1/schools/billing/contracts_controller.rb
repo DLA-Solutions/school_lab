@@ -8,7 +8,8 @@ module Api
           def index
             authorize Contract
 
-            contracts = policy_scope(Contract).order(:id)
+            contracts = filter_by_guardian(policy_scope(Contract).includes(:student))
+            contracts = filter_by_signature_status(contracts).order(id: :desc)
             pagy, records = pagy(contracts)
 
             render json: {
@@ -27,7 +28,12 @@ module Api
           def create
             authorize Contract
 
+            # Creating a contract here means sending it to the family for signature, so it starts
+            # pending with the send stamped — not silently in force.
             contract = Current.school.contracts.build(contract_params)
+            contract.signature_status = "pending_signature"
+            contract.sent_at = Time.current
+
             if contract.save
               render json: { data: ContractBlueprint.render_as_hash(contract) }, status: :created
             else
@@ -56,7 +62,40 @@ module Api
             head :no_content
           end
 
+          # Records that the family returned the signed contract. Stands in for the callback an
+          # e-signature provider would make, until one is integrated.
+          def sign
+            contract = policy_scope(Contract).find(params[:id])
+            authorize contract, :update?
+
+            if contract.mark_signed!
+              render json: { data: ContractBlueprint.render_as_hash(contract) }
+            else
+              render_error(:validation_error, status: :unprocessable_content,
+                                              details: contract.errors.to_hash)
+            end
+          end
+
           private
+
+          # The contracts of one guardian's children — what the guardian-facing screen lists.
+          def filter_by_guardian(scope)
+            guardian_id = params[:guardian_id]
+            return scope if guardian_id.blank?
+
+            scope.joins(student: :student_guardians)
+                 .merge(StudentGuardian.kept)
+                 .where(student_guardians: { guardian_id: guardian_id })
+                 .distinct
+          end
+
+          def filter_by_signature_status(scope)
+            status = params[:signature_status]
+            return scope if status.blank?
+            return scope.none unless Contract::SIGNATURE_STATUSES.include?(status)
+
+            scope.where(signature_status: status)
+          end
 
           def contract_params
             params.require(:contract).permit(

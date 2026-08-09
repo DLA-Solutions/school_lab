@@ -45,6 +45,11 @@ export default defineConfig(({ mode }) => ({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     restoreMocks: true,
+    // Vitest's 5s default is per test, but the suite runs its files in parallel: rendering MUI
+    // dialogs and driving them with user-event under jsdom means a spec that takes ~1s alone can
+    // sit well past 5s waiting for a worker. The failures that produced were all starvation, not
+    // slow assertions — raise the ceiling rather than trade away coverage for speed.
+    testTimeout: 20_000,
     server: {
       deps: {
         // The design-system barrel reaches DataTable, and the DataGrid package imports a

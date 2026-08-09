@@ -26,22 +26,43 @@ module DemoSchool
     guardian_user = find_or_create_confirmed_user!(GUARDIAN_EMAIL)
     find_or_create_membership!(user: guardian_user, school: school, role: "guardian")
 
-    guardian = Guardian.find_or_create_by!(school: school, email: GUARDIAN_EMAIL) do |record|
-      record.name = "Maria Silva"
-      record.cpf = "123.456.789-00"
-      record.phone = "+55 11 99999-0000"
-    end
-    guardian.update!(user: guardian_user) if guardian.user_id != guardian_user.id
+    guardian = Guardian.find_or_initialize_by(school: school, email: GUARDIAN_EMAIL)
+    # Assigned on every run, not only on create: a demo database seeded before CPF was validated
+    # holds "12345678900", whose check digits never matched, and the record would stay invalid.
+    guardian.assign_attributes(
+      name: "Maria Silva",
+      cpf: "123.456.789-09",
+      phone: "+55 11 99999-0000",
+      zip_code: "01310100",
+      street: "Avenida Paulista",
+      number: "1000",
+      neighborhood: "Bela Vista",
+      city: "São Paulo",
+      state: "SP",
+      user: guardian_user
+    )
+    guardian.save!
 
-    student = Student.find_or_create_by!(school: school, name: "Pedro Silva") do |record|
-      record.status = "active"
-      record.birth_date = Date.new(2015, 3, 10)
-    end
+    school_class = SchoolClass.find_or_create_by!(
+      school: school, year: Date.current.year, grade_level: "fundamental_i_5", name: "A"
+    )
 
-    StudentGuardian.find_or_create_by!(school: school, student: student, guardian: guardian) do |record|
-      record.financial_percentage = 100
-      record.primary_guardian = true
-    end
+    student = Student.find_or_initialize_by(school: school, name: "Pedro Silva")
+    # Assigned every run: enrolment details became required after this seed first shipped.
+    student.assign_attributes(
+      status: "active",
+      birth_date: Date.new(2015, 3, 10),
+      cpf: "529.982.247-25",
+      rg: "MG-14.235.789",
+      school_class: school_class
+    )
+    student.save!
+
+    link = StudentGuardian.find_or_initialize_by(school: school, student: student, guardian: guardian)
+    link.assign_attributes(financial_percentage: 100, primary_guardian: true, relationship: "mother")
+    link.save!
+
+    seed_academics!(school, school_class)
 
     billing_plan = BillingPlan.find_or_create_by!(school: school, name: "Mensalidade Demo") do |record|
       record.plan_type = "tuition"
@@ -64,6 +85,23 @@ module DemoSchool
       record.provider_invoice_id = "demo-charge-001"
       record.boleto_url = "https://demo.schoollab.local/boleto/demo-charge-001"
       record.pix_copy_paste = "00020126580014br.gov.bcb.pixdemo0001"
+    end
+  end
+
+  # A teacher covering two subjects of the demo cohort, so the teacher listing has something to
+  # show on a fresh database.
+  def seed_academics!(school, school_class)
+    teacher = Teacher.find_or_initialize_by(school: school, cpf: "15852119075")
+    teacher.assign_attributes(
+      name: "Carla Nogueira", email: "carla@demo.schoollab.local", phone: "+55 11 97777-0000"
+    )
+    teacher.save!
+
+    ["Matemática", "Ciências"].each do |subject_name|
+      subject = Subject.find_or_create_by!(school: school, name: subject_name)
+      TeachingAssignment.find_or_create_by!(
+        school: school, teacher: teacher, school_class: school_class, subject: subject
+      )
     end
   end
 
@@ -104,5 +142,5 @@ module DemoSchool
     end
   end
   private_class_method :find_or_create_bank_slip_provider!, :find_or_create_billing_settings!,
-                      :find_or_create_confirmed_user!, :find_or_create_membership!
+                      :find_or_create_confirmed_user!, :find_or_create_membership!, :seed_academics!
 end

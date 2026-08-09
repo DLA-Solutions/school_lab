@@ -19,11 +19,19 @@ export interface ListGuardiansParams {
   schoolId: number;
   /** One-based, as Pagy counts pages. */
   page?: number;
+  /** One term matched against both the name and the CPF. */
+  q?: string;
 }
 
 /** GET /api/v1/schools/:school_id/people/guardians — ordered by name, 25 per page. */
-export const listGuardians = ({ schoolId, page = 1 }: ListGuardiansParams) =>
-  request<GuardianListResponse>(`${collectionPath(schoolId)}?page=${page}`);
+export const listGuardians = ({ schoolId, page = 1, q }: ListGuardiansParams) => {
+  const query = new URLSearchParams({ page: String(page) });
+  if (q?.trim()) {
+    query.set('q', q.trim());
+  }
+
+  return request<GuardianListResponse>(`${collectionPath(schoolId)}?${query}`);
+};
 
 /** POST /api/v1/schools/:school_id/people/guardians */
 export const createGuardian = async (

@@ -46,10 +46,17 @@ RSpec.describe "Api::V1::Schools::People::Guardians", type: :request do
             properties: {
               name: { type: :string },
               email: { type: :string },
-              cpf: { type: :string },
-              phone: { type: :string }
+              cpf: { type: :string, description: "Accepted formatted or bare; stored as 11 digits and unique per school" },
+              phone: { type: :string },
+              zip_code: { type: :string },
+              street: { type: :string },
+              number: { type: :string },
+              complement: { type: :string },
+              neighborhood: { type: :string },
+              city: { type: :string },
+              state: { type: :string, description: "Two-letter UF" }
             },
-            required: %w[name]
+            required: %w[name cpf email phone]
           }
         },
         required: %w[guardian]
@@ -61,7 +68,14 @@ RSpec.describe "Api::V1::Schools::People::Guardians", type: :request do
             guardian: {
               name: "Maria Silva",
               email: "maria@example.com",
-              cpf: "123.456.789-00"
+              cpf: "123.456.789-09",
+              phone: "+55 11 99999-0000",
+              zip_code: "01310-100",
+              street: "Avenida Paulista",
+              number: "1000",
+              neighborhood: "Bela Vista",
+              city: "São Paulo",
+              state: "sp"
             }
           }
         end
@@ -70,6 +84,12 @@ RSpec.describe "Api::V1::Schools::People::Guardians", type: :request do
           body = JSON.parse(response.body)
           expect(body.dig("data", "school_id")).to eq(school.id)
           expect(body.dig("data", "name")).to eq("Maria Silva")
+
+          # Stored canonically: CPF and CEP as bare digits, UF upcased.
+          expect(body.dig("data", "cpf")).to eq("12345678909")
+          expect(body.dig("data", "zip_code")).to eq("01310100")
+          expect(body.dig("data", "state")).to eq("SP")
+
           expect(Guardian.kept.find_by(name: "Maria Silva", school: school)).to be_present
         end
       end

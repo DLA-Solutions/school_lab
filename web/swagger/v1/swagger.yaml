@@ -1327,14 +1327,40 @@
                         "type": "string"
                       },
                       "cpf": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Accepted formatted or bare; stored as 11 digits and unique per school"
                       },
                       "phone": {
                         "type": "string"
+                      },
+                      "zip_code": {
+                        "type": "string"
+                      },
+                      "street": {
+                        "type": "string"
+                      },
+                      "number": {
+                        "type": "string"
+                      },
+                      "complement": {
+                        "type": "string"
+                      },
+                      "neighborhood": {
+                        "type": "string"
+                      },
+                      "city": {
+                        "type": "string"
+                      },
+                      "state": {
+                        "type": "string",
+                        "description": "Two-letter UF"
                       }
                     },
                     "required": [
-                      "name"
+                      "name",
+                      "cpf",
+                      "email",
+                      "phone"
                     ]
                   }
                 },
@@ -1696,16 +1722,38 @@
                       "name": {
                         "type": "string"
                       },
+                      "cpf": {
+                        "type": "string",
+                        "description": "Accepted formatted or bare; stored as 11 digits and unique per school"
+                      },
+                      "rg": {
+                        "type": "string"
+                      },
                       "birth_date": {
                         "type": "string",
                         "format": "date"
+                      },
+                      "school_class_id": {
+                        "type": "integer"
+                      },
+                      "father_cpf": {
+                        "type": "string",
+                        "description": "CPF of an already registered guardian"
+                      },
+                      "mother_cpf": {
+                        "type": "string",
+                        "description": "CPF of an already registered guardian"
                       },
                       "status": {
                         "type": "string"
                       }
                     },
                     "required": [
-                      "name"
+                      "name",
+                      "cpf",
+                      "rg",
+                      "birth_date",
+                      "school_class_id"
                     ]
                   }
                 },
@@ -1816,10 +1864,7 @@
         ],
         "responses": {
           "201": {
-            "description": "school created"
-          },
-          "403": {
-            "description": "forbidden for school admin"
+            "description": "school admin opens a school and becomes its administrator"
           }
         },
         "requestBody": {

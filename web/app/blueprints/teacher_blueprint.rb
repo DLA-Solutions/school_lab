@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+class TeacherBlueprint < Blueprinter::Base
+  identifier :id
+
+  # `cpf` is the canonical 11 digits; clients format it for display.
+  fields :school_id, :name, :cpf, :email, :phone
+
+  # The listing answers "which classes, and which subjects in each" in one row, so the screen
+  # never has to fan out a request per teacher.
+  view :with_assignments do
+    field :classes do |teacher|
+      teacher.teaching_assignments.kept.group_by(&:school_class).map do |school_class, assignments|
+        {
+          id: school_class.id,
+          name: school_class.name,
+          grade_level: school_class.grade_level,
+          year: school_class.year,
+          subjects: assignments.map do |assignment|
+            { id: assignment.subject.id, name: assignment.subject.name, assignment_id: assignment.id }
+          end
+        }
+      end
+    end
+  end
+end

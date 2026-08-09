@@ -10,6 +10,8 @@ RSpec.describe "Api::V1::Schools::People::Students", type: :request do
   let(:guardian_user) { create(:user) }
   let!(:guardian_membership) { create(:membership, user: guardian_user, school: school, role: "guardian") }
   let(:school_id) { school.id }
+  let(:school_class) { create(:school_class, school: school, grade_level: "fundamental_i_5") }
+  let(:guardian) { create(:guardian, school: school) }
   let(:Authorization) { auth_headers_for(school_admin)["Authorization"] }
 
   path "/api/v1/schools/{school_id}/people/students" do
@@ -28,10 +30,15 @@ RSpec.describe "Api::V1::Schools::People::Students", type: :request do
             type: :object,
             properties: {
               name: { type: :string },
+              cpf: { type: :string, description: "Accepted formatted or bare; stored as 11 digits and unique per school" },
+              rg: { type: :string },
               birth_date: { type: :string, format: :date },
+              school_class_id: { type: :integer },
+              father_cpf: { type: :string, description: "CPF of an already registered guardian" },
+              mother_cpf: { type: :string, description: "CPF of an already registered guardian" },
               status: { type: :string }
             },
-            required: %w[name]
+            required: %w[name cpf rg birth_date school_class_id]
           }
         },
         required: %w[student]
@@ -42,7 +49,11 @@ RSpec.describe "Api::V1::Schools::People::Students", type: :request do
           {
             student: {
               name: "Pedro Silva",
-              birth_date: "2015-03-10"
+              cpf: "529.982.247-25",
+              rg: "MG-14.235.789",
+              birth_date: "2015-03-10",
+              school_class_id: school_class.id,
+              mother_cpf: guardian.cpf
             }
           }
         end
@@ -51,6 +62,10 @@ RSpec.describe "Api::V1::Schools::People::Students", type: :request do
           body = JSON.parse(response.body)
           expect(body.dig("data", "school_id")).to eq(school.id)
           expect(body.dig("data", "name")).to eq("Pedro Silva")
+          expect(body.dig("data", "cpf")).to eq("52998224725")
+          # The grade is read from the cohort the student was enrolled into.
+          expect(body.dig("data", "grade_level")).to eq("fundamental_i_5")
+          expect(body.dig("data", "guardians").map { |g| g["relationship"] }).to eq(["mother"])
         end
       end
 

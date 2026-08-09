@@ -15,3 +15,40 @@ pt-BR:
       billing_interest_rate_missing: "Configure a taxa de mora nas configurações de cobrança antes de emitir boletos."
       membership_suspended: "Acesso suspenso nesta escola."
       membership_invited: "Convite pendente para esta escola."
+      student_requires_a_guardian: "Informe o CPF do pai ou da mãe."
+      guardian_cpf_not_found: "Nenhum responsável cadastrado com o CPF %{cpf}. Cadastre-o antes de matricular o estudante."
+      duplicate_guardian_cpf: "O mesmo CPF foi informado para pai e mãe."
+  # `validation_error` responses carry ActiveModel messages verbatim under `details`, and the SPA
+  # prints them under each field — so these are user-facing strings, not developer output.
+  errors:
+    messages:
+      blank: "não pode ficar em branco"
+      invalid: "não é válido"
+      taken: "já está em uso"
+      inclusion: "não está na lista de valores permitidos"
+      not_a_number: "não é um número"
+      greater_than_or_equal_to: "deve ser maior ou igual a %{count}"
+      less_than_or_equal_to: "deve ser menor ou igual a %{count}"
+  activerecord:
+    errors:
+      messages:
+        invalid_cpf: "não é um CPF válido"
+        must_be_in_the_past: "deve estar no passado"
+      models:
+        guardian:
+          attributes:
+            cpf:
+              taken: "já cadastrado para outro responsável nesta escola"
+    attributes:
+      guardian:
+        name: "Nome"
+        cpf: "CPF"
+        email: "E-mail"
+        phone: "Telefone"
+        zip_code: "CEP"
+        street: "Logradouro"
+        number: "Número"
+        complement: "Complemento"
+        neighborhood: "Bairro"
+        city: "Cidade"
+        state: "UF"

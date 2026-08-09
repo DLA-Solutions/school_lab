@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -7,21 +7,40 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
+import GuardianContractsDialog from 'components/sections/people/guardians/GuardianContractsDialog';
+import GuardianDocumentsDialog from 'components/sections/people/guardians/GuardianDocumentsDialog';
 import GuardianFormDialog from 'components/sections/people/guardians/GuardianFormDialog';
-import { ConfirmDialog, DataTable, EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
+import {
+  ConfirmDialog,
+  DataTable,
+  EmptyState,
+  ErrorBanner,
+  PageHeader,
+  SearchField,
+  SectionCard,
+} from 'design-system';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { deleteGuardian, listGuardians } from 'services/guardiansApi';
 import { Guardian } from 'types/guardian';
+import { formatCpf } from 'utils/documentNumber';
+import { useDebouncedValue } from 'utils/useDebouncedValue';
 
 // The API paginates with Pagy at a fixed 25 per page and takes no page-size parameter, so the
 // grid follows the server rather than offering a page-size selector it could not honour.
 const PAGE_SIZE = 25;
 
-// Optional columns come back as NULL for guardians registered with a name only.
-const renderOptional = ({ value }: GridRenderCellParams<Guardian, string | null>) =>
-  value ? (
-    <Typography variant="body2">{value}</Typography>
+// The API stores the CPF as 11 bare digits; the mask belongs to the reader, not the column.
+const renderCpf = ({ value }: GridRenderCellParams<Guardian, string>) => (
+  <Typography variant="body2">{formatCpf(value)}</Typography>
+);
+
+const renderCity = ({ row }: GridRenderCellParams<Guardian>) =>
+  row.city ? (
+    <Typography variant="body2">
+      {row.city}
+      {row.state ? `/${row.state}` : ''}
+    </Typography>
   ) : (
     <Typography variant="body2" color="text.secondary">
       —
@@ -37,11 +56,16 @@ const Guardians = () => {
   const [page, setPage] = useState(0); // zero-based, as the grid counts
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  // The API does the filtering, so the term is debounced rather than sent per keystroke.
+  const debouncedSearch = useDebouncedValue(search);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Guardian | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Guardian | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [documentsFor, setDocumentsFor] = useState<Guardian | null>(null);
+  const [contractsFor, setContractsFor] = useState<Guardian | null>(null);
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -52,7 +76,7 @@ const Guardians = () => {
     setError('');
 
     try {
-      const response = await listGuardians({ schoolId, page: page + 1 });
+      const response = await listGuardians({ schoolId, page: page + 1, q: debouncedSearch });
       setGuardians(response.data);
       setTotal(response.meta.total);
     } catch (err) {
@@ -66,11 +90,17 @@ const Guardians = () => {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page]);
+  }, [schoolId, page, debouncedSearch]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    // A narrower result rarely has the page the user is on — start over at the first.
+    setPage(0);
+  };
 
   const handleCreate = () => {
     setEditing(null);
@@ -120,20 +150,45 @@ const Guardians = () => {
   };
 
   const columns: GridColDef<Guardian>[] = [
-    { field: 'name', headerName: 'Nome', flex: 1, minWidth: 200 },
-    { field: 'cpf', headerName: 'CPF', width: 160, renderCell: renderOptional },
-    { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 200, renderCell: renderOptional },
-    { field: 'phone', headerName: 'Telefone', width: 160, renderCell: renderOptional },
+    { field: 'name', headerName: 'Nome', flex: 1, minWidth: 180 },
+    { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
+    { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 190 },
+    { field: 'phone', headerName: 'Telefone', width: 150 },
+    {
+      field: 'city',
+      headerName: 'Cidade',
+      width: 150,
+      sortable: false,
+      renderCell: renderCity,
+    },
     {
       field: 'actions',
       headerName: 'Ações',
-      width: 120,
+      width: 180,
       sortable: false,
       filterable: false,
       align: 'right',
       headerAlign: 'right',
       renderCell: ({ row }: GridRenderCellParams<Guardian>) => (
         <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+          <Tooltip title="Contratos">
+            <IconButton
+              size="small"
+              aria-label={`Contratos de ${row.name}`}
+              onClick={() => setContractsFor(row)}
+            >
+              <IconifyIcon icon="mingcute:contacts-2-line" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Documentos pessoais">
+            <IconButton
+              size="small"
+              aria-label={`Documentos de ${row.name}`}
+              onClick={() => setDocumentsFor(row)}
+            >
+              <IconifyIcon icon="mingcute:file-certificate-line" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Editar">
             <IconButton
               size="small"
@@ -180,9 +235,18 @@ const Guardians = () => {
         title="Responsáveis"
         subtitle={school.school_name ?? undefined}
         actions={
-          <Button variant="contained" size="small" onClick={handleCreate}>
-            Novo responsável
-          </Button>
+          <>
+            <SearchField
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Buscar por nome ou CPF"
+              ariaLabel="Buscar responsáveis"
+              sx={{ width: 260 }}
+            />
+            <Button variant="contained" size="small" onClick={handleCreate}>
+              Novo responsável
+            </Button>
+          </>
         }
       />
 
@@ -191,8 +255,12 @@ const Guardians = () => {
       <SectionCard padding={0}>
         {!loading && guardians.length === 0 && !error ? (
           <EmptyState
-            title="Nenhum responsável cadastrado"
-            description="Cadastre o primeiro responsável para vinculá-lo a alunos e cobranças."
+            title={debouncedSearch ? 'Nenhum resultado' : 'Nenhum responsável cadastrado'}
+            description={
+              debouncedSearch
+                ? `Nada encontrado para "${debouncedSearch}". Verifique o nome ou o CPF.`
+                : 'Cadastre o primeiro responsável para vinculá-lo a alunos e cobranças.'
+            }
             action={
               <Button variant="contained" size="small" onClick={handleCreate}>
                 Novo responsável
@@ -227,6 +295,25 @@ const Guardians = () => {
         onClose={() => setFormOpen(false)}
         onSaved={handleSaved}
       />
+
+      {/* Mounted only while open so each guardian's dialog fetches its own data on mount. */}
+      {contractsFor && (
+        <GuardianContractsDialog
+          open
+          schoolId={school.school_id}
+          guardian={contractsFor}
+          onClose={() => setContractsFor(null)}
+        />
+      )}
+
+      {documentsFor && (
+        <GuardianDocumentsDialog
+          open
+          schoolId={school.school_id}
+          guardian={documentsFor}
+          onClose={() => setDocumentsFor(null)}
+        />
+      )}
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_09_140200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -160,15 +160,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
     t.date "ends_on"
     t.integer "negotiated_amount_cents"
     t.bigint "school_id", null: false
+    t.datetime "sent_at"
+    t.string "signature_status", default: "pending_signature", null: false
+    t.datetime "signed_at"
     t.date "starts_on"
     t.string "status", default: "active", null: false
     t.bigint "student_id", null: false
     t.datetime "updated_at", null: false
     t.index ["billing_plan_id"], name: "index_contracts_on_billing_plan_id"
+    t.index ["school_id", "signature_status"], name: "index_contracts_on_school_id_and_signature_status"
     t.index ["school_id", "status"], name: "index_contracts_on_school_id_and_status"
     t.index ["school_id"], name: "index_contracts_on_school_id"
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
+    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying]::text[])", name: "contracts_signature_status_valid"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -204,19 +209,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
   end
 
   create_table "guardians", force: :cascade do |t|
+    t.string "city"
+    t.string "complement"
     t.string "cpf"
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
     t.string "email"
     t.string "name"
+    t.string "neighborhood"
+    t.string "number"
     t.string "phone"
     t.bigint "school_id", null: false
+    t.string "state", limit: 2
+    t.string "street"
     t.datetime "updated_at", null: false
     t.bigint "user_id"
+    t.string "zip_code", limit: 8
     t.index ["discarded_by_id"], name: "index_guardians_on_discarded_by_id"
+    t.index ["school_id", "cpf"], name: "index_guardians_on_school_id_and_cpf_kept", unique: true, where: "((discarded_at IS NULL) AND (cpf IS NOT NULL))"
     t.index ["school_id"], name: "index_guardians_on_school_id"
     t.index ["user_id"], name: "index_guardians_on_user_id"
+    t.check_constraint "state IS NULL OR state::text ~ '^[A-Z]{2}$'::text", name: "guardians_state_format"
+    t.check_constraint "zip_code IS NULL OR zip_code::text ~ '^[0-9]{8}$'::text", name: "guardians_zip_code_format"
   end
 
   create_table "memberships", force: :cascade do |t|
@@ -276,6 +291,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
     t.index ["school_id"], name: "index_school_billing_settings_on_school_id", unique: true
     t.check_constraint "interest_rate_percent IS NULL OR interest_rate_percent > 0::numeric AND interest_rate_percent <= 100::numeric", name: "school_billing_settings_interest_rate_percent_range"
     t.check_constraint "overdue_grace_days >= 0 AND overdue_grace_days <= 30", name: "school_billing_settings_overdue_grace_days_range"
+  end
+
+  create_table "school_classes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "grade_level", null: false
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "year", null: false
+    t.index ["discarded_by_id"], name: "index_school_classes_on_discarded_by_id"
+    t.index ["school_id", "year", "grade_level", "name"], name: "index_school_classes_on_school_year_grade_name_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id"], name: "index_school_classes_on_school_id"
   end
 
   create_table "school_groups", force: :cascade do |t|
@@ -461,28 +490,82 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
     t.decimal "financial_percentage", precision: 5, scale: 2
     t.bigint "guardian_id", null: false
     t.boolean "primary_guardian"
+    t.string "relationship", default: "other", null: false
     t.bigint "school_id", null: false
     t.bigint "student_id", null: false
     t.datetime "updated_at", null: false
     t.index ["guardian_id", "student_id"], name: "index_student_guardians_on_guardian_id_and_student_id_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["guardian_id"], name: "index_student_guardians_on_guardian_id"
     t.index ["school_id"], name: "index_student_guardians_on_school_id"
+    t.index ["student_id", "relationship"], name: "index_student_guardians_on_student_and_parent_kept", unique: true, where: "((discarded_at IS NULL) AND ((relationship)::text = ANY ((ARRAY['father'::character varying, 'mother'::character varying])::text[])))"
     t.index ["student_id"], name: "index_student_guardians_on_student_id"
     t.check_constraint "financial_percentage IS NULL OR financial_percentage >= 0::numeric AND financial_percentage <= 100::numeric", name: "student_guardians_financial_percentage_range"
+    t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying, 'mother'::character varying, 'other'::character varying]::text[])", name: "student_guardians_relationship_valid"
   end
 
   create_table "students", force: :cascade do |t|
     t.date "birth_date"
+    t.string "cpf", limit: 11
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
     t.string "name"
+    t.string "rg"
+    t.bigint "school_class_id"
     t.bigint "school_id", null: false
     t.string "status", default: "active", null: false
     t.datetime "updated_at", null: false
     t.index ["discarded_by_id"], name: "index_students_on_discarded_by_id"
+    t.index ["school_class_id"], name: "index_students_on_school_class_id"
+    t.index ["school_id", "cpf"], name: "index_students_on_school_id_and_cpf_kept", unique: true, where: "((discarded_at IS NULL) AND (cpf IS NOT NULL))"
     t.index ["school_id", "status"], name: "index_students_on_school_id_and_status"
     t.index ["school_id"], name: "index_students_on_school_id"
+    t.check_constraint "cpf IS NULL OR cpf::text ~ '^[0-9]{11}$'::text", name: "students_cpf_format"
+  end
+
+  create_table "subjects", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_by_id"], name: "index_subjects_on_discarded_by_id"
+    t.index ["school_id", "name"], name: "index_subjects_on_school_id_and_name_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id"], name: "index_subjects_on_school_id"
+  end
+
+  create_table "teachers", force: :cascade do |t|
+    t.string "cpf", limit: 11
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.string "email"
+    t.string "name", null: false
+    t.string "phone"
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_by_id"], name: "index_teachers_on_discarded_by_id"
+    t.index ["school_id", "cpf"], name: "index_teachers_on_school_id_and_cpf_kept", unique: true, where: "((discarded_at IS NULL) AND (cpf IS NOT NULL))"
+    t.index ["school_id"], name: "index_teachers_on_school_id"
+    t.check_constraint "cpf IS NULL OR cpf::text ~ '^[0-9]{11}$'::text", name: "teachers_cpf_format"
+  end
+
+  create_table "teaching_assignments", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "discarded_by_id"
+    t.bigint "school_class_id", null: false
+    t.bigint "school_id", null: false
+    t.bigint "subject_id", null: false
+    t.bigint "teacher_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_by_id"], name: "index_teaching_assignments_on_discarded_by_id"
+    t.index ["school_class_id"], name: "index_teaching_assignments_on_school_class_id"
+    t.index ["school_id"], name: "index_teaching_assignments_on_school_id"
+    t.index ["subject_id"], name: "index_teaching_assignments_on_subject_id"
+    t.index ["teacher_id", "school_class_id", "subject_id"], name: "index_teaching_assignments_unique_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["teacher_id"], name: "index_teaching_assignments_on_teacher_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -560,6 +643,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
   add_foreign_key "payments", "schools"
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "school_billing_settings", "schools"
+  add_foreign_key "school_classes", "schools"
+  add_foreign_key "school_classes", "users", column: "discarded_by_id"
   add_foreign_key "school_payment_providers", "schools"
   add_foreign_key "school_payment_providers", "users", column: "uploaded_by_id"
   add_foreign_key "schools", "school_groups"
@@ -573,8 +658,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_03_160000) do
   add_foreign_key "student_guardians", "guardians"
   add_foreign_key "student_guardians", "schools"
   add_foreign_key "student_guardians", "students"
+  add_foreign_key "students", "school_classes"
   add_foreign_key "students", "schools"
   add_foreign_key "students", "users", column: "discarded_by_id"
+  add_foreign_key "subjects", "schools"
+  add_foreign_key "subjects", "users", column: "discarded_by_id"
+  add_foreign_key "teachers", "schools"
+  add_foreign_key "teachers", "users", column: "discarded_by_id"
+  add_foreign_key "teaching_assignments", "school_classes"
+  add_foreign_key "teaching_assignments", "schools"
+  add_foreign_key "teaching_assignments", "subjects"
+  add_foreign_key "teaching_assignments", "teachers"
+  add_foreign_key "teaching_assignments", "users", column: "discarded_by_id"
   add_foreign_key "users", "users", column: "disabled_by_id"
   add_foreign_key "webhook_events", "schools"
 end

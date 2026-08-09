@@ -135,7 +135,9 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
     end
 
     it "rejects a guardian missing a CPF" do
-      guardian.update!(cpf: nil)
+      # CPF is required on the model now, so a blank one can only reach here as a legacy row
+      # predating that rule — which is exactly what the builder must still refuse to send.
+      guardian.update_column(:cpf, nil)
 
       expect { described_class.from_charge(charge) }
         .to raise_error(Gateways::BankSlip::ValidationError, /document_number is required/)

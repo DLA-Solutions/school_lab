@@ -85,13 +85,19 @@ RSpec.describe "Api::V1::Schools", type: :request do
         end
       end
 
-      response "403", "forbidden for school admin" do
+      response "201", "school admin opens a school and becomes its administrator" do
         let(:Authorization) { auth_headers_for(school_admin_user)["Authorization"] }
-        let(:payload) { { school: { name: "Blocked School" } } }
+        let(:payload) { { school: { name: "Second Campus" } } }
 
         run_test! do |response|
-          body = JSON.parse(response.body)
-          expect(body.dig("error", "code")).to eq("forbidden")
+          created = School.kept.find_by(name: "Second Campus")
+          expect(created).to be_present
+
+          # Without the founding membership the creator could not see what they just created:
+          # SchoolPolicy scopes the register by membership.
+          expect(
+            school_admin_user.memberships.kept.exists?(school: created, role: "school")
+          ).to be(true)
         end
       end
     end

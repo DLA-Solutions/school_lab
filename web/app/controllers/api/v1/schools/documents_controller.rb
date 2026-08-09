@@ -8,6 +8,7 @@ module Api
           authorize Document
 
           documents = policy_scope(Document).includes(file_attachment: :blob).order(created_at: :desc)
+          documents = filter_by_documentable(documents)
           pagy, records = pagy(documents)
 
           render json: {
@@ -85,6 +86,18 @@ module Api
         end
 
         private
+
+        # Narrows the list to one owner, so a screen can show the documents of a single guardian
+        # or student without paging through the whole school. Both parameters are required
+        # together — a type without an id would silently widen the result.
+        def filter_by_documentable(scope)
+          type = params[:documentable_type]
+          id = params[:documentable_id]
+          return scope if type.blank? || id.blank?
+          return scope.none unless Document::DOCUMENTABLE_TYPES.include?(type)
+
+          scope.where(documentable_type: type, documentable_id: id)
+        end
 
         def document_params
           params.require(:document).permit(:documentable_type, :documentable_id, :document_type, :file)

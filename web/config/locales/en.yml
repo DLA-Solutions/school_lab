@@ -29,3 +29,18 @@
 
 en:
   hello: "Hello world"
+  api:
+    errors:
+      student_requires_a_guardian: "Provide the CPF of the father or the mother."
+      guardian_cpf_not_found: "No guardian registered with CPF %{cpf}. Register them before enrolling the student."
+      duplicate_guardian_cpf: "The same CPF was given for both father and mother."
+  activerecord:
+    errors:
+      messages:
+        invalid_cpf: "is not a valid CPF"
+        must_be_in_the_past: "must be in the past"
+      models:
+        guardian:
+          attributes:
+            cpf:
+              taken: "is already registered for another guardian in this school"

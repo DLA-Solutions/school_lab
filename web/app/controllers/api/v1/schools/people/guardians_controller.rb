@@ -8,7 +8,7 @@ module Api
           def index
             authorize Guardian
 
-            guardians = policy_scope(Guardian).order(:name)
+            guardians = policy_scope(Guardian).search(params[:q]).order(:name)
             pagy, records = pagy(guardians)
 
             render json: {
@@ -56,7 +56,9 @@ module Api
           private
 
           def guardian_params
-            params.require(:guardian).permit(:name, :cpf, :email, :phone, :user_id)
+            params.require(:guardian).permit(
+              :name, :cpf, :email, :phone, :user_id, *Guardian::ADDRESS_FIELDS
+            )
           end
         end
       end
