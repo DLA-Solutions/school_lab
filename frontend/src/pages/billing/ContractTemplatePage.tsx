@@ -34,7 +34,7 @@ const ContractTemplatePage = () => {
   const [signatureX, setSignatureX] = useState('10');
   const [signatureY, setSignatureY] = useState('85');
   const [signaturePage, setSignaturePage] = useState('1');
-  const [logo, setLetterhead] = useState<File | null>(null);
+  const [logo, setLogo] = useState<File | null>(null);
 
   const [tab, setTab] = useState<'editor' | 'preview'>('editor');
   const [preview, setPreview] = useState<{ html: string; sample: boolean } | null>(null);
@@ -107,7 +107,7 @@ const ContractTemplatePage = () => {
     }
   }, [tab, loadPreview, debouncedBody]);
 
-  const handleLetterhead = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleLogo = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) {
@@ -125,7 +125,7 @@ const ContractTemplatePage = () => {
     }
 
     setError('');
-    setLetterhead(file);
+    setLogo(file);
   };
 
   /** Drops the token at the cursor, which is where someone typing expects it to land. */
@@ -172,7 +172,7 @@ const ContractTemplatePage = () => {
       );
 
       applyTemplate(updated);
-      setLetterhead(null);
+      setLogo(null);
       setSaved(true);
 
       if (tab === 'preview') {
@@ -316,7 +316,7 @@ const ContractTemplatePage = () => {
                     ref={fileRef}
                     type="file"
                     accept="image/*"
-                    onChange={handleLetterhead}
+                    onChange={handleLogo}
                     hidden
                     aria-hidden="true"
                     tabIndex={-1}

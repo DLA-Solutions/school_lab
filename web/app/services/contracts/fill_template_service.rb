@@ -2,7 +2,7 @@
 
 module Contracts
   # Turns the school's HTML agreement into the document that goes out: variables replaced by the
-  # contract's own data, and the letterhead embedded so the file carries it wherever it is opened.
+  # contract's own data, and the logo embedded so the file carries it wherever it is opened.
   #
   # Autentique has no template or merge facility — their documentation says to substitute the
   # values yourself and upload the finished file, which is what this does.
@@ -148,7 +148,7 @@ module Contracts
       date.strftime("%d/%m/%Y")
     end
 
-    # A standalone document: the letterhead is inlined as a data URI so the file does not depend
+    # A standalone document: the logo is inlined as a data URI so the file does not depend
     # on our host being reachable from wherever it is opened or converted.
     def document(body, resolved_template)
       <<~HTML

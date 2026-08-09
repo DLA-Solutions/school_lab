@@ -103,20 +103,32 @@ RSpec.describe "Contract template", type: :request do
     end
   end
 
-  describe "letterhead" do
+  describe "logo" do
+    # A one-pixel PNG, so the attachment is a real image rather than bytes that merely claim to be.
+    def png
+      Rack::Test::UploadedFile.new(
+        StringIO.new(
+          Base64.decode64(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+          )
+        ),
+        "image/png", true, original_filename: "logo.png"
+      )
+    end
+
     let(:image) do
       Rack::Test::UploadedFile.new(
-        StringIO.new("\x89PNG\r\n\x1a\nfake"), "image/png", true, original_filename: "timbrado.png"
+        StringIO.new("\x89PNG\r\n\x1a\nfake"), "image/png", true, original_filename: "logo-escola.png"
       )
     end
 
     it "accepts an image and reports it back" do
-      put path, params: { contract_template: { body_html: "<p>ok</p>", letterhead: image } },
+      put path, params: { contract_template: { body_html: "<p>ok</p>", logo: image } },
                 headers: headers
 
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body.dig("data", "letterhead_filename")).to eq("timbrado.png")
-      expect(response.parsed_body.dig("data", "letterhead_url")).to be_present
+      expect(response.parsed_body.dig("data", "logo_filename")).to eq("logo-escola.png")
+      expect(response.parsed_body.dig("data", "logo_url")).to be_present
     end
 
     it "refuses a file that is not an image" do
@@ -124,7 +136,7 @@ RSpec.describe "Contract template", type: :request do
         StringIO.new("%PDF"), "application/pdf", true, original_filename: "nao-imagem.pdf"
       )
 
-      put path, params: { contract_template: { body_html: "<p>ok</p>", letterhead: pdf } },
+      put path, params: { contract_template: { body_html: "<p>ok</p>", logo: pdf } },
                 headers: headers
 
       expect(response).to have_http_status(:unprocessable_content)
