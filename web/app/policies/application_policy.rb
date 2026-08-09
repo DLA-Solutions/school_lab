@@ -46,6 +46,21 @@ class ApplicationPolicy
     Current.membership&.role == "school" && Current.membership&.active?
   end
 
+  def staff_with?(permission_key)
+    membership = Current.membership
+    return false unless membership&.active?
+    return false unless membership.staff_member?
+
+    keys = Current.effective_permission_keys
+    if keys.nil?
+      result = Identity::ResolveEffectivePermissionsService.call(membership: membership)
+      keys = result.success? ? result.data.fetch(:keys) : []
+      Current.effective_permission_keys = keys
+    end
+
+    keys.include?(permission_key.to_s)
+  end
+
   def guardian_member?
     Current.membership&.role == "guardian" && Current.membership&.active? && Current.guardian.present?
   end
