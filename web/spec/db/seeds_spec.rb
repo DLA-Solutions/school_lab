@@ -16,6 +16,23 @@ RSpec.describe "db:seed" do
     expect(Membership.exists?(user: guardian_user, school: school, role: "guardian", status: "active")).to be(true)
     expect(StudentGuardian.exists?(school: school, student: student, guardian: guardian)).to be(true)
 
+    templates = school.school_role_templates.kept.system_templates
+    expect(templates.count).to eq(4)
+    expect(templates.map(&:system_key)).to contain_exactly(
+      "director", "secretary", "coordination", "teacher"
+    )
+
+    director = school.system_role_template("director")
+    expect(director.role_template_permissions.kept.pluck(:permission_key))
+      .to include("manage_billing", "manage_people")
+
+    admin_membership = Membership.find_by!(user: admin_user, school: school)
+    profile = admin_membership.staff_profile
+    expect(profile).to be_present
+    expect(profile.is_owner).to be(true)
+    expect(profile.role_template).to eq(director)
+    expect(profile.display_title).to eq("Diretor")
+
     open_charge = Charge.open.find_by!(
       school: school,
       guardian: guardian,
@@ -33,9 +50,13 @@ RSpec.describe "db:seed" do
 
     Rails.application.load_seed
 
+    school = School.find_by!(cnpj: DemoSchool::SCHOOL_CNPJ)
+
     expect(School.count).to eq(counts[:schools])
     expect(User.count).to eq(counts[:users])
     expect(Charge.count).to eq(counts[:charges])
+    expect(SchoolRoleTemplate.where(school: school).count).to eq(4)
+    expect(StaffProfile.where(school: school, is_owner: true).count).to eq(1)
   end
 end
 

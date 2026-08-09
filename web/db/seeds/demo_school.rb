@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Role templates: Identity::ProvisionSystemRoleTemplatesService (permissions PRD UC-P04b).
+
 module DemoSchool
   SCHOOL_CNPJ = "12.345.678/0001-90"
   ADMIN_EMAIL = "admin@demo.schoollab.local"
@@ -17,11 +19,14 @@ module DemoSchool
       record.school_group = school_group
     end
 
+    ensure_system_role_templates!(school)
+
     find_or_create_bank_slip_provider!(school)
     find_or_create_billing_settings!(school)
 
     admin_user = find_or_create_confirmed_user!(ADMIN_EMAIL)
-    find_or_create_membership!(user: admin_user, school: school, role: "school")
+    admin_membership = find_or_create_membership!(user: admin_user, school: school, role: "school")
+    ensure_owner_staff_profile!(membership: admin_membership, school: school)
 
     guardian_user = find_or_create_confirmed_user!(GUARDIAN_EMAIL)
     find_or_create_membership!(user: guardian_user, school: school, role: "guardian")
@@ -103,6 +108,29 @@ module DemoSchool
       record.status = "active"
     end
   end
+
+  def ensure_system_role_templates!(school)
+    result = Identity::ProvisionSystemRoleTemplatesService.call(school: school)
+    return result.data.fetch(:templates) if result.success?
+
+    raise "Demo seed failed to provision role templates: #{result.error_code} #{result.details}"
+  end
+
+  def ensure_owner_staff_profile!(membership:, school:)
+    director_template = school.system_role_template("director")
+    raise "Demo seed missing director role template" if director_template.blank?
+
+    profile = StaffProfile.find_or_initialize_by(membership: membership, school: school)
+    profile.assign_attributes(
+      role_template: director_template,
+      is_owner: true,
+      display_title: profile.display_title.presence || "Diretor"
+    )
+    profile.save!
+    profile
+  end
+
   private_class_method :find_or_create_bank_slip_provider!, :find_or_create_billing_settings!,
-                      :find_or_create_confirmed_user!, :find_or_create_membership!
+                      :find_or_create_confirmed_user!, :find_or_create_membership!,
+                      :ensure_system_role_templates!, :ensure_owner_staff_profile!
 end
