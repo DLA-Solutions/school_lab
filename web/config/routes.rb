@@ -50,6 +50,7 @@ Rails.application.routes.draw do
             resources :memberships do
               member do
                 post :invite
+                patch :permissions
               end
             end
           end

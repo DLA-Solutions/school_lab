@@ -21,6 +21,10 @@ class MembershipPolicy < ApplicationPolicy
     update? && record.invited?
   end
 
+  def update_permissions?
+    school_owner? && record.school_id == school_id
+  end
+
   def accept?
     record.user_id == user.id && record.invited?
   end
