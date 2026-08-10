@@ -259,6 +259,85 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
           expect(body.dig("error", "code")).to eq("forbidden")
         end
       end
+
+      response "403", "backoffice blocked on active school" do
+        let(:school) { create(:school, onboarding_status: "active") }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:secretary_template) { create_system_templates_for(school).find { |t| t.system_key == "secretary" } }
+        let(:payload) do
+          {
+            membership: {
+              email: "secretary@example.com",
+              role: "staff",
+              role_template_id: secretary_template.id
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("forbidden")
+        end
+      end
+
+      response "403", "backoffice blocked on pending_handoff school" do
+        let(:school) { create(:school, :pending_handoff) }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:secretary_template) { create_system_templates_for(school).find { |t| t.system_key == "secretary" } }
+        let(:payload) do
+          {
+            membership: {
+              email: "secretary@example.com",
+              role: "staff",
+              role_template_id: secretary_template.id
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("forbidden")
+        end
+      end
+    end
+  end
+
+  path "/api/v1/schools/{school_id}/provisioning/import" do
+    parameter name: :school_id, in: :path, type: :integer
+
+    post "Import families CSV during provisioning" do
+      tags "Backoffice"
+      consumes "multipart/form-data"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+      parameter name: :dry_run, in: :query, type: :boolean, required: false
+
+      response "403", "provisioning-only import blocked on pending_handoff" do
+        let(:school) { create(:school, :pending_handoff) }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:dry_run) { true }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("forbidden")
+        end
+      end
+
+      response "501", "not implemented during provisioning" do
+        let(:school) { create(:school, :provisioning) }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:dry_run) { true }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("not_implemented")
+        end
+      end
     end
   end
 end
