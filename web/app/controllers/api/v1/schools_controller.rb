@@ -6,7 +6,7 @@ module Api
       def index
         authorize School
 
-        schools = policy_scope(School.kept).order(:name)
+        schools = filter_onboarding(policy_scope(School.kept).order(:name))
         pagy, records = pagy(schools)
 
         render json: {
@@ -80,6 +80,16 @@ module Api
 
       def handoff_params
         params.fetch(:handoff, {}).permit(:billing_waived)
+      end
+
+      def filter_onboarding(scope)
+        status = params[:onboarding_status].to_s.presence
+        mode = params[:onboarding_mode].to_s.presence
+
+        scope = scope.where(onboarding_status: status) if status.in?(School::ONBOARDING_STATUSES)
+        scope = scope.where(onboarding_mode: mode) if mode.in?(School::ONBOARDING_MODES)
+
+        scope
       end
     end
   end

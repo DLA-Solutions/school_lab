@@ -56,13 +56,100 @@ const openCreateForm = async () => {
 };
 
 describe('Schools page', () => {
-  it('lists schools from the API', async () => {
+  it('lists schools with onboarding status and mode columns', async () => {
     server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))));
 
     renderPage();
 
     expect(await screen.findByText('Escola Alpha')).toBeInTheDocument();
     expect(screen.getByText('Escola Beta')).toBeInTheDocument();
+    expect(screen.getAllByText('Ativa')).toHaveLength(1);
+    expect(screen.getByText('Em provisionamento')).toBeInTheDocument();
+    expect(screen.getAllByText('Autoatendimento')).toHaveLength(1);
+    expect(screen.getAllByText('Premium (white-glove)')).toHaveLength(2);
+  });
+
+  it('filters schools by onboarding status and mode together', async () => {
+    const requests: string[] = [];
+
+    server.use(
+      http.get(apiUrl(SCHOOLS_PATH), ({ request }) => {
+        requests.push(request.url);
+        const url = new URL(request.url);
+        const status = url.searchParams.get('onboarding_status');
+        const mode = url.searchParams.get('onboarding_mode');
+        const rows = sampleSchools.filter(
+          (school) =>
+            (!status || school.onboarding_status === status) &&
+            (!mode || school.onboarding_mode === mode),
+        );
+
+        return HttpResponse.json(page(rows));
+      }),
+    );
+
+    renderPage();
+
+    await screen.findByText('Escola Alpha');
+
+    await user.click(screen.getByLabelText(/^status$/i));
+    await user.click(await screen.findByRole('option', { name: /aguardando repasse/i }));
+
+    await user.click(screen.getByLabelText(/^modo$/i));
+    await user.click(await screen.findByRole('option', { name: /premium/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Escola Gama')).toBeInTheDocument();
+      expect(screen.queryByText('Escola Alpha')).not.toBeInTheDocument();
+      expect(screen.queryByText('Escola Beta')).not.toBeInTheDocument();
+    });
+
+    expect(requests.some((url) => url.includes('onboarding_status=pending_handoff'))).toBe(true);
+    expect(requests.some((url) => url.includes('onboarding_mode=white_glove'))).toBe(true);
+  });
+
+  it('offers continue provisioning for white-glove provisioning schools', async () => {
+    server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))));
+
+    renderPage();
+
+    const link = await screen.findByRole('link', {
+      name: /continuar provisionamento de escola beta/i,
+    });
+
+    expect(link).toHaveAttribute('href', paths.provisioningWizard(2));
+  });
+
+  it('shows pending handoff affordance distinct from provisioning action', async () => {
+    server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))));
+
+    renderPage();
+
+    await screen.findByText('Escola Gama');
+
+    const handoffButton = screen.getByRole('button', {
+      name: /repasse pendente para escola gama/i,
+    });
+    expect(
+      screen.queryByRole('link', { name: /continuar provisionamento de escola gama/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(handoffButton);
+
+    expect(await screen.findByRole('dialog', { name: /repasse pendente/i })).toBeInTheDocument();
+    expect(screen.getByText(/ativação pela plataforma estará disponível em breve/i)).toBeInTheDocument();
+  });
+
+  it('shows platform-operator empty state copy', async () => {
+    server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page([]))));
+
+    renderPage();
+
+    expect(await screen.findByText('Nenhuma escola cadastrada')).toBeInTheDocument();
+    expect(
+      screen.getByText(/ainda não há escolas registradas na plataforma/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/administrador dela/i)).not.toBeInTheDocument();
   });
 
   it('creates a self-serve school with owner email and shows pending_handoff confirmation', async () => {
@@ -90,7 +177,7 @@ describe('Schools page', () => {
     );
 
     renderPage();
-    await screen.findByText('Nenhuma escola');
+    await screen.findByText('Nenhuma escola cadastrada');
 
     const dialog = await openCreateForm();
     await user.type(within(dialog).getByLabelText(/^nome/i), 'Nova Escola');
@@ -141,7 +228,7 @@ describe('Schools page', () => {
     );
 
     renderPage();
-    await screen.findByText('Nenhuma escola');
+    await screen.findByText('Nenhuma escola cadastrada');
 
     const dialog = await openCreateForm();
     await user.type(within(dialog).getByLabelText(/^nome/i), 'Escola Premium');
@@ -163,7 +250,7 @@ describe('Schools page', () => {
     server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page([]))));
 
     renderPage();
-    await screen.findByText('Nenhuma escola');
+    await screen.findByText('Nenhuma escola cadastrada');
 
     const dialog = await openCreateForm();
     await user.type(within(dialog).getByLabelText(/^nome/i), 'Sem responsável');
@@ -184,7 +271,7 @@ describe('Schools page', () => {
     );
 
     renderPage();
-    await screen.findByText('Nenhuma escola');
+    await screen.findByText('Nenhuma escola cadastrada');
 
     const dialog = await openCreateForm();
 

@@ -418,6 +418,31 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "onboarding_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "provisioning",
+                "pending_handoff",
+                "active"
+              ]
+            }
+          },
+          {
+            "name": "onboarding_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "self_serve",
+                "white_glove"
+              ]
+            }
           }
         ],
         "responses": {
