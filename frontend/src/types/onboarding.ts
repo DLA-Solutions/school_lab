@@ -25,3 +25,47 @@ export interface MembershipSummary {
 }
 
 export type SchoolOnboardingStatus = 'provisioning' | 'pending_handoff' | 'active';
+
+/** Checklist keys returned in `422 details.checklist` from POST handoff. */
+export type HandoffChecklistItem = 'billing' | 'owner_active' | 'owner_invite' | 'invalid_phase';
+
+export interface HandoffSchool {
+  id: number;
+  onboarding_status: SchoolOnboardingStatus;
+  onboarding_mode: string;
+  billing_waived_at: string | null;
+  segments_skipped_at: string | null;
+}
+
+export interface HandoffPayload {
+  handoff?: {
+    billing_waived?: boolean;
+  };
+}
+
+export interface HandoffResponse {
+  data: HandoffSchool;
+}
+
+export interface RoleTemplateSummary {
+  id: number;
+  name: string;
+  system_key: string | null;
+  is_system: boolean;
+}
+
+export interface CreateStaffInvitePayload {
+  membership: {
+    email: string;
+    role: 'staff';
+    role_template_id: number;
+    display_title?: string;
+  };
+}
+
+export interface CreatedMembership {
+  id: number;
+  status: string;
+  role: string;
+  display_title: string | null;
+}
