@@ -1,6 +1,7 @@
 # Web Stack — School Lab
 
-> Folders: `web/` (Rails API), `frontend/` (React SPA at `/app`), `site/` (static landing at `/`), `app/` (React Native)  
+> Folders (target): `web/`, `frontend/app/` (school SPA at `/app`), `frontend/backoffice/` (platform SPA at `/backoffice`), `site/`, `mobile/` (React Native)  
+> **ADR:** [001-monorepo-surfaces](adr/001-monorepo-surfaces.md) — today the school SPA is flat `frontend/` and mobile is `app/` until migration lands.  
 > Status: finalized decision (web layer)
 
 Rails 8.1 API monolith with a versioned JSON REST API consumed by **React web** and
@@ -14,9 +15,10 @@ the MVP: app + PostgreSQL + S3.
 | Language | Ruby 4.0.x |
 | Framework | Rails 8.1.x |
 | API | REST JSON `/api/v1` |
-| Web UI | **React 19** SPA (`frontend/`) — Vite 7 + TypeScript, **MUI v7**, served at `/app` |
+| Web UI (school) | **React 19** SPA (`frontend/app/`, today `frontend/`) — Vite 7 + TypeScript, **MUI v7**, `/app` |
+| Web UI (platform) | **React 19** SPA (`frontend/backoffice/`, planned) — same stack, `/backoffice` |
 | Marketing site | Static HTML (`site/`) at domain root `/` |
-| Mobile UI | **React Native** (`app/`) |
+| Mobile UI | **React Native** (`mobile/`, today `app/`) |
 | API docs | **rswag** → OpenAPI (`swagger/v1/swagger.yaml`) |
 | Database | PostgreSQL 16+ |
 | Background jobs | Solid Queue (PostgreSQL) |
@@ -29,31 +31,40 @@ the MVP: app + PostgreSQL + S3.
 
 ## 2. Monorepo layout
 
+Decision record: [ADR 001](adr/001-monorepo-surfaces.md).
+
 ```
 school_lab/
-  web/            # Rails — API, services, models, jobs (no Hotwire UI)
-  frontend/       # React SPA — backoffice, school, teacher, guardian (web) at /app
-  site/           # static institutional landing at /
-  frontend/base/  # upstream template the SPA started from — reference only
-  app/            # React Native — school, teacher, parents (mobile)
-  docs/api/       # API conventions + route narratives
+  web/                      # Rails — API, services, models, jobs (no Hotwire UI)
+  frontend/
+    app/                    # School SPA at /app (today: flat frontend/)
+    backoffice/             # Platform SPA at /backoffice (planned)
+    design-system-docs/     # Catalog build → docs/design-system/
+    base/                   # upstream template — reference only
+  mobile/                   # React Native (today: app/)
+  packages/design-tokens/   # Shared tokens — SPA + mobile
+  site/                     # static institutional landing at /
+  docs/api/                 # API conventions + route narratives
 ```
 
 | Folder | Role |
 |--------|------|
-| `web/` | Single source of business rules; `/api/v1` only for product UI |
-| `frontend/` | Consumes API with JWT; refresh via httpOnly cookie; deployed at `/app` |
+| `web/` | Single source of business rules; `/api/v1`; future Flipper / ops UI |
+| `frontend/app/` | School staff web UI; JWT + refresh cookie; deployed at `/app` |
+| `frontend/backoffice/` | DLA platform UI; same auth; deployed at `/backoffice` |
 | `site/` | Static marketing placeholder; no API dependency |
-| `frontend/base` | Upstream template (`dashdark-x`); reference only, not the product |
-| `app/` | Consumes same API; refresh in secure device storage |
+| `frontend/base` | Upstream template (`dashdark-x`); reference only |
+| `mobile/` | Same API; refresh in secure device storage |
+| `packages/design-tokens` | Color/shadow tokens shared by web SPAs and mobile |
 
 All product controllers delegate to the same service objects — rules are not duplicated.
 
-## 3. Web frontend (`frontend/`)
+## 3. School web SPA (`frontend/app/`)
 
 React 19 SPA on Vite 7 + TypeScript 5.9 (SWC via `@vitejs/plugin-react-swc`). Deployed at
-`/app` in staging and production (`VITE_BASE_PATH=/app/`). The table below describes what is
-**installed today** (`frontend/package.json`), not a plan.
+`/app` (`VITE_BASE_PATH=/app/`). **Until ADR 001 Phase 1,** the app lives at flat `frontend/`
+(`frontend/package.json`, `frontend/src/`). The table below describes what is **installed today**,
+not a plan.
 
 | Concern | Approach |
 |---------|----------|
@@ -79,18 +90,19 @@ React 19 SPA on Vite 7 + TypeScript 5.9 (SWC via `@vitejs/plugin-react-swc`). De
 | Piece | Location |
 |-------|----------|
 | Shared tokens | `packages/design-tokens/` (`@school-lab/design-tokens`) |
-| MUI theme | `frontend/main/src/theme/createAppTheme.ts` — `colorSchemes` light/dark, default **dark** |
-| Pattern components | `frontend/main/src/design-system/` — import via `design-system` path alias |
-| **Canonical catalog** | `docs/design-system/` — built from `frontend/design-system-docs/` with `make design-system-docs`; committed, opens without a dev server |
-| Development sandbox | Ladle — `npm run ladle` in `frontend/main`. **Not** a documentation surface (§14) |
+| MUI theme | `frontend/src/theme/createAppTheme.ts` (today); `frontend/app/src/theme/` after Phase 1 |
+| Pattern components | `frontend/src/design-system/` (today); path alias `design-system` |
+| **Canonical catalog** | `docs/design-system/` — built from `frontend/design-system-docs/` with `make design-system-docs` |
+| Development sandbox | Ladle — `npm run ladle` in the school SPA package. **Not** a documentation surface (§15) |
 | Guidelines | `docs/guidelines/web-ui/` |
 
-Theme toggle persists to `localStorage` key `school-lab-color-mode`. Mobile (`app/`) imports dark tokens only.
+Theme toggle persists to `localStorage` key `school-lab-color-mode`. Mobile (`mobile/`, today
+`app/`) imports dark tokens only.
 
-### Not in the SPA yet
+### Not in the school SPA yet
 
-Absent from `frontend/main` as of Aug 2026. Planning work there means introducing these, not
-consuming them — the corresponding choices are open items in §14.
+Absent from the school SPA as of Aug 2026. Planning work there means introducing these, not
+consuming them — the corresponding choices are open items in §15.
 
 | Missing | What that means today |
 |---------|-----------------------|
@@ -98,11 +110,26 @@ consuming them — the corresponding choices are open items in §14.
 | **Data fetching library** | No TanStack Query or SWR — components call `src/services/` directly and track loading/error state by hand |
 | **Global state library** | No Zustand or Redux — React Context is the only shared state |
 | **Generated API types** | No `openapi-typescript` or orval; request/response types are hand-written in `src/types/` |
-| **Tailwind CSS** | Not installed anywhere under `frontend/` — MUI is the UI kit (§14) |
+| **Tailwind CSS** | Not installed anywhere under `frontend/` — MUI is the UI kit (§15) |
 
-## 4. Mobile frontend (`app/`)
+## 4. Platform backoffice SPA (`frontend/backoffice/`)
 
-React Native consuming the same `/api/v1` contract.
+Planned second React SPA for DLA operators — same stack as §3 (React 19, Vite 7, MUI v7,
+React Router v7). Deployed at `/backoffice` (`VITE_BASE_PATH=/backoffice/`).
+
+| Concern | Approach |
+|---------|----------|
+| Scope | School register, white-glove provisioning wizard, future platform billing/support |
+| Routing | English URL segments (`/schools`, `/schools/:id/provisioning`) — see ADR 001 |
+| Auth | Same JWT + refresh cookie as school SPA; sign-in UI initially in school SPA with post-login redirect |
+| Shared code | Copy minimal API client first; extract to `packages/` on third stable duplication |
+
+**Today:** backoffice UI (`Schools`, `ProvisioningWizard`) still ships inside the school SPA
+bundle at `/escolas` and `/onboarding/provisioning/:id` — split is ADR 001 Phases 2–3.
+
+## 5. Mobile frontend (`mobile/`)
+
+React Native consuming the same `/api/v1` contract. **Today:** folder is still `app/`.
 
 | Concern | Approach |
 |---------|----------|
@@ -110,12 +137,12 @@ React Native consuming the same `/api/v1` contract.
 | Push | FCM device tokens via `POST /api/v1/me/device_tokens` |
 | API client | Shared patterns with the web SPA where possible |
 
-## 5. Authentication and authorization
+## 6. Authentication and authorization
 
 | Channel | Mechanism |
 |-------|-----------|
-| **Web SPA** | JWT access (Bearer) + refresh **httpOnly cookie** |
-| **Mobile (`app`)** | JWT access + refresh token (secure storage) |
+| **Web SPAs** | JWT access (Bearer) + refresh **httpOnly cookie** (`path: '/'` — ADR 001 Phase 4) |
+| **Mobile (`mobile/`, today `app/`)** | JWT access + refresh token (secure storage) |
 | **Credentials** | **Devise** on `users` (password, reset, lock) |
 
 Details: `docs/modeling/002-api-auth.md`.
@@ -132,7 +159,7 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Per-school isolation** | Path `/schools/:school_id/...` + Pundit + services |
 | **Per-family isolation** | Guardian `.../me/...` routes + policies |
 
-## 6. API
+## 7. API
 
 | Aspect | Decision |
 |---------|---------|
@@ -142,7 +169,7 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Conventions** | `docs/api/README.md` |
 | **Fintech MVP routes** | `docs/api/v1/fintech-first.md` |
 
-## 7. Domain layer
+## 8. Domain layer
 
 | Layer | Tool | Example |
 |--------|------------|---------|
@@ -158,7 +185,7 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Search** | pg_search (MVP) | Search by name/CPF |
 | **Soft delete** | **discard** gem | `discarded_at` on domain tables |
 
-## 8. Supporting infrastructure
+## 9. Supporting infrastructure
 
 | Component | Technology | Notes |
 |------------|------------|-------|
@@ -197,44 +224,44 @@ Event (e.g., attendance recorded)
   → App receives push
 ```
 
-## 9. Testing
+## 10. Testing
 
 | Type | Tool |
 |------|------|
 | Unit / model / service | RSpec |
 | API + OpenAPI | RSpec request specs + **rswag** |
-| Web UI | Vitest + React Testing Library (jsdom) in `frontend/main`, API calls intercepted by MSW — `npm run test:run` (§3) |
+| Web UI | Vitest + React Testing Library (jsdom) in the school SPA package, API calls intercepted by MSW — `npm run test:run` (§3) |
 | Mobile | Jest + RN Testing Library (in `app/`) |
 | Factories | FactoryBot |
 
 Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testing.md` (API) and
 `docs/guidelines/web-ui/testing.md` (SPA).
 
-## 10. Client surfaces
+## 11. Client surfaces
 
-| Surface | Channel | MVP |
-|---------|---------|-----|
-| DLA backoffice | Web SPA | Yes |
-| School admin | Web SPA (+ light `app`) | Yes |
-| Teacher | Web SPA + `app` | Yes |
-| Parents | `app` (+ web SPA phase 2) | App first for boletos |
+| Surface | Folder | Channel | MVP |
+|---------|--------|---------|-----|
+| DLA backoffice | `frontend/backoffice/` | Web SPA at `/backoffice` | Yes |
+| School admin | `frontend/app/` | Web SPA at `/app` (+ light mobile) | Yes |
+| Teacher | `frontend/app/` + `mobile/` | Web + mobile | Yes |
+| Parents | `mobile/` (+ school web phase 2) | App first for boletos | Yes |
 
-## 11. Conventions
+## 12. Conventions
 
 - Service objects in `app/services/`
 - Policies in `app/policies/`
 - API controllers in `app/controllers/api/v1/`
 - Locale default: `pt-BR`
 
-## 12. Out of scope
+## 13. Out of scope
 
 - GraphQL
 - Microservices
 - Redis for background jobs (Sidekiq)
 - Server-rendered Hotwire as primary web UI (superseded by React SPA)
-- Tailwind CSS in `frontend/main` (superseded by MUI — §14)
+- Tailwind CSS in the school SPA (superseded by MUI — §15)
 
-## 13. Architecture
+## 14. Architecture
 
 ```mermaid
 flowchart TB
@@ -331,14 +358,14 @@ flowchart TB
     Models --> S3
 ```
 
-## 14. Pending decisions
+## 15. Pending decisions
 
 See `docs/open-questions.md` (Web stack section):
 
 - Email provider (Postmark, SES, etc.)
 - When to add Redis (cache only)
 
-Open for the SPA — each is missing from `frontend/main` today (§3):
+Open for the school SPA — each is missing today (§3):
 
 - **i18n library** — needed before the UI can honor the `pt-BR` product locale properly.
 - **Data fetching** — keep hand-rolled `fetch` calls, or adopt TanStack Query / SWR.
@@ -369,7 +396,7 @@ Open for the SPA — each is missing from `frontend/main` today (§3):
 - **Design system accessibility target: WCAG 2.1 AA**, ratified 2026-08-04. Contrast is audited in
   both colour schemes and every shortfall is either fixed or waived in writing
   (`docs/guidelines/web-ui/accessibility.md`). Four waivers stand; the one that needed a product
-  call is **W3**, which keeps the `#CB3CFF` brand purple named in §14 on the contained primary
+  call is **W3**, which keeps the `#CB3CFF` brand purple named in §15 on the contained primary
   Button even though no flat label colour clears 4.5:1 across its gradient — white's 3.73:1 is the
   measured ceiling, and darkening the first stop to `#B733E5` was declined rather than overlooked.
 - **MUI `Card*` and `Table*`: forbidden by default** in `frontend/main`, with no override created.
@@ -401,7 +428,7 @@ Open for the SPA — each is missing from `frontend/main` today (§3):
 - Push: FCM + Solid Queue + state machine.
 - Real-time WebSockets: phase 2 — MVP uses push + polling.
 
-## 15. Phase 2 — technical directions (draft)
+## 16. Phase 2 — technical directions (draft)
 
 | Component | Likely direction | Notes |
 |------------|------------------|-------|

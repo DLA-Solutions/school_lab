@@ -3,6 +3,9 @@
 How `site/`, `frontend/`, and `web/` reach production and staging. Deploys are manual, run
 from a developer machine with Kamal 2.
 
+> **Planned:** second SPA at `/backoffice` from `frontend/backoffice/` as
+> `scholarpremium-backoffice-spa` — see [ADR 001](../../adr/001-monorepo-surfaces.md).
+
 ## Topology
 
 Two VPS. Only the app server is exposed to the internet. Three Kamal services share one
@@ -22,7 +25,8 @@ Internet ──443──▶ app server (77.42.33.33)
 | URL path | Folder | Kamal service | GHCR image |
 |---|---|---|---|
 | `/` | `site/` | `scholarpremium-site` | `dla-solutions/scholarpremium-site` |
-| `/app/*` | `frontend/` | `scholarpremium-spa` | `dla-solutions/scholarpremium-spa` |
+| `/app/*` | `frontend/` (target: `frontend/app/`) | `scholarpremium-spa` | `dla-solutions/scholarpremium-spa` |
+| `/backoffice/*` | `frontend/backoffice/` (planned) | `scholarpremium-backoffice-spa` | `dla-solutions/scholarpremium-backoffice-spa` |
 | `/api`, `/up`, `/api-docs`, `/webhooks` | `web/` | `scholarpremium` | `dla-solutions/scholarpremium` |
 
 PostgreSQL and Redis are installed natively on the database server. They are **not**

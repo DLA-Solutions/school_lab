@@ -12,10 +12,26 @@
 - **Parents / guardians**: follow the academic, financial, and document life of
   their child(ren).
 
-## 2. Channels
+## 2. Surfaces and channels
 
-- **web**: web surfaces + API (serves both web and app).
-- **app**: mobile apps.
+Product **surfaces** (deployable clients) map to monorepo folders and URL paths — see
+[ADR 001](adr/001-monorepo-surfaces.md).
+
+| Surface | Folder (target) | URL path | Channel |
+|---------|-----------------|----------|---------|
+| School web SPA | `frontend/app/` | `/app/*` | web |
+| Platform backoffice SPA | `frontend/backoffice/` | `/backoffice/*` | web |
+| Mobile app | `mobile/` (today: `app/`) | — | app |
+| API | `web/` | `/api/*` | web (server) |
+| Marketing site | `site/` | `/` | web (static) |
+
+Until [ADR 001](adr/001-monorepo-surfaces.md) migration lands, the school SPA is still at flat
+`frontend/` and mobile is still at `app/`.
+
+**Channels** (for the role matrix below):
+
+- **web** — browser SPAs above plus the API.
+- **app** — React Native mobile.
 
 ## 3. Role × channel matrix (MVP)
 
@@ -85,14 +101,19 @@
 
 ## 5. Stack by channel
 
-### Web SPA + app (finalized decision)
+### Web SPAs + mobile (finalized decision)
 
-**React web** (`frontend/main`) and **React Native** (`app/`) both consume the same
-versioned JSON REST API (`/api/v1`) from Rails (`web/`). Details in `docs/web-stack.md`
-and `docs/api/README.md`.
+**School web SPA** (`frontend/app/`, today flat `frontend/`), **platform backoffice SPA**
+(`frontend/backoffice/` — planned), and **React Native** (`mobile/`, today `app/`) all consume
+the same versioned JSON REST API (`/api/v1`) from Rails (`web/`). Layout decision:
+[ADR 001](adr/001-monorepo-surfaces.md). Stack details: `docs/web-stack.md` and
+`docs/api/README.md`.
 
-- **Web (browser):** React SPA + JWT access + refresh httpOnly cookie.
-- **Mobile app:** React Native + JWT access + refresh in secure storage.
+- **School web (`/app`):** JWT access + refresh httpOnly cookie (`path: '/'` once ADR 001 Phase 4
+  lands). Sign-in UI; post-login redirect sends backoffice users to `/backoffice/`.
+- **Platform web (`/backoffice`):** same auth transport; English URL segments; DLA-only features
+  (school register, provisioning wizard).
+- **Mobile:** JWT access + refresh in secure storage.
 - **API:** Devise credentials, JWT, OpenAPI via rswag.
 - Business rules shared via Rails service objects — clients stay thin.
 
