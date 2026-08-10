@@ -18,6 +18,7 @@
     "@mui/material": "^7.3.6",
     "@mui/utils": "^7.3.11",
     "@mui/x-data-grid": "^8.23.0",
+    "@mui/x-date-pickers": "^8.23.0",
     "@school-lab/design-tokens": "file:../../packages/design-tokens",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
