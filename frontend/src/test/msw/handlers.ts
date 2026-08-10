@@ -69,6 +69,22 @@ export const staffMembership: Membership = {
   school_onboarding_mode: 'white_glove',
 };
 
+export const SECRETARY_TEMPLATE_ID = 101;
+
+export const roleTemplates = [
+  {
+    id: SECRETARY_TEMPLATE_ID,
+    name: 'Secretária',
+    system_key: 'secretary',
+    is_system: true,
+  },
+  {
+    id: 102,
+    name: 'Direção',
+    system_key: 'director',
+    is_system: true,
+  },
+];
 /** Owner with pending_handoff — drives onboarding route guards in tests. */
 export const ownerPendingMembership: Membership = {
   id: 12,
@@ -281,6 +297,34 @@ export const handlers = [
     return jsonError(404, 'not_found', 'Recurso não encontrado.');
   }),
 
+  http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships'), async ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const body = (await request.json()) as {
+      membership?: { email?: string; role?: string; role_template_id?: number };
+    };
+
+    if (!body.membership?.email) {
+      return jsonError(422, 'validation_error', 'Não foi possível salvar.', {
+        email: ["can't be blank"],
+      });
+    }
+
+    return HttpResponse.json(
+      {
+        data: {
+          id: 99,
+          status: 'invited',
+          role: body.membership.role ?? 'staff',
+          display_title: 'Secretária',
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
   http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships/:id/invite'), ({ request }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
@@ -289,9 +333,18 @@ export const handlers = [
     return new HttpResponse(null, { status: 202 });
   }),
 
-  http.post(apiUrl('/api/v1/schools/:schoolId/handoff'), ({ request }) => {
+  http.post(apiUrl('/api/v1/schools/:schoolId/handoff'), async ({ request }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
+    }
+
+    const body = (await request.json()) as { handoff?: { billing_waived?: boolean } };
+    const billingWaived = body.handoff?.billing_waived === true;
+
+    if (!billingWaived) {
+      return jsonError(422, 'validation_error', 'Checklist incompleta.', {
+        checklist: ['billing'],
+      });
     }
 
     return HttpResponse.json({
@@ -299,7 +352,20 @@ export const handlers = [
         id: SCHOOL_ID,
         onboarding_status: 'active',
         onboarding_mode: 'self_serve',
+        billing_waived_at: '2026-08-10T12:00:00Z',
+        segments_skipped_at: null,
       },
+    });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/role_templates'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({
+      data: roleTemplates,
+      meta: { page: 1, per_page: 50, total: roleTemplates.length },
     });
   }),
 
