@@ -114,7 +114,7 @@ Scope:
 
 | Scenario | Mechanism |
 |----------|-----------|
-| Existing schools | UC-P04 idempotent data migration / rake |
+| Existing schools | `rake permissions:migrate_memberships` (UC-P04, idempotent) |
 | New schools | `Identity::ProvisionSystemRoleTemplatesService` on school create (UC-P04b) |
 | Local dev | Seeds call provisioning service — not inline template data |
 
