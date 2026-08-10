@@ -56,6 +56,7 @@ const authValueFor = (role: string): AuthContextValue => ({
   isAuthenticated: true,
   login: vi.fn(),
   logout: vi.fn(),
+  refreshUser: vi.fn(),
 });
 
 /** Prints wherever the router currently is, so a spec can assert the navigation. */

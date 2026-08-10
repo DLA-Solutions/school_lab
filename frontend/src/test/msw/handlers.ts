@@ -65,6 +65,78 @@ export const staffMembership: Membership = {
   display_title: 'Secretária',
   permissions: ['manage_people'],
   permission_sources: { manage_people: 'template' },
+  school_onboarding_status: 'active',
+  school_onboarding_mode: 'white_glove',
+};
+
+/** Owner with pending_handoff — drives onboarding route guards in tests. */
+export const ownerPendingMembership: Membership = {
+  id: 12,
+  school_id: SCHOOL_ID,
+  school_name: 'Example School — Downtown',
+  role: 'staff',
+  status: 'active',
+  email: 'director@example.com',
+  role_template: {
+    id: 2,
+    name: 'Direção',
+    system_key: 'director',
+    is_system: true,
+  },
+  is_owner: true,
+  segment_id: null,
+  display_title: 'Diretor',
+  permissions: ['manage_billing', 'manage_people'],
+  permission_sources: {
+    manage_billing: 'template',
+    manage_people: 'template',
+  },
+  school_onboarding_status: 'pending_handoff',
+  school_onboarding_mode: 'self_serve',
+};
+
+/** Invited staff membership — password not yet set via invite accept. */
+export const invitedStaffMembership: Membership = {
+  id: 13,
+  school_id: SCHOOL_ID,
+  school_name: 'Example School — Downtown',
+  role: 'staff',
+  status: 'invited',
+  email: 'invitee@example.com',
+  role_template: {
+    id: 1,
+    name: 'Secretária',
+    system_key: 'secretary',
+    is_system: true,
+  },
+  is_owner: false,
+  segment_id: null,
+  display_title: 'Secretária',
+  permissions: [],
+  permission_sources: {},
+  school_onboarding_status: 'active',
+  school_onboarding_mode: 'white_glove',
+};
+
+export const VALID_INVITE_TOKEN = 'valid-invite-token';
+export const EXPIRED_INVITE_TOKEN = 'expired-invite-token';
+export const INVITEE_EMAIL = 'invitee@example.com';
+export const INVITEE_PASSWORD = 'invite-password-123';
+
+export const invitedUser: AuthUser = {
+  id: 3,
+  email: INVITEE_EMAIL,
+  status: 'active',
+  memberships: [invitedStaffMembership],
+  guardian_profiles: [],
+};
+
+export const ownerPendingUser: AuthUser = {
+  id: 4,
+  email: 'director@example.com',
+  status: 'active',
+  memberships: [ownerPendingMembership],
+  guardian_profiles: [],
 };
 
 export const currentUser: AuthUser = {
@@ -164,6 +236,72 @@ export const handlers = [
   ),
 
   http.post(apiUrl('/api/v1/auth/logout'), () => new HttpResponse(null, { status: 204 })),
+
+  http.post(apiUrl('/api/v1/auth/invite/accept'), async ({ request }) => {
+    const body = (await request.json()) as { token?: string; password?: string; name?: string };
+
+    if (body.token === EXPIRED_INVITE_TOKEN) {
+      return jsonError(401, 'invalid_invite_token', 'Convite inválido ou expirado.');
+    }
+
+    if (body.token !== VALID_INVITE_TOKEN) {
+      return jsonError(401, 'invalid_invite_token', 'Convite inválido ou expirado.');
+    }
+
+    if (!body.password || body.password.length < 8) {
+      return jsonError(422, 'validation_error', 'Não foi possível salvar.', {
+        password: ['is too short (minimum is 8 characters)'],
+      });
+    }
+
+    if (!body.name?.trim()) {
+      return jsonError(422, 'validation_error', 'Não foi possível salvar.', {
+        name: ["can't be blank"],
+      });
+    }
+
+    return HttpResponse.json({
+      data: { user_id: invitedUser.id, membership_id: invitedStaffMembership.id },
+    });
+  }),
+
+  http.post(apiUrl('/api/v1/me/memberships/:id/accept'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const membershipId = Number(params.id);
+
+    if (membershipId === invitedStaffMembership.id) {
+      return HttpResponse.json({
+        data: { ...invitedStaffMembership, status: 'active' },
+      });
+    }
+
+    return jsonError(404, 'not_found', 'Recurso não encontrado.');
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships/:id/invite'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return new HttpResponse(null, { status: 202 });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/handoff'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({
+      data: {
+        id: SCHOOL_ID,
+        onboarding_status: 'active',
+        onboarding_mode: 'self_serve',
+      },
+    });
+  }),
 
   http.get(apiUrl('/api/v1/me'), ({ request }) =>
     hasFreshToken(request) ? HttpResponse.json({ data: currentUser }) : expiredToken(),

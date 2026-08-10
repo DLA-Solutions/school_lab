@@ -29,7 +29,12 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
           throw new Error('no active session');
         }
 
-        setUser(await fetchCurrentUser());
+        const profile = await fetchCurrentUser();
+        if (!profile) {
+          throw new Error('no active session');
+        }
+
+        setUser(profile);
         setStatus('authenticated');
       } catch {
         clearAccessToken();
@@ -61,6 +66,17 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const profile = await fetchCurrentUser();
+    if (!profile) {
+      throw new Error('profile unavailable');
+    }
+
+    setUser(profile);
+    setStatus('authenticated');
+    return profile;
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -68,8 +84,9 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
       isAuthenticated: status === 'authenticated',
       login,
       logout,
+      refreshUser,
     }),
-    [user, status, login, logout],
+    [user, status, login, logout, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

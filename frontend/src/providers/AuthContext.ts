@@ -15,6 +15,8 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  /** Reload profile from GET /api/v1/me after onboarding steps. */
+  refreshUser: () => Promise<AuthUser>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

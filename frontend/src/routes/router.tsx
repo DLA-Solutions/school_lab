@@ -6,8 +6,10 @@ import AuthLayout from 'layouts/auth-layout';
 import Splash from 'components/loader/Splash';
 import PageLoader from 'components/loader/PageLoader';
 import Signin from 'pages/authentication/Signin';
+import InviteAccept from 'pages/onboarding/InviteAccept';
+import OwnerOnboarding from 'pages/onboarding/OwnerOnboarding';
 import Error404 from 'pages/Error404';
-import { RequireAuth, RequireGuest } from './guards';
+import { RequireAuth, RequireGuest, RequireOwnerOnboardingComplete } from './guards';
 
 // Vite `base` uses a trailing slash (/app/); React Router `basename` must not — otherwise
 // visiting /app (no slash) fails to match and the router renders nothing.
@@ -106,6 +108,38 @@ const router = createBrowserRouter(
           {
             path: paths.signin,
             element: <Signin />,
+          },
+        ],
+      },
+      {
+        path: rootPaths.inviteRoot,
+        element: (
+          <AuthLayout>
+            <Outlet />
+          </AuthLayout>
+        ),
+        children: [
+          {
+            path: 'accept',
+            element: <InviteAccept />,
+          },
+        ],
+      },
+      {
+        path: rootPaths.onboardingRoot,
+        element: (
+          <RequireOwnerOnboardingComplete>
+            <MainLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Outlet />
+              </Suspense>
+            </MainLayout>
+          </RequireOwnerOnboardingComplete>
+        ),
+        children: [
+          {
+            path: 'owner',
+            element: <OwnerOnboarding />,
           },
         ],
       },

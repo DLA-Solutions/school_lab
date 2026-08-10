@@ -44,6 +44,7 @@ const authValue: AuthContextValue = {
   isAuthenticated: true,
   login: vi.fn(),
   logout: vi.fn(),
+  refreshUser: vi.fn(),
 };
 
 const renderPage = () =>
