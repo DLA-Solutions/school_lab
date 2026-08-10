@@ -3,6 +3,9 @@
 class School < ApplicationRecord
   include Discard::Model
 
+  ONBOARDING_STATUSES = %w[provisioning pending_handoff active].freeze
+  ONBOARDING_MODES = %w[self_serve white_glove].freeze
+
   belongs_to :school_group, optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
 
@@ -31,8 +34,23 @@ class School < ApplicationRecord
   has_many :segments, dependent: :destroy
   has_many :staff_profiles, dependent: :destroy
   has_many :membership_permissions, dependent: :destroy
+  has_many :membership_invite_tokens, dependent: :destroy
 
   validates :name, presence: true
+  validates :onboarding_status, inclusion: { in: ONBOARDING_STATUSES }
+  validates :onboarding_mode, inclusion: { in: ONBOARDING_MODES }
+
+  def provisioning?
+    onboarding_status == "provisioning"
+  end
+
+  def pending_handoff?
+    onboarding_status == "pending_handoff"
+  end
+
+  def onboarding_active?
+    onboarding_status == "active"
+  end
 
   def system_role_template(system_key)
     school_role_templates.kept.find_by(system_key: system_key.to_s)
