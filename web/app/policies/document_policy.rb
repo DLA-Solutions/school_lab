@@ -2,21 +2,21 @@
 
 class DocumentPolicy < ApplicationPolicy
   def index?
-    school_staff? || guardian_member?
+    staff_with?(:manage_documents) || guardian_member?
   end
 
   def show?
-    return school_staff? && record.school_id == school_id if school_staff?
+    return staff_with?(:manage_documents) && record.school_id == school_id if Current.membership&.staff_member?
 
     guardian_can_read?
   end
 
   def create?
-    school_staff?
+    staff_with?(:manage_documents)
   end
 
   def update?
-    school_staff? && record.school_id == school_id
+    staff_with?(:manage_documents) && record.school_id == school_id
   end
 
   def destroy?
@@ -56,7 +56,7 @@ class DocumentPolicy < ApplicationPolicy
 
       base = scope.kept.where(school_id: Current.school.id)
 
-      if Current.membership&.role == "school" && Current.membership&.active?
+      if staff_with?(:manage_documents)
         base
       elsif Current.membership&.role == "guardian" && Current.guardian
         student_ids = Current.guardian.students.kept.select(:id)

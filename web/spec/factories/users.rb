@@ -12,7 +12,7 @@ FactoryBot.define do
   end
 
   factory :user do
-    sequence(:email) { |n| "user#{n}@example.com" }
+    sequence(:email) { |n| "user#{n}-#{SecureRandom.hex(4)}@example.com" }
     password { "password123" }
     password_confirmation { "password123" }
     status { "active" }
@@ -36,7 +36,22 @@ FactoryBot.define do
     end
 
     trait :school_admin do
-      role { "school" }
+      role { "staff" }
+
+      after(:create) do |membership|
+        school = membership.school
+        next if school.blank?
+
+        result = Identity::ProvisionSystemRoleTemplatesService.call(school: school)
+        next unless result.success?
+
+        director = result.data[:templates]["director"]
+        profile = StaffProfile.find_or_initialize_by(membership: membership, school: school)
+        profile.role_template = director
+        profile.is_owner = true
+        profile.display_title = profile.display_title.presence || "Director"
+        profile.save!
+      end
     end
 
     trait :staff do

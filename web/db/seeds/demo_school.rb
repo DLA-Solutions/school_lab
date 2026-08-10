@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 # Role templates: Identity::ProvisionSystemRoleTemplatesService (permissions PRD UC-P04b).
+# Legacy membership backfill: rake permissions:migrate_memberships (UC-P04).
 
 module DemoSchool
   SCHOOL_CNPJ = "12.345.678/0001-90"
@@ -27,7 +28,7 @@ module DemoSchool
     find_or_create_billing_settings!(school)
 
     admin_user = find_or_create_confirmed_user!(ADMIN_EMAIL)
-    admin_membership = find_or_create_membership!(user: admin_user, school: school, role: "school")
+    admin_membership = find_or_create_membership!(user: admin_user, school: school, role: "staff")
     ensure_owner_staff_profile!(membership: admin_membership, school: school)
 
     guardian_user = find_or_create_confirmed_user!(GUARDIAN_EMAIL)

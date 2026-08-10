@@ -17,4 +17,8 @@ RSpec.configure do |config|
   config.include JsonHelpers, type: :request
   config.include AuthHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
+
+  config.before(type: :request) do
+    host! "www.example.com"
+  end
 end

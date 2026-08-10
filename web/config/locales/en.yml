@@ -43,6 +43,7 @@ en:
       template_in_use: "This template is in use by %{count} staff member(s)."
       last_admin_template: "The school must keep at least one template with admin permissions."
       job_position_in_use: "This position is held by %{count} collaborator(s). Move them before removing it."
+      invalid_permission_for_role: "This permission is not allowed for the member's role."
     # Not blocking — the contract goes out with a gap someone has to fill in later.
     warnings:
       student_without_cpf: "This student has no CPF on file; the contract will go out with that field blank."

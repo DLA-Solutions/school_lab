@@ -60,6 +60,20 @@ module Api
             end
           end
 
+          def permissions
+            membership = policy_scope(Membership).find(params[:id])
+            authorize membership, :update_permissions?
+
+            result = Identity::UpdateMembershipPermissionsService.call(
+              membership: membership,
+              grants: permission_params[:grants],
+              denies: permission_params[:denies]
+            )
+            render_service_result(result) do |updated|
+              render json: { data: MembershipBlueprint.render_as_hash(updated) }
+            end
+          end
+
           private
 
           def membership_params
@@ -68,6 +82,10 @@ module Api
 
           def membership_update_params
             params.require(:membership).permit(:status)
+          end
+
+          def permission_params
+            params.permit(grants: [], denies: [])
           end
         end
       end

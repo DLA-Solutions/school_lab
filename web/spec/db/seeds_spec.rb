@@ -12,7 +12,7 @@ RSpec.describe "db:seed" do
     guardian = Guardian.find_by!(school: school, user: guardian_user)
     student = Student.find_by!(school: school, name: "Pedro Silva")
 
-    expect(Membership.exists?(user: admin_user, school: school, role: "school", status: "active")).to be(true)
+    expect(Membership.exists?(user: admin_user, school: school, role: "staff", status: "active")).to be(true)
     expect(Membership.exists?(user: guardian_user, school: school, role: "guardian", status: "active")).to be(true)
     expect(StudentGuardian.exists?(school: school, student: student, guardian: guardian)).to be(true)
 

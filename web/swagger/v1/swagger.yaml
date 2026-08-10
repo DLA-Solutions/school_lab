@@ -5022,6 +5022,86 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/people/memberships/{id}/permissions": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "patch": {
+        "summary": "Update membership permission overrides",
+        "tags": [
+          "People"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "owner denies manage_enrollment"
+          },
+          "403": {
+            "description": "secretary cannot patch overrides"
+          },
+          "422": {
+            "description": "teach grant without also_teaches"
+          },
+          "409": {
+            "description": "suspended membership"
+          },
+          "404": {
+            "description": "cross-school membership id"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "grants": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "denies": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/people/student_guardians/{id}": {
       "parameters": [
         {
@@ -5605,6 +5685,9 @@
           }
         ],
         "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
           "200": {
             "description": "secretary with manage_people can list templates"
           }

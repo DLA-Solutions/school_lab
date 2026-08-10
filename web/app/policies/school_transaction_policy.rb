@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class SchoolTransactionPolicy < ApplicationPolicy
-  def index? = school_staff?
-  def create? = school_staff?
-  def update? = school_staff? && record.school_id == school_id
+  def index? = staff_with?(:manage_billing)
+  def create? = staff_with?(:manage_billing)
+  def update? = staff_with?(:manage_billing) && record.school_id == school_id
   def destroy? = update?
 
   class Scope < Scope

@@ -6,7 +6,7 @@ module Api
       module Billing
         class SummaryController < BaseController
           def show
-            authorize Charge, :index?
+            authorize :billing_summary, :show?, policy_class: BillingSummaryPolicy
 
             result = ::Billing::SummaryService.call(school: Current.school)
             render json: { data: BillingSummaryBlueprint.render_as_hash(result.data) }

@@ -42,10 +42,6 @@ class ApplicationPolicy
     user&.backoffice?
   end
 
-  def school_staff?
-    Current.membership&.role == "school" && Current.membership&.active?
-  end
-
   def school_owner?
     profile = Current.membership&.staff_profile
     profile&.kept? == true && profile.is_owner?
@@ -82,6 +78,20 @@ class ApplicationPolicy
 
     def resolve
       raise NoMethodError, "You must define #resolve in #{self.class}"
+    end
+
+    def staff_with?(permission_key)
+      membership = Current.membership
+      return false unless membership&.active? && membership.staff_member?
+
+      keys = Current.effective_permission_keys
+      if keys.nil?
+        result = Identity::ResolveEffectivePermissionsService.call(membership: membership)
+        keys = result.success? ? result.data.fetch(:keys) : []
+        Current.effective_permission_keys = keys
+      end
+
+      keys.include?(permission_key.to_s)
     end
 
     private

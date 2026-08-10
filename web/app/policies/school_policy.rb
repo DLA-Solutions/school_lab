@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SchoolPolicy < ApplicationPolicy
+  STAFF_ADMIN_ROLES = %w[school staff].freeze
+
   def index?
     backoffice? || school_admin?
   end
@@ -31,19 +33,19 @@ class SchoolPolicy < ApplicationPolicy
       return scope.none unless user
 
       # A school admin sees the schools they administer, never the whole register.
-      scope.where(id: user.memberships.kept.where(role: "school").select(:school_id))
+      scope.where(id: user.memberships.kept.where(role: STAFF_ADMIN_ROLES).select(:school_id))
     end
   end
 
   private
 
   def school_admin?
-    user&.memberships&.kept&.exists?(role: "school", status: "active")
+    user&.memberships&.kept&.exists?(role: STAFF_ADMIN_ROLES, status: "active")
   end
 
   def member_of_record?
     return false unless user && record.respond_to?(:id)
 
-    user.memberships.kept.exists?(school_id: record.id, role: "school", status: "active")
+    user.memberships.kept.exists?(school_id: record.id, role: STAFF_ADMIN_ROLES, status: "active")
   end
 end
