@@ -1,22 +1,20 @@
 # Deployment
 
-How `site/`, `frontend/`, and `web/` reach production and staging. Deploys are manual, run
-from a developer machine with Kamal 2.
-
-> **Planned:** second SPA at `/backoffice` from `frontend/backoffice/` as
-> `scholarpremium-backoffice-spa` — see [ADR 001](../../adr/001-monorepo-surfaces.md).
+How `site/`, `frontend/app/`, `frontend/backoffice/`, and `web/` reach production and staging.
+Deploys are manual, run from a developer machine with Kamal 2.
 
 ## Topology
 
-Two VPS. Only the app server is exposed to the internet. Three Kamal services share one
+Two VPS. Only the app server is exposed to the internet. Four Kamal services share one
 kamal-proxy on that server:
 
 ```
 Internet ──443──▶ app server (77.42.33.33)
                     kamal-proxy (TLS)
-                      ├── /              → scholarpremium-site   (site/)
-                      ├── /app/*         → scholarpremium-spa    (frontend/)
-                      └── /api, /up, …   → scholarpremium        (web/)
+                      ├── /              → scholarpremium-site           (site/)
+                      ├── /app/*         → scholarpremium-spa            (frontend/app/)
+                      ├── /backoffice/*  → scholarpremium-backoffice-spa (frontend/backoffice/)
+                      └── /api, /up, …   → scholarpremium                (web/)
                                         │
                                         └──▶ database server (10.0.0.3, private network)
                                                PostgreSQL 17 + Redis, both native
@@ -25,8 +23,8 @@ Internet ──443──▶ app server (77.42.33.33)
 | URL path | Folder | Kamal service | GHCR image |
 |---|---|---|---|
 | `/` | `site/` | `scholarpremium-site` | `dla-solutions/scholarpremium-site` |
-| `/app/*` | `frontend/` (target: `frontend/app/`) | `scholarpremium-spa` | `dla-solutions/scholarpremium-spa` |
-| `/backoffice/*` | `frontend/backoffice/` (planned) | `scholarpremium-backoffice-spa` | `dla-solutions/scholarpremium-backoffice-spa` |
+| `/app/*` | `frontend/app/` | `scholarpremium-spa` | `dla-solutions/scholarpremium-spa` |
+| `/backoffice/*` | `frontend/backoffice/` | `scholarpremium-backoffice-spa` | `dla-solutions/scholarpremium-backoffice-spa` |
 | `/api`, `/up`, `/api-docs`, `/webhooks` | `web/` | `scholarpremium` | `dla-solutions/scholarpremium` |
 
 PostgreSQL and Redis are installed natively on the database server. They are **not**
@@ -61,6 +59,7 @@ Path-prefixed services inherit HTTPS from that root registration.
 | `scholarpremium-site` (`/`) | `true` | Root path — owns Let's Encrypt for the host |
 | `scholarpremium` (`/api`, …) | omit / `false` | `path_prefixes` — `--tls` makes proxy deploy fail |
 | `scholarpremium-spa` (`/app`) | omit / `false` | `path_prefix` — same rule |
+| `scholarpremium-backoffice-spa` (`/backoffice`) | omit / `false` | `path_prefix` — same rule |
 
 **Symptom when API or SPA set `ssl: true` with path prefixes:**
 
@@ -119,8 +118,8 @@ kamal deploy -d staging
 cd ../web
 kamal deploy -d staging
 
-# 4. SPA — /app path prefix; no proxy.ssl in frontend/config/deploy.yml
-cd ../frontend
+# 4. School SPA — /app path prefix; no proxy.ssl in frontend/app/config/deploy.yml
+cd ../frontend/app
 kamal deploy -d staging
 ```
 
@@ -156,7 +155,7 @@ API-only needs the remove + site-first sequence above.
 
 ## Destinations
 
-Each service has its own `config/deploy.yml` under `site/`, `frontend/`, and `web/`.
+Each service has its own `config/deploy.yml` under `site/`, `frontend/app/`, `frontend/backoffice/`, and `web/`.
 Per-environment values live in `config/deploy.production.yml` and `config/deploy.staging.yml`.
 
 | | production | staging |
