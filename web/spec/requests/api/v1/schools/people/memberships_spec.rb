@@ -6,10 +6,13 @@ RSpec.describe "Api::V1::Schools::People::Memberships", type: :request do
   include ActiveJob::TestHelper
 
   let(:school) { create(:school) }
-  let(:school_admin) { create(:user) }
-  let!(:school_admin_membership) { create(:membership, :school_admin, user: school_admin, school: school) }
+  let(:owner_user) { create(:user) }
+  let!(:owner_membership) { create_owner_membership(school, user: owner_user).last }
   let(:school_id) { school.id }
-  let(:Authorization) { auth_headers_for(school_admin)["Authorization"] }
+  let(:Authorization) { auth_headers_for(owner_user)["Authorization"] }
+  let!(:templates) { create_system_templates_for(school) }
+  let(:secretary_template) { templates.find { |t| t.system_key == "secretary" } }
+  let(:teacher_template) { templates.find { |t| t.system_key == "teacher" } }
 
   path "/api/v1/schools/{school_id}/people/memberships" do
     parameter name: :school_id, in: :path, type: :integer
@@ -27,7 +30,10 @@ RSpec.describe "Api::V1::Schools::People::Memberships", type: :request do
             type: :object,
             properties: {
               email: { type: :string },
-              role: { type: :string }
+              role: { type: :string },
+              role_template_id: { type: :integer },
+              segment_id: { type: :integer },
+              display_title: { type: :string }
             },
             required: %w[email role]
           }
@@ -58,6 +64,109 @@ RSpec.describe "Api::V1::Schools::People::Memberships", type: :request do
           expect(membership.status).to eq("invited")
           expect(membership.user.email).to eq("invite@example.com")
         end
+      end
+
+      response "201", "secretary invites staff with role template" do
+        let(:secretary_user) { create(:user) }
+        let!(:secretary_membership) { create(:membership, :staff, user: secretary_user, school: school) }
+        let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
+        let(:payload) do
+          {
+            membership: {
+              email: "newstaff@example.com",
+              role: "staff",
+              role_template_id: secretary_template.id,
+              display_title: "Recepção"
+            }
+          }
+        end
+
+        before do
+          create(:staff_profile, membership: secretary_membership, school: school, role_template: secretary_template)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["role"]).to eq("staff")
+          expect(body["status"]).to eq("invited")
+          expect(body.dig("role_template", "system_key")).to eq("secretary")
+          expect(body["display_title"]).to eq("Recepção")
+          expect(body["permissions"]).to include("manage_people")
+        end
+      end
+
+      response "201", "teacher invite with teacher template" do
+        let(:payload) do
+          {
+            membership: {
+              email: "newteacher@example.com",
+              role: "teacher",
+              role_template_id: teacher_template.id
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["role"]).to eq("teacher")
+          expect(body.dig("role_template", "system_key")).to eq("teacher")
+        end
+      end
+
+      response "422", "staff without role_template_id" do
+        let(:payload) do
+          {
+            membership: {
+              email: "nostaff@example.com",
+              role: "staff"
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("error")
+          expect(body["code"]).to eq("validation_error")
+          expect(body["details"]).to include("role_template_id")
+        end
+      end
+
+      response "404", "role template from another school" do
+        let(:other_school) { create(:school) }
+        let(:foreign_template) { create_system_templates_for(other_school).find { |t| t.system_key == "secretary" } }
+        let(:payload) do
+          {
+            membership: {
+              email: "foreign@example.com",
+              role: "staff",
+              role_template_id: foreign_template.id
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("error")
+          expect(body["code"]).to eq("not_found")
+        end
+      end
+
+      response "403", "teacher without manage_people cannot create" do
+        let(:teacher_user) { create(:user) }
+        let!(:teacher_membership) { create(:membership, user: teacher_user, school: school, role: "teacher") }
+        let(:Authorization) { auth_headers_for(teacher_user)["Authorization"] }
+        let(:payload) do
+          {
+            membership: {
+              email: "blocked@example.com",
+              role: "guardian"
+            }
+          }
+        end
+
+        before do
+          create(:staff_profile, membership: teacher_membership, school: school, role_template: teacher_template)
+        end
+
+        run_test!
       end
     end
   end
@@ -90,8 +199,7 @@ RSpec.describe "Membership invite notification on create", type: :request do
 
   it "enqueues invite notification job" do
     school = create(:school)
-    admin = create(:user)
-    create(:membership, :school_admin, user: admin, school: school)
+    admin = create_owner_membership(school).first
     create(:guardian, school: school, email: "newinvite@example.com", user: nil)
 
     expect do

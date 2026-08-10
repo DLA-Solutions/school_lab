@@ -43,7 +43,15 @@ module Schools
     def grant_founding_membership!(school)
       return if actor.blank? || actor.backoffice?
 
-      Membership.create!(user: actor, school: school, role: "school", status: "active")
+      membership = Membership.create!(user: actor, school: school, role: "school", status: "active")
+      director = school.system_role_template("director")
+      StaffProfile.create!(
+        membership: membership,
+        school: school,
+        role_template: director,
+        is_owner: true,
+        display_title: "Diretor"
+      )
     end
   end
 end

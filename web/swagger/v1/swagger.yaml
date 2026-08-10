@@ -4716,7 +4716,16 @@
         ],
         "responses": {
           "201": {
-            "description": "invited membership created"
+            "description": "teacher invite with teacher template"
+          },
+          "422": {
+            "description": "staff without role_template_id"
+          },
+          "404": {
+            "description": "role template from another school"
+          },
+          "403": {
+            "description": "teacher without manage_people cannot create"
           }
         },
         "requestBody": {
@@ -4732,6 +4741,15 @@
                         "type": "string"
                       },
                       "role": {
+                        "type": "string"
+                      },
+                      "role_template_id": {
+                        "type": "integer"
+                      },
+                      "segment_id": {
+                        "type": "integer"
+                      },
+                      "display_title": {
                         "type": "string"
                       }
                     },

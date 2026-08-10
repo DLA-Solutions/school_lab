@@ -21,6 +21,24 @@ RSpec.describe Schools::CreateSchoolService do
     )
   end
 
+  context "when actor creates the school" do
+    subject(:result) { described_class.call(params: params, actor: actor) }
+
+    let(:actor) { create(:user) }
+
+    it "grants founding membership with owner staff profile" do
+      expect(result).to be_success
+
+      school = result.data
+      membership = school.memberships.find_by(user: actor)
+      expect(membership).to have_attributes(role: "school", status: "active")
+
+      profile = membership.staff_profile
+      expect(profile).to have_attributes(is_owner: true, display_title: "Diretor")
+      expect(profile.role_template.system_key).to eq("director")
+    end
+  end
+
   context "when school validation fails" do
     let(:params) { { name: "" } }
 
