@@ -32,6 +32,7 @@ const ptBR = {
   'nav.plans': 'Planos',
   'nav.contract': 'Contrato',
   'nav.schools': 'Escolas',
+  'nav.backoffice': 'Backoffice',
   'nav.language': 'Idioma',
 
   'charges.title': 'Boletos',

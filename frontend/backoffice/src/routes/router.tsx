@@ -2,7 +2,8 @@ import { Suspense, lazy } from 'react';
 import { Outlet, createBrowserRouter, Navigate } from 'react-router';
 import Splash from 'components/loader/Splash';
 import PageLoader from 'components/loader/PageLoader';
-import BackofficeLayout from 'layouts/BackofficeLayout';
+import MainLayout from 'layouts/main-layout';
+import Error404 from 'pages/Error404';
 import { RequireBackoffice } from './guards';
 import paths from './paths';
 
@@ -25,11 +26,11 @@ const router = createBrowserRouter(
           path: '/',
           element: (
             <RequireBackoffice>
-              <BackofficeLayout>
+              <MainLayout>
                 <Suspense fallback={<PageLoader />}>
                   <Outlet />
                 </Suspense>
-              </BackofficeLayout>
+              </MainLayout>
             </RequireBackoffice>
           ),
           children: [
@@ -46,6 +47,10 @@ const router = createBrowserRouter(
               element: <ProvisioningWizard />,
             },
           ],
+        },
+        {
+          path: '*',
+          element: <Error404 />,
         },
       ],
     },

@@ -32,6 +32,7 @@ const enUS: Messages = {
   'nav.plans': 'Plans',
   'nav.contract': 'Contract',
   'nav.schools': 'Schools',
+  'nav.backoffice': 'Backoffice',
   'nav.language': 'Language',
 
   'charges.title': 'Boletos',
