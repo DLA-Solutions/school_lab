@@ -27,6 +27,77 @@ RSpec.describe "Api::V1::Me", type: :request do
           memberships.each do |membership|
             expect(membership).to include("role", "status", "school_name")
           end
+
+          guardian_membership = memberships.find { |m| m["school_id"] == school1.id }
+          expect(guardian_membership["role_template"]).to be_nil
+          expect(guardian_membership["is_owner"]).to be_nil
+          expect(guardian_membership["permissions"]).to eq([])
+          expect(guardian_membership["permission_sources"]).to eq({})
+
+          legacy_staff_membership = memberships.find { |m| m["school_id"] == school2.id }
+          expect(legacy_staff_membership["permissions"]).to eq([])
+        end
+      end
+
+      response "200", "staff owner membership includes permissions" do
+        let(:owner_school) { create(:school, name: "Owner School") }
+        let(:owner_user) { create(:user) }
+        let!(:owner_membership) { create(:membership, :staff, user: owner_user, school: owner_school) }
+        let(:Authorization) { auth_headers_for(owner_user)["Authorization"] }
+
+        before do
+          director_template = create_system_templates_for(owner_school).find { |t| t.system_key == "director" }
+          create(
+            :staff_profile,
+            :owner,
+            membership: owner_membership,
+            school: owner_school,
+            role_template: director_template,
+            display_title: "Diretor"
+          )
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          membership = body.dig("data", "memberships").find { |m| m["school_id"] == owner_school.id }
+
+          expect(membership["role_template"]["system_key"]).to eq("director")
+          expect(membership["is_owner"]).to be(true)
+          expect(membership["display_title"]).to eq("Diretor")
+          expect(membership["permissions"]).to include("manage_billing", "manage_people")
+          expect(membership["permission_sources"]["manage_billing"]).to eq("owner")
+        end
+      end
+
+      response "200", "secretary with grant override exposes grant source" do
+        let(:secretary_school) { create(:school, name: "Secretary School") }
+        let(:secretary_user) { create(:user) }
+        let!(:secretary_membership) { create(:membership, :staff, user: secretary_user, school: secretary_school) }
+        let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
+
+        before do
+          secretary_template = create_system_templates_for(secretary_school).find { |t| t.system_key == "secretary" }
+          create(
+            :staff_profile,
+            membership: secretary_membership,
+            school: secretary_school,
+            role_template: secretary_template
+          )
+          create(
+            :membership_permission,
+            membership: secretary_membership,
+            school: secretary_school,
+            permission_key: "manage_billing",
+            effect: "grant"
+          )
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          membership = body.dig("data", "memberships").find { |m| m["school_id"] == secretary_school.id }
+
+          expect(membership["permissions"]).to include("manage_billing")
+          expect(membership["permission_sources"]["manage_billing"]).to eq("grant")
         end
       end
 
