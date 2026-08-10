@@ -39,6 +39,9 @@ en:
       charge_amount_required: "Provide an amount greater than zero."
       charge_due_date_required: "Provide a due date."
       plan_discount_in_use: "This discount is applied to %{count} contract(s) and cannot be removed."
+      cannot_delete_system_template: "System templates cannot be deleted."
+      template_in_use: "This template is in use by %{count} staff member(s)."
+      last_admin_template: "The school must keep at least one template with admin permissions."
       job_position_in_use: "This position is held by %{count} collaborator(s). Move them before removing it."
     # Not blocking — the contract goes out with a gap someone has to fill in later.
     warnings:

@@ -41,8 +41,8 @@ module Api
               return render_error(
                 :validation_error,
                 status: :unprocessable_content,
-                details: { base: [I18n.t("api.errors.job_position_in_use",
-                                         count: job_position.teachers.kept.count)] }
+                details: { base: [ I18n.t("api.errors.job_position_in_use",
+                                         count: job_position.teachers.kept.count) ] }
               )
             end
 

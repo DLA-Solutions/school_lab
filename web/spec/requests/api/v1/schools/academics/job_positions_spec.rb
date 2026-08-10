@@ -125,7 +125,7 @@ RSpec.describe "Job positions register", type: :request do
 
       get base, headers: headers
 
-      expect(response.parsed_body["data"].map { |p| p["name"] }).to eq(["Interno"])
+      expect(response.parsed_body["data"].map { |p| p["name"] }).to eq([ "Interno" ])
     end
 
     it "denies a guardian" do

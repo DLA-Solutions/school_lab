@@ -20,7 +20,7 @@ RSpec.describe People::SyncGuardianActivationService do
 
   describe "when the last child leaves" do
     it "deactivates both guardians once the only child is removed" do
-      student = enrol([mother, father])
+      student = enrol([ mother, father ])
 
       People::DiscardStudentService.call(student: student, actor: actor)
 
@@ -30,7 +30,7 @@ RSpec.describe People::SyncGuardianActivationService do
 
     # A transfer is the other way a child stops attending; the guardians follow either way.
     it "deactivates them when the only child is transferred out" do
-      student = enrol([mother, father])
+      student = enrol([ mother, father ])
 
       People::UpdateStudentService.call(student: student, params: { status: "transferred" },
                                         actor: actor)
@@ -58,8 +58,8 @@ RSpec.describe People::SyncGuardianActivationService do
 
   describe "while a child is still attending" do
     it "keeps the guardians active when a sibling remains" do
-      first = enrol([mother, father], name: "Pedro")
-      enrol([mother, father], name: "Ana")
+      first = enrol([ mother, father ], name: "Pedro")
+      enrol([ mother, father ], name: "Ana")
 
       People::DiscardStudentService.call(student: first, actor: actor)
 
@@ -69,7 +69,7 @@ RSpec.describe People::SyncGuardianActivationService do
 
     # The rule is about the guardian's own children, not the school's roll.
     it "ignores another family's child leaving" do
-      enrol([mother, father])
+      enrol([ mother, father ])
       other_student = enrol(create(:guardian, school: school), name: "Outro")
 
       People::DiscardStudentService.call(student: other_student, actor: actor)
@@ -89,7 +89,7 @@ RSpec.describe People::SyncGuardianActivationService do
 
   describe "when a child comes back" do
     it "reactivates the guardians once a student is enrolled again" do
-      student = enrol([mother, father])
+      student = enrol([ mother, father ])
       People::DiscardStudentService.call(student: student, actor: actor)
 
       student.undiscard

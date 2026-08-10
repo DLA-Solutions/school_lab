@@ -109,7 +109,7 @@ module DemoSchool
     )
     teacher.save!
 
-    ["Matemática", "Ciências"].each do |subject_name|
+    [ "Matemática", "Ciências" ].each do |subject_name|
       subject = Subject.find_or_create_by!(school: school, name: subject_name)
       TeachingAssignment.find_or_create_by!(
         school: school, teacher: teacher, school_class: school_class, subject: subject

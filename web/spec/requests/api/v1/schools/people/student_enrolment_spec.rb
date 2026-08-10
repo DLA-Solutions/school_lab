@@ -34,7 +34,7 @@ RSpec.describe "Enrolling a student against the parents' CPFs", type: :request d
     expect(response).to have_http_status(:created)
 
     links = response.parsed_body.dig("data", "guardians")
-    expect(links.to_h { |g| [g["relationship"], g["name"]] })
+    expect(links.to_h { |g| [ g["relationship"], g["name"] ] })
       .to eq("father" => "João Silva", "mother" => "Maria Silva")
   end
 
@@ -43,14 +43,14 @@ RSpec.describe "Enrolling a student against the parents' CPFs", type: :request d
     enrol(mother_cpf: "123.456.789-09")
 
     expect(response).to have_http_status(:created)
-    expect(response.parsed_body.dig("data", "guardians").map { |g| g["relationship"] }).to eq(["mother"])
+    expect(response.parsed_body.dig("data", "guardians").map { |g| g["relationship"] }).to eq([ "mother" ])
   end
 
   it "accepts only the father" do
     enrol(father_cpf: "529.982.247-25")
 
     expect(response).to have_http_status(:created)
-    expect(response.parsed_body.dig("data", "guardians").map { |g| g["relationship"] }).to eq(["father"])
+    expect(response.parsed_body.dig("data", "guardians").map { |g| g["relationship"] }).to eq([ "father" ])
   end
 
   it "refuses a student with neither parent" do

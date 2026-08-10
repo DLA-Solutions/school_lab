@@ -109,7 +109,7 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
 
         classes = response.parsed_body.dig("data", "classes")
         expect(classes.length).to eq(1)
-        expect(classes.first["subjects"].map { |s| s["name"] }).to eq(["Matemática"])
+        expect(classes.first["subjects"].map { |s| s["name"] }).to eq([ "Matemática" ])
       end
 
       it "refuses the same subject twice in the same class" do
@@ -146,10 +146,10 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
         get "#{base}/teachers", headers: headers
 
         row = response.parsed_body["data"].find { |t| t["id"] == teacher.id }
-        by_class = row["classes"].to_h { |c| [c["id"], c["subjects"].map { |s| s["name"] }] }
+        by_class = row["classes"].to_h { |c| [ c["id"], c["subjects"].map { |s| s["name"] } ] }
 
         expect(by_class[school_class.id]).to match_array(%w[Matemática Ciências])
-        expect(by_class[other_class.id]).to eq(["Matemática"])
+        expect(by_class[other_class.id]).to eq([ "Matemática" ])
       end
 
       it "narrows the listing to the teachers of one class" do
@@ -161,7 +161,7 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
 
         get "#{base}/teachers", params: { school_class_id: school_class.id }, headers: headers
 
-        expect(response.parsed_body["data"].map { |t| t["id"] }).to eq([teacher.id])
+        expect(response.parsed_body["data"].map { |t| t["id"] }).to eq([ teacher.id ])
       end
 
       it "drops a removed assignment from the listing" do

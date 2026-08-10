@@ -87,7 +87,7 @@ RSpec.describe "Plan discounts", type: :request do
 
       get path, headers: headers
 
-      expect(response.parsed_body["data"].map { |row| row["name"] }).to eq(["Interno"])
+      expect(response.parsed_body["data"].map { |row| row["name"] }).to eq([ "Interno" ])
     end
 
     it "denies a guardian" do

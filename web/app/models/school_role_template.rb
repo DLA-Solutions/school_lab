@@ -19,6 +19,29 @@ class SchoolRoleTemplate < ApplicationRecord
 
   scope :system_templates, -> { kept.where(is_system: true) }
 
+  ADMIN_CAPABLE_KEYS = %w[manage_people manage_school_settings].freeze
+
+  def admin_capable?
+    kept_keys = role_template_permissions.kept.pluck(:permission_key)
+    ADMIN_CAPABLE_KEYS.all? { |key| kept_keys.include?(key) }
+  end
+
+  def affected_memberships_count
+    staff_profiles.kept.count
+  end
+
+  def self.school_has_admin_capable_template?(school:, excluding: nil, replacement_keys_for: nil)
+    school.school_role_templates.kept.any? do |template|
+      keys = if excluding&.id == template.id
+        replacement_keys_for || []
+      else
+        template.role_template_permissions.kept.pluck(:permission_key)
+      end
+
+      ADMIN_CAPABLE_KEYS.all? { |key| keys.include?(key) }
+    end
+  end
+
   private
 
   def system_key_presence_for_system_template

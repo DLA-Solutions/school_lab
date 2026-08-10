@@ -114,6 +114,14 @@ Rails.application.routes.draw do
             end
           end
 
+          get :permission_definitions, to: "permission_definitions#index"
+
+          resources :role_templates, only: %i[index create update destroy] do
+            member do
+              post :clone
+            end
+          end
+
           namespace :me do
             resources :charges, only: %i[index show] do
               collection do

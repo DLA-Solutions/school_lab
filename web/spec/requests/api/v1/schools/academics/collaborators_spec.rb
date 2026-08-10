@@ -77,20 +77,20 @@ RSpec.describe "Collaborator register: post, hire date, search and documents", t
     end
 
     it "matches part of the name" do
-      expect(names("Nogueira")).to eq(["Carla Nogueira"])
+      expect(names("Nogueira")).to eq([ "Carla Nogueira" ])
     end
 
     it "ignores case" do
-      expect(names("carla")).to eq(["Carla Nogueira"])
+      expect(names("carla")).to eq([ "Carla Nogueira" ])
     end
 
     it "also matches the CPF, formatted or bare" do
-      expect(names("529.982.247-25")).to eq(["Bruno Alves"])
-      expect(names("52998224725")).to eq(["Bruno Alves"])
+      expect(names("529.982.247-25")).to eq([ "Bruno Alves" ])
+      expect(names("52998224725")).to eq([ "Bruno Alves" ])
     end
 
     it "returns everyone when the term is blank" do
-      expect(names("")).to match_array([carla.name, bruno.name])
+      expect(names("")).to match_array([ carla.name, bruno.name ])
     end
 
     it "returns nothing when nothing matches" do
@@ -100,7 +100,7 @@ RSpec.describe "Collaborator register: post, hire date, search and documents", t
     it "does not reach collaborators of another school" do
       create(:teacher, school: create(:school), name: "Carla Externa")
 
-      expect(names("Carla")).to eq(["Carla Nogueira"])
+      expect(names("Carla")).to eq([ "Carla Nogueira" ])
     end
   end
 
@@ -143,7 +143,7 @@ RSpec.describe "Collaborator register: post, hire date, search and documents", t
           headers: headers
 
       ids = response.parsed_body["data"].map { |row| row["documentable_id"] }
-      expect(ids).to eq([teacher.id])
+      expect(ids).to eq([ teacher.id ])
     end
 
     it "refuses a collaborator from another school" do
