@@ -3,12 +3,12 @@
     {
       "warning_type": "Mass Assignment",
       "warning_code": 105,
-      "fingerprint": "210dd18238c8eb189a5aeb5542791a94d304405bcdf9b06cc74e7baa6267c826",
+      "fingerprint": "137ec7d631766c890b64852f421dd590d69f5ee2d65ef33fbd8aee5dad0425b3",
       "check_name": "PermitAttributes",
       "message": "Potentially dangerous key allowed for mass assignment",
       "file": "app/controllers/api/v1/schools/people/memberships_controller.rb",
       "line": 66,
-      "code": "params.require(:membership).permit(:email, :role)",
+      "code": "params.require(:membership).permit(:email, :role, :role_template_id, :segment_id, :display_title)",
       "location": {
         "type": "method",
         "class": "Api::V1::Schools::People::MembershipsController",
@@ -16,7 +16,7 @@
       },
       "user_input": ":role",
       "confidence": "Medium",
-      "note": "False positive. Brakeman flags :role from its default dangerous-key list, but choosing the role is the purpose of the invite endpoint and MembershipPolicy#create? already limits it to active school staff of the current school. It is not a path to the privileged tier: User#backoffice? requires role 'backoffice' AND school_id nil AND an active membership, while People::CreateMembershipService builds through school.memberships (school_id is always the current school, never nil) and hardcodes status 'invited'. Role values are further constrained by Membership::ROLES."
+      "note": "False positive. Brakeman flags :role from its default dangerous-key list, but choosing the role is the purpose of the invite endpoint and MembershipPolicy#create? requires staff_with?(:manage_people). People::CreateMembershipService rejects role 'school', validates role against role_template_id, and always creates through school.memberships with status 'invited' — never a path to backoffice or owner escalation."
     }
   ],
   "brakeman_version": "8.0.5"
