@@ -3,6 +3,8 @@ export const rootPaths = {
   peopleRoot: 'pessoas',
   academicsRoot: 'academico',
   authRoot: 'authentication',
+  onboardingRoot: 'onboarding',
+  inviteRoot: 'invite',
   errorRoot: 'error',
 };
 
@@ -24,6 +26,9 @@ export default {
   schools: '/escolas',
 
   signin: `/${rootPaths.authRoot}/signin`,
+
+  inviteAccept: `/${rootPaths.inviteRoot}/accept`,
+  ownerOnboarding: `/${rootPaths.onboardingRoot}/owner`,
 
   404: `/${rootPaths.errorRoot}/404`,
 };

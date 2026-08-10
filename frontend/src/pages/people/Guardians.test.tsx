@@ -50,6 +50,7 @@ const authValue: AuthContextValue = {
   isAuthenticated: true,
   login: vi.fn(),
   logout: vi.fn(),
+  refreshUser: vi.fn(),
 };
 
 // The listing keeps its term in the URL, so it needs a router around it.

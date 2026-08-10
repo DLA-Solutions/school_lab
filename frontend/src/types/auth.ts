@@ -20,6 +20,9 @@ export interface Membership {
   segment_id: number | null;
   display_title: string | null;
   permission_sources: Record<string, string>;
+  /** Present when GET /me embeds school lifecycle (onboarding guards). */
+  school_onboarding_status?: string;
+  school_onboarding_mode?: string;
 }
 
 export interface GuardianProfile {
