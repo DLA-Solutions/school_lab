@@ -8,6 +8,7 @@ import PageLoader from 'components/loader/PageLoader';
 import Signin from 'pages/authentication/Signin';
 import InviteAccept from 'pages/onboarding/InviteAccept';
 import OwnerOnboarding from 'pages/onboarding/OwnerOnboarding';
+import ProvisioningWizard from 'pages/onboarding/ProvisioningWizard';
 import Error404 from 'pages/Error404';
 import { RequireAuth, RequireGuest, RequireOwnerOnboardingComplete } from './guards';
 
@@ -140,6 +141,10 @@ const router = createBrowserRouter(
           {
             path: 'owner',
             element: <OwnerOnboarding />,
+          },
+          {
+            path: 'provisioning/:schoolId',
+            element: <ProvisioningWizard />,
           },
         ],
       },

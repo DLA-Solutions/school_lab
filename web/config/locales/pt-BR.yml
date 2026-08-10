@@ -46,6 +46,17 @@ pt-BR:
       last_admin_template: "A escola precisa manter ao menos um modelo com permissões de administrador."
       job_position_in_use: "Este cargo está em uso por %{count} colaborador(es). Altere o cargo deles antes de removê-lo."
       invalid_permission_for_role: "Esta permissão não é permitida para o papel deste membro."
+      import_validation_failed: "Não foi possível processar a importação do CSV."
+      provisioning_import_missing_file: "Envie um arquivo CSV no campo de arquivo."
+      provisioning_import_missing_headers: "Colunas obrigatórias ausentes no CSV: %{headers}."
+      provisioning_import_empty_file: "O arquivo CSV não contém linhas de dados."
+      provisioning_import_malformed_csv: "Não foi possível interpretar o arquivo CSV."
+      provisioning_import_file_too_large: "O arquivo CSV excede o tamanho máximo permitido."
+      provisioning_import_invalid_date: "Use AAAA-MM-DD para datas."
+      provisioning_import_class_not_found: "Não existe turma com este nome nesta escola."
+      provisioning_import_duplicate_cpf_in_file: "O mesmo CPF aparece mais de uma vez neste arquivo."
+      provisioning_import_duplicate_email_in_file: "O mesmo e-mail de responsável aparece mais de uma vez neste arquivo."
+      provisioning_import_commit_failed: "Não foi possível concluir a importação."
     # Não impedem o envio — o contrato sai com uma lacuna que alguém terá de preencher depois.
     warnings:
       student_without_cpf: "Este aluno não tem CPF cadastrado; o contrato sairá com esse campo em branco."
