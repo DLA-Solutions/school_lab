@@ -4,7 +4,7 @@ require "swagger_helper"
 
 RSpec.describe "Api::V1::Schools", type: :request do
   let(:backoffice_user) { create(:user) }
-  let!(:backoffice_membership) { create(:membership, :backoffice, user: backoffice_user) }
+  let!(:backoffice_membership) { create(:membership, :with_provision_school, user: backoffice_user) }
   let(:guardian_user) { create(:user) }
   let(:school) { create(:school) }
   let!(:guardian_membership) { create(:membership, user: guardian_user, school: school, role: "guardian") }
@@ -73,7 +73,9 @@ RSpec.describe "Api::V1::Schools", type: :request do
             school: {
               name: "New Tenant School",
               cnpj: "12.345.678/0001-99",
-              address: "123 Main St"
+              address: "123 Main St",
+              owner_email: "admin@newtenant.example",
+              onboarding_mode: "self_serve"
             }
           }
         end
@@ -81,6 +83,7 @@ RSpec.describe "Api::V1::Schools", type: :request do
         run_test! do |response|
           body = JSON.parse(response.body)
           expect(body.dig("data", "name")).to eq("New Tenant School")
+          expect(body.dig("data", "onboarding_status")).to eq("pending_handoff")
 
           school = School.kept.find_by(name: "New Tenant School")
           expect(school).to be_present

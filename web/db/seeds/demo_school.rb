@@ -20,7 +20,13 @@ module DemoSchool
       # carrying "Escola Demo" into every screen that shows the current school.
       record.name = ENV.fetch("SEED_SCHOOL_NAME", "School Lab")
       record.school_group = school_group
+      record.onboarding_mode = "self_serve"
+      record.onboarding_status = "active"
     end
+    school.update!(
+      onboarding_mode: "self_serve",
+      onboarding_status: "active"
+    )
 
     ensure_system_role_templates!(school)
 

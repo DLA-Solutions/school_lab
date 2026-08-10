@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_213402) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_213403) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -304,6 +304,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213402) do
   create_table "memberships", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
+    t.jsonb "platform_permissions", default: [], null: false
     t.string "role", null: false
     t.bigint "school_id"
     t.string "status", default: "active", null: false

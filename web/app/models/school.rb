@@ -52,6 +52,20 @@ class School < ApplicationRecord
     onboarding_status == "active"
   end
 
+  def white_glove?
+    onboarding_mode == "white_glove"
+  end
+
+  def self_serve?
+    onboarding_mode == "self_serve"
+  end
+
+  def owner_membership
+    memberships.kept
+               .joins(:staff_profile)
+               .find_by(staff_profiles: { is_owner: true, discarded_at: nil })
+  end
+
   def system_role_template(system_key)
     school_role_templates.kept.find_by(system_key: system_key.to_s)
   end

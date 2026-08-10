@@ -47,7 +47,22 @@ class ApplicationPolicy
     profile&.kept? == true && profile.is_owner?
   end
 
+  def platform_with?(permission_key)
+    user&.platform_permission?(permission_key)
+  end
+
+  def provisioning_school
+    school = provisioning_context_school
+    school if school&.provisioning?
+  end
+
+  def provisioning_with?(permission_key)
+    backoffice? && platform_with?(permission_key) && provisioning_school.present?
+  end
+
   def staff_with?(permission_key)
+    return true if provisioning_with?(:provision_school)
+
     membership = Current.membership
     return false unless membership&.active?
     return false unless membership.staff_member?
@@ -70,6 +85,13 @@ class ApplicationPolicy
     Current.school&.id
   end
 
+  def provisioning_context_school
+    return record if record.is_a?(School)
+    return record.school if record.respond_to?(:school) && record.school.is_a?(School)
+
+    Current.school
+  end
+
   class Scope
     def initialize(user, scope)
       @user = user
@@ -82,6 +104,8 @@ class ApplicationPolicy
 
     def staff_with?(permission_key)
       membership = Current.membership
+      return true if user&.platform_permission?(:provision_school) && Current.school&.provisioning?
+
       return false unless membership&.active? && membership.staff_member?
 
       keys = Current.effective_permission_keys

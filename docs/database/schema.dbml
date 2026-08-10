@@ -80,6 +80,7 @@ Table memberships {
   school_id integer [note: 'Nullable for platform backoffice']
   role varchar [not null, note: 'backoffice | staff | teacher | guardian — school deprecated, migrate to staff (003)']
   status varchar [not null, default: 'active', note: 'active | invited | suspended — per-school only; global disable is users.status']
+  platform_permissions jsonb [not null, default: '[]', note: 'Backoffice only — e.g. provision_school (004-school-onboarding.md)']
   suspended_at timestamp [note: 'Set when status becomes suspended']
   suspended_by_id integer [note: 'School admin who suspended; nullable for system/job']
   discarded_at timestamp [note: 'Discard — removes school link; distinct from suspended']
