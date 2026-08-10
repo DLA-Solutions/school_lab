@@ -57,7 +57,7 @@ const ONBOARDING_MODE_CHIP_VARIANT: Record<
 
 const ALL_FILTER = 'all';
 
-type OnboardingStatusFilter = School['onboarding_status'] | typeof ALL_FILTER;
+type OnboardingStatusFilter = NonNullable<School['onboarding_status']> | typeof ALL_FILTER;
 type OnboardingModeFilter = SchoolOnboardingMode | typeof ALL_FILTER;
 
 const ONBOARDING_MODE_LABELS: Record<SchoolOnboardingMode, string> = {

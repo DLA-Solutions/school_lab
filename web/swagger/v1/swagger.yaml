@@ -423,31 +423,32 @@
             "name": "onboarding_status",
             "in": "query",
             "required": false,
+            "enum": [
+              "provisioning",
+              "pending_handoff",
+              "active"
+            ],
             "schema": {
-              "type": "string",
-              "enum": [
-                "provisioning",
-                "pending_handoff",
-                "active"
-              ]
-            }
+              "type": "string"
+            },
+            "description": ":\n * `provisioning` \n * `pending_handoff` \n * `active` \n "
           },
           {
             "name": "onboarding_mode",
             "in": "query",
             "required": false,
+            "enum": [
+              "self_serve",
+              "white_glove"
+            ],
             "schema": {
-              "type": "string",
-              "enum": [
-                "self_serve",
-                "white_glove"
-              ]
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "schools listed for backoffice"
+            "description": "schools filtered by onboarding status and mode"
           },
           "403": {
             "description": "forbidden for guardian"
