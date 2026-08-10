@@ -4,6 +4,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { formatMonth, recentMonths } from 'utils/month';
+import { useTranslation } from 'providers/I18nContext';
 
 interface MonthMenuProps {
   /** Selected month, `YYYY-MM`. */
@@ -19,6 +20,7 @@ interface MonthMenuProps {
  * `neutral.light` — the same #D1DBF9 in both schemes, and 1.38:1 on a white card.
  */
 const MonthMenu = ({ value, onChange, count = 12 }: MonthMenuProps) => {
+  const { t } = useTranslation();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
   const open = (e: MouseEvent<HTMLElement>) => setAnchor(e.currentTarget);
@@ -45,7 +47,7 @@ const MonthMenu = ({ value, onChange, count = 12 }: MonthMenuProps) => {
               close();
             }}
           >
-            {formatMonth(month)}
+            {formatMonth(month, t)}
           </MenuItem>
         ))}
       </Menu>

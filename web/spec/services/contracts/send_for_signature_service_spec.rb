@@ -51,7 +51,7 @@ RSpec.describe Contracts::SendForSignatureService do
       result = described_class.call(contract: contract)
 
       expect(result).to be_failure
-      expect(result.details[:base].first).to include("no guardian linked")
+      expect(result.details[:base].first).to include("responsável")
     end
 
     # A guardian without an e-mail cannot be reached, and one without a CPF cannot be identified.
@@ -205,7 +205,7 @@ RSpec.describe Contracts::SendForSignatureService do
       result = described_class.call(contract: contract)
 
       expect(result.error_code).to eq(:validation_error)
-      expect(result.details[:base].first).to include("rejected this school's credentials")
+      expect(result.details[:base].first).to include("credenciais")
     end
 
     # A provider outage is worth retrying, and the code says so.
@@ -223,7 +223,7 @@ RSpec.describe Contracts::SendForSignatureService do
       result = described_class.call(contract: contract)
 
       expect(result).to be_failure
-      expect(result.details[:base].first).to include("No signature integration")
+      expect(result.details[:base].first).to include("integração de assinatura")
     end
   end
 end

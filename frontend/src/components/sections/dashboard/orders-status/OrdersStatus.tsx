@@ -20,10 +20,11 @@ import { ApiError } from 'services/api';
 import { createTransaction, listTransactions } from 'services/transactionsApi';
 import {
   SchoolTransaction,
-  TRANSACTION_CATEGORY_LABELS,
+  TRANSACTION_CATEGORY_KEYS,
   TransactionCategory,
   TransactionKind,
 } from 'types/transaction';
+import { useTranslation } from 'providers/I18nContext';
 import { formatCents, formatCentsInput, parseCents } from 'utils/money';
 import { lastDayOfMonth } from 'utils/month';
 import LedgerTable from './OrdersStatusTable';
@@ -40,6 +41,7 @@ interface LedgerProps {
  * the boletos; this is everything else — textbooks sold at the counter, the payroll, the rent.
  */
 const Ledger = ({ month, onChanged }: LedgerProps) => {
+  const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -83,12 +85,12 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
       setRows([]);
       setTotal(0);
       setError(
-        err instanceof ApiError ? err.message : 'Não foi possível carregar as movimentações.',
+        err instanceof ApiError ? err.message : t('ledger.loadError'),
       );
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, kind, month]);
+  }, [schoolId, page, kind, month, t]);
 
   useEffect(() => {
     load();
@@ -118,11 +120,11 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
     const cents = parseCents(amount);
 
     if (!cents) {
-      setFormError('Informe o valor da movimentação.');
+      setFormError(t('ledger.form.amountRequired'));
       return;
     }
     if (!occurredOn) {
-      setFormError('Informe a data.');
+      setFormError(t('ledger.form.dateRequired'));
       return;
     }
 
@@ -146,7 +148,7 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
         const base = err.details.base;
         setFormError(Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message);
       } else {
-        setFormError('Não foi possível registrar a movimentação.');
+        setFormError(t('ledger.form.error'));
       }
     } finally {
       setSaving(false);
@@ -158,7 +160,7 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
   return (
     <SectionCard
       padding={0}
-      title="Entradas e saídas"
+      title={t('ledger.title')}
       headerActions={
         <>
           <ToggleButtonGroup
@@ -166,14 +168,14 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
             exclusive
             size="small"
             onChange={(_, value) => value && setKind(value)}
-            aria-label="Filtrar por tipo"
+            aria-label={t('ledger.filter')}
           >
-            <ToggleButton value="all">Tudo</ToggleButton>
-            <ToggleButton value="income">Entradas</ToggleButton>
-            <ToggleButton value="expense">Saídas</ToggleButton>
+            <ToggleButton value="all">{t('ledger.filter.all')}</ToggleButton>
+            <ToggleButton value="income">{t('ledger.filter.income')}</ToggleButton>
+            <ToggleButton value="expense">{t('ledger.filter.expense')}</ToggleButton>
           </ToggleButtonGroup>
           <Button variant="contained" size="small" onClick={openForm}>
-            Nova movimentação
+            {t('ledger.new')}
           </Button>
         </>
       }
@@ -186,11 +188,11 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
 
       {!loading && rows.length === 0 && !error ? (
         <EmptyState
-          title="Nenhuma movimentação neste mês"
-          description="Registre o que a escola recebeu e o que pagou para acompanhar o saldo do mês."
+          title={t('ledger.empty.title')}
+          description={t('ledger.empty.description')}
           action={
             <Button variant="contained" size="small" onClick={openForm}>
-              Nova movimentação
+              {t('ledger.new')}
             </Button>
           }
         />
@@ -208,7 +210,7 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
 
           <Stack px={3.5} pb={3.5} justifyContent="flex-end" gap={1}>
             <Typography variant="body2" color="text.secondary">
-              Saldo desta página:
+              {t('ledger.balance')}
             </Typography>
             <Typography
               variant="body2"
@@ -227,14 +229,14 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Nova movimentação</DialogTitle>
+        <DialogTitle>{t('ledger.new')}</DialogTitle>
         <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
           <DialogContent>
             <Grid container spacing={2.5} pt={0.5}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   id="transaction-kind"
-                  label="Tipo"
+                  label={t('ledger.form.kind')}
                   value={formKind}
                   onChange={(e) => setFormKind(e.target.value as TransactionKind)}
                   variant="filled"
@@ -242,14 +244,14 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
                   fullWidth
                   required
                 >
-                  <MenuItem value="income">Entrada</MenuItem>
-                  <MenuItem value="expense">Saída</MenuItem>
+                  <MenuItem value="income">{t('transaction.kind.income')}</MenuItem>
+                  <MenuItem value="expense">{t('transaction.kind.expense')}</MenuItem>
                 </TextField>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   id="transaction-category"
-                  label="Categoria"
+                  label={t('ledger.form.category')}
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value as TransactionCategory)}
                   variant="filled"
@@ -258,10 +260,10 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
                   required
                 >
                   {(
-                    Object.keys(TRANSACTION_CATEGORY_LABELS) as TransactionCategory[]
+                    Object.keys(TRANSACTION_CATEGORY_KEYS) as TransactionCategory[]
                   ).map((category) => (
                     <MenuItem key={category} value={category}>
-                      {TRANSACTION_CATEGORY_LABELS[category]}
+                      {t(TRANSACTION_CATEGORY_KEYS[category])}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -269,7 +271,7 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   id="transaction-amount"
-                  label="Valor"
+                  label={t('common.amount')}
                   value={amount}
                   onChange={(e) => setAmount(formatCentsInput(e.target.value))}
                   variant="filled"
@@ -286,7 +288,7 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   id="transaction-date"
-                  label="Data"
+                  label={t('ledger.form.date')}
                   type="date"
                   value={occurredOn}
                   onChange={(e) => setOccurredOn(e.target.value)}
@@ -299,8 +301,8 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
               <Grid size={12}>
                 <TextField
                   id="transaction-description"
-                  label="Descrição"
-                  placeholder="Apostilas do 6º ano, conta de luz..."
+                  label={t('common.description')}
+                  placeholder={t('ledger.form.descriptionPlaceholder')}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   variant="filled"
@@ -316,7 +318,7 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setFormOpen(false)} color="inherit" disabled={saving}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -324,7 +326,7 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
               disabled={saving}
               startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
             >
-              {saving ? 'Salvando...' : 'Registrar'}
+              {saving ? t('ledger.form.submitting') : t('ledger.form.submit')}
             </Button>
           </DialogActions>
         </Stack>

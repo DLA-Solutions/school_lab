@@ -24,6 +24,7 @@ import { BillableContract, ChargeBatchResult } from 'types/charge';
 import { formatCpf } from 'utils/documentNumber';
 import { formatCents } from 'utils/money';
 import { currentMonth } from 'utils/month';
+import { useTranslation } from 'providers/I18nContext';
 
 interface ChargeBatchDialogProps {
   open: boolean;
@@ -49,6 +50,7 @@ interface ChargeBatchDialogProps {
 const fifthOf = (period: string) => `${period}-05`;
 
 const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDialogProps) => {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState(currentMonth);
   const [dueDate, setDueDate] = useState(() => fifthOf(currentMonth()));
   const [rows, setRows] = useState<BillableContract[]>([]);
@@ -73,12 +75,12 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
       setRows([]);
       setSelected([]);
       setError(
-        err instanceof ApiError ? err.message : 'Could not load the active contracts.',
+        err instanceof ApiError ? err.message : t('charges.batch.loadError'),
       );
     } finally {
       setLoading(false);
     }
-  }, [schoolId, period]);
+  }, [schoolId, period, t]);
 
   useEffect(() => {
     if (!open) {
@@ -114,7 +116,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
     e.preventDefault();
 
     if (selected.length === 0) {
-      setError('Select at least one contract.');
+      setError(t('charges.batch.selectAtLeastOne'));
       return;
     }
 
@@ -135,7 +137,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         const base = err.details.base;
         setError(Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message);
       } else {
-        setError('Could not issue the boletos. Check your connection.');
+        setError(t('charges.batch.error'));
       }
     } finally {
       setIssuing(false);
@@ -146,14 +148,14 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
 
   return (
     <Dialog open={open} onClose={issuing ? undefined : onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Issue boletos in bulk</DialogTitle>
+      <DialogTitle>{t('charges.batch.title')}</DialogTitle>
       <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
         <DialogContent>
           <Grid container spacing={2.5} pt={0.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="batch-period"
-                label="Billing period"
+                label={t('charges.batch.period')}
                 type="month"
                 value={period}
                 onChange={(e) => {
@@ -168,20 +170,20 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                 fullWidth
                 required
                 slotProps={{ inputLabel: { shrink: true } }}
-                helperText="The month these boletos cover."
+                helperText={t('charges.batch.periodHelp')}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="batch-due-date"
-                label="Due date for the whole batch"
+                label={t('charges.batch.dueDate')}
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 variant="filled"
                 fullWidth
                 slotProps={{ inputLabel: { shrink: true } }}
-                helperText="Clear it to use each contract's own agreed day."
+                helperText={t('charges.batch.dueDateHelp')}
               />
             </Grid>
 
@@ -192,8 +194,8 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                 </Stack>
               ) : rows.length === 0 ? (
                 <EmptyState
-                  title="No active contracts"
-                  description="Only active contracts take part in the month\u2019s billing."
+                  title={t('charges.batch.empty.title')}
+                  description={t('charges.batch.empty.description')}
                   headingLevel={3}
                 />
               ) : (
@@ -207,13 +209,13 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                             indeterminate={selected.length > 0 && !allSelected}
                             onChange={toggleAll}
                             disabled={billable.length === 0}
-                            inputProps={{ 'aria-label': 'Select every contract' }}
+                            inputProps={{ 'aria-label': t('charges.batch.selectAll') }}
                           />
                         </TableCell>
-                        <TableCell>Student</TableCell>
-                        <TableCell>Billed to</TableCell>
-                        <TableCell align="right">Monthly</TableCell>
-                        <TableCell align="right">Due day</TableCell>
+                        <TableCell>{t('common.student')}</TableCell>
+                        <TableCell>{t('charges.column.billedTo')}</TableCell>
+                        <TableCell align="right">{t('charges.batch.monthly')}</TableCell>
+                        <TableCell align="right">{t('charges.batch.dueDay')}</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -225,7 +227,9 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                               onChange={() => toggle(row.contract_id)}
                               disabled={row.already_charged}
                               inputProps={{
-                                'aria-label': `Select contract for ${row.student_name ?? row.contract_id}`,
+                                'aria-label': t('charges.batch.selectOne', {
+                                  student: row.student_name ?? row.contract_id,
+                                }),
                               }}
                             />
                           </TableCell>
@@ -233,7 +237,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                             <Typography variant="body2">{row.student_name ?? '—'}</Typography>
                             {row.already_charged && (
                               <Typography variant="caption" color="text.secondary">
-                                Already billed for this period
+                                {t('charges.batch.alreadyBilled')}
                               </Typography>
                             )}
                           </TableCell>
@@ -247,7 +251,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                               </>
                             ) : (
                               <Typography variant="body2" color="error.main">
-                                No paying guardian
+                                {t('charges.batch.noPayer')}
                               </Typography>
                             )}
                           </TableCell>
@@ -270,7 +274,10 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
             {selected.length > 0 && (
               <Grid size={12}>
                 <Alert severity="info">
-                  {`${selected.length} contract(s) selected — ${formatCents(totalCents)} in boletos.`}
+                  {t('charges.batch.selected', {
+                    count: selected.length,
+                    amount: formatCents(totalCents),
+                  })}
                 </Alert>
               </Grid>
             )}
@@ -284,7 +291,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="inherit" disabled={issuing}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             type="submit"
@@ -292,7 +299,9 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
             disabled={issuing || loading || selected.length === 0}
             startIcon={issuing ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            {issuing ? 'Issuing...' : `Issue ${selected.length} boleto(s)`}
+            {issuing
+              ? t('charges.batch.submitting')
+              : t('charges.batch.submit', { count: selected.length })}
           </Button>
         </DialogActions>
       </Stack>

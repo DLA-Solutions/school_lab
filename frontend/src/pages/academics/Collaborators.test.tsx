@@ -171,9 +171,9 @@ describe('Collaborators page', () => {
 
     await user.click(await screen.findByRole('combobox', { name: /tipo de documento/i }));
 
-    expect(screen.getByRole('option', { name: 'Employment contract' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Diploma / certification' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Contrato de trabalho' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Diploma / certificação' })).toBeInTheDocument();
     // Proof of income belongs to a guardian's file, not a collaborator's.
-    expect(screen.queryByRole('option', { name: 'Proof of income' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Comprovante de renda' })).not.toBeInTheDocument();
   });
 });

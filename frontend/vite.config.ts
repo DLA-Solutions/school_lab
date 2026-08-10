@@ -50,6 +50,11 @@ export default defineConfig(({ mode }) => ({
     // sit well past 5s waiting for a worker. The failures that produced were all starvation, not
     // slow assertions — raise the ceiling rather than trade away coverage for speed.
     testTimeout: 20_000,
+    // Vitest defaults to roughly one worker per core, and each one carries jsdom plus the whole
+    // MUI tree. On a machine also running the API in Docker that oversubscribes badly: files
+    // failed at random — a trivial SkipLink spec one run, a dialog the next — which is the shape
+    // of starvation rather than of a bug. Fewer workers, each with room to finish.
+    maxWorkers: 4,
     server: {
       deps: {
         // The design-system barrel reaches DataTable, and the DataGrid package imports a

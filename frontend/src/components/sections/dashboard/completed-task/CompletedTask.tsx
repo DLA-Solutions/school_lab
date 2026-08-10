@@ -7,7 +7,9 @@ import RateChip from 'components/common/RateChip';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { DashboardMetrics } from 'types/dashboard';
 import { formatCents } from 'utils/money';
-import { SHORT_MONTH_NAMES } from 'utils/month';
+import { monthNumber } from 'utils/month';
+import { useTranslation } from 'providers/I18nContext';
+import type { MessageKey } from 'locales';
 import CompletedTaskChart from './CompletedTaskChart';
 
 interface SchoolIncomeProps {
@@ -20,16 +22,18 @@ interface SchoolIncomeProps {
  * total; the chip compares the selected month against the one before it.
  */
 const SchoolIncome = ({ metrics, loading }: SchoolIncomeProps) => {
+  const { t } = useTranslation();
   const series = useMemo(() => metrics?.monthly_income_series ?? [], [metrics]);
 
   const data = useMemo(
     () =>
       series.map((point) => ({
-        date: SHORT_MONTH_NAMES[Number(point.month.split('-')[1]) - 1] ?? point.month,
+        // Three letters is what an axis has room for, in either language.
+        date: t(`month.${monthNumber(point.month)}` as MessageKey).slice(0, 3),
         // The chart plots reais: cents would put the axis in the hundreds of thousands.
         value: point.amount_cents / 100,
       })),
-    [series],
+    [series, t],
   );
 
   const totalCents = series.reduce((sum, point) => sum + point.amount_cents, 0);
@@ -43,14 +47,14 @@ const SchoolIncome = ({ metrics, loading }: SchoolIncomeProps) => {
       ? `${Math.abs(
           (((selected?.amount_cents ?? 0) - previous.amount_cents) / previous.amount_cents) * 100,
         ).toFixed(1)}%`
-      : 'novo';
+      : t('dashboard.kpi.new');
 
   return (
     <Paper sx={{ height: 300 }}>
       <Stack alignItems="center" spacing={0.6}>
         <IconifyIcon icon="ph:trend-up-fill" color="text.secondary" fontSize="h6.fontSize" />
         <Typography variant="body2" color="text.secondary">
-          Entradas da escola ao longo do ano
+          {t('dashboard.income.title')}
         </Typography>
       </Stack>
 

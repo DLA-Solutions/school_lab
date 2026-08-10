@@ -111,7 +111,7 @@ describe('Charges', () => {
     renderPage();
 
     expect(await screen.findByText('Aluguel da quadra')).toBeInTheDocument();
-    expect(screen.getByText('One-off')).toBeInTheDocument();
+    expect(screen.getByText('Avulso')).toBeInTheDocument();
   });
 
   it('raises a one-off against a guardian who has no contract at all', async () => {
@@ -128,20 +128,20 @@ describe('Charges', () => {
 
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: 'New one-off boleto' }));
+    await user.click(await screen.findByRole('button', { name: 'Novo boleto avulso' }));
 
     const dialog = await screen.findByRole('dialog');
 
     // One field: type part of a name or a CPF and pick the payer from what comes back.
     await user.type(
-      within(dialog).getByRole('combobox', { name: /Guardian who receives the boleto/ }),
+      within(dialog).getByRole('combobox', { name: /Respons\u00e1vel que receber\u00e1 o boleto/ }),
       'Maria',
     );
     await user.click(await screen.findByRole('option', { name: /Maria Silva/ }));
 
     await user.type(dialog.querySelector('#charge-amount')!, '7500');
     await user.type(dialog.querySelector('#charge-due-date')!, '2026-09-15');
-    await user.click(within(dialog).getByRole('button', { name: 'Issue boleto' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Gerar boleto' }));
 
     await waitFor(() => expect(body).toBeDefined());
     expect(body).toMatchObject({
@@ -167,12 +167,12 @@ describe('Charges', () => {
     renderPage();
     await screen.findByText('Aluguel da quadra');
 
-    await user.type(screen.getByRole('textbox', { name: 'Search boletos' }), '031.902');
+    await user.type(screen.getByRole('textbox', { name: 'Buscar boletos' }), '031.902');
 
     await waitFor(() => expect(requests[requests.length - 1]?.searchParams.get('q')).toBe('031.902'));
 
-    await user.click(screen.getByRole('combobox', { name: 'Status' }));
-    await user.click(await screen.findByRole('option', { name: 'Cancelled' }));
+    await user.click(screen.getByRole('combobox', { name: 'Situa\u00e7\u00e3o' }));
+    await user.click(await screen.findByRole('option', { name: 'Cancelado' }));
 
     await waitFor(() => expect(requests[requests.length - 1]?.searchParams.get('status')).toBe('cancelled'));
   });
@@ -192,8 +192,8 @@ describe('Charges', () => {
 
     renderPage();
 
-    await user.click(await screen.findByRole('combobox', { name: 'Status' }));
-    await user.click(await screen.findByRole('option', { name: 'Open' }));
+    await user.click(await screen.findByRole('combobox', { name: 'Situa\u00e7\u00e3o' }));
+    await user.click(await screen.findByRole('option', { name: 'Em aberto' }));
 
     await waitFor(() =>
       expect(requests[requests.length - 1]?.searchParams.get('status')).toBe('pending,overdue'),
@@ -217,12 +217,12 @@ describe('Charges', () => {
     renderPage();
 
     await user.click(
-      await screen.findByRole('button', { name: 'Cancel boleto for Maria Silva' }),
+      await screen.findByRole('button', { name: 'Cancelar boleto de Maria Silva' }),
     );
-    await user.click(await screen.findByRole('button', { name: 'Cancel boleto' }));
+    await user.click(await screen.findByRole('button', { name: 'Cancelar boleto' }));
 
     await waitFor(() => expect(cancelled).toBe(true));
-    expect(await screen.findByText(/stays on the list/i)).toBeInTheDocument();
+    expect(await screen.findByText(/permanece na lista/i)).toBeInTheDocument();
   });
 
   // Nothing to withdraw on a boleto that was already paid.
@@ -233,7 +233,7 @@ describe('Charges', () => {
     await screen.findByText('Aluguel da quadra');
 
     expect(
-      screen.queryByRole('button', { name: /Cancel boleto for/ }),
+      screen.queryByRole('button', { name: /Cancelar boleto de/ }),
     ).not.toBeInTheDocument();
   });
 });

@@ -7,18 +7,19 @@ import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import IconifyIcon from 'components/base/IconifyIcon';
-import { LANGUAGES, Language, DEFAULT_LANGUAGE } from 'locales';
+import { LANGUAGES, Language } from 'locales';
+import { useTranslation } from 'providers/I18nContext';
 
 /**
- * The product speaks one language, and the flag says which. It used to offer five — English,
- * Bengali, Chinese, Turkish — none of which translated anything: picking one changed the flag and
- * left every screen exactly as it was. A control that promises a language it cannot deliver is
- * worse than no control, so the list now holds the locale the interface is actually written in.
+ * Picks the language the product speaks. It used to offer five — English, Bengali, Chinese,
+ * Turkish — none of which translated anything: choosing one changed the flag and left every
+ * screen exactly as it was. Now the choice moves the interface and the API together, since
+ * `Accept-Language` follows it.
  *
- * Adding a second one means adding it to `src/locales` first; the menu follows from there.
+ * Adding a language means adding its catalogue under `src/locales` first; the menu follows.
  */
 const LanguageSelect = () => {
-  const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
+  const { language, setLocale, t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -31,7 +32,7 @@ const LanguageSelect = () => {
   };
 
   const handleLanguageItemClick = (langItem: Language) => {
-    setLanguage(langItem);
+    setLocale(langItem.code);
     handleFlagMenuClose();
   };
 
@@ -41,7 +42,7 @@ const LanguageSelect = () => {
         <IconButton
           onClick={handleFlagButtonClick}
           sx={{ fontSize: 'h4.fontSize' }}
-          aria-label="Language"
+          aria-label={t('nav.language')}
           aria-controls={open ? 'language-menu' : undefined}
           aria-expanded={open ? 'true' : undefined}
           aria-haspopup="true"

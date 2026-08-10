@@ -8,6 +8,8 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
+import { useTranslation } from 'providers/I18nContext';
+import type { MessageKey } from 'locales';
 import { listTeachers } from 'services/academicsApi';
 import { listGuardians } from 'services/guardiansApi';
 import { listStudents } from 'services/studentsApi';
@@ -54,6 +56,7 @@ const GlobalSearch = () => {
   const [people, setPeople] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const debouncedTerm = useDebouncedValue(term);
+  const { t } = useTranslation();
 
   const isSearching = debouncedTerm.trim().length >= MIN_TERM_LENGTH;
 
@@ -64,14 +67,14 @@ const GlobalSearch = () => {
     }
 
     return sitemap
-      .filter((item) => item.path && matchesTerm(item.subheader, debouncedTerm))
+      .filter((item) => item.path && matchesTerm(t(item.subheader as MessageKey), debouncedTerm))
       .map((item) => ({
         key: `page-${item.id}`,
         group: GROUPS.pages,
-        label: item.subheader,
+        label: t(item.subheader as MessageKey),
         to: item.path as string,
       }));
-  }, [debouncedTerm, isSearching]);
+  }, [debouncedTerm, isSearching, t]);
 
   useEffect(() => {
     // The people registers are staff-only; a guardian gets pages alone rather than three 403s.

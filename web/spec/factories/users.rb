@@ -357,7 +357,7 @@ FactoryBot.define do
   factory :school_billing_settings do
     school
     overdue_grace_days { 3 }
-    service_description { "School tuition" }
+    service_description { "Mensalidade escolar" }
     notification_schedule { SchoolBillingSettings.default_notification_schedule }
 
     trait :issuance_ready do

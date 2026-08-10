@@ -56,7 +56,7 @@ RSpec.describe Auth::AcceptInviteService do
     it "returns validation_error" do
       expect(result).to be_failure
       expect(result.error_code).to eq(:validation_error)
-      expect(result.details).to include(name: [ "can't be blank" ])
+      expect(result.details).to include(name: [ I18n.t("errors.messages.blank") ])
     end
   end
 

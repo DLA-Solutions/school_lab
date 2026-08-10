@@ -63,9 +63,9 @@ describe('ChargeBatchDialog', () => {
     renderDialog();
 
     // 85.000 + 60.000 cents; the contract already charged for the period is left out.
-    await screen.findByText(/2 contract\(s\) selected/);
+    await screen.findByText(/2 contrato\(s\) selecionado\(s\)/);
     expect(screen.getByText(/R\$\s?1\.450,00/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Issue 2 boleto(s)' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Emitir 2 boleto(s)' })).toBeEnabled();
   });
 
   // Billing it again would hand the family a second boleto for the same month.
@@ -75,11 +75,11 @@ describe('ChargeBatchDialog', () => {
     renderDialog();
 
     const checkbox = await screen.findByRole('checkbox', {
-      name: 'Select contract for Bruno Costa',
+      name: 'Selecionar contrato de Bruno Costa',
     });
 
     expect(checkbox).toBeDisabled();
-    expect(screen.getByText('Already billed for this period')).toBeInTheDocument();
+    expect(screen.getByText('J\u00e1 cobrado nesta compet\u00eancia')).toBeInTheDocument();
   });
 
   it('sends the selected contracts and the period the school named', async () => {
@@ -106,8 +106,8 @@ describe('ChargeBatchDialog', () => {
 
     const onIssued = renderDialog();
 
-    await screen.findByText(/2 contract\(s\) selected/);
-    await user.click(screen.getByRole('button', { name: 'Issue 2 boleto(s)' }));
+    await screen.findByText(/2 contrato\(s\) selecionado\(s\)/);
+    await user.click(screen.getByRole('button', { name: 'Emitir 2 boleto(s)' }));
 
     await waitFor(() => expect(onIssued).toHaveBeenCalled());
     // The school bills on the 5th, so the batch starts there rather than on nothing.
@@ -121,12 +121,12 @@ describe('ChargeBatchDialog', () => {
     renderDialog();
 
     const toggleAll = await screen.findByRole('checkbox', {
-      name: 'Select every contract',
+      name: 'Selecionar todos os contratos',
     });
 
     await user.click(toggleAll);
 
     // Nothing selected means nothing to send, so the action closes itself off.
-    expect(screen.getByRole('button', { name: 'Issue 0 boleto(s)' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Emitir 0 boleto(s)' })).toBeDisabled();
   });
 });

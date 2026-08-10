@@ -148,7 +148,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213404) do
     t.index ["school_id", "status"], name: "index_charges_on_school_id_and_status"
     t.index ["school_id"], name: "index_charges_on_school_id"
     t.check_constraint "discount_amount_cents >= 0", name: "charges_discount_amount_cents_non_negative"
-    t.check_constraint "kind::text = ANY (ARRAY['tuition'::character varying::text, 'one_off'::character varying::text])", name: "charges_kind_allowed"
+    t.check_constraint "kind::text = ANY (ARRAY['tuition'::character varying, 'one_off'::character varying]::text[])", name: "charges_kind_allowed"
     t.check_constraint "late_fee_amount_cents >= 0", name: "charges_late_fee_amount_cents_non_negative"
     t.check_constraint "original_amount_cents >= 0", name: "charges_original_amount_cents_non_negative"
     t.check_constraint "total_amount_cents >= 0", name: "charges_total_amount_cents_non_negative"
@@ -196,7 +196,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213404) do
     t.index ["signature_provider", "provider_document_id"], name: "index_contracts_on_provider_document", unique: true, where: "(provider_document_id IS NOT NULL)"
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
-    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying::text, 'signed'::character varying::text])", name: "contracts_signature_status_valid"
+    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying]::text[])", name: "contracts_signature_status_valid"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -475,7 +475,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213404) do
     t.index ["school_id"], name: "index_school_signature_providers_on_school_id"
     t.index ["uploaded_by_id"], name: "index_school_signature_providers_on_uploaded_by_id"
     t.index ["webhook_endpoint_token"], name: "index_school_signature_providers_on_webhook_token", unique: true
-    t.check_constraint "provider::text = ANY (ARRAY['autentique'::character varying::text, 'fake'::character varying::text])", name: "school_signature_providers_provider_allowed"
+    t.check_constraint "provider::text = ANY (ARRAY['autentique'::character varying, 'fake'::character varying]::text[])", name: "school_signature_providers_provider_allowed"
   end
 
   create_table "school_transactions", force: :cascade do |t|
@@ -494,7 +494,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213404) do
     t.index ["school_id", "occurred_on"], name: "index_school_transactions_on_school_id_and_occurred_on"
     t.index ["school_id"], name: "index_school_transactions_on_school_id"
     t.check_constraint "amount_cents >= 0", name: "school_transactions_amount_cents_non_negative"
-    t.check_constraint "kind::text = ANY (ARRAY['income'::character varying::text, 'expense'::character varying::text])", name: "school_transactions_kind_allowed"
+    t.check_constraint "kind::text = ANY (ARRAY['income'::character varying, 'expense'::character varying]::text[])", name: "school_transactions_kind_allowed"
   end
 
   create_table "schools", force: :cascade do |t|
@@ -689,10 +689,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213404) do
     t.index ["guardian_id", "student_id"], name: "index_student_guardians_on_guardian_id_and_student_id_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["guardian_id"], name: "index_student_guardians_on_guardian_id"
     t.index ["school_id"], name: "index_student_guardians_on_school_id"
-    t.index ["student_id", "relationship"], name: "index_student_guardians_on_student_and_parent_kept", unique: true, where: "((discarded_at IS NULL) AND ((relationship)::text = ANY (ARRAY[('father'::character varying)::text, ('mother'::character varying)::text])))"
+    t.index ["student_id", "relationship"], name: "index_student_guardians_on_student_and_parent_kept", unique: true, where: "((discarded_at IS NULL) AND ((relationship)::text = ANY ((ARRAY['father'::character varying, 'mother'::character varying])::text[])))"
     t.index ["student_id"], name: "index_student_guardians_on_student_id"
     t.check_constraint "financial_percentage IS NULL OR financial_percentage >= 0::numeric AND financial_percentage <= 100::numeric", name: "student_guardians_financial_percentage_range"
-    t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying::text, 'mother'::character varying::text, 'other'::character varying::text])", name: "student_guardians_relationship_valid"
+    t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying, 'mother'::character varying, 'other'::character varying]::text[])", name: "student_guardians_relationship_valid"
   end
 
   create_table "students", force: :cascade do |t|

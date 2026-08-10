@@ -4,9 +4,10 @@ import Typography from '@mui/material/Typography';
 import { DataTable, SemanticChip } from 'design-system';
 import {
   SchoolTransaction,
-  TRANSACTION_CATEGORY_LABELS,
-  TRANSACTION_KIND_LABELS,
+  TRANSACTION_CATEGORY_KEYS,
+  TRANSACTION_KIND_KEYS,
 } from 'types/transaction';
+import { useTranslation } from 'providers/I18nContext';
 import { formatCents } from 'utils/money';
 
 interface LedgerTableProps {
@@ -19,51 +20,53 @@ interface LedgerTableProps {
 
 const PAGE_SIZE = 25;
 
-const formatDate = (value: string) => {
-  // Split rather than `new Date`: a bare ISO date parsed as UTC shows the day before here.
+// Split rather than `new Date`: a bare ISO date parsed as UTC shows the day before here. The
+// order follows the locale, since 05/09 is two different days on the two sides of the equator.
+const formatDate = (value: string, locale: string) => {
   const [year, month, day] = value.split('-');
 
-  return `${day}/${month}/${year}`;
+  return locale === 'en-US' ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
 };
 
 /** Money in is green, money out is red — the direction is the first thing the row has to say. */
 const LedgerTable = ({ rows, loading, total, page, onPageChange }: LedgerTableProps) => {
+  const { t, locale } = useTranslation();
   const columns: GridColDef<SchoolTransaction>[] = [
     {
       field: 'kind',
-      headerName: 'Tipo',
+      headerName: t('ledger.form.kind'),
       width: 120,
       renderCell: ({ value }: GridRenderCellParams<SchoolTransaction, SchoolTransaction['kind']>) => (
         <SemanticChip
           variant={value === 'income' ? 'success' : 'error'}
-          label={TRANSACTION_KIND_LABELS[value ?? 'income']}
+          label={t(TRANSACTION_KIND_KEYS[value ?? 'income'])}
         />
       ),
     },
     {
       field: 'occurred_on',
-      headerName: 'Data',
+      headerName: t('ledger.column.date'),
       width: 120,
       renderCell: ({ value }: GridRenderCellParams<SchoolTransaction, string>) => (
-        <Typography variant="body2">{value ? formatDate(value) : '—'}</Typography>
+        <Typography variant="body2">{value ? formatDate(value, locale) : '—'}</Typography>
       ),
     },
     {
       field: 'category',
-      headerName: 'Categoria',
+      headerName: t('ledger.column.category'),
       flex: 1,
       minWidth: 170,
       renderCell: ({
         value,
       }: GridRenderCellParams<SchoolTransaction, SchoolTransaction['category']>) => (
         <Typography variant="body2">
-          {value ? TRANSACTION_CATEGORY_LABELS[value] : '—'}
+          {value ? t(TRANSACTION_CATEGORY_KEYS[value]) : '—'}
         </Typography>
       ),
     },
     {
       field: 'description',
-      headerName: 'Descrição',
+      headerName: t('common.description'),
       flex: 2,
       minWidth: 200,
       renderCell: ({ value }: GridRenderCellParams<SchoolTransaction, string | null>) =>
@@ -77,7 +80,7 @@ const LedgerTable = ({ rows, loading, total, page, onPageChange }: LedgerTablePr
     },
     {
       field: 'signed_amount_cents',
-      headerName: 'Valor',
+      headerName: t('common.amount'),
       width: 150,
       align: 'right',
       headerAlign: 'right',
@@ -106,7 +109,7 @@ const LedgerTable = ({ rows, loading, total, page, onPageChange }: LedgerTablePr
       pageSizeOptions={[PAGE_SIZE]}
       paginationModel={{ page, pageSize: PAGE_SIZE }}
       onPaginationModelChange={(model) => onPageChange(model.page)}
-      rangeLabel={({ from, to, count }) => `${from}-${to} de ${count}`}
+      rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
     />
   );
 };

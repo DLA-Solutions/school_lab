@@ -41,14 +41,16 @@ import { Guardian } from 'types/guardian';
 import { formatCpf } from 'utils/documentNumber';
 import { formatCents, formatCentsInput, parseCents } from 'utils/money';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
+import { useTranslation } from 'providers/I18nContext';
+import type { MessageKey } from 'locales';
 
 const PAGE_SIZE = 25;
 
-const STATUS_LABELS: Record<Charge['status'], string> = {
-  pending: 'Open',
-  overdue: 'Overdue',
-  paid: 'Paid',
-  cancelled: 'Cancelled',
+const STATUS_KEYS: Record<Charge['status'], MessageKey> = {
+  pending: 'charges.status.pending',
+  overdue: 'charges.status.overdue',
+  paid: 'charges.status.paid',
+  cancelled: 'charges.status.cancelled',
 };
 
 const STATUS_VARIANTS: Record<Charge['status'], 'success' | 'warning' | 'error' | 'info'> = {
@@ -63,22 +65,26 @@ const STATUS_VARIANTS: Record<Charge['status'], 'success' | 'warning' | 'error' 
  * boleto has not paid it, and splitting the two would make the school look in two places for
  * the same unpaid slip.
  */
-const STATUS_FILTERS: { value: string; label: string; statuses: string[] }[] = [
-  { value: 'all', label: 'All', statuses: [] },
-  { value: 'open', label: 'Open', statuses: ['pending', 'overdue'] },
-  { value: 'paid', label: 'Paid', statuses: ['paid'] },
-  { value: 'cancelled', label: 'Cancelled', statuses: ['cancelled'] },
+const STATUS_FILTERS: { value: string; label: MessageKey; statuses: string[] }[] = [
+  { value: 'all', label: 'charges.filter.all', statuses: [] },
+  { value: 'open', label: 'charges.filter.open', statuses: ['pending', 'overdue'] },
+  { value: 'paid', label: 'charges.filter.paid', statuses: ['paid'] },
+  { value: 'cancelled', label: 'charges.filter.cancelled', statuses: ['cancelled'] },
 ];
 
-const formatDate = (value: string | null) => {
+/**
+ * Split rather than `new Date`: a bare ISO date parsed as UTC shows the day before here. The
+ * order follows the locale — a Brazilian reads 05/09 as 5 September, an American as 9 May, and
+ * getting that backwards on a due date is not a cosmetic error.
+ */
+const formatDate = (value: string | null, locale: string) => {
   if (!value) {
     return '—';
   }
 
-  // Split rather than `new Date`: a bare ISO date parsed as UTC shows the day before here.
   const [year, month, day] = value.split('-');
 
-  return `${month}/${day}/${year}`;
+  return locale === 'en-US' ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
 };
 
 /** Name and CPF in one line, which is how a payer is recognised in a list of them. */
@@ -90,6 +96,7 @@ const guardianLabel = (guardian: Guardian) => `${guardian.name} — ${formatCpf(
  * actually belongs to one — and where a whole month is billed in a single pass.
  */
 const Charges = () => {
+  const { t, locale } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -145,11 +152,11 @@ const Charges = () => {
     } catch (err) {
       setCharges([]);
       setTotal(0);
-      setError(err instanceof ApiError ? err.message : 'Could not load the boletos.');
+      setError(err instanceof ApiError ? err.message : t('charges.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, statusFilter, debouncedSearch]);
+  }, [schoolId, page, statusFilter, debouncedSearch, t]);
 
   useEffect(() => {
     load();
@@ -233,15 +240,15 @@ const Charges = () => {
 
     // A contract is optional; a payer is not — the slip has to carry someone's CPF.
     if (!payer) {
-      setFormError('Choose the guardian who receives this boleto.');
+      setFormError(t('charges.form.payerRequired'));
       return;
     }
     if (!cents) {
-      setFormError('Enter the amount.');
+      setFormError(t('charges.form.amountRequired'));
       return;
     }
     if (!dueDate) {
-      setFormError('Enter the due date.');
+      setFormError(t('charges.form.dueDateRequired'));
       return;
     }
 
@@ -264,7 +271,7 @@ const Charges = () => {
         const base = err.details.base;
         setFormError(Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message);
       } else {
-        setFormError('Could not raise the boleto. Check your connection.');
+        setFormError(t('charges.form.error'));
       }
     } finally {
       setSaving(false);
@@ -282,11 +289,11 @@ const Charges = () => {
     try {
       await cancelCharge(schoolId, cancelling.id);
       setCancelling(null);
-      setNotice('Boleto cancelled. It stays on the list, marked cancelled.');
+      setNotice(t('charges.cancelled'));
       load();
     } catch (err) {
       setCancelling(null);
-      setError(err instanceof ApiError ? err.message : 'Could not cancel the boleto.');
+      setError(err instanceof ApiError ? err.message : t('charges.cancelError'));
     } finally {
       setCancellingId(null);
     }
@@ -295,15 +302,15 @@ const Charges = () => {
   const columns: GridColDef<Charge>[] = [
     {
       field: 'kind',
-      headerName: 'Type',
+      headerName: t('charges.column.type'),
       width: 110,
       renderCell: ({ value }: GridRenderCellParams<Charge, Charge['kind']>) => (
-        <Typography variant="body2">{value === 'one_off' ? 'One-off' : 'Tuition'}</Typography>
+        <Typography variant="body2">{value === 'one_off' ? t('charges.kind.oneOff') : t('charges.kind.tuition')}</Typography>
       ),
     },
     {
       field: 'student',
-      headerName: 'Student',
+      headerName: t('common.student'),
       flex: 1,
       minWidth: 160,
       sortable: false,
@@ -319,7 +326,7 @@ const Charges = () => {
     },
     {
       field: 'guardian',
-      headerName: 'Billed to',
+      headerName: t('charges.column.billedTo'),
       flex: 1,
       minWidth: 190,
       sortable: false,
@@ -334,7 +341,7 @@ const Charges = () => {
     },
     {
       field: 'description',
-      headerName: 'Description',
+      headerName: t('common.description'),
       flex: 1,
       minWidth: 160,
       renderCell: ({ value }: GridRenderCellParams<Charge, string | null>) =>
@@ -348,7 +355,7 @@ const Charges = () => {
     },
     {
       field: 'total_amount_cents',
-      headerName: 'Amount',
+      headerName: t('common.amount'),
       width: 130,
       renderCell: ({ value }: GridRenderCellParams<Charge, number>) => (
         <Typography variant="body2">{formatCents(value)}</Typography>
@@ -356,26 +363,26 @@ const Charges = () => {
     },
     {
       field: 'due_date',
-      headerName: 'Due',
+      headerName: t('charges.column.due'),
       width: 120,
       renderCell: ({ value }: GridRenderCellParams<Charge, string | null>) => (
-        <Typography variant="body2">{formatDate(value ?? null)}</Typography>
+        <Typography variant="body2">{formatDate(value ?? null, locale)}</Typography>
       ),
     },
     {
       field: 'status',
-      headerName: 'Status',
+      headerName: t('common.status'),
       width: 120,
       renderCell: ({ value }: GridRenderCellParams<Charge, Charge['status']>) => (
         <SemanticChip
           variant={STATUS_VARIANTS[value ?? 'pending']}
-          label={STATUS_LABELS[value ?? 'pending']}
+          label={t(STATUS_KEYS[value ?? 'pending'])}
         />
       ),
     },
     {
       field: 'boleto_url',
-      headerName: 'Boleto',
+      headerName: t('charges.column.boleto'),
       width: 100,
       sortable: false,
       renderCell: ({ value, row }: GridRenderCellParams<Charge, string | null>) =>
@@ -383,7 +390,7 @@ const Charges = () => {
           // `component="a"` opts out of the theme's default, which routes every MuiLink through
           // react-router; this points at the bank, not at an in-app route.
           <Link component="a" href={value} target="_blank" rel="noopener" variant="body2">
-            Open
+            {t('charges.open')}
           </Link>
         ) : (
           <Typography variant="body2" color="text.secondary">
@@ -393,7 +400,7 @@ const Charges = () => {
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('common.actions'),
       width: 90,
       sortable: false,
       filterable: false,
@@ -404,10 +411,10 @@ const Charges = () => {
           {/* Only a live boleto can be withdrawn; a paid or already cancelled one has nothing
               left to cancel. */}
           {(row.status === 'pending' || row.status === 'overdue') && (
-            <Tooltip title="Cancel">
+            <Tooltip title={t('common.cancel')}>
               <IconButton
                 size="small"
-                aria-label={`Cancel boleto for ${row.guardian.name}`}
+                aria-label={t('charges.cancelAction', { name: row.guardian.name })}
                 onClick={() => setCancelling(row)}
                 disabled={cancellingId === row.id}
               >
@@ -423,11 +430,11 @@ const Charges = () => {
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Boletos" />
+        <PageHeader title={t('charges.title')} />
         <SectionCard>
           <EmptyState
-            title="No access to this area"
-            description="Boletos are available only to users with an active school membership."
+            title={t('charges.noAccess.title')}
+            description={t('charges.noAccess.description')}
             headingLevel={2}
           />
         </SectionCard>
@@ -438,13 +445,13 @@ const Charges = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title="Boletos"
+        title={t('charges.title')}
         subtitle={school.school_name ?? undefined}
         actions={
           <>
             <TextField
               id="charge-status-filter"
-              label="Status"
+              label={t('common.status')}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               select
@@ -454,22 +461,22 @@ const Charges = () => {
             >
               {STATUS_FILTERS.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.label)}
                 </MenuItem>
               ))}
             </TextField>
             <SearchField
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or CPF"
-              ariaLabel="Search boletos"
+              placeholder={t('charges.searchPlaceholder')}
+              ariaLabel={t('charges.searchLabel')}
               sx={{ width: 260 }}
             />
             <Button variant="outlined" size="small" onClick={() => setBatchOpen(true)}>
-              Issue in bulk
+              {t('charges.issueInBulk')}
             </Button>
             <Button variant="contained" size="small" onClick={openForm}>
-              New one-off boleto
+              {t('charges.newOneOff')}
             </Button>
           </>
         }
@@ -481,15 +488,15 @@ const Charges = () => {
       <SectionCard padding={0}>
         {!loading && charges.length === 0 && !error ? (
           <EmptyState
-            title={debouncedSearch || statusFilter !== 'all' ? 'Nothing found' : 'No boletos yet'}
+            title={debouncedSearch || statusFilter !== 'all' ? t('charges.emptySearch.title') : t('charges.empty.title')}
             description={
               debouncedSearch || statusFilter !== 'all'
-                ? 'No boleto matches this search and filter.'
-                : 'Tuition boletos show up here, together with any one-off you raise.'
+                ? t('charges.emptySearch.description')
+                : t('charges.empty.description')
             }
             action={
               <Button variant="contained" size="small" onClick={openForm}>
-                New one-off boleto
+                {t('charges.newOneOff')}
               </Button>
             }
           />
@@ -506,7 +513,7 @@ const Charges = () => {
               pageSizeOptions={[PAGE_SIZE]}
               paginationModel={{ page, pageSize: PAGE_SIZE }}
               onPaginationModelChange={(model) => setPage(model.page)}
-              rangeLabel={({ from, to, count }) => `${from}-${to} of ${count}`}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
             />
           </Box>
         )}
@@ -518,7 +525,7 @@ const Charges = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>New one-off boleto</DialogTitle>
+        <DialogTitle>{t('charges.form.title')}</DialogTitle>
         <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
           <DialogContent>
             <Grid container spacing={2.5} pt={0.5}>
@@ -540,17 +547,17 @@ const Charges = () => {
                   // would drop rows it deliberately returned.
                   filterOptions={(options) => options}
                   loading={guardiansLoading}
-                  noOptionsText={payerSearch ? 'No guardian found' : 'Type a name or a CPF'}
+                  noOptionsText={payerSearch ? t('charges.form.noGuardianFound') : t('charges.form.typeToSearch')}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Guardian who receives the boleto"
+                      label={t('charges.form.payer')}
                       variant="filled"
                       required
                       helperText={
                         payer
-                          ? `The boleto goes out on CPF ${formatCpf(payer.cpf)}.`
-                          : 'Search by name or CPF.'
+                          ? t('charges.form.payerCpf', { cpf: formatCpf(payer.cpf) })
+                          : t('charges.form.payerHelp')
                       }
                     />
                   )}
@@ -561,7 +568,7 @@ const Charges = () => {
                     one is named the charge shows up in that student's history. */}
                 <TextField
                   id="charge-contract"
-                  label="Contract (optional)"
+                  label={t('charges.form.contract')}
                   value={contractId}
                   onChange={(e) => setContractId(e.target.value)}
                   variant="filled"
@@ -570,16 +577,17 @@ const Charges = () => {
                   disabled={!payer}
                   helperText={
                     payer && contracts.length === 0
-                      ? 'This guardian has no contract. The boleto still goes out, tied to no student.'
+                      ? t('charges.form.noContractHelp')
                       : ' '
                   }
                 >
-                  <MenuItem value="">No contract</MenuItem>
+                  <MenuItem value="">{t('charges.form.noContract')}</MenuItem>
                   {contracts.map((contract) => (
                     <MenuItem key={contract.id} value={String(contract.id)}>
-                      {`${contract.student_name ?? `Contract ${contract.id}`} — ${formatCents(
-                        contract.negotiated_amount_cents,
-                      )}/month`}
+                      {t('charges.form.contractOption', {
+                        student: contract.student_name ?? `#${contract.id}`,
+                        amount: formatCents(contract.negotiated_amount_cents),
+                      })}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -587,7 +595,7 @@ const Charges = () => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   id="charge-amount"
-                  label="Amount"
+                  label={t('common.amount')}
                   value={amount}
                   onChange={(e) => setAmount(formatCentsInput(e.target.value))}
                   variant="filled"
@@ -604,7 +612,7 @@ const Charges = () => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   id="charge-due-date"
-                  label="Due date"
+                  label={t('charges.form.dueDate')}
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
@@ -617,8 +625,8 @@ const Charges = () => {
               <Grid size={12}>
                 <TextField
                   id="charge-description"
-                  label="Description"
-                  placeholder="Field trip, replacement uniform..."
+                  label={t('common.description')}
+                  placeholder={t('charges.form.descriptionPlaceholder')}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   variant="filled"
@@ -634,7 +642,7 @@ const Charges = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setFormOpen(false)} color="inherit" disabled={saving}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -642,7 +650,7 @@ const Charges = () => {
               disabled={saving}
               startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
             >
-              {saving ? 'Issuing...' : 'Issue boleto'}
+              {saving ? t('charges.form.submitting') : t('charges.form.submit')}
             </Button>
           </DialogActions>
         </Stack>
@@ -650,16 +658,18 @@ const Charges = () => {
 
       <ConfirmDialog
         open={cancelling !== null}
-        title="Cancel this boleto?"
+        title={t('charges.cancelTitle')}
         message={
           cancelling
-            ? `${cancelling.guardian.name} — ${formatCents(cancelling.total_amount_cents)}. ` +
-              'The boleto is withdrawn with the bank and stays on the list, marked cancelled.'
+            ? t('charges.cancelMessage', {
+                name: cancelling.guardian.name,
+                amount: formatCents(cancelling.total_amount_cents),
+              })
             : ''
         }
         destructive
-        confirmLabel="Cancel boleto"
-        cancelLabel="Keep it"
+        confirmLabel={t('charges.cancelConfirm')}
+        cancelLabel={t('charges.cancelKeep')}
         onConfirm={handleCancel}
         onCancel={() => setCancelling(null)}
       />
@@ -675,9 +685,9 @@ const Charges = () => {
 
             setNotice(
               [
-                `${result.created_count} boleto(s) issued and sent to the bank.`,
-                skipped > 0 ? `${skipped} already had a charge for this period.` : '',
-                withoutPayer > 0 ? `${withoutPayer} without a paying guardian.` : '',
+                t('charges.batch.issued', { count: result.created_count }),
+                skipped > 0 ? t('charges.batch.skipped', { count: skipped }) : '',
+                withoutPayer > 0 ? t('charges.batch.withoutPayer', { count: withoutPayer }) : '',
               ]
                 .filter(Boolean)
                 .join(' '),

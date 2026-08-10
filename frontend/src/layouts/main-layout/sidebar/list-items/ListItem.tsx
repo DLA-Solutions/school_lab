@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { MenuItem } from 'routes/sitemap';
+import { useTranslation } from 'providers/I18nContext';
+import type { MessageKey } from 'locales';
 import type { Theme } from '@mui/material/styles';
 import Link from '@mui/material/Link';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -30,6 +32,7 @@ const activeLabel = (theme: Theme, brandAccent: boolean) => {
 };
 
 const ListItem = ({ subheader, icon, path, active }: MenuItem) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const handleClick = () => {
@@ -56,7 +59,7 @@ const ListItem = ({ subheader, icon, path, active }: MenuItem) => {
         )}
       </ListItemIcon>
       <ListItemText
-        primary={subheader}
+        primary={t(subheader as MessageKey)}
         sx={(theme) => ({
           [`& .${listItemTextClasses.primary}`]: active ? activeLabel(theme, brandAccent) : {},
         })}

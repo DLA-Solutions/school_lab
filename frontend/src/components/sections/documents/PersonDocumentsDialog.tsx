@@ -18,12 +18,14 @@ import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { EmptyState, ErrorBanner, SemanticChip } from 'design-system';
 import { ApiError } from 'services/api';
+import { useTranslation } from 'providers/I18nContext';
+import type { MessageKey } from 'locales';
 import {
   DocumentableType,
   PERSONAL_DOCUMENT_TYPES,
   deleteDocument,
   documentDownloadUrl,
-  documentTypeLabel,
+  documentTypeKey,
   listPersonDocuments,
   uploadPersonDocument,
 } from 'services/documentsApi';
@@ -80,6 +82,14 @@ const PersonDocumentsDialog = ({
   emptyDescription = 'Envie CPF, RG ou comprovante de residência desta pessoa.',
   onClose,
 }: PersonDocumentsDialogProps) => {
+  const { t } = useTranslation();
+  // A type the API carries that this build does not know keeps its raw value: better an
+  // unfamiliar word than an empty cell.
+  const typeLabel = (value: string) => {
+    const key = documentTypeKey(value);
+
+    return key ? t(key as MessageKey) : value;
+  };
   const [documents, setDocuments] = useState<SchoolDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -180,7 +190,7 @@ const PersonDocumentsDialog = ({
             >
               {documentTypes.map((type) => (
                 <MenuItem key={type.value} value={type.value}>
-                  {type.label}
+                  {typeLabel(type.value)}
                 </MenuItem>
               ))}
             </TextField>
@@ -278,7 +288,7 @@ const PersonDocumentsDialog = ({
                       }
                       secondary={
                         <Typography variant="caption" color="text.secondary">
-                          {documentTypeLabel(document.document_type)}
+                          {typeLabel(document.document_type)}
                           {document.byte_size ? ` — ${formatBytes(document.byte_size)}` : ''}
                         </Typography>
                       }

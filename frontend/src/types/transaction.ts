@@ -35,22 +35,23 @@ export interface SchoolTransactionPayload {
   description?: string | null;
 }
 
-export const TRANSACTION_KIND_LABELS: Record<TransactionKind, string> = {
-  income: 'Entrada',
-  expense: 'Saída',
-};
+/** Catalogue keys, so a listing reads in the language the user picked. */
+export const TRANSACTION_KIND_KEYS = {
+  income: 'transaction.kind.income',
+  expense: 'transaction.kind.expense',
+} as const;
 
-export const TRANSACTION_CATEGORY_LABELS: Record<TransactionCategory, string> = {
-  didactic_material: 'Material didático',
-  tuition: 'Mensalidade',
-  enrolment_fee: 'Matrícula',
-  events: 'Eventos',
-  donation: 'Doação',
-  payroll: 'Folha de pagamento',
-  rent: 'Aluguel',
-  utilities: 'Contas de consumo',
-  supplies: 'Suprimentos',
-  maintenance: 'Manutenção',
-  taxes: 'Impostos',
-  other: 'Outros',
-};
+export const TRANSACTION_CATEGORY_KEYS = {
+  didactic_material: 'transaction.category.didactic_material',
+  tuition: 'transaction.category.tuition',
+  enrolment_fee: 'transaction.category.enrolment_fee',
+  events: 'transaction.category.events',
+  donation: 'transaction.category.donation',
+  payroll: 'transaction.category.payroll',
+  rent: 'transaction.category.rent',
+  utilities: 'transaction.category.utilities',
+  supplies: 'transaction.category.supplies',
+  maintenance: 'transaction.category.maintenance',
+  taxes: 'transaction.category.taxes',
+  other: 'transaction.category.other',
+} as const;

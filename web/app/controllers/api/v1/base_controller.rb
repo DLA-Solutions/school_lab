@@ -8,6 +8,7 @@ module Api
       include Pagy::Method
       include Pundit::Authorization
 
+      around_action :with_requested_locale
       before_action :authenticate_user!
       before_action :ensure_user_active!
 
@@ -15,6 +16,37 @@ module Api
       rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
 
       private
+
+      # The SPA sends `Accept-Language` on every call, so an error printed under a field reads in
+      # the same language as the field's own label. Anything the API does not speak falls to the
+      # default rather than being answered in a language nobody asked for.
+      #
+      # `around_action` rather than `before_action`: `I18n.locale` is per-thread, and a server
+      # that reuses threads would otherwise leak one request's language into the next.
+      def with_requested_locale(&)
+        I18n.with_locale(requested_locale, &)
+      end
+
+      def requested_locale
+        header = request.headers["Accept-Language"].to_s
+
+        # Quality values and multiple entries are more than the SPA sends, but a browser will send
+        # them; the first tag we actually speak wins.
+        tags = header.split(",").map { |part| part.split(";").first.to_s.strip }.compact_blank
+
+        tags.find { |tag| I18n.available_locales.include?(tag.to_sym) } ||
+          tags.filter_map { |tag| primary_match(tag) }.first ||
+          I18n.default_locale
+      end
+
+      # "pt", "pt-PT" and "pt-br" all mean pt-BR here: we carry one variant of each language, and
+      # answering a Portuguese speaker in English over a region subtag would be absurd.
+      def primary_match(tag)
+        primary = tag.split("-").first.to_s.downcase
+        return if primary.blank?
+
+        I18n.available_locales.find { |locale| locale.to_s.split("-").first.downcase == primary }
+      end
 
       def authenticate_user!
         return if skip_authentication?

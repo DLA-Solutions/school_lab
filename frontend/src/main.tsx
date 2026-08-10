@@ -6,6 +6,7 @@ import { createAppTheme } from 'theme/createAppTheme.ts';
 import router from 'routes/router';
 import AuthProvider from 'providers/AuthProvider';
 import ThemeModeProvider from 'providers/ThemeModeProvider';
+import I18nProvider from 'providers/I18nProvider';
 import './index.css';
 
 const theme = createAppTheme();
@@ -15,9 +16,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ThemeProvider theme={theme} defaultMode="dark">
       <CssBaseline enableColorScheme />
       <ThemeModeProvider>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </I18nProvider>
       </ThemeModeProvider>
     </ThemeProvider>
   </React.StrictMode>,

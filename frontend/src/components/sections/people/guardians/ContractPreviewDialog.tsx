@@ -13,6 +13,7 @@ import { ErrorBanner } from 'design-system';
 import { ApiError } from 'services/api';
 import { previewContract } from 'services/contractsApi';
 import { Contract } from 'types/contract';
+import { useTranslation } from 'providers/I18nContext';
 
 interface ContractPreviewDialogProps {
   open: boolean;
@@ -42,6 +43,7 @@ const ContractPreviewDialog = ({
   onSend,
   sending = false,
 }: ContractPreviewDialogProps) => {
+  const { t } = useTranslation();
   const [html, setHtml] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -65,12 +67,12 @@ const ContractPreviewDialog = ({
         const base = err.details.base;
         setError(Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message);
       } else {
-        setError('Não foi possível gerar a pré-visualização do contrato.');
+        setError(t('contract.preview.error'));
       }
     } finally {
       setLoading(false);
     }
-  }, [schoolId, contract]);
+  }, [schoolId, contract, t]);
 
   useEffect(() => {
     if (!open) {
@@ -83,7 +85,7 @@ const ContractPreviewDialog = ({
   return (
     <Dialog open={open} onClose={sending ? undefined : onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {signed ? 'Contrato' : 'Pré-visualização do contrato'}
+        {signed ? t('contract.preview.signedTitle') : t('contract.preview.title')}
         {contract && (
           <Typography variant="body2" color="text.secondary">
             {contract.student_name ?? `Estudante #${contract.student_id}`}
@@ -109,14 +111,14 @@ const ContractPreviewDialog = ({
                   target="_blank"
                   rel="noopener"
                 >
-                  Abrir PDF assinado
+                  {t('contract.preview.openSigned')}
                 </Button>
               ) : null
             }
           >
             {contract?.signed_document_url
-              ? 'Assinado. Abaixo está o texto enviado; o PDF assinado vem da Autentique.'
-              : 'Assinado. O PDF da Autentique ainda não foi localizado — a conciliação diária o busca.'}
+              ? t('contract.preview.signedWithFile')
+              : t('contract.preview.signedWithoutFile')}
           </Alert>
         )}
 
@@ -128,7 +130,7 @@ const ContractPreviewDialog = ({
           html && (
             <Box
               component="iframe"
-              title="Contrato"
+              title={t('contract.preview.frame')}
               srcDoc={html}
               sandbox=""
               sx={{
@@ -146,7 +148,7 @@ const ContractPreviewDialog = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="inherit" disabled={sending}>
-          Fechar
+          {t('common.close')}
         </Button>
         {onSend && contract && !contract.sent_to_provider && (
           <Button
@@ -155,7 +157,7 @@ const ContractPreviewDialog = ({
             disabled={sending || loading || Boolean(error)}
             startIcon={sending ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            {sending ? 'Enviando...' : 'Enviar para assinatura'}
+            {sending ? t('contract.preview.sending') : t('contract.preview.send')}
           </Button>
         )}
       </DialogActions>

@@ -6,15 +6,17 @@ import { SemanticChip } from 'design-system';
 import { ContractPrefill } from 'types/contract';
 import { formatCpf } from 'utils/documentNumber';
 import { gradeLevelLabel } from 'utils/gradeLevels';
+import { useTranslation } from 'providers/I18nContext';
+import type { MessageKey } from 'locales';
 
 interface ContractPrefillSummaryProps {
   prefill: ContractPrefill;
 }
 
-const RELATIONSHIP_LABELS: Record<string, string> = {
-  father: 'Pai',
-  mother: 'Mãe',
-  other: 'Responsável',
+const RELATIONSHIP_KEYS: Record<string, MessageKey> = {
+  father: 'contract.prefill.relationship.father',
+  mother: 'contract.prefill.relationship.mother',
+  other: 'contract.prefill.relationship.other',
 };
 
 const formatDate = (value: string | null) => {
@@ -42,6 +44,7 @@ const Field = ({ label, value }: { label: string; value: string }) => (
  * carry, and to name what is missing before it goes out rather than after.
  */
 const ContractPrefillSummary = ({ prefill }: ContractPrefillSummaryProps) => {
+  const { t } = useTranslation();
   const { student, guardians, blocking_issues: blocking, warnings } = prefill;
 
   return (
@@ -55,16 +58,16 @@ const ContractPrefillSummary = ({ prefill }: ContractPrefillSummaryProps) => {
         }}
       >
         <Typography variant="caption" color="text.secondary">
-          Dados que entram no contrato
+          {t('contract.prefill.heading')}
         </Typography>
 
         <Stack direction="row" flexWrap="wrap" gap={2} mt={1}>
-          <Field label="Aluno" value={student.name} />
-          <Field label="CPF" value={student.cpf ? formatCpf(student.cpf) : ''} />
-          <Field label="RG" value={student.rg ?? ''} />
-          <Field label="Nascimento" value={formatDate(student.birth_date)} />
+          <Field label={t('common.student')} value={student.name} />
+          <Field label={t('contract.prefill.cpf')} value={student.cpf ? formatCpf(student.cpf) : ''} />
+          <Field label={t('contract.prefill.rg')} value={student.rg ?? ''} />
+          <Field label={t('contract.prefill.birthDate')} value={formatDate(student.birth_date)} />
           <Field
-            label="Turma"
+            label={t('contract.prefill.class')}
             value={
               student.school_class_name
                 ? `${gradeLevelLabel(student.grade_level)} ${student.school_class_name}${
@@ -76,29 +79,29 @@ const ContractPrefillSummary = ({ prefill }: ContractPrefillSummaryProps) => {
         </Stack>
 
         <Typography variant="caption" color="text.secondary" display="block" mt={2}>
-          Responsáveis que vão assinar
+          {t('contract.prefill.signers')}
         </Typography>
 
         <Stack direction="column" gap={0.75} mt={0.5}>
           {guardians.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
-              Nenhum responsável vinculado a este aluno.
+              {t('contract.prefill.noSigners')}
             </Typography>
           ) : (
             guardians.map((person) => (
               <Stack key={person.id} direction="row" gap={1} alignItems="center" flexWrap="wrap">
                 <Typography variant="body2">
-                  {`${RELATIONSHIP_LABELS[person.relationship] ?? 'Responsável'}: ${person.name}`}
+                  {`${t(RELATIONSHIP_KEYS[person.relationship] ?? 'contract.prefill.relationship.other')}: ${person.name}`}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {person.cpf ? `CPF ${formatCpf(person.cpf)}` : 'sem CPF'}
-                  {person.email ? ` — ${person.email}` : ' — sem e-mail'}
+                  {person.cpf ? `CPF ${formatCpf(person.cpf)}` : t('contract.prefill.noCpf')}
+                  {person.email ? ` — ${person.email}` : ` — ${t('contract.prefill.noEmail')}`}
                 </Typography>
                 {/* Autentique reaches a signer by e-mail and identifies them by CPF, so a
                     guardian missing either cannot sign at all. */}
                 <SemanticChip
                   variant={person.can_sign ? 'success' : 'error'}
-                  label={person.can_sign ? 'Pode assinar' : 'Cadastro incompleto'}
+                  label={person.can_sign ? t('contract.prefill.canSign') : t('contract.prefill.cannotSign')}
                 />
               </Stack>
             ))

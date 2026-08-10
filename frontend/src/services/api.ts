@@ -1,16 +1,17 @@
 import { ApiErrorBody, RefreshResponse } from 'types/auth';
-import { DEFAULT_LANGUAGE } from 'locales';
+import { getLocale } from './localeStore';
 import { clearAccessToken, getAccessToken, setAccessToken } from './tokenStore';
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '') ||
   (import.meta.env.DEV ? 'http://localhost:3000' : '');
 
 /**
- * Locale the API resolves its i18n error messages against (`docs/api/README.md` → Locale). The
- * product ships in English (US) only — see `src/locales` — and the API has a single locale to
- * match, so an error shown under a field reads in the same language as the field's own label.
+ * Locale the API resolves its i18n error messages against (`docs/api/README.md` → Locale). Read
+ * per request rather than fixed at import: switching the flag has to change the language the API
+ * answers in too, or a validation error arrives in the other language from the field it sits
+ * under.
  */
-export const API_LOCALE = DEFAULT_LANGUAGE.code;
+export const apiLocale = () => getLocale();
 
 /**
  * Turns a host-relative path the API returns — Active Storage blobs come back with
@@ -83,7 +84,7 @@ const toApiError = (response: Response, body: unknown) => {
 const send = async (path: string, { method = 'GET', body, auth = true }: RequestOptions) => {
   const headers: Record<string, string> = {
     Accept: 'application/json',
-    'Accept-Language': API_LOCALE,
+    'Accept-Language': apiLocale(),
   };
 
   // File uploads go up as multipart. The Content-Type must be left to the browser: it is the only

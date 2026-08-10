@@ -6,26 +6,33 @@ const collectionPath = (schoolId: number) => `/api/v1/schools/${schoolId}/docume
 /** The owners a personal document can hang off — mirrors `Document::DOCUMENTABLE_TYPES`. */
 export type DocumentableType = 'Guardian' | 'Student' | 'Teacher';
 
-/** Personal-document kinds a school collects. Free text on the API side. */
+/**
+ * Personal-document kinds a school collects. Free text on the API side; `label` is a catalogue
+ * key, resolved where it is shown so the list reads in the user's language.
+ */
 export const PERSONAL_DOCUMENT_TYPES = [
-  { value: 'cpf', label: 'CPF' },
-  { value: 'rg', label: 'RG' },
-  { value: 'proof_of_address', label: 'Proof of address' },
-  { value: 'proof_of_income', label: 'Proof of income' },
-  { value: 'other', label: 'Other' },
+  { value: 'cpf', label: 'document.type.cpf' },
+  { value: 'rg', label: 'document.type.rg' },
+  { value: 'proof_of_address', label: 'document.type.proof_of_address' },
+  { value: 'proof_of_income', label: 'document.type.proof_of_income' },
+  { value: 'other', label: 'document.type.other' },
 ] as const;
 
 /** What a collaborator's file is usually called, on top of the shared kinds. */
 export const COLLABORATOR_DOCUMENT_TYPES = [
   ...PERSONAL_DOCUMENT_TYPES.filter((type) => type.value !== 'proof_of_income'),
-  { value: 'employment_contract', label: 'Employment contract' },
-  { value: 'diploma', label: 'Diploma / certification' },
+  { value: 'employment_contract', label: 'document.type.employment_contract' },
+  { value: 'diploma', label: 'document.type.diploma' },
 ] as const;
 
-export const documentTypeLabel = (value: string) =>
+/**
+ * The catalogue key for a stored document type, or `null` when the API carries one this build
+ * does not know — the raw value is shown then, which is better than an empty cell.
+ */
+export const documentTypeKey = (value: string) =>
   [...PERSONAL_DOCUMENT_TYPES, ...COLLABORATOR_DOCUMENT_TYPES].find(
     (type) => type.value === value,
-  )?.label ?? value;
+  )?.label ?? null;
 
 /** GET /api/v1/schools/:school_id/documents, narrowed to one owner. */
 export const listPersonDocuments = (

@@ -109,9 +109,9 @@ describe('GlobalSearch', () => {
     stubPeople();
     renderSearch();
 
-    await user.type(box(), 'Classes');
+    await user.type(box(), 'Turmas');
 
-    await user.click(await screen.findByText('Classes'));
+    await user.click(await screen.findByText('Turmas'));
 
     expect(screen.getByTestId('location')).toHaveTextContent('/academico/turmas');
   });
@@ -188,9 +188,9 @@ describe('GlobalSearch', () => {
     const seen = stubPeople();
     renderSearch('guardian');
 
-    await user.type(box(), 'Classes');
+    await user.type(box(), 'Turmas');
 
-    expect(await screen.findByText('Classes')).toBeInTheDocument();
+    expect(await screen.findByText('Turmas')).toBeInTheDocument();
     expect(seen).toEqual([]);
   });
 

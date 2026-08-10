@@ -11,6 +11,7 @@ import { DashboardMetrics } from 'types/dashboard';
 import StudentsByClassChart from './StudentsByClassChart';
 import { colorForIndex } from './sliceColors';
 import { classLabel } from './classLabel';
+import { useTranslation } from 'providers/I18nContext';
 
 interface StudentsByClassProps {
   metrics: DashboardMetrics | null;
@@ -23,14 +24,15 @@ interface StudentsByClassProps {
  * slice is named in text too.
  */
 const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
+  const { t } = useTranslation();
   const chartTheme = useChartTheme();
   const data = useMemo(
     () =>
       (metrics?.students_by_class ?? []).map((slice) => ({
-        label: classLabel(slice),
+        label: classLabel(slice, t('dashboard.studentsByClass.unassigned')),
         students: slice.students,
       })),
-    [metrics],
+    [metrics, t],
   );
 
   const total = data.reduce((sum, item) => sum + item.students, 0);
@@ -38,7 +40,7 @@ const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
   return (
     <Paper sx={{ height: 500 }}>
       <Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
-        Alunos por turma
+        {t('dashboard.studentsByClass.title')}
       </Typography>
 
       {loading ? (
@@ -48,8 +50,8 @@ const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
       ) : total === 0 ? (
         <Box mt={4}>
           <EmptyState
-            title="Nenhum aluno matriculado"
-            description="Assim que houver alunos nas turmas, a distribuição aparece aqui."
+            title={t('dashboard.studentsByClass.empty.title')}
+            description={t('dashboard.studentsByClass.empty.description')}
             headingLevel={3}
           />
         </Box>
