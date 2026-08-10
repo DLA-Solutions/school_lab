@@ -314,6 +314,21 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :dry_run, in: :query, type: :boolean, required: false
+      parameter name: :file, in: :formData, type: :file, required: true
+
+      let(:school_class) { create(:school_class, school: school, name: "A") }
+      let(:csv_content) do
+        <<~CSV
+          student_name,student_birth_date,student_rg,school_class_name,guardian_name,guardian_email,guardian_phone,guardian_relationship,guardian_zip_code,guardian_street,guardian_number,guardian_neighborhood,guardian_city,guardian_state,student_cpf,guardian_cpf
+          Ana Silva,2015-03-10,MG-00000001,A,Maria Silva,maria@example.com,+55 11 99999-0001,mother,01310100,Avenida Paulista,1000,Bela Vista,São Paulo,SP,52998224725,12345678909
+        CSV
+      end
+      let(:file) do
+        tempfile = Tempfile.new([ "provisioning-import", ".csv" ])
+        tempfile.write(csv_content)
+        tempfile.rewind
+        Rack::Test::UploadedFile.new(tempfile.path, "text/csv", original_filename: "families.csv")
+      end
 
       response "403", "provisioning-only import blocked on pending_handoff" do
         let(:school) { create(:school, :pending_handoff) }
@@ -327,15 +342,57 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
         end
       end
 
-      response "501", "not implemented during provisioning" do
+      response "200", "dry run preview during provisioning" do
         let(:school) { create(:school, :provisioning) }
         let(:school_id) { school.id }
         let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
         let(:dry_run) { true }
 
+        before { school_class }
+
         run_test! do |response|
           body = JSON.parse(response.body)
-          expect(body.dig("error", "code")).to eq("not_implemented")
+          expect(body.dig("data", "import", "status")).to eq("previewed")
+          expect(body.dig("data", "summary", "valid_rows")).to eq(1)
+          expect(Student.count).to eq(0)
+          expect(Guardian.count).to eq(0)
+        end
+      end
+
+      response "200", "commit import during provisioning" do
+        let(:school) { create(:school, :provisioning) }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:dry_run) { false }
+
+        before { school_class }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("data", "import", "status")).to eq("committed")
+          expect(body.dig("data", "import", "committed_at")).to be_present
+          expect(Student.kept.count).to eq(1)
+          expect(Guardian.kept.count).to eq(1)
+        end
+      end
+
+      response "422", "import validation failed" do
+        let(:school) { create(:school, :provisioning) }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:dry_run) { true }
+        let(:csv_content) do
+          <<~CSV
+            student_name,student_birth_date,student_rg,school_class_name,guardian_name,guardian_email,guardian_phone,guardian_relationship,guardian_zip_code,guardian_street,guardian_number,guardian_neighborhood,guardian_city,guardian_state
+            ,2015-03-10,MG-00000001,Unknown Class,Maria Silva,maria@example.com,+55 11 99999-0001,mother,01310100,Avenida Paulista,1000,Bela Vista,São Paulo,SP
+          CSV
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("import_validation_failed")
+          expect(body.dig("error", "details", "error_report")).to be_present
+          expect(ProvisioningImport.last.status).to eq("failed")
         end
       end
     end

@@ -5,6 +5,8 @@ class Student < ApplicationRecord
   include SchoolAuditable
   include PersonSearchable
 
+  attr_accessor :provisioning_import
+
   STATUSES = %w[active transferred].freeze
 
   belongs_to :school
@@ -28,8 +30,8 @@ class Student < ApplicationRecord
   validates :school_class, presence: true
   validate :school_class_belongs_to_the_same_school
 
-  validates :cpf, presence: true
-  validate :cpf_is_a_valid_document
+  validates :cpf, presence: true, unless: :provisioning_import
+  validate :cpf_is_a_valid_document, if: -> { cpf.present? }
   validates :cpf,
             uniqueness: { scope: :school_id, conditions: -> { kept } },
             allow_blank: true,

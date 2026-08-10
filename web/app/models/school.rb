@@ -35,6 +35,7 @@ class School < ApplicationRecord
   has_many :staff_profiles, dependent: :destroy
   has_many :membership_permissions, dependent: :destroy
   has_many :membership_invite_tokens, dependent: :destroy
+  has_many :provisioning_imports, dependent: :destroy
 
   validates :name, presence: true
   validates :onboarding_status, inclusion: { in: ONBOARDING_STATUSES }

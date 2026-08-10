@@ -24,6 +24,8 @@ gem "prawn"
 gem "prawn-table"
 # Prawn reaches for `matrix`, which stopped being a default gem — without it the app fails to boot.
 gem "matrix"
+# CSV parsing for provisioning imports — no longer a default gem since Ruby 3.4.
+gem "csv"
 
 # Authentication and API
 gem "devise"

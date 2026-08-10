@@ -10,10 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_213403) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_213404) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "vector"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -350,6 +349,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213403) do
     t.index ["school_id", "name"], name: "index_plan_discounts_on_school_id_and_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_id"], name: "index_plan_discounts_on_school_id"
     t.check_constraint "percent >= 0::numeric AND percent <= 100::numeric", name: "plan_discounts_percent_range"
+  end
+
+  create_table "provisioning_imports", force: :cascade do |t|
+    t.datetime "committed_at"
+    t.datetime "created_at", null: false
+    t.jsonb "error_report"
+    t.integer "row_count"
+    t.bigint "school_id", null: false
+    t.string "status", default: "previewed", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "uploaded_by_id", null: false
+    t.index ["school_id", "created_at"], name: "index_provisioning_imports_on_school_id_and_created_at"
+    t.index ["school_id"], name: "index_provisioning_imports_on_school_id"
+    t.index ["uploaded_by_id"], name: "index_provisioning_imports_on_uploaded_by_id"
   end
 
   create_table "refresh_tokens", force: :cascade do |t|
@@ -836,6 +849,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213403) do
   add_foreign_key "payments", "schools"
   add_foreign_key "plan_discounts", "schools"
   add_foreign_key "plan_discounts", "users", column: "discarded_by_id"
+  add_foreign_key "provisioning_imports", "schools"
+  add_foreign_key "provisioning_imports", "users", column: "uploaded_by_id"
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "role_template_permissions", "school_role_templates", column: "role_template_id"
   add_foreign_key "role_template_permissions", "schools"
