@@ -5,6 +5,8 @@ class Guardian < ApplicationRecord
   include SchoolAuditable
   include PersonSearchable
 
+  attr_accessor :provisioning_import
+
   ADDRESS_FIELDS = %i[zip_code street number complement neighborhood city state].freeze
 
   belongs_to :school
@@ -26,8 +28,8 @@ class Guardian < ApplicationRecord
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true }
   validates :phone, presence: true
 
-  validates :cpf, presence: true
-  validate :cpf_is_a_valid_document
+  validates :cpf, presence: true, unless: :provisioning_import
+  validate :cpf_is_a_valid_document, if: -> { cpf.present? }
   # Scoped to the school: the same person can be a guardian at two schools, and a discarded record
   # must not block re-registering. Mirrors `index_guardians_on_school_id_and_cpf_kept`.
   validates :cpf,
