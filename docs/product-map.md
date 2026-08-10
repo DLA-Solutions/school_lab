@@ -4,13 +4,19 @@
 
 ```
 school_lab/
-  web/            # Rails API + services + jobs
-  frontend/       # React web SPA (Vite)
-  frontend/base/  # upstream template the SPA started from — reference only
-  site/           # static institutional landing at domain root
-  app/            # React Native mobile apps
-  docs/           # vision, anchors, PRDs, API, and guidelines
+  web/                    # Rails API + services + jobs
+  frontend/
+    app/                  # school SPA → /app (today: flat frontend/)
+    backoffice/           # platform SPA → /backoffice (planned)
+    design-system-docs/   # design system catalog build
+    base/                 # upstream template — reference only
+  mobile/                 # React Native (today: app/)
+  packages/design-tokens/ # shared tokens (SPA + mobile)
+  site/                   # static landing at /
+  docs/                   # vision, anchors, PRDs, ADRs, API, guidelines
 ```
+
+Target layout: [ADR 001](adr/001-monorepo-surfaces.md). Migration phases listed there.
 
 A monorepo by product/organization decision: a single context makes working with
 AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
@@ -28,19 +34,27 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 - Placeholder today; future marketing and sales pages.
 - Does not consume the API.
 
-### frontend/
+### frontend/app/
 
-- React SPA: backoffice, school, teacher, guardian web surfaces.
-- Consumes `/api/v1`; refresh token in httpOnly cookie.
+- School web SPA: staff operations (owner, secretary, coordination, direction).
+- Routes: school dashboard, people, academics, school billing, invite accept, owner onboarding.
+- Deployed at `/app`; consumes `/api/v1`; refresh token in httpOnly cookie.
+- **Today:** flat `frontend/` until ADR 001 Phase 1.
+
+### frontend/backoffice/
+
+- Platform SPA for DLA operators: school register, white-glove provisioning, future platform ops.
+- Deployed at `/backoffice`; same auth transport as the school SPA.
+- **Today:** not yet split out — backoffice pages still live in the school SPA bundle.
 
 ### frontend/base
 
 - Upstream template (`dashdark-x`) the SPA started from. Reference only — not the
   product, and not deployed.
 
-### app/
+### mobile/ (today: `app/`)
 
-- React Native: school, teacher, parents.
+- React Native: teachers, guardians; school staff where mobile applies.
 - Consumes the same API; refresh token in secure device storage.
 - MVP: communication (messages with images), push notifications, boletos
   (Brazilian bank payment slips), and academic queries for parents; messages and
@@ -52,6 +66,7 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 - `actors-and-surfaces.md` — actors × channels.
 - `product-map.md` — this document.
 - `web-stack.md` — web-layer stack (Rails API + React web + React Native).
+- `adr/` — architecture decision records (e.g. monorepo surfaces).
 - `api/` — API conventions (`README.md`) and versioned route narratives (`v1/`).
 - `open-questions.md` — open questions.
 - `competitive-analysis.md` — informational survey of competitor features (not a
