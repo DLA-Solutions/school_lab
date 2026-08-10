@@ -1,10 +1,28 @@
 import { PropsWithChildren } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { useAuth } from 'providers/AuthContext';
+import { useCurrentSchool } from 'providers/useCurrentSchool';
 import Splash from 'components/loader/Splash';
 import { onboardingRedirectPath } from 'utils/onboarding/access';
 import { postLoginDestination } from 'utils/auth/postLogin';
 import paths from './paths';
+
+/** Blocks owner-only flows (permission overrides) from non-owners hitting the URL directly. */
+export const RequireSchoolOwner = ({ children }: PropsWithChildren) => {
+  const { status } = useAuth();
+  const school = useCurrentSchool();
+  const location = useLocation();
+
+  if (status === 'loading') {
+    return <Splash />;
+  }
+
+  if (!school?.is_owner) {
+    return <Navigate to={paths.team} state={{ from: location.pathname }} replace />;
+  }
+
+  return children;
+};
 
 export const RequireAuth = ({ children }: PropsWithChildren) => {
   const { status, user } = useAuth();

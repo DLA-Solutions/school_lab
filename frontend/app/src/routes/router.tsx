@@ -18,6 +18,7 @@ const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 const App = lazy(() => import('App'));
 const Dashboard = lazy(() => import('pages/Dashboard'));
 const Guardians = lazy(() => import('pages/people/Guardians'));
+const Team = lazy(() => import('pages/people/Team'));
 const Students = lazy(() => import('pages/people/Students'));
 const Collaborators = lazy(() => import('pages/academics/Collaborators'));
 const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
@@ -55,6 +56,10 @@ const router = createBrowserRouter(
           {
             path: paths.guardians,
             element: <Guardians />,
+          },
+          {
+            path: paths.team,
+            element: <Team />,
           },
           {
             path: paths.students,

@@ -1,4 +1,4 @@
-import { topListData } from 'data/sidebarListData';
+import { useMemo } from 'react';
 import Box from '@mui/material/Box';
 import { Link as RouterLink } from 'react-router';
 import paths from 'routes/paths';
@@ -9,11 +9,15 @@ import ButtonBase from '@mui/material/ButtonBase';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { BrandLogo } from 'design-system';
 import { useAuth } from 'providers/AuthContext';
+import { useCurrentSchool } from 'providers/useCurrentSchool';
+import { visibleSitemap } from 'utils/navigation/visibleSitemap';
 import GlobalSearch from './GlobalSearch';
 import ListItem from './list-items/ListItem';
 
 const DrawerItems = () => {
   const { logout } = useAuth();
+  const school = useCurrentSchool();
+  const navItems = useMemo(() => visibleSitemap(school), [school]);
 
   return (
     <>
@@ -55,7 +59,7 @@ const DrawerItems = () => {
       </Box>
 
       <List component="nav" sx={{ px: 2.5 }}>
-        {topListData.map((route) => {
+        {navItems.map((route) => {
           return <ListItem key={route.id} {...route} />;
         })}
       </List>

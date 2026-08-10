@@ -13,7 +13,7 @@ import type { MessageKey } from 'locales';
 import { listTeachers } from 'services/academicsApi';
 import { listGuardians } from 'services/guardiansApi';
 import { listStudents } from 'services/studentsApi';
-import sitemap from 'routes/sitemap';
+import { visibleSitemap } from 'utils/navigation/visibleSitemap';
 import { formatCpf } from 'utils/documentNumber';
 import { matchesTerm } from 'utils/searchTerm';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
@@ -66,7 +66,7 @@ const GlobalSearch = () => {
       return [];
     }
 
-    return sitemap
+    return visibleSitemap(school)
       .filter((item) => item.path && matchesTerm(t(item.subheader as MessageKey), debouncedTerm))
       .map((item) => ({
         key: `page-${item.id}`,
@@ -74,7 +74,7 @@ const GlobalSearch = () => {
         label: t(item.subheader as MessageKey),
         to: item.path as string,
       }));
-  }, [debouncedTerm, isSearching, t]);
+  }, [debouncedTerm, isSearching, school, t]);
 
   useEffect(() => {
     // The people registers are staff-only; a guardian gets pages alone rather than three 403s.

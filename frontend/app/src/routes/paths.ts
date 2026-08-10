@@ -13,6 +13,7 @@ export default {
 
   guardians: `/${rootPaths.peopleRoot}/responsaveis`,
   students: `/${rootPaths.peopleRoot}/estudantes`,
+  team: `/${rootPaths.peopleRoot}/equipe`,
 
   collaborators: `/${rootPaths.academicsRoot}/colaboradores`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,
