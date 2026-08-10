@@ -4834,7 +4834,7 @@
             "description": "role template from another school"
           },
           "403": {
-            "description": "backoffice without provision_school forbidden"
+            "description": "backoffice blocked on pending_handoff school"
           }
         },
         "requestBody": {
@@ -5760,6 +5760,54 @@
         "responses": {
           "200": {
             "description": "returns the platform permission catalog"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/provisioning/import": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Import families CSV during provisioning",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dry_run",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "provisioning-only import blocked on pending_handoff"
+          },
+          "501": {
+            "description": "not implemented during provisioning"
           }
         }
       }

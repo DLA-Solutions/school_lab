@@ -67,7 +67,7 @@ module Api
         end
 
         if Current.user.backoffice?
-          if school.provisioning? && Current.user.platform_permission?(:provision_school)
+          if Current.user.platform_permission?(:provision_school)
             Current.school = school
             return
           end

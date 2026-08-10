@@ -36,6 +36,10 @@ Rails.application.routes.draw do
           post :handoff
         end
         scope module: :schools do
+          namespace :provisioning do
+            resource :import, only: :create, controller: "imports"
+          end
+
           resource :dashboard, only: :show, controller: "dashboard"
           resources :bank_credentials, only: %i[index create]
           namespace :people do
