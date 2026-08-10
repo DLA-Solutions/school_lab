@@ -6,6 +6,7 @@ export interface SubMenuItem {
   path: string;
   active?: boolean;
   items?: SubMenuItem[];
+  requiredPermission?: string;
 }
 
 export interface MenuItem {
@@ -16,6 +17,8 @@ export interface MenuItem {
   avatar?: string;
   active?: boolean;
   items?: SubMenuItem[];
+  /** When set, the item is hidden unless the current membership includes this permission key. */
+  requiredPermission?: string;
 }
 
 const sitemap: MenuItem[] = [
@@ -32,6 +35,7 @@ const sitemap: MenuItem[] = [
     path: paths.students,
     icon: 'mingcute:school-line',
     active: true,
+    requiredPermission: 'manage_people',
   },
   {
     id: 'guardians',
@@ -39,6 +43,15 @@ const sitemap: MenuItem[] = [
     path: paths.guardians,
     icon: 'mingcute:user-2-fill',
     active: true,
+    requiredPermission: 'manage_people',
+  },
+  {
+    id: 'team',
+    subheader: 'nav.team',
+    path: paths.team,
+    icon: 'mingcute:group-line',
+    active: true,
+    requiredPermission: 'manage_people',
   },
   {
     id: 'collaborators',

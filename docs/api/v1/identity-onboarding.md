@@ -133,6 +133,7 @@ Base: `/api/v1/schools/:school_id/people`
 
 | Method | Path | Description |
 |--------|------|-------------|
+| `GET` | `/memberships` | List school memberships (Pagy) — requires `manage_people` |
 | `POST` | `/memberships` | Invite — extended: `role_template_id`, `segment_id`, `display_title` |
 | `PATCH` | `/memberships/:id/permissions` | Owner-only overrides: `grants[]`, `denies[]` (W2) |
 | `POST` | `/memberships/:id/invite` | Resend invite token |

@@ -24,6 +24,7 @@ const enUS: Messages = {
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Students',
   'nav.guardians': 'Guardians',
+  'nav.team': 'Team',
   'nav.collaborators': 'Collaborators',
   'nav.classes': 'Classes',
   'nav.subjects': 'Subjects',

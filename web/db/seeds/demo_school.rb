@@ -6,6 +6,7 @@
 module DemoSchool
   SCHOOL_CNPJ = "12.345.678/0001-90"
   ADMIN_EMAIL = "admin@demo.schoollab.local"
+  SECRETARY_EMAIL = "secretary@demo.schoollab.local"
   GUARDIAN_EMAIL = "guardian@demo.schoollab.local"
   PASSWORD = "password123"
   DEMO_CHARGE_PERIOD = Date.new(2026, 8, 1)
@@ -36,6 +37,10 @@ module DemoSchool
     admin_user = find_or_create_confirmed_user!(ADMIN_EMAIL)
     admin_membership = find_or_create_membership!(user: admin_user, school: school, role: "staff")
     ensure_owner_staff_profile!(membership: admin_membership, school: school)
+
+    secretary_user = find_or_create_confirmed_user!(SECRETARY_EMAIL)
+    secretary_membership = find_or_create_membership!(user: secretary_user, school: school, role: "staff")
+    ensure_secretary_staff_profile!(membership: secretary_membership, school: school)
 
     guardian_user = find_or_create_confirmed_user!(GUARDIAN_EMAIL)
     find_or_create_membership!(user: guardian_user, school: school, role: "guardian")
@@ -166,6 +171,20 @@ module DemoSchool
     return result.data.fetch(:templates) if result.success?
 
     raise "Demo seed failed to provision role templates: #{result.error_code} #{result.details}"
+  end
+
+  def ensure_secretary_staff_profile!(membership:, school:)
+    secretary_template = school.system_role_template("secretary")
+    raise "Demo seed missing secretary role template" if secretary_template.blank?
+
+    profile = StaffProfile.find_or_initialize_by(membership: membership, school: school)
+    profile.assign_attributes(
+      role_template: secretary_template,
+      is_owner: false,
+      display_title: profile.display_title.presence || "Secretária"
+    )
+    profile.save!
+    profile
   end
 
   def ensure_owner_staff_profile!(membership:, school:)

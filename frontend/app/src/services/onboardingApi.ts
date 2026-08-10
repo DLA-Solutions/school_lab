@@ -1,4 +1,3 @@
-import { Paginated } from 'types/academics';
 import { Membership } from 'types/auth';
 import {
   CreateStaffInvitePayload,
@@ -8,8 +7,8 @@ import {
   InviteAcceptPayload,
   InviteAcceptResponse,
   MembershipAcceptResponse,
-  RoleTemplateSummary,
 } from 'types/onboarding';
+import { listRoleTemplates as fetchRoleTemplates } from './peopleApi';
 import { parseMembership } from './parseAuthUser';
 import { request } from './api';
 
@@ -42,10 +41,7 @@ export const submitHandoff = async (schoolId: number, payload: HandoffPayload = 
 };
 
 /** GET /api/v1/schools/:school_id/role_templates — secretary template for team invites. */
-export const listRoleTemplates = (schoolId: number) =>
-  request<Paginated<RoleTemplateSummary>>(
-    `/api/v1/schools/${schoolId}/role_templates?page=1&per_page=50`,
-  );
+export const listRoleTemplates = fetchRoleTemplates;
 
 /** POST /api/v1/schools/:school_id/people/memberships — invite staff during owner wizard. */
 export const inviteStaffMember = async (schoolId: number, payload: CreateStaffInvitePayload) => {

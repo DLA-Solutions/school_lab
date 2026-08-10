@@ -30,6 +30,9 @@ export const ACCESS_EXPIRES_AT = '2026-08-04T23:20:00Z';
 
 export const VALID_CREDENTIALS = { email: 'maria@example.com', password: 'correct-horse' };
 
+export const SECRETARY_TEMPLATE_ID = 101;
+export const DIRECTOR_TEMPLATE_ID = 102;
+
 /** Guardian membership shape from GET /api/v1/me — staff-only fields are null or empty. */
 export const guardianMembership: Membership = {
   id: 10,
@@ -55,7 +58,7 @@ export const staffMembership: Membership = {
   status: 'active',
   email: 'admin@example.com',
   role_template: {
-    id: 1,
+    id: SECRETARY_TEMPLATE_ID,
     name: 'Secretária',
     system_key: 'secretary',
     is_system: true,
@@ -69,22 +72,48 @@ export const staffMembership: Membership = {
   school_onboarding_mode: 'white_glove',
 };
 
-export const SECRETARY_TEMPLATE_ID = 101;
-
 export const roleTemplates = [
   {
     id: SECRETARY_TEMPLATE_ID,
     name: 'Secretária',
     system_key: 'secretary',
     is_system: true,
+    permissions: [
+      { permission_key: 'manage_people', scope_kind: 'full' },
+      { permission_key: 'manage_enrollment', scope_kind: 'full' },
+      { permission_key: 'manage_documents', scope_kind: 'full' },
+    ],
   },
   {
-    id: 102,
+    id: DIRECTOR_TEMPLATE_ID,
     name: 'Direção',
     system_key: 'director',
     is_system: true,
+    permissions: [
+      { permission_key: 'manage_school_settings', scope_kind: 'full' },
+      { permission_key: 'manage_billing', scope_kind: 'full' },
+      { permission_key: 'manage_people', scope_kind: 'full' },
+      { permission_key: 'manage_enrollment', scope_kind: 'full' },
+      { permission_key: 'manage_documents', scope_kind: 'full' },
+      { permission_key: 'approve_lesson_plans', scope_kind: 'full' },
+      { permission_key: 'moderate_messages', scope_kind: 'full' },
+      { permission_key: 'view_billing_summary', scope_kind: 'full' },
+    ],
   },
 ];
+
+export const permissionDefinitions = [
+  { key: 'manage_school_settings', domain: 'school', scope_kinds: ['full'] },
+  { key: 'manage_billing', domain: 'billing', scope_kinds: ['full'] },
+  { key: 'manage_people', domain: 'people', scope_kinds: ['full', 'partial'] },
+  { key: 'manage_enrollment', domain: 'enrollment', scope_kinds: ['full'] },
+  { key: 'manage_documents', domain: 'documents', scope_kinds: ['full', 'segment'] },
+  { key: 'approve_lesson_plans', domain: 'academic', scope_kinds: ['full'] },
+  { key: 'moderate_messages', domain: 'communication', scope_kinds: ['full'] },
+  { key: 'teach', domain: 'academic', scope_kinds: ['full'] },
+  { key: 'view_billing_summary', domain: 'billing', scope_kinds: ['full'] },
+];
+
 /** Owner with pending_handoff — drives onboarding route guards in tests. */
 export const ownerPendingMembership: Membership = {
   id: 12,
@@ -94,7 +123,7 @@ export const ownerPendingMembership: Membership = {
   status: 'active',
   email: 'director@example.com',
   role_template: {
-    id: 2,
+    id: DIRECTOR_TEMPLATE_ID,
     name: 'Direção',
     system_key: 'director',
     is_system: true,
@@ -110,6 +139,44 @@ export const ownerPendingMembership: Membership = {
   school_onboarding_status: 'pending_handoff',
   school_onboarding_mode: 'self_serve',
 };
+
+/** Mutable copy so PATCH /permissions specs can assert refreshed state. */
+export const teamMemberships: Membership[] = [
+  {
+    ...ownerPendingMembership,
+    school_onboarding_status: 'active',
+    permissions: ['manage_billing', 'manage_people', 'manage_enrollment', 'manage_documents'],
+    permission_sources: {
+      manage_billing: 'owner',
+      manage_people: 'owner',
+      manage_enrollment: 'owner',
+      manage_documents: 'owner',
+    },
+  },
+  {
+    ...staffMembership,
+    permissions: ['manage_people', 'manage_enrollment', 'manage_documents'],
+    permission_sources: {
+      manage_people: 'template',
+      manage_enrollment: 'template',
+      manage_documents: 'template',
+    },
+  },
+  {
+    id: 14,
+    school_id: SCHOOL_ID,
+    school_name: 'Example School — Downtown',
+    role: 'guardian',
+    status: 'active',
+    email: 'guardian@example.com',
+    role_template: null,
+    permissions: [],
+    is_owner: null,
+    segment_id: null,
+    display_title: null,
+    permission_sources: {},
+  },
+];
 
 /** Invited staff membership — password not yet set via invite accept. */
 export const invitedStaffMembership: Membership = {
@@ -500,6 +567,86 @@ export const handlers = [
       meta: { page: 1, per_page: 50, total: roleTemplates.length },
     });
   }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/permission_definitions'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({ data: { definitions: permissionDefinitions } });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/people/memberships'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return paginated(teamMemberships, new URL(request.url));
+  }),
+
+  http.patch(
+    apiUrl('/api/v1/schools/:schoolId/people/memberships/:id/permissions'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      const membershipId = Number(params.id);
+      const index = teamMemberships.findIndex((row) => row.id === membershipId);
+
+      if (index === -1) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const body = (await request.json()) as { grants?: string[]; denies?: string[] };
+      const grants = body.grants ?? [];
+      const denies = body.denies ?? [];
+      const overlap = grants.find((key) => denies.includes(key));
+
+      if (overlap) {
+        return jsonError(422, 'validation_error', 'Não foi possível salvar.', {
+          grants: ['overlap with denies'],
+        });
+      }
+
+      if (grants.includes('teach') && teamMemberships[index].role === 'staff') {
+        return jsonError(422, 'invalid_permission_for_role', 'Permissão inválida para o papel.');
+      }
+
+      if (teamMemberships[index].status === 'suspended') {
+        return jsonError(409, 'invalid_state_transition', 'Situação inválida.');
+      }
+
+      const current = teamMemberships[index];
+      const template =
+        roleTemplates.find((entry) => entry.id === current.role_template?.id) ?? roleTemplates[0];
+      const templateKeys = template.permissions.map((entry) => entry.permission_key);
+      const effective = [
+        ...templateKeys.filter((key) => !denies.includes(key)),
+        ...grants.filter((key) => !templateKeys.includes(key)),
+      ];
+      const sources: Record<string, string> = {};
+
+      templateKeys.forEach((key) => {
+        if (!denies.includes(key)) {
+          sources[key] = 'template';
+        }
+      });
+      grants.forEach((key) => {
+        sources[key] = 'grant';
+      });
+
+      const updated = {
+        ...current,
+        permissions: [...new Set(effective)].sort(),
+        permission_sources: sources,
+      };
+
+      teamMemberships[index] = updated;
+
+      return HttpResponse.json({ data: updated });
+    },
+  ),
 
   http.get(apiUrl('/api/v1/me'), ({ request }) =>
     hasFreshToken(request) ? HttpResponse.json({ data: currentUser }) : expiredToken(),

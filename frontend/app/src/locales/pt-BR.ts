@@ -24,6 +24,7 @@ const ptBR = {
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Estudantes',
   'nav.guardians': 'Responsáveis',
+  'nav.team': 'Equipe',
   'nav.collaborators': 'Colaboradores',
   'nav.classes': 'Turmas',
   'nav.subjects': 'Matérias',
