@@ -2,7 +2,15 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import userEvent from '@testing-library/user-event';
-import { HttpResponse, SCHOOL_ID, apiUrl, http, server } from 'test/msw';
+import {
+  HttpResponse,
+  SCHOOL_ID,
+  apiUrl,
+  guardianMembership,
+  http,
+  server,
+  staffMembership,
+} from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { setAccessToken } from 'services/tokenStore';
@@ -29,14 +37,10 @@ const pedro = {
 };
 const carla = { id: 3, name: 'Carla Nogueira', cpf: '15852119075', job_title: 'Professora' };
 
-const membershipFor = (role: string) => ({
-  id: 1,
-  school_id: SCHOOL_ID,
-  school_name: 'Escola Demo',
-  role,
-  status: 'active',
-  email: 'user@example.com',
-});
+const membershipFor = (role: string) =>
+  role === 'guardian'
+    ? { ...guardianMembership, email: 'user@example.com' }
+    : { ...staffMembership, role, email: 'user@example.com' };
 
 const userWith = (role: string): AuthUser => ({
   id: 1,
@@ -61,7 +65,7 @@ const LocationProbe = () => {
   return <div data-testid="location">{`${location.pathname}${location.search}`}</div>;
 };
 
-const renderSearch = (role = 'school') =>
+const renderSearch = (role = 'staff') =>
   renderWithTheme(
     <MemoryRouter initialEntries={['/']}>
       <AuthContext.Provider value={authValueFor(role)}>

@@ -10,6 +10,7 @@ import {
   apiUrl,
   http,
   server,
+  staffMembership,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
@@ -65,16 +66,7 @@ const staffUser: AuthUser = {
   id: 1,
   email: 'admin@example.com',
   status: 'active',
-  memberships: [
-    {
-      id: 1,
-      school_id: SCHOOL_ID,
-      school_name: 'Escola Demo',
-      role: 'school',
-      status: 'active',
-      email: 'admin@example.com',
-    },
-  ],
+  memberships: [staffMembership],
   guardian_profiles: [],
 };
 
