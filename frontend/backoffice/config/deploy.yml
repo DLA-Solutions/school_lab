@@ -1,0 +1,43 @@
+# Base Kamal configuration, shared by both destinations.
+# Always deploy with an explicit destination: `kamal deploy -d production|staging`.
+# Runbook: docs/guidelines/process/deployment.md
+
+service: scholarpremium-backoffice-spa
+
+image: dla-solutions/scholarpremium-backoffice-spa
+
+require_destination: true
+
+servers:
+  web:
+    - 77.42.33.33
+
+registry:
+  server: ghcr.io
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+ssh:
+  user: deploy
+
+builder:
+  arch: amd64
+  cache:
+    type: registry
+  # Monorepo root — Dockerfile COPYs frontend/backoffice/* and packages/design-tokens.
+  context: ../../
+  dockerfile: Dockerfile
+
+proxy:
+  app_port: 80
+  healthcheck:
+    path: /up
+    interval: 3
+    timeout: 60
+
+deploy_timeout: 60
+
+aliases:
+  logs: app logs -f

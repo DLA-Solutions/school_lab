@@ -1,6 +1,6 @@
 ---
 description: Kamal deploy guardrails for site, frontend SPA, and web API
-globs: site/config/**,frontend/config/**,web/config/deploy*.yml,**/Dockerfile,**/nginx.conf
+globs: site/config/**,frontend/app/config/**,frontend/backoffice/config/**,web/config/deploy*.yml,**/Dockerfile,**/nginx.conf
 alwaysApply: false
 ---
 
@@ -13,7 +13,8 @@ Full runbook: `docs/guidelines/process/deployment.md`. Executable workflow: skil
 | Layer | Directory | Kamal service | Host path |
 |---|---|---|---|
 | Site | `site/` | `scholarpremium-site` | `/` (root) |
-| SPA | `frontend/` | `scholarpremium-spa` | `/app` |
+| SPA (school) | `frontend/app/` | `scholarpremium-spa` | `/app` |
+| SPA (backoffice) | `frontend/backoffice/` | `scholarpremium-backoffice-spa` | `/backoffice` |
 | API | `web/` | `scholarpremium` | `/api`, `/up`, `/api-docs`, `/webhooks` |
 
 Always pass `-d staging` or `-d production` (`require_destination: true`).
