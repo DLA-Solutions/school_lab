@@ -1,6 +1,6 @@
 # Web Stack — School Lab
 
-> Folders: `web/`, `frontend/app/` (school SPA at `/app`), `frontend/backoffice/` (platform SPA at `/backoffice`), `site/`, `mobile/` (React Native; folder rename pending ADR 001 Phase 5)  
+> Folders: `web/`, `frontend/app/` (school SPA at `/app`), `frontend/backoffice/` (platform SPA at `/backoffice`), `site/`, `mobile/` (React Native)  
 > **ADR:** [001-monorepo-surfaces](adr/001-monorepo-surfaces.md)  
 > Status: finalized decision (web layer)
 
@@ -18,7 +18,7 @@ the MVP: app + PostgreSQL + S3.
 | Web UI (school) | **React 19** SPA (`frontend/app/`) — Vite 7 + TypeScript, **MUI v7**, `/app` |
 | Web UI (platform) | **React 19** SPA (`frontend/backoffice/`) — same stack, `/backoffice` |
 | Marketing site | Static HTML (`site/`) at domain root `/` |
-| Mobile UI | **React Native** (`mobile/`, today `app/`) |
+| Mobile UI | **React Native** (`mobile/`) |
 | API docs | **rswag** → OpenAPI (`swagger/v1/swagger.yaml`) |
 | Database | PostgreSQL 16+ |
 | Background jobs | Solid Queue (PostgreSQL) |
@@ -41,7 +41,7 @@ school_lab/
     backoffice/             # Platform SPA at /backoffice
     design-system-docs/     # Catalog build → docs/design-system/
     base/                   # upstream template — reference only
-  mobile/                   # React Native (today: app/)
+  mobile/                   # React Native
   packages/design-tokens/   # Shared tokens — SPA + mobile
   site/                     # static institutional landing at /
   docs/api/                 # API conventions + route narratives
@@ -94,8 +94,7 @@ React 19 SPA on Vite 7 + TypeScript 5.9 (SWC via `@vitejs/plugin-react-swc`). De
 | Development sandbox | Ladle — `npm run ladle` in the school SPA package. **Not** a documentation surface (§15) |
 | Guidelines | `docs/guidelines/web-ui/` |
 
-Theme toggle persists to `localStorage` key `school-lab-color-mode`. Mobile (`mobile/`, today
-`app/`) imports dark tokens only.
+Theme toggle persists to `localStorage` key `school-lab-color-mode`. Mobile (`mobile/`) imports dark tokens only.
 
 ### Not in the school SPA yet
 
@@ -124,7 +123,7 @@ v7). Deployed at `/backoffice` (`VITE_BASE_PATH=/backoffice/`).
 
 ## 5. Mobile frontend (`mobile/`)
 
-React Native consuming the same `/api/v1` contract. **Today:** folder is still `app/`.
+React Native consuming the same `/api/v1` contract.
 
 | Concern | Approach |
 |---------|----------|
@@ -137,7 +136,7 @@ React Native consuming the same `/api/v1` contract. **Today:** folder is still `
 | Channel | Mechanism |
 |-------|-----------|
 | **Web SPAs** | JWT access (Bearer) + refresh **httpOnly cookie** (`path: '/'`) |
-| **Mobile (`mobile/`, today `app/`)** | JWT access + refresh token (secure storage) |
+| **Mobile (`mobile/`)** | JWT access + refresh token (secure storage) |
 | **Credentials** | **Devise** on `users` (password, reset, lock) |
 
 Details: `docs/modeling/002-api-auth.md`.
@@ -226,7 +225,7 @@ Event (e.g., attendance recorded)
 | Unit / model / service | RSpec |
 | API + OpenAPI | RSpec request specs + **rswag** |
 | Web UI | Vitest + React Testing Library (jsdom) in the school SPA package, API calls intercepted by MSW — `npm run test:run` (§3) |
-| Mobile | Jest + RN Testing Library (in `app/`) |
+| Mobile | Jest + RN Testing Library (in `mobile/`) |
 | Factories | FactoryBot |
 
 Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testing.md` (API) and
@@ -369,7 +368,7 @@ Open for the school SPA — each is missing today (§3):
 
 **Finalized decisions (Aug 2026):**
 
-- **SPA test runner: Vitest + React Testing Library** on jsdom in `frontend/main`, configured
+- **SPA test runner: Vitest + React Testing Library** on jsdom in `frontend/app`, configured
   through the existing `vite.config.ts` so tests and the app share one alias source. Specs live
   beside the component; `src/test/renderWithTheme.tsx` provides the themed render.
   Conventions: `docs/guidelines/web-ui/testing.md`.
@@ -394,12 +393,12 @@ Open for the school SPA — each is missing today (§3):
   call is **W3**, which keeps the `#CB3CFF` brand purple named in §15 on the contained primary
   Button even though no flat label colour clears 4.5:1 across its gradient — white's 3.73:1 is the
   measured ceiling, and darkening the first stop to `#B733E5` was declined rather than overlooked.
-- **MUI `Card*` and `Table*`: forbidden by default** in `frontend/main`, with no override created.
+- **MUI `Card*` and `Table*`: forbidden by default** in `frontend/app`, with no override created.
   `SectionCard` is the card surface, `DataTable` the tabular one. Neither primitive is imported
   anywhere today, so the ban records the status quo and keeps a single sanctioned route to each
   result. Revisit only for genuinely static, non-paginated tabular content that `DataTable` is the
   wrong tool for. Rationale: `docs/guidelines/web-ui/theming.md`.
-- **SPA UI kit: MUI v7 + Emotion** in `frontend/main` — **not Tailwind**. The SPA was generated
+- **SPA UI kit: MUI v7 + Emotion** in `frontend/app` — **not Tailwind**. The SPA was generated
   from the `dashdark-x` template (kept as `frontend/base`); MUI, its theme, and the MUI X
   DataGrid/Date Pickers came with the template and were kept instead of re-styling the app.
   No migration to Tailwind is planned, and no Tailwind code exists under `frontend/`. Any
@@ -412,8 +411,8 @@ Open for the school SPA — each is missing today (§3):
 **Finalized decisions (Jul 2026):**
 
 - Language & framework: Ruby 4.0.5, Rails 8.1.3.
-- **Web UI: React SPA** (`frontend/main`), not Hotwire.
-- **Mobile: React Native** (`app/`).
+- **Web UI: React SPA** (`frontend/app`), not Hotwire.
+- **Mobile: React Native** (`mobile/`).
 - **One API** for web and mobile (`/api/v1`).
 - Auth: Devise credentials + JWT access + `refresh_tokens`.
 - Access 20 min; refresh 90 days sliding (180 remember me); rotation on refresh.

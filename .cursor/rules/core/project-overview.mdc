@@ -13,7 +13,7 @@ Multi-school management SaaS for private Brazilian schools. Product UI locale is
 - `frontend/backoffice/` — React + Vite platform SPA at `/backoffice`. Same API contract.
 - `site/` — static institutional landing at the domain root (`/`). No API dependency.
 - `frontend/base` — upstream template the SPA started from. Reference only; not the product.
-- `mobile/` — React Native (today: `app/`). Consumes the API; never duplicates business rules.
+- `mobile/` — React Native. Consumes the API; never duplicates business rules.
 - `docs/` — anchor docs, PRDs, ADRs, guidelines. Source of truth for scope. Engineering standards live in `docs/guidelines/`.
 
 Surface layout decision: `docs/adr/001-monorepo-surfaces.md`.
@@ -23,9 +23,9 @@ Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs 
 
 ## `.cursor` layout
 - `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming).
-- `rules/docs/`, `rules/web/`, `rules/app/` — scoped by surface via `globs` (`app/` rules apply to `mobile/` until rename); the folder is organizational, activation is driven by frontmatter.
+- `rules/docs/`, `rules/web/`, `rules/mobile/` — scoped by surface via `globs`; the folder is organizational, activation is driven by frontmatter.
 - `agents/` — specialized subagents (`rails-implementer` orchestrates; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/`; `prd-reviewer`, `doc-consistency-checker` for docs).
-- `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `app/`). Deploy workflow: skill `deploy-kamal`; guardrails: rule `deployment`.
+- `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `mobile/`). Deploy workflow: skill `deploy-kamal`; guardrails: rule `deployment`.
 - Detailed "why" for these rules lives in `docs/guidelines/`; rules stay terse and point there.
 
 ## Ground rules

@@ -1,14 +1,14 @@
 # App Guidelines (Mobile)
 
-Granular standards for `app/`.
+Granular standards for `mobile/`.
 
 > Status: placeholder. **React Native** is the decided mobile stack (`docs/web-stack.md`).
-> Expand as `app/` is scaffolded.
+> Expand as `mobile/` grows.
 
 ## Source of truth
 
 - Stack: `docs/web-stack.md`, `docs/api/README.md`, `docs/modeling/002-api-auth.md`.
-- Agent-facing rule: `.cursor/rules/app/app-mobile.mdc`.
+- Agent-facing rule: `.cursor/rules/mobile/mobile.mdc`.
 
 ## Principles (already decided)
 

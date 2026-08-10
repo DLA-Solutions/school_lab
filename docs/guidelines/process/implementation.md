@@ -1,6 +1,6 @@
 # Implementation
 
-How to implement features in `web/` and `app/` after PRD and modeling are approved.
+How to implement features in `web/` and `mobile/` after PRD and modeling are approved.
 
 ## Prerequisites
 

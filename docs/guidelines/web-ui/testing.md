@@ -1,13 +1,13 @@
 # Testing the SPA
 
-Component tests for `frontend/main`. The behavior-first principle is the same one
+Component tests for `frontend/app`. The behavior-first principle is the same one
 `docs/guidelines/web/testing.md` states for the API: assert what a user sees and can do.
 
 ## Runner
 
 | Piece | Choice |
 |-------|--------|
-| Runner | **Vitest** — configured in `frontend/main/vite.config.ts` (`test` block), so tests resolve the `theme`, `components`, `design-system`, `providers` and `assets` aliases exactly as the app does |
+| Runner | **Vitest** — configured in `frontend/app/vite.config.ts` (`test` block), so tests resolve the `theme`, `components`, `design-system`, `providers` and `assets` aliases exactly as the app does |
 | Environment | `jsdom` |
 | DOM assertions | **React Testing Library** + `@testing-library/jest-dom` |
 | Interaction | `@testing-library/user-event` |
@@ -15,7 +15,7 @@ Component tests for `frontend/main`. The behavior-first principle is the same on
 | Setup | `src/test/setup.ts` — jest-dom matchers, Testing Library cleanup, MSW lifecycle |
 
 ```bash
-cd frontend/main
+cd frontend/app
 npm run test        # watch mode
 npm run test:run    # single run (CI)
 ```

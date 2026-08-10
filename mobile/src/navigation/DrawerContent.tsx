@@ -6,7 +6,7 @@ import { useAuth } from '../providers/AuthContext';
 
 const logo = require('../../assets/icon.png');
 
-/** Mirrors frontend/main's sidebar: logo header, single Dashboard item, Logout footer. */
+/** Mirrors frontend/app's sidebar: logo header, single Dashboard item, Logout footer. */
 const DrawerContent = ({ state, navigation }: DrawerContentComponentProps) => {
   const { user, logout } = useAuth();
   const activeRoute = state.routeNames[state.index];

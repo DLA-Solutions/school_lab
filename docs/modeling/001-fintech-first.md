@@ -167,7 +167,7 @@ Do not assume indefinite storage. Record final windows in this file and `docs/op
 | Channel | Mechanism |
 |---------|-----------|
 | Web SPA | JWT access + refresh httpOnly cookie |
-| Mobile (`app/`) | JWT access + refresh in secure storage |
+| Mobile (`mobile/`) | JWT access + refresh in secure storage |
 | Credential validation | Devise on `users` |
 
 Full token lifecycle, TTL, and evaluation order: [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md).

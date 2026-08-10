@@ -10,13 +10,13 @@ school_lab/
     backoffice/           # platform SPA → /backoffice
     design-system-docs/   # design system catalog build
     base/                 # upstream template — reference only
-  mobile/                 # React Native (today: app/)
+  mobile/                 # React Native
   packages/design-tokens/ # shared tokens (SPA + mobile)
   site/                   # static landing at /
   docs/                   # vision, anchors, PRDs, ADRs, API, guidelines
 ```
 
-Layout: [ADR 001](adr/001-monorepo-surfaces.md) (phases 1–4 landed; phase 5 `app/` → `mobile/` pending).
+Layout: [ADR 001](adr/001-monorepo-surfaces.md) (phases 1–5 landed).
 
 A monorepo by product/organization decision: a single context makes working with
 AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
@@ -50,7 +50,7 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 - Upstream template (`dashdark-x`) the SPA started from. Reference only — not the
   product, and not deployed.
 
-### mobile/ (today: `app/`)
+### mobile/
 
 - React Native: teachers, guardians; school staff where mobile applies.
 - Consumes the same API; refresh token in secure device storage.

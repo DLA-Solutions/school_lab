@@ -12,11 +12,11 @@ Shared semantic color tokens for School Lab web and mobile surfaces.
 ```typescript
 import { tokens } from '@school-lab/design-tokens';
 
-// Used by createAppTheme() in frontend/main/src/theme/createAppTheme.ts
+// Used by createAppTheme() in frontend/app/src/theme/createAppTheme.ts
 const darkPalette = tokens.dark;
 ```
 
-Add to `frontend/main/package.json`:
+Add to `frontend/app/package.json`:
 
 ```json
 "@school-lab/design-tokens": "file:../../packages/design-tokens"
@@ -41,7 +41,7 @@ Theme mode toggle on React Native is a follow-up — mobile currently uses the d
 
 1. Add the value to both `light` and `dark` in `colors.json`.
 2. Update `SemanticTokens` in `index.ts` if the shape changes.
-3. Map it in `frontend/main/src/theme/createAppTheme.ts`.
+3. Map it in `frontend/app/src/theme/createAppTheme.ts`.
 4. Document it in `docs/guidelines/web-ui/tokens.md`.
 5. Bump `version` in `package.json` and record the change in [CHANGELOG.md](./CHANGELOG.md).
 

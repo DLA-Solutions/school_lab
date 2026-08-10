@@ -59,7 +59,7 @@ Use for whole-product or MVP-scope documents. Prefer updating anchor docs when c
 
 ## Layer PRD
 
-Use for `web/`, `frontend/main`, or `app/` — technical and surface requirements without redefining domain business rules.
+Use for `web/`, `frontend/app`, or `mobile/` — technical and surface requirements without redefining domain business rules.
 
 ```markdown
 # Layer PRD — [web | web-spa | app]

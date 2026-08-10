@@ -47,7 +47,7 @@ editing row as a single pairing:
 
 **Deliberately unchanged.** The whole `dark` block — DashdarkX is the dark scheme, and it stays
 byte-identical to 1.0.0 and 1.1.0. Also `light.info.darker`, which holds the same `#082366` and is a
-legacy alias no component in `frontend/main` reads; it is mapped by `mapTokensToPalette.ts` and used
+legacy alias no component in `frontend/app` reads; it is mapped by `mapTokensToPalette.ts` and used
 only by the `frontend/base` template, so moving it would change nothing and widen the diff.
 
 **Second consumer, verified not regressed.** `secondary.darker` is not read only by the DataGrid:
@@ -64,8 +64,8 @@ The editing-row fill against the card drops from 14.56:1 to 1.19:1 (audit row N1
 decoration under W2 in both schemes: the row is also identified by the input controls it shows, and
 dark has rendered that pairing at 1.21:1 since 1.0.0.
 
-Consumers: `frontend/main` picks this up through `mapTokensToPalette.ts`, which passes the value
-straight to the MUI palette, so no consumer code changes. `app/` reads the dark scheme only and is
+Consumers: `frontend/app` picks this up through `mapTokensToPalette.ts`, which passes the value
+straight to the MUI palette, so no consumer code changes. `mobile/` reads the dark scheme only and is
 unaffected.
 
 ## [1.1.0] — 2026-08-04
@@ -101,11 +101,11 @@ change.
 **One known consequence.** `error.main` is also a background, on the contained error Button
 (`ConfirmDialog` destructive confirm). A value dark enough to read as text on white cannot also carry
 a near-black label, so that label dropped from 5.75:1 to 2.98:1 in light. The fix is a per-scheme
-label in `frontend/main/src/theme/components/button/Button.tsx` and needs no token change —
+label in `frontend/app/src/theme/components/button/Button.tsx` and needs no token change —
 `docs/guidelines/web-ui/accessibility.md` F1.
 
-Consumers: `frontend/main` picks this up through `mapTokensToPalette.ts`, which passes each value
-straight to the MUI palette, so no consumer code changes. `app/` reads the dark scheme only and is
+Consumers: `frontend/app` picks this up through `mapTokensToPalette.ts`, which passes each value
+straight to the MUI palette, so no consumer code changes. `mobile/` reads the dark scheme only and is
 unaffected.
 
 ## [1.0.0] — 2026-08-04
@@ -123,4 +123,4 @@ changelog and are only in the Git history.
 - `index.ts` typed exports: `tokens`, `getTokens(mode)`, `ColorScheme`, `SemanticTokens`,
   `DesignTokens`.
 
-Consumers: `frontend/main/src/theme/mapTokensToPalette.ts` (both schemes) and `app/` (dark only).
+Consumers: `frontend/app/src/theme/mapTokensToPalette.ts` (both schemes) and `mobile/` (dark only).

@@ -46,7 +46,7 @@ users.status disabled → refresh fails → forced logout + i18n message
 
 ## Transport by client
 
-### React web (`frontend/main`)
+### React web (`frontend/app`)
 
 | Token | Storage |
 |-------|---------|
@@ -58,7 +58,7 @@ users.status disabled → refresh fails → forced logout + i18n message
 
 Avoid `localStorage` for refresh tokens (XSS risk).
 
-### React Native (`app/`)
+### React Native (`mobile/`)
 
 | Token | Storage |
 |-------|---------|

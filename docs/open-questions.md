@@ -8,8 +8,8 @@ a recorded decision (in vision/actors) or a PRD.
 Recorded from API planning session. Details in `docs/web-stack.md`, `docs/api/`,
 and `docs/modeling/002-api-auth.md`.
 
-- [x] **Web UI: React SPA** (`frontend/main`) — not Hotwire as primary UI.
-- [x] **Mobile: React Native** (`app/`) — same API contract as web.
+- [x] **Web UI: React SPA** (`frontend/app`) — not Hotwire as primary UI.
+- [x] **Mobile: React Native** (`mobile/`) — same API contract as web.
 - [x] **One API** — `/api/v1` serves both the web SPA and `app`.
 - [x] **API docs: rswag** — OpenAPI from request specs; Swagger UI in dev.
 - [x] **Auth: Devise + JWT** — access 20 min; refresh 90 days sliding (180 remember me);
@@ -318,15 +318,15 @@ does not assume indefinite storage.
 
 Decisions finalized in `docs/web-stack.md`. Open items:
 
-- [x] **Web UI** — React SPA in `frontend/main` (not Hotwire).
-- [x] **Mobile** — React Native in `app/`.
+- [x] **Web UI** — React SPA in `frontend/app` (not Hotwire).
+- [x] **Mobile** — React Native in `mobile/`.
 - [x] **API** — single `/api/v1` for web and mobile; conventions in `docs/api/README.md`.
 - [x] **Web auth** — Devise credentials + JWT access + `refresh_tokens`. Schema:
       `docs/database/schema.dbml`. Lifecycle: `docs/modeling/002-api-auth.md`.
 - [x] **API documentation** — rswag → OpenAPI.
 - [x] **API serialization** — blueprinter (provisional).
 - [x] **Firebase Authentication** — not used for login; FCM only for push.
-- [x] **SPA UI kit — MUI v7 + Emotion** in `frontend/main`, not Tailwind. Inherited from the
+- [x] **SPA UI kit — MUI v7 + Emotion** in `frontend/app`, not Tailwind. Inherited from the
       `dashdark-x` template (`frontend/base`) and kept; no migration planned.
 - [x] **Design system catalog — decided:** the **static site** (`frontend/design-system-docs/` →
       `docs/design-system/`, built with `make design-system-docs`) is the **canonical** catalog —
@@ -335,7 +335,7 @@ Decisions finalized in `docs/web-stack.md`. Open items:
       exist only in Ladle, and the catalog does not link to it. See
       `docs/prds/layer-web-spa.md` (Interfaces → Catalog).
 - [x] **SPA test runner — decided:** **Vitest + React Testing Library** on jsdom, installed in
-      `frontend/main`. The `test` block lives in `frontend/main/vite.config.ts`, so specs resolve
+      `frontend/app`. The `test` block lives in `frontend/app/vite.config.ts`, so specs resolve
       the app's path aliases; `npm run test` watches and `npm run test:run` is the single-run CI
       command. Specs sit beside the component (`Component.test.tsx`) and render through
       `src/test/renderWithTheme.tsx`. Conventions: `docs/guidelines/web-ui/testing.md`. Required by
@@ -355,7 +355,7 @@ Decisions finalized in `docs/web-stack.md`. Open items:
       without a bump and an entry is an incomplete change, not a small one.
 - [ ] **API locale negotiation — documented but unimplemented in `web/`.** `docs/api/README.md`
       lists `Accept-Language: pt-BR` as a request convention and the SPA now sends it on every
-      call (`frontend/main/src/services/api.ts`), but **no code in `web/` reads the header**:
+      call (`frontend/app/src/services/api.ts`), but **no code in `web/` reads the header**:
       `config/initializers/locale.rb` only sets `default_locale = :"pt-BR"` with `:en` as a
       fallback, and neither `ApplicationController` nor `Api::V1::BaseController` has an
       `around_action` setting `I18n.locale`. Every response is therefore rendered in the default
@@ -375,7 +375,7 @@ Decisions finalized in `docs/web-stack.md`. Open items:
 - [x] **Design system — MUI `Card` and `Table` — decided:** **forbidden by default**, documented
       as such, and **no override is created**. `SectionCard` (themed `Paper`) is the card surface
       and `DataTable` (`@mui/x-data-grid`) is the tabular one; reach for those. The ban formalises
-      what the codebase already does — neither primitive is imported anywhere in `frontend/main` —
+      what the codebase already does — neither primitive is imported anywhere in `frontend/app` —
       and keeps a single sanctioned route to each result, where an override would create a second
       one. **Revisit if** a product screen needs genuinely static, non-paginated tabular content
       that `DataTable` is the wrong tool for (a printable report, a fixed reference matrix): that

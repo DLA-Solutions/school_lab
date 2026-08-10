@@ -1,6 +1,6 @@
 # Design tokens
 
-Source: `packages/design-tokens/colors.json`. Consumed by `createAppTheme()` and `app/src/theme/colors.ts`.
+Source: `packages/design-tokens/colors.json`. Consumed by `createAppTheme()` and `mobile/src/theme/colors.ts`.
 
 ## Semantic tokens (dark | light)
 

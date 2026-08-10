@@ -8,7 +8,7 @@ Rule: `.cursor/rules/web/services.mdc`. Skill: `write-rspec-spec`.
 ## Role
 
 Service objects are the **single entry point for business logic** in `web/`. Controllers,
-jobs, and other services call them; clients (`frontend/main`, `app/`) never duplicate rules.
+jobs, and other services call them; clients (`frontend/app`, `mobile/`) never duplicate rules.
 
 | Layer | Responsibility |
 |-------|----------------|

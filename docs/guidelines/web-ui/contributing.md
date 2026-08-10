@@ -24,8 +24,8 @@ Which layer you are touching decides which workflow below applies:
 | Change | Layer | Workflow |
 |--------|-------|----------|
 | A colour value or a new colour key | `packages/design-tokens/` | [Token](#1-adding-or-changing-a-token) |
-| How a MUI primitive renders | `frontend/main/src/theme/` | [Override](#2-adding-a-theme-override) |
-| A reusable composition with a product API | `frontend/main/src/design-system/` | [Pattern](#3-adding-a-pattern-component) |
+| How a MUI primitive renders | `frontend/app/src/theme/` | [Override](#2-adding-a-theme-override) |
+| A reusable composition with a product API | `frontend/app/src/design-system/` | [Pattern](#3-adding-a-pattern-component) |
 | Documenting any of the above | `frontend/design-system-docs/` | [Catalog page](#4-adding-a-catalog-page) |
 
 A styling decision that belongs to one screen is not a design-system change. Use `sx` at the call
@@ -43,7 +43,7 @@ Worked example: **tokens 1.1.0**, which gave the `light` scheme its own semantic
    other: 1.1.0 changed four values in `light` only and left `dark` byte-identical, because
    DashdarkX *is* the dark scheme.
 2. **Extend `SemanticTokens` in `packages/design-tokens/index.ts`** if the key is new.
-3. **Map it in `frontend/main/src/theme/mapTokensToPalette.ts`.** `createAppTheme()` calls that
+3. **Map it in `frontend/app/src/theme/mapTokensToPalette.ts`.** `createAppTheme()` calls that
    mapper once per scheme, and nothing reads a token it does not map — that is why `purple.*`,
    `cyan.*` and `blue.*` exist in `colors.json` and reach no component.
 4. **Verify contrast in both schemes.** Measure every pairing the token participates in against the
@@ -56,12 +56,12 @@ Worked example: **tokens 1.1.0**, which gave the `light` scheme its own semantic
    [versioning.md](./versioning.md).
 6. **Update the token table in [tokens.md](./tokens.md)** and rebuild the catalog.
 
-`app/` consumes the dark scheme from the same package, so a change inside the `dark` block is a
+`mobile/` consumes the dark scheme from the same package, so a change inside the `dark` block is a
 mobile change too. Say so in the changelog entry.
 
 ## 2. Adding a theme override
 
-1. **Create `frontend/main/src/theme/components/<category>/<Component>.tsx`**, default-exporting a
+1. **Create `frontend/app/src/theme/components/<category>/<Component>.tsx`**, default-exporting a
    `Components<Omit<Theme, 'components'>>['MuiX']` object. `theme/components/surface/Popover.tsx` is
    a compact reference.
 2. **Keep it `cssVariables`-safe.** Read the palette through `(theme.vars || theme).palette`, and
@@ -88,7 +88,7 @@ mobile change too. Say so in the changelog entry.
 duplicated code than a wrong abstraction, and *extract on the third stable case, not before*.
 Duplication in two feature pages is not a reason to promote.
 
-The two stranded candidates in `frontend/main/src/components/common/` show the judgement in
+The two stranded candidates in `frontend/app/src/components/common/` show the judgement in
 practice. Both were settled in August 2026, and **both stay where they are**
 (`docs/prds/layer-web-spa.md` → Phase 5 → Known debt):
 
@@ -111,7 +111,7 @@ Read that table before proposing one of them again.
 
 Once it is justified:
 
-1. **Place it in `frontend/main/src/design-system/`** — `patterns/` for compositions, `data/` for
+1. **Place it in `frontend/app/src/design-system/`** — `patterns/` for compositions, `data/` for
    data-surface wrappers, `hooks/` for hooks.
 2. **Export it from `design-system/index.ts`, with its props type.** Both lines, together:
    `export { default as X }` and `export type { XProps }`. Composition guidance for the page level
@@ -166,12 +166,12 @@ Once it is justified:
 To typecheck the catalog: `npm run typecheck` (or plain `npx tsc -b`) in
 `frontend/design-system-docs/`. It covers both the source and `vite.config.ts`, and emits nothing —
 `tsconfig.json` is a solution-style root over `tsconfig.app.json` and `tsconfig.node.json`, the
-same shape `frontend/main` uses. This used to need `tsc -p tsconfig.json --noEmit` to dodge a
+same shape `frontend/app` uses. This used to need `tsc -p tsconfig.json --noEmit` to dodge a
 config project that had no `@types/node` and emitted a `vite.config.js` shadowing the real config.
 
 ## Pre-merge checklist
 
-Run from `frontend/main/`:
+Run from `frontend/app/`:
 
 - [ ] `npm run build` — `tsc -b` then the production build
 - [ ] `npm run lint`

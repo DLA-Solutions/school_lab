@@ -5,7 +5,7 @@
 
 ## Objective
 
-Deliver a complete, documented and governed design system for `frontend/main`, so that every
+Deliver a complete, documented and governed design system for `frontend/app`, so that every
 product surface (backoffice, school, teacher, guardian) can be built from a single set of tokens,
 themed primitives and pattern components — without re-deciding the visual language per feature.
 
@@ -14,7 +14,7 @@ The SPA stays a thin client: it owns presentation, navigation and session handli
 
 ## Context
 
-`frontend/main` is the React 19 + Vite 7 SPA described in `docs/web-stack.md` §3. It serves the
+`frontend/app` is the React 19 + Vite 7 SPA described in `docs/web-stack.md` §3. It serves the
 backoffice, school and teacher web surfaces today; the guardian web surface is subject to an open
 question (`docs/open-questions.md` — MVP and scope: "Parents in the MVP: app only, or web too?"),
 which this PRD does not resolve.
@@ -29,8 +29,8 @@ The design system has three layers today:
 | Layer | Location | State (Aug 2026) |
 |-------|----------|------------------|
 | Tokens | `packages/design-tokens/` (`@school-lab/design-tokens`, consumed as a `file:` dependency) | `colors.json` with light/dark semantic tokens; version `1.2.0`, with `CHANGELOG.md` and the bump policy in `docs/guidelines/web-ui/versioning.md` |
-| Theme | `frontend/main/src/theme/` | `createAppTheme()` + **64** registered MUI component overrides under `theme/components/**` |
-| Patterns | `frontend/main/src/design-system/` | 9 pattern components + `useChartTheme`, exported from `design-system/index.ts` |
+| Theme | `frontend/app/src/theme/` | `createAppTheme()` + **64** registered MUI component overrides under `theme/components/**` |
+| Patterns | `frontend/app/src/design-system/` | 9 pattern components + `useChartTheme`, exported from `design-system/index.ts` |
 
 Reference documentation is built from `frontend/design-system-docs/` into `docs/design-system/`
 (`make design-system-docs`). Human-facing standards live in `docs/guidelines/web-ui/`; the
@@ -65,7 +65,7 @@ work is theme coverage, documentation and governance, never reimplementation.
 - **Business rules** → Domain PRDs + `web/` service objects. Client-side validation is UX only and
   never the authority; it must not restate a BR-NNN rule.
 - **API contracts** → `docs/api/v1/` narratives and the rswag-generated `swagger/v1/swagger.yaml`.
-- **Mobile visual language** → the `app/` layer. Mobile shares the token package (dark tokens only),
+- **Mobile visual language** → the `mobile/` layer. Mobile shares the token package (dark tokens only),
   not the React components.
 - **`frontend/base`** — frozen upstream reference; never modified, never deployed, never the subject
   of a layer PRD.
@@ -74,7 +74,7 @@ work is theme coverage, documentation and governance, never reimplementation.
 
 | Depends on | For |
 |------------|-----|
-| `packages/design-tokens` | Single source of color and shadow values, shared with `app/` |
+| `packages/design-tokens` | Single source of color and shadow values, shared with `mobile/` |
 | `docs/web-stack.md` §3 | Locked stack: React 19, Vite 7, MUI v7 + Emotion, React Router v7 |
 | `docs/guidelines/web-ui/` | Existing human-facing standards to absorb and keep in sync, not duplicate |
 | `docs/api/README.md` + `docs/api/v1/` | Auth flow, error envelope, pagination contract |
@@ -105,7 +105,7 @@ The static site (`frontend/design-system-docs/` → `docs/design-system/`, built
 `make design-system-docs`) is the **canonical, reviewable catalog**. It is committed to the
 repository, opens without a dev server, and is the surface a reviewer is expected to check.
 
-**Ladle** (`npm run ladle` in `frontend/main`, 9 story files) is retained as a **development
+**Ladle** (`npm run ladle` in `frontend/app`, 9 story files) is retained as a **development
 sandbox** for isolated component work. It is not a documentation surface: no page may exist only in
 Ladle, and the catalog never links to it. This consolidation is recorded as a decision in
 `docs/open-questions.md` (Web stack).
@@ -167,7 +167,7 @@ reachable from nav.
   interactive element reachable, operable and visibly focused by keyboard. Any token that cannot
   meet AA without breaking the DashdarkX identity requires a written waiver in the catalog's
   Accessibility page.
-- **Testability** — a component test runner in `frontend/main`: **Vitest + React Testing Library**
+- **Testability** — a component test runner in `frontend/app`: **Vitest + React Testing Library**
   on jsdom, configured in `vite.config.ts` and run with `npm run test:run`. Conventions in
   `docs/guidelines/web-ui/testing.md`. This closed the "SPA test runner" open item in
   `docs/open-questions.md` (Web stack).
@@ -180,7 +180,7 @@ reachable from nav.
 
 ## Acceptance criteria
 
-- [x] Every MUI primitive used in `frontend/main` has either a theme override or a documented
+- [x] Every MUI primitive used in `frontend/app` has either a theme override or a documented
       decision that it is not allowed. *(Every `@mui/material` primitive the SPA imports is covered
       — by an override, or by the `Box` / `Grid` / `SvgIcon` and `Card*` / `Table*` decisions in
       `theming.md`. The last gap was `DatePicker`, whose 40-line local `sx` in
@@ -267,7 +267,7 @@ actually stands, and each verdict is labelled *demand-driven* — real, stable, 
 pattern would de-duplicate — or *list-driven* — it would exist only because this list named it. The
 labels are here so the list can be pruned on review without re-deriving the counts.
 
-The controlling fact is the size of the product surface. `frontend/main` has three pages
+The controlling fact is the size of the product surface. `frontend/app` has three pages
 (`Dashboard`, `Signin`, `Error404`); the dashboard is the DashdarkX template's own sections,
 rendering hardcoded sample data from `src/data/`. No domain PRD has produced a screen yet. So for
 most of this list the call-site count is not "below three", it is **zero** — the pattern would ship
@@ -340,7 +340,7 @@ product screen wanting the same thing, not the reappearance of a name on this li
     entirely in each call site and nothing fails loudly when one forgets. Decide whether the
     component should default `paginationMode` to `'server'`, or require `rowCount` +
     `paginationModel` in its own props type, once there is a second real caller to design against.
-  - `@mui/utils` — **done**. It is an explicit dependency of `frontend/main` and of
+  - `@mui/utils` — **done**. It is an explicit dependency of `frontend/app` and of
     `frontend/design-system-docs` (both at 7.3.11), `layouts/main-layout/SkipLink.tsx` imports
     `visuallyHidden` from it, and Utilities → Visually hidden now documents the import and points
     at that usage instead of restating the nine declarations.
@@ -394,7 +394,7 @@ Already decided (see `docs/open-questions.md` → Web stack):
 - **The SPA test runner is Vitest + React Testing Library** on jsdom.
 - **MUI `Card*` and `Table*` are forbidden by default**, documented as such, with **no override
   created**. `SectionCard` is the card surface and `DataTable` the tabular one. The ban formalises
-  what the codebase already does — neither primitive is imported anywhere in `frontend/main` — and
+  what the codebase already does — neither primitive is imported anywhere in `frontend/app` — and
   keeps one sanctioned route to each result; an override would be a second route to the same
   surface, which is how a design system drifts. Revisit only if a screen needs genuinely static,
   non-paginated tabular content that `DataTable` is the wrong tool for (a printable report, a fixed
@@ -409,6 +409,6 @@ Already decided (see `docs/open-questions.md` → Web stack):
 - Publishing the design system as an external npm package. `@school-lab/design-tokens` stays a
   private workspace dependency.
 - Redesigning the DashdarkX visual identity.
-- The mobile design system (`app/`), which shares tokens but not components.
+- The mobile design system (`mobile/`), which shares tokens but not components.
 - Business rules, API contracts and data modeling — Domain PRDs, `docs/api/` and `docs/modeling/`.
 - Resolving whether guardians get a web surface in the MVP — tracked in `docs/open-questions.md`.

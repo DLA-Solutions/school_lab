@@ -12,13 +12,13 @@ School Lab has three PRD scopes. Detect which one the user needs before writing.
 | Scope | When | Primary output |
 |-------|------|----------------|
 | **Product** | MVP boundaries, vision, roadmap, cross-domain priorities | Anchor docs (`vision.md`, `product-map.md`, `actors-and-surfaces.md`) or `docs/prds/product.md` when a standalone artifact is needed |
-| **Layer** | Requirements for one monorepo layer (`web/`, `frontend/main`, `app/`) | `docs/prds/layer-<layer>.md` |
+| **Layer** | Requirements for one monorepo layer (`web/`, `frontend/app`, `mobile/`) | `docs/prds/layer-<layer>.md` |
 | **Domain** | One business capability (communication, billing, identity, …) | `docs/prds/NNN-<domain>.md` |
 
 **Decision cues**
 
 - Mentions MVP, vision, roadmap, "the product", priorities across domains → **Product**
-- Mentions API, Rails, React SPA, mobile app, jobs, stack, a specific folder (`web/`, `frontend/main`, `app/`) → **Layer**
+- Mentions API, Rails, React SPA, mobile app, jobs, stack, a specific folder (`web/`, `frontend/app`, `mobile/`) → **Layer**
 - Mentions a business area (messages, boletos, enrollments, attendance, …) → **Domain**
 
 When unclear, ask once: product, layer, or domain — and which layer/domain.
@@ -72,8 +72,8 @@ Use for **one monorepo layer** without duplicating business rules that belong in
 | Layer | Folder | Owns |
 |-------|--------|------|
 | `web` | `web/` | `/api/v1`, service objects, models, jobs, OpenAPI (rswag) |
-| `web-spa` | `frontend/main` | React SPA — backoffice, school, teacher, guardian web surfaces |
-| `app` | `app/` | React Native — school, teacher, guardian mobile |
+| `web-spa` | `frontend/app` | React SPA — backoffice, school, teacher, guardian web surfaces |
+| `mobile` | `mobile/` | React Native — school, teacher, guardian mobile |
 
 `frontend/base` is the upstream template the SPA started from — never the subject of a layer PRD.
 

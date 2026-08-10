@@ -1,6 +1,6 @@
 # Pattern components
 
-Import from `design-system` (barrel: `frontend/main/src/design-system/index.ts`).
+Import from `design-system` (barrel: `frontend/app/src/design-system/index.ts`).
 
 ## Strings
 
