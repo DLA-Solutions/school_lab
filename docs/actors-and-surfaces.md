@@ -25,9 +25,6 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 | API | `web/` | `/api/*` | web (server) |
 | Marketing site | `site/` | `/` | web (static) |
 
-Until [ADR 001](adr/001-monorepo-surfaces.md) migration lands, the school SPA is still at flat
-`frontend/` and mobile is still at `app/`.
-
 **Channels** (for the role matrix below):
 
 - **web** — browser SPAs above plus the API.
@@ -103,14 +100,14 @@ Until [ADR 001](adr/001-monorepo-surfaces.md) migration lands, the school SPA is
 
 ### Web SPAs + mobile (finalized decision)
 
-**School web SPA** (`frontend/app/`, today flat `frontend/`), **platform backoffice SPA**
-(`frontend/backoffice/` — planned), and **React Native** (`mobile/`, today `app/`) all consume
+**School web SPA** (`frontend/app/`), **platform backoffice SPA** (`frontend/backoffice/`), and
+**React Native** (`mobile/`, today `app/`) all consume
 the same versioned JSON REST API (`/api/v1`) from Rails (`web/`). Layout decision:
 [ADR 001](adr/001-monorepo-surfaces.md). Stack details: `docs/web-stack.md` and
 `docs/api/README.md`.
 
-- **School web (`/app`):** JWT access + refresh httpOnly cookie (`path: '/'` once ADR 001 Phase 4
-  lands). Sign-in UI; post-login redirect sends backoffice users to `/backoffice/`.
+- **School web (`/app`):** JWT access + refresh httpOnly cookie (`path: '/'`). Sign-in UI;
+  post-login redirect sends backoffice users to `/backoffice/`.
 - **Platform web (`/backoffice`):** same auth transport; English URL segments; DLA-only features
   (school register, provisioning wizard).
 - **Mobile:** JWT access + refresh in secure storage.

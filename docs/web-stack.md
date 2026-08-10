@@ -1,7 +1,7 @@
 # Web Stack — School Lab
 
-> Folders (target): `web/`, `frontend/app/` (school SPA at `/app`), `frontend/backoffice/` (platform SPA at `/backoffice`), `site/`, `mobile/` (React Native)  
-> **ADR:** [001-monorepo-surfaces](adr/001-monorepo-surfaces.md) — today the school SPA is flat `frontend/` and mobile is `app/` until migration lands.  
+> Folders: `web/`, `frontend/app/` (school SPA at `/app`), `frontend/backoffice/` (platform SPA at `/backoffice`), `site/`, `mobile/` (React Native; folder rename pending ADR 001 Phase 5)  
+> **ADR:** [001-monorepo-surfaces](adr/001-monorepo-surfaces.md)  
 > Status: finalized decision (web layer)
 
 Rails 8.1 API monolith with a versioned JSON REST API consumed by **React web** and
@@ -15,8 +15,8 @@ the MVP: app + PostgreSQL + S3.
 | Language | Ruby 4.0.x |
 | Framework | Rails 8.1.x |
 | API | REST JSON `/api/v1` |
-| Web UI (school) | **React 19** SPA (`frontend/app/`, today `frontend/`) — Vite 7 + TypeScript, **MUI v7**, `/app` |
-| Web UI (platform) | **React 19** SPA (`frontend/backoffice/`, planned) — same stack, `/backoffice` |
+| Web UI (school) | **React 19** SPA (`frontend/app/`) — Vite 7 + TypeScript, **MUI v7**, `/app` |
+| Web UI (platform) | **React 19** SPA (`frontend/backoffice/`) — same stack, `/backoffice` |
 | Marketing site | Static HTML (`site/`) at domain root `/` |
 | Mobile UI | **React Native** (`mobile/`, today `app/`) |
 | API docs | **rswag** → OpenAPI (`swagger/v1/swagger.yaml`) |
@@ -37,8 +37,8 @@ Decision record: [ADR 001](adr/001-monorepo-surfaces.md).
 school_lab/
   web/                      # Rails — API, services, models, jobs (no Hotwire UI)
   frontend/
-    app/                    # School SPA at /app (today: flat frontend/)
-    backoffice/             # Platform SPA at /backoffice (planned)
+    app/                    # School SPA at /app
+    backoffice/             # Platform SPA at /backoffice
     design-system-docs/     # Catalog build → docs/design-system/
     base/                   # upstream template — reference only
   mobile/                   # React Native (today: app/)
@@ -62,9 +62,7 @@ All product controllers delegate to the same service objects — rules are not d
 ## 3. School web SPA (`frontend/app/`)
 
 React 19 SPA on Vite 7 + TypeScript 5.9 (SWC via `@vitejs/plugin-react-swc`). Deployed at
-`/app` (`VITE_BASE_PATH=/app/`). **Until ADR 001 Phase 1,** the app lives at flat `frontend/`
-(`frontend/package.json`, `frontend/src/`). The table below describes what is **installed today**,
-not a plan.
+`/app` (`VITE_BASE_PATH=/app/`). The table below describes what is **installed today**, not a plan.
 
 | Concern | Approach |
 |---------|----------|
@@ -81,7 +79,7 @@ not a plan.
 | Lint / format | ESLint 9 flat config + Prettier, enforced during `vite dev`/`build` by `vite-plugin-checker` |
 | Tests | **Vitest** + React Testing Library on jsdom; `test` block in `vite.config.ts`, shared render helper in `src/test/renderWithTheme.tsx`. `npm run test` (watch) / `npm run test:run` (CI). Conventions: `docs/guidelines/web-ui/testing.md` |
 | API mocking | **MSW** (`msw/node`) — handlers in `src/test/msw/`, server started from `src/test/setup.ts` with `onUnhandledRequest: 'error'` |
-| Config | `VITE_API_BASE_URL` (`frontend/.env.example`); empty in production for same-origin `/api/...`; `VITE_BASE_PATH=/app/` for deploy builds; dev server on port 5173 |
+| Config | `VITE_API_BASE_URL` (`frontend/app/.env.example`); empty in production for same-origin `/api/...`; `VITE_BASE_PATH=/app/` for deploy builds; dev server on port 5173 |
 
 **Principle:** thin client — validation and business rules stay in the API.
 
@@ -90,8 +88,8 @@ not a plan.
 | Piece | Location |
 |-------|----------|
 | Shared tokens | `packages/design-tokens/` (`@school-lab/design-tokens`) |
-| MUI theme | `frontend/src/theme/createAppTheme.ts` (today); `frontend/app/src/theme/` after Phase 1 |
-| Pattern components | `frontend/src/design-system/` (today); path alias `design-system` |
+| MUI theme | `frontend/app/src/theme/createAppTheme.ts` |
+| Pattern components | `frontend/app/src/design-system/`; path alias `design-system` |
 | **Canonical catalog** | `docs/design-system/` — built from `frontend/design-system-docs/` with `make design-system-docs` |
 | Development sandbox | Ladle — `npm run ladle` in the school SPA package. **Not** a documentation surface (§15) |
 | Guidelines | `docs/guidelines/web-ui/` |
@@ -114,18 +112,15 @@ consuming them — the corresponding choices are open items in §15.
 
 ## 4. Platform backoffice SPA (`frontend/backoffice/`)
 
-Planned second React SPA for DLA operators — same stack as §3 (React 19, Vite 7, MUI v7,
-React Router v7). Deployed at `/backoffice` (`VITE_BASE_PATH=/backoffice/`).
+Second React SPA for DLA operators — same stack as §3 (React 19, Vite 7, MUI v7, React Router
+v7). Deployed at `/backoffice` (`VITE_BASE_PATH=/backoffice/`).
 
 | Concern | Approach |
 |---------|----------|
 | Scope | School register, white-glove provisioning wizard, future platform billing/support |
 | Routing | English URL segments (`/schools`, `/schools/:id/provisioning`) — see ADR 001 |
-| Auth | Same JWT + refresh cookie as school SPA; sign-in UI initially in school SPA with post-login redirect |
+| Auth | Same JWT + refresh cookie as school SPA; sign-in UI in school SPA with post-login redirect |
 | Shared code | Copy minimal API client first; extract to `packages/` on third stable duplication |
-
-**Today:** backoffice UI (`Schools`, `ProvisioningWizard`) still ships inside the school SPA
-bundle at `/escolas` and `/onboarding/provisioning/:id` — split is ADR 001 Phases 2–3.
 
 ## 5. Mobile frontend (`mobile/`)
 
@@ -141,7 +136,7 @@ React Native consuming the same `/api/v1` contract. **Today:** folder is still `
 
 | Channel | Mechanism |
 |-------|-----------|
-| **Web SPAs** | JWT access (Bearer) + refresh **httpOnly cookie** (`path: '/'` — ADR 001 Phase 4) |
+| **Web SPAs** | JWT access (Bearer) + refresh **httpOnly cookie** (`path: '/'`) |
 | **Mobile (`mobile/`, today `app/`)** | JWT access + refresh token (secure storage) |
 | **Credentials** | **Devise** on `users` (password, reset, lock) |
 

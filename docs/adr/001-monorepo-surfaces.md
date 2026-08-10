@@ -121,20 +121,21 @@ Feature flags and internal ops panels live in `web/` (Rails-mounted routes), not
 
 ## Migration
 
-Code does **not** yet match this ADR. Planned order:
+Phases **0–4** are **done** in the tree (school SPA at `frontend/app/`, backoffice at
+`frontend/backoffice/`, Kamal `/backoffice`, UI split, staging deploy + refresh cookie `path: '/'`).
+Remaining work:
 
-| Phase | Work | Branch type |
-|-------|------|-------------|
-| 0 | ADR + anchor doc updates | `docs/` |
-| 1 | `frontend/` → `frontend/app/` | `chore/` |
-| 2 | Scaffold `frontend/backoffice/` + Kamal `/backoffice` | `feature/` |
-| 3 | Move schools + provisioning UI; clean school SPA; post-login redirect | `feature/` |
-| 4 | Staging deploy + cookie path fix in `web/` | `feature/` or `fix/` |
-| 5 | `app/` → `mobile/` | `chore/` |
-| 6 | Optional `packages/api-client` | `chore/` or `refactor/` |
+| Phase | Work | Branch type | Status |
+|-------|------|-------------|--------|
+| 0 | ADR + anchor doc updates | `docs/` | Done |
+| 1 | `frontend/` → `frontend/app/` | `chore/` | Done |
+| 2 | Scaffold `frontend/backoffice/` + Kamal `/backoffice` | `feature/` | Done |
+| 3 | Move schools + provisioning UI; clean school SPA; post-login redirect | `feature/` | Done |
+| 4 | Staging deploy + cookie path fix in `web/` | `feature/` or `fix/` | Done |
+| 5 | `app/` → `mobile/` | `chore/` | Pending |
+| 6 | Optional `packages/api-client` | `chore/` or `refactor/` | Pending |
 
-Until Phase 1 lands, the school SPA remains at `frontend/` (flat). Until Phase 5, mobile
-remains at `app/`.
+Until Phase 5 lands, the React Native app remains at `app/`.
 
 ## References
 

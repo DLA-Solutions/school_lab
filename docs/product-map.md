@@ -6,8 +6,8 @@
 school_lab/
   web/                    # Rails API + services + jobs
   frontend/
-    app/                  # school SPA → /app (today: flat frontend/)
-    backoffice/           # platform SPA → /backoffice (planned)
+    app/                  # school SPA → /app
+    backoffice/           # platform SPA → /backoffice
     design-system-docs/   # design system catalog build
     base/                 # upstream template — reference only
   mobile/                 # React Native (today: app/)
@@ -16,7 +16,7 @@ school_lab/
   docs/                   # vision, anchors, PRDs, ADRs, API, guidelines
 ```
 
-Target layout: [ADR 001](adr/001-monorepo-surfaces.md). Migration phases listed there.
+Layout: [ADR 001](adr/001-monorepo-surfaces.md) (phases 1–4 landed; phase 5 `app/` → `mobile/` pending).
 
 A monorepo by product/organization decision: a single context makes working with
 AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
@@ -39,13 +39,11 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 - School web SPA: staff operations (owner, secretary, coordination, direction).
 - Routes: school dashboard, people, academics, school billing, invite accept, owner onboarding.
 - Deployed at `/app`; consumes `/api/v1`; refresh token in httpOnly cookie.
-- **Today:** flat `frontend/` until ADR 001 Phase 1.
 
 ### frontend/backoffice/
 
 - Platform SPA for DLA operators: school register, white-glove provisioning, future platform ops.
 - Deployed at `/backoffice`; same auth transport as the school SPA.
-- **Today:** not yet split out — backoffice pages still live in the school SPA bundle.
 
 ### frontend/base
 
