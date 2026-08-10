@@ -45,8 +45,8 @@ export default defineConfig({
     },
   },
   resolve: {
-    // Theme/design-system source is reused from ../src via the aliases below.
-    // Without deduping, those files resolve these libs from ../node_modules
+    // Theme/design-system source is reused from ../app/src via the aliases below.
+    // Without deduping, those files resolve these libs from ../app/node_modules
     // (a separate install), splitting React context (e.g. useColorScheme) from the
     // <ThemeProvider> mounted here, which silently no-ops setMode/mode.
     dedupe: [
@@ -62,11 +62,11 @@ export default defineConfig({
       '@emotion/styled',
     ],
     alias: {
-      'design-system': path.resolve(__dirname, '../src/design-system'),
-      theme: path.resolve(__dirname, '../src/theme'),
-      components: path.resolve(__dirname, '../src/components'),
-      providers: path.resolve(__dirname, '../src/providers'),
-      assets: path.resolve(__dirname, '../src/assets'),
+      'design-system': path.resolve(__dirname, '../app/src/design-system'),
+      theme: path.resolve(__dirname, '../app/src/theme'),
+      components: path.resolve(__dirname, '../app/src/components'),
+      providers: path.resolve(__dirname, '../app/src/providers'),
+      assets: path.resolve(__dirname, '../app/src/assets'),
     },
   },
   server: {

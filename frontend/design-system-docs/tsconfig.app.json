@@ -19,15 +19,15 @@
     // The catalog renders the real components: these resolve into ../src, and vite.config.ts
     // repeats them as Vite aliases.
     "paths": {
-      "design-system": ["../src/design-system"],
-      "design-system/*": ["../src/design-system/*"],
-      "theme": ["../src/theme"],
-      "theme/*": ["../src/theme/*"],
-      "components": ["../src/components"],
-      "components/*": ["../src/components/*"],
-      "providers": ["../src/providers"],
-      "providers/*": ["../src/providers/*"],
-      "assets/*": ["../src/assets/*"]
+      "design-system": ["../app/src/design-system"],
+      "design-system/*": ["../app/src/design-system/*"],
+      "theme": ["../app/src/theme"],
+      "theme/*": ["../app/src/theme/*"],
+      "components": ["../app/src/components"],
+      "components/*": ["../app/src/components/*"],
+      "providers": ["../app/src/providers"],
+      "providers/*": ["../app/src/providers/*"],
+      "assets/*": ["../app/src/assets/*"]
     }
   },
   "include": ["src"]

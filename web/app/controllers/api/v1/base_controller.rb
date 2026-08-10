@@ -193,6 +193,7 @@ module Api
           httponly: true,
           secure: Rails.env.production?,
           same_site: :lax,
+          path: "/",
           expires: expires_at
         }
       end

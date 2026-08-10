@@ -1,0 +1,15 @@
+import type { Theme, Components } from '@mui/material/styles';
+
+const ListItemButton: Components<Omit<Theme, 'components'>>['MuiListItemButton'] = {
+  styleOverrides: {
+    root: ({ theme }) => ({
+      padding: theme.spacing(1),
+      borderRadius: theme.shape.borderRadius,
+      '&:hover': {
+        backgroundColor: (theme.vars || theme).palette.surface.alt,
+      },
+    }),
+  },
+};
+
+export default ListItemButton;

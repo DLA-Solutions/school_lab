@@ -1,0 +1,7 @@
+{
+  // Solution-style root: it owns no files, it only builds the two real projects. TypeScript
+  // rejects `noEmit` on a project referenced from a project that has files of its own, so this
+  // shape is what lets `tsc -b` type-check everything without emitting anything to disk.
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+}
