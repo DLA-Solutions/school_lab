@@ -9,18 +9,21 @@ Multi-school management SaaS for private Brazilian schools. Product UI locale is
 
 ## Monorepo layout
 - `web/` — Rails 8.1, API-only (`config.api_only = true`), serving the versioned REST API (single source of business rules). Stack is locked; see the `web/web-rails` rule. Outbound third-party HTTP uses `web/lib/school_lab/http.rb` (rule `http-client`).
-- `frontend/` — React + Vite SPA, the product web UI at `/app`. Consumes the API; never duplicates business rules.
+- `frontend/app/` — React + Vite school SPA at `/app` (today: flat `frontend/`). Consumes the API; never duplicates business rules.
+- `frontend/backoffice/` — React + Vite platform SPA at `/backoffice` (planned). Same API contract.
 - `site/` — static institutional landing at the domain root (`/`). No API dependency.
 - `frontend/base` — upstream template the SPA started from. Reference only; not the product.
-- `app/` — React Native mobile. Consumes the API; never duplicates business rules.
-- `docs/` — anchor docs, PRDs, guidelines. Source of truth for scope. Human-facing engineering standards live in `docs/guidelines/`.
+- `mobile/` — React Native (today: `app/`). Consumes the API; never duplicates business rules.
+- `docs/` — anchor docs, PRDs, ADRs, guidelines. Source of truth for scope. Engineering standards live in `docs/guidelines/`.
+
+Surface layout decision: `docs/adr/001-monorepo-surfaces.md`.
 
 ## Working convention
 Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs (`docs/prds/`) → modeling (narrative in `docs/modeling/`) + database (DBML/DER in `docs/database/`) → implementation in `web/`. Do not implement domains that lack a PRD without flagging it.
 
 ## `.cursor` layout
 - `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming).
-- `rules/docs/`, `rules/web/`, `rules/app/` — scoped by surface via `globs`; the folder is organizational, activation is driven by frontmatter.
+- `rules/docs/`, `rules/web/`, `rules/app/` — scoped by surface via `globs` (`app/` rules apply to `mobile/` until rename); the folder is organizational, activation is driven by frontmatter.
 - `agents/` — specialized subagents (`rails-implementer` orchestrates; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/`; `prd-reviewer`, `doc-consistency-checker` for docs).
 - `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `app/`). Deploy workflow: skill `deploy-kamal`; guardrails: rule `deployment`.
 - Detailed "why" for these rules lives in `docs/guidelines/`; rules stay terse and point there.
