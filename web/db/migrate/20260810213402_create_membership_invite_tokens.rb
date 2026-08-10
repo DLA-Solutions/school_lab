@@ -18,6 +18,6 @@ class CreateMembershipInviteTokens < ActiveRecord::Migration[8.1]
       unique: true,
       where: "used_at IS NULL",
       name: "index_membership_invite_tokens_on_membership_id_unused"
-    add_index :membership_invite_tokens, [:school_id, :expires_at]
+    add_index :membership_invite_tokens, [ :school_id, :expires_at ]
   end
 end
