@@ -16,7 +16,7 @@ import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
-import { EmptyState, ErrorBanner, SectionCard } from 'design-system';
+import { EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
 import { useAuth } from 'providers/AuthContext';
 import paths from 'routes/paths';
 import { ApiError } from 'services/api';
@@ -264,7 +264,7 @@ const ProvisioningWizard = () => {
   if (loadError || !school) {
     return (
       <Stack gap={3.5} py={2}>
-        <PageHeading schoolName={null} />
+        <ProvisioningPageHeader schoolName={null} />
         <SectionCard>
           <EmptyState
             title="Escola não encontrada"
@@ -279,7 +279,7 @@ const ProvisioningWizard = () => {
   if (readOnly) {
     return (
       <Stack gap={3.5} py={2}>
-        <PageHeading schoolName={school.name} />
+        <ProvisioningPageHeader schoolName={school.name} />
         <SectionCard>
           <EmptyState
             title="Provisionamento encerrado"
@@ -500,7 +500,7 @@ const ProvisioningWizard = () => {
 
   return (
     <Stack gap={3.5} py={2}>
-      <PageHeading schoolName={school.name} />
+      <ProvisioningPageHeader schoolName={school.name} />
 
       <Stepper activeStep={activeStep} alternativeLabel>
         {STEPS.map((label) => (
@@ -548,17 +548,15 @@ const ProvisioningWizard = () => {
   );
 };
 
-const PageHeading = ({ schoolName }: { schoolName: string | null }) => (
-  <Box>
-    <Typography variant="h4" fontWeight={600} gutterBottom>
-      Provisionamento da escola
-    </Typography>
-    <Typography variant="body2" color="text.secondary">
-      {schoolName
+const ProvisioningPageHeader = ({ schoolName }: { schoolName: string | null }) => (
+  <PageHeader
+    title="Provisionamento da escola"
+    subtitle={
+      schoolName
         ? `Configure ${schoolName} antes do repasse ao responsável.`
-        : 'Assistente de provisionamento premium.'}
-    </Typography>
-  </Box>
+        : 'Assistente de provisionamento premium.'
+    }
+  />
 );
 
 export default ProvisioningWizard;
