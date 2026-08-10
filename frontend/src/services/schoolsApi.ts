@@ -10,6 +10,12 @@ const PATH = '/api/v1/schools';
 
 export const listSchools = (page = 1) => request<Paginated<School>>(`${PATH}?page=${page}`);
 
+export const getSchool = async (id: number): Promise<School> => {
+  const response = await request<{ data: School }>(`${PATH}/${id}`);
+
+  return response.data;
+};
+
 export const createSchool = async (school: SchoolPayload): Promise<School> => {
   const response = await request<{ data: School }>(PATH, { method: 'POST', body: { school } });
 

@@ -1,6 +1,9 @@
 import { AuthUser, Membership } from 'types/auth';
 import paths from 'routes/paths';
 
+export const isBackofficeUser = (memberships: Membership[]): boolean =>
+  memberships.some((membership) => membership.role === 'backoffice' && membership.status === 'active');
+
 export const findInvitedMembership = (user: AuthUser | null): Membership | undefined =>
   user?.memberships.find((membership) => membership.status === 'invited');
 

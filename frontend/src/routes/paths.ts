@@ -37,5 +37,5 @@ export default {
   404: `/${rootPaths.errorRoot}/404`,
 };
 
-/** Flip when #200 registers the provisioning wizard route for post-create redirect. */
-export const PROVISIONING_WIZARD_ROUTE_REGISTERED = false;
+/** Registered by #200 — enables auto-redirect after white-glove school create. */
+export const PROVISIONING_WIZARD_ROUTE_REGISTERED = true;

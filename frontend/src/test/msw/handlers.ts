@@ -380,13 +380,38 @@ export const handlers = [
     return new HttpResponse(null, { status: 202 });
   }),
 
-  http.post(apiUrl('/api/v1/schools/:schoolId/handoff'), async ({ request }) => {
+  http.post(apiUrl('/api/v1/schools/:schoolId/handoff'), async ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
     }
 
     const body = (await request.json()) as { handoff?: { billing_waived?: boolean } };
     const billingWaived = body.handoff?.billing_waived === true;
+    const schoolId = Number(params.schoolId);
+    const school = sampleSchools.find((row) => row.id === schoolId);
+
+    if (school?.onboarding_status === 'provisioning') {
+      if (!billingWaived) {
+        return jsonError(422, 'validation_error', 'Checklist incompleta.', {
+          checklist: ['billing'],
+        });
+      }
+
+      return HttpResponse.json({
+        data: {
+          id: school.id,
+          name: school.name,
+          cnpj: school.cnpj,
+          address: school.address,
+          saas_plan: school.saas_plan,
+          school_group_id: school.school_group_id,
+          onboarding_status: 'pending_handoff',
+          onboarding_mode: school.onboarding_mode,
+          billing_waived_at: '2026-08-10T12:00:00Z',
+          segments_skipped_at: null,
+        },
+      });
+    }
 
     if (!billingWaived) {
       return jsonError(422, 'validation_error', 'Checklist incompleta.', {
@@ -401,6 +426,66 @@ export const handlers = [
         onboarding_mode: 'self_serve',
         billing_waived_at: '2026-08-10T12:00:00Z',
         segments_skipped_at: null,
+      },
+    });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+    const school = sampleSchools.find((row) => row.id === schoolId);
+
+    if (!school) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: school });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/provisioning/import'), async ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const url = new URL(request.url);
+    const dryRun = url.searchParams.get('dry_run') !== 'false';
+    const formData = await request.formData();
+    const file = formData.get('file');
+    const fileName = file instanceof File ? file.name : '';
+
+    if (!file) {
+      return jsonError(422, 'import_validation_failed', 'Não foi possível processar o CSV.', {
+        error_report: { file: ['Arquivo obrigatório.'] },
+      });
+    }
+
+    if (fileName.includes('invalid')) {
+      return jsonError(422, 'import_validation_failed', 'Não foi possível processar o CSV.', {
+        error_report: {
+          rows: [{ row: 2, errors: { student_name: ['não pode ficar em branco'] } }],
+        },
+      });
+    }
+
+    return HttpResponse.json({
+      data: {
+        import: {
+          id: 501,
+          status: dryRun ? 'previewed' : 'committed',
+          row_count: 2,
+          committed_at: dryRun ? null : '2026-08-10T12:00:00Z',
+          created_at: '2026-08-10T12:00:00Z',
+          error_report: null,
+        },
+        summary: {
+          valid_rows: 2,
+          students_to_create: 2,
+          guardians_to_create: 2,
+          links_to_create: 2,
+        },
       },
     });
   }),

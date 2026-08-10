@@ -71,3 +71,37 @@ export interface CreatedMembership {
   role: string;
   display_title: string | null;
 }
+
+/** POST /api/v1/schools/:school_id/provisioning/import — preview or commit summary. */
+export interface ProvisioningImportSummary {
+  valid_rows: number;
+  students_to_create: number;
+  guardians_to_create: number;
+  links_to_create: number;
+}
+
+export type ProvisioningImportStatus = 'previewed' | 'committed' | 'failed';
+
+export interface ProvisioningImportRowError {
+  row: number;
+  errors: Record<string, string[]>;
+}
+
+export interface ProvisioningImportErrorReport {
+  file?: string[];
+  rows?: ProvisioningImportRowError[];
+}
+
+export interface ProvisioningImportRecord {
+  id: number;
+  status: ProvisioningImportStatus;
+  row_count: number;
+  committed_at: string | null;
+  created_at: string;
+  error_report: ProvisioningImportErrorReport | null;
+}
+
+export interface ProvisioningImportResult {
+  import: ProvisioningImportRecord;
+  summary: ProvisioningImportSummary;
+}
