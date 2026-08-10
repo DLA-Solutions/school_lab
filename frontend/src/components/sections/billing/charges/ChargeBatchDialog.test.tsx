@@ -63,9 +63,9 @@ describe('ChargeBatchDialog', () => {
     renderDialog();
 
     // 85.000 + 60.000 cents; the contract already charged for the period is left out.
-    await screen.findByText(/2 contrato\(s\) selecionado\(s\)/);
+    await screen.findByText(/2 contract\(s\) selected/);
     expect(screen.getByText(/R\$\s?1\.450,00/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Emitir 2 boleto(s)' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Issue 2 boleto(s)' })).toBeEnabled();
   });
 
   // Billing it again would hand the family a second boleto for the same month.
@@ -75,11 +75,11 @@ describe('ChargeBatchDialog', () => {
     renderDialog();
 
     const checkbox = await screen.findByRole('checkbox', {
-      name: 'Selecionar contrato de Bruno Costa',
+      name: 'Select contract for Bruno Costa',
     });
 
     expect(checkbox).toBeDisabled();
-    expect(screen.getByText('Já cobrado nesta competência')).toBeInTheDocument();
+    expect(screen.getByText('Already billed for this period')).toBeInTheDocument();
   });
 
   it('sends the selected contracts and the period the school named', async () => {
@@ -106,11 +106,13 @@ describe('ChargeBatchDialog', () => {
 
     const onIssued = renderDialog();
 
-    await screen.findByText(/2 contrato\(s\) selecionado\(s\)/);
-    await user.click(screen.getByRole('button', { name: 'Emitir 2 boleto(s)' }));
+    await screen.findByText(/2 contract\(s\) selected/);
+    await user.click(screen.getByRole('button', { name: 'Issue 2 boleto(s)' }));
 
     await waitFor(() => expect(onIssued).toHaveBeenCalled());
-    expect(body).toMatchObject({ contract_ids: [91, 92], due_date: null });
+    // The school bills on the 5th, so the batch starts there rather than on nothing.
+    expect(body).toMatchObject({ contract_ids: [91, 92] });
+    expect((body as { due_date: string }).due_date).toMatch(/-05$/);
   });
 
   it('unticks everything at once from the header checkbox', async () => {
@@ -119,12 +121,12 @@ describe('ChargeBatchDialog', () => {
     renderDialog();
 
     const toggleAll = await screen.findByRole('checkbox', {
-      name: 'Selecionar todos os contratos',
+      name: 'Select every contract',
     });
 
     await user.click(toggleAll);
 
     // Nothing selected means nothing to send, so the action closes itself off.
-    expect(screen.getByRole('button', { name: 'Emitir 0 boleto(s)' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Issue 0 boleto(s)' })).toBeDisabled();
   });
 });

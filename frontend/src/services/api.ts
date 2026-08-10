@@ -1,14 +1,16 @@
 import { ApiErrorBody, RefreshResponse } from 'types/auth';
+import { DEFAULT_LANGUAGE } from 'locales';
 import { clearAccessToken, getAccessToken, setAccessToken } from './tokenStore';
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '') ||
   (import.meta.env.DEV ? 'http://localhost:3000' : '');
 
 /**
- * Locale the API resolves its i18n error messages against (`docs/api/README.md` → Locale).
- * The product UI locale is pt-BR; the tag is data, not an identifier.
+ * Locale the API resolves its i18n error messages against (`docs/api/README.md` → Locale). The
+ * product ships in English (US) only — see `src/locales` — and the API has a single locale to
+ * match, so an error shown under a field reads in the same language as the field's own label.
  */
-export const API_LOCALE = 'pt-BR';
+export const API_LOCALE = DEFAULT_LANGUAGE.code;
 
 /**
  * Turns a host-relative path the API returns — Active Storage blobs come back with

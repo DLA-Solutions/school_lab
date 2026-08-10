@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_213300) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_213400) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -157,6 +157,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213300) do
 
   create_table "contract_templates", force: :cascade do |t|
     t.text "body_html", null: false
+    t.string "copy_emails", default: [], null: false, array: true
     t.datetime "created_at", null: false
     t.bigint "school_id", null: false
     t.datetime "updated_at", null: false

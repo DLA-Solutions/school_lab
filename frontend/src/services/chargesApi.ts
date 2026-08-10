@@ -14,16 +14,35 @@ const batchPath = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/cha
 export interface ListChargesParams {
   schoolId: number;
   page?: number;
-  status?: string;
+  /** One or more of `pending`, `overdue`, `paid`, `cancelled`. Omit for every status. */
+  status?: string[];
+  /** Matches the payer's name or CPF — the API searches both from one term. */
+  q?: string;
 }
 
-export const listCharges = ({ schoolId, page = 1, status }: ListChargesParams) => {
+export const listCharges = ({ schoolId, page = 1, status, q }: ListChargesParams) => {
   const query = new URLSearchParams({ page: String(page) });
-  if (status) {
-    query.set('status', status);
+  if (status?.length) {
+    query.set('status', status.join(','));
+  }
+  if (q) {
+    query.set('q', q);
   }
 
   return request<Paginated<Charge>>(`${path(schoolId)}?${query}`);
+};
+
+/**
+ * POST .../charges/:id/cancel — withdraws the boleto with the bank and marks it cancelled. The
+ * charge stays on the listing: a family who was billed by mistake is part of the record, and a
+ * row that vanished would leave the mistake unexplained.
+ */
+export const cancelCharge = async (schoolId: number, id: number): Promise<Charge> => {
+  const response = await request<{ data: Charge }>(`${path(schoolId)}/${id}/cancel`, {
+    method: 'POST',
+  });
+
+  return response.data;
 };
 
 /**

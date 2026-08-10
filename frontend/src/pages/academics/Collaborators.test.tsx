@@ -115,7 +115,7 @@ describe('Collaborators page', () => {
     expect(await screen.findByText('Carla Nogueira')).toBeInTheDocument();
     expect(screen.getByText('Professora')).toBeInTheDocument();
     expect(screen.getByText('Porteiro')).toBeInTheDocument();
-    // ISO on the wire, pt-BR on screen.
+    // ISO on the wire, formatted on screen.
     expect(screen.getAllByText('01/02/2024')).toHaveLength(2);
   });
 
@@ -179,9 +179,9 @@ describe('Collaborators page', () => {
 
     await user.click(await screen.findByRole('combobox', { name: /tipo de documento/i }));
 
-    expect(screen.getByRole('option', { name: 'Contrato de trabalho' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Diploma / certificação' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Employment contract' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Diploma / certification' })).toBeInTheDocument();
     // Proof of income belongs to a guardian's file, not a collaborator's.
-    expect(screen.queryByRole('option', { name: 'Comprovante de renda' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Proof of income' })).not.toBeInTheDocument();
   });
 });

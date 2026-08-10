@@ -94,6 +94,35 @@ RSpec.describe Gateways::Signature::Autentique::Adapter do
       expect(signers.map { |s| s.dig("configs", "cpf") }).to eq(%w[12345678909 52998224725])
     end
 
+    # The school's own copy. `cc` delivers the document and asks nothing of the recipient, while
+    # every entry in `signers` must act — so a school listed there would sign its own contracts.
+    it "carries the school's copies as document recipients, not as signers" do
+      captured = stub_create
+
+      adapter.create_document(
+        request.with(copy_emails: [ "colegionsrgo@gmail.com", "direcao@escola.com.br" ])
+      )
+
+      operations = JSON.parse(extract_operations(captured[:body]))
+
+      expect(operations.dig("variables", "document", "cc")).to eq(
+        [ { "email" => "colegionsrgo@gmail.com" }, { "email" => "direcao@escola.com.br" } ]
+      )
+      expect(operations.dig("variables", "signers").map { |s| s["email"] })
+        .not_to include("colegionsrgo@gmail.com")
+    end
+
+    # Autentique rejects an empty list where it expects addresses, so the key is left out.
+    it "omits the copy list entirely when the school configured none" do
+      captured = stub_create
+
+      adapter.create_document(request)
+
+      operations = JSON.parse(extract_operations(captured[:body]))
+
+      expect(operations.dig("variables", "document")).not_to have_key("cc")
+    end
+
     # Percentages of the page, as strings, with the page number in `z`.
     it "tells the provider where each signature belongs" do
       captured = stub_create

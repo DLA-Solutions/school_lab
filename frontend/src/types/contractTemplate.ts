@@ -9,6 +9,11 @@ export interface ContractTemplate {
   school_id: number;
   /** Sanitized server-side on every write — scripts and handlers never make it into storage. */
   body_html: string;
+  /**
+   * Who else receives every contract this school sends — its own copy. They are not asked to
+   * sign: the provider delivers the document to them and nothing more.
+   */
+  copy_emails: string[];
   logo_url: string | null;
   logo_filename: string | null;
   variables: ContractTemplateVariable[];
@@ -17,6 +22,7 @@ export interface ContractTemplate {
 
 export interface ContractTemplatePayload {
   body_html: string;
+  copy_emails: string[];
 }
 
 export interface ContractTemplatePreview {

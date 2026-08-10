@@ -41,9 +41,16 @@ interface ChargeBatchDialogProps {
  * A contract the period already covers is shown but cannot be selected: billing it again would
  * hand the family a second boleto for the same month.
  */
+/**
+ * The school bills on the 5th, so that is where the batch starts — following the period rather
+ * than a fixed date, since a batch for October is not due in September. Still editable: a month
+ * whose 5th falls badly is a real case.
+ */
+const fifthOf = (period: string) => `${period}-05`;
+
 const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDialogProps) => {
   const [period, setPeriod] = useState(currentMonth);
-  const [dueDate, setDueDate] = useState('');
+  const [dueDate, setDueDate] = useState(() => fifthOf(currentMonth()));
   const [rows, setRows] = useState<BillableContract[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,7 +73,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
       setRows([]);
       setSelected([]);
       setError(
-        err instanceof ApiError ? err.message : 'Não foi possível carregar os contratos ativos.',
+        err instanceof ApiError ? err.message : 'Could not load the active contracts.',
       );
     } finally {
       setLoading(false);
@@ -107,7 +114,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
     e.preventDefault();
 
     if (selected.length === 0) {
-      setError('Selecione ao menos um contrato.');
+      setError('Select at least one contract.');
       return;
     }
 
@@ -128,7 +135,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         const base = err.details.base;
         setError(Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message);
       } else {
-        setError('Não foi possível emitir os boletos. Verifique sua conexão.');
+        setError('Could not issue the boletos. Check your connection.');
       }
     } finally {
       setIssuing(false);
@@ -139,35 +146,42 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
 
   return (
     <Dialog open={open} onClose={issuing ? undefined : onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Emitir boletos em massa</DialogTitle>
+      <DialogTitle>Issue boletos in bulk</DialogTitle>
       <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
         <DialogContent>
           <Grid container spacing={2.5} pt={0.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="batch-period"
-                label="Competência"
+                label="Billing period"
                 type="month"
                 value={period}
-                onChange={(e) => setPeriod(e.target.value)}
+                onChange={(e) => {
+                  setPeriod(e.target.value);
+                  // The due date belongs to the period; moving one without the other would bill
+                  // October's tuition on a September date.
+                  if (e.target.value) {
+                    setDueDate(fifthOf(e.target.value));
+                  }
+                }}
                 variant="filled"
                 fullWidth
                 required
                 slotProps={{ inputLabel: { shrink: true } }}
-                helperText="O mês que os boletos cobrem."
+                helperText="The month these boletos cover."
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="batch-due-date"
-                label="Vencimento único (opcional)"
+                label="Due date for the whole batch"
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 variant="filled"
                 fullWidth
                 slotProps={{ inputLabel: { shrink: true } }}
-                helperText="Em branco, cada contrato vence no dia combinado com a família."
+                helperText="Clear it to use each contract's own agreed day."
               />
             </Grid>
 
@@ -178,8 +192,8 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                 </Stack>
               ) : rows.length === 0 ? (
                 <EmptyState
-                  title="Nenhum contrato ativo"
-                  description="Só contratos ativos entram no fechamento do mês."
+                  title="No active contracts"
+                  description="Only active contracts take part in the month\u2019s billing."
                   headingLevel={3}
                 />
               ) : (
@@ -193,13 +207,13 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                             indeterminate={selected.length > 0 && !allSelected}
                             onChange={toggleAll}
                             disabled={billable.length === 0}
-                            inputProps={{ 'aria-label': 'Selecionar todos os contratos' }}
+                            inputProps={{ 'aria-label': 'Select every contract' }}
                           />
                         </TableCell>
-                        <TableCell>Aluno</TableCell>
-                        <TableCell>Recebe o boleto</TableCell>
-                        <TableCell align="right">Mensalidade</TableCell>
-                        <TableCell align="right">Vence dia</TableCell>
+                        <TableCell>Student</TableCell>
+                        <TableCell>Billed to</TableCell>
+                        <TableCell align="right">Monthly</TableCell>
+                        <TableCell align="right">Due day</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -211,7 +225,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                               onChange={() => toggle(row.contract_id)}
                               disabled={row.already_charged}
                               inputProps={{
-                                'aria-label': `Selecionar contrato de ${row.student_name ?? row.contract_id}`,
+                                'aria-label': `Select contract for ${row.student_name ?? row.contract_id}`,
                               }}
                             />
                           </TableCell>
@@ -219,7 +233,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                             <Typography variant="body2">{row.student_name ?? '—'}</Typography>
                             {row.already_charged && (
                               <Typography variant="caption" color="text.secondary">
-                                Já cobrado nesta competência
+                                Already billed for this period
                               </Typography>
                             )}
                           </TableCell>
@@ -233,7 +247,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                               </>
                             ) : (
                               <Typography variant="body2" color="error.main">
-                                Sem responsável financeiro
+                                No paying guardian
                               </Typography>
                             )}
                           </TableCell>
@@ -256,7 +270,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
             {selected.length > 0 && (
               <Grid size={12}>
                 <Alert severity="info">
-                  {`${selected.length} contrato(s) selecionado(s) — ${formatCents(totalCents)} em boletos.`}
+                  {`${selected.length} contract(s) selected — ${formatCents(totalCents)} in boletos.`}
                 </Alert>
               </Grid>
             )}
@@ -270,7 +284,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="inherit" disabled={issuing}>
-            Cancelar
+            Cancel
           </Button>
           <Button
             type="submit"
@@ -278,7 +292,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
             disabled={issuing || loading || selected.length === 0}
             startIcon={issuing ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            {issuing ? 'Emitindo...' : `Emitir ${selected.length} boleto(s)`}
+            {issuing ? 'Issuing...' : `Issue ${selected.length} boleto(s)`}
           </Button>
         </DialogActions>
       </Stack>

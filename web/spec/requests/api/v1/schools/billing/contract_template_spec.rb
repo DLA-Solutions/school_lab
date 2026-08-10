@@ -89,6 +89,29 @@ RSpec.describe "Contract template", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
+    it "saves who else receives every contract" do
+      put path,
+          params: {
+            contract_template: {
+              body_html: "<p>ok</p>",
+              copy_emails: [ " Colegionsrgo@Gmail.com ", "", "colegionsrgo@gmail.com" ]
+            }
+          },
+          headers: headers, as: :json
+
+      expect(response).to have_http_status(:ok)
+      # Trimmed, lower-cased and de-duplicated: a comma-separated field produces all three.
+      expect(school.reload.contract_template.copy_emails).to eq([ "colegionsrgo@gmail.com" ])
+    end
+
+    it "refuses an address that is plainly not one" do
+      put path,
+          params: { contract_template: { body_html: "<p>ok</p>", copy_emails: [ "secretaria" ] } },
+          headers: headers, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
     # Where the signature lands is the provider's to decide: it lays the page out when it
     # converts the uploaded HTML, so coordinates measured against our own render meant nothing.
     it "ignores a signature position, which the school no longer sets" do

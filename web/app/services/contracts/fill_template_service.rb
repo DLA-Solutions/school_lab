@@ -81,7 +81,7 @@ module Contracts
         "data.hoje" => escape(format_date(Date.current)),
         "contrato.responsavel" => escape(contract.payer&.name),
         "contrato.responsavel.cpf" => escape(Cpf.format(contract.payer&.cpf)),
-        "responsaveis.nomes" => escape(people.map(&:name).to_sentence(locale: :"pt-BR")),
+        "responsaveis.nomes" => escape(portuguese_sentence(people.map(&:name))),
         # The only substitution that is markup rather than text, and it is built here rather than
         # taken from input.
         "responsaveis" => guardians_block(people)
@@ -141,6 +141,14 @@ module Contracts
       ActiveSupport::NumberHelper.number_to_currency(
         cents / 100.0, unit: "R$", separator: ",", delimiter: "."
       )
+    end
+
+    # The agreement is a Brazilian legal document and stays in Portuguese whatever language the
+    # interface is in, so it joins names itself rather than through `I18n`.
+    def portuguese_sentence(names)
+      return names.first.to_s if names.size <= 1
+
+      "#{names[0..-2].join(', ')} e #{names.last}"
     end
 
     def format_date(date)

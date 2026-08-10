@@ -104,22 +104,24 @@ describe('GlobalSearch', () => {
     stubPeople();
     renderSearch();
 
-    await user.type(box(), 'Turmas');
+    await user.type(box(), 'Classes');
 
-    await user.click(await screen.findByText('Turmas'));
+    await user.click(await screen.findByText('Classes'));
 
     expect(screen.getByTestId('location')).toHaveTextContent('/academico/turmas');
   });
 
   // The menu labels carry accents; typing without them still has to find the page.
-  it('matches a page name without its accents', async () => {
+  // The menu is in English now, but the people in it are not: Brazilian names carry accents a
+  // secretary does not stop to type.
+  it('matches a name without its accents', async () => {
     authenticate();
     stubPeople();
     renderSearch();
 
-    await user.type(box(), 'materias');
+    await user.type(box(), 'nogueira');
 
-    expect(await screen.findByText('Matérias')).toBeInTheDocument();
+    expect(await screen.findByText('Carla Nogueira')).toBeInTheDocument();
   });
 
   it('groups people by register', async () => {
@@ -181,9 +183,9 @@ describe('GlobalSearch', () => {
     const seen = stubPeople();
     renderSearch('guardian');
 
-    await user.type(box(), 'Turmas');
+    await user.type(box(), 'Classes');
 
-    expect(await screen.findByText('Turmas')).toBeInTheDocument();
+    expect(await screen.findByText('Classes')).toBeInTheDocument();
     expect(seen).toEqual([]);
   });
 

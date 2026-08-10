@@ -70,10 +70,12 @@ const Plans = () => {
   const [planAmount, setPlanAmount] = useState('');
   const [planError, setPlanError] = useState('');
 
-  const [discountForm, setDiscountForm] = useState<{ open: boolean; editing: PlanDiscount | null }>({
-    open: false,
-    editing: null,
-  });
+  const [discountForm, setDiscountForm] = useState<{ open: boolean; editing: PlanDiscount | null }>(
+    {
+      open: false,
+      editing: null,
+    },
+  );
   const [discountName, setDiscountName] = useState('');
   const [discountPercent, setDiscountPercent] = useState('');
   const [discountError, setDiscountError] = useState('');
@@ -98,9 +100,7 @@ const Plans = () => {
       setPlans(planList.data);
       setDiscounts(discountList.data);
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Não foi possível carregar os planos.',
-      );
+      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os planos.');
     } finally {
       setLoading(false);
     }
@@ -354,7 +354,7 @@ const Plans = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader title="Planos" subtitle="Valor cheio da mensalidade e descontos concedidos" />
+      <PageHeader title="Planos" subtitle="" />
 
       {error && <ErrorBanner message={error} />}
 

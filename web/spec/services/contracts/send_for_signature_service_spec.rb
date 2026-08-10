@@ -51,7 +51,7 @@ RSpec.describe Contracts::SendForSignatureService do
       result = described_class.call(contract: contract)
 
       expect(result).to be_failure
-      expect(result.details[:base].first).to include("responsável")
+      expect(result.details[:base].first).to include("no guardian linked")
     end
 
     # A guardian without an e-mail cannot be reached, and one without a CPF cannot be identified.
@@ -122,6 +122,44 @@ RSpec.describe Contracts::SendForSignatureService do
       expect(captured.pdf).to include("Maria Silva", "João Silva", "1.250,50")
     end
 
+    # A school wants its own copy of every agreement that leaves. They are not parties: every
+    # entry in `signers` must act, so putting the school there would make it sign its own
+    # contracts.
+    it "sends the school's own copy alongside the signers" do
+      school.contract_template.update!(copy_emails: [ "colegionsrgo@gmail.com" ])
+
+      captured = nil
+      adapter = instance_double(Gateways::Signature::Fake)
+      allow(adapter).to receive(:create_document) do |request|
+        captured = request
+        Gateways::Signature::ValueObjects::RemoteDocument.new(
+          provider_document_id: "doc-1", status: "pending"
+        )
+      end
+      allow(Gateways::Signature::Registry).to receive(:resolve).and_return(adapter)
+
+      described_class.call(contract: contract)
+
+      expect(captured.copy_emails).to eq([ "colegionsrgo@gmail.com" ])
+      expect(captured.signers.map(&:email)).not_to include("colegionsrgo@gmail.com")
+    end
+
+    it "sends no copies when the school configured none" do
+      captured = nil
+      adapter = instance_double(Gateways::Signature::Fake)
+      allow(adapter).to receive(:create_document) do |request|
+        captured = request
+        Gateways::Signature::ValueObjects::RemoteDocument.new(
+          provider_document_id: "doc-1", status: "pending"
+        )
+      end
+      allow(Gateways::Signature::Registry).to receive(:resolve).and_return(adapter)
+
+      described_class.call(contract: contract)
+
+      expect(captured.copy_emails).to be_empty
+    end
+
     # The provider lays the page out when it converts the uploaded HTML, so a coordinate measured
     # against our own render would land somewhere arbitrary on theirs. Sending none lets it place
     # the field itself.
@@ -167,7 +205,7 @@ RSpec.describe Contracts::SendForSignatureService do
       result = described_class.call(contract: contract)
 
       expect(result.error_code).to eq(:validation_error)
-      expect(result.details[:base].first).to include("credenciais")
+      expect(result.details[:base].first).to include("rejected this school's credentials")
     end
 
     # A provider outage is worth retrying, and the code says so.
@@ -185,7 +223,7 @@ RSpec.describe Contracts::SendForSignatureService do
       result = described_class.call(contract: contract)
 
       expect(result).to be_failure
-      expect(result.details[:base].first).to include("integração de assinatura")
+      expect(result.details[:base].first).to include("No signature integration")
     end
   end
 end

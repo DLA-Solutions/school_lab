@@ -1,55 +1,45 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
+# The product ships in one language. `pt-BR.yml` used to sit alongside this file and was the
+# default, so every API message came back in Portuguese while the interface claimed to be in
+# English. There is now a single locale, and it is this one.
 #
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
+# Adding a language means adding its file here and to `config/initializers/locale.rb`; nothing in
+# the application negotiates a locale per request, so a second one needs that written first.
 en:
-  hello: "Hello world"
+  billing:
+    settings:
+      default_service_description: "School tuition"
   api:
     errors:
+      unauthorized: "Not authorized."
+      invalid_credentials: "Invalid e-mail or password."
+      forbidden: "Access denied."
+      not_found: "Not found."
+      not_implemented: "Not implemented yet."
+      validation_error: "Invalid data."
+      invalid_state_transition: "Invalid state transition."
+      provider_error: "The payment provider could not be reached."
+      billing_interest_rate_missing: "Set the late-payment interest rate in billing settings before issuing boletos."
+      membership_suspended: "Access to this school is suspended."
+      membership_invited: "There is a pending invitation for this school."
       student_requires_a_guardian: "Provide the CPF of the father or the mother."
       guardian_cpf_not_found: "No guardian registered with CPF %{cpf}. Register them before enrolling the student."
       duplicate_guardian_cpf: "The same CPF was given for both father and mother."
-      contract_without_guardians: "This contract has no guardian linked to the student."
-      contract_pdf_unsupported_characters: "The contract contains characters the PDF font cannot render."
+      contract_without_guardians: "This contract has no guardian linked to the student. Link at least one before sending it for signature."
+      contract_pdf_unsupported_characters: "The contract contains characters the PDF font cannot render. Contact support."
       contract_template_missing: "No contract template configured for this school."
       contract_already_sent: "This contract has already been sent for signature."
       contract_not_sent: "This contract has not been sent for signature yet."
-      signer_missing_details: "Missing e-mail or CPF for %{names}."
+      signer_missing_details: "Missing e-mail or CPF for %{names}. Complete their record before sending."
       signature_provider_missing: "No signature integration configured for this school."
       signature_provider_unauthorized: "Autentique rejected this school's credentials."
-      signature_provider_unavailable: "Autentique is unavailable right now."
+      signature_provider_unavailable: "Autentique is unavailable right now. Try again shortly."
       charge_without_payer: "Name the guardian this boleto is registered against."
       charge_batch_no_contracts: "Select at least one contract to bill."
       charge_batch_invalid_period: "Provide a valid billing period, formatted YYYY-MM."
       charge_amount_required: "Provide an amount greater than zero."
       charge_due_date_required: "Provide a due date."
-      plan_discount_in_use: "This discount is applied to %{count} contract(s)."
-      job_position_in_use: "This position is held by %{count} collaborator(s). Move them first."
+      plan_discount_in_use: "This discount is applied to %{count} contract(s) and cannot be removed."
+      job_position_in_use: "This position is held by %{count} collaborator(s). Move them before removing it."
     # Not blocking — the contract goes out with a gap someone has to fill in later.
     warnings:
       student_without_cpf: "This student has no CPF on file; the contract will go out with that field blank."
@@ -57,6 +47,17 @@ en:
       contract_template_missing: "This school has no agreement of its own. The built-in one will be used, without the school's clauses."
   signature:
     contract_message: "Please review and sign the educational services agreement for %{student}."
+  # `validation_error` responses carry ActiveModel messages verbatim under `details`, and the SPA
+  # prints them under each field — so these are user-facing strings, not developer output.
+  errors:
+    messages:
+      blank: "can't be blank"
+      invalid: "is invalid"
+      taken: "is already taken"
+      inclusion: "is not an allowed value"
+      not_a_number: "is not a number"
+      greater_than_or_equal_to: "must be greater than or equal to %{count}"
+      less_than_or_equal_to: "must be less than or equal to %{count}"
   activerecord:
     errors:
       messages:
@@ -68,3 +69,26 @@ en:
           attributes:
             cpf:
               taken: "is already registered for another guardian in this school"
+    attributes:
+      contract_template:
+        logo: "Logo"
+        body_html: "Contract body"
+      teacher:
+        name: "Name"
+        cpf: "CPF"
+        email: "E-mail"
+        phone: "Phone"
+        job_position: "Position"
+        hired_on: "Start date"
+      guardian:
+        name: "Name"
+        cpf: "CPF"
+        email: "E-mail"
+        phone: "Phone"
+        zip_code: "ZIP code"
+        street: "Street"
+        number: "Number"
+        complement: "Complement"
+        neighborhood: "Neighborhood"
+        city: "City"
+        state: "State"

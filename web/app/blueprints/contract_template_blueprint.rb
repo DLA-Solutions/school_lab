@@ -3,7 +3,7 @@
 class ContractTemplateBlueprint < Blueprinter::Base
   identifier :id
 
-  fields :school_id, :body_html, :updated_at
+  fields :school_id, :body_html, :copy_emails, :updated_at
 
   field :logo_url do |template, options|
     next unless template.logo.attached?

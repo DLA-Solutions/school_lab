@@ -183,7 +183,13 @@ const Schools = () => {
   const columns: GridColDef<School>[] = [
     { field: 'name', headerName: 'Nome', flex: 1, minWidth: 200 },
     { field: 'cnpj', headerName: 'CNPJ', width: 190, renderCell: renderOptional },
-    { field: 'address', headerName: 'Endereço', flex: 1, minWidth: 200, renderCell: renderOptional },
+    {
+      field: 'address',
+      headerName: 'Endereço',
+      flex: 1,
+      minWidth: 200,
+      renderCell: renderOptional,
+    },
     { field: 'saas_plan', headerName: 'Plano', width: 130, renderCell: renderOptional },
     {
       field: 'actions',
@@ -196,7 +202,11 @@ const Schools = () => {
       renderCell: ({ row }: GridRenderCellParams<School>) => (
         <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
           <Tooltip title="Editar">
-            <IconButton size="small" aria-label={`Editar ${row.name}`} onClick={() => openForm(row)}>
+            <IconButton
+              size="small"
+              aria-label={`Editar ${row.name}`}
+              onClick={() => openForm(row)}
+            >
               <IconifyIcon icon="mingcute:edit-2-line" />
             </IconButton>
           </Tooltip>
@@ -233,7 +243,7 @@ const Schools = () => {
     <Stack direction="column" gap={3.5}>
       <PageHeader
         title="Escolas"
-        subtitle="Escolas que você administra"
+        subtitle=""
         actions={
           <Button variant="contained" size="small" onClick={() => openForm(null)}>
             Nova escola

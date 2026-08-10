@@ -87,7 +87,14 @@ module Gateways
           operations = {
             query: CREATE_DOCUMENT_MUTATION,
             variables: {
-              document: { name: request.name, message: request.message }.compact,
+              document: {
+                name: request.name,
+                message: request.message,
+                # Copies, not parties: `cc` delivers the document without asking the recipient to
+                # sign, approve or acknowledge anything. Every entry in `signers` must act, so
+                # putting the school there would have made it sign its own contracts.
+                cc: Array(request.copy_emails).map { |email| { email: email } }.presence
+              }.compact,
               signers: request.signers.map { |signer| signer_input(signer) },
               file: nil
             }

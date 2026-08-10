@@ -19,6 +19,7 @@ const template: ContractTemplate = {
   id: 1,
   school_id: SCHOOL_ID,
   body_html: '<h1>Contrato</h1><p>{{aluno.nome}}</p>',
+  copy_emails: [],
   logo_url: null,
   logo_filename: null,
   variables: [
@@ -287,5 +288,54 @@ describe('ContractTemplatePage', () => {
 
     expect(await screen.findByAltText('Logo escolhida')).toBeInTheDocument();
     expect(screen.getByText(/logo\.png/)).toBeInTheDocument();
+  });
+  // The school's own copy of every agreement that leaves. They are not signers: the provider
+  // delivers the document and asks nothing of them.
+  it('saves the copy recipients as a list, however they were typed', async () => {
+    authenticate();
+    stubTemplate({ copy_emails: ['secretaria@escola.com.br'] });
+
+    let received: { contract_template: Record<string, unknown> } | undefined;
+    server.use(
+      http.put(apiUrl(PATH), async ({ request }) => {
+        received = (await request.json()) as { contract_template: Record<string, unknown> };
+        return HttpResponse.json({ data: template });
+      }),
+    );
+
+    renderPage();
+
+    const field = await screen.findByLabelText(/e-mails, separados por vírgula/i);
+    await waitFor(() => expect(field).toHaveValue('secretaria@escola.com.br'));
+
+    await user.clear(field);
+    await user.type(field, 'colegionsrgo@gmail.com ,  direcao@escola.com.br');
+    await user.click(screen.getByRole('button', { name: /salvar modelo/i }));
+
+    await waitFor(() => expect(received).toBeDefined());
+    expect(received?.contract_template.copy_emails).toEqual([
+      'colegionsrgo@gmail.com',
+      'direcao@escola.com.br',
+    ]);
+  });
+
+  it('sends an empty list when the field is cleared', async () => {
+    authenticate();
+    stubTemplate({ copy_emails: ['secretaria@escola.com.br'] });
+
+    let received: { contract_template: Record<string, unknown> } | undefined;
+    server.use(
+      http.put(apiUrl(PATH), async ({ request }) => {
+        received = (await request.json()) as { contract_template: Record<string, unknown> };
+        return HttpResponse.json({ data: template });
+      }),
+    );
+
+    renderPage();
+    await user.clear(await screen.findByLabelText(/e-mails, separados por vírgula/i));
+    await user.click(screen.getByRole('button', { name: /salvar modelo/i }));
+
+    await waitFor(() => expect(received).toBeDefined());
+    expect(received?.contract_template.copy_emails).toEqual([]);
   });
 });

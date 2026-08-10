@@ -118,7 +118,7 @@ describe('Charges', () => {
     renderPage();
 
     expect(await screen.findByText('Aluguel da quadra')).toBeInTheDocument();
-    expect(screen.getByText('Avulso')).toBeInTheDocument();
+    expect(screen.getByText('One-off')).toBeInTheDocument();
   });
 
   it('raises a one-off against a guardian who has no contract at all', async () => {
@@ -135,20 +135,112 @@ describe('Charges', () => {
 
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: 'Novo boleto avulso' }));
+    await user.click(await screen.findByRole('button', { name: 'New one-off boleto' }));
 
     const dialog = await screen.findByRole('dialog');
 
-    await user.click(within(dialog).getByRole('combobox', { name: /Responsável/ }));
+    // One field: type part of a name or a CPF and pick the payer from what comes back.
+    await user.type(
+      within(dialog).getByRole('combobox', { name: /Guardian who receives the boleto/ }),
+      'Maria',
+    );
     await user.click(await screen.findByRole('option', { name: /Maria Silva/ }));
 
     await user.type(dialog.querySelector('#charge-amount')!, '7500');
     await user.type(dialog.querySelector('#charge-due-date')!, '2026-09-15');
-    await user.click(within(dialog).getByRole('button', { name: 'Gerar boleto' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Issue boleto' }));
 
     await waitFor(() => expect(body).toBeDefined());
     expect(body).toMatchObject({
       charge: { guardian_id: 7, contract_id: null, total_amount_cents: 7_500 },
     });
+  });
+  // One box over the payer's name and CPF: a secretary types what they have in front of them.
+  it('searches the listing by name or CPF, and filters by status', async () => {
+    const requests: URL[] = [];
+
+    server.use(
+      http.get(apiUrl(CHARGES_PATH), ({ request }) => {
+        requests.push(new URL(request.url));
+
+        return HttpResponse.json({
+          data: [standaloneCharge],
+          meta: { page: 1, per_page: 25, total: 1 },
+        });
+      }),
+      ...listingHandlers([standaloneCharge]),
+    );
+
+    renderPage();
+    await screen.findByText('Aluguel da quadra');
+
+    await user.type(screen.getByRole('textbox', { name: 'Search boletos' }), '031.902');
+
+    await waitFor(() => expect(requests[requests.length - 1]?.searchParams.get('q')).toBe('031.902'));
+
+    await user.click(screen.getByRole('combobox', { name: 'Status' }));
+    await user.click(await screen.findByRole('option', { name: 'Cancelled' }));
+
+    await waitFor(() => expect(requests[requests.length - 1]?.searchParams.get('status')).toBe('cancelled'));
+  });
+
+  // A late boleto is an unpaid one; splitting the two would send the school looking twice.
+  it('treats overdue as open', async () => {
+    const requests: URL[] = [];
+
+    server.use(
+      http.get(apiUrl(CHARGES_PATH), ({ request }) => {
+        requests.push(new URL(request.url));
+
+        return HttpResponse.json({ data: [], meta: { page: 1, per_page: 25, total: 0 } });
+      }),
+      ...listingHandlers([standaloneCharge]),
+    );
+
+    renderPage();
+
+    await user.click(await screen.findByRole('combobox', { name: 'Status' }));
+    await user.click(await screen.findByRole('option', { name: 'Open' }));
+
+    await waitFor(() =>
+      expect(requests[requests.length - 1]?.searchParams.get('status')).toBe('pending,overdue'),
+    );
+  });
+
+  // A family billed by mistake is part of the record; a row that vanished would leave the
+  // mistake unexplained.
+  it('cancels a boleto and keeps it on the list', async () => {
+    let cancelled = false;
+
+    server.use(
+      ...listingHandlers([standaloneCharge]),
+      http.post(apiUrl(`${CHARGES_PATH}/${standaloneCharge.id}/cancel`), () => {
+        cancelled = true;
+
+        return HttpResponse.json({ data: { ...standaloneCharge, status: 'cancelled' } });
+      }),
+    );
+
+    renderPage();
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Cancel boleto for Maria Silva' }),
+    );
+    await user.click(await screen.findByRole('button', { name: 'Cancel boleto' }));
+
+    await waitFor(() => expect(cancelled).toBe(true));
+    expect(await screen.findByText(/stays on the list/i)).toBeInTheDocument();
+  });
+
+  // Nothing to withdraw on a boleto that was already paid.
+  it('offers no cancel action on a paid boleto', async () => {
+    server.use(...listingHandlers([{ ...standaloneCharge, status: 'paid' }]));
+
+    renderPage();
+    await screen.findByText('Aluguel da quadra');
+
+    expect(
+      screen.queryByRole('button', { name: /Cancel boleto for/ }),
+    ).not.toBeInTheDocument();
   });
 });

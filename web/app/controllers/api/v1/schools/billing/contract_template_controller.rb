@@ -98,7 +98,7 @@ module Api
           end
 
           def template_params
-            params.require(:contract_template).permit(:body_html)
+            params.require(:contract_template).permit(:body_html, copy_emails: [])
           end
         end
       end

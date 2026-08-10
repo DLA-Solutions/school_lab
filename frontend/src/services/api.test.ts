@@ -66,7 +66,7 @@ describe('services/api', () => {
   });
 
   // `docs/api/README.md` → Locale: the API resolves its error messages against this tag.
-  it('sends the pt-BR locale on an authenticated and on an anonymous call alike', async () => {
+  it('sends the product locale on an authenticated and on an anonymous call alike', async () => {
     const locales = recordAcceptLanguage();
 
     await login(VALID_CREDENTIALS);
@@ -74,8 +74,8 @@ describe('services/api', () => {
     await fetchCurrentUser();
 
     expect(locales).toEqual([
-      { request: 'POST /api/v1/auth/login', locale: 'pt-BR' },
-      { request: 'GET /api/v1/me', locale: 'pt-BR' },
+      { request: 'POST /api/v1/auth/login', locale: 'en-US' },
+      { request: 'GET /api/v1/me', locale: 'en-US' },
     ]);
   });
 
@@ -86,9 +86,9 @@ describe('services/api', () => {
     await request<ChargesPage>(CHARGES_PATH);
 
     expect(locales).toEqual([
-      { request: `GET ${CHARGES_PATH}`, locale: 'pt-BR' },
-      { request: 'POST /api/v1/auth/refresh', locale: 'pt-BR' },
-      { request: `GET ${CHARGES_PATH}`, locale: 'pt-BR' },
+      { request: `GET ${CHARGES_PATH}`, locale: 'en-US' },
+      { request: 'POST /api/v1/auth/refresh', locale: 'en-US' },
+      { request: `GET ${CHARGES_PATH}`, locale: 'en-US' },
     ]);
   });
 
