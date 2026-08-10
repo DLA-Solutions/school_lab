@@ -33,6 +33,9 @@ pt-BR:
       charge_amount_required: "Informe um valor maior que zero."
       charge_due_date_required: "Informe a data de vencimento."
       plan_discount_in_use: "Este desconto está aplicado em %{count} contrato(s) e não pode ser removido."
+      cannot_delete_system_template: "Modelos do sistema não podem ser excluídos."
+      template_in_use: "Este modelo está em uso por %{count} colaborador(es)."
+      last_admin_template: "A escola precisa manter ao menos um modelo com permissões de administração."
       job_position_in_use: "Este cargo está em uso por %{count} colaborador(es). Altere o cargo deles antes de removê-lo."
     # Não impedem o envio — o contrato sai com uma lacuna que alguém terá de preencher depois.
     warnings:
