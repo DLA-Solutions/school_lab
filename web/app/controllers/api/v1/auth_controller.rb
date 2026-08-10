@@ -6,6 +6,19 @@ module Api
       skip_before_action :authenticate_user!, if: :public_auth_action?
       skip_before_action :ensure_user_active!, if: :public_auth_action?
 
+      def invite_accept
+        result = Auth::AcceptInviteService.call(
+          token: invite_accept_params[:token],
+          password: invite_accept_params[:password],
+          password_confirmation: invite_accept_params[:password_confirmation],
+          name: invite_accept_params[:name]
+        )
+
+        render_service_result(result, success_status: :ok) do |data|
+          render json: { data: data }, status: :ok
+        end
+      end
+
       def login
         result = Auth::LoginService.call(
           email: login_params[:email],
@@ -67,7 +80,11 @@ module Api
       private
 
       def public_auth_action?
-        action_name.in?(%w[login refresh]) || (action_name == "password" && request.post?)
+        action_name.in?(%w[login refresh invite_accept]) || (action_name == "password" && request.post?)
+      end
+
+      def invite_accept_params
+        params.permit(:token, :password, :password_confirmation, :name)
       end
 
       def login_params

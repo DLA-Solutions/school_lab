@@ -12,6 +12,7 @@ en:
     errors:
       unauthorized: "Not authorized."
       invalid_credentials: "Invalid e-mail or password."
+      invalid_invite_token: "This invite link is invalid or has expired."
       forbidden: "Access denied."
       not_found: "Not found."
       not_implemented: "Not implemented yet."

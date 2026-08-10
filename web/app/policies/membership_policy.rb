@@ -18,7 +18,7 @@ class MembershipPolicy < ApplicationPolicy
   end
 
   def invite?
-    update? && record.invited?
+    update?
   end
 
   def update_permissions?

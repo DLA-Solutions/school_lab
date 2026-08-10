@@ -5,6 +5,50 @@
     "version": "v1"
   },
   "paths": {
+    "/api/v1/auth/invite/accept": {
+      "post": {
+        "summary": "Accept invite token",
+        "tags": [
+          "Auth"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "password set from invite token"
+          },
+          "401": {
+            "description": "invalid invite token"
+          },
+          "422": {
+            "description": "name required for passwordless user"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "token",
+                  "password"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "summary": "Login",
@@ -5018,6 +5062,12 @@
         "responses": {
           "200": {
             "description": "invite notification enqueued"
+          },
+          "422": {
+            "description": "active membership cannot be re-invited"
+          },
+          "403": {
+            "description": "teacher without manage_people cannot resend invite"
           }
         }
       }
