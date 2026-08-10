@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 class JobPositionPolicy < ApplicationPolicy
-  def index? = school_staff?
-  def show? = school_staff? && record.school_id == school_id
-  def create? = school_staff?
-  def update? = school_staff? && record.school_id == school_id
+  def index? = staff_with?(:manage_people)
+  def show? = staff_with?(:manage_people) && record.school_id == school_id
+  def create? = staff_with?(:manage_people)
+  def update? = staff_with?(:manage_people) && record.school_id == school_id
   def destroy? = update?
-  def provision_defaults? = school_staff?
+  def provision_defaults? = staff_with?(:manage_people)
 
   class Scope < Scope
     def resolve

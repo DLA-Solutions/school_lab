@@ -2,19 +2,19 @@
 
 class GuardianPolicy < ApplicationPolicy
   def index?
-    school_staff?
+    staff_with?(:manage_people)
   end
 
   def show?
-    school_staff? && record.school_id == school_id
+    staff_with?(:manage_people) && record.school_id == school_id
   end
 
   def create?
-    school_staff?
+    staff_with?(:manage_people)
   end
 
   def update?
-    school_staff? && record.school_id == school_id
+    staff_with?(:manage_people) && record.school_id == school_id
   end
 
   def destroy?

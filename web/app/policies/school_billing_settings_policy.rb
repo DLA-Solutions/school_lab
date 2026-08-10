@@ -2,7 +2,7 @@
 
 class SchoolBillingSettingsPolicy < ApplicationPolicy
   def show?
-    school_staff? && record.school_id == school_id
+    staff_with?(:manage_billing) && record.school_id == school_id
   end
 
   def update?

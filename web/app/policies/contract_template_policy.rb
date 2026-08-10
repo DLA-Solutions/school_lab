@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class ContractTemplatePolicy < ApplicationPolicy
-  def show? = school_staff?
-  def update? = school_staff?
-  def preview? = school_staff?
+  def show? = staff_with?(:manage_billing)
+  def update? = staff_with?(:manage_billing)
+  def preview? = staff_with?(:manage_billing)
 
   class Scope < Scope
     def resolve

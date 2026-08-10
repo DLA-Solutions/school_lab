@@ -2,21 +2,21 @@
 
 class StudentPolicy < ApplicationPolicy
   def index?
-    school_staff? || guardian_member?
+    staff_with?(:manage_people) || guardian_member?
   end
 
   def show?
-    return school_staff? && record.school_id == school_id if school_staff?
+    return staff_with?(:manage_people) && record.school_id == school_id if Current.membership&.staff_member?
 
     guardian_member? && guardian_linked_student?
   end
 
   def create?
-    school_staff?
+    staff_with?(:manage_people)
   end
 
   def update?
-    school_staff? && record.school_id == school_id
+    staff_with?(:manage_people) && record.school_id == school_id
   end
 
   def destroy?
@@ -40,7 +40,7 @@ class StudentPolicy < ApplicationPolicy
         base.joins(:student_guardians)
             .where(student_guardians: { guardian_id: Current.guardian.id })
             .distinct
-      elsif Current.membership&.role == "school" && Current.membership&.active?
+      elsif staff_with?(:manage_people)
         base
       else
         scope.none

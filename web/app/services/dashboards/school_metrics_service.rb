@@ -48,7 +48,7 @@ module Dashboards
 
     # Staff, not families: a membership on the school side is a person who works here.
     def collaborators_metric
-      memberships = school.memberships.where(role: "school")
+      memberships = school.memberships.where(role: %w[school staff teacher])
       current = memberships.kept.where(status: "active").count
 
       metric(current, headcount_at_year_start(memberships))
