@@ -72,4 +72,11 @@ module PermissionsFactoryHelpers
 
     result.data[:templates].values
   end
+
+  def create_owner_membership(school, user: create(:user))
+    membership = create(:membership, :staff, user: user, school: school)
+    director = create_system_templates_for(school).find { |t| t.system_key == "director" }
+    create(:staff_profile, :owner, membership: membership, school: school, role_template: director)
+    [ user, membership ]
+  end
 end
