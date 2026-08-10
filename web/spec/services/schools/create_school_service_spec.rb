@@ -31,7 +31,7 @@ RSpec.describe Schools::CreateSchoolService do
 
       school = result.data
       membership = school.memberships.find_by(user: actor)
-      expect(membership).to have_attributes(role: "school", status: "active")
+      expect(membership).to have_attributes(role: "staff", status: "active")
 
       profile = membership.staff_profile
       expect(profile).to have_attributes(is_owner: true, display_title: "Diretor")
@@ -43,12 +43,11 @@ RSpec.describe Schools::CreateSchoolService do
     let(:params) { { name: "" } }
 
     it "does not persist a school or templates" do
+      expect { result }.not_to change(School, :count)
+      expect { result }.not_to change(SchoolRoleTemplate, :count)
+      expect { result }.not_to change(RoleTemplatePermission, :count)
       expect(result).to be_failure
       expect(result.error_code).to eq(:validation_error)
-
-      expect(School.where(name: "")).not_to exist
-      expect(SchoolRoleTemplate.count).to eq(0)
-      expect(RoleTemplatePermission.count).to eq(0)
     end
   end
 
@@ -68,10 +67,10 @@ RSpec.describe Schools::CreateSchoolService do
     end
 
     it "does not leave a school behind" do
+      expect { result }.not_to change(School, :count)
+      expect { result }.not_to change(SchoolRoleTemplate, :count)
       expect(result).to be_failure
       expect(result.error_code).to eq(:validation_error)
-      expect(School.where(name: "Provisioned School")).not_to exist
-      expect(SchoolRoleTemplate.count).to eq(0)
     end
   end
 end

@@ -79,4 +79,8 @@ module PermissionsFactoryHelpers
     create(:staff_profile, :owner, membership: membership, school: school, role_template: director)
     [ user, membership ]
   end
+
+  def create_school_admin_with_permissions(school, user: create(:user))
+    create_owner_membership(school, user: user)
+  end
 end

@@ -26,6 +26,12 @@ RSpec.describe "Api::V1::Schools::RoleTemplates", type: :request do
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
 
+      response "401", "unauthenticated" do
+        let(:Authorization) { nil }
+
+        run_test!
+      end
+
       response "200", "secretary with manage_people can list templates" do
         let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
 

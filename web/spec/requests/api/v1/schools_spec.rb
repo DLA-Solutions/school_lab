@@ -107,7 +107,7 @@ RSpec.describe "Api::V1::Schools", type: :request do
           # Without the founding membership the creator could not see what they just created:
           # SchoolPolicy scopes the register by membership.
           expect(
-            school_admin_user.memberships.kept.exists?(school: created, role: "school")
+            school_admin_user.memberships.kept.exists?(school: created, role: "staff")
           ).to be(true)
         end
       end
