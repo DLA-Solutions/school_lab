@@ -46,6 +46,11 @@ class ApplicationPolicy
     Current.membership&.role == "school" && Current.membership&.active?
   end
 
+  def school_owner?
+    profile = Current.membership&.staff_profile
+    profile&.kept? == true && profile.is_owner?
+  end
+
   def staff_with?(permission_key)
     membership = Current.membership
     return false unless membership&.active?
