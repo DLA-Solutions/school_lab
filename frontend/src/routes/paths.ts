@@ -30,5 +30,12 @@ export default {
   inviteAccept: `/${rootPaths.inviteRoot}/accept`,
   ownerOnboarding: `/${rootPaths.onboardingRoot}/owner`,
 
+  /** Backoffice white-glove wizard (#200). Route not registered until that issue ships. */
+  provisioningWizard: (schoolId: number) =>
+    `/${rootPaths.onboardingRoot}/provisioning/${schoolId}`,
+
   404: `/${rootPaths.errorRoot}/404`,
 };
+
+/** Flip when #200 registers the provisioning wizard route for post-create redirect. */
+export const PROVISIONING_WIZARD_ROUTE_REGISTERED = false;
