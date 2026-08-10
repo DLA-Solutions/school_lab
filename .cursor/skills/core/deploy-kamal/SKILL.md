@@ -15,7 +15,7 @@ Deploy one layer or the full stack to **staging** or **production**. Runbook: `d
 | frontend, SPA, app (UI), school web | `frontend` | `frontend/app/` | `scholarpremium-spa` |
 | backoffice, platform SPA | `backoffice` | `frontend/backoffice/` | `scholarpremium-backoffice-spa` |
 | API, web, Rails, backend | `web` | `web/` | `scholarpremium` |
-| everything, full stack, all services | `all` | see order below | all three |
+| everything, full stack, all services | `all` | see order below | all four |
 
 | User says | Destination flag |
 |---|---|
@@ -59,10 +59,19 @@ kamal deploy -d <dest>
 
 First time only: `kamal setup -d <dest>` before deploy.
 
-### Frontend (SPA)
+### Frontend (school SPA)
 
 ```bash
-cd frontend
+cd frontend/app
+kamal deploy -d <dest>
+```
+
+First time only: `kamal setup -d <dest>` before deploy.
+
+### Backoffice SPA
+
+```bash
+cd frontend/backoffice
 kamal deploy -d <dest>
 ```
 
