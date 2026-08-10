@@ -10,7 +10,7 @@
 
 ## Per service directory (before first deploy)
 
-### `site/` and `frontend/`
+### `site/`, `frontend/app/`, and `frontend/backoffice/`
 
 - [ ] `.kamal/secrets-common` exists (copy from `.example` or from `web/.kamal/secrets-common`)
 
@@ -25,7 +25,7 @@
 
 ## Before each deploy
 
-- [ ] Correct service directory (`site/`, `frontend/`, or `web/`)
+- [ ] Correct service directory (`site/`, `frontend/app/`, `frontend/backoffice/`, or `web/`)
 - [ ] Correct destination: `-d staging` or `-d production`
 - [ ] `kamal secrets print -d <dest>` shows non-empty registry secrets
 - [ ] For production: staging smoke-tested first
@@ -33,7 +33,8 @@
 ## After deploy
 
 - [ ] `/` returns site HTML (200)
-- [ ] `/app/` returns SPA (not blank page)
+- [ ] `/app/` returns school SPA (not blank page)
+- [ ] `/backoffice/` returns platform SPA (not the site landing)
 - [ ] `/up` returns 200 (API health)
-- [ ] `kamal-proxy ls` shows three services with expected path prefixes
+- [ ] `kamal-proxy ls` shows four services with expected path prefixes
 - [ ] API migration run if schema changed (`kamal app exec ... db:migrate`)

@@ -121,6 +121,10 @@ kamal deploy -d staging
 # 4. School SPA — /app path prefix; no proxy.ssl in frontend/app/config/deploy.yml
 cd ../frontend/app
 kamal deploy -d staging
+
+# 5. Backoffice SPA — /backoffice path prefix; no proxy.ssl in frontend/backoffice/config/deploy.yml
+cd ../backoffice
+kamal deploy -d staging
 ```
 
 Between steps 1 and 3, `https://staging.scholarpremium.com.br/api` (and `/up`, etc.) are
@@ -128,7 +132,7 @@ down until step 3 completes. Between steps 1 and 2, the hostname may return 502 
 kamal-proxy until site registers. Keep that gap short.
 
 After step 2, `/` serves the landing page. After step 3, API paths work again. After step
-4, `/app/` serves the SPA.
+4, `/app/` serves the school SPA. After step 5, `/backoffice/` serves the platform SPA.
 
 Repeat with `-d production` for production when cutting over that hostname.
 
@@ -337,12 +341,17 @@ bin/deploy-preflight          # optional
 kamal setup -d staging
 kamal deploy -d staging
 
-# 2. SPA (/app)
-cd frontend
+# 2. School SPA (/app)
+cd frontend/app
 kamal setup -d staging
 kamal deploy -d staging
 
-# 3. API (path prefixes) — last
+# 3. Backoffice SPA (/backoffice)
+cd ../backoffice
+kamal setup -d staging
+kamal deploy -d staging
+
+# 4. API (path prefixes) — last
 cd web
 kamal setup -d staging
 kamal deploy -d staging
@@ -353,21 +362,24 @@ server, pushes the image, and boots the app. TLS certificates are issued by Let'
 through kamal-proxy, so the DNS records must already point at `77.42.33.33` — otherwise
 certificate issuance fails and the container comes up without HTTPS.
 
-Before the first push, create the GHCR packages `scholarpremium-site` and
-`scholarpremium-spa` (private, same org as the API image). Site and frontend only need
-`.kamal/secrets-common` (registry credentials); copy from `.kamal/secrets-common.example`.
+Before the first push, create the GHCR packages `scholarpremium-site`,
+`scholarpremium-spa`, and `scholarpremium-backoffice-spa` (private, same org as the API
+image). Site and both SPAs only need `.kamal/secrets-common` (registry credentials); copy
+from `.kamal/secrets-common.example`.
 
 ## Day-to-day
 
 ```bash
-# Deploy staging (site → SPA → API)
+# Deploy staging (site → school SPA → backoffice SPA → API)
 cd site && kamal deploy -d staging
-cd frontend && kamal deploy -d staging
+cd frontend/app && kamal deploy -d staging
+cd frontend/backoffice && kamal deploy -d staging
 cd web && kamal deploy -d staging
 
 # Production
 cd site && kamal deploy -d production
-cd frontend && kamal deploy -d production
+cd frontend/app && kamal deploy -d production
+cd frontend/backoffice && kamal deploy -d production
 cd web && kamal deploy -d production
 
 # Logs and console (API only)
@@ -379,7 +391,8 @@ kamal dbc -d production          # rails dbconsole
 kamal app exec -d production "bin/rails db:migrate"
 ```
 
-Deploy staging first and confirm `/`, `/app/`, and `/up` respond before touching production.
+Deploy staging first and confirm `/`, `/app/`, `/backoffice/`, and `/up` respond before
+touching production. `/backoffice/` must return the backoffice SPA (not the site landing).
 
 ## API documentation (staging only)
 
@@ -402,7 +415,8 @@ Each service rolls back independently:
 
 ```bash
 cd site && kamal rollback -d staging
-cd frontend && kamal rollback -d staging
+cd frontend/app && kamal rollback -d staging
+cd frontend/backoffice && kamal rollback -d staging
 cd web && kamal rollback -d staging
 ```
 
@@ -421,18 +435,19 @@ Plan coordinated rollbacks if needed.
 
 ## Docker build context (site and SPA)
 
-`site/` and `frontend/` Dockerfiles live in each service directory but **build from the
-monorepo root**: they `COPY site/...`, `COPY frontend/...`, and (for the SPA)
-`COPY packages/design-tokens`. Kamal is always run from the service directory (`cd site`,
-`cd frontend`); `bin/kamal` in those folders keeps that cwd.
+`site/`, `frontend/app/`, and `frontend/backoffice/` Dockerfiles live in each service
+directory but **build from the monorepo root**: they `COPY site/...`, `COPY frontend/...`,
+and `COPY packages/design-tokens`. Kamal is always run from the service directory (`cd
+site`, `cd frontend/app`, `cd frontend/backoffice`); `bin/kamal` in those folders keeps
+that cwd.
 
 In each service's `config/deploy.yml`:
 
 - `builder.context: ..` — Docker build context is the repository root.
 - `builder.dockerfile: Dockerfile` — path relative to the **service directory**, not the
   context. Kamal checks the file with `File.expand_path(dockerfile)` from the process cwd
-  before invoking `docker buildx`; `site/Dockerfile` or `frontend/Dockerfile` would look
-  for a nested path (`site/site/Dockerfile`) and fail with `Missing site/Dockerfile`.
+  before invoking `docker buildx`; `site/Dockerfile` or `frontend/app/Dockerfile` would
+  look for a nested path (`site/site/Dockerfile`) and fail with `Missing site/Dockerfile`.
 
 The API (`web/`) builds from `web/` with the default Dockerfile in that folder; it does not
 set `builder.context`.
