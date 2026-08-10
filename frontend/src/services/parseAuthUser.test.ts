@@ -69,6 +69,10 @@ describe('parseAuthUser', () => {
       guardian_profiles: [],
     });
 
+    expect(user).not.toBeNull();
+    if (!user) {
+      return;
+    }
     expect(user.memberships[0].permissions).toEqual(['manage_people']);
   });
 });
