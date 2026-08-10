@@ -31,9 +31,8 @@ const ContractTemplatePage = () => {
 
   const [template, setTemplate] = useState<ContractTemplate | null>(null);
   const [bodyHtml, setBodyHtml] = useState('');
-  const [signatureX, setSignatureX] = useState('10');
-  const [signatureY, setSignatureY] = useState('85');
-  const [signaturePage, setSignaturePage] = useState('1');
+  // Held as typed — one line, addresses separated by commas — and split only on the way out.
+  const [copyEmails, setCopyEmails] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
   const [removeLogo, setRemoveLogo] = useState(false);
   // A chosen file has no URL yet, so the browser makes one for it — otherwise nothing is on
@@ -71,9 +70,7 @@ const ContractTemplatePage = () => {
   const applyTemplate = (loaded: ContractTemplate) => {
     setTemplate(loaded);
     setBodyHtml(loaded.body_html);
-    setSignatureX(String(loaded.signature_x));
-    setSignatureY(String(loaded.signature_y));
-    setSignaturePage(String(loaded.signature_page));
+    setCopyEmails(loaded.copy_emails.join(', '));
   };
 
   useEffect(() => {
@@ -87,9 +84,7 @@ const ContractTemplatePage = () => {
         applyTemplate(await fetchContractTemplate(schoolId));
       } catch (err) {
         setError(
-          err instanceof ApiError
-            ? err.message
-            : 'Não foi possível carregar o modelo de contrato.',
+          err instanceof ApiError ? err.message : 'Não foi possível carregar o modelo de contrato.',
         );
       } finally {
         setLoading(false);
@@ -183,9 +178,10 @@ const ContractTemplatePage = () => {
         schoolId,
         {
           body_html: bodyHtml,
-          signature_x: Number(signatureX),
-          signature_y: Number(signatureY),
-          signature_page: Number(signaturePage),
+          copy_emails: copyEmails
+            .split(',')
+            .map((email) => email.trim())
+            .filter(Boolean),
         },
         logo,
         removeLogo,
@@ -201,7 +197,9 @@ const ContractTemplatePage = () => {
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        const detail = Object.values(err.details).flat().find((v) => typeof v === 'string');
+        const detail = Object.values(err.details)
+          .flat()
+          .find((v) => typeof v === 'string');
         setError(typeof detail === 'string' ? detail : err.message);
       } else {
         setError('Não foi possível salvar o modelo. Verifique sua conexão.');
@@ -234,7 +232,7 @@ const ContractTemplatePage = () => {
     <Stack direction="column" gap={3.5}>
       <PageHeader
         title="Contrato"
-        subtitle="Modelo enviado às famílias para assinatura"
+        subtitle=""
         actions={
           <Button
             variant="contained"
@@ -392,45 +390,23 @@ const ContractTemplatePage = () => {
                 </Stack>
               </SectionCard>
 
-              <SectionCard title="Posição da assinatura" padding={3.5}>
+              <SectionCard title="Cópia para a escola" padding={3.5}>
                 <Typography variant="body2" color="text.secondary" mb={2}>
-                  Em porcentagem da página, a partir do canto superior esquerdo.
+                  Estes endereços recebem uma cópia de todo contrato enviado. Eles não assinam —
+                  apenas recebem o documento.
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid size={4}>
-                    <TextField
-                      id="signature-x"
-                      label="X (%)"
-                      type="number"
-                      value={signatureX}
-                      onChange={(e) => setSignatureX(e.target.value)}
-                      variant="filled"
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid size={4}>
-                    <TextField
-                      id="signature-y"
-                      label="Y (%)"
-                      type="number"
-                      value={signatureY}
-                      onChange={(e) => setSignatureY(e.target.value)}
-                      variant="filled"
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid size={4}>
-                    <TextField
-                      id="signature-page"
-                      label="Página"
-                      type="number"
-                      value={signaturePage}
-                      onChange={(e) => setSignaturePage(e.target.value)}
-                      variant="filled"
-                      fullWidth
-                    />
-                  </Grid>
-                </Grid>
+                <TextField
+                  id="contract-copy-emails"
+                  label="E-mails, separados por vírgula"
+                  value={copyEmails}
+                  onChange={(e) => {
+                    setCopyEmails(e.target.value);
+                    setSaved(false);
+                  }}
+                  placeholder="secretaria@escola.com.br, direcao@escola.com.br"
+                  variant="filled"
+                  fullWidth
+                />
               </SectionCard>
             </Stack>
           </Grid>

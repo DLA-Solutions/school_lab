@@ -84,7 +84,8 @@ module Api
           end
 
           def apply_filters(scope)
-            scope = scope.where(status: params[:status]) if params[:status].present?
+            scope = search_by_payer(scope)
+            scope = scope.where(status: statuses) if statuses.present?
             scope = scope.where(guardian_id: params[:guardian_id]) if params[:guardian_id].present?
             if params[:due_date_from].present?
               scope = scope.where(due_date: Date.parse(params[:due_date_from])..)
@@ -93,6 +94,21 @@ module Api
               scope = scope.where(due_date: ..Date.parse(params[:due_date_to]))
             end
             scope
+          end
+
+          # One box over the payer's name and CPF: a secretary types what they have in front of
+          # them without choosing a field first.
+          def search_by_payer(scope)
+            term = params[:q]
+            return scope if term.blank?
+
+            scope.where(guardian_id: policy_scope(Guardian).search(term).select(:id))
+          end
+
+          # `status` takes one value or several, so "open" can mean pending and overdue together —
+          # a family with a late boleto has not paid it, and the screen says so as one thing.
+          def statuses
+            Array(params[:status]).flat_map { |value| value.to_s.split(",") }.map(&:strip).compact_blank
           end
         end
       end

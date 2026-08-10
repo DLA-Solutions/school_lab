@@ -36,19 +36,14 @@ RSpec.describe "Contract template", type: :request do
   end
 
   describe "PUT" do
-    it "saves the agreement and the signature position" do
+    it "saves the agreement" do
       put path,
-          params: {
-            contract_template: {
-              body_html: "<h1>Meu contrato</h1><p>{{aluno.nome}}</p>",
-              signature_x: 12.5, signature_y: 88.0, signature_page: 2
-            }
-          },
+          params: { contract_template: { body_html: "<h1>Meu contrato</h1><p>{{aluno.nome}}</p>" } },
           headers: headers, as: :json
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body.dig("data", "body_html")).to include("Meu contrato")
-      expect(school.reload.contract_template.signature_page).to eq(2)
+      expect(school.reload.contract_template.body_html).to include("Meu contrato")
     end
 
     # This HTML is rendered in a browser and shipped to the signature provider, so anything
@@ -94,12 +89,38 @@ RSpec.describe "Contract template", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
-    it "rejects a signature position outside the page" do
+    it "saves who else receives every contract" do
+      put path,
+          params: {
+            contract_template: {
+              body_html: "<p>ok</p>",
+              copy_emails: [ " Colegionsrgo@Gmail.com ", "", "colegionsrgo@gmail.com" ]
+            }
+          },
+          headers: headers, as: :json
+
+      expect(response).to have_http_status(:ok)
+      # Trimmed, lower-cased and de-duplicated: a comma-separated field produces all three.
+      expect(school.reload.contract_template.copy_emails).to eq([ "colegionsrgo@gmail.com" ])
+    end
+
+    it "refuses an address that is plainly not one" do
+      put path,
+          params: { contract_template: { body_html: "<p>ok</p>", copy_emails: [ "secretaria" ] } },
+          headers: headers, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    # Where the signature lands is the provider's to decide: it lays the page out when it
+    # converts the uploaded HTML, so coordinates measured against our own render meant nothing.
+    it "ignores a signature position, which the school no longer sets" do
       put path,
           params: { contract_template: { body_html: "<p>ok</p>", signature_x: 140 } },
           headers: headers, as: :json
 
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"]).not_to have_key("signature_x")
     end
   end
 

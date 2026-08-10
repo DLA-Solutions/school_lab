@@ -28,9 +28,13 @@ export const saveContractTemplate = async (
   if (logo) {
     const body = new FormData();
     body.append('contract_template[body_html]', payload.body_html);
-    body.append('contract_template[signature_x]', String(payload.signature_x));
-    body.append('contract_template[signature_y]', String(payload.signature_y));
-    body.append('contract_template[signature_page]', String(payload.signature_page));
+    // An empty array has to travel too, or a multipart save could never clear the list.
+    if (payload.copy_emails.length === 0) {
+      body.append('contract_template[copy_emails][]', '');
+    }
+    payload.copy_emails.forEach((email) => {
+      body.append('contract_template[copy_emails][]', email);
+    });
     body.append('contract_template[logo]', logo);
 
     const response = await request<{ data: ContractTemplate }>(path(schoolId), {

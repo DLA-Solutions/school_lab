@@ -4,8 +4,12 @@ module Gateways
   module Signature
     module ValueObjects
       # What the adapter is handed: a rendered agreement and who must sign it.
-      SignatureRequest = Data.define(:name, :pdf, :filename, :signers, :message, :content_type) do
-        def initialize(name:, pdf:, filename:, signers:, message: nil, content_type: "application/pdf")
+      # `copy_emails` receive the document without being asked to do anything with it — the
+      # school's own copy of what it sent. Distinct from `signers`, who must act.
+      SignatureRequest = Data.define(:name, :pdf, :filename, :signers, :message, :content_type,
+                                     :copy_emails) do
+        def initialize(name:, pdf:, filename:, signers:, message: nil,
+                       content_type: "application/pdf", copy_emails: [])
           super
         end
       end

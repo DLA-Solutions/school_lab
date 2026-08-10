@@ -44,14 +44,11 @@ class ContractTemplate < ApplicationRecord
   before_validation :sanitize_body
 
   validates :body_html, presence: true
-  validates :signature_x, :signature_y,
-            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
-  validates :signature_page, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
   validate :logo_is_an_image
+  validate :copy_emails_are_addresses
 
-  def signature_position
-    { x: signature_x.to_f, y: signature_y.to_f, z: signature_page }
-  end
+  # Blank entries and duplicates come from a comma-separated field; neither is a recipient.
+  before_validation :normalize_copy_emails
 
   # A school with no agreement of its own starts from this one rather than a blank page.
   def self.default_body_html
@@ -90,6 +87,22 @@ class ContractTemplate < ApplicationRecord
     self.body_html = Rails::HTML5::SafeListSanitizer.new.sanitize(
       body_html, tags: ALLOWED_TAGS, attributes: ALLOWED_ATTRIBUTES
     ).to_s
+  end
+
+  # Loose on purpose: this is a hint that someone mistyped, not an attempt to decide what the
+  # RFC allows. A wrong-but-plausible address is caught by the mail never arriving, not here.
+  EMAIL_FORMAT = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
+
+  def normalize_copy_emails
+    self.copy_emails = Array(copy_emails).map { |email| email.to_s.strip.downcase }
+                                         .reject(&:blank?)
+                                         .uniq
+  end
+
+  def copy_emails_are_addresses
+    return if copy_emails.blank?
+
+    errors.add(:copy_emails, :invalid) unless copy_emails.all? { |email| email.match?(EMAIL_FORMAT) }
   end
 
   def logo_is_an_image

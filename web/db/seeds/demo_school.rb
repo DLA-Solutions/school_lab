@@ -12,10 +12,12 @@ module DemoSchool
   module_function
 
   def seed!
-    school_group = SchoolGroup.find_or_create_by!(name: "Demo School Group")
+    school_group = SchoolGroup.find_or_create_by!(name: ENV.fetch("SEED_SCHOOL_GROUP_NAME", "School Lab Group"))
 
     school = School.find_or_create_by!(cnpj: SCHOOL_CNPJ) do |record|
-      record.name = "Escola Demo"
+      # Named from the environment so a real deployment seeds under its own name instead of
+      # carrying "Escola Demo" into every screen that shows the current school.
+      record.name = ENV.fetch("SEED_SCHOOL_NAME", "School Lab")
       record.school_group = school_group
     end
 

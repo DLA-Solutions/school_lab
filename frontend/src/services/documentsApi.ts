@@ -10,16 +10,16 @@ export type DocumentableType = 'Guardian' | 'Student' | 'Teacher';
 export const PERSONAL_DOCUMENT_TYPES = [
   { value: 'cpf', label: 'CPF' },
   { value: 'rg', label: 'RG' },
-  { value: 'proof_of_address', label: 'Comprovante de residência' },
-  { value: 'proof_of_income', label: 'Comprovante de renda' },
-  { value: 'other', label: 'Outro' },
+  { value: 'proof_of_address', label: 'Proof of address' },
+  { value: 'proof_of_income', label: 'Proof of income' },
+  { value: 'other', label: 'Other' },
 ] as const;
 
 /** What a collaborator's file is usually called, on top of the shared kinds. */
 export const COLLABORATOR_DOCUMENT_TYPES = [
   ...PERSONAL_DOCUMENT_TYPES.filter((type) => type.value !== 'proof_of_income'),
-  { value: 'employment_contract', label: 'Contrato de trabalho' },
-  { value: 'diploma', label: 'Diploma / certificação' },
+  { value: 'employment_contract', label: 'Employment contract' },
+  { value: 'diploma', label: 'Diploma / certification' },
 ] as const;
 
 export const documentTypeLabel = (value: string) =>

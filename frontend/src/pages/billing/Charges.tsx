@@ -1,5 +1,6 @@
-import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Alert from '@mui/material/Alert';
+import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -13,9 +14,13 @@ import Link from '@mui/material/Link';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import IconifyIcon from 'components/base/IconifyIcon';
 import {
+  ConfirmDialog,
   DataTable,
   EmptyState,
   ErrorBanner,
@@ -27,7 +32,7 @@ import {
 import ChargeBatchDialog from 'components/sections/billing/charges/ChargeBatchDialog';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
-import { createOneOffCharge, listCharges } from 'services/chargesApi';
+import { cancelCharge, createOneOffCharge, listCharges } from 'services/chargesApi';
 import { listContracts } from 'services/contractsApi';
 import { listGuardians } from 'services/guardiansApi';
 import { Charge } from 'types/charge';
@@ -40,10 +45,10 @@ import { useDebouncedValue } from 'utils/useDebouncedValue';
 const PAGE_SIZE = 25;
 
 const STATUS_LABELS: Record<Charge['status'], string> = {
-  pending: 'Em aberto',
-  overdue: 'Vencido',
-  paid: 'Pago',
-  cancelled: 'Cancelado',
+  pending: 'Open',
+  overdue: 'Overdue',
+  paid: 'Paid',
+  cancelled: 'Cancelled',
 };
 
 const STATUS_VARIANTS: Record<Charge['status'], 'success' | 'warning' | 'error' | 'info'> = {
@@ -53,6 +58,18 @@ const STATUS_VARIANTS: Record<Charge['status'], 'success' | 'warning' | 'error' 
   cancelled: 'info',
 };
 
+/**
+ * What the filter offers. "Open" covers pending and overdue together: a family with a late
+ * boleto has not paid it, and splitting the two would make the school look in two places for
+ * the same unpaid slip.
+ */
+const STATUS_FILTERS: { value: string; label: string; statuses: string[] }[] = [
+  { value: 'all', label: 'All', statuses: [] },
+  { value: 'open', label: 'Open', statuses: ['pending', 'overdue'] },
+  { value: 'paid', label: 'Paid', statuses: ['paid'] },
+  { value: 'cancelled', label: 'Cancelled', statuses: ['cancelled'] },
+];
+
 const formatDate = (value: string | null) => {
   if (!value) {
     return '—';
@@ -61,8 +78,11 @@ const formatDate = (value: string | null) => {
   // Split rather than `new Date`: a bare ISO date parsed as UTC shows the day before here.
   const [year, month, day] = value.split('-');
 
-  return `${day}/${month}/${year}`;
+  return `${month}/${day}/${year}`;
 };
+
+/** Name and CPF in one line, which is how a payer is recognised in a list of them. */
+const guardianLabel = (guardian: Guardian) => `${guardian.name} — ${formatCpf(guardian.cpf)}`;
 
 /**
  * The school's boletos. Beyond listing what the monthly schedule produced, this is where a
@@ -79,13 +99,24 @@ const Charges = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
+  const [statusFilter, setStatusFilter] = useState('all');
+
   const [formOpen, setFormOpen] = useState(false);
   const [batchOpen, setBatchOpen] = useState(false);
   const [notice, setNotice] = useState('');
-  const [guardianSearch, setGuardianSearch] = useState('');
-  const debouncedGuardianSearch = useDebouncedValue(guardianSearch);
+  const [cancelling, setCancelling] = useState<Charge | null>(null);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
+
+  // One field: the operator types part of a name or a CPF and picks the payer from what comes
+  // back. Two controls — a search box feeding a separate select — made them hunt twice for one
+  // person.
+  const [payerSearch, setPayerSearch] = useState('');
+  const debouncedPayerSearch = useDebouncedValue(payerSearch);
   const [guardians, setGuardians] = useState<Guardian[]>([]);
-  const [guardianId, setGuardianId] = useState('');
+  const [guardiansLoading, setGuardiansLoading] = useState(false);
+  const [payer, setPayer] = useState<Guardian | null>(null);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [contractId, setContractId] = useState('');
   const [amount, setAmount] = useState('');
@@ -103,21 +134,31 @@ const Charges = () => {
     setError('');
 
     try {
-      const response = await listCharges({ schoolId, page: page + 1 });
+      const response = await listCharges({
+        schoolId,
+        page: page + 1,
+        status: STATUS_FILTERS.find((option) => option.value === statusFilter)?.statuses,
+        q: debouncedSearch || undefined,
+      });
       setCharges(response.data);
       setTotal(response.meta.total);
     } catch (err) {
       setCharges([]);
       setTotal(0);
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os boletos.');
+      setError(err instanceof ApiError ? err.message : 'Could not load the boletos.');
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page]);
+  }, [schoolId, page, statusFilter, debouncedSearch]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // A different filter or term is a different list; staying on page 4 of it makes no sense.
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter, debouncedSearch]);
 
   // Finding the payer by name or CPF is the first step of raising a one-off charge.
   useEffect(() => {
@@ -125,28 +166,43 @@ const Charges = () => {
       return;
     }
 
-    const search = async () => {
+    let current = true;
+    setGuardiansLoading(true);
+
+    const searchGuardians = async () => {
       try {
-        const response = await listGuardians({ schoolId, q: debouncedGuardianSearch });
-        setGuardians(response.data);
+        const response = await listGuardians({ schoolId, q: debouncedPayerSearch });
+        if (current) {
+          setGuardians(response.data);
+        }
       } catch {
-        setGuardians([]);
+        if (current) {
+          setGuardians([]);
+        }
+      } finally {
+        if (current) {
+          setGuardiansLoading(false);
+        }
       }
     };
 
-    search();
-  }, [schoolId, formOpen, debouncedGuardianSearch]);
+    searchGuardians();
 
-  // Their contracts are what a charge can hang off; a guardian with none cannot be billed.
+    return () => {
+      current = false;
+    };
+  }, [schoolId, formOpen, debouncedPayerSearch]);
+
+  // Their contracts are what a charge can hang off; a payer with none can still be billed.
   useEffect(() => {
-    if (!schoolId || !guardianId) {
+    if (!schoolId || !payer) {
       setContracts([]);
       return;
     }
 
     const loadContracts = async () => {
       try {
-        const response = await listContracts({ schoolId, guardianId: Number(guardianId) });
+        const response = await listContracts({ schoolId, guardianId: payer.id });
         setContracts(response.data);
       } catch {
         setContracts([]);
@@ -154,11 +210,11 @@ const Charges = () => {
     };
 
     loadContracts();
-  }, [schoolId, guardianId]);
+  }, [schoolId, payer]);
 
   const openForm = () => {
-    setGuardianSearch('');
-    setGuardianId('');
+    setPayerSearch('');
+    setPayer(null);
     setContractId('');
     setAmount('');
     setDueDate('');
@@ -176,16 +232,16 @@ const Charges = () => {
     const cents = parseCents(amount);
 
     // A contract is optional; a payer is not — the slip has to carry someone's CPF.
-    if (!guardianId) {
-      setFormError('Selecione o responsável que receberá o boleto.');
+    if (!payer) {
+      setFormError('Choose the guardian who receives this boleto.');
       return;
     }
     if (!cents) {
-      setFormError('Informe o valor do boleto.');
+      setFormError('Enter the amount.');
       return;
     }
     if (!dueDate) {
-      setFormError('Informe a data de vencimento.');
+      setFormError('Enter the due date.');
       return;
     }
 
@@ -194,7 +250,7 @@ const Charges = () => {
 
     try {
       await createOneOffCharge(schoolId, {
-        guardian_id: Number(guardianId),
+        guardian_id: payer.id,
         contract_id: contractId ? Number(contractId) : null,
         total_amount_cents: cents,
         due_date: dueDate,
@@ -206,29 +262,48 @@ const Charges = () => {
     } catch (err) {
       if (err instanceof ApiError) {
         const base = err.details.base;
-        setFormError(
-          Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message,
-        );
+        setFormError(Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message);
       } else {
-        setFormError('Não foi possível gerar o boleto. Verifique sua conexão.');
+        setFormError('Could not raise the boleto. Check your connection.');
       }
     } finally {
       setSaving(false);
     }
   };
 
+  const handleCancel = async () => {
+    if (!schoolId || !cancelling) {
+      return;
+    }
+
+    setCancellingId(cancelling.id);
+    setError('');
+
+    try {
+      await cancelCharge(schoolId, cancelling.id);
+      setCancelling(null);
+      setNotice('Boleto cancelled. It stays on the list, marked cancelled.');
+      load();
+    } catch (err) {
+      setCancelling(null);
+      setError(err instanceof ApiError ? err.message : 'Could not cancel the boleto.');
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   const columns: GridColDef<Charge>[] = [
     {
       field: 'kind',
-      headerName: 'Tipo',
+      headerName: 'Type',
       width: 110,
       renderCell: ({ value }: GridRenderCellParams<Charge, Charge['kind']>) => (
-        <Typography variant="body2">{value === 'one_off' ? 'Avulso' : 'Mensalidade'}</Typography>
+        <Typography variant="body2">{value === 'one_off' ? 'One-off' : 'Tuition'}</Typography>
       ),
     },
     {
       field: 'student',
-      headerName: 'Aluno',
+      headerName: 'Student',
       flex: 1,
       minWidth: 160,
       sortable: false,
@@ -244,7 +319,7 @@ const Charges = () => {
     },
     {
       field: 'guardian',
-      headerName: 'Recebe o boleto',
+      headerName: 'Billed to',
       flex: 1,
       minWidth: 190,
       sortable: false,
@@ -259,7 +334,7 @@ const Charges = () => {
     },
     {
       field: 'description',
-      headerName: 'Descrição',
+      headerName: 'Description',
       flex: 1,
       minWidth: 160,
       renderCell: ({ value }: GridRenderCellParams<Charge, string | null>) =>
@@ -273,7 +348,7 @@ const Charges = () => {
     },
     {
       field: 'total_amount_cents',
-      headerName: 'Valor',
+      headerName: 'Amount',
       width: 130,
       renderCell: ({ value }: GridRenderCellParams<Charge, number>) => (
         <Typography variant="body2">{formatCents(value)}</Typography>
@@ -281,37 +356,67 @@ const Charges = () => {
     },
     {
       field: 'due_date',
-      headerName: 'Vencimento',
-      width: 130,
+      headerName: 'Due',
+      width: 120,
       renderCell: ({ value }: GridRenderCellParams<Charge, string | null>) => (
         <Typography variant="body2">{formatDate(value ?? null)}</Typography>
       ),
     },
     {
       field: 'status',
-      headerName: 'Situação',
-      width: 130,
+      headerName: 'Status',
+      width: 120,
       renderCell: ({ value }: GridRenderCellParams<Charge, Charge['status']>) => (
-        <SemanticChip variant={STATUS_VARIANTS[value ?? 'pending']} label={STATUS_LABELS[value ?? 'pending']} />
+        <SemanticChip
+          variant={STATUS_VARIANTS[value ?? 'pending']}
+          label={STATUS_LABELS[value ?? 'pending']}
+        />
       ),
     },
     {
       field: 'boleto_url',
       headerName: 'Boleto',
-      width: 110,
+      width: 100,
       sortable: false,
-      renderCell: ({ value }: GridRenderCellParams<Charge, string | null>) =>
-        value ? (
+      renderCell: ({ value, row }: GridRenderCellParams<Charge, string | null>) =>
+        value && row.status !== 'cancelled' ? (
           // `component="a"` opts out of the theme's default, which routes every MuiLink through
           // react-router; this points at the bank, not at an in-app route.
           <Link component="a" href={value} target="_blank" rel="noopener" variant="body2">
-            Abrir
+            Open
           </Link>
         ) : (
           <Typography variant="body2" color="text.secondary">
-            Não emitido
+            —
           </Typography>
         ),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 90,
+      sortable: false,
+      filterable: false,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: ({ row }: GridRenderCellParams<Charge>) => (
+        <Stack direction="row" justifyContent="flex-end" height={1}>
+          {/* Only a live boleto can be withdrawn; a paid or already cancelled one has nothing
+              left to cancel. */}
+          {(row.status === 'pending' || row.status === 'overdue') && (
+            <Tooltip title="Cancel">
+              <IconButton
+                size="small"
+                aria-label={`Cancel boleto for ${row.guardian.name}`}
+                onClick={() => setCancelling(row)}
+                disabled={cancellingId === row.id}
+              >
+                <IconifyIcon icon="mingcute:close-circle-line" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
+      ),
     },
   ];
 
@@ -321,8 +426,8 @@ const Charges = () => {
         <PageHeader title="Boletos" />
         <SectionCard>
           <EmptyState
-            title="Sem acesso a esta área"
-            description="Os boletos estão disponíveis apenas para usuários com vínculo ativo de escola."
+            title="No access to this area"
+            description="Boletos are available only to users with an active school membership."
             headingLevel={2}
           />
         </SectionCard>
@@ -330,21 +435,43 @@ const Charges = () => {
     );
   }
 
-  const selectedGuardian = guardians.find((option) => String(option.id) === guardianId);
-
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
         title="Boletos"
+        subtitle={school.school_name ?? undefined}
         actions={
-          <Stack gap={1}>
+          <>
+            <TextField
+              id="charge-status-filter"
+              label="Status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              select
+              size="small"
+              variant="filled"
+              sx={{ width: 150 }}
+            >
+              {STATUS_FILTERS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <SearchField
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or CPF"
+              ariaLabel="Search boletos"
+              sx={{ width: 260 }}
+            />
             <Button variant="outlined" size="small" onClick={() => setBatchOpen(true)}>
-              Emitir em massa
+              Issue in bulk
             </Button>
             <Button variant="contained" size="small" onClick={openForm}>
-              Novo boleto avulso
+              New one-off boleto
             </Button>
-          </Stack>
+          </>
         }
       />
 
@@ -354,11 +481,15 @@ const Charges = () => {
       <SectionCard padding={0}>
         {!loading && charges.length === 0 && !error ? (
           <EmptyState
-            title="Nenhum boleto emitido"
-            description="Os boletos das mensalidades aparecem aqui, junto com os avulsos que você gerar."
+            title={debouncedSearch || statusFilter !== 'all' ? 'Nothing found' : 'No boletos yet'}
+            description={
+              debouncedSearch || statusFilter !== 'all'
+                ? 'No boleto matches this search and filter.'
+                : 'Tuition boletos show up here, together with any one-off you raise.'
+            }
             action={
               <Button variant="contained" size="small" onClick={openForm}>
-                Novo boleto avulso
+                New one-off boleto
               </Button>
             }
           />
@@ -375,7 +506,7 @@ const Charges = () => {
               pageSizeOptions={[PAGE_SIZE]}
               paginationModel={{ page, pageSize: PAGE_SIZE }}
               onPaginationModelChange={(model) => setPage(model.page)}
-              rangeLabel={({ from, to, count }) => `${from}-${to} de ${count}`}
+              rangeLabel={({ from, to, count }) => `${from}-${to} of ${count}`}
             />
           </Box>
         )}
@@ -387,66 +518,68 @@ const Charges = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Novo boleto avulso</DialogTitle>
+        <DialogTitle>New one-off boleto</DialogTitle>
         <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
           <DialogContent>
             <Grid container spacing={2.5} pt={0.5}>
               <Grid size={12}>
-                <SearchField
-                  value={guardianSearch}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setGuardianSearch(e.target.value)}
-                  placeholder="Buscar responsável por nome ou CPF"
-                  ariaLabel="Buscar responsável"
-                  fullWidth
-                />
-              </Grid>
-              <Grid size={12}>
-                <TextField
-                  id="charge-guardian"
-                  label="Responsável"
-                  value={guardianId}
-                  onChange={(e) => {
-                    setGuardianId(e.target.value);
+                {/* Type part of a name or a CPF and pick from what comes back — one field for
+                    what used to be a search box and a separate select. */}
+                <Autocomplete
+                  id="charge-payer"
+                  options={guardians}
+                  value={payer}
+                  onChange={(_, option) => {
+                    setPayer(option);
                     setContractId('');
                   }}
-                  variant="filled"
-                  select
-                  fullWidth
-                  required
-                >
-                  {guardians.map((option) => (
-                    <MenuItem key={option.id} value={String(option.id)}>
-                      {`${option.name} — CPF ${formatCpf(option.cpf)}`}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  onInputChange={(_, term) => setPayerSearch(term)}
+                  getOptionLabel={guardianLabel}
+                  isOptionEqualToValue={(option, selected) => option.id === selected.id}
+                  // The API already matched the term against name and CPF; filtering again here
+                  // would drop rows it deliberately returned.
+                  filterOptions={(options) => options}
+                  loading={guardiansLoading}
+                  noOptionsText={payerSearch ? 'No guardian found' : 'Type a name or a CPF'}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Guardian who receives the boleto"
+                      variant="filled"
+                      required
+                      helperText={
+                        payer
+                          ? `The boleto goes out on CPF ${formatCpf(payer.cpf)}.`
+                          : 'Search by name or CPF.'
+                      }
+                    />
+                  )}
+                />
               </Grid>
               <Grid size={12}>
                 {/* Optional: a school also bills for what nobody signed a contract about. When
                     one is named the charge shows up in that student's history. */}
                 <TextField
                   id="charge-contract"
-                  label="Contrato (opcional)"
+                  label="Contract (optional)"
                   value={contractId}
                   onChange={(e) => setContractId(e.target.value)}
                   variant="filled"
                   select
                   fullWidth
-                  disabled={!guardianId}
+                  disabled={!payer}
                   helperText={
-                    guardianId && contracts.length === 0
-                      ? 'Este responsável não tem contrato. O boleto sai assim mesmo, sem vínculo com um aluno.'
-                      : selectedGuardian
-                        ? `O boleto sairá no CPF ${formatCpf(selectedGuardian.cpf)}.`
-                        : ' '
+                    payer && contracts.length === 0
+                      ? 'This guardian has no contract. The boleto still goes out, tied to no student.'
+                      : ' '
                   }
                 >
-                  <MenuItem value="">Sem contrato</MenuItem>
+                  <MenuItem value="">No contract</MenuItem>
                   {contracts.map((contract) => (
                     <MenuItem key={contract.id} value={String(contract.id)}>
-                      {`${contract.student_name ?? `Contrato ${contract.id}`} — ${formatCents(
+                      {`${contract.student_name ?? `Contract ${contract.id}`} — ${formatCents(
                         contract.negotiated_amount_cents,
-                      )}/mês`}
+                      )}/month`}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -454,7 +587,7 @@ const Charges = () => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   id="charge-amount"
-                  label="Valor"
+                  label="Amount"
                   value={amount}
                   onChange={(e) => setAmount(formatCentsInput(e.target.value))}
                   variant="filled"
@@ -471,7 +604,7 @@ const Charges = () => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   id="charge-due-date"
-                  label="Vencimento"
+                  label="Due date"
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
@@ -484,8 +617,8 @@ const Charges = () => {
               <Grid size={12}>
                 <TextField
                   id="charge-description"
-                  label="Descrição"
-                  placeholder="Excursão pedagógica, segunda via de uniforme..."
+                  label="Description"
+                  placeholder="Field trip, replacement uniform..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   variant="filled"
@@ -501,7 +634,7 @@ const Charges = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setFormOpen(false)} color="inherit" disabled={saving}>
-              Cancelar
+              Cancel
             </Button>
             <Button
               type="submit"
@@ -509,11 +642,27 @@ const Charges = () => {
               disabled={saving}
               startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
             >
-              {saving ? 'Gerando...' : 'Gerar boleto'}
+              {saving ? 'Issuing...' : 'Issue boleto'}
             </Button>
           </DialogActions>
         </Stack>
       </Dialog>
+
+      <ConfirmDialog
+        open={cancelling !== null}
+        title="Cancel this boleto?"
+        message={
+          cancelling
+            ? `${cancelling.guardian.name} — ${formatCents(cancelling.total_amount_cents)}. ` +
+              'The boleto is withdrawn with the bank and stays on the list, marked cancelled.'
+            : ''
+        }
+        destructive
+        confirmLabel="Cancel boleto"
+        cancelLabel="Keep it"
+        onConfirm={handleCancel}
+        onCancel={() => setCancelling(null)}
+      />
 
       {schoolId && (
         <ChargeBatchDialog
@@ -526,9 +675,9 @@ const Charges = () => {
 
             setNotice(
               [
-                `${result.created_count} boleto(s) gerado(s) e enviado(s) ao banco.`,
-                skipped > 0 ? `${skipped} já tinha(m) cobrança nesta competência.` : '',
-                withoutPayer > 0 ? `${withoutPayer} sem responsável financeiro.` : '',
+                `${result.created_count} boleto(s) issued and sent to the bank.`,
+                skipped > 0 ? `${skipped} already had a charge for this period.` : '',
+                withoutPayer > 0 ? `${withoutPayer} without a paying guardian.` : '',
               ]
                 .filter(Boolean)
                 .join(' '),

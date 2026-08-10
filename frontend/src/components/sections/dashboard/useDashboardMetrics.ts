@@ -36,7 +36,7 @@ export const useDashboardMetrics = (month: string): DashboardMetricsState => {
       setMetrics(await getDashboardMetrics(schoolId, month));
     } catch (err) {
       setMetrics(null);
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os indicadores.');
+      setError(err instanceof ApiError ? err.message : 'Could not load the dashboard figures.');
     } finally {
       setLoading(false);
     }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_213200) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_213400) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -157,18 +157,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_213200) do
 
   create_table "contract_templates", force: :cascade do |t|
     t.text "body_html", null: false
+    t.string "copy_emails", default: [], null: false, array: true
     t.datetime "created_at", null: false
     t.bigint "school_id", null: false
-    t.integer "signature_page", default: 1, null: false
-    t.decimal "signature_x", precision: 5, scale: 2, default: "10.0", null: false
-    t.decimal "signature_y", precision: 5, scale: 2, default: "85.0", null: false
     t.datetime "updated_at", null: false
     t.bigint "updated_by_id"
     t.index ["school_id"], name: "index_contract_templates_on_school", unique: true
     t.index ["school_id"], name: "index_contract_templates_on_school_id"
     t.index ["updated_by_id"], name: "index_contract_templates_on_updated_by_id"
-    t.check_constraint "signature_page >= 1", name: "contract_templates_signature_page_positive"
-    t.check_constraint "signature_x >= 0::numeric AND signature_x <= 100::numeric AND signature_y >= 0::numeric AND signature_y <= 100::numeric", name: "contract_templates_signature_position_range"
   end
 
   create_table "contracts", force: :cascade do |t|

@@ -157,7 +157,7 @@ module Contracts
     end
 
     def objeto_paragraph(guardians)
-      parties = guardians.map(&:name).to_sentence(locale: :"pt-BR")
+      parties = to_portuguese_sentence(guardians.map(&:name))
       responsibility = guardians.length > 1 ? "responsabilizam-se" : "responsabiliza-se"
 
       "A CONTRATADA prestará serviços educacionais ao(à) aluno(a) #{contract.student.name} " \
@@ -196,9 +196,16 @@ module Contracts
     def start_clause
       return "" if contract.starts_on.blank?
 
-      ", a partir de #{I18n.l(contract.starts_on, format: :long, locale: :'pt-BR')}"
-    rescue I18n::MissingTranslationData, StandardError
       ", a partir de #{contract.starts_on.strftime('%d/%m/%Y')}"
+    end
+
+    # The agreement is a Brazilian legal document and stays in Portuguese whatever language the
+    # interface is in — so it joins names itself rather than through `I18n`, which now carries a
+    # single locale and would say "and" in the middle of a Portuguese sentence.
+    def to_portuguese_sentence(names)
+      return names.first.to_s if names.size <= 1
+
+      "#{names[0..-2].join(', ')} e #{names.last}"
     end
 
     def signature_block(pdf, guardians, positions)

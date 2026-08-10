@@ -7,49 +7,18 @@ import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import IconifyIcon from 'components/base/IconifyIcon';
+import { LANGUAGES, Language, DEFAULT_LANGUAGE } from 'locales';
 
-interface Language {
-  id: number;
-  code: string;
-  lang: string;
-  flag: string;
-}
-
-const languages: Language[] = [
-  {
-    id: 1,
-    code: 'eng',
-    lang: 'English',
-    flag: 'twemoji:flag-united-kingdom',
-  },
-  {
-    id: 2,
-    code: 'en-US',
-    lang: 'English (US)',
-    flag: 'twemoji:flag-united-states',
-  },
-  {
-    id: 3,
-    code: 'ban',
-    lang: 'বাংলা',
-    flag: 'twemoji:flag-bangladesh',
-  },
-  {
-    id: 4,
-    code: 'zh',
-    lang: '中文',
-    flag: 'twemoji:flag-china',
-  },
-  {
-    id: 5,
-    code: 'tr',
-    lang: 'Türkçe',
-    flag: 'twemoji:flag-turkey',
-  },
-];
-
+/**
+ * The product speaks one language, and the flag says which. It used to offer five — English,
+ * Bengali, Chinese, Turkish — none of which translated anything: picking one changed the flag and
+ * left every screen exactly as it was. A control that promises a language it cannot deliver is
+ * worse than no control, so the list now holds the locale the interface is actually written in.
+ *
+ * Adding a second one means adding it to `src/locales` first; the menu follows from there.
+ */
 const LanguageSelect = () => {
-  const [language, setLanguage] = useState(languages[0]);
+  const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -68,10 +37,11 @@ const LanguageSelect = () => {
 
   return (
     <>
-      <Tooltip title={`${language.lang} - ${language.code}`}>
+      <Tooltip title={`${language.label} - ${language.code}`}>
         <IconButton
           onClick={handleFlagButtonClick}
           sx={{ fontSize: 'h4.fontSize' }}
+          aria-label="Language"
           aria-controls={open ? 'language-menu' : undefined}
           aria-expanded={open ? 'true' : undefined}
           aria-haspopup="true"
@@ -99,14 +69,18 @@ const LanguageSelect = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        {languages.map((langItem) => {
+        {LANGUAGES.map((langItem) => {
           return (
-            <MenuItem key={langItem.id} onClick={() => handleLanguageItemClick(langItem)}>
+            <MenuItem
+              key={langItem.code}
+              selected={langItem.code === language.code}
+              onClick={() => handleLanguageItemClick(langItem)}
+            >
               <ListItemIcon sx={{ mr: 2, fontSize: 'h3.fontSize' }}>
                 <IconifyIcon icon={langItem.flag} />
               </ListItemIcon>
               <ListItemText>
-                <Typography>{langItem.lang}</Typography>
+                <Typography>{langItem.label}</Typography>
               </ListItemText>
               <ListItemText>
                 <Typography textAlign="right">{langItem.code}</Typography>
