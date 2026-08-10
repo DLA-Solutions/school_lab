@@ -35,8 +35,7 @@ module Contracts
       ResponseService.success(
         data: {
           html: document(body, resolved_template),
-          filename: filename,
-          signature_position: resolved_template.signature_position
+          filename: filename
         }
       )
     end

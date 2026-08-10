@@ -3,6 +3,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server } from 'test/msw';
+import { API_BASE_URL } from 'services/api';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { setAccessToken } from 'services/tokenStore';
@@ -18,9 +19,6 @@ const template: ContractTemplate = {
   id: 1,
   school_id: SCHOOL_ID,
   body_html: '<h1>Contrato</h1><p>{{aluno.nome}}</p>',
-  signature_x: '10.0',
-  signature_y: '85.0',
-  signature_page: 1,
   logo_url: null,
   logo_filename: null,
   variables: [
@@ -109,7 +107,7 @@ describe('ContractTemplatePage', () => {
     await waitFor(() => expect(editor()).toHaveValue('INICIO|{{contrato.valor}}FIM'));
   });
 
-  it('saves the body and the signature position', async () => {
+  it('saves the body', async () => {
     authenticate();
     stubTemplate();
 
@@ -124,13 +122,12 @@ describe('ContractTemplatePage', () => {
     renderPage();
     await waitFor(() => expect(editor()).toHaveValue(template.body_html));
 
-    await user.clear(screen.getByLabelText(/^y \(%\)/i));
-    await user.type(screen.getByLabelText(/^y \(%\)/i), '92');
     await user.click(screen.getByRole('button', { name: /salvar modelo/i }));
 
     await waitFor(() => expect(received).toBeDefined());
-    expect(received?.contract_template.signature_y).toBe(92);
     expect(received?.contract_template.body_html).toBe(template.body_html);
+    // Where the signature lands is the provider's to decide now; the school no longer says.
+    expect(received?.contract_template).not.toHaveProperty('signature_y');
   });
 
   // The logo cannot travel in a JSON body, so a save carrying one goes up as multipart.
@@ -259,5 +256,36 @@ describe('ContractTemplatePage', () => {
     await user.click(screen.getByRole('button', { name: /salvar modelo/i }));
 
     expect(await screen.findByText('não pode ficar em branco')).toBeInTheDocument();
+  });
+  // The blueprint returns the blob path host-relative, and the SPA is served from another origin
+  // in development — so a bare `/rails/active_storage/...` resolved against the SPA and 404'd.
+  // The image simply failed to render, which is how the logo looked broken.
+  it('points the saved logo at the API, not at the SPA', async () => {
+    authenticate();
+    stubTemplate({
+      logo_url: '/rails/active_storage/blobs/redirect/abc/logo.png',
+      logo_filename: 'logo.png',
+    });
+
+    renderPage();
+
+    const image = await screen.findByAltText('Logo atual');
+    expect(image).toHaveAttribute('src', `${API_BASE_URL}/rails/active_storage/blobs/redirect/abc/logo.png`);
+  });
+
+  // Nothing was on screen between choosing an image and saving it, which read as the preview
+  // being broken — the saved logo was hidden and the chosen file had nothing to show.
+  it('shows the image that was just chosen, before it is saved', async () => {
+    authenticate();
+    stubTemplate();
+
+    renderPage();
+    await waitFor(() => expect(editor()).toHaveValue(template.body_html));
+
+    const file = new File(['logo'], 'logo.png', { type: 'image/png' });
+    fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [file] } });
+
+    expect(await screen.findByAltText('Logo escolhida')).toBeInTheDocument();
+    expect(screen.getByText(/logo\.png/)).toBeInTheDocument();
   });
 });

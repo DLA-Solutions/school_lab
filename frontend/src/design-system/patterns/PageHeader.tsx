@@ -28,7 +28,12 @@ const PageHeader = ({ title, subtitle, actions }: PageHeaderProps) => {
         )}
       </Stack>
       {actions && (
-        <Stack direction="row" spacing={2} alignItems="center">
+        // Bottom-aligned, not centred. Labels stack *above* the field in this theme
+        // (`MuiInputLabel` is `position: static`), so a labelled select is taller than a bare
+        // search box by the height of its label — centring them left the two input boxes at
+        // different heights, which is what read as misaligned across the register screens.
+        // Lining up their bottom edges puts the boxes on one line and leaves the labels above.
+        <Stack direction="row" spacing={2} alignItems="flex-end">
           {actions}
         </Stack>
       )}

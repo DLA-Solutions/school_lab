@@ -44,14 +44,7 @@ class ContractTemplate < ApplicationRecord
   before_validation :sanitize_body
 
   validates :body_html, presence: true
-  validates :signature_x, :signature_y,
-            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
-  validates :signature_page, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
   validate :logo_is_an_image
-
-  def signature_position
-    { x: signature_x.to_f, y: signature_y.to_f, z: signature_page }
-  end
 
   # A school with no agreement of its own starts from this one rather than a blank page.
   def self.default_body_html

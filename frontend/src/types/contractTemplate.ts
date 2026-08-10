@@ -9,10 +9,6 @@ export interface ContractTemplate {
   school_id: number;
   /** Sanitized server-side on every write — scripts and handlers never make it into storage. */
   body_html: string;
-  /** Where the signature field goes, as a percentage of the page from its top-left corner. */
-  signature_x: string;
-  signature_y: string;
-  signature_page: number;
   logo_url: string | null;
   logo_filename: string | null;
   variables: ContractTemplateVariable[];
@@ -21,9 +17,6 @@ export interface ContractTemplate {
 
 export interface ContractTemplatePayload {
   body_html: string;
-  signature_x: number;
-  signature_y: number;
-  signature_page: number;
 }
 
 export interface ContractTemplatePreview {

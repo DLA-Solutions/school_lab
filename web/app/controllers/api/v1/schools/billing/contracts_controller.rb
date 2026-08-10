@@ -125,7 +125,7 @@ module Api
             render_error(
               :validation_error,
               status: :unprocessable_content,
-              details: { base: [I18n.t("api.errors.contract_template_missing")] }
+              details: { base: [ I18n.t("api.errors.contract_template_missing") ] }
             )
           end
 

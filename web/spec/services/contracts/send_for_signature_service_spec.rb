@@ -98,8 +98,7 @@ RSpec.describe Contracts::SendForSignatureService do
       link(mother, "mother")
       link(father, "father")
       school.create_contract_template!(
-        body_html: "<h1>{{escola.nome}}</h1>{{responsaveis}}<p>{{contrato.valor}}</p>",
-        signature_x: 12.5, signature_y: 88.0, signature_page: 2
+        body_html: "<h1>{{escola.nome}}</h1>{{responsaveis}}<p>{{contrato.valor}}</p>"
       )
     end
 
@@ -123,9 +122,10 @@ RSpec.describe Contracts::SendForSignatureService do
       expect(captured.pdf).to include("Maria Silva", "João Silva", "1.250,50")
     end
 
-    # With HTML the provider decides the pagination, so the position configured on the template
-    # is what every signer gets.
-    it "uses the position configured on the template" do
+    # The provider lays the page out when it converts the uploaded HTML, so a coordinate measured
+    # against our own render would land somewhere arbitrary on theirs. Sending none lets it place
+    # the field itself.
+    it "sends no signature position with an HTML agreement" do
       captured = nil
       adapter = instance_double(Gateways::Signature::Fake)
       allow(adapter).to receive(:create_document) do |request|
@@ -138,7 +138,7 @@ RSpec.describe Contracts::SendForSignatureService do
 
       described_class.call(contract: contract)
 
-      expect(captured.signers.map(&:positions)).to all(eq([{ x: 12.5, y: 88.0, z: 2 }]))
+      expect(captured.signers.map(&:positions)).to all(be_empty)
     end
   end
 

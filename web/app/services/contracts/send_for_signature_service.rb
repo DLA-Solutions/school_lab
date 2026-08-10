@@ -79,11 +79,11 @@ module Contracts
         filename: rendered.fetch(:filename),
         message: I18n.t("signature.contract_message", student: contract.student.name),
         signers: signers.map do |guardian|
-          # With the built-in PDF each guardian gets the coordinates recorded while drawing their
-          # line. With an HTML agreement the page layout is the provider's to decide, so the whole
-          # school shares the one position configured on the template.
-          position = rendered[:signature_positions]&.fetch(guardian.id, nil) ||
-                     rendered[:signature_position]
+          # The built-in PDF draws each guardian's line, so it knows where their signature goes.
+          # An HTML agreement carries no such mark: the page is laid out by the provider when it
+          # converts the file, and coordinates measured against our own render would land
+          # somewhere arbitrary on theirs. Sending none lets Autentique place it.
+          position = rendered[:signature_positions]&.fetch(guardian.id, nil)
 
           Gateways::Signature::ValueObjects::Signer.new(
             name: guardian.name,

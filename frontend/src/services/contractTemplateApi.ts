@@ -28,9 +28,6 @@ export const saveContractTemplate = async (
   if (logo) {
     const body = new FormData();
     body.append('contract_template[body_html]', payload.body_html);
-    body.append('contract_template[signature_x]', String(payload.signature_x));
-    body.append('contract_template[signature_y]', String(payload.signature_y));
-    body.append('contract_template[signature_page]', String(payload.signature_page));
     body.append('contract_template[logo]', logo);
 
     const response = await request<{ data: ContractTemplate }>(path(schoolId), {

@@ -98,8 +98,7 @@ module Api
           end
 
           def template_params
-            params.require(:contract_template)
-                  .permit(:body_html, :signature_x, :signature_y, :signature_page)
+            params.require(:contract_template).permit(:body_html)
           end
         end
       end

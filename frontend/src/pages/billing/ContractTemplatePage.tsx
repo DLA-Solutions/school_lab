@@ -31,9 +31,6 @@ const ContractTemplatePage = () => {
 
   const [template, setTemplate] = useState<ContractTemplate | null>(null);
   const [bodyHtml, setBodyHtml] = useState('');
-  const [signatureX, setSignatureX] = useState('10');
-  const [signatureY, setSignatureY] = useState('85');
-  const [signaturePage, setSignaturePage] = useState('1');
   const [logo, setLogo] = useState<File | null>(null);
   const [removeLogo, setRemoveLogo] = useState(false);
   // A chosen file has no URL yet, so the browser makes one for it — otherwise nothing is on
@@ -71,9 +68,6 @@ const ContractTemplatePage = () => {
   const applyTemplate = (loaded: ContractTemplate) => {
     setTemplate(loaded);
     setBodyHtml(loaded.body_html);
-    setSignatureX(String(loaded.signature_x));
-    setSignatureY(String(loaded.signature_y));
-    setSignaturePage(String(loaded.signature_page));
   };
 
   useEffect(() => {
@@ -179,17 +173,7 @@ const ContractTemplatePage = () => {
     setSaved(false);
 
     try {
-      const updated = await saveContractTemplate(
-        schoolId,
-        {
-          body_html: bodyHtml,
-          signature_x: Number(signatureX),
-          signature_y: Number(signatureY),
-          signature_page: Number(signaturePage),
-        },
-        logo,
-        removeLogo,
-      );
+      const updated = await saveContractTemplate(schoolId, { body_html: bodyHtml }, logo, removeLogo);
 
       applyTemplate(updated);
       setLogo(null);
@@ -392,46 +376,6 @@ const ContractTemplatePage = () => {
                 </Stack>
               </SectionCard>
 
-              <SectionCard title="Posição da assinatura" padding={3.5}>
-                <Typography variant="body2" color="text.secondary" mb={2}>
-                  Em porcentagem da página, a partir do canto superior esquerdo.
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid size={4}>
-                    <TextField
-                      id="signature-x"
-                      label="X (%)"
-                      type="number"
-                      value={signatureX}
-                      onChange={(e) => setSignatureX(e.target.value)}
-                      variant="filled"
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid size={4}>
-                    <TextField
-                      id="signature-y"
-                      label="Y (%)"
-                      type="number"
-                      value={signatureY}
-                      onChange={(e) => setSignatureY(e.target.value)}
-                      variant="filled"
-                      fullWidth
-                    />
-                  </Grid>
-                  <Grid size={4}>
-                    <TextField
-                      id="signature-page"
-                      label="Página"
-                      type="number"
-                      value={signaturePage}
-                      onChange={(e) => setSignaturePage(e.target.value)}
-                      variant="filled"
-                      fullWidth
-                    />
-                  </Grid>
-                </Grid>
-              </SectionCard>
             </Stack>
           </Grid>
         </Grid>
