@@ -23,19 +23,10 @@ export default {
   plans: '/planos',
   contractTemplate: '/contrato',
 
-  schools: '/escolas',
-
   signin: `/${rootPaths.authRoot}/signin`,
 
   inviteAccept: `/${rootPaths.inviteRoot}/accept`,
   ownerOnboarding: `/${rootPaths.onboardingRoot}/owner`,
 
-  /** Backoffice white-glove wizard (#200). Route not registered until that issue ships. */
-  provisioningWizard: (schoolId: number) =>
-    `/${rootPaths.onboardingRoot}/provisioning/${schoolId}`,
-
   404: `/${rootPaths.errorRoot}/404`,
 };
-
-/** Registered by #200 — enables auto-redirect after white-glove school create. */
-export const PROVISIONING_WIZARD_ROUTE_REGISTERED = true;

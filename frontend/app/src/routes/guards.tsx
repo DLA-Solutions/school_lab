@@ -3,7 +3,8 @@ import { Navigate, useLocation } from 'react-router';
 import { useAuth } from 'providers/AuthContext';
 import Splash from 'components/loader/Splash';
 import { onboardingRedirectPath } from 'utils/onboarding/access';
-import paths, { rootPaths } from './paths';
+import { postLoginDestination } from 'utils/auth/postLogin';
+import paths from './paths';
 
 export const RequireAuth = ({ children }: PropsWithChildren) => {
   const { status, user } = useAuth();
@@ -26,14 +27,21 @@ export const RequireAuth = ({ children }: PropsWithChildren) => {
 };
 
 export const RequireGuest = ({ children }: PropsWithChildren) => {
-  const { status } = useAuth();
+  const { status, user } = useAuth();
 
   if (status === 'loading') {
     return <Splash />;
   }
 
-  if (status === 'authenticated') {
-    return <Navigate to={rootPaths.root} replace />;
+  if (status === 'authenticated' && user) {
+    const destination = postLoginDestination(user);
+
+    if (destination.kind === 'external') {
+      window.location.assign(destination.url);
+      return <Splash />;
+    }
+
+    return <Navigate to={destination.path} replace />;
   }
 
   return children;

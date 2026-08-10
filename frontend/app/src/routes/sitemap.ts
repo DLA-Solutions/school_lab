@@ -89,13 +89,6 @@ const sitemap: MenuItem[] = [
     icon: 'mingcute:document-2-line',
     active: true,
   },
-  {
-    id: 'schools',
-    subheader: 'nav.schools',
-    path: paths.schools,
-    icon: 'mingcute:building-2-line',
-    active: true,
-  },
 ];
 
 export default sitemap;

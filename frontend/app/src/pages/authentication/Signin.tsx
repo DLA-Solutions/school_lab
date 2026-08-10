@@ -13,6 +13,7 @@ import IconifyIcon from 'components/base/IconifyIcon';
 import { ErrorBanner } from 'design-system';
 import { useAuth } from 'providers/AuthContext';
 import { ApiError } from 'services/api';
+import { applyPostLoginDestination, postLoginDestination } from 'utils/auth/postLogin';
 import { rootPaths } from 'routes/paths';
 
 interface SigninLocationState {
@@ -29,7 +30,9 @@ const SignIn = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as SigninLocationState | null)?.from ?? rootPaths.root;
+  const params = new URLSearchParams(location.search);
+  const returnTo =
+    params.get('return_to') ?? (location.state as SigninLocationState | null)?.from ?? rootPaths.root;
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -48,8 +51,8 @@ const SignIn = () => {
     setError('');
 
     try {
-      await login({ ...credentials, rememberMe });
-      navigate(from, { replace: true });
+      const user = await login({ ...credentials, rememberMe });
+      applyPostLoginDestination(postLoginDestination(user, returnTo), navigate);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

@@ -8,7 +8,6 @@ import PageLoader from 'components/loader/PageLoader';
 import Signin from 'pages/authentication/Signin';
 import InviteAccept from 'pages/onboarding/InviteAccept';
 import OwnerOnboarding from 'pages/onboarding/OwnerOnboarding';
-import ProvisioningWizard from 'pages/onboarding/ProvisioningWizard';
 import Error404 from 'pages/Error404';
 import { RequireAuth, RequireGuest, RequireOwnerOnboardingComplete } from './guards';
 
@@ -27,7 +26,6 @@ const JobPositions = lazy(() => import('pages/academics/JobPositions'));
 const Charges = lazy(() => import('pages/billing/Charges'));
 const Plans = lazy(() => import('pages/billing/Plans'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
-const Schools = lazy(() => import('pages/Schools'));
 
 const router = createBrowserRouter(
   [
@@ -90,10 +88,6 @@ const router = createBrowserRouter(
             path: paths.contractTemplate,
             element: <ContractTemplatePage />,
           },
-          {
-            path: paths.schools,
-            element: <Schools />,
-          },
         ],
       },
       {
@@ -141,10 +135,6 @@ const router = createBrowserRouter(
           {
             path: 'owner',
             element: <OwnerOnboarding />,
-          },
-          {
-            path: 'provisioning/:schoolId',
-            element: <ProvisioningWizard />,
           },
         ],
       },

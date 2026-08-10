@@ -52,6 +52,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     setAccessToken(tokens.access_token, tokens.access_expires_at);
     setUser(tokens.user);
     setStatus('authenticated');
+    return tokens.user;
   }, []);
 
   const logout = useCallback(async () => {

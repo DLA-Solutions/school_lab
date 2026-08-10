@@ -13,7 +13,7 @@ export interface AuthContextValue {
   user: AuthUser | null;
   status: AuthStatus;
   isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<AuthUser>;
   logout: () => Promise<void>;
   /** Reload profile from GET /api/v1/me after onboarding steps. */
   refreshUser: () => Promise<AuthUser>;

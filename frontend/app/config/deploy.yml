@@ -26,9 +26,9 @@ builder:
   arch: amd64
   cache:
     type: registry
-  # Monorepo root — Dockerfile COPYs frontend/* and packages/design-tokens.
-  context: ..
-  # Relative to the service dir (frontend/); Kamal expands dockerfile from cwd, not context.
+  # Monorepo root — Dockerfile COPYs frontend/app/* and packages/design-tokens.
+  context: ../../
+  # Relative to the service dir (frontend/app/); Kamal expands dockerfile from cwd, not context.
   dockerfile: Dockerfile
 
 # TLS is terminated at kamal-proxy on the root-path service (site/). Path-prefixed

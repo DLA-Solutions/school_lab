@@ -8,7 +8,6 @@ import {
   InviteAcceptPayload,
   InviteAcceptResponse,
   MembershipAcceptResponse,
-  ProvisioningImportResult,
   RoleTemplateSummary,
 } from 'types/onboarding';
 import { parseMembership } from './parseAuthUser';
@@ -47,23 +46,6 @@ export const listRoleTemplates = (schoolId: number) =>
   request<Paginated<RoleTemplateSummary>>(
     `/api/v1/schools/${schoolId}/role_templates?page=1&per_page=50`,
   );
-
-/** POST /api/v1/schools/:school_id/provisioning/import — CSV preview or commit during provisioning. */
-export const importProvisioningCsv = async (
-  schoolId: number,
-  file: File,
-  dryRun: boolean,
-): Promise<ProvisioningImportResult> => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const response = await request<{ data: ProvisioningImportResult }>(
-    `/api/v1/schools/${schoolId}/provisioning/import?dry_run=${dryRun}`,
-    { method: 'POST', body: formData },
-  );
-
-  return response.data;
-};
 
 /** POST /api/v1/schools/:school_id/people/memberships — invite staff during owner wizard. */
 export const inviteStaffMember = async (schoolId: number, payload: CreateStaffInvitePayload) => {
