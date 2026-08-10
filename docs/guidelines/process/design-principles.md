@@ -1,6 +1,6 @@
 # Design Principles
 
-Cross-cutting engineering standards for implementation. Applies to `web/`, `app/`, and
+Cross-cutting engineering standards for implementation. Applies to `web/`, `mobile/`, and
 future surfaces.
 
 Rule: `.cursor/rules/core/design-principles.mdc`.

@@ -1,7 +1,7 @@
 ---
-description: Use School Lab design system patterns and tokens in frontend/main
+description: Use School Lab design system patterns and tokens in frontend/app
 globs:
-  - frontend/main/src/**
+  - frontend/app/src/**
 alwaysApply: false
 ---
 

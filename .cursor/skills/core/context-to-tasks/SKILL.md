@@ -41,7 +41,7 @@ discovery → docs → modeling → api → backend → jobs → web-spa → app
 | `api` | Route map, rswag, error codes | "Document POST /schools/:id/messages" |
 | `backend` | Migration, model, service, policy, controller | "Implement Messages::Create service" |
 | `jobs` | ActiveJob, idempotency, scheduling | "Process PSP webhook events job" |
-| `web-spa` | React surfaces in `frontend/main`, auth, i18n | "Guardian message thread view" |
+| `web-spa` | React surfaces in `frontend/app`, auth, i18n | "Guardian message thread view" |
 | `app` | React Native screens, push | "Teacher message list screen" |
 | `chore` | CI, tooling, non-feature | "Add rswag CI step" |
 

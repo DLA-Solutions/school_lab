@@ -22,7 +22,7 @@ Today the monorepo layout does not mirror those surfaces:
 | `frontend/` = single SPA at `/app` | Backoffice (schools list, provisioning wizard) ships in the same bundle as the school product |
 | `web/` = API only | Name is fine; holds server-side platform concerns |
 
-Docs partially reference `frontend/main`, but the tree is a flat `frontend/` with `src/` —
+Docs partially reference `frontend/app`, but the tree is a flat `frontend/` with `src/` —
 another naming drift.
 
 We need folder names, public URLs, and actors to align before backoffice grows further inside
@@ -132,10 +132,8 @@ Remaining work:
 | 2 | Scaffold `frontend/backoffice/` + Kamal `/backoffice` | `feature/` | Done |
 | 3 | Move schools + provisioning UI; clean school SPA; post-login redirect | `feature/` | Done |
 | 4 | Staging deploy + cookie path fix in `web/` | `feature/` or `fix/` | Done |
-| 5 | `app/` → `mobile/` | `chore/` | Pending |
+| 5 | `app/` → `mobile/` | `chore/` | Done |
 | 6 | Optional `packages/api-client` | `chore/` or `refactor/` | Pending |
-
-Until Phase 5 lands, the React Native app remains at `app/`.
 
 ## References
 

@@ -1,13 +1,13 @@
 # Accessibility
 
-The accessibility baseline for `frontend/main`, and the record of the token contrast audit required
+The accessibility baseline for `frontend/app`, and the record of the token contrast audit required
 by `docs/prds/layer-web-spa.md` (Non-functional requirements → Accessibility, and the acceptance
 criterion *"Token contrast ratios are verified for light and dark; failures are fixed or waived in
 writing"*).
 
 Audit date: **August 2026**, against `packages/design-tokens` **1.0.0**
 (`colors.json`, both schemes) and the theme overrides registered in
-`frontend/main/src/theme/createAppTheme.ts` — 62 at the time of the first sweep, **64** today.
+`frontend/app/src/theme/createAppTheme.ts` — 62 at the time of the first sweep, **64** today.
 
 Re-measured **2026-08-04** against **1.1.0**, after F5 gave the `light` scheme its own semantic
 status colours. Only the light rows F5 touches have moved. The `dark` palette was not changed, so
@@ -55,7 +55,7 @@ Two exclusions are part of the standard and are used deliberately below:
 
 ### Which type sizes actually exist
 
-`frontend/main/src/theme/typography.ts` defines every variant the SPA uses. Only `h1`–`h5` clear the
+`frontend/app/src/theme/typography.ts` defines every variant the SPA uses. Only `h1`–`h5` clear the
 large-text bar (`h5` is 20px/700). `h6` is 18px/700 — just under the 18.66px cut-off — and every
 body, label, caption and button size is below it. **No pairing in this audit is relieved by the
 large-text threshold**, because no failing pairing renders exclusively at `h5` or larger. Where a
@@ -107,7 +107,7 @@ quietly failing WCAG. F3 and F12 are not among them and rest on the measurement 
 
 ### Which pairings are real
 
-Every pairing below was confirmed against `frontend/main/src` — the theme overrides in
+Every pairing below was confirmed against `frontend/app/src` — the theme overrides in
 `src/theme/components/**`, the pattern components in `src/design-system/`, and the shell in
 `src/layouts/`. Combinations that the theme can express but nothing composes were excluded:
 
@@ -404,7 +404,7 @@ de-emphasised text, which is the drift that caused these failures in the first p
 
 Bump levels follow [versioning.md](./versioning.md). A change that alters a rendered value is a
 **minor** bump at minimum; adding a token is also minor. Fixes that live in
-`frontend/main/src/theme/` change no token and need **no bump** — those are the cheap ones, and most
+`frontend/app/src/theme/` change no token and need **no bump** — those are the cheap ones, and most
 of the light-mode damage fell into that category.
 
 ### Waived
@@ -569,7 +569,7 @@ schemes, so it needs no cross-scheme reference) at **5.75:1** on `#FF5A65`; ligh
 override outranks the `MuiButton` root's `color: text.primary` because MUI emits the variant slots
 after the root, and the disabled rule keeps winning over both on specificity — a disabled
 destructive button still greys out as before. Change is in
-`frontend/main/src/theme/components/button/Button.tsx`. **No token bump** — no token value moved.
+`frontend/app/src/theme/components/button/Button.tsx`. **No token bump** — no token value moved.
 
 This one mattered most: it is the confirm button on a destructive action, so the label is exactly
 the text a user must read before committing. F5 shipped ahead of it, which left light mode regressed
@@ -583,7 +583,7 @@ in between. Both schemes are now pinned by a spec that measures the rendered pai
 **Applied.** `&.Mui-selected` now sets `color: grey[900]` — `#171923`, **4.69:1**. Pure black would
 give 5.63:1 but is not a token the palette exposes; `grey[900]` holds the same value in both schemes,
 which is what this pairing needs, since the selected background is the brand purple in both. Change
-is in `frontend/main/src/theme/components/pagination/PaginationItem.tsx`. **No token bump.**
+is in `frontend/app/src/theme/components/pagination/PaginationItem.tsx`. **No token bump.**
 
 #### F3 — Input border against its surface (N04, N05), was 1.58:1 and 1.69:1 — **applied**
 
@@ -634,7 +634,7 @@ dashboard root, which alone was tinted purple. Active items are therefore promot
 what moved V02. `aria-current="page"` was already present and carries the same state for assistive
 technology, so the state is not signalled by colour alone.
 
-Change is in `frontend/main/src/layouts/main-layout/sidebar/list-items/ListItem.tsx`.
+Change is in `frontend/app/src/layouts/main-layout/sidebar/list-items/ListItem.tsx`.
 **No token bump.** Pinned by specs in `ListItem.test.tsx`, including one asserting the button
 computes to full opacity, so the focus ring cannot be dimmed back down.
 
@@ -755,7 +755,7 @@ inventory — see [Which pairings are real](#which-pairings-are-real) — so no 
 either bar in either scheme.
 
 `light.info.darker` holds the same `#082366` and was left alone: it is a legacy alias
-([tokens.md](./tokens.md) → *Legacy map*) that no component in `frontend/main` reads.
+([tokens.md](./tokens.md) → *Legacy map*) that no component in `frontend/app` reads.
 
 #### F9 — Active sidebar item in light (S11), was 3.56:1 — **applied**
 
@@ -907,9 +907,9 @@ F9, F10 — is scoped so dark renders byte-identically.
 ## Beyond colour
 
 The PRD names three more parts of the baseline. The audit below is a code read of
-`frontend/main/src`, not a runtime assistive-technology test; treat it as the list to verify with a
+`frontend/app/src`, not a runtime assistive-technology test; treat it as the list to verify with a
 keyboard and a screen reader, not as a clean bill of health. Items marked **landed** were re-read
-against `frontend/main/src` on 2026-08-04 and are recorded rather than deleted, because knowing what
+against `frontend/app/src` on 2026-08-04 and are recorded rather than deleted, because knowing what
 was wrong is what stops it coming back.
 
 ### Visible focus (SC 2.4.7, 1.4.11) — landed
@@ -1008,7 +1008,7 @@ means mounting a `DateCalendar` per scheme, which is a heavier spec than the one
 guards. Both were verified by measurement at the time they landed, and both are cheap to promote to
 a spec — `src/test/contrast.ts` already does the arithmetic.
 
-A fix that lands in `frontend/main/src/theme/` or a component is cheaper than a token change, but it
+A fix that lands in `frontend/app/src/theme/` or a component is cheaper than a token change, but it
 is not free of consequence: it makes the pairing scheme-dependent, which means both schemes have to
 be measured every time, and it puts the value somewhere [tokens.md](./tokens.md) does not describe.
 Where a fix is scoped with `theme.applyStyles()`, say so in the row, or the next reader will assume

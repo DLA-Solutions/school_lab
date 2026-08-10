@@ -10,7 +10,7 @@ gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
 
 # No asset/JS gems: this app is `config.api_only = true` and renders JSON only.
-# The product UI lives in frontend/main (React SPA) and app/ (React Native).
+# The product UI lives in frontend/app (React SPA) and mobile/ (React Native).
 
 # HTTP client for gateway adapters (Faraday + Net::HTTP adapter)
 gem "faraday"

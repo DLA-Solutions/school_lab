@@ -1,6 +1,6 @@
 ---
 description: Consult Context7 MCP for library docs and best practices during implementation
-globs: web/**,app/**
+globs: web/**,mobile/**
 alwaysApply: false
 ---
 

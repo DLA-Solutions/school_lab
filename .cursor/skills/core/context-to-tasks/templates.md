@@ -122,7 +122,7 @@ Typical task chain for a new domain:
 | 7 | Controllers + rswag specs |
 | 8 | Request/model specs |
 | 9 | Background jobs (if PRD defines events/async) |
-| 10 | web SPA (`frontend/main`) / app surfaces (if in scope) |
+| 10 | web SPA (`frontend/app`) / mobile surfaces (if in scope) |
 
 Each implementation task (rows 5–10) requires happy path + authorization/isolation scenarios per [gherkin.md](gherkin.md).
 

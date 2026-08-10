@@ -21,7 +21,7 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 |---------|-----------------|----------|---------|
 | School web SPA | `frontend/app/` | `/app/*` | web |
 | Platform backoffice SPA | `frontend/backoffice/` | `/backoffice/*` | web |
-| Mobile app | `mobile/` (today: `app/`) | — | app |
+| Mobile app | `mobile/` | — | app |
 | API | `web/` | `/api/*` | web (server) |
 | Marketing site | `site/` | `/` | web (static) |
 
@@ -101,7 +101,7 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 ### Web SPAs + mobile (finalized decision)
 
 **School web SPA** (`frontend/app/`), **platform backoffice SPA** (`frontend/backoffice/`), and
-**React Native** (`mobile/`, today `app/`) all consume
+**React Native** (`mobile/`) all consume
 the same versioned JSON REST API (`/api/v1`) from Rails (`web/`). Layout decision:
 [ADR 001](adr/001-monorepo-surfaces.md). Stack details: `docs/web-stack.md` and
 `docs/api/README.md`.

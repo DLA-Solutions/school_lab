@@ -3,7 +3,7 @@
 ## Stack
 
 - MUI v7 `colorSchemes` with `cssVariables.colorSchemeSelector: 'class'`
-- Factory: `frontend/main/src/theme/createAppTheme.ts`
+- Factory: `frontend/app/src/theme/createAppTheme.ts`
 - Default mode: **dark** (matches legacy DashdarkX template)
 
 ## Bootstrap
@@ -96,7 +96,7 @@ Not every primitive the SPA imports needs one. These are decisions, not gaps:
 | `Card`, `CardHeader`, `CardContent`, `CardActions` | `SectionCard` | The themed `Paper`, the section title and the header-actions slot, already spaced |
 | `Table`, `TableHead`, `TableRow`, `TableCell` | `DataTable` | The `MuiDataGrid` override, the shared footer and the server-pagination contract |
 
-The ban formalises what the codebase already does — neither primitive is imported anywhere in `frontend/main` — and keeps one sanctioned route to each result. An override is not the lighter alternative to a ban; it is the second route, and two routes to the same surface is how the visual language drifts.
+The ban formalises what the codebase already does — neither primitive is imported anywhere in `frontend/app` — and keeps one sanctioned route to each result. An override is not the lighter alternative to a ban; it is the second route, and two routes to the same surface is how the visual language drifts.
 
 Revisit if a screen needs genuinely static, non-paginated tabular content that `DataTable` is the wrong tool for — a printable report, a fixed reference matrix. That reopens the decision in `docs/open-questions.md`; it does not authorise a local import.
 

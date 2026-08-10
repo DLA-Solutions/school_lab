@@ -110,7 +110,7 @@ the state graph. See [`state-machines.md`](state-machines.md).
 
 ## Cross-surface note
 
-The same behavior-first principle applies to the client surfaces. `frontend/main` now runs
+The same behavior-first principle applies to the client surfaces. `frontend/app` now runs
 **Vitest + React Testing Library** — see `docs/guidelines/web-ui/testing.md`; coverage starts at
 the design-system pattern components, so a missing test on a page or service is not yet a
-violation. `app/` still has **no Jest installed** (see `docs/web-stack.md` §3 and §14).
+violation. `mobile/` still has **no Jest installed** (see `docs/web-stack.md` §3 and §14).

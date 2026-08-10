@@ -2,7 +2,7 @@
 
 Use during `review-web-ui`. Check only what the diff touches.
 
-`frontend/main` today is React 19 + Vite 7 + TypeScript with **MUI v7 and Emotion** for styling
+`frontend/app` today is React 19 + Vite 7 + TypeScript with **MUI v7 and Emotion** for styling
 and **React Router v7**, plus a small `src/services/` API client and `src/providers/AuthProvider`.
 No test runner, i18n library, or data-fetching library is installed yet.
 

@@ -1,11 +1,11 @@
 ---
 name: review-mobile
-description: Reviews React Native changes in app/ against School Lab conventions, API contract, and official library documentation via Context7. Use when reviewing mobile screens, navigation, API client, secure token storage, FCM push, image upload, or Jest tests.
+description: Reviews React Native changes in mobile/ against School Lab conventions, API contract, and official library documentation via Context7. Use when reviewing mobile screens, navigation, API client, secure token storage, FCM push, image upload, or Jest tests.
 ---
 
 # Review Mobile
 
-School Lab–specific code review for React Native (`app/`). Complements `review-api`,
+School Lab–specific code review for React Native (`mobile/`). Complements `review-api`,
 `review-web-ui`, `review-bugbot`, and `review-security` — use this skill when the change
 touches mobile UI, secure auth, push, or API consumption.
 
@@ -13,28 +13,28 @@ touches mobile UI, secure auth, push, or API consumption.
 
 | Area | Paths |
 |------|-------|
-| Entry point | `app/App.tsx`, `app/index.ts` |
-| Screens | `app/src/screens/**` |
-| Navigation | `app/src/navigation/**` |
-| API client, auth transport, token storage | `app/src/services/**` (`api.ts`, `authApi.ts`, `tokenStore.ts`) |
-| Auth state | `app/src/providers/**` (`AuthProvider.tsx`, `AuthContext.ts`) |
-| Types | `app/src/types/**` |
-| Theme | `app/src/theme/**` |
-| Native config | `app/app.json`, `app/.env.example` when affecting auth/push/permissions |
+| Entry point | `mobile/App.tsx`, `mobile/index.ts` |
+| Screens | `mobile/src/screens/**` |
+| Navigation | `mobile/src/navigation/**` |
+| API client, auth transport, token storage | `mobile/src/services/**` (`api.ts`, `authApi.ts`, `tokenStore.ts`) |
+| Auth state | `mobile/src/providers/**` (`AuthProvider.tsx`, `AuthContext.ts`) |
+| Types | `mobile/src/types/**` |
+| Theme | `mobile/src/theme/**` |
+| Native config | `mobile/app.json`, `mobile/.env.example` when affecting auth/push/permissions |
 
-`app/` is an **Expo managed** project (Expo 57, React Navigation 7, `expo-secure-store`).
+`mobile/` is an **Expo managed** project (Expo 57, React Navigation 7, `expo-secure-store`).
 There are no checked-in `android/` or `ios/` directories — native config lives in `app.json`
 until someone runs `expo prebuild`.
 
-Some conventions below describe surfaces that **do not exist in `app/` yet**. Treat them as
+Some conventions below describe surfaces that **do not exist in `mobile/` yet**. Treat them as
 targets for new code, not as paths to review today:
 
 | Not present yet | Applies when |
 |-----------------|--------------|
-| Components, hooks, dedicated push module | Someone adds `app/src/components/**`, `app/src/hooks/**`, `app/src/push/**` |
+| Components, hooks, dedicated push module | Someone adds `mobile/src/components/**`, `mobile/src/hooks/**`, `mobile/src/push/**` |
 | FCM / `@react-native-firebase/messaging` | Push is implemented — no messaging dependency is installed |
-| Tests (`app/**/*.test.ts(x)`) | A test runner is added — `app/package.json` has no Jest or test script |
-| Expo Router (`app/app/**`) | The project migrates off React Navigation |
+| Tests (`mobile/**/*.test.ts(x)`) | A test runner is added — `mobile/package.json` has no Jest or test script |
+| Expo Router (`mobile/app/**`) | The project migrates off React Navigation |
 
 Skip unrelated native boilerplate unless it affects tokens, network, or permissions.
 
@@ -61,7 +61,7 @@ Read **before** judging the code:
 3. `docs/modeling/002-api-auth.md` — mobile refresh in Keychain/Keystore; `client: mobile`.
 4. Domain narrative: `docs/api/v1/<domain>.md` when screens map to API namespaces.
 5. `docs/guidelines/app/README.md` — mobile principles and MVP surfaces.
-6. Rule: `rules/app/app-mobile`.
+6. Rule: `rules/mobile/mobile`.
 7. Rules: `rules/core/lgpd-privacy`, `rules/core/language-conventions`.
 8. `docs/guidelines/web/testing.md` § cross-surface — Jest + RN Testing Library behavior focus.
 9. `docs/open-questions.md` — navigation/state/offline choices still open are not violations.
@@ -115,7 +115,7 @@ After the table, add **Context7 notes** — libraries queried and any project-vs
 
 ## What good mobile code looks like here
 
-- **Thin client** — same API contract as the web SPA (`frontend/main`); no duplicated business rules.
+- **Thin client** — same API contract as the web SPA (`frontend/app`); no duplicated business rules.
 - **Auth** — access in memory; refresh in Keychain/Keystore; `client: mobile` on login/refresh body.
 - **Lifecycle** — refresh on resume and before expiry; one 401 retry then login screen.
 - **Push** — register FCM token via `POST /api/v1/me/device_tokens` after auth.

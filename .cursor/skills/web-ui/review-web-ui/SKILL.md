@@ -1,11 +1,11 @@
 ---
 name: review-web-ui
-description: Reviews React SPA changes in frontend/main against School Lab conventions, API contract, and official library documentation via Context7. Use when reviewing web SPA pages, components, MUI theming, API client, auth, routing, or session state.
+description: Reviews React SPA changes in frontend/app against School Lab conventions, API contract, and official library documentation via Context7. Use when reviewing web SPA pages, components, MUI theming, API client, auth, routing, or session state.
 ---
 
 # Review Web UI
 
-School Lab–specific code review for the React SPA (`frontend/main`). Complements `review-api`
+School Lab–specific code review for the React SPA (`frontend/app`). Complements `review-api`
 (contract on the server), `review-bugbot`, and `review-security` — use this skill when the
 change touches browser UI, client auth, or API consumption patterns.
 
@@ -13,25 +13,25 @@ change touches browser UI, client auth, or API consumption patterns.
 
 | Area | Paths |
 |------|-------|
-| Entry point | `frontend/main/src/main.tsx`, `frontend/main/src/App.tsx` |
-| Pages | `frontend/main/src/pages/**` (`Dashboard.tsx`, `Error404.tsx`, `authentication/Signin.tsx`) |
-| Components | `frontend/main/src/components/**` (`base/`, `common/`, `icons/`, `loader/`, `sections/`) |
-| Layouts | `frontend/main/src/layouts/**` — `auth-layout/`, `main-layout/` (sidebar, topbar) |
-| Routing | `frontend/main/src/routes/**` (`router.tsx`, `guards.tsx`, `paths.ts`, `sitemap.ts`) |
-| API client, auth transport, token storage | `frontend/main/src/services/**` (`api.ts`, `authApi.ts`, `tokenStore.ts`) |
-| Auth state | `frontend/main/src/providers/**` (`AuthProvider.tsx`, `AuthContext.ts`) |
-| Types | `frontend/main/src/types/**` — hand-written (`auth.ts`, `custom.d.ts`) |
-| Theme / styling | `frontend/main/src/theme/**`, `frontend/main/src/design-system/**`, `packages/design-tokens/**` |
-| Template data | `frontend/main/src/data/**` — hardcoded dashboard placeholders, **not** API data |
-| Helpers | `frontend/main/src/utils/**` |
-| Config | `frontend/main/vite.config.ts`, `frontend/main/tsconfig*.json`, `frontend/main/.env.example` when affecting API/auth |
+| Entry point | `frontend/app/src/main.tsx`, `frontend/app/src/App.tsx` |
+| Pages | `frontend/app/src/pages/**` (`Dashboard.tsx`, `Error404.tsx`, `authentication/Signin.tsx`) |
+| Components | `frontend/app/src/components/**` (`base/`, `common/`, `icons/`, `loader/`, `sections/`) |
+| Layouts | `frontend/app/src/layouts/**` — `auth-layout/`, `main-layout/` (sidebar, topbar) |
+| Routing | `frontend/app/src/routes/**` (`router.tsx`, `guards.tsx`, `paths.ts`, `sitemap.ts`) |
+| API client, auth transport, token storage | `frontend/app/src/services/**` (`api.ts`, `authApi.ts`, `tokenStore.ts`) |
+| Auth state | `frontend/app/src/providers/**` (`AuthProvider.tsx`, `AuthContext.ts`) |
+| Types | `frontend/app/src/types/**` — hand-written (`auth.ts`, `custom.d.ts`) |
+| Theme / styling | `frontend/app/src/theme/**`, `frontend/app/src/design-system/**`, `packages/design-tokens/**` |
+| Template data | `frontend/app/src/data/**` — hardcoded dashboard placeholders, **not** API data |
+| Helpers | `frontend/app/src/utils/**` |
+| Config | `frontend/app/vite.config.ts`, `frontend/app/tsconfig*.json`, `frontend/app/.env.example` when affecting API/auth |
 
-`frontend/main` is React 19 + Vite 7 + TypeScript with **MUI v7 on Emotion** (plus MUI X
+`frontend/app` is React 19 + Vite 7 + TypeScript with **MUI v7 on Emotion** (plus MUI X
 DataGrid and Date Pickers) and **React Router v7**. Data reaches the UI through the
 hand-written `fetch` wrapper in `src/services/api.ts` — there is no axios and no generated
 client. Full picture: `docs/web-stack.md` §3.
 
-Some conventions below describe surfaces that **do not exist in `frontend/main` yet**. Treat
+Some conventions below describe surfaces that **do not exist in `frontend/app` yet**. Treat
 them as targets for new code, not as paths to review today:
 
 | Not present yet | Applies when |
@@ -40,7 +40,7 @@ them as targets for new code, not as paths to review today:
 | Split API/auth folders (`src/api/**`, `src/lib/api/**`, `src/auth/**`) | Someone splits `src/services/`, where the fetch client, auth calls, and token store live today |
 | Store folder (`src/stores/**`) | A state library is adopted — only React Context exists |
 | i18n (`src/locales/**`, `public/locales/**`) | An i18n library is installed — strings are hardcoded and the topbar `LanguageSelect` is inert template UI |
-| Tests (`frontend/main/**/*.test.ts(x)`, `*.spec.ts(x)`) | A test runner is added — `package.json` has no Vitest, Testing Library, or MSW |
+| Tests (`frontend/app/**/*.test.ts(x)`, `*.spec.ts(x)`) | A test runner is added — `package.json` has no Vitest, Testing Library, or MSW |
 | Generated API types | `openapi-typescript` or orval is added — `src/types/` is hand-written |
 
 `frontend/base` is the upstream template the SPA started from — out of scope for review.

@@ -5,7 +5,7 @@ model: inherit
 readonly: false
 ---
 
-You implement **API-only** controllers in `web/app/controllers/api/v1/`. `web/` has no Hotwire or server-rendered views (`config.api_only = true`) — clients are the web SPA (`frontend/main`, React) and `app/` (React Native).
+You implement **API-only** controllers in `web/app/controllers/api/v1/`. `web/` has no Hotwire or server-rendered views (`config.api_only = true`) — clients are the web SPA (`frontend/app`, React) and `mobile/` (React Native).
 
 ## Standards
 

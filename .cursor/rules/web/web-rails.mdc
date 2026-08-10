@@ -24,9 +24,9 @@ Index: `docs/guidelines/web/README.md`.
 - Serializers: `docs/guidelines/web/serializers.md` — rule `serializers`.
 - Mailers / gateways / HTTP: `docs/guidelines/web/mailers.md`, `gateways.md`, `http-client.md` — rules `mailers`, `gateways`, `http-client`.
 - Anti-patterns: `docs/guidelines/web/anti-patterns.md` — rule `anti-patterns`.
-- **No Hotwire UI** in `web/` — `config.api_only = true`; the product web surface is the React SPA in `frontend/main`.
+- **No Hotwire UI** in `web/` — `config.api_only = true`; the product web surface is the React SPA in `frontend/app`.
 - API: REST JSON under `/api/v1`, JWT auth; OpenAPI via **rswag** request specs.
-- Clients: the web SPA (`frontend/main`) and the mobile app (`app/`, React Native) consume the same API.
+- Clients: the web SPA (`frontend/app`) and the mobile app (`mobile/`, React Native) consume the same API.
 
 ## Auth
 - Devise for credentials on `users`; JWT access + `refresh_tokens` table.

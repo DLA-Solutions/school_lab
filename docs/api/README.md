@@ -5,7 +5,7 @@
 > Fintech-first routes (MVP): [`v1/fintech-first.md`](v1/fintech-first.md)  
 > Identity & onboarding: [`v1/identity-onboarding.md`](v1/identity-onboarding.md)
 
-Versioned JSON REST API consumed by **React web** (`frontend/main`) and **React Native** (`app/`).
+Versioned JSON REST API consumed by **React web** (`frontend/app`) and **React Native** (`mobile/`).
 Business rules live in Rails service objects — clients never duplicate domain logic.
 
 ## Base URL and versioning
@@ -32,8 +32,8 @@ flowchart LR
 ```
 
 - **`web/`** — Rails 8.1: API controllers, services, models, jobs.
-- **`frontend/main`** — React SPA (Vite); the product web UI.
-- **`app/`** — React Native mobile apps.
+- **`frontend/app`** — React SPA (Vite); the product web UI.
+- **`mobile/`** — React Native mobile apps.
 
 ## Multi-school context
 
@@ -140,7 +140,7 @@ Workflow:
 OpenAPI **tags** currently emitted in `swagger/v1/swagger.yaml`: `Auth`, `Backoffice`,
 `Billing`, `Communication`, `Documents`, `Guardian Me`, `Me`, `People`.
 
-Optional client codegen: `openapi-typescript` or `orval` in `frontend/main` and `app/`.
+Optional client codegen: `openapi-typescript` or `orval` in `frontend/app` and `mobile/`.
 
 ## CORS
 

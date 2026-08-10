@@ -7,13 +7,13 @@ school_lab/
   web/     # Rails 8.1 — REST API
   frontend/  # React SPA at /app
   site/    # static landing at /
-  app/     # React Native mobile (future)
+  mobile/  # React Native mobile
   docs/    # product docs, PRDs, guidelines
 ```
 
 Stack details: [`docs/web-stack.md`](docs/web-stack.md).
 
-Environment files live **only** under `web/` and `app/` — never at the repo root.
+Environment files live **only** under `web/` and `mobile/` — never at the repo root.
 
 ## Prerequisites
 
@@ -102,12 +102,12 @@ Wait until healthy:
 make services-ps
 ```
 
-## Mobile app (`app/`)
+## Mobile app (`mobile/`)
 
 When the React Native project is initialized:
 
 ```bash
-cp app/.env.example app/.env
+cp mobile/.env.example mobile/.env
 ```
 
 ## Infrastructure commands

@@ -12,7 +12,7 @@ SectionCard (padding={0})
   └─ EmptyState when rows.length === 0
 ```
 
-**Reference:** `OrdersStatus` (`frontend/main/src/components/sections/dashboard/orders-status/`).
+**Reference:** `OrdersStatus` (`frontend/app/src/components/sections/dashboard/orders-status/`).
 
 ## Form page
 

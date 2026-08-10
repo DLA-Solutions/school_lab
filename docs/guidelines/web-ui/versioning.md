@@ -3,7 +3,7 @@
 How `@school-lab/design-tokens` (`packages/design-tokens/`) is versioned. Required by
 `docs/prds/layer-web-spa.md` (Non-functional requirements → Versioning).
 
-The package is a private `file:` dependency of `frontend/main` and `app/`, so npm never resolves
+The package is a private `file:` dependency of `frontend/app` and `mobile/`, so npm never resolves
 a range and never blocks an incompatible upgrade. The version is a **communication contract**:
 it tells a reviewer what a token change does to the two surfaces that consume it.
 
