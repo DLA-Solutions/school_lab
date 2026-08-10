@@ -3,7 +3,7 @@ import { useLocation } from 'react-router';
 import { useAuth } from 'providers/AuthContext';
 import Splash from 'components/loader/Splash';
 import { isBackofficeUser } from 'utils/onboarding/access';
-import { redirectToSchoolSignIn } from 'utils/auth/signIn';
+import { buildReturnToPath, redirectToSchoolSignIn } from 'utils/auth/signIn';
 
 export const RequireBackoffice = ({ children }: PropsWithChildren) => {
   const { status, user } = useAuth();
@@ -14,8 +14,7 @@ export const RequireBackoffice = ({ children }: PropsWithChildren) => {
   }
 
   if (status === 'unauthenticated') {
-    const returnTo = `${location.pathname}${location.search}${location.hash}`;
-    redirectToSchoolSignIn(returnTo);
+    redirectToSchoolSignIn(buildReturnToPath(location.pathname, location.search, location.hash));
     return <Splash />;
   }
 
