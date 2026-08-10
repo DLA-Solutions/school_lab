@@ -32,6 +32,9 @@ Rails.application.routes.draw do
       end
 
       resources :schools, only: %i[index show create update destroy] do
+        member do
+          post :handoff
+        end
         scope module: :schools do
           resource :dashboard, only: :show, controller: "dashboard"
           resources :bank_credentials, only: %i[index create]

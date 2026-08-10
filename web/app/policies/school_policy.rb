@@ -27,6 +27,13 @@ class SchoolPolicy < ApplicationPolicy
     update?
   end
 
+  def handoff?
+    return provisioning_handoff? if record.provisioning?
+    return activation_handoff? if record.pending_handoff?
+
+    false
+  end
+
   class Scope < Scope
     def resolve
       return scope.all if user&.backoffice?
@@ -47,5 +54,15 @@ class SchoolPolicy < ApplicationPolicy
     return false unless user && record.respond_to?(:id)
 
     user.memberships.kept.exists?(school_id: record.id, role: STAFF_ADMIN_ROLES, status: "active")
+  end
+
+  def provisioning_handoff?
+    backoffice? && platform_with?(:provision_school) && record.provisioning?
+  end
+
+  def activation_handoff?
+    return school_owner? && record.self_serve? if record.self_serve?
+
+    (backoffice? && platform_with?(:provision_school)) || school_owner?
   end
 end

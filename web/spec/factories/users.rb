@@ -46,6 +46,11 @@ FactoryBot.define do
       school { nil }
     end
 
+    trait :with_provision_school do
+      backoffice
+      platform_permissions { [ "provision_school" ] }
+    end
+
     trait :school_admin do
       role { "staff" }
 

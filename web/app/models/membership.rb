@@ -17,6 +17,9 @@ class Membership < ApplicationRecord
   validates :role, inclusion: { in: ROLES }
   validates :status, inclusion: { in: STATUSES }
   validates :user_id, uniqueness: { scope: :school_id, conditions: -> { kept } }
+  validate :platform_permissions_keys, if: -> { role == "backoffice" }
+
+  before_validation :normalize_platform_permissions
 
   scope :active, -> { kept.where(status: "active") }
   scope :invited, -> { kept.where(status: "invited") }
@@ -35,5 +38,24 @@ class Membership < ApplicationRecord
 
   def staff_member?
     %w[school staff teacher].include?(role)
+  end
+
+  def platform_permission?(key)
+    return false unless role == "backoffice"
+
+    Array(platform_permissions).map(&:to_s).include?(key.to_s)
+  end
+
+  private
+
+  def normalize_platform_permissions
+    self.platform_permissions = Array(platform_permissions).map(&:to_s).uniq
+  end
+
+  def platform_permissions_keys
+    invalid = Array(platform_permissions).reject { |key| SchoolLab::PlatformPermissions.known_key?(key) }
+    return if invalid.empty?
+
+    errors.add(:platform_permissions, "contains unknown keys: #{invalid.join(', ')}")
   end
 end

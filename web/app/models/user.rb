@@ -23,7 +23,15 @@ class User < ApplicationRecord
   scope :active, -> { kept.where(status: "active") }
 
   def backoffice?
-    memberships.kept.active.exists?(role: "backoffice", school_id: nil)
+    backoffice_membership.present?
+  end
+
+  def backoffice_membership
+    memberships.kept.active.find_by(role: "backoffice", school_id: nil)
+  end
+
+  def platform_permission?(key)
+    backoffice_membership&.platform_permission?(key) == true
   end
 
   def disabled?

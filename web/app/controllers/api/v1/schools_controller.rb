@@ -25,7 +25,11 @@ module Api
       def create
         authorize School
 
-        result = ::Schools::CreateSchoolService.call(params: school_params, actor: Current.user)
+        result = ::Schools::CreateSchoolService.call(
+          params: school_params,
+          actor: Current.user,
+          owner_email: params.dig(:school, :owner_email)
+        )
         render_service_result(result, success_status: :created) do |school|
           render json: { data: SchoolBlueprint.render_as_hash(school) }, status: :created
         end
@@ -51,10 +55,31 @@ module Api
         end
       end
 
+      def handoff
+        school = policy_scope(School.kept).find(params[:id])
+        set_handoff_context!(school)
+        authorize school, :handoff?
+
+        result = ::Schools::HandoffService.call(
+          school: school,
+          actor: Current.user,
+          params: handoff_params
+        )
+        render_service_result(result) do |updated_school|
+          render json: { data: SchoolBlueprint.render_as_hash(updated_school) }
+        end
+      end
+
       private
 
       def school_params
-        params.require(:school).permit(:name, :cnpj, :address, :saas_plan, :school_group_id)
+        params.require(:school).permit(
+          :name, :cnpj, :address, :saas_plan, :school_group_id, :onboarding_mode
+        )
+      end
+
+      def handoff_params
+        params.fetch(:handoff, {}).permit(:billing_waived)
       end
     end
   end

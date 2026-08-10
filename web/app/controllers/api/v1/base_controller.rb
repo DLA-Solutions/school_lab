@@ -51,18 +51,41 @@ module Api
       def set_school_context!
         school = School.kept.find(params[:school_id])
         membership = Current.user.memberships.kept.find_by(school: school)
-        return render_error(:not_found, status: :not_found) unless membership
 
-        if membership.suspended?
-          return render_error(:membership_suspended, status: :forbidden)
+        if membership
+          if membership.suspended?
+            return render_error(:membership_suspended, status: :forbidden)
+          end
+
+          if membership.invited?
+            return render_error(:membership_invited, status: :forbidden)
+          end
+
+          Current.school = school
+          Current.membership = membership
+          return
         end
 
-        if membership.invited?
-          return render_error(:membership_invited, status: :forbidden)
+        if Current.user.backoffice?
+          if school.provisioning? && Current.user.platform_permission?(:provision_school)
+            Current.school = school
+            return
+          end
+
+          return render_error(:forbidden, status: :forbidden) if school.provisioning?
         end
 
-        Current.school = school
-        Current.membership = membership
+        render_error(:not_found, status: :not_found)
+      end
+
+      def set_handoff_context!(school)
+        membership = Current.user.memberships.kept.find_by(school: school)
+        if membership
+          Current.school = school
+          Current.membership = membership
+        elsif Current.user.backoffice? && Current.user.platform_permission?(:provision_school)
+          Current.school = school
+        end
       end
 
       def pundit_user

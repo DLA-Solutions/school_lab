@@ -336,34 +336,6 @@
       }
     },
     "/api/v1/schools": {
-      "get": {
-        "summary": "List schools",
-        "tags": [
-          "Backoffice"
-        ],
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "schools listed for backoffice"
-          },
-          "403": {
-            "description": "forbidden for guardian"
-          }
-        }
-      },
       "post": {
         "summary": "Create school",
         "tags": [
@@ -386,6 +358,9 @@
         "responses": {
           "201": {
             "description": "school admin opens a school and becomes its administrator"
+          },
+          "422": {
+            "description": "missing owner_email for backoffice"
           }
         },
         "requestBody": {
@@ -423,6 +398,34 @@
                 ]
               }
             }
+          }
+        }
+      },
+      "get": {
+        "summary": "List schools",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "schools listed for backoffice"
+          },
+          "403": {
+            "description": "forbidden for guardian"
           }
         }
       }
@@ -564,6 +567,68 @@
             "bearer_auth": []
           }
         ]
+      }
+    },
+    "/api/v1/schools/{id}/handoff": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Hand off school onboarding",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "provisioning handoff for white-glove school"
+          },
+          "403": {
+            "description": "non-owner staff cannot handoff self-serve school"
+          },
+          "422": {
+            "description": "incomplete activation checklist"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "handoff": {
+                    "type": "object",
+                    "properties": {
+                      "billing_waived": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/schools/{school_id}/academics/job_positions": {
@@ -4740,7 +4805,7 @@
         }
       ],
       "post": {
-        "summary": "Create invited membership",
+        "summary": "Create membership during provisioning",
         "tags": [
           "People"
         ],
@@ -4760,7 +4825,7 @@
         ],
         "responses": {
           "201": {
-            "description": "teacher invite with teacher template"
+            "description": "backoffice with provision_school creates membership"
           },
           "422": {
             "description": "staff without role_template_id"
@@ -4769,7 +4834,7 @@
             "description": "role template from another school"
           },
           "403": {
-            "description": "teacher without manage_people cannot create"
+            "description": "backoffice without provision_school forbidden"
           }
         },
         "requestBody": {
@@ -4789,17 +4854,12 @@
                       },
                       "role_template_id": {
                         "type": "integer"
-                      },
-                      "segment_id": {
-                        "type": "integer"
-                      },
-                      "display_title": {
-                        "type": "string"
                       }
                     },
                     "required": [
                       "email",
-                      "role"
+                      "role",
+                      "role_template_id"
                     ]
                   }
                 },
