@@ -88,7 +88,7 @@ RSpec.describe Contracts::RenderContractPdfService do
     let(:positions) { described_class.call(contract: contract).data.fetch(:signature_positions) }
 
     it "reports one position per guardian, keyed by guardian" do
-      expect(positions.keys).to match_array([mother.id, father.id])
+      expect(positions.keys).to match_array([ mother.id, father.id ])
     end
 
     # Autentique takes percentages of the page from its top-left corner.

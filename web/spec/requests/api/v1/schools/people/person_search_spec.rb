@@ -29,36 +29,36 @@ RSpec.describe "Searching guardians and students by name or CPF", type: :request
 
   shared_examples "a person search" do |path, first, second|
     it "matches part of the name" do
-      expect(names_from(path, q: "Silva")).to eq([first])
+      expect(names_from(path, q: "Silva")).to eq([ first ])
     end
 
     it "ignores case" do
-      expect(names_from(path, q: "silva")).to eq([first])
+      expect(names_from(path, q: "silva")).to eq([ first ])
     end
 
     it "matches an accented name typed in full" do
-      expect(names_from(path, q: "Souza")).to eq([second])
+      expect(names_from(path, q: "Souza")).to eq([ second ])
     end
 
     # The CPF is stored as digits, so a term punctuated the way people write it has to match.
     it "matches a formatted CPF" do
-      expect(names_from(path, q: "123.456.789-09")).to eq([first])
+      expect(names_from(path, q: "123.456.789-09")).to eq([ first ])
     end
 
     it "matches a bare CPF" do
-      expect(names_from(path, q: "12345678909")).to eq([first])
+      expect(names_from(path, q: "12345678909")).to eq([ first ])
     end
 
     it "matches a partial CPF" do
-      expect(names_from(path, q: "529982")).to eq([second])
+      expect(names_from(path, q: "529982")).to eq([ second ])
     end
 
     it "returns everything when the term is blank" do
-      expect(names_from(path, q: "")).to match_array([first, second])
+      expect(names_from(path, q: "")).to match_array([ first, second ])
     end
 
     it "returns everything when no term is given" do
-      expect(names_from(path, {})).to match_array([first, second])
+      expect(names_from(path, {})).to match_array([ first, second ])
     end
 
     it "returns nothing when nothing matches" do
@@ -74,7 +74,7 @@ RSpec.describe "Searching guardians and students by name or CPF", type: :request
       other = create(:school)
       create(:guardian, school: other, name: "Maria Silva", cpf: "15852119075")
 
-      expect(names_from(path, q: "Silva")).to eq([first])
+      expect(names_from(path, q: "Silva")).to eq([ first ])
     end
   end
 
@@ -100,7 +100,7 @@ RSpec.describe "Searching guardians and students by name or CPF", type: :request
           params: { q: "Silva", guardian_id: maria.id },
           headers: headers
 
-      expect(response.parsed_body["data"].map { |row| row["name"] }).to eq(["Pedro Silva"])
+      expect(response.parsed_body["data"].map { |row| row["name"] }).to eq([ "Pedro Silva" ])
     end
   end
 end

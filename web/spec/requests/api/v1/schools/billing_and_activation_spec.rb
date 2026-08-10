@@ -97,7 +97,7 @@ RSpec.describe "Manual activation, contract payer and one-off charges", type: :r
 
         get students_path, params: { status: "inactive" }, headers: headers
 
-        expect(response.parsed_body["data"].map { |row| row["id"] }).to eq([student.id])
+        expect(response.parsed_body["data"].map { |row| row["id"] }).to eq([ student.id ])
       end
     end
   end

@@ -111,7 +111,7 @@ RSpec.describe "Contract signature lifecycle", type: :request do
       get base_path, params: { guardian_id: guardian.id }, headers: headers
 
       ids = response.parsed_body["data"].map { |row| row["id"] }
-      expect(ids).to match_array([signed_contract.id, pending_contract.id])
+      expect(ids).to match_array([ signed_contract.id, pending_contract.id ])
       expect(ids).not_to include(other_family_contract.id)
     end
 
@@ -120,7 +120,7 @@ RSpec.describe "Contract signature lifecycle", type: :request do
           params: { guardian_id: guardian.id, signature_status: "signed" },
           headers: headers
 
-      expect(response.parsed_body["data"].map { |row| row["id"] }).to eq([signed_contract.id])
+      expect(response.parsed_body["data"].map { |row| row["id"] }).to eq([ signed_contract.id ])
     end
 
     it "returns nothing for a signature status that does not exist" do
@@ -139,7 +139,7 @@ RSpec.describe "Contract signature lifecycle", type: :request do
           headers: headers
 
       ids = response.parsed_body["data"].map { |row| row["id"] }
-      expect(ids).to eq([student.id])
+      expect(ids).to eq([ student.id ])
       expect(ids).not_to include(unrelated_student.id)
     end
 

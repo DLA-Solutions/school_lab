@@ -61,7 +61,7 @@ module People
     # At least one parent is required: a student with no responsible adult on file cannot be
     # billed or contacted.
     def resolve_guardians
-      return [{}, { base: [I18n.t("api.errors.student_requires_a_guardian")] }] if guardian_cpfs.empty?
+      return [ {}, { base: [ I18n.t("api.errors.student_requires_a_guardian") ] } ] if guardian_cpfs.empty?
 
       resolved = {}
       errors = {}
@@ -82,10 +82,10 @@ module People
       end
 
       if resolved.values.map(&:id).uniq.size < resolved.size
-        errors[:base] = [I18n.t("api.errors.duplicate_guardian_cpf")]
+        errors[:base] = [ I18n.t("api.errors.duplicate_guardian_cpf") ]
       end
 
-      [resolved, errors]
+      [ resolved, errors ]
     end
   end
 end

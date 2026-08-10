@@ -111,7 +111,7 @@ jobs:
       # The root openapi.yml workflow only fires on a handful of paths, so a change to a
       # blueprint or a controller can drift the contract without it ever running.
       - name: Regenerate OpenAPI from request specs
-        run: bundle exec rake rswag:specs:swaggerize
+        run: bundle exec rake swagger:build
 
       - name: Fail on OpenAPI drift
         run: git diff --exit-code swagger/v1/swagger.yaml

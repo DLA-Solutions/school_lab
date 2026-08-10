@@ -153,8 +153,8 @@ RSpec.describe "Api::V1::Schools::RoleTemplates", type: :request do
           }
         end
 
-        run_test! do |response|
-          body = JSON.parse(response.body).fetch("data")
+        run_test! do |patch_response|
+          body = JSON.parse(patch_response.body).fetch("data")
           expect(body["affected_memberships_count"]).to eq(2)
           keys = body["permissions"].map { |entry| entry["permission_key"] }
           expect(keys).to contain_exactly("manage_people", "manage_documents")

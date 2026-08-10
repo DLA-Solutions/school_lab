@@ -17,11 +17,17 @@ module Schools
         end
 
         provision_result = Identity::ProvisionSystemRoleTemplatesService.call(school: school)
-        raise ActiveRecord::Rollback unless provision_result.success?
+        unless provision_result.success?
+          raise ActiveRecord::Rollback
+        end
+
+        grant_founding_membership!(school)
       end
 
-      if school.save
-        ResponseService.success(data: school)
+      if provision_result&.success?
+        ResponseService.success(data: school.reload)
+      elsif provision_result
+        ResponseService.failure(code: provision_result.error_code, details: provision_result.details)
       else
         ResponseService.failure(code: :validation_error, details: school.errors.to_hash)
       end

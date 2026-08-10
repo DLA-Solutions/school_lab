@@ -44,7 +44,7 @@ RSpec.describe Contracts::SendForSignatureService do
       result = described_class.call(contract: contract)
 
       expect(result).to be_success
-      expect(result.data[:signer_links].map(&:email)).to eq(["maria@example.com"])
+      expect(result.data[:signer_links].map(&:email)).to eq([ "maria@example.com" ])
     end
 
     it "refuses when the student has no guardian" do

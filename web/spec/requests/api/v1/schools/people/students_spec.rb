@@ -65,7 +65,7 @@ RSpec.describe "Api::V1::Schools::People::Students", type: :request do
           expect(body.dig("data", "cpf")).to eq("52998224725")
           # The grade is read from the cohort the student was enrolled into.
           expect(body.dig("data", "grade_level")).to eq("fundamental_i_5")
-          expect(body.dig("data", "guardians").map { |g| g["relationship"] }).to eq(["mother"])
+          expect(body.dig("data", "guardians").map { |g| g["relationship"] }).to eq([ "mother" ])
         end
       end
 
