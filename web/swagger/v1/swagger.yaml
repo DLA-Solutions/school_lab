@@ -143,7 +143,7 @@
         ],
         "responses": {
           "200": {
-            "description": "memberships returned"
+            "description": "secretary with grant override exposes grant source"
           },
           "401": {
             "description": "unauthenticated"

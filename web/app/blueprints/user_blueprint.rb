@@ -6,7 +6,11 @@ class UserBlueprint < Blueprinter::Base
   fields :email, :status
 
   association :memberships, blueprint: MembershipBlueprint do |user, _options|
-    user.memberships.kept.includes(:school)
+    user.memberships.kept.includes(
+      :school,
+      staff_profile: { role_template: :role_template_permissions },
+      membership_permissions: []
+    )
   end
 
   field :guardian_profiles do |user, _options|
