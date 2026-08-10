@@ -1,0 +1,93 @@
+import { useMemo } from 'react';
+import { fontFamily } from 'theme/typography';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import useChartTheme from 'design-system/hooks/useChartTheme';
+import { EmptyState } from 'design-system';
+import { DashboardMetrics } from 'types/dashboard';
+import StudentsByClassChart from './StudentsByClassChart';
+import { colorForIndex } from './sliceColors';
+import { classLabel } from './classLabel';
+
+interface StudentsByClassProps {
+  metrics: DashboardMetrics | null;
+  loading: boolean;
+}
+
+/**
+ * How the enrolled children are spread across the cohorts. The ring carries the shares and the
+ * list beside it carries the numbers — colour alone never says which class is which, so every
+ * slice is named in text too.
+ */
+const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
+  const chartTheme = useChartTheme();
+  const data = useMemo(
+    () =>
+      (metrics?.students_by_class ?? []).map((slice) => ({
+        label: classLabel(slice),
+        students: slice.students,
+      })),
+    [metrics],
+  );
+
+  const total = data.reduce((sum, item) => sum + item.students, 0);
+
+  return (
+    <Paper sx={{ height: 500 }}>
+      <Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
+        Alunos por turma
+      </Typography>
+
+      {loading ? (
+        <Stack justifyContent="center" alignItems="center" sx={{ height: 400 }}>
+          <Skeleton variant="circular" width={220} height={220} />
+        </Stack>
+      ) : total === 0 ? (
+        <Box mt={4}>
+          <EmptyState
+            title="Nenhum aluno matriculado"
+            description="Assim que houver alunos nas turmas, a distribuição aparece aqui."
+            headingLevel={3}
+          />
+        </Box>
+      ) : (
+        <>
+          <StudentsByClassChart data={data} sx={{ height: '260px !important' }} />
+
+          <Stack direction="column" spacing={1.25} mt={1} sx={{ maxHeight: 150, overflowY: 'auto' }}>
+            {data.map((item, index) => (
+              <Stack key={item.label} alignItems="center" justifyContent="space-between">
+                <Stack spacing={1} alignItems="center" minWidth={0}>
+                  <Box
+                    height={8}
+                    width={8}
+                    borderRadius={1}
+                    flexShrink={0}
+                    sx={{ bgcolor: colorForIndex(chartTheme.seriesColors, index) }}
+                  />
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    fontFamily={fontFamily.workSans}
+                    noWrap
+                  >
+                    {item.label}
+                  </Typography>
+                </Stack>
+
+                <Typography variant="body2" color="text.primary" fontFamily={fontFamily.workSans}>
+                  {`${item.students} (${Math.round((item.students / total) * 100)}%)`}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </>
+      )}
+    </Paper>
+  );
+};
+
+export default StudentsByClass;

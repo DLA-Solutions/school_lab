@@ -35,14 +35,21 @@ module Gateways
           }
         GRAPHQL
 
+        # `action` is what separates a signer from the account owner: Autentique lists the owner
+        # among a document's signatures with no action at all, and counting them as an outstanding
+        # party leaves every document reading as unsigned forever.
         DOCUMENT_QUERY = <<~GRAPHQL
           query DocumentQuery($id: UUID!) {
             document(id: $id) {
               id
+              files { signed }
               signatures {
                 public_id
                 email
+                action { name }
                 signed { created_at }
+                rejected { created_at }
+                link { short_link }
               }
             }
           }
@@ -89,7 +96,7 @@ module Gateways
           {
             operations: operations.to_json,
             # Points the uploaded part at `variables.file`, as the spec requires.
-            map: { file: ["variables.file"] }.to_json,
+            map: { file: [ "variables.file" ] }.to_json,
             file: Faraday::Multipart::FilePart.new(
               StringIO.new(request.pdf), request.content_type, request.filename
             )
@@ -179,9 +186,8 @@ module Gateways
 
           ValueObjects::RemoteDocument.new(
             provider_document_id: document["id"],
-            # Only a document whose every signer has signed counts as signed here; anything else
-            # is still in flight.
-            status: signatures.any? && signatures.all? { |s| s.dig("signed", "created_at") } ? "signed" : "pending",
+            status: status_of(signatures),
+            signed_file_url: document.dig("files", "signed"),
             signer_links: signatures.filter_map do |signature|
               url = signature.dig("link", "short_link")
               next if url.blank?
@@ -189,6 +195,23 @@ module Gateways
               ValueObjects::SignerLink.new(email: signature["email"], url: url)
             end
           )
+        end
+
+        # Only the parties actually asked to sign decide the outcome. Autentique also lists the
+        # account owner among a document's signatures — no action, and never a signature — so
+        # requiring every entry to have signed would keep a fully signed contract "pending" for
+        # good. That is exactly what it did.
+        def status_of(signatures)
+          signers = signatures.select { |signature| signature.dig("action", "name") == "SIGN" }
+          # Falling back to every entry keeps an older document, or one whose shape changed,
+          # readable rather than silently unsigned.
+          signers = signatures if signers.empty?
+
+          return "pending" if signers.empty?
+          return "rejected" if signers.any? { |signature| signature.dig("rejected", "created_at") }
+          return "signed" if signers.all? { |signature| signature.dig("signed", "created_at") }
+
+          "pending"
         end
 
         def multipart_connection

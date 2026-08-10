@@ -22,7 +22,8 @@ module Dashboards
           average_ticket: average_ticket_metric,
           monthly_revenue: monthly_revenue_metric,
           didactic_material: didactic_material_metric,
-          monthly_income_series: monthly_income_series
+          monthly_income_series: monthly_income_series,
+          students_by_class: students_by_class
         }
       )
     end
@@ -144,6 +145,32 @@ module Dashboards
         first_of_month = Date.new(year, number, 1)
         { month: first_of_month.strftime("%Y-%m"), amount_cents: normalized[first_of_month].to_i }
       end
+    end
+
+    # How the enrolled children are spread across the cohorts, largest first. Students not yet in
+    # a class are their own row: leaving them out would make the parts add up to less than the
+    # total the card above reports, with nothing on screen to explain the gap.
+    def students_by_class
+      counts = school.students.kept.where(status: "active").group(:school_class_id).count
+      classes = school.school_classes.kept.where(id: counts.keys.compact).index_by(&:id)
+
+      rows = counts.map do |class_id, students|
+        school_class = classes[class_id]
+
+        {
+          school_class_id: school_class&.id,
+          name: school_class&.name,
+          grade_level: school_class&.grade_level,
+          year: school_class&.year,
+          students: students
+        }
+      end
+
+      # A discarded class leaves its students pointing nowhere; they join the unassigned row
+      # rather than showing up under a cohort that no longer exists.
+      rows.group_by { |row| row[:school_class_id] }
+          .map { |_id, group| group.first.merge(students: group.sum { |row| row[:students] }) }
+          .sort_by { |row| [ -row[:students], row[:name].to_s ] }
     end
 
     def metric(current, previous)

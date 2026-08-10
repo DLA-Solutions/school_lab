@@ -306,6 +306,39 @@ RSpec.describe "Standalone boletos, batch issuing and the dashboard", type: :req
       expect(series.find { |point| point["month"] == "2026-04" }["amount_cents"]).to eq(0)
     end
 
+    it "spreads the enrolled children across the cohorts, largest first" do
+      first = create(:school_class, school: school, name: "A")
+      second = create(:school_class, school: school, name: "B")
+      2.times { create(:student, school: school, school_class: second) }
+      3.times { create(:student, school: school, school_class: first) }
+
+      get dashboard_path, headers: headers
+
+      rows = response.parsed_body.dig("data", "students_by_class")
+      expect(rows.map { |row| [ row["name"], row["students"] ] }).to eq([ [ "A", 3 ], [ "B", 2 ] ])
+    end
+
+    # Leaving them out would make the slices add up to less than the head count above, with
+    # nothing on screen to explain the gap.
+    it "keeps students who are in no live class as their own slice" do
+      school_class = create(:school_class, school: school)
+      create(:student, school: school, school_class: school_class)
+
+      # A discarded cohort leaves its students pointing at a class that is no longer on the
+      # register — they belong to nobody until the school moves them.
+      gone = create(:school_class, school: school)
+      create(:student, school: school, school_class: gone)
+      gone.discard
+
+      get dashboard_path, headers: headers
+
+      rows = response.parsed_body.dig("data", "students_by_class")
+      unassigned = rows.find { |row| row["school_class_id"].nil? }
+      expect(unassigned["students"]).to eq(1)
+      expect(rows.sum { |row| row["students"] })
+        .to eq(response.parsed_body.dig("data", "students", "value"))
+    end
+
     it "is closed to guardians" do
       guardian_user = create(:user)
       create(:membership, user: guardian_user, school: school, role: "guardian")

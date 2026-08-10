@@ -17,6 +17,10 @@ class ContractBlueprint < Blueprinter::Base
     contract.payer&.name
   end
 
+  # Where the signed agreement itself can be read, once the family has signed it — the provider's
+  # own file, with the signature page it appends, rather than our re-render of what we sent.
+  field :signed_document_url
+
   # Whether the agreement actually reached the provider. A contract can exist while its send
   # failed, and the screen has to tell "created" from "in the family's inbox".
   field :sent_to_provider do |contract|

@@ -4,7 +4,7 @@ import { ErrorBanner } from 'design-system';
 import KPIs from 'components/sections/dashboard/kpi/KPIs';
 import Products from 'components/sections/dashboard/products/Products';
 import RevenueByCustomer from 'components/sections/dashboard/revenue-by-customer/RevenueByCustomer';
-import WebsiteVisitors from 'components/sections/dashboard/website-visitors/WebsiteVisitors';
+import StudentsByClass from 'components/sections/dashboard/students-by-class/StudentsByClass';
 import SchoolIncome from 'components/sections/dashboard/completed-task/CompletedTask';
 import Ledger from 'components/sections/dashboard/orders-status/OrdersStatus';
 import useDashboardMetrics from 'components/sections/dashboard/useDashboardMetrics';
@@ -28,7 +28,7 @@ const Dashboard = () => {
       </Grid>
 
       <Grid size={{ xs: 12, xl: 4 }}>
-        <WebsiteVisitors />
+        <StudentsByClass metrics={metrics} loading={loading} />
       </Grid>
 
       <Grid size={{ xs: 12, xl: 8 }}>

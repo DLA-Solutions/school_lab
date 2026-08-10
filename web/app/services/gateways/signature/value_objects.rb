@@ -21,9 +21,10 @@ module Gateways
         end
       end
 
-      # What came back: the provider's own id for the document, and where each signer must go.
-      RemoteDocument = Data.define(:provider_document_id, :status, :signer_links) do
-        def initialize(provider_document_id:, status:, signer_links: [])
+      # What came back: the provider's own id for the document, where each signer must go, and —
+      # once everyone has signed — where the signed file itself can be read.
+      RemoteDocument = Data.define(:provider_document_id, :status, :signer_links, :signed_file_url) do
+        def initialize(provider_document_id:, status:, signer_links: [], signed_file_url: nil)
           super
         end
       end

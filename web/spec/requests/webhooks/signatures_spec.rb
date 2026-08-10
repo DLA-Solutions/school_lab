@@ -15,14 +15,30 @@ RSpec.describe "Autentique signature webhook", type: :request do
                       signature_provider: "fake", provider_document_id: "doc-abc-123")
   end
 
-  let(:finished_event) do
+  # The shape Autentique actually posts: the top level describes the webhook registration, and
+  # what happened is nested under `event`. Reading `type` off the root matched nothing, so every
+  # callback was acknowledged and discarded — contracts stayed "aguardando assinatura" after the
+  # family had signed.
+  def autentique_payload(type:, document_id:)
     {
-      id: "evt_1",
-      object: "event",
-      type: "document.finished",
-      created_at: "2026-08-09T12:00:00Z",
-      data: { object: { id: contract.provider_document_id } }
+      id: "MXwyMWZiY2VjOS1lMWI1LTRkY2EtYWZiYi0wMjIwNjFlOWVhODg=",
+      object: "webhook",
+      name: "school-lab",
+      format: "json",
+      url: "https://example.com/webhooks",
+      event: {
+        id: "21fbcec9-e1b5-4dca-afbb-022061e9ea88",
+        object: "event",
+        organization: 1,
+        type: type,
+        data: { object: { id: document_id } },
+        created_at: "2026-08-09T12:00:00Z"
+      }
     }.to_json
+  end
+
+  let(:finished_event) do
+    autentique_payload(type: "document.finished", document_id: contract.provider_document_id)
   end
 
   def sign(payload, key = secret)
@@ -94,10 +110,8 @@ RSpec.describe "Autentique signature webhook", type: :request do
   describe "events it does not act on" do
     # Acknowledged, not acted upon — the provider must not retry an event we simply ignore.
     it "acknowledges a partial signature without changing the contract" do
-      payload = {
-        id: "evt_2", type: "signature.accepted",
-        data: { object: { id: contract.provider_document_id } }
-      }.to_json
+      payload = autentique_payload(type: "signature.accepted",
+                                   document_id: contract.provider_document_id)
 
       deliver(payload, signature: sign(payload))
 
@@ -106,9 +120,7 @@ RSpec.describe "Autentique signature webhook", type: :request do
     end
 
     it "acknowledges a document this school does not know" do
-      payload = {
-        id: "evt_3", type: "document.finished", data: { object: { id: "doc-unknown" } }
-      }.to_json
+      payload = autentique_payload(type: "document.finished", document_id: "doc-unknown")
 
       deliver(payload, signature: sign(payload))
 
@@ -128,6 +140,18 @@ RSpec.describe "Autentique signature webhook", type: :request do
       expect(response).to have_http_status(:ok)
       expect(other.reload.signature_status).to eq("pending_signature")
     end
+  end
+
+  # The nesting is what broke this in production; a flat body is still accepted so a replay put
+  # together by hand lands too.
+  it "still accepts an event posted without the webhook envelope" do
+    payload = { type: "document.finished", data: { object: { id: contract.provider_document_id } } }
+              .to_json
+
+    deliver(payload, signature: sign(payload))
+
+    expect(response).to have_http_status(:ok)
+    expect(contract.reload).to be_signed
   end
 
   it "is idempotent when the provider retries" do

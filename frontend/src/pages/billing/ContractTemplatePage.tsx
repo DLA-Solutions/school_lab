@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
-import { ApiError } from 'services/api';
+import { ApiError, apiAssetUrl } from 'services/api';
 import {
   fetchContractTemplate,
   previewContractTemplate,
@@ -36,6 +36,9 @@ const ContractTemplatePage = () => {
   const [signaturePage, setSignaturePage] = useState('1');
   const [logo, setLogo] = useState<File | null>(null);
   const [removeLogo, setRemoveLogo] = useState(false);
+  // A chosen file has no URL yet, so the browser makes one for it — otherwise nothing is on
+  // screen between picking an image and saving, which read as the preview being broken.
+  const [logoObjectUrl, setLogoObjectUrl] = useState<string | null>(null);
 
   const [tab, setTab] = useState<'editor' | 'preview'>('editor');
   const [preview, setPreview] = useState<{ html: string; sample: boolean } | null>(null);
@@ -51,6 +54,19 @@ const ContractTemplatePage = () => {
 
   // The preview redraws once typing settles rather than on every keystroke.
   const debouncedBody = useDebouncedValue(bodyHtml, 500);
+
+  // Object URLs hold the file in memory until they are revoked.
+  useEffect(() => {
+    if (!logo) {
+      setLogoObjectUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(logo);
+    setLogoObjectUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [logo]);
 
   const applyTemplate = (loaded: ContractTemplate) => {
     setTemplate(loaded);
@@ -195,6 +211,10 @@ const ContractTemplatePage = () => {
     }
   };
 
+  // The file being uploaded wins over what is saved; `apiAssetUrl` puts the API origin back on
+  // the stored one, which the blueprint returns host-relative.
+  const logoPreviewUrl = logoObjectUrl ?? apiAssetUrl(template?.logo_url);
+
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
@@ -296,13 +316,29 @@ const ContractTemplatePage = () => {
 
               <SectionCard title="Logo da escola" padding={3.5}>
                 <Stack direction="column" gap={1.5}>
-                  {template?.logo_url && !logo && !removeLogo && (
+                  {logoPreviewUrl && !removeLogo && (
                     <Box
-                      component="img"
-                      src={template.logo_url}
-                      alt="Logo atual"
-                      sx={{ width: 1, borderRadius: 1, border: 1, borderColor: 'divider' }}
-                    />
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 1,
+                        border: 1,
+                        borderColor: 'divider',
+                        // The contract is a printed white page; a logo drawn for it disappears
+                        // against a dark card, which is half of why this looked broken.
+                        bgcolor: '#fff',
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={logoPreviewUrl}
+                        alt={logo ? 'Logo escolhida' : 'Logo atual'}
+                        // A banner and a square mark both keep their proportions instead of
+                        // being stretched to the card's width.
+                        sx={{ maxWidth: 1, maxHeight: 120, objectFit: 'contain' }}
+                      />
+                    </Box>
                   )}
                   <Typography variant="caption" color="text.secondary">
                     {removeLogo

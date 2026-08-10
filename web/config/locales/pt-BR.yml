@@ -22,6 +22,7 @@ pt-BR:
       contract_pdf_unsupported_characters: "O contrato contém caracteres que a fonte do PDF não suporta. Fale com o suporte."
       contract_template_missing: "Nenhum modelo de contrato configurado para esta escola."
       contract_already_sent: "Este contrato já foi enviado para assinatura."
+      contract_not_sent: "Este contrato ainda não foi enviado para assinatura."
       signer_missing_details: "Sem e-mail ou CPF para %{names}. Complete o cadastro antes de enviar."
       signature_provider_missing: "Nenhuma integração de assinatura configurada para esta escola."
       signature_provider_unauthorized: "A Autentique recusou as credenciais desta escola."
@@ -33,6 +34,11 @@ pt-BR:
       charge_due_date_required: "Informe a data de vencimento."
       plan_discount_in_use: "Este desconto está aplicado em %{count} contrato(s) e não pode ser removido."
       job_position_in_use: "Este cargo está em uso por %{count} colaborador(es). Altere o cargo deles antes de removê-lo."
+    # Não impedem o envio — o contrato sai com uma lacuna que alguém terá de preencher depois.
+    warnings:
+      student_without_cpf: "Este aluno não tem CPF cadastrado; o contrato sairá com esse campo em branco."
+      student_without_class: "Este aluno não está em nenhuma turma; o contrato sairá sem a turma."
+      contract_template_missing: "Esta escola não tem modelo de contrato próprio. Será usado o modelo padrão, sem as cláusulas da escola."
   signature:
     contract_message: "Segue o contrato de prestação de serviços educacionais referente a %{student}. Confira os dados e assine."
   # `validation_error` responses carry ActiveModel messages verbatim under `details`, and the SPA

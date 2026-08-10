@@ -89,7 +89,7 @@ module Contracts
             name: guardian.name,
             email: guardian.email,
             cpf: guardian.cpf,
-            positions: position ? [position] : []
+            positions: position ? [ position ] : []
           )
         end
       )
@@ -112,7 +112,7 @@ module Contracts
     end
 
     def failure(code, message)
-      ResponseService.failure(code: code, details: { base: [message] })
+      ResponseService.failure(code: code, details: { base: [ message ] })
     end
 
     def log_failure(error)

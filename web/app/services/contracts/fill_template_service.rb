@@ -48,14 +48,14 @@ module Contracts
     def missing_template
       ResponseService.failure(
         code: :validation_error,
-        details: { base: [I18n.t("api.errors.contract_template_missing")] }
+        details: { base: [ I18n.t("api.errors.contract_template_missing") ] }
       )
     end
 
     def no_guardians
       ResponseService.failure(
         code: :validation_error,
-        details: { base: [I18n.t("api.errors.contract_without_guardians")] }
+        details: { base: [ I18n.t("api.errors.contract_without_guardians") ] }
       )
     end
 
@@ -118,9 +118,9 @@ module Contracts
     def address_fragment(guardian)
       return "" if guardian.street.blank?
 
-      street = [guardian.street, guardian.number, guardian.complement].compact_blank.join(", ")
-      city = [guardian.city, guardian.state].compact_blank.join("/")
-      line = [street, guardian.neighborhood, city].compact_blank.join(" - ")
+      street = [ guardian.street, guardian.number, guardian.complement ].compact_blank.join(", ")
+      city = [ guardian.city, guardian.state ].compact_blank.join("/")
+      line = [ street, guardian.neighborhood, city ].compact_blank.join(" - ")
 
       " — #{escape(line)}"
     end

@@ -72,7 +72,7 @@ const GridPage = () => (
     <KPIs />
   </Grid>
   <Grid size={{ xs: 12, xl: 4 }}>
-    <WebsiteVisitors />
+    <StudentsByClass />
   </Grid>
   <Grid size={{ xs: 12, xl: 8 }}>
     <RevenueByCustomer />

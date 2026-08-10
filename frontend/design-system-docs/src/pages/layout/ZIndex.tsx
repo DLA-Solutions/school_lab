@@ -67,10 +67,9 @@ styleOverrides: {
 </Box>`}
     />
     <Typography variant="body2" color="text.secondary" mb={2}>
-      The website-visitors card is the worked example: its header row is pulled down over the chart
-      by a negative margin, so the Export button and the ECharts canvas share space. The Paper
-      opens the context and the button sits at <code>1</code> inside it — a local overlap resolved
-      locally, with nothing said about the rest of the shell.
+      A dashboard card that draws a control over its own chart is the shape to reach for: the
+      Paper opens the context and the control sits at <code>1</code> inside it — a local overlap
+      resolved locally, with nothing said about the rest of the shell.
     </Typography>
 
     <Typography variant="h6" gutterBottom>

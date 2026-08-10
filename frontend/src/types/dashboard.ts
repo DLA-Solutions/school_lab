@@ -23,6 +23,16 @@ export interface MonthlyIncomePoint {
   amount_cents: number;
 }
 
+/** One cohort's share of the enrolled children. Null fields mean "in no class on the register". */
+export interface StudentsByClassSlice {
+  school_class_id: number | null;
+  name: string | null;
+  /** One of `SchoolClass::GRADE_LEVELS` — label it with `utils/gradeLevels`. */
+  grade_level: string | null;
+  year: number | null;
+  students: number;
+}
+
 export interface DashboardMetrics {
   /** The month the money figures describe, `YYYY-MM`. */
   month: string;
@@ -33,4 +43,6 @@ export interface DashboardMetrics {
   didactic_material: DashboardMetric;
   /** Twelve points, one per month of the reference year. */
   monthly_income_series: MonthlyIncomePoint[];
+  /** Largest cohort first; the slices add up to `students.value`. */
+  students_by_class: StudentsByClassSlice[];
 }

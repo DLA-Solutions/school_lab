@@ -25,6 +25,36 @@ module Api
             render json: { data: ContractBlueprint.render_as_hash(contract) }
           end
 
+          # Everything a contract for this student would be built from, plus whatever would stop
+          # the send. Lets the screen fill itself in — and say what is missing — before anything
+          # is created and a family is expecting a document.
+          def prefill
+            authorize Contract, :create?
+
+            student = policy_scope(Student).find(params[:student_id])
+            result = ::Contracts::PrefillService.call(school: Current.school, student: student)
+
+            render json: { data: result.data }
+          end
+
+          # The agreement as the family will receive it, rendered from this contract's own data.
+          # Read-only: nothing is sent, so the school can check the document before committing to
+          # it. A school with no template of its own has only the built-in PDF, which is a file
+          # rather than a page — that case says so instead of pretending to render.
+          def preview
+            contract = policy_scope(Contract).find(params[:id])
+            authorize contract, :show?
+
+            template = contract.school.contract_template
+            return render_no_template if template.blank?
+
+            result = ::Contracts::FillTemplateService.call(contract: contract, template: template)
+
+            render_service_result(result) do |data|
+              render json: { data: { html: data.fetch(:html), filename: data.fetch(:filename) } }
+            end
+          end
+
           def create
             authorize Contract
 
@@ -90,6 +120,14 @@ module Api
           end
 
           private
+
+          def render_no_template
+            render_error(
+              :validation_error,
+              status: :unprocessable_content,
+              details: { base: [I18n.t("api.errors.contract_template_missing")] }
+            )
+          end
 
           # The contracts of one guardian's children — what the guardian-facing screen lists.
           def filter_by_guardian(scope)

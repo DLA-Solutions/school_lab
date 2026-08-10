@@ -84,9 +84,13 @@ Rails.application.routes.draw do
             end
             resources :plans
             resources :contracts do
+              collection do
+                get :prefill
+              end
               member do
                 post :sign
                 post :send_for_signature
+                get :preview
               end
             end
             resources :charge_generations, only: :create

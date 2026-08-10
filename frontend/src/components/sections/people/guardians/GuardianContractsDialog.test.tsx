@@ -12,6 +12,8 @@ const CONTRACTS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/contracts`;
 const STUDENTS_PATH = `/api/v1/schools/${SCHOOL_ID}/people/students`;
 const PLANS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/plans`;
 const DISCOUNTS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/plan_discounts`;
+const PREFILL_PATH = `${CONTRACTS_PATH}/prefill`;
+const previewPath = (id: number) => `${CONTRACTS_PATH}/${id}/preview`;
 
 const user = userEvent.setup({ delay: null });
 
@@ -50,6 +52,7 @@ const signedContract: Contract = {
   signature_provider: 'autentique',
   signature_requested_at: '2026-01-02T12:00:00Z',
   sent_to_provider: true,
+  signed_document_url: 'https://api.autentique.com.br/documentos/doc-abc-123/assinado.pdf',
   plan_discount_id: null,
   payer_guardian_id: null,
   payer_name: 'Maria Silva',
@@ -60,6 +63,8 @@ const pendingContract: Contract = {
   id: 92,
   signature_status: 'pending_signature',
   signed_at: null,
+  // Nothing to link to until the family has signed it.
+  signed_document_url: null,
 };
 
 /** Recorded but never dispatched — waiting on the school, not on the family. */
@@ -90,14 +95,67 @@ const discounts = page([
 // The option label now carries the plan's full price alongside its name.
 const PLAN_OPTION = /Mensalidade Integral/;
 
+/**
+ * What the API reports about the chosen child. Two plans exist in these fixtures' school, so the
+ * prefill suggests none — picking the plan stays the operator's call.
+ */
+const prefill = {
+  student: {
+    id: 12,
+    name: 'Pedro Silva',
+    cpf: '52998224725',
+    rg: 'MG-14.235.789',
+    birth_date: '2015-03-10',
+    school_class_name: 'A',
+    grade_level: 'fundamental_i_5',
+    year: 2026,
+  },
+  guardians: [
+    {
+      id: 7,
+      name: 'Maria Silva',
+      cpf: '12345678909',
+      email: 'maria@example.com',
+      phone: null,
+      relationship: 'mother' as const,
+      primary_guardian: true,
+      can_sign: true,
+      missing: [],
+    },
+  ],
+  suggested: {
+    payer_guardian_id: 7,
+    billing_plan_id: null,
+    plan_discount_id: null,
+    negotiated_amount_cents: null,
+    due_day: 5,
+    starts_on: '2026-01-01',
+  },
+  blocking_issues: [],
+  warnings: [],
+};
+
 /** The form's selects are always loaded; specs override the contract list per case. */
 const stubFormOptions = () => {
   server.use(
     http.get(apiUrl(STUDENTS_PATH), () => HttpResponse.json(students)),
     http.get(apiUrl(PLANS_PATH), () => HttpResponse.json(plans)),
     http.get(apiUrl(DISCOUNTS_PATH), () => HttpResponse.json(discounts)),
+    http.get(apiUrl(PREFILL_PATH), () => HttpResponse.json({ data: prefill })),
+    http.get(apiUrl(previewPath(pendingContract.id)), () =>
+      HttpResponse.json({ data: { html: '<p>Contrato</p>', filename: 'contrato.html' } }),
+    ),
+    http.get(apiUrl(previewPath(undispatchedContract.id)), () =>
+      HttpResponse.json({ data: { html: '<p>Contrato</p>', filename: 'contrato.html' } }),
+    ),
+    http.get(apiUrl(previewPath(signedContract.id)), () =>
+      HttpResponse.json({ data: { html: '<p>Contrato</p>', filename: 'contrato.html' } }),
+    ),
   );
 };
+
+/** The form's own submit — distinct from the per-row send and the one inside the preview. */
+const submitButton = () => screen.getByRole('button', { name: /gerar contrato/i });
 
 const renderDialog = () => {
   const onClose = vi.fn();
@@ -180,9 +238,6 @@ describe('GuardianContractsDialog', () => {
         received = (await request.json()) as { contract: Record<string, unknown> };
         return HttpResponse.json({ data: pendingContract }, { status: 201 });
       }),
-      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/send_for_signature`), () =>
-        HttpResponse.json({ data: pendingContract }),
-      ),
     );
 
     renderDialog();
@@ -194,7 +249,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
 
-    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+    await user.click(submitButton());
 
     await waitFor(() => expect(received).toBeDefined());
 
@@ -211,7 +266,7 @@ describe('GuardianContractsDialog', () => {
     });
   });
 
-  it('lands on the pending tab after sending, since that is where the contract goes', async () => {
+  it('lands on the pending tab once the contract exists, since that is where it goes', async () => {
     authenticate();
     stubFormOptions();
 
@@ -222,9 +277,6 @@ describe('GuardianContractsDialog', () => {
       }),
       http.post(apiUrl(CONTRACTS_PATH), () =>
         HttpResponse.json({ data: pendingContract }, { status: 201 }),
-      ),
-      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/send_for_signature`), () =>
-        HttpResponse.json({ data: pendingContract }),
       ),
     );
 
@@ -237,13 +289,21 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
 
-    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+    await user.click(submitButton());
 
-    expect(await screen.findByRole('button', { name: /marcar assinado/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /aguardando assinatura/i })).toHaveAttribute(
-      'aria-selected',
-      'true',
+    expect(await screen.findByText(/pré-visualização do contrato/i)).toBeInTheDocument();
+
+    // The preview is a modal, so the dialog behind it is out of the accessibility tree until it
+    // closes — which is also the moment the school is back on the listing.
+    await user.click(screen.getByRole('button', { name: 'Fechar' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: /aguardando assinatura/i })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      ),
     );
+    expect(await screen.findByRole('button', { name: /marcar assinado/i })).toBeInTheDocument();
   });
 
   // The amount follows the plan's full price and the band granted, so it is explainable rather
@@ -283,9 +343,6 @@ describe('GuardianContractsDialog', () => {
         received = (await request.json()) as { contract: Record<string, unknown> };
         return HttpResponse.json({ data: pendingContract }, { status: 201 });
       }),
-      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/send_for_signature`), () =>
-        HttpResponse.json({ data: pendingContract }),
-      ),
     );
 
     renderDialog();
@@ -298,7 +355,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('combobox', { name: /desconto/i }));
     await user.click(screen.getByRole('option', { name: 'Desconto 10%' }));
 
-    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+    await user.click(submitButton());
 
     await waitFor(() => expect(received).toBeDefined());
     expect(received?.contract.plan_discount_id).toBe(7);
@@ -313,16 +370,16 @@ describe('GuardianContractsDialog', () => {
     renderDialog();
     await screen.findByText(/nenhum contrato assinado/i);
 
-    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+    await user.click(submitButton());
 
     expect(await screen.findByText(/selecione o filho/i)).toBeInTheDocument();
     expect(screen.getByText(/selecione o plano/i)).toBeInTheDocument();
     expect(screen.getByText(/informe o valor da mensalidade/i)).toBeInTheDocument();
   });
 
-  // Creating the contract and dispatching it are separate calls: the second is what puts the
-  // agreement in the family's inbox.
-  it('dispatches the contract to the provider right after creating it', async () => {
+  // Creating is not sending. The school reads the actual document first — a contract in a
+  // family's inbox cannot be recalled, and the old flow dispatched before anyone had seen it.
+  it('sends nothing to the provider when the contract is created', async () => {
     authenticate();
     stubFormOptions();
 
@@ -349,25 +406,20 @@ describe('GuardianContractsDialog', () => {
       target: { value: '85000' },
     });
 
-    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+    await user.click(submitButton());
 
-    await waitFor(() => expect(dispatched).toBe(true));
+    // The preview opens instead, showing the agreement as the family would receive it.
+    expect(await screen.findByTitle('Contrato')).toBeInTheDocument();
+    expect(dispatched).toBe(false);
   });
 
-  // The contract must survive a provider outage: it exists and can be resent.
-  it('keeps the contract and explains when the dispatch fails', async () => {
+  // The contract must survive a provider outage: it exists and can be sent again.
+  it('keeps the contract and explains when the send fails', async () => {
     authenticate();
     stubFormOptions();
 
     server.use(
-      // The dialog opens on the signed tab, which must be empty for the form to be reachable.
-      http.get(apiUrl(CONTRACTS_PATH), ({ request }) => {
-        const status = new URL(request.url).searchParams.get('signature_status');
-        return HttpResponse.json(page(status === 'pending_signature' ? [undispatchedContract] : []));
-      }),
-      http.post(apiUrl(CONTRACTS_PATH), () =>
-        HttpResponse.json({ data: undispatchedContract }, { status: 201 }),
-      ),
+      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([undispatchedContract]))),
       http.post(apiUrl(`${CONTRACTS_PATH}/${undispatchedContract.id}/send_for_signature`), () =>
         HttpResponse.json(
           {
@@ -383,23 +435,16 @@ describe('GuardianContractsDialog', () => {
     );
 
     renderDialog();
-    await screen.findByText(/nenhum contrato assinado/i);
+    await user.click(await screen.findByRole('tab', { name: /aguardando assinatura/i }));
 
-    await user.click(screen.getByRole('combobox', { name: /filho/i }));
-    await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
-    await user.click(screen.getByRole('combobox', { name: /plano/i }));
-    await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
-    fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), {
-      target: { value: '85000' },
-    });
-
-    await user.click(screen.getByRole('button', { name: /enviar para assinatura/i }));
+    await user.click(await screen.findByRole('button', { name: 'Enviar para assinatura' }));
 
     expect(await screen.findByText(/nenhuma integração de assinatura/i)).toBeInTheDocument();
+    expect(screen.getByText('Não enviado')).toBeInTheDocument();
   });
 
   // A contract that never reached the provider is waiting on the school, not on the family.
-  it('marks an undispatched contract as not sent and offers to resend it', async () => {
+  it('marks an undispatched contract as not sent and offers to send it', async () => {
     authenticate();
     stubFormOptions();
 
@@ -418,7 +463,7 @@ describe('GuardianContractsDialog', () => {
     expect(await screen.findByText('Não enviado')).toBeInTheDocument();
     expect(screen.getByText(/ainda não enviado para assinatura/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /reenviar/i }));
+    await user.click(screen.getByRole('button', { name: 'Enviar para assinatura' }));
 
     await waitFor(() => expect(resent).toBe(true));
   });
@@ -455,8 +500,131 @@ describe('GuardianContractsDialog', () => {
     renderDialog();
 
     expect(await screen.findByText(/não tem filhos vinculados/i)).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: /enviar para assinatura/i })).toBeDisabled(),
+    await waitFor(() => expect(submitButton()).toBeDisabled());
+  });
+  // Choosing the child is all the operator should have to do; the rest comes off the register.
+  it('shows what the register already holds about the chosen child', async () => {
+    authenticate();
+    stubFormOptions();
+    server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([]))));
+
+    renderDialog();
+    await screen.findByText(/nenhum contrato assinado/i);
+
+    await user.click(screen.getByRole('combobox', { name: /filho/i }));
+    await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
+
+    expect(await screen.findByText(/dados que entram no contrato/i)).toBeInTheDocument();
+    expect(screen.getByText('529.982.247-25')).toBeInTheDocument();
+    expect(screen.getByText('MG-14.235.789')).toBeInTheDocument();
+    expect(screen.getByText(/Mãe: Maria Silva/)).toBeInTheDocument();
+    expect(screen.getByText('Pode assinar')).toBeInTheDocument();
+  });
+
+  // Autentique reaches a signer by e-mail and identifies them by CPF. Learning that from a
+  // rejected upload, with a family already expecting the contract, is late.
+  it('names a guardian who cannot sign before anything is created', async () => {
+    authenticate();
+    stubFormOptions();
+    server.use(
+      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([]))),
+      http.get(apiUrl(PREFILL_PATH), () =>
+        HttpResponse.json({
+          data: {
+            ...prefill,
+            guardians: [
+              { ...prefill.guardians[0], email: null, can_sign: false, missing: ['email'] },
+            ],
+            blocking_issues: ['Sem e-mail ou CPF para Maria Silva.'],
+          },
+        }),
+      ),
     );
+
+    renderDialog();
+    await screen.findByText(/nenhum contrato assinado/i);
+
+    await user.click(screen.getByRole('combobox', { name: /filho/i }));
+    await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
+
+    expect(await screen.findByText(/sem e-mail ou cpf para maria silva/i)).toBeInTheDocument();
+    expect(screen.getByText('Cadastro incompleto')).toBeInTheDocument();
+  });
+
+  // Reading the document is never destructive, so it is offered whatever state the contract is in.
+  it('opens the agreement for reading from a row, without sending it', async () => {
+    authenticate();
+    stubFormOptions();
+
+    let dispatched = false;
+    server.use(
+      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([undispatchedContract]))),
+      http.post(apiUrl(`${CONTRACTS_PATH}/${undispatchedContract.id}/send_for_signature`), () => {
+        dispatched = true;
+        return HttpResponse.json({ data: pendingContract });
+      }),
+    );
+
+    renderDialog();
+    await user.click(await screen.findByRole('tab', { name: /aguardando assinatura/i }));
+
+    await user.click(await screen.findByRole('button', { name: /pré-visualizar/i }));
+
+    expect(await screen.findByTitle('Contrato')).toBeInTheDocument();
+    expect(dispatched).toBe(false);
+  });
+  // A signed contract is the one people most often need to reread; hiding the preview once it was
+  // signed meant the only copy on screen was gone exactly when it mattered.
+  it('still reads a contract that has already been signed', async () => {
+    authenticate();
+    stubFormOptions();
+    server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([signedContract]))));
+
+    renderDialog();
+
+    await user.click(await screen.findByRole('button', { name: /pré-visualizar/i }));
+
+    expect(await screen.findByTitle('Contrato')).toBeInTheDocument();
+  });
+
+  // Two different documents: our render of what was sent, and the provider's file with the
+  // signature page appended. The second is the one that proves anything.
+  it('links the signed PDF from Autentique on a signed contract', async () => {
+    authenticate();
+    stubFormOptions();
+    server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([signedContract]))));
+
+    renderDialog();
+
+    const link = await screen.findByRole('link', { name: /contrato assinado \(pdf\)/i });
+    expect(link).toHaveAttribute('href', signedContract.signed_document_url);
+    expect(link).toHaveAttribute('target', '_blank');
+  });
+
+  it('offers the signed PDF from inside the preview too', async () => {
+    authenticate();
+    stubFormOptions();
+    server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([signedContract]))));
+
+    renderDialog();
+    await user.click(await screen.findByRole('button', { name: /pré-visualizar/i }));
+
+    expect(await screen.findByRole('link', { name: /abrir pdf assinado/i })).toHaveAttribute(
+      'href',
+      signedContract.signed_document_url,
+    );
+  });
+
+  // Nothing to sign a second time, and nothing left to send.
+  it('offers no send action on a signed contract', async () => {
+    authenticate();
+    stubFormOptions();
+    server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([signedContract]))));
+
+    renderDialog();
+    await screen.findByRole('button', { name: /pré-visualizar/i });
+
+    expect(screen.queryByRole('button', { name: 'Enviar para assinatura' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /marcar assinado/i })).not.toBeInTheDocument();
   });
 });

@@ -10,6 +10,22 @@ export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\
  */
 export const API_LOCALE = 'pt-BR';
 
+/**
+ * Turns a host-relative path the API returns — Active Storage blobs come back with
+ * `only_path: true` — into something the browser can actually fetch. The SPA is served from
+ * another origin in development, so a bare `/rails/active_storage/...` resolves against the SPA
+ * and 404s: the image simply fails to render, which is how the contract logo looked broken.
+ *
+ * An absolute URL is handed back untouched, so a provider-hosted file passes through.
+ */
+export const apiAssetUrl = (path: string | null | undefined) => {
+  if (!path) {
+    return null;
+  }
+
+  return /^https?:\/\//i.test(path) ? path : `${API_BASE_URL}${path}`;
+};
+
 /** The API tags every error response with `{ error: { code, message, details } }`. */
 export class ApiError extends Error {
   readonly status: number;

@@ -4,6 +4,7 @@ import {
   Contract,
   ContractListResponse,
   ContractPayload,
+  ContractPrefill,
   ContractResponse,
 } from 'types/contract';
 import { BillingPlan } from 'types/contract';
@@ -62,6 +63,39 @@ export const dispatchContract = async (schoolId: number, id: number): Promise<Co
   const response = await request<ContractResponse>(
     `${collectionPath(schoolId)}/${id}/send_for_signature`,
     { method: 'POST' },
+  );
+
+  return response.data;
+};
+
+/**
+ * GET /api/v1/schools/:school_id/billing/contracts/prefill?student_id=… — everything a contract
+ * for that student would be built from, plus whatever would stop the send. Read before anything
+ * is created, so the school fixes a missing e-mail here rather than after a family was promised
+ * a document.
+ */
+export const getContractPrefill = async (
+  schoolId: number,
+  studentId: number,
+): Promise<ContractPrefill> => {
+  const query = new URLSearchParams({ student_id: String(studentId) });
+  const response = await request<{ data: ContractPrefill }>(
+    `${collectionPath(schoolId)}/prefill?${query}`,
+  );
+
+  return response.data;
+};
+
+/**
+ * GET /api/v1/schools/:school_id/billing/contracts/:id/preview — the agreement as the family
+ * will receive it, rendered from this contract's own data. Nothing is sent.
+ */
+export const previewContract = async (
+  schoolId: number,
+  id: number,
+): Promise<{ html: string; filename: string }> => {
+  const response = await request<{ data: { html: string; filename: string } }>(
+    `${collectionPath(schoolId)}/${id}/preview`,
   );
 
   return response.data;

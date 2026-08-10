@@ -41,6 +41,11 @@ production:
     queue: billing
     schedule: at 5:30am every day
     timezone: America/Sao_Paulo
+  signatures_reconcile_pending:
+    class: Signatures::ReconcilePendingContractsJob
+    queue: billing
+    schedule: at 7:30am every day
+    timezone: America/Sao_Paulo
 
 development:
   billing_monthly_charge_generation:
@@ -67,4 +72,9 @@ development:
     class: Billing::PurgeWebhookEventsJob
     queue: billing
     schedule: at 5:30am every day
+    timezone: America/Sao_Paulo
+  signatures_reconcile_pending:
+    class: Signatures::ReconcilePendingContractsJob
+    queue: billing
+    schedule: at 7:30am every day
     timezone: America/Sao_Paulo

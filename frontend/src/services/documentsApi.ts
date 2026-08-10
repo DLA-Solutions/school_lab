@@ -1,5 +1,5 @@
 import { DocumentListResponse, DocumentResponse, SchoolDocument } from 'types/document';
-import { API_BASE_URL, request } from './api';
+import { apiAssetUrl, request } from './api';
 
 const collectionPath = (schoolId: number) => `/api/v1/schools/${schoolId}/documents`;
 
@@ -67,9 +67,5 @@ export const uploadPersonDocument = async (
 export const deleteDocument = (schoolId: number, id: number) =>
   request<null>(`${collectionPath(schoolId)}/${id}`, { method: 'DELETE' });
 
-/**
- * The blueprint returns `file_url` as a host-relative path (`only_path: true`), so it needs the
- * API origin prepended before it can be opened from the SPA, which is served elsewhere in dev.
- */
-export const documentDownloadUrl = (document: SchoolDocument) =>
-  document.file_url ? `${API_BASE_URL}${document.file_url}` : null;
+/** The blueprint returns `file_url` host-relative; `apiAssetUrl` puts the API origin back on. */
+export const documentDownloadUrl = (document: SchoolDocument) => apiAssetUrl(document.file_url);

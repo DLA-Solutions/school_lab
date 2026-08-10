@@ -21,6 +21,7 @@ import { EmptyState, ErrorBanner, SemanticChip } from 'design-system';
 import { ApiError } from 'services/api';
 import {
   dispatchContract,
+  getContractPrefill,
   listBillingPlans,
   listContracts,
   listPlanDiscounts,
@@ -28,7 +29,9 @@ import {
   signContract,
 } from 'services/contractsApi';
 import { listStudents } from 'services/studentsApi';
-import { BillingPlan, Contract, PlanDiscount } from 'types/contract';
+import { BillingPlan, Contract, ContractPrefill, PlanDiscount } from 'types/contract';
+import ContractPrefillSummary from './ContractPrefillSummary';
+import ContractPreviewDialog from './ContractPreviewDialog';
 import { Guardian } from 'types/guardian';
 import { Student } from 'types/student';
 import { formatCpf } from 'utils/documentNumber';
@@ -118,6 +121,11 @@ const GuardianContractsDialog = ({
   const [signingId, setSigningId] = useState<number | null>(null);
   const [dispatchingId, setDispatchingId] = useState<number | null>(null);
 
+  // What the register already holds about the chosen student, and what would stop the send.
+  const [prefill, setPrefill] = useState<ContractPrefill | null>(null);
+  const [prefilling, setPrefilling] = useState(false);
+  const [previewing, setPreviewing] = useState<Contract | null>(null);
+
   const loadContracts = useCallback(
     async (signatureStatus: Contract['signature_status']) => {
       setLoading(true);
@@ -171,6 +179,62 @@ const GuardianContractsDialog = ({
 
     loadFormOptions();
   }, [schoolId, guardian.id]);
+
+  /**
+   * Choosing the child is all the operator should have to do: the API returns what the register
+   * already holds about them, and the form fills itself in from it. Every suggestion stays
+   * editable — a negotiated figure and a different due date are real cases.
+   */
+  useEffect(() => {
+    if (!form.student_id) {
+      setPrefill(null);
+      return;
+    }
+
+    let current = true;
+    const studentId = Number(form.student_id);
+
+    const loadPrefill = async () => {
+      setPrefilling(true);
+
+      try {
+        const data = await getContractPrefill(schoolId, studentId);
+        if (!current) {
+          return;
+        }
+
+        setPrefill(data);
+        setForm((state) => ({
+          ...state,
+          payer_guardian_id: state.payer_guardian_id || String(data.suggested.payer_guardian_id ?? ''),
+          billing_plan_id:
+            state.billing_plan_id || String(data.suggested.billing_plan_id ?? ''),
+          due_day: String(data.suggested.due_day),
+          amount:
+            state.amount ||
+            (data.suggested.negotiated_amount_cents
+              ? formatCentsInput(String(data.suggested.negotiated_amount_cents))
+              : ''),
+        }));
+      } catch {
+        // The contract can still be filled in by hand; losing the summary is not worth an error
+        // banner over the form the operator is in the middle of.
+        if (current) {
+          setPrefill(null);
+        }
+      } finally {
+        if (current) {
+          setPrefilling(false);
+        }
+      }
+    };
+
+    loadPrefill();
+
+    return () => {
+      current = false;
+    };
+  }, [schoolId, form.student_id]);
 
   /**
    * The amount follows the plan's full price and the band granted, so it is explainable rather
@@ -246,26 +310,14 @@ const GuardianContractsDialog = ({
       });
 
       setForm({ ...emptyForm, payer_guardian_id: String(guardian.id) });
+      setPrefill(null);
 
-      // The contract exists now; dispatching it is the step that puts it in the family's inbox.
-      // A failure there leaves a contract to resend rather than losing the whole thing, so it is
-      // reported without undoing the creation.
-      let dispatchFailure = '';
-      try {
-        await dispatchContract(schoolId, contract.id);
-      } catch (dispatchError) {
-        dispatchFailure =
-          dispatchError instanceof ApiError
-            ? dispatchMessage(dispatchError)
-            : 'Contrato criado, mas o envio para assinatura falhou. Use "Reenviar".';
-      }
-
+      // Creating is not sending. The contract lands in the listing as "não enviado" so the
+      // school can read the actual document before a family ever sees it — dispatching to
+      // Autentique is the separate, deliberate step that follows.
       setTab('pending_signature');
       await loadContracts('pending_signature');
-
-      if (dispatchFailure) {
-        setError(dispatchFailure);
-      }
+      setPreviewing(contract);
     } catch (err) {
       if (err instanceof ApiError) {
         const mapped = Object.entries(err.details).reduce<FieldErrors>((acc, [key, value]) => {
@@ -301,6 +353,7 @@ const GuardianContractsDialog = ({
 
     try {
       await dispatchContract(schoolId, contract.id);
+      setPreviewing(null);
       await loadContracts(tab);
     } catch (err) {
       setError(
@@ -387,32 +440,56 @@ const GuardianContractsDialog = ({
                   key={contract.id}
                   disableGutters
                   secondaryAction={
-                    contract.signature_status === 'pending_signature' ? (
-                      <Stack direction="row" gap={0.5}>
-                        {!contract.sent_to_provider && (
-                          <Button
-                            size="small"
-                            onClick={() => handleDispatch(contract)}
-                            disabled={dispatchingId === contract.id}
-                            startIcon={
-                              dispatchingId === contract.id ? <CircularProgress size={14} /> : null
-                            }
-                          >
-                            Reenviar
-                          </Button>
-                        )}
+                    <Stack direction="row" gap={0.5}>
+                      {/* Reading the document is never destructive, and a signed contract is the
+                          one people most often need to reread — so this is offered whatever
+                          state the contract is in. */}
+                      <Button size="small" onClick={() => setPreviewing(contract)}>
+                        Pré-visualizar
+                      </Button>
+
+                      {/* The provider's own file, with the signature page it appends. Not the
+                          same document as the preview, which is our render of what we sent. */}
+                      {contract.signed_document_url && (
                         <Button
                           size="small"
-                          onClick={() => handleSign(contract)}
-                          disabled={signingId === contract.id}
-                          startIcon={
-                            signingId === contract.id ? <CircularProgress size={14} /> : null
-                          }
+                          component="a"
+                          href={contract.signed_document_url}
+                          target="_blank"
+                          rel="noopener"
                         >
-                          Marcar assinado
+                          Contrato assinado (PDF)
                         </Button>
-                      </Stack>
-                    ) : null
+                      )}
+
+                      {contract.signature_status === 'pending_signature' && (
+                        <>
+                          {!contract.sent_to_provider && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => handleDispatch(contract)}
+                              disabled={dispatchingId === contract.id}
+                              startIcon={
+                                dispatchingId === contract.id ? <CircularProgress size={14} /> : null
+                              }
+                            >
+                              Enviar para assinatura
+                            </Button>
+                          )}
+                          <Button
+                            size="small"
+                            onClick={() => handleSign(contract)}
+                            disabled={signingId === contract.id}
+                            startIcon={
+                              signingId === contract.id ? <CircularProgress size={14} /> : null
+                            }
+                          >
+                            Marcar assinado
+                          </Button>
+                        </>
+                      )}
+                    </Stack>
                   }
                 >
                   <ListItemText
@@ -455,7 +532,7 @@ const GuardianContractsDialog = ({
 
           <Stack component="form" onSubmit={handleSend} direction="column" gap={2} noValidate>
             <Typography variant="body2" color="text.secondary">
-              Enviar novo contrato para assinatura
+              Novo contrato — escolha o filho e o restante é preenchido do cadastro
             </Typography>
 
             {students.length === 0 && (
@@ -536,6 +613,14 @@ const GuardianContractsDialog = ({
               </Grid>
             </Grid>
 
+            {prefilling && (
+              <Stack alignItems="center" py={1}>
+                <CircularProgress size={18} />
+              </Stack>
+            )}
+
+            {prefill && <ContractPrefillSummary prefill={prefill} />}
+
             <Stack direction="row" justifyContent="flex-end">
               <Button
                 type="submit"
@@ -543,7 +628,7 @@ const GuardianContractsDialog = ({
                 disabled={sending || students.length === 0}
                 startIcon={sending ? <CircularProgress size={16} color="inherit" /> : null}
               >
-                {sending ? 'Enviando...' : 'Enviar para assinatura'}
+                {sending ? 'Gerando...' : 'Gerar contrato'}
               </Button>
             </Stack>
           </Stack>
@@ -554,6 +639,15 @@ const GuardianContractsDialog = ({
           Fechar
         </Button>
       </DialogActions>
+
+      <ContractPreviewDialog
+        open={previewing !== null}
+        schoolId={schoolId}
+        contract={previewing}
+        onClose={() => setPreviewing(null)}
+        onSend={handleDispatch}
+        sending={dispatchingId !== null}
+      />
     </Dialog>
   );
 };

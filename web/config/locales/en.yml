@@ -38,6 +38,7 @@ en:
       contract_pdf_unsupported_characters: "The contract contains characters the PDF font cannot render."
       contract_template_missing: "No contract template configured for this school."
       contract_already_sent: "This contract has already been sent for signature."
+      contract_not_sent: "This contract has not been sent for signature yet."
       signer_missing_details: "Missing e-mail or CPF for %{names}."
       signature_provider_missing: "No signature integration configured for this school."
       signature_provider_unauthorized: "Autentique rejected this school's credentials."
@@ -49,6 +50,11 @@ en:
       charge_due_date_required: "Provide a due date."
       plan_discount_in_use: "This discount is applied to %{count} contract(s)."
       job_position_in_use: "This position is held by %{count} collaborator(s). Move them first."
+    # Not blocking — the contract goes out with a gap someone has to fill in later.
+    warnings:
+      student_without_cpf: "This student has no CPF on file; the contract will go out with that field blank."
+      student_without_class: "This student is in no class; the contract will go out without a cohort."
+      contract_template_missing: "This school has no agreement of its own. The built-in one will be used, without the school's clauses."
   signature:
     contract_message: "Please review and sign the educational services agreement for %{student}."
   activerecord:

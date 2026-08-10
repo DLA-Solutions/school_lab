@@ -17,7 +17,7 @@ RSpec.describe Gateways::Signature::Autentique::Adapter do
       signers: [
         Gateways::Signature::ValueObjects::Signer.new(
           name: "Maria Silva", email: "maria@example.com", cpf: "12345678909",
-          positions: [{ x: 9.41, y: 78.5, z: 1 }]
+          positions: [ { x: 9.41, y: 78.5, z: 1 } ]
         ),
         Gateways::Signature::ValueObjects::Signer.new(
           name: "João Silva", email: "joao@example.com", cpf: "52998224725"
@@ -88,7 +88,7 @@ RSpec.describe Gateways::Signature::Autentique::Adapter do
       operations = JSON.parse(captured[:body][/\{"query".*?\}\}\}(?=\r\n)/m] || extract_operations(captured[:body]))
       signers = operations.dig("variables", "signers")
 
-      expect(signers.map { |s| s["email"] }).to eq(["maria@example.com", "joao@example.com"])
+      expect(signers.map { |s| s["email"] }).to eq([ "maria@example.com", "joao@example.com" ])
       expect(signers.map { |s| s["action"] }).to eq(%w[SIGN SIGN])
       # `configs.cpf` makes the provider demand that document from whoever opens the link.
       expect(signers.map { |s| s.dig("configs", "cpf") }).to eq(%w[12345678909 52998224725])
@@ -103,7 +103,7 @@ RSpec.describe Gateways::Signature::Autentique::Adapter do
       signers = JSON.parse(extract_operations(captured[:body])).dig("variables", "signers")
 
       expect(signers.first["positions"]).to eq(
-        [{ "x" => "9.41", "y" => "78.50", "z" => 1, "element" => "SIGNATURE" }]
+        [ { "x" => "9.41", "y" => "78.50", "z" => 1, "element" => "SIGNATURE" } ]
       )
     end
 
@@ -135,7 +135,7 @@ RSpec.describe Gateways::Signature::Autentique::Adapter do
       captured = stub_create
       single = Gateways::Signature::ValueObjects::SignatureRequest.new(
         name: request.name, pdf: request.pdf, filename: request.filename,
-        signers: [request.signers.first]
+        signers: [ request.signers.first ]
       )
 
       adapter.create_document(single)
@@ -147,7 +147,7 @@ RSpec.describe Gateways::Signature::Autentique::Adapter do
     describe "failures" do
       # GraphQL answers 200 even when it refuses the query, so the body has to be read.
       it "raises a validation error when GraphQL reports one" do
-        stub_create(body: { errors: [{ message: "E-mail inválido" }] }.to_json)
+        stub_create(body: { errors: [ { message: "E-mail inválido" } ] }.to_json)
 
         expect { adapter.create_document(request) }
           .to raise_error(Gateways::Signature::ValidationError, /E-mail inválido/)
@@ -228,6 +228,100 @@ RSpec.describe Gateways::Signature::Autentique::Adapter do
       )
 
       expect(adapter.fetch_document(provider_document_id: "doc-abc-123").status).to eq("pending")
+    end
+
+    # Autentique lists the account owner among a document's signatures — no action, and never a
+    # signature of their own. Counting them as an outstanding party kept a fully signed contract
+    # reading as "pending" for good, which is how a real family's contract sat unnoticed after
+    # they had signed it.
+    it "ignores the account owner, who is listed but is not a signer" do
+      stub_request(:post, endpoint).to_return(
+        status: 200,
+        body: {
+          data: {
+            document: {
+              id: "doc-abc-123",
+              signatures: [
+                { public_id: "owner", email: "escola@example.com", action: nil, signed: nil },
+                { public_id: "s1", email: "maria@example.com", action: { name: "SIGN" },
+                  signed: { created_at: "2026-08-09" } }
+              ]
+            }
+          }
+        }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+      expect(adapter.fetch_document(provider_document_id: "doc-abc-123").status).to eq("signed")
+    end
+
+    it "keeps a document pending while one of its signers has not signed" do
+      stub_request(:post, endpoint).to_return(
+        status: 200,
+        body: {
+          data: {
+            document: {
+              id: "doc-abc-123",
+              signatures: [
+                { public_id: "owner", email: "escola@example.com", action: nil, signed: nil },
+                { public_id: "s1", email: "maria@example.com", action: { name: "SIGN" },
+                  signed: { created_at: "2026-08-09" } },
+                { public_id: "s2", email: "joao@example.com", action: { name: "SIGN" }, signed: nil }
+              ]
+            }
+          }
+        }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+      expect(adapter.fetch_document(provider_document_id: "doc-abc-123").status).to eq("pending")
+    end
+
+    # Where the signed file itself lives — the provider's own PDF, with the signature page it
+    # appends. The listing links to it rather than to our re-render of what was sent.
+    it "carries the address of the signed file" do
+      stub_request(:post, endpoint).to_return(
+        status: 200,
+        body: {
+          data: {
+            document: {
+              id: "doc-abc-123",
+              files: { signed: "https://api.autentique.com.br/documentos/doc-abc-123/assinado.pdf" },
+              signatures: [
+                { public_id: "s1", email: "maria@example.com", action: { name: "SIGN" },
+                  signed: { created_at: "2026-08-09" } }
+              ]
+            }
+          }
+        }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+      document = adapter.fetch_document(provider_document_id: "doc-abc-123")
+
+      expect(document.signed_file_url)
+        .to eq("https://api.autentique.com.br/documentos/doc-abc-123/assinado.pdf")
+    end
+
+    # A refusal is not "still waiting": nothing more is coming.
+    it "reports a rejected document as rejected" do
+      stub_request(:post, endpoint).to_return(
+        status: 200,
+        body: {
+          data: {
+            document: {
+              id: "doc-abc-123",
+              signatures: [
+                { public_id: "s1", email: "maria@example.com", action: { name: "SIGN" },
+                  signed: nil, rejected: { created_at: "2026-08-09" } }
+              ]
+            }
+          }
+        }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+      expect(adapter.fetch_document(provider_document_id: "doc-abc-123").status).to eq("rejected")
     end
   end
 

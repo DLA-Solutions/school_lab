@@ -22,7 +22,7 @@ module Contracts
       if guardians.empty?
         return ResponseService.failure(
           code: :validation_error,
-          details: { base: [I18n.t("api.errors.contract_without_guardians")] }
+          details: { base: [ I18n.t("api.errors.contract_without_guardians") ] }
         )
       end
 
@@ -46,7 +46,7 @@ module Contracts
 
       ResponseService.failure(
         code: :validation_error,
-        details: { base: [I18n.t("api.errors.contract_pdf_unsupported_characters")] }
+        details: { base: [ I18n.t("api.errors.contract_pdf_unsupported_characters") ] }
       )
     end
 
@@ -82,15 +82,15 @@ module Contracts
       pdf.text "1. Partes", size: 12, style: :bold
       pdf.move_down 6
 
-      rows = [["Contratada", contract.school.name.to_s]]
+      rows = [ [ "Contratada", contract.school.name.to_s ] ]
 
       # One row per guardian, labelled by the relationship on file — so a contract with a single
       # responsible adult reads as such rather than leaving an empty second party.
       guardians.each do |guardian|
-        rows << [contractor_label(guardian), guardian_description(guardian)]
+        rows << [ contractor_label(guardian), guardian_description(guardian) ]
       end
 
-      rows << ["Aluno(a)", student_description]
+      rows << [ "Aluno(a)", student_description ]
 
       pdf.table(rows, width: pdf.bounds.width, cell_style: { size: 9, borders: %i[bottom] }) do
         column(0).font_style = :bold
@@ -125,10 +125,10 @@ module Contracts
     def address_line(guardian)
       return if guardian.street.blank?
 
-      street = [guardian.street, guardian.number, guardian.complement].compact_blank.join(", ")
-      city = [guardian.city, guardian.state].compact_blank.join("/")
+      street = [ guardian.street, guardian.number, guardian.complement ].compact_blank.join(", ")
+      city = [ guardian.city, guardian.state ].compact_blank.join("/")
 
-      [street, guardian.neighborhood, city, formatted_zip(guardian.zip_code)].compact_blank.join(" - ")
+      [ street, guardian.neighborhood, city, formatted_zip(guardian.zip_code) ].compact_blank.join(" - ")
     end
 
     def formatted_zip(zip_code)
