@@ -12,7 +12,8 @@ Deploy one layer or the full stack to **staging** or **production**. Runbook: `d
 | User says | Layer | Directory | Kamal service |
 |---|---|---|---|
 | site, landing, institutional | `site` | `site/` | `scholarpremium-site` |
-| frontend, SPA, app (UI) | `frontend` | `frontend/` | `scholarpremium-spa` |
+| frontend, SPA, app (UI), school web | `frontend` | `frontend/app/` | `scholarpremium-spa` |
+| backoffice, platform SPA | `backoffice` | `frontend/backoffice/` | `scholarpremium-backoffice-spa` |
 | API, web, Rails, backend | `web` | `web/` | `scholarpremium` |
 | everything, full stack, all services | `all` | see order below | all three |
 
@@ -25,7 +26,7 @@ Default to **staging** when the destination is ambiguous. Confirm before **produ
 
 ## Before deploy (always)
 
-1. **Working directory** — run Kamal from the service directory (`cd site`, `cd frontend`, or `cd web`). Use `bin/kamal` in `site/` and `frontend/` if present.
+1. **Working directory** — run Kamal from the service directory (`cd site`, `cd frontend/app`, `cd frontend/backoffice`, or `cd web`). Use `bin/kamal` in `site/`, `frontend/app/`, and `frontend/backoffice/` if present.
 2. **Registry token** — in the same shell:
    ```bash
    export KAMAL_REGISTRY_PASSWORD='...'   # classic PAT: write:packages + read:packages
@@ -89,7 +90,7 @@ Post-cutover order — **site → SPA → API**:
 
 ```bash
 cd site      && kamal deploy -d <dest>
-cd frontend  && kamal deploy -d <dest>
+cd frontend/app  && kamal deploy -d <dest>
 cd web       && kamal deploy -d <dest>
 ```
 
@@ -107,7 +108,7 @@ ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy remove scholarpremiu
 # 3. Deploy in cutover order
 cd site      && kamal deploy -d <dest>
 cd web       && kamal deploy -d <dest>
-cd frontend  && kamal deploy -d <dest>
+cd frontend/app  && kamal deploy -d <dest>
 ```
 
 Expect brief downtime on `/` and `/api` between steps 2 and 3.
