@@ -18,6 +18,7 @@ Rails.application.routes.draw do
         post "logout", to: "auth#logout"
         post "password", to: "auth#password"
         put "password", to: "auth#password"
+        post "invite/accept", to: "auth#invite_accept"
       end
 
       get "me", to: "me#show"

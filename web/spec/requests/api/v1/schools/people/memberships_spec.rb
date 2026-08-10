@@ -63,6 +63,8 @@ RSpec.describe "Api::V1::Schools::People::Memberships", type: :request do
           membership = Membership.kept.find(body.dig("data", "id"))
           expect(membership.status).to eq("invited")
           expect(membership.user.email).to eq("invite@example.com")
+          expect(membership.membership_invite_tokens.unused.count).to eq(1)
+          expect(membership.user.encrypted_password).to be_blank
         end
       end
 
@@ -184,11 +186,40 @@ RSpec.describe "Api::V1::Schools::People::Memberships", type: :request do
       response "200", "invite notification enqueued" do
         let(:invitee) { create(:user, email: "resend@example.com") }
         let!(:membership) { create(:membership, :invited, user: invitee, school: school, role: "guardian") }
+        let!(:existing_token) { create(:membership_invite_token, membership: membership) }
         let(:id) { membership.id }
 
         run_test! do
-          expect(People::InviteMembershipNotificationJob).to have_been_enqueued.with(membership.id)
+          expect(existing_token.reload.used_at).to be_present
+          expect(People::InviteMembershipNotificationJob).to have_been_enqueued.with(membership.id, kind_of(String))
+          expect(membership.membership_invite_tokens.unused.count).to eq(1)
         end
+      end
+
+      response "422", "active membership cannot be re-invited" do
+        let(:invitee) { create(:user, email: "active@example.com") }
+        let!(:membership) { create(:membership, user: invitee, school: school, role: "guardian", status: "active") }
+        let(:id) { membership.id }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("error")
+          expect(body["code"]).to eq("validation_error")
+        end
+      end
+
+      response "403", "teacher without manage_people cannot resend invite" do
+        let(:teacher_user) { create(:user) }
+        let!(:teacher_membership) { create(:membership, user: teacher_user, school: school, role: "teacher") }
+        let(:invitee) { create(:user, email: "blocked-resend@example.com") }
+        let!(:membership) { create(:membership, :invited, user: invitee, school: school, role: "guardian") }
+        let(:Authorization) { auth_headers_for(teacher_user)["Authorization"] }
+        let(:id) { membership.id }
+
+        before do
+          create(:staff_profile, membership: teacher_membership, school: school, role_template: teacher_template)
+        end
+
+        run_test!
       end
     end
   end
@@ -212,8 +243,21 @@ RSpec.describe "Membership invite notification on create", type: :request do
            },
            headers: auth_headers_for(admin),
            as: :json
-    end.to have_enqueued_job(People::InviteMembershipNotificationJob)
+    end.to have_enqueued_job(People::InviteMembershipNotificationJob).with(kind_of(Integer), kind_of(String))
 
     expect(response).to have_http_status(:created)
+  end
+end
+
+RSpec.describe "Invited membership school access", type: :request do
+  it "returns 403 on school-scoped routes before acceptance" do
+    school = create(:school)
+    invitee = create(:user)
+    create(:membership, :invited, user: invitee, school: school, role: "guardian")
+
+    get "/api/v1/schools/#{school.id}/people/memberships", headers: auth_headers_for(invitee), as: :json
+
+    expect(response).to have_http_status(:forbidden)
+    expect(JSON.parse(response.body).dig("error", "code")).to eq("membership_invited")
   end
 end

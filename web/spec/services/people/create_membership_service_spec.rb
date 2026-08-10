@@ -37,7 +37,18 @@ RSpec.describe People::CreateMembershipService do
     end
 
     it "enqueues invite notification job" do
-      expect { result }.to have_enqueued_job(People::InviteMembershipNotificationJob)
+      expect { result }.to have_enqueued_job(People::InviteMembershipNotificationJob).with(kind_of(Integer), kind_of(String))
+    end
+
+    it "issues an invite token for the membership" do
+      expect(result).to be_success
+      expect(result.data.membership_invite_tokens.unused.count).to eq(1)
+    end
+
+    it "does not set a server-generated password on a new user" do
+      expect(result).to be_success
+      user = result.data.user
+      expect(user.encrypted_password).to be_blank
     end
   end
 

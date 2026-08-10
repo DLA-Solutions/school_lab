@@ -5,9 +5,10 @@ module People
     STAFF_WITH_TEMPLATE_ROLES = %w[staff teacher].freeze
     NO_TEMPLATE_ROLES = %w[guardian backoffice].freeze
 
-    def initialize(school:, params:)
+    def initialize(school:, params:, inviter: nil)
       @school = school
       @params = params
+      @inviter = inviter
     end
 
     def call
@@ -36,14 +37,13 @@ module People
 
     private
 
-    attr_reader :school, :params
+    attr_reader :school, :params, :inviter
 
     def create_simple_membership(user:, role:)
       membership = school.memberships.build(user: user, role: role, status: "invited")
 
       if membership.save
-        enqueue_invite(membership)
-        ResponseService.success(data: membership)
+        issue_invite(membership)
       else
         ResponseService.failure(code: :validation_error, details: membership.errors.to_hash)
       end
@@ -81,8 +81,7 @@ module People
         )
       end
 
-      enqueue_invite(membership)
-      ResponseService.success(data: reload_membership(membership))
+      issue_invite(reload_membership(membership))
     rescue ActiveRecord::RecordInvalid => e
       ResponseService.failure(code: :validation_error, details: e.record.errors.to_hash)
     end
@@ -131,23 +130,26 @@ module People
             .find(membership.id)
     end
 
-    def enqueue_invite(membership)
-      People::InviteMembershipNotificationJob.perform_later(membership.id)
+    def issue_invite(membership)
+      token_result = Identity::IssueMembershipInviteTokenService.call(membership: membership, inviter: inviter)
+      return token_result if token_result.failure?
+
+      enqueue_invite(membership, token_result.data[:raw_token])
+      ResponseService.success(data: membership)
+    end
+
+    def enqueue_invite(membership, raw_token)
+      People::InviteMembershipNotificationJob.perform_later(membership.id, raw_token)
     end
 
     def find_or_create_user(email)
       existing = User.kept.find_by("LOWER(email) = ?", email)
       return existing if existing
 
-      password = SecureRandom.hex(16)
-      user = User.new(
-        email: email,
-        password: password,
-        password_confirmation: password
-      )
+      user = User.new(email: email)
       user.skip_confirmation!
 
-      if user.save
+      if user.save(validate: false)
         user
       else
         ResponseService.failure(code: :validation_error, details: user.errors.to_hash)

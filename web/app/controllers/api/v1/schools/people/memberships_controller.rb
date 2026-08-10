@@ -20,7 +20,11 @@ module Api
           def create
             authorize Membership
 
-            result = ::People::CreateMembershipService.call(school: Current.school, params: membership_params)
+            result = ::People::CreateMembershipService.call(
+              school: Current.school,
+              params: membership_params,
+              inviter: Current.user
+            )
             render_service_result(result, success_status: :created) do |membership|
               render json: { data: MembershipBlueprint.render_as_hash(membership) }, status: :created
             end
@@ -54,7 +58,7 @@ module Api
             membership = policy_scope(Membership).find(params[:id])
             authorize membership, :invite?
 
-            result = ::People::InviteMembershipService.call(membership: membership)
+            result = ::People::InviteMembershipService.call(membership: membership, inviter: Current.user)
             render_service_result(result) do |updated|
               render json: { data: MembershipBlueprint.render_as_hash(updated) }
             end

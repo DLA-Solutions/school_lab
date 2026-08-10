@@ -113,7 +113,7 @@ module Api
 
       def error_status_for(code)
         case code.to_sym
-        when :unauthorized, :invalid_credentials
+        when :unauthorized, :invalid_credentials, :invalid_invite_token
           :unauthorized
         when :forbidden
           :forbidden

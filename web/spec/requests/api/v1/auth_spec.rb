@@ -78,4 +78,90 @@ RSpec.describe "Api::V1::Auth", type: :request do
       end
     end
   end
+
+  path "/api/v1/auth/invite/accept" do
+    post "Accept invite token" do
+      tags "Auth"
+      consumes "application/json"
+      produces "application/json"
+      parameter name: :payload, in: :body, schema: {
+        type: :object,
+        properties: {
+          token: { type: :string },
+          password: { type: :string },
+          name: { type: :string }
+        },
+        required: %w[token password]
+      }
+
+      response "200", "password set from invite token" do
+        let(:school) { create(:school) }
+        let(:invited_user) { create(:user, email: "invitee@example.com") }
+        let!(:invited_membership) { create(:membership, :invited, user: invited_user, school: school) }
+        let(:raw_token) { SecureRandom.urlsafe_base64(32) }
+        let!(:invite_token) do
+          create(
+            :membership_invite_token,
+            membership: invited_membership,
+            school: school,
+            token_digest: Identity::IssueMembershipInviteTokenService.digest(raw_token)
+          )
+        end
+        let(:payload) do
+          {
+            token: raw_token,
+            password: "invite-password-123",
+            name: "Maria Silva"
+          }
+        end
+
+        before do
+          invited_user.update_columns(encrypted_password: "")
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["user_id"]).to eq(invited_user.id)
+          expect(body["membership_id"]).to eq(invited_membership.id)
+          expect(invited_user.reload.valid_password?("invite-password-123")).to be(true)
+          expect(invite_token.reload.used_at).to be_present
+        end
+      end
+
+      response "401", "invalid invite token" do
+        let(:payload) { { token: "invalid-token", password: "invite-password-123" } }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("error")
+          expect(body["code"]).to eq("invalid_invite_token")
+        end
+      end
+
+      response "422", "name required for passwordless user" do
+        let(:school) { create(:school) }
+        let(:invited_user) { create(:user, email: "noname@example.com") }
+        let!(:invited_membership) { create(:membership, :invited, user: invited_user, school: school) }
+        let(:raw_token) { SecureRandom.urlsafe_base64(32) }
+        let!(:invite_token) do
+          create(
+            :membership_invite_token,
+            membership: invited_membership,
+            school: school,
+            token_digest: Identity::IssueMembershipInviteTokenService.digest(raw_token)
+          )
+        end
+        let(:payload) { { token: raw_token, password: "invite-password-123" } }
+
+        before do
+          invited_user.update_columns(encrypted_password: "")
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("error")
+          expect(body["code"]).to eq("validation_error")
+          expect(body["details"]).to include("name")
+        end
+      end
+    end
+  end
 end
