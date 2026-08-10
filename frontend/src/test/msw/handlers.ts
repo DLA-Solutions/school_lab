@@ -171,6 +171,53 @@ export const staffUser: AuthUser = {
   guardian_profiles: [],
 };
 
+/** Platform backoffice operator — drives school create onboarding fields in tests. */
+export const backofficeMembership: Membership = {
+  id: 20,
+  school_id: 0,
+  school_name: null,
+  role: 'backoffice',
+  status: 'active',
+  email: 'backoffice@example.com',
+  role_template: null,
+  permissions: [],
+  is_owner: null,
+  segment_id: null,
+  display_title: null,
+  permission_sources: {},
+};
+
+export const backofficeUser: AuthUser = {
+  id: 5,
+  email: 'backoffice@example.com',
+  status: 'active',
+  memberships: [backofficeMembership],
+  guardian_profiles: [],
+};
+
+export const sampleSchools = [
+  {
+    id: 1,
+    name: 'Escola Alpha',
+    cnpj: '12.345.678/0001-90',
+    address: 'Rua A, 100',
+    saas_plan: 'standard',
+    school_group_id: null,
+    onboarding_status: 'active',
+    onboarding_mode: 'self_serve',
+  },
+  {
+    id: 2,
+    name: 'Escola Beta',
+    cnpj: null,
+    address: null,
+    saas_plan: null,
+    school_group_id: null,
+    onboarding_status: 'provisioning',
+    onboarding_mode: 'white_glove',
+  },
+];
+
 /** Three rows so a `per_page` below the total actually slices. */
 export const charges = [
   {
@@ -372,6 +419,60 @@ export const handlers = [
   http.get(apiUrl('/api/v1/me'), ({ request }) =>
     hasFreshToken(request) ? HttpResponse.json({ data: currentUser }) : expiredToken(),
   ),
+
+  http.get(apiUrl('/api/v1/schools'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return paginated(sampleSchools, new URL(request.url));
+  }),
+
+  http.post(apiUrl('/api/v1/schools'), async ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const body = (await request.json()) as {
+      school?: {
+        name?: string;
+        cnpj?: string;
+        onboarding_mode?: string;
+        owner_email?: string;
+      };
+    };
+
+    if (!body.school?.name?.trim()) {
+      return jsonError(422, 'validation_error', 'Não foi possível salvar.', {
+        name: ["can't be blank"],
+      });
+    }
+
+    if (!body.school.owner_email?.trim()) {
+      return jsonError(422, 'validation_error', 'Não foi possível salvar.', {
+        owner_email: ["can't be blank"],
+      });
+    }
+
+    const onboardingMode = body.school.onboarding_mode === 'white_glove' ? 'white_glove' : 'self_serve';
+    const onboardingStatus = onboardingMode === 'white_glove' ? 'provisioning' : 'pending_handoff';
+
+    return HttpResponse.json(
+      {
+        data: {
+          id: 99,
+          name: body.school.name.trim(),
+          cnpj: body.school.cnpj ?? null,
+          address: null,
+          saas_plan: null,
+          school_group_id: null,
+          onboarding_mode: onboardingMode,
+          onboarding_status: onboardingStatus,
+        },
+      },
+      { status: 201 },
+    );
+  }),
 
   http.get(apiUrl('/api/v1/schools/:schoolId/me/charges'), ({ request, params }) => {
     if (!hasFreshToken(request)) {

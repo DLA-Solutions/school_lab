@@ -1,4 +1,6 @@
 import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -8,6 +10,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
@@ -21,18 +24,46 @@ import {
   ErrorBanner,
   PageHeader,
   SectionCard,
+  SemanticChip,
 } from 'design-system';
+import { useAuth } from 'providers/AuthContext';
 import { ApiError } from 'services/api';
 import { createSchool, deleteSchool, listSchools, updateSchool } from 'services/schoolsApi';
+import paths, { PROVISIONING_WIZARD_ROUTE_REGISTERED } from 'routes/paths';
+import { SchoolOnboardingMode } from 'types/onboarding';
 import { School } from 'types/school';
 
 const PAGE_SIZE = 25;
 
-type FormField = 'name' | 'cnpj' | 'address' | 'saas_plan';
+type FormField = 'name' | 'cnpj' | 'address' | 'saas_plan' | 'onboarding_mode' | 'owner_email';
 
 type FormState = Record<FormField, string>;
 
-const emptyForm: FormState = { name: '', cnpj: '', address: '', saas_plan: '' };
+const emptyForm: FormState = {
+  name: '',
+  cnpj: '',
+  address: '',
+  saas_plan: '',
+  onboarding_mode: 'self_serve',
+  owner_email: '',
+};
+
+const ONBOARDING_MODE_LABELS: Record<SchoolOnboardingMode, string> = {
+  self_serve: 'Autoatendimento',
+  white_glove: 'Premium (white-glove)',
+};
+
+const ONBOARDING_STATUS_LABELS: Record<
+  NonNullable<School['onboarding_status']>,
+  { label: string; variant: 'info' | 'warning' | 'success' }
+> = {
+  provisioning: { label: 'Em provisionamento', variant: 'warning' },
+  pending_handoff: { label: 'Aguardando repasse', variant: 'info' },
+  active: { label: 'Ativa', variant: 'success' },
+};
+
+const isBackofficeUser = (memberships: { role: string; status: string }[]) =>
+  memberships.some((membership) => membership.role === 'backoffice' && membership.status === 'active');
 
 const renderOptional = ({ value }: GridRenderCellParams<School, string | null>) =>
   value ? (
@@ -48,6 +79,10 @@ const renderOptional = ({ value }: GridRenderCellParams<School, string | null>) 
  * returns every school to a backoffice user, and only the ones they administer to a school admin.
  */
 const Schools = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const backoffice = isBackofficeUser(user?.memberships ?? []);
+
   const [schools, setSchools] = useState<School[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -61,6 +96,7 @@ const Schools = () => {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FormField, string>>>({});
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [createdSchool, setCreatedSchool] = useState<School | null>(null);
   const [pendingDelete, setPendingDelete] = useState<School | null>(null);
 
   const load = useCallback(async () => {
@@ -93,8 +129,17 @@ const Schools = () => {
     load();
   }, [load]);
 
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditing(null);
+    setCreatedSchool(null);
+    setFieldErrors({});
+    setFormError('');
+  };
+
   const openForm = (school: School | null) => {
     setEditing(school);
+    setCreatedSchool(null);
     setForm(
       school
         ? {
@@ -102,6 +147,8 @@ const Schools = () => {
             cnpj: school.cnpj ?? '',
             address: school.address ?? '',
             saas_plan: school.saas_plan ?? '',
+            onboarding_mode: 'self_serve',
+            owner_email: '',
           }
         : emptyForm,
     );
@@ -120,8 +167,18 @@ const Schools = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const nextFieldErrors: Partial<Record<FormField, string>> = {};
+
     if (!form.name.trim()) {
-      setFieldErrors({ name: 'Informe o nome da escola.' });
+      nextFieldErrors.name = 'Informe o nome da escola.';
+    }
+
+    if (!editing && backoffice && !form.owner_email.trim()) {
+      nextFieldErrors.owner_email = 'Informe o e-mail do responsável.';
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
       return;
     }
 
@@ -133,23 +190,37 @@ const Schools = () => {
       cnpj: form.cnpj.trim() || null,
       address: form.address.trim() || null,
       saas_plan: form.saas_plan.trim() || null,
+      ...(backoffice && !editing
+        ? {
+            onboarding_mode: form.onboarding_mode as SchoolOnboardingMode,
+            owner_email: form.owner_email.trim(),
+          }
+        : {}),
     };
 
     try {
       if (editing) {
         await updateSchool(editing.id, payload);
+        closeForm();
+        load();
       } else {
-        await createSchool(payload);
-      }
+        const school = await createSchool(payload);
+        setCreatedSchool(school);
+        load();
 
-      setFormOpen(false);
-      setEditing(null);
-      load();
+        if (
+          PROVISIONING_WIZARD_ROUTE_REGISTERED &&
+          school.onboarding_mode === 'white_glove' &&
+          school.onboarding_status === 'provisioning'
+        ) {
+          navigate(paths.provisioningWizard(school.id));
+        }
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         const mapped: Partial<Record<FormField, string>> = {};
         Object.entries(err.details).forEach(([key, value]) => {
-          if (key in form && Array.isArray(value) && typeof value[0] === 'string') {
+          if (key in emptyForm && Array.isArray(value) && typeof value[0] === 'string') {
             mapped[key as FormField] = value[0];
           }
         });
@@ -179,6 +250,9 @@ const Schools = () => {
       setPendingDelete(null);
     }
   };
+
+  const createdStatus = createdSchool?.onboarding_status;
+  const createdStatusMeta = createdStatus ? ONBOARDING_STATUS_LABELS[createdStatus] : null;
 
   const columns: GridColDef<School>[] = [
     { field: 'name', headerName: 'Nome', flex: 1, minWidth: 200 },
@@ -284,89 +358,191 @@ const Schools = () => {
 
       <Dialog
         open={formOpen}
-        onClose={saving ? undefined : () => setFormOpen(false)}
+        onClose={saving ? undefined : closeForm}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>{editing ? 'Editar escola' : 'Nova escola'}</DialogTitle>
-        <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
-          <DialogContent>
-            <Grid container spacing={2.5} pt={0.5}>
-              <Grid size={12}>
-                <TextField
-                  id="school-name"
-                  name="name"
-                  label="Nome"
-                  value={form.name}
-                  onChange={handleChange}
-                  error={Boolean(fieldErrors.name)}
-                  helperText={fieldErrors.name}
-                  disabled={saving}
-                  variant="filled"
-                  fullWidth
-                  autoFocus
-                  required
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  id="school-cnpj"
-                  name="cnpj"
-                  label="CNPJ"
-                  value={form.cnpj}
-                  onChange={handleChange}
-                  error={Boolean(fieldErrors.cnpj)}
-                  helperText={fieldErrors.cnpj}
-                  disabled={saving}
-                  variant="filled"
-                  fullWidth
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  id="school-saas-plan"
-                  name="saas_plan"
-                  label="Plano"
-                  value={form.saas_plan}
-                  onChange={handleChange}
-                  disabled={saving}
-                  variant="filled"
-                  fullWidth
-                />
-              </Grid>
-              <Grid size={12}>
-                <TextField
-                  id="school-address"
-                  name="address"
-                  label="Endereço"
-                  value={form.address}
-                  onChange={handleChange}
-                  disabled={saving}
-                  variant="filled"
-                  fullWidth
-                />
-              </Grid>
-              {formError && (
-                <Grid size={12}>
-                  <ErrorBanner message={formError} />
-                </Grid>
+        {createdSchool ? (
+          <>
+            <DialogTitle>Escola criada</DialogTitle>
+            <DialogContent>
+              <Stack spacing={2.5} pt={0.5}>
+                <Alert severity="success">
+                  {createdSchool.onboarding_mode === 'white_glove'
+                    ? `${createdSchool.name} foi criada e está pronta para provisionamento.`
+                    : `${createdSchool.name} foi criada. Um convite foi enviado ao responsável.`}
+                </Alert>
+
+                {createdStatusMeta && (
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Status:
+                    </Typography>
+                    <SemanticChip
+                      variant={createdStatusMeta.variant}
+                      label={createdStatusMeta.label}
+                    />
+                  </Stack>
+                )}
+
+                {createdSchool.onboarding_mode === 'white_glove' && (
+                  <Typography variant="body2" color="text.secondary">
+                    Configure billing, pessoas e importação CSV no assistente de provisionamento.
+                  </Typography>
+                )}
+              </Stack>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={closeForm} color="inherit">
+                Fechar
+              </Button>
+              {createdSchool.onboarding_mode === 'white_glove' && (
+                <Button
+                  component={RouterLink}
+                  to={paths.provisioningWizard(createdSchool.id)}
+                  variant="contained"
+                  onClick={closeForm}
+                >
+                  Ir para provisionamento
+                </Button>
               )}
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setFormOpen(false)} color="inherit" disabled={saving}>
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={saving}
-              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
-            >
-              {saving ? 'Salvando...' : 'Salvar'}
-            </Button>
-          </DialogActions>
-        </Stack>
+            </DialogActions>
+          </>
+        ) : (
+          <>
+            <DialogTitle>{editing ? 'Editar escola' : 'Nova escola'}</DialogTitle>
+            <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
+              <DialogContent>
+                <Grid container spacing={2.5} pt={0.5}>
+                  <Grid size={12}>
+                    <TextField
+                      id="school-name"
+                      name="name"
+                      label="Nome"
+                      value={form.name}
+                      onChange={handleChange}
+                      error={Boolean(fieldErrors.name)}
+                      helperText={fieldErrors.name}
+                      disabled={saving}
+                      variant="filled"
+                      fullWidth
+                      autoFocus
+                      required
+                    />
+                  </Grid>
+
+                  {!editing && backoffice && (
+                    <>
+                      <Grid size={12}>
+                        <TextField
+                          id="school-onboarding-mode"
+                          name="onboarding_mode"
+                          label="Modo de onboarding"
+                          value={form.onboarding_mode}
+                          onChange={handleChange}
+                          error={Boolean(fieldErrors.onboarding_mode)}
+                          helperText={
+                            fieldErrors.onboarding_mode ??
+                            'Autoatendimento: o responsável conclui a configuração. Premium: o backoffice provisiona antes do repasse.'
+                          }
+                          disabled={saving}
+                          variant="filled"
+                          fullWidth
+                          select
+                          required
+                        >
+                          {(Object.keys(ONBOARDING_MODE_LABELS) as SchoolOnboardingMode[]).map(
+                            (mode) => (
+                              <MenuItem key={mode} value={mode}>
+                                {ONBOARDING_MODE_LABELS[mode]}
+                              </MenuItem>
+                            ),
+                          )}
+                        </TextField>
+                      </Grid>
+                      <Grid size={12}>
+                        <TextField
+                          id="school-owner-email"
+                          name="owner_email"
+                          label="E-mail do responsável"
+                          type="email"
+                          value={form.owner_email}
+                          onChange={handleChange}
+                          error={Boolean(fieldErrors.owner_email)}
+                          helperText={
+                            fieldErrors.owner_email ??
+                            'Diretor(a) que receberá o convite para ativar a escola.'
+                          }
+                          disabled={saving}
+                          variant="filled"
+                          fullWidth
+                          required
+                        />
+                      </Grid>
+                    </>
+                  )}
+
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      id="school-cnpj"
+                      name="cnpj"
+                      label="CNPJ"
+                      value={form.cnpj}
+                      onChange={handleChange}
+                      error={Boolean(fieldErrors.cnpj)}
+                      helperText={fieldErrors.cnpj}
+                      disabled={saving}
+                      variant="filled"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                      id="school-saas-plan"
+                      name="saas_plan"
+                      label="Plano"
+                      value={form.saas_plan}
+                      onChange={handleChange}
+                      disabled={saving}
+                      variant="filled"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid size={12}>
+                    <TextField
+                      id="school-address"
+                      name="address"
+                      label="Endereço"
+                      value={form.address}
+                      onChange={handleChange}
+                      disabled={saving}
+                      variant="filled"
+                      fullWidth
+                    />
+                  </Grid>
+                  {formError && (
+                    <Grid size={12}>
+                      <ErrorBanner message={formError} />
+                    </Grid>
+                  )}
+                </Grid>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={closeForm} color="inherit" disabled={saving}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={saving}
+                  startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
+                >
+                  {saving ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </DialogActions>
+            </Stack>
+          </>
+        )}
       </Dialog>
 
       <ConfirmDialog
