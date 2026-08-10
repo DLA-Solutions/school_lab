@@ -12,6 +12,7 @@ class Membership < ApplicationRecord
 
   has_one :staff_profile, dependent: :destroy
   has_many :membership_permissions, dependent: :destroy
+  has_many :membership_invite_tokens, dependent: :destroy
 
   validates :role, inclusion: { in: ROLES }
   validates :status, inclusion: { in: STATUSES }

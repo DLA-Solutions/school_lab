@@ -9,6 +9,17 @@ FactoryBot.define do
     school_group
     sequence(:name) { |n| "Example School #{n}" }
     cnpj { "00.000.000/0001-00" }
+    onboarding_status { "active" }
+    onboarding_mode { "self_serve" }
+
+    trait :provisioning do
+      onboarding_status { "provisioning" }
+      onboarding_mode { "white_glove" }
+    end
+
+    trait :pending_handoff do
+      onboarding_status { "pending_handoff" }
+    end
   end
 
   factory :user do
