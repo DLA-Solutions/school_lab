@@ -1,5 +1,12 @@
 export type MembershipRole = string;
 
+export interface RoleTemplate {
+  id: number;
+  name: string;
+  system_key: string | null;
+  is_system: boolean;
+}
+
 export interface Membership {
   id: number;
   school_id: number;
@@ -7,6 +14,12 @@ export interface Membership {
   status: string;
   email: string | null;
   school_name: string | null;
+  role_template: RoleTemplate | null;
+  permissions: string[];
+  is_owner: boolean | null;
+  segment_id: number | null;
+  display_title: string | null;
+  permission_sources: Record<string, string>;
 }
 
 export interface GuardianProfile {

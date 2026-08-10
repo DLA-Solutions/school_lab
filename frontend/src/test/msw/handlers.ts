@@ -1,5 +1,5 @@
 import { HttpResponse, http } from 'msw';
-import { AuthUser } from 'types/auth';
+import { AuthUser, Membership } from 'types/auth';
 import { API_BASE_URL } from 'services/api';
 
 /**
@@ -30,21 +30,57 @@ export const ACCESS_EXPIRES_AT = '2026-08-04T23:20:00Z';
 
 export const VALID_CREDENTIALS = { email: 'maria@example.com', password: 'correct-horse' };
 
+/** Guardian membership shape from GET /api/v1/me — staff-only fields are null or empty. */
+export const guardianMembership: Membership = {
+  id: 10,
+  school_id: SCHOOL_ID,
+  school_name: 'Example School — Downtown',
+  role: 'guardian',
+  status: 'active',
+  email: VALID_CREDENTIALS.email,
+  role_template: null,
+  permissions: [],
+  is_owner: null,
+  segment_id: null,
+  display_title: null,
+  permission_sources: {},
+};
+
+/** Staff membership with permissions fields populated per GET /api/v1/me. */
+export const staffMembership: Membership = {
+  id: 11,
+  school_id: SCHOOL_ID,
+  school_name: 'Example School — Downtown',
+  role: 'staff',
+  status: 'active',
+  email: 'admin@example.com',
+  role_template: {
+    id: 1,
+    name: 'Secretária',
+    system_key: 'secretary',
+    is_system: true,
+  },
+  is_owner: false,
+  segment_id: null,
+  display_title: 'Secretária',
+  permissions: ['manage_people'],
+  permission_sources: { manage_people: 'template' },
+};
+
 export const currentUser: AuthUser = {
   id: 1,
   email: VALID_CREDENTIALS.email,
   status: 'active',
-  memberships: [
-    {
-      id: 10,
-      school_id: SCHOOL_ID,
-      school_name: 'Example School — Downtown',
-      role: 'guardian',
-      status: 'active',
-      email: VALID_CREDENTIALS.email,
-    },
-  ],
+  memberships: [guardianMembership],
   guardian_profiles: [{ id: 5, school_id: SCHOOL_ID, name: 'Maria Silva' }],
+};
+
+export const staffUser: AuthUser = {
+  id: 2,
+  email: 'admin@example.com',
+  status: 'active',
+  memberships: [staffMembership],
+  guardian_profiles: [],
 };
 
 /** Three rows so a `per_page` below the total actually slices. */
