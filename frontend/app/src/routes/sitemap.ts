@@ -87,6 +87,7 @@ const sitemap: MenuItem[] = [
     path: paths.charges,
     icon: 'mingcute:bill-line',
     active: true,
+    requiredPermission: 'manage_billing',
   },
   {
     id: 'plans',
@@ -94,6 +95,7 @@ const sitemap: MenuItem[] = [
     path: paths.plans,
     icon: 'mingcute:currency-dollar-line',
     active: true,
+    requiredPermission: 'manage_billing',
   },
   {
     id: 'contract-template',
@@ -101,6 +103,7 @@ const sitemap: MenuItem[] = [
     path: paths.contractTemplate,
     icon: 'mingcute:document-2-line',
     active: true,
+    requiredPermission: 'manage_billing',
   },
 ];
 

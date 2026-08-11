@@ -160,6 +160,9 @@ const enUS: Messages = {
   'dashboard.studentsByClass.empty.description':
     'Once there are students in the classes, the spread shows up here.',
   'dashboard.studentsByClass.unassigned': 'No class',
+  'dashboard.welcome.title': 'Welcome to School Lab',
+  'dashboard.welcome.description':
+    'School indicators appear here when your account can view billing or people data.',
 
   'ledger.title': 'Money in and out',
   'ledger.filter': 'Filter by kind',

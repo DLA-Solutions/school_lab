@@ -160,6 +160,9 @@ const ptBR = {
   'dashboard.studentsByClass.empty.description':
     'Assim que houver alunos nas turmas, a distribuição aparece aqui.',
   'dashboard.studentsByClass.unassigned': 'Sem turma',
+  'dashboard.welcome.title': 'Bem-vindo ao School Lab',
+  'dashboard.welcome.description':
+    'Os indicadores da escola aparecem aqui quando sua conta tem permissão para ver finanças ou pessoas.',
 
   'ledger.title': 'Entradas e saídas',
   'ledger.filter': 'Filtrar por tipo',

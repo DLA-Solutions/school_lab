@@ -15,7 +15,7 @@ export interface DashboardMetricsState {
  * The dashboard's figures, fetched once for the whole page: the KPI row, the income chart and the
  * ledger all read the same month, so they read the same response.
  */
-export const useDashboardMetrics = (month: string): DashboardMetricsState => {
+export const useDashboardMetrics = (month: string, enabled = true): DashboardMetricsState => {
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -24,8 +24,10 @@ export const useDashboardMetrics = (month: string): DashboardMetricsState => {
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    if (!schoolId) {
+    if (!schoolId || !enabled) {
+      setMetrics(null);
       setLoading(false);
+      setError('');
       return;
     }
 
@@ -40,7 +42,7 @@ export const useDashboardMetrics = (month: string): DashboardMetricsState => {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, month]);
+  }, [schoolId, month, enabled]);
 
   useEffect(() => {
     load();
