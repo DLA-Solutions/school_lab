@@ -19,6 +19,10 @@ RSpec.describe "Api::V1::Schools", type: :request do
       produces "application/json"
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
+      parameter name: :onboarding_status, in: :query, type: :string, required: false,
+                enum: %w[provisioning pending_handoff active]
+      parameter name: :onboarding_mode, in: :query, type: :string, required: false,
+                enum: %w[self_serve white_glove]
 
       response "200", "schools listed for backoffice" do
         let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
@@ -29,6 +33,24 @@ RSpec.describe "Api::V1::Schools", type: :request do
           names = body.fetch("data").map { |row| row["name"] }
           expect(names).to include(listed_school.name)
           expect(body.fetch("meta")).to include("page", "per_page", "total")
+        end
+      end
+
+      response "200", "schools filtered by onboarding status and mode" do
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:onboarding_status) { "pending_handoff" }
+        let(:onboarding_mode) { "white_glove" }
+        let!(:matching_school) do
+          create(:school, :pending_handoff, name: "Filtered Match", onboarding_mode: "white_glove")
+        end
+        let!(:other_school) do
+          create(:school, :provisioning, name: "Filtered Out")
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          names = body.fetch("data").map { |row| row["name"] }
+          expect(names).to eq([ "Filtered Match" ])
         end
       end
 

@@ -1,4 +1,5 @@
 import { Paginated } from 'types/academics';
+import { SchoolOnboardingMode, SchoolOnboardingStatus } from 'types/onboarding';
 import { School, SchoolPayload } from 'types/school';
 import { request } from './api';
 
@@ -8,7 +9,24 @@ import { request } from './api';
  */
 const PATH = '/api/v1/schools';
 
-export const listSchools = (page = 1) => request<Paginated<School>>(`${PATH}?page=${page}`);
+export type SchoolListFilters = {
+  onboarding_status?: SchoolOnboardingStatus | '';
+  onboarding_mode?: SchoolOnboardingMode | '';
+};
+
+export const listSchools = (page = 1, filters: SchoolListFilters = {}) => {
+  const params = new URLSearchParams({ page: String(page) });
+
+  if (filters.onboarding_status) {
+    params.set('onboarding_status', filters.onboarding_status);
+  }
+
+  if (filters.onboarding_mode) {
+    params.set('onboarding_mode', filters.onboarding_mode);
+  }
+
+  return request<Paginated<School>>(`${PATH}?${params.toString()}`);
+};
 
 export const getSchool = async (id: number): Promise<School> => {
   const response = await request<{ data: School }>(`${PATH}/${id}`);

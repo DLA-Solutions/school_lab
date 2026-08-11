@@ -27,7 +27,7 @@ import {
   SemanticChip,
 } from 'design-system';
 import { ApiError } from 'services/api';
-import { createSchool, deleteSchool, listSchools, updateSchool } from 'services/schoolsApi';
+import { createSchool, deleteSchool, listSchools, SchoolListFilters, updateSchool } from 'services/schoolsApi';
 import paths from 'routes/paths';
 import { SchoolOnboardingMode } from 'types/onboarding';
 import { School } from 'types/school';
@@ -47,11 +47,36 @@ const emptyForm: FormState = {
   owner_email: '',
 };
 
+const ONBOARDING_MODE_CHIP_VARIANT: Record<
+  SchoolOnboardingMode,
+  'info' | 'warning'
+> = {
+  self_serve: 'info',
+  white_glove: 'warning',
+};
+
+const ALL_FILTER = 'all';
+
+type OnboardingStatusFilter = NonNullable<School['onboarding_status']> | typeof ALL_FILTER;
+type OnboardingModeFilter = SchoolOnboardingMode | typeof ALL_FILTER;
+
 const ONBOARDING_MODE_LABELS: Record<SchoolOnboardingMode, string> = {
   self_serve: 'Autoatendimento',
   white_glove: 'Premium (white-glove)',
 };
 
+const ONBOARDING_STATUS_FILTER_LABELS: Record<OnboardingStatusFilter, string> = {
+  all: 'Todos',
+  provisioning: 'Em provisionamento',
+  pending_handoff: 'Aguardando repasse',
+  active: 'Ativa',
+};
+
+const ONBOARDING_MODE_FILTER_LABELS: Record<OnboardingModeFilter, string> = {
+  all: 'Todos',
+  self_serve: 'Autoatendimento',
+  white_glove: 'Premium (white-glove)',
+};
 const ONBOARDING_STATUS_LABELS: Record<
   NonNullable<School['onboarding_status']>,
   { label: string; variant: 'info' | 'warning' | 'success' }
@@ -92,13 +117,23 @@ const Schools = () => {
   const [saving, setSaving] = useState(false);
   const [createdSchool, setCreatedSchool] = useState<School | null>(null);
   const [pendingDelete, setPendingDelete] = useState<School | null>(null);
+  const [statusFilter, setStatusFilter] = useState<OnboardingStatusFilter>(ALL_FILTER);
+  const [modeFilter, setModeFilter] = useState<OnboardingModeFilter>(ALL_FILTER);
+  const [pendingHandoffSchool, setPendingHandoffSchool] = useState<School | null>(null);
+
+  const listFilters: SchoolListFilters = {
+    onboarding_status: statusFilter === ALL_FILTER ? '' : statusFilter,
+    onboarding_mode: modeFilter === ALL_FILTER ? '' : modeFilter,
+  };
+
+  const hasActiveFilters = statusFilter !== ALL_FILTER || modeFilter !== ALL_FILTER;
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
 
     try {
-      const response = await listSchools(page + 1);
+      const response = await listSchools(page + 1, listFilters);
       setSchools(response.data);
       setTotal(response.meta.total);
     } catch (err) {
@@ -117,7 +152,11 @@ const Schools = () => {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [listFilters.onboarding_mode, listFilters.onboarding_status, page]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter, modeFilter]);
 
   useEffect(() => {
     load();
@@ -247,6 +286,11 @@ const Schools = () => {
   const createdStatus = createdSchool?.onboarding_status;
   const createdStatusMeta = createdStatus ? ONBOARDING_STATUS_LABELS[createdStatus] : null;
 
+  const showContinueProvisioning = (school: School) =>
+    school.onboarding_mode === 'white_glove' && school.onboarding_status === 'provisioning';
+
+  const showPendingHandoffAction = (school: School) => school.onboarding_status === 'pending_handoff';
+
   const columns: GridColDef<School>[] = [
     { field: 'name', headerName: 'Nome', flex: 1, minWidth: 200 },
     { field: 'cnpj', headerName: 'CNPJ', width: 190, renderCell: renderOptional },
@@ -259,15 +303,86 @@ const Schools = () => {
     },
     { field: 'saas_plan', headerName: 'Plano', width: 130, renderCell: renderOptional },
     {
+      field: 'onboarding_status',
+      headerName: 'Status',
+      width: 190,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<School>) => {
+        const status = row.onboarding_status;
+
+        if (!status) {
+          return (
+            <Typography variant="body2" color="text.secondary">
+              —
+            </Typography>
+          );
+        }
+
+        const meta = ONBOARDING_STATUS_LABELS[status];
+
+        return <SemanticChip variant={meta.variant} label={meta.label} />;
+      },
+    },
+    {
+      field: 'onboarding_mode',
+      headerName: 'Modo',
+      width: 200,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<School>) => {
+        const mode = row.onboarding_mode;
+
+        if (!mode) {
+          return (
+            <Typography variant="body2" color="text.secondary">
+              —
+            </Typography>
+          );
+        }
+
+        return (
+          <SemanticChip
+            variant={ONBOARDING_MODE_CHIP_VARIANT[mode]}
+            label={ONBOARDING_MODE_LABELS[mode]}
+          />
+        );
+      },
+    },
+    {
       field: 'actions',
       headerName: 'Ações',
-      width: 110,
+      width: 170,
       sortable: false,
       filterable: false,
       align: 'right',
       headerAlign: 'right',
       renderCell: ({ row }: GridRenderCellParams<School>) => (
         <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+          {showContinueProvisioning(row) && (
+            <Tooltip title="Continuar provisionamento">
+              <IconButton
+                size="small"
+                aria-label={`Continuar provisionamento de ${row.name}`}
+                component={RouterLink}
+                to={paths.provisioningWizard(row.id)}
+              >
+                <IconifyIcon icon="mingcute:settings-3-line" />
+              </IconButton>
+            </Tooltip>
+          )}
+          {showPendingHandoffAction(row) && (
+            <Tooltip title="Repasse pendente — ativação aguardando">
+              <IconButton
+                size="small"
+                aria-label={`Repasse pendente para ${row.name}`}
+                onClick={() => setPendingHandoffSchool(row)}
+                color="info"
+              >
+                <IconifyIcon icon="mingcute:time-line" />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Editar">
             <IconButton
               size="small"
@@ -312,9 +427,47 @@ const Schools = () => {
         title="Escolas"
         subtitle=""
         actions={
-          <Button variant="contained" size="small" onClick={() => openForm(null)}>
-            Nova escola
-          </Button>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <TextField
+              id="school-onboarding-status-filter"
+              label="Status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as OnboardingStatusFilter)}
+              select
+              size="small"
+              variant="filled"
+              sx={{ width: 210 }}
+            >
+              {(Object.keys(ONBOARDING_STATUS_FILTER_LABELS) as OnboardingStatusFilter[]).map(
+                (value) => (
+                  <MenuItem key={value} value={value}>
+                    {ONBOARDING_STATUS_FILTER_LABELS[value]}
+                  </MenuItem>
+                ),
+              )}
+            </TextField>
+            <TextField
+              id="school-onboarding-mode-filter"
+              label="Modo"
+              value={modeFilter}
+              onChange={(e) => setModeFilter(e.target.value as OnboardingModeFilter)}
+              select
+              size="small"
+              variant="filled"
+              sx={{ width: 210 }}
+            >
+              {(Object.keys(ONBOARDING_MODE_FILTER_LABELS) as OnboardingModeFilter[]).map(
+                (value) => (
+                  <MenuItem key={value} value={value}>
+                    {ONBOARDING_MODE_FILTER_LABELS[value]}
+                  </MenuItem>
+                ),
+              )}
+            </TextField>
+            <Button variant="contained" size="small" onClick={() => openForm(null)}>
+              Nova escola
+            </Button>
+          </Stack>
         }
       />
 
@@ -323,8 +476,12 @@ const Schools = () => {
       <SectionCard padding={0}>
         {!loading && schools.length === 0 && !error ? (
           <EmptyState
-            title="Nenhuma escola"
-            description="Cadastre uma escola para começar. Você se torna administrador dela."
+            title={hasActiveFilters ? 'Nenhuma escola encontrada' : 'Nenhuma escola cadastrada'}
+            description={
+              hasActiveFilters
+                ? 'Nenhuma escola corresponde aos filtros selecionados. Ajuste o status ou o modo de onboarding.'
+                : 'Ainda não há escolas registradas na plataforma. Cadastre a primeira escola para iniciar o onboarding.'
+            }
             action={
               <Button variant="contained" size="small" onClick={() => openForm(null)}>
                 Nova escola
@@ -548,6 +705,26 @@ const Schools = () => {
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
+
+      <Dialog
+        open={Boolean(pendingHandoffSchool)}
+        onClose={() => setPendingHandoffSchool(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Repasse pendente</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            {pendingHandoffSchool?.name} aguarda conclusão do repasse antes da ativação. O fluxo de
+            ativação pela plataforma estará disponível em breve.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPendingHandoffSchool(null)} variant="contained">
+            Entendi
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };

@@ -216,6 +216,16 @@ export const sampleSchools = [
     onboarding_status: 'provisioning',
     onboarding_mode: 'white_glove',
   },
+  {
+    id: 3,
+    name: 'Escola Gama',
+    cnpj: null,
+    address: null,
+    saas_plan: null,
+    school_group_id: null,
+    onboarding_status: 'pending_handoff',
+    onboarding_mode: 'white_glove',
+  },
 ];
 
 /** Three rows so a `per_page` below the total actually slices. */
@@ -510,7 +520,21 @@ export const handlers = [
       return expiredToken();
     }
 
-    return paginated(sampleSchools, new URL(request.url));
+    const url = new URL(request.url);
+    let rows = [...sampleSchools];
+
+    const status = url.searchParams.get('onboarding_status');
+    const mode = url.searchParams.get('onboarding_mode');
+
+    if (status) {
+      rows = rows.filter((school) => school.onboarding_status === status);
+    }
+
+    if (mode) {
+      rows = rows.filter((school) => school.onboarding_mode === mode);
+    }
+
+    return paginated(rows, url);
   }),
 
   http.post(apiUrl('/api/v1/schools'), async ({ request }) => {
