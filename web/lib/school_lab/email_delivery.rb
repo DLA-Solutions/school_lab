@@ -9,7 +9,7 @@ module SchoolLab
     end
 
     def from_address
-      ENV.fetch("MAIL_FROM", "noreply@scholarpremium.com.br")
+      ENV.fetch("MAIL_FROM", "contato@scholarpremium.com.br")
     end
   end
 end

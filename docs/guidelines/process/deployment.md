@@ -414,7 +414,7 @@ base list in `deploy.yml` (it does not append). Staging must repeat every secret
 ## Transactional e-mail (Postmark)
 
 Collection régua reminders use Postmark when `POSTMARK_API_TOKEN` is set on the API
-container. `MAIL_FROM` defaults to `noreply@scholarpremium.com.br` via `deploy.yml`
+container. `MAIL_FROM` defaults to `contato@scholarpremium.com.br` via `deploy.yml`
 (`env.clear`); override per destination in `deploy.<destination>.yml` if needed.
 
 Set **distinct** Postmark Server API tokens per destination:
