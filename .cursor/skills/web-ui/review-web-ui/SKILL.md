@@ -19,7 +19,9 @@ change touches browser UI, client auth, or API consumption patterns.
 | Layouts | `frontend/app/src/layouts/**` — `auth-layout/`, `main-layout/` (sidebar, topbar) |
 | Routing | `frontend/app/src/routes/**` (`router.tsx`, `guards.tsx`, `paths.ts`, `sitemap.ts`) |
 | API client, auth transport, token storage | `frontend/app/src/services/**` (`api.ts`, `authApi.ts`, `tokenStore.ts`) |
-| Auth state | `frontend/app/src/providers/**` (`AuthProvider.tsx`, `AuthContext.ts`) |
+| Auth state | `frontend/app/src/providers/**` (`AuthProvider.tsx`, `AuthContext.ts`, `I18nProvider.tsx`) |
+| i18n | `frontend/app/src/locales/**` — custom catalogues (`pt-BR`, `en-US`); `useI18n()` via `I18nProvider` |
+| Tests | `frontend/app/src/**/*.test.ts(x)`, `src/test/**` — Vitest + RTL + MSW |
 | Types | `frontend/app/src/types/**` — hand-written (`auth.ts`, `custom.d.ts`) |
 | Theme / styling | `frontend/app/src/theme/**`, `frontend/app/src/design-system/**`, `packages/design-tokens/**` |
 | Template data | `frontend/app/src/data/**` — hardcoded dashboard placeholders, **not** API data |
@@ -39,9 +41,8 @@ them as targets for new code, not as paths to review today:
 | Feature folders (`src/features/**`) | The SPA outgrows the template's `pages/` + `components/sections/` layout |
 | Split API/auth folders (`src/api/**`, `src/lib/api/**`, `src/auth/**`) | Someone splits `src/services/`, where the fetch client, auth calls, and token store live today |
 | Store folder (`src/stores/**`) | A state library is adopted — only React Context exists |
-| i18n (`src/locales/**`, `public/locales/**`) | An i18n library is installed — strings are hardcoded and the topbar `LanguageSelect` is inert template UI |
-| Tests (`frontend/app/**/*.test.ts(x)`, `*.spec.ts(x)`) | A test runner is added — `package.json` has no Vitest, Testing Library, or MSW |
 | Generated API types | `openapi-typescript` or orval is added — `src/types/` is hand-written |
+| TanStack Query / SWR | A data-fetching library is adopted — components call `src/services/` directly today |
 
 `frontend/base` is the upstream template the SPA started from — out of scope for review.
 
@@ -72,10 +73,9 @@ Read **before** judging the code:
 4. Domain narrative: `docs/api/v1/<domain>.md` when the UI maps to an API namespace.
 5. PRD (UI flows, permissions) when a PRD exists for the feature.
 6. Rules: `rules/core/lgpd-privacy`, `rules/core/language-conventions`.
-7. `docs/guidelines/web/testing.md` § cross-surface — behavior-first principle; note that no
-   SPA test runner is installed, so a missing test is not a finding.
+7. `docs/guidelines/web-ui/testing.md` — Vitest + RTL + MSW conventions; behavior-first principle.
 8. `docs/open-questions.md` (Web stack) — do not treat unresolved UI stack choices
-   (test runner, i18n, data fetching, global state, API types) as violations.
+   (data fetching library, global state, generated API types) as violations.
 
 ### 3. Consult Context7 (required)
 
@@ -93,10 +93,10 @@ Query Context7 **before** flagging framework misuse. Skill: `consult-context7`. 
 | Build | Vite 7 env variables, `import.meta.env` |
 
 Query **only** the libraries the diff touches. Do not query — or grade the code against —
-TanStack Query, i18next, Vitest, Testing Library, MSW, Tailwind, or a form library: none is
-installed (see the "Not present yet" table above). If a diff *adds* one of them, that is a
-stack decision — say so and point at `docs/open-questions.md` rather than reviewing it as
-routine.
+TanStack Query, i18next, Tailwind, or a form library: none is installed (see the "Not present
+yet" table above). Vitest, Testing Library, and MSW **are** installed — consult Context7 when
+reviewing test patterns. If a diff *adds* an unapproved stack dependency, that is a stack
+decision — say so and point at `docs/open-questions.md` rather than reviewing it as routine.
 
 **Project docs win** over generic docs (`docs/web-stack.md`). Note conflicts only when
 relevant.
@@ -127,9 +127,9 @@ Do **not** fix code unless the user asks.
 | **Warning** | Missing 401 retry-after-refresh; API errors not mapped to the `{ error: { code, message, details } }` envelope; missing loading/error/empty states; school switcher ignores `GET /me` memberships; template placeholders from `src/data/**` shipped as if they were API data |
 | **Suggestion** | Component too large; fetch logic duplicated instead of going through `src/services/`; one-off `sx` styling that belongs in the `src/theme/` overrides; minor Context7 pattern gap; inconsistent route naming |
 
-User-facing strings are hardcoded today because no i18n library is installed — do not report
-that as a finding on existing code. Raise it only when a diff makes the problem materially
-worse, and frame it as the open i18n decision.
+User-facing strings in **new or changed** code should use i18n keys via `useI18n().t()` — both
+`pt-BR.ts` and `en-US.ts`. Report hardcoded Portuguese in new diffs as a **Warning**. Legacy
+pages still migrating may retain hardcoded strings; do not mass-flag untouched files.
 
 After the table, add **Context7 notes** — libraries queried and any project-vs-official-doc conflicts.
 
@@ -143,7 +143,7 @@ After the table, add **Context7 notes** — libraries queried and any project-vs
 - **School context** — selected from `GET /me` memberships; API calls use `/schools/:school_id/...`.
 - **Styling through the theme** — MUI components with `sx` for local tweaks; recurring
   appearance belongs in `src/theme/components/**`, not copy-pasted per component.
-- **English in code** — identifiers, comments, and filenames in English; product locale `pt-BR`.
+- **English in code** — identifiers, comments, and filenames in English; product strings via i18n keys.
 
 ## Related skills
 
@@ -151,3 +151,5 @@ After the table, add **Context7 notes** — libraries queried and any project-vs
 - `consult-context7` — official React, Vite, MUI, and React Router docs
 - `review-bugbot` — logic bugs across layers
 - `review-security` — XSS, token storage, sensitive data in DOM
+
+Orchestration agent for new features: `frontend-implementer`.

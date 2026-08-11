@@ -18,9 +18,9 @@ English default, so a screen changes wording by passing it rather than by forkin
 | `BrandLogo` | `alt` | `'Scholar Premium'` |
 
 `SearchField`'s `ariaLabel` and `ThemeToggle`'s tooltips are accessible names, not decoration —
-they are the only names those controls have. The product locale is pt-BR and the SPA has no i18n
-layer yet; these defaults are what the codebase already shipped and say nothing about which
-library will eventually supply the translations (`docs/open-questions.md` → Web stack).
+they are the only names those controls have. Pattern components keep English prop defaults; pages
+pass localized strings via `useI18n().t()` from `src/locales/` (pt-BR catalogue is the source of
+truth for keys; en-US must stay in sync). See `docs/guidelines/web-ui/testing.md` for i18n in specs.
 
 ## PageHeader
 

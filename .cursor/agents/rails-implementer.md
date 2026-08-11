@@ -70,6 +70,6 @@ When implementation is complete:
 ## What you do not do
 
 - Server-rendered Hotwire, ViewComponent, Stimulus, or Turbo UI in `web/`
-- React or React Native UI — that is `frontend/app` and `mobile/`
+- React or React Native UI — use **frontend-implementer** (`frontend/app`, `frontend/backoffice`, `mobile/`)
 - Invent scope not in an approved PRD
 - Skip DBML updates when adding or changing domain tables
