@@ -85,6 +85,9 @@ export const roleTemplates = [
     is_system: true,
   },
 ];
+
+/** Invited staff on provisioning schools — mutated by POST memberships in tests. */
+export const teamMembershipsBySchool: Record<number, Membership[]> = {};
 /** Owner with pending_handoff — drives onboarding route guards in tests. */
 export const ownerPendingMembership: Membership = {
   id: 12,
@@ -387,13 +390,19 @@ export const handlers = [
     return jsonError(404, 'not_found', 'Recurso não encontrado.');
   }),
 
-  http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships'), async ({ request }) => {
+  http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships'), async ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
     }
 
+    const schoolId = Number(params.schoolId);
     const body = (await request.json()) as {
-      membership?: { email?: string; role?: string; role_template_id?: number };
+      membership?: {
+        email?: string;
+        role?: string;
+        role_template_id?: number;
+        display_title?: string;
+      };
     };
 
     if (!body.membership?.email) {
@@ -402,17 +411,46 @@ export const handlers = [
       });
     }
 
+    const template =
+      roleTemplates.find((entry) => entry.id === body.membership?.role_template_id) ??
+      roleTemplates[0];
+    const membership: Membership = {
+      id: 99 + (teamMembershipsBySchool[schoolId]?.length ?? 0),
+      school_id: schoolId,
+      school_name: sampleSchools.find((row) => row.id === schoolId)?.name ?? null,
+      role: body.membership.role ?? 'staff',
+      status: 'invited',
+      email: body.membership.email,
+      role_template: template,
+      is_owner: false,
+      segment_id: null,
+      display_title: body.membership.display_title ?? template.name,
+      permissions: [],
+      permission_sources: {},
+    };
+
+    teamMembershipsBySchool[schoolId] = [...(teamMembershipsBySchool[schoolId] ?? []), membership];
+
     return HttpResponse.json(
       {
         data: {
-          id: 99,
-          status: 'invited',
-          role: body.membership.role ?? 'staff',
-          display_title: 'Secretária',
+          id: membership.id,
+          status: membership.status,
+          role: membership.role,
+          display_title: membership.display_title,
         },
       },
       { status: 201 },
     );
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/people/memberships'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+    return paginated(teamMembershipsBySchool[schoolId] ?? [], new URL(request.url));
   }),
 
   http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships/:id/invite'), ({ request }) => {

@@ -12,6 +12,7 @@ import {
   jsonError,
   sampleBankCredential,
   server,
+  SECRETARY_TEMPLATE_ID,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
@@ -100,7 +101,76 @@ describe('ProvisioningWizard', () => {
     expect(screen.getByText(/adiar configuração de cobrança/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /continuar/i }));
-    expect(screen.getByText(/importados em lote/i)).toBeInTheDocument();
+    expect(screen.getByText(/convide membros da equipe administrativa/i)).toBeInTheDocument();
+  });
+
+  it('sends team invite on people step and shows it in the list', async () => {
+    let invitePayload: Record<string, unknown> | null = null;
+
+    server.use(
+      http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships'), async ({ request }) => {
+        invitePayload = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(
+          {
+            data: {
+              id: 201,
+              status: 'invited',
+              role: 'staff',
+              display_title: 'Secretária',
+            },
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToPeople();
+
+    await user.type(screen.getByLabelText(/^e-mail$/i), 'secretaria@example.com');
+    await user.click(screen.getByRole('button', { name: /enviar convite/i }));
+
+    await waitFor(() => {
+      expect(invitePayload).not.toBeNull();
+    });
+
+    expect(invitePayload).toEqual({
+      membership: {
+        email: 'secretaria@example.com',
+        role: 'staff',
+        role_template_id: SECRETARY_TEMPLATE_ID,
+      },
+    });
+    expect(await screen.findByText(/convite enviado com sucesso/i)).toBeInTheDocument();
+    expect(screen.getByText('secretaria@example.com')).toBeInTheDocument();
+    expect(screen.getByText('secretaria@example.com').closest('li')).toHaveTextContent('Secretária');
+  });
+
+  it('shows team invite indicator on handoff step after sending invite', async () => {
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToPeople();
+
+    await user.type(screen.getByLabelText(/^e-mail$/i), 'secretaria@example.com');
+    await user.click(screen.getByRole('button', { name: /enviar convite/i }));
+    await screen.findByText(/convite enviado com sucesso/i);
+
+    await user.click(screen.getByRole('button', { name: /continuar/i }));
+    await user.click(screen.getByRole('button', { name: /continuar/i }));
+
+    expect(screen.getByText(/convite da equipe enviado \(opcional\)/i)).toBeInTheDocument();
+  });
+
+  it('allows skipping team invite on people step', async () => {
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToPeople();
+
+    await user.click(screen.getByRole('button', { name: /continuar/i }));
+
+    expect(screen.getByText(/envie um arquivo csv/i)).toBeInTheDocument();
+    expect(screen.queryByText(/convite da equipe enviado/i)).not.toBeInTheDocument();
   });
 
   it('previews CSV with dry_run then commits import', async () => {

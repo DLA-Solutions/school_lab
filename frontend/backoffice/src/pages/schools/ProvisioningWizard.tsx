@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -22,12 +23,19 @@ import { useAuth } from 'providers/AuthContext';
 import paths from 'routes/paths';
 import { ApiError } from 'services/api';
 import { listBankCredentials, uploadBankCredentials } from 'services/bankCredentialsApi';
-import { importProvisioningCsv, submitHandoff } from 'services/onboardingApi';
+import {
+  importProvisioningCsv,
+  inviteStaffMember,
+  listRoleTemplates,
+  submitHandoff,
+} from 'services/onboardingApi';
+import { listMemberships } from 'services/peopleApi';
 import { getSchool } from 'services/schoolsApi';
 import { SchoolPaymentProvider } from 'types/bankCredential';
 import {
   ProvisioningImportResult,
   ProvisioningImportSummary,
+  RoleTemplateSummary,
   SchoolOnboardingStatus,
 } from 'types/onboarding';
 import { School } from 'types/school';
@@ -41,6 +49,17 @@ const CSV_COLUMNS =
   'student_name, student_birth_date, student_rg, school_class_name, guardian_name, guardian_email, guardian_phone, guardian_relationship, guardian_zip_code, guardian_street, guardian_number, guardian_neighborhood, guardian_city, guardian_state';
 
 const READ_ONLY_STATUSES = new Set<SchoolOnboardingStatus>(['active', 'pending_handoff']);
+
+const STAFF_INVITE_EXCLUDED_KEYS = new Set(['teacher', 'director']);
+
+interface SentTeamInvite {
+  id: number;
+  email: string;
+  roleLabel: string;
+}
+
+const isStaffAssignableTemplate = (template: RoleTemplateSummary) =>
+  template.system_key === null || !STAFF_INVITE_EXCLUDED_KEYS.has(template.system_key);
 
 const CREDENTIAL_FIELD_LABELS: Record<string, string> = {
   client_id: 'Client ID',
@@ -126,6 +145,13 @@ const ProvisioningWizard = () => {
   const [privateKeyFile, setPrivateKeyFile] = useState<File | null>(null);
   const [credentialErrors, setCredentialErrors] = useState<string[]>([]);
   const [credentialUploadSuccess, setCredentialUploadSuccess] = useState(false);
+  const [roleTemplates, setRoleTemplates] = useState<RoleTemplateSummary[]>([]);
+  const [loadingRoleTemplates, setLoadingRoleTemplates] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | ''>('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteDisplayTitle, setInviteDisplayTitle] = useState('');
+  const [sentInvites, setSentInvites] = useState<SentTeamInvite[]>([]);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [previewResult, setPreviewResult] = useState<ProvisioningImportResult | null>(null);
   const [commitResult, setCommitResult] = useState<ProvisioningImportResult | null>(null);
@@ -209,6 +235,77 @@ const ProvisioningWizard = () => {
     };
   }, [backoffice, school, schoolId]);
 
+  const staffAssignableTemplates = useMemo(
+    () => roleTemplates.filter(isStaffAssignableTemplate),
+    [roleTemplates],
+  );
+
+  useEffect(() => {
+    if (!backoffice || !Number.isFinite(schoolId) || !school || activeStep !== 2) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadPeopleStep = async () => {
+      setLoadingRoleTemplates(true);
+
+      try {
+        const [templatesResponse, membershipsResponse] = await Promise.all([
+          listRoleTemplates(schoolId),
+          listMemberships(schoolId),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        const assignable = templatesResponse.data.filter(isStaffAssignableTemplate);
+        setRoleTemplates(templatesResponse.data);
+        setSelectedTemplateId((current) => {
+          if (current !== '') {
+            return current;
+          }
+
+          return assignable[0]?.id ?? '';
+        });
+
+        const existingInvites = membershipsResponse.data
+          .filter(
+            (membership) =>
+              membership.status === 'invited' &&
+              membership.role === 'staff' &&
+              membership.is_owner !== true,
+          )
+          .map((membership) => ({
+            id: membership.id,
+            email: membership.email ?? '',
+            roleLabel:
+              membership.display_title ??
+              membership.role_template?.name ??
+              'Membro da equipe',
+          }));
+
+        setSentInvites(existingInvites);
+      } catch {
+        if (!cancelled) {
+          setRoleTemplates([]);
+          setSelectedTemplateId('');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingRoleTemplates(false);
+        }
+      }
+    };
+
+    loadPeopleStep();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeStep, backoffice, school, schoolId]);
+
   const activeCredential = useMemo(
     () => bankCredentials.find((credential) => credential.active) ?? null,
     [bankCredentials],
@@ -247,6 +344,51 @@ const ProvisioningWizard = () => {
     setCredentialErrors([]);
     setCredentialUploadSuccess(false);
     setBannerError('');
+  };
+
+  const handleSendTeamInvite = async () => {
+    const email = inviteEmail.trim();
+    const templateId = selectedTemplateId;
+
+    if (!email || templateId === '' || readOnly) {
+      return;
+    }
+
+    setBannerError('');
+    setInviteSuccess(false);
+    setSubmitting(true);
+
+    try {
+      const created = await inviteStaffMember(schoolId, {
+        membership: {
+          email,
+          role: 'staff',
+          role_template_id: templateId,
+          display_title: inviteDisplayTitle.trim() || undefined,
+        },
+      });
+
+      const template = staffAssignableTemplates.find((entry) => entry.id === templateId);
+      setSentInvites((current) => [
+        ...current,
+        {
+          id: created.id,
+          email,
+          roleLabel: created.display_title ?? template?.name ?? 'Membro da equipe',
+        },
+      ]);
+      setInviteEmail('');
+      setInviteDisplayTitle('');
+      setInviteSuccess(true);
+    } catch (error) {
+      setBannerError(
+        error instanceof ApiError
+          ? error.message
+          : 'Não foi possível enviar o convite. Tente novamente.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleUploadCredentials = async () => {
@@ -590,14 +732,100 @@ const ProvisioningWizard = () => {
         return (
           <Stack gap={2}>
             <Typography variant="body1" color="text.secondary">
-              Famílias e alunos podem ser cadastrados manualmente via API durante o provisionamento ou
-              importados em lote na próxima etapa. O convite ao responsável já foi enviado na criação
+              Convide membros da equipe administrativa. Esta etapa é opcional — você pode pular e
+              importar famílias na próxima etapa. O convite ao responsável já foi enviado na criação
               da escola.
             </Typography>
-            <Alert severity="info" variant="outlined">
-              Use a importação CSV para cadastrar várias famílias de uma vez. Certifique-se de que as
-              turmas existam na escola antes de importar.
-            </Alert>
+
+            {loadingRoleTemplates ? (
+              <Stack alignItems="center" py={2}>
+                <CircularProgress size={24} />
+              </Stack>
+            ) : staffAssignableTemplates.length > 0 ? (
+              <Stack gap={2}>
+                <TextField
+                  label="E-mail"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(event) => {
+                    setInviteEmail(event.target.value);
+                    setInviteSuccess(false);
+                    setBannerError('');
+                  }}
+                  disabled={submitting || readOnly}
+                  helperText="Deixe em branco e continue para pular."
+                  fullWidth
+                />
+                <TextField
+                  label="Função"
+                  select
+                  value={selectedTemplateId}
+                  onChange={(event) => {
+                    setSelectedTemplateId(Number(event.target.value));
+                    setInviteSuccess(false);
+                    setBannerError('');
+                  }}
+                  disabled={submitting || readOnly}
+                  fullWidth
+                >
+                  {staffAssignableTemplates.map((template) => (
+                    <MenuItem key={template.id} value={template.id}>
+                      {template.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  label="Título de exibição (opcional)"
+                  value={inviteDisplayTitle}
+                  onChange={(event) => {
+                    setInviteDisplayTitle(event.target.value);
+                    setInviteSuccess(false);
+                    setBannerError('');
+                  }}
+                  disabled={submitting || readOnly}
+                  fullWidth
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleSendTeamInvite}
+                  disabled={submitting || !inviteEmail.trim() || selectedTemplateId === ''}
+                  startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
+                >
+                  Enviar convite
+                </Button>
+              </Stack>
+            ) : (
+              <Alert severity="info" variant="outlined">
+                Nenhum modelo de função disponível para convite — pule esta etapa e convide a equipe
+                depois.
+              </Alert>
+            )}
+
+            {inviteSuccess && (
+              <Alert severity="success" variant="outlined">
+                Convite enviado com sucesso.
+              </Alert>
+            )}
+
+            {sentInvites.length > 0 && (
+              <SectionCard>
+                <Typography variant="subtitle2" gutterBottom>
+                  Convites enviados
+                </Typography>
+                <List dense disablePadding>
+                  {sentInvites.map((invite) => (
+                    <ListItem key={invite.id} disableGutters>
+                      <ListItemText
+                        primary={invite.email}
+                        secondary={invite.roleLabel}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </SectionCard>
+            )}
+
+            {bannerError && <ErrorBanner message={bannerError} />}
           </Stack>
         );
 
@@ -705,6 +933,14 @@ const ProvisioningWizard = () => {
                   <ListItemText
                     primary={`Importação CSV concluída (${commitResult.summary.valid_rows} linhas)`}
                   />
+                </ListItem>
+              )}
+              {sentInvites.length > 0 && (
+                <ListItem disableGutters>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <IconifyIcon icon="mdi:check-circle" color="success.main" />
+                  </ListItemIcon>
+                  <ListItemText primary="Convite da equipe enviado (opcional)" />
                 </ListItem>
               )}
             </List>
