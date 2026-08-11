@@ -1,5 +1,5 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Link as RouterLink, useNavigate, useParams } from 'react-router';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -613,18 +613,32 @@ const ProvisioningWizard = () => {
   }
 
   if (readOnly) {
+    const isPendingHandoff = school.onboarding_status === 'pending_handoff';
+
     return (
       <Stack gap={3.5} py={2}>
         <ProvisioningPageHeader schoolName={school.name} />
         <SectionCard>
           <EmptyState
-            title="Provisionamento encerrado"
+            title={isPendingHandoff ? 'Provisionamento concluído' : 'Provisionamento encerrado'}
             description={
               school.onboarding_status === 'active'
                 ? 'Esta escola já está ativa. O assistente de provisionamento não está mais disponível.'
-                : 'Esta escola aguarda repasse ao responsável. O assistente de provisionamento não está mais disponível.'
+                : 'O repasse ao responsável foi concluído. Use a página de ativação para confirmar quando o diretor aceitar o convite.'
             }
             headingLevel={2}
+            action={
+              isPendingHandoff ? (
+                <Button
+                  component={RouterLink}
+                  to={paths.schoolActivation(school.id)}
+                  variant="contained"
+                  size="small"
+                >
+                  Ir para ativação
+                </Button>
+              ) : undefined
+            }
           />
         </SectionCard>
       </Stack>

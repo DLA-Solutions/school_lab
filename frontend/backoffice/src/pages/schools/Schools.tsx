@@ -119,7 +119,6 @@ const Schools = () => {
   const [pendingDelete, setPendingDelete] = useState<School | null>(null);
   const [statusFilter, setStatusFilter] = useState<OnboardingStatusFilter>(ALL_FILTER);
   const [modeFilter, setModeFilter] = useState<OnboardingModeFilter>(ALL_FILTER);
-  const [pendingHandoffSchool, setPendingHandoffSchool] = useState<School | null>(null);
 
   const listFilters: SchoolListFilters = {
     onboarding_status: statusFilter === ALL_FILTER ? '' : statusFilter,
@@ -372,14 +371,15 @@ const Schools = () => {
             </Tooltip>
           )}
           {showPendingHandoffAction(row) && (
-            <Tooltip title="Repasse pendente — ativação aguardando">
+            <Tooltip title="Ativar escola">
               <IconButton
                 size="small"
-                aria-label={`Repasse pendente para ${row.name}`}
-                onClick={() => setPendingHandoffSchool(row)}
+                aria-label={`Ativar ${row.name}`}
+                component={RouterLink}
+                to={paths.schoolActivation(row.id)}
                 color="info"
               >
-                <IconifyIcon icon="mingcute:time-line" />
+                <IconifyIcon icon="mingcute:check-circle-line" />
               </IconButton>
             </Tooltip>
           )}
@@ -705,26 +705,6 @@ const Schools = () => {
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
-
-      <Dialog
-        open={Boolean(pendingHandoffSchool)}
-        onClose={() => setPendingHandoffSchool(null)}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle>Repasse pendente</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary">
-            {pendingHandoffSchool?.name} aguarda conclusão do repasse antes da ativação. O fluxo de
-            ativação pela plataforma estará disponível em breve.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPendingHandoffSchool(null)} variant="contained">
-            Entendi
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Stack>
   );
 };

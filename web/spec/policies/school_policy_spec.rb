@@ -22,6 +22,25 @@ RSpec.describe SchoolPolicy do
     end
   end
 
+  describe "backoffice user with provision_school" do
+    let(:user) { create(:user) }
+    let(:school) { create(:school, :pending_handoff, onboarding_mode: "white_glove") }
+    let(:record) { school }
+
+    before { create(:membership, :with_provision_school, user: user) }
+
+    it "permits activation handoff for white-glove pending_handoff schools" do
+      expect(policy.handoff?).to be(true)
+    end
+
+    it "denies activation handoff for self-serve pending_handoff schools" do
+      self_serve = create(:school, :pending_handoff, onboarding_mode: "self_serve")
+      self_serve_policy = described_class.new(user, self_serve)
+
+      expect(self_serve_policy.handoff?).to be(false)
+    end
+  end
+
   describe "school admin" do
     let(:user) { create(:user) }
 

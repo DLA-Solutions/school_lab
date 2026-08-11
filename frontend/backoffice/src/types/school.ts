@@ -10,6 +10,8 @@ export interface School {
   school_group_id: number | null;
   onboarding_status?: SchoolOnboardingStatus;
   onboarding_mode?: SchoolOnboardingMode;
+  billing_waived_at?: string | null;
+  segments_skipped_at?: string | null;
 }
 
 /** Backoffice create sends onboarding fields; school-admin self-serve create omits them. */
