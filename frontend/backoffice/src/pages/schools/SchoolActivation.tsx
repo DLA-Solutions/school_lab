@@ -280,21 +280,23 @@ const SchoolActivation = () => {
         )}
 
         {checklistErrors.length > 0 && (
-          <SectionCard sx={{ mt: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Itens pendentes
-            </Typography>
-            <List dense disablePadding>
-              {checklistErrors.map((item) => (
-                <ListItem key={item} disableGutters>
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    <IconifyIcon icon="mdi:close-circle" color="error.main" />
-                  </ListItemIcon>
-                  <ListItemText primary={handoffChecklistLabel(item)} />
-                </ListItem>
-              ))}
-            </List>
-          </SectionCard>
+          <Box sx={{ mt: 2 }}>
+            <SectionCard>
+              <Typography variant="subtitle2" gutterBottom>
+                Itens pendentes
+              </Typography>
+              <List dense disablePadding>
+                {checklistErrors.map((item) => (
+                  <ListItem key={item} disableGutters>
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <IconifyIcon icon="mdi:close-circle" color="error.main" />
+                    </ListItemIcon>
+                    <ListItemText primary={handoffChecklistLabel(item)} />
+                  </ListItem>
+                ))}
+              </List>
+            </SectionCard>
+          </Box>
         )}
 
         {bannerError && (

@@ -1,5 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { AuthUser, Membership } from 'types/auth';
+import { School } from 'types/school';
 import { API_BASE_URL } from 'services/api';
 
 /**
@@ -253,7 +254,7 @@ export const backofficeUser: AuthUser = {
   guardian_profiles: [],
 };
 
-export const sampleSchools = [
+export const sampleSchools: School[] = [
   {
     id: 1,
     name: 'Escola Alpha',
@@ -263,6 +264,8 @@ export const sampleSchools = [
     school_group_id: null,
     onboarding_status: 'active',
     onboarding_mode: 'self_serve',
+    billing_waived_at: null,
+    segments_skipped_at: null,
   },
   {
     id: 2,
@@ -273,6 +276,8 @@ export const sampleSchools = [
     school_group_id: null,
     onboarding_status: 'provisioning',
     onboarding_mode: 'white_glove',
+    billing_waived_at: null,
+    segments_skipped_at: null,
   },
   {
     id: 3,
@@ -283,6 +288,8 @@ export const sampleSchools = [
     school_group_id: null,
     onboarding_status: 'pending_handoff',
     onboarding_mode: 'white_glove',
+    billing_waived_at: null,
+    segments_skipped_at: null,
   },
 ];
 
