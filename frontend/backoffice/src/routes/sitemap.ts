@@ -31,6 +31,12 @@ const sitemap: MenuItem[] = [
     path: paths.schools,
     icon: 'mingcute:school-line',
   },
+  {
+    id: 'users',
+    subheader: 'nav.users',
+    path: paths.users,
+    icon: 'mingcute:user-3-line',
+  },
 ];
 
 export default sitemap;

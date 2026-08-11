@@ -1,6 +1,7 @@
 import { HttpResponse, http } from 'msw';
 import { AuthUser, Membership } from 'types/auth';
 import { School } from 'types/school';
+import { PlatformUser } from 'types/user';
 import { API_BASE_URL } from 'services/api';
 
 /**
@@ -292,6 +293,48 @@ export const sampleSchools: School[] = [
     segments_skipped_at: null,
   },
 ];
+
+/** Mutable platform users for list/disable/enable handlers in tests. */
+export const sampleUsers: PlatformUser[] = [
+  {
+    id: 1,
+    email: 'maria@example.com',
+    status: 'active',
+    memberships: [
+      {
+        role: 'staff',
+        school_name: 'Escola Alpha',
+      },
+    ],
+  },
+  {
+    id: 2,
+    email: 'disabled@example.com',
+    status: 'disabled',
+    memberships: [
+      {
+        role: 'guardian',
+        school_name: 'Escola Alpha',
+      },
+    ],
+  },
+  {
+    id: backofficeUser.id,
+    email: backofficeUser.email,
+    status: 'active',
+    memberships: [
+      {
+        role: 'backoffice',
+        school_name: null,
+      },
+    ],
+  },
+];
+
+export const resetSampleUsers = () => {
+  sampleUsers[0]!.status = 'active';
+  sampleUsers[1]!.status = 'disabled';
+};
 
 /** In-memory bank credential configs per school — mutated by POST in tests and default handlers. */
 export const bankCredentialsBySchool: Record<
@@ -746,6 +789,60 @@ export const handlers = [
     }
 
     return paginated(rows, url);
+  }),
+
+  http.get(apiUrl('/api/v1/users'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const url = new URL(request.url);
+    let rows = [...sampleUsers];
+
+    const q = url.searchParams.get('q')?.trim().toLowerCase();
+    const status = url.searchParams.get('status');
+
+    if (q) {
+      rows = rows.filter((user) => user.email.toLowerCase().includes(q));
+    }
+
+    if (status) {
+      rows = rows.filter((user) => user.status === status);
+    }
+
+    return paginated(rows, url);
+  }),
+
+  http.post(apiUrl('/api/v1/users/:id/disable'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const user = sampleUsers.find((row) => String(row.id) === String(params.id));
+
+    if (!user) {
+      return jsonError(404, 'not_found', 'Usuário não encontrado.');
+    }
+
+    user.status = 'disabled';
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.post(apiUrl('/api/v1/users/:id/enable'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const user = sampleUsers.find((row) => String(row.id) === String(params.id));
+
+    if (!user) {
+      return jsonError(404, 'not_found', 'Usuário não encontrado.');
+    }
+
+    user.status = 'active';
+
+    return new HttpResponse(null, { status: 204 });
   }),
 
   http.post(apiUrl('/api/v1/schools'), async ({ request }) => {
