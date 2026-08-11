@@ -421,8 +421,9 @@ Deploy setup is documented in `docs/guidelines/process/deployment.md`.
 - [x] **Deploy tooling — Kamal 2**, manual, two destinations (`production`, `staging`)
       sharing one app server. PostgreSQL 17 and Redis run natively on a separate VPS and
       are **not** Kamal accessories.
-- [x] **Three-service topology** — `site/` at `/`, `frontend/` SPA at `/app`, `web/` API at
-      `/api`, `/up`, `/api-docs`, `/webhooks`. Deploy order: site → SPA → API. API uses
+- [x] **Four-service topology** — `site/` at `/`, school SPA at `/app`, backoffice SPA at
+      `/backoffice`, `web/` API at `/api`, `/up`, `/api-docs`, `/webhooks`. Deploy order:
+      site → school SPA → backoffice SPA → API. API uses
       `path_prefixes` with `strip_path_prefix: false`.
 - [x] **SPA base path `/app`** — `VITE_BASE_PATH=/app/` for production builds; React Router
       `basename` from `import.meta.env.BASE_URL`; same-origin API via empty `VITE_API_BASE_URL`.

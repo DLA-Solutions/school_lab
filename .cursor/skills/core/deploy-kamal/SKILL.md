@@ -1,6 +1,6 @@
 ---
 name: deploy-kamal
-description: Deploy site, frontend SPA, or web API to staging or production with Kamal 2. Use when the user asks to deploy site, frontend, SPA, API, or web to staging or production, run kamal deploy, cut over path routing, or fix kamal-proxy deploy errors.
+description: Deploy site, school SPA, backoffice SPA, or web API to staging or production with Kamal 2. Use when the user asks to deploy site, frontend, SPA, backoffice, API, or web to staging or production, run kamal deploy, cut over path routing, or fix kamal-proxy deploy errors.
 ---
 
 # Deploy with Kamal
@@ -95,12 +95,13 @@ kamal app exec -d <dest> "bin/rails db:migrate"
 
 ## Deploy full stack (routine)
 
-Post-cutover order — **site → SPA → API**:
+Post-cutover order — **site → school SPA → backoffice SPA → API**:
 
 ```bash
-cd site      && kamal deploy -d <dest>
-cd frontend/app  && kamal deploy -d <dest>
-cd web       && kamal deploy -d <dest>
+cd site                && kamal deploy -d <dest>
+cd frontend/app        && kamal deploy -d <dest>
+cd frontend/backoffice && kamal deploy -d <dest>
+cd web                 && kamal deploy -d <dest>
 ```
 
 ## Cutover (API already owns the full hostname)
@@ -115,9 +116,10 @@ ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
 ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy remove scholarpremium-web-<dest>'
 
 # 3. Deploy in cutover order
-cd site      && kamal deploy -d <dest>
-cd web       && kamal deploy -d <dest>
-cd frontend/app  && kamal deploy -d <dest>
+cd site                && kamal deploy -d <dest>
+cd web                 && kamal deploy -d <dest>
+cd frontend/app        && kamal deploy -d <dest>
+cd frontend/backoffice && kamal deploy -d <dest>
 ```
 
 Expect brief downtime on `/` and `/api` between steps 2 and 3.
@@ -129,6 +131,7 @@ Expect brief downtime on `/` and `/api` between steps 2 and 3.
 ```bash
 curl -sI https://staging.scholarpremium.com.br/ | head -3
 curl -sI https://staging.scholarpremium.com.br/app/ | head -3
+curl -sI https://staging.scholarpremium.com.br/backoffice/ | head -3
 curl -sI https://staging.scholarpremium.com.br/up | head -3
 ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
 ```
@@ -138,7 +141,7 @@ ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
 ## Rollback (single layer)
 
 ```bash
-cd <site|frontend|web>
+cd <site|frontend/app|frontend/backoffice|web>
 kamal rollback -d <dest>
 ```
 

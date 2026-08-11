@@ -69,5 +69,5 @@ Build likely missing `VITE_BASE_PATH=/app/`. Check `frontend/config/deploy.stagi
 |---|---|
 | `kamal proxy remove` | `docker exec kamal-proxy kamal-proxy remove <service-name>` |
 | `kamal deploy` (no `-d`) | `kamal deploy -d staging` or `-d production` |
-| Deploy API before site on fresh host | site → SPA → API |
-| Deploy API before site on cutover | remove API route → site → API → SPA |
+| Deploy API before site on fresh host | site → school SPA → backoffice SPA → API |
+| Deploy API before site on cutover | remove API route → site → API → school SPA → backoffice SPA |

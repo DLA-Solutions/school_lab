@@ -75,8 +75,9 @@ running container may be stopped when deploy aborts.
 Deploy in this order:
 
 1. **Site** at `/` (no `path_prefix`, `ssl: true`) — first; establishes TLS
-2. **SPA** at `/app` (`path_prefix: /app`, no `ssl`) — second
-3. **API** with `path_prefixes` (no `ssl`) — **last**
+2. **School SPA** at `/app` (`path_prefix: /app`, no `ssl`) — second
+3. **Backoffice SPA** at `/backoffice` (`path_prefix: /backoffice`, no `ssl`) — third
+4. **API** with `path_prefixes` (no `ssl`) — **last**
 
 #### Cutover when the API already owns the host
 
@@ -100,7 +101,7 @@ Error: host settings conflict with another service
 ```
 
 **Cutover order** — release the API's full-host proxy registration, then deploy **site →
-API → SPA**:
+API → school SPA → backoffice SPA**:
 
 ```bash
 # 0. Inspect current proxy routes (on app server)
@@ -154,8 +155,8 @@ Do **not** run `kamal proxy remove` from the Kamal CLI — that removes the enti
 kamal-proxy container. Use `docker exec kamal-proxy kamal-proxy remove <service>` for a
 single route, or let a successful deploy replace the registration.
 
-After cutover, routine deploys can follow site → SPA → API again; only the migration from
-API-only needs the remove + site-first sequence above.
+After cutover, routine deploys can follow site → school SPA → backoffice SPA → API again;
+only the migration from API-only needs the remove + site-first sequence above.
 
 ## Destinations
 
@@ -331,7 +332,7 @@ Run from each service directory, once per destination.
 **Order matters.** Use **fresh-host order** only when no Kamal service already owns the
 hostname. If the API was deployed alone first (typical on staging), follow
 [Cutover when the API already owns the host](#cutover-when-the-api-already-owns-the-host)
-above — remove API proxy registration, then site → API → SPA.
+above — remove API proxy registration, then site → API → school SPA → backoffice SPA.
 
 Fresh-host order (empty hostname):
 
