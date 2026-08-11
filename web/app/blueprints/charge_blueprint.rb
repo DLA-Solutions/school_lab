@@ -20,8 +20,10 @@ class ChargeBlueprint < Blueprinter::Base
     { id: charge.guardian.id, name: charge.guardian.name, cpf: charge.guardian.cpf }
   end
 
+  association :applied_discounts, blueprint: AppliedDiscountBlueprint
+
   view :guardian do
-    excludes :original_amount_cents, :discount_amount_cents, :guardian
+    excludes :original_amount_cents, :discount_amount_cents, :guardian, :applied_discounts
 
     field :interest_rate_percent do |charge|
       Billing::SchoolSettings.for(charge.school).interest_rate_percent&.to_f

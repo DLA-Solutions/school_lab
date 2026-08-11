@@ -65,7 +65,8 @@ module Billing
       # `payer` walks the student's guardians, so they are preloaded rather than fetched per row.
       @contracts ||= school.contracts.active
                            .where(id: contract_ids)
-                           .includes(:billing_plan, :payer_guardian, student: { student_guardians: :guardian })
+                           .includes(:billing_plan, :plan_discount, :payer_guardian,
+                                     student: { student_guardians: :guardian })
     end
 
     # The charge and its hand-off to the bank go together: a charge saved without an issuance
@@ -76,6 +77,7 @@ module Billing
       ActiveRecord::Base.transaction do
         charge = build_charge(contract, payer)
         charge.save!
+        record_plan_discount!(charge, contract)
         Billing::IssueChargeJob.perform_later(charge.id, school.id)
       end
 
@@ -85,18 +87,33 @@ module Billing
     end
 
     def build_charge(contract, payer)
-      amount = contract.negotiated_amount_cents || contract.billing_plan&.base_amount_cents || 0
+      amounts = tuition_amounts_for(contract)
 
       school.charges.build(
         contract: contract,
         guardian: payer,
         kind: "tuition",
         billing_period: period,
-        original_amount_cents: amount,
-        discount_amount_cents: 0,
+        original_amount_cents: amounts.original_amount_cents,
+        discount_amount_cents: amounts.discount_amount_cents,
         late_fee_amount_cents: 0,
-        total_amount_cents: amount,
+        total_amount_cents: amounts.total_amount_cents,
         due_date: due_date_for(contract)
+      )
+    end
+
+    def tuition_amounts_for(contract)
+      Billing::ContractTuitionAmounts.for(contract)
+    end
+
+    def record_plan_discount!(charge, contract)
+      amounts = tuition_amounts_for(contract)
+      return unless amounts.plan_discount_applied
+
+      charge.applied_discounts.create!(
+        discount_type: "plan_discount",
+        amount_cents: amounts.discount_amount_cents,
+        school_id: school.id
       )
     end
 

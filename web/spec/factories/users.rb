@@ -199,6 +199,13 @@ FactoryBot.define do
     percent { 10 }
   end
 
+  factory :applied_discount do
+    school
+    charge { association :charge, school: school }
+    discount_type { "plan_discount" }
+    amount_cents { 10_000 }
+  end
+
   factory :contract do
     school
     student { association :student, school: school }

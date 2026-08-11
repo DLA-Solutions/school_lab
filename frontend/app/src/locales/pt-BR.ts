@@ -60,6 +60,7 @@ const ptBR = {
   'charges.column.type': 'Tipo',
   'charges.column.billedTo': 'Recebe o boleto',
   'charges.column.due': 'Vencimento',
+  'charges.discount': '−{amount}',
   'charges.column.boleto': 'Boleto',
   'charges.kind.oneOff': 'Avulso',
   'charges.kind.tuition': 'Mensalidade',

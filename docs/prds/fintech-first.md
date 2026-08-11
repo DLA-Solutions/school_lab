@@ -619,6 +619,12 @@ answers in implementation.
       no fine in MVP. `LateFeeCalculator` stays zero until portal interest estimate (phase 2).
       Issuance blocked when rate unset.
 - [ ] Manually negotiated discount approval flow (scholarship, one-off agreement).
+- [x] **Plan discount band at charge generation (PR1)** — `contracts.plan_discount_id`
+      applies `PlanDiscount#apply_to` against `billing_plan.base_amount_cents` when monthly
+      charges are generated (`GenerateChargesService`, `BulkGenerateChargesService`);
+      writes `applied_discounts` with `discount_type: plan_discount`. Negotiated amount
+      is ignored when a band is present. Boleto fine/interest and early-payment discount
+      remain PR2 / phase ~2027.
 - [ ] Invoice issuance (NFS-e) in MVP or later phase.
 - [ ] Platform SaaS billing model for schools.
 - [ ] Early payment discount (pontualidade) — phase ~2027; Cora supports

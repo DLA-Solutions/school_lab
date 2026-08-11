@@ -8,7 +8,8 @@ module Api
           def index
             authorize Charge
 
-            charges = policy_scope(Charge).includes(:guardian, contract: :student).order(due_date: :desc)
+            charges = policy_scope(Charge).includes(:guardian, :applied_discounts, contract: :student)
+                                          .order(due_date: :desc)
             charges = apply_filters(charges)
             pagy, records = pagy(charges)
 
@@ -19,7 +20,8 @@ module Api
           end
 
           def show
-            charge = policy_scope(Charge).includes(:guardian, contract: :student).find(params[:id])
+            charge = policy_scope(Charge).includes(:guardian, :applied_discounts, contract: :student)
+                                         .find(params[:id])
             authorize charge
 
             render json: { data: ChargeBlueprint.render_as_hash(charge) }
