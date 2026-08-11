@@ -1,4 +1,10 @@
 /** Mirrors `ChargeBlueprint` (web/app/blueprints/charge_blueprint.rb). */
+export interface AppliedDiscount {
+  id: number;
+  discount_type: string;
+  amount_cents: number;
+}
+
 export interface Charge {
   id: number;
   billing_period: string;
@@ -18,6 +24,8 @@ export interface Charge {
   student: { id: number; name: string } | null;
   /** Whose CPF the boleto is registered against. */
   guardian: { id: number; name: string; cpf: string };
+  /** Present when a plan discount band was applied at generation (school view only). */
+  applied_discounts?: AppliedDiscount[];
 }
 
 /**

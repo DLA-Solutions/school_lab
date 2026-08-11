@@ -136,9 +136,10 @@ in `docs/prds/fintech-first.md` (Open items).
       trigger via `POST /api/v1/schools/:school_id/billing/charge_generations`.
 - [x] **Nullable plan base and discount amounts** — `billing_plans.base_amount_cents`
       and `applied_discounts.amount_cents` remain nullable (see `schema.dbml` notes).
-      Plans without a default price require `contracts.negotiated_amount_cents`;
-      discount rows without `amount_cents` are placeholders until percentage discounts
-      or charge-generation discount application ships.
+      Plans without a default price require `contracts.negotiated_amount_cents`.
+      **Plan discount bands** (`plan_discounts` on contracts) are applied at charge
+      generation from `billing_plan.base_amount_cents` (PR1); `applied_discounts` rows
+      record the computed discount per charge.
 - [x] **Gateway adapter HTTP tests** — WebMock stubs in `spec/gateways/bank_slip/`;
       no VCR cassettes committed. VCR stays configured for optional manual sandbox
       recordings only; CI does not depend on cassettes.

@@ -60,6 +60,7 @@ const enUS: Messages = {
   'charges.column.type': 'Type',
   'charges.column.billedTo': 'Billed to',
   'charges.column.due': 'Due',
+  'charges.discount': '−{amount}',
   'charges.column.boleto': 'Boleto',
   'charges.kind.oneOff': 'One-off',
   'charges.kind.tuition': 'Tuition',

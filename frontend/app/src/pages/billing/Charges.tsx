@@ -356,10 +356,23 @@ const Charges = () => {
     {
       field: 'total_amount_cents',
       headerName: t('common.amount'),
-      width: 130,
-      renderCell: ({ value }: GridRenderCellParams<Charge, number>) => (
-        <Typography variant="body2">{formatCents(value)}</Typography>
-      ),
+      width: 150,
+      renderCell: ({ row }: GridRenderCellParams<Charge>) =>
+        row.discount_amount_cents > 0 ? (
+          <Stack direction="column" justifyContent="center" py={0.5}>
+            <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
+              {formatCents(row.original_amount_cents)}
+            </Typography>
+            <Typography variant="caption" color="success.main">
+              {t('charges.discount', { amount: formatCents(row.discount_amount_cents) })}
+            </Typography>
+            <Typography variant="body2" fontWeight={600}>
+              {formatCents(row.total_amount_cents)}
+            </Typography>
+          </Stack>
+        ) : (
+          <Typography variant="body2">{formatCents(row.total_amount_cents)}</Typography>
+        ),
     },
     {
       field: 'due_date',

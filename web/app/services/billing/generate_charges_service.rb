@@ -31,13 +31,14 @@ module Billing
     attr_reader :school, :billing_period
 
     def active_contracts
-      school.contracts.active.includes(:student, :billing_plan)
+      school.contracts.active.includes(:student, :billing_plan, :plan_discount)
     end
 
     def create_charge_for(contract, guardian, created, skipped_contract_ids)
       ActiveRecord::Base.transaction do
         charge = build_charge(contract, guardian)
         charge.save!
+        record_plan_discount!(charge, contract)
         Billing::IssueChargeJob.perform_later(charge.id, school.id)
         created << charge
       end
@@ -53,19 +54,32 @@ module Billing
     end
 
     def build_charge(contract, guardian)
-      original_amount_cents = contract.negotiated_amount_cents || contract.billing_plan.base_amount_cents || 0
-      discount_amount_cents = 0
-      total_amount_cents = original_amount_cents - discount_amount_cents
+      amounts = tuition_amounts_for(contract)
 
       school.charges.build(
         contract: contract,
         guardian: guardian,
         billing_period: normalized_billing_period,
-        original_amount_cents: original_amount_cents,
-        discount_amount_cents: discount_amount_cents,
+        original_amount_cents: amounts.original_amount_cents,
+        discount_amount_cents: amounts.discount_amount_cents,
         late_fee_amount_cents: 0,
-        total_amount_cents: total_amount_cents,
+        total_amount_cents: amounts.total_amount_cents,
         due_date: due_date_for(contract)
+      )
+    end
+
+    def tuition_amounts_for(contract)
+      Billing::ContractTuitionAmounts.for(contract)
+    end
+
+    def record_plan_discount!(charge, contract)
+      amounts = tuition_amounts_for(contract)
+      return unless amounts.plan_discount_applied
+
+      charge.applied_discounts.create!(
+        discount_type: "plan_discount",
+        amount_cents: amounts.discount_amount_cents,
+        school_id: school.id
       )
     end
 

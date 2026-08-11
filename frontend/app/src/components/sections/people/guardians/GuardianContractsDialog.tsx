@@ -570,7 +570,12 @@ const GuardianContractsDialog = ({
                 </TextField>
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField {...fieldProps('plan_discount_id')} label="Desconto" select>
+                <TextField
+                  {...fieldProps('plan_discount_id')}
+                  label="Desconto"
+                  select
+                  helperText="Aplicado na geração mensal a partir do valor base do plano."
+                >
                   <MenuItem value="">Sem desconto</MenuItem>
                   {discounts.map((discount) => (
                     <MenuItem key={discount.id} value={String(discount.id)}>
