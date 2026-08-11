@@ -25,7 +25,11 @@ module Gateways
           service_description: FieldNormalizer.truncate_text(description, max_length: MAX_DESCRIPTION_LENGTH),
           school_id: charge.school_id,
           charge_id: charge.id,
-          interest_rate_percent: settings.interest_rate_percent
+          interest_rate_percent: settings.interest_rate_percent,
+          early_payment_discount_percent: settings.early_payment_discount_percent,
+          fine_type: settings.fine_type,
+          fine_rate_percent: settings.fine_rate_percent,
+          fine_amount_cents: settings.fine_amount_cents
         )
       end
 

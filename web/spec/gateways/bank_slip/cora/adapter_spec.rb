@@ -113,7 +113,9 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
         .with { |req| JSON.parse(req.body)["payment_forms"] == %w[BANK_SLIP PIX] }
       expect(WebMock).to have_requested(:post, "#{api_base}/v2/invoices/").with { |req|
         body = JSON.parse(req.body)
-        body.dig("payment_terms", "interest", "rate") == 1.0 && body.dig("payment_terms", "fine").nil?
+        body.dig("payment_terms", "interest", "rate") == 1.0 &&
+          body.dig("payment_terms", "discount").nil? &&
+          body.dig("payment_terms", "fine").nil?
       }
       expect(issuance.provider_invoice_id).to eq("inv_test123")
       expect(issuance.boleto_url).to be_present
@@ -123,6 +125,59 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
       expect(issuance.pix_emv).to be_present
       expect(issuance.amount_cents).to eq(85_000)
       expect(issuance.amount_cents).to be_a(Integer)
+    end
+
+    it "posts early payment discount and percent fine to payment_terms" do
+      request = Gateways::BankSlip::ValueObjects::IssueRequest.new(
+        idempotency_key: "discount-fine-key",
+        total_amount_cents: 85_000,
+        due_date: Date.new(2026, 12, 10),
+        customer: customer,
+        school_id: school.id,
+        charge_id: 42,
+        interest_rate_percent: BigDecimal("1.0"),
+        early_payment_discount_percent: BigDecimal("5.0"),
+        fine_type: "percent",
+        fine_rate_percent: BigDecimal("2.0")
+      )
+
+      stub_request(:post, "#{api_base}/v2/invoices/")
+        .with(headers: { "Idempotency-Key" => "discount-fine-key" })
+        .to_return(status: 200, body: invoice_payload.to_json, headers: { "Content-Type" => "application/json" })
+
+      adapter.issue(request)
+
+      expect(WebMock).to have_requested(:post, "#{api_base}/v2/invoices/").with { |req|
+        terms = JSON.parse(req.body).fetch("payment_terms")
+        terms.dig("discount") == { "type" => "PERCENT", "value" => 5.0 } &&
+          terms.dig("fine") == { "rate" => 2.0 } &&
+          !terms.dig("fine").key?("date")
+      }
+    end
+
+    it "posts fixed fine amount without a date field" do
+      request = Gateways::BankSlip::ValueObjects::IssueRequest.new(
+        idempotency_key: "fixed-fine-key",
+        total_amount_cents: 85_000,
+        due_date: Date.new(2026, 12, 10),
+        customer: customer,
+        school_id: school.id,
+        charge_id: 42,
+        interest_rate_percent: BigDecimal("1.0"),
+        fine_type: "fixed",
+        fine_amount_cents: 1500
+      )
+
+      stub_request(:post, "#{api_base}/v2/invoices/")
+        .with(headers: { "Idempotency-Key" => "fixed-fine-key" })
+        .to_return(status: 200, body: invoice_payload.to_json, headers: { "Content-Type" => "application/json" })
+
+      adapter.issue(request)
+
+      expect(WebMock).to have_requested(:post, "#{api_base}/v2/invoices/").with { |req|
+        terms = JSON.parse(req.body).fetch("payment_terms")
+        terms.dig("fine") == { "amount" => 1500 } && !terms.dig("fine").key?("date")
+      }
     end
 
     it "returns nil pix_emv when the provider response has no pix payload" do

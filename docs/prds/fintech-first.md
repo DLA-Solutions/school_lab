@@ -139,8 +139,11 @@ When a charge is marked overdue the system recomputes
 for internal estimates (phase 2). Each school configures `interest_rate_percent` in
 `school_billing_settings` (no platform default — issuance is blocked until set). On
 issuance the adapter sends `payment_terms.interest.rate` to Cora; settlement interest is
-persisted on `payments.interest_amount_cents`. **No fine** and **no early-payment
-discount** in MVP (discount phase ~2027).
+persisted on `payments.interest_amount_cents`. **Pontualidade** (early payment discount) and
+**multa** (fine) are optional per-school settings (PR2): nullable
+`early_payment_discount_percent` → Cora `payment_terms.discount` (`type: PERCENT`, Cora default
+limit = day before due); `fine_type` `percent`|`fixed` → `payment_terms.fine` (`rate` or
+`amount`, Cora default start = due + 1). Guardian UX for these terms is out of scope.
 
 BR-012
 
@@ -615,20 +618,19 @@ answers in implementation.
       `notification_schedule`. WhatsApp/SMS out of MVP. Cora `notification` on issuance
       not sent by platform in MVP.
 - [x] **Late fee/interest — decided:** mora **interest only**, per school
-      (`interest_rate_percent`, no default); Cora `payment_terms.interest.rate` on issuance;
-      no fine in MVP. `LateFeeCalculator` stays zero until portal interest estimate (phase 2).
-      Issuance blocked when rate unset.
+      (`interest_rate_percent`, no default); Cora `payment_terms.interest.rate` on issuance.
+      **Pontualidade** and **multa** ship in PR2 via school settings → Cora payment terms.
+      `LateFeeCalculator` stays zero until portal interest estimate (phase 2). Issuance blocked
+      when rate unset.
 - [ ] Manually negotiated discount approval flow (scholarship, one-off agreement).
 - [x] **Plan discount band at charge generation (PR1)** — `contracts.plan_discount_id`
       applies `PlanDiscount#apply_to` against `billing_plan.base_amount_cents` when monthly
       charges are generated (`GenerateChargesService`, `BulkGenerateChargesService`);
       writes `applied_discounts` with `discount_type: plan_discount`. Negotiated amount
-      is ignored when a band is present. Boleto fine/interest and early-payment discount
-      remain PR2 / phase ~2027.
+      is ignored when a band is present. Boleto **multa** and **pontualidade** are configured in
+      school billing settings (PR2) and sent to Cora on issuance.
 - [ ] Invoice issuance (NFS-e) in MVP or later phase.
 - [ ] Platform SaaS billing model for schools.
-- [ ] Early payment discount (pontualidade) — phase ~2027; Cora supports
-      `payment_terms.discount` when product ships.
 - [x] **Guardian access — decided:** Devise account (`users` + `memberships` +
       `guardians.user_id`). Magic link per charge is a future alternative.
 - [x] **Fintech-first vs School Lab monorepo — decided:** single **School Lab** product;

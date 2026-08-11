@@ -26,6 +26,7 @@ const Subjects = lazy(() => import('pages/academics/Subjects'));
 const JobPositions = lazy(() => import('pages/academics/JobPositions'));
 const Charges = lazy(() => import('pages/billing/Charges'));
 const Plans = lazy(() => import('pages/billing/Plans'));
+const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
 
 const router = createBrowserRouter(
@@ -88,6 +89,10 @@ const router = createBrowserRouter(
           {
             path: paths.plans,
             element: <Plans />,
+          },
+          {
+            path: paths.billingSettings,
+            element: <BillingSettings />,
           },
           {
             path: paths.contractTemplate,

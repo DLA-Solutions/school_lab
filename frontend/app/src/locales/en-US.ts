@@ -31,6 +31,7 @@ const enUS: Messages = {
   'nav.jobPositions': 'Positions',
   'nav.charges': 'Boletos',
   'nav.plans': 'Plans',
+  'nav.billingSettings': 'Billing settings',
   'nav.contract': 'Contract',
   'nav.schools': 'Schools',
   'nav.language': 'Language',
@@ -116,6 +117,33 @@ const enUS: Messages = {
   'charges.batch.issued': '{count} boleto(s) issued and sent to the bank.',
   'charges.batch.skipped': '{count} already had a charge for this period.',
   'charges.batch.withoutPayer': '{count} without a paying guardian.',
+
+  'billingSettings.title': 'Billing settings',
+  'billingSettings.description':
+    'Parameters sent to the bank when issuing boletos: mora, early payment discount, and fine.',
+  'billingSettings.loadError': 'Could not load billing settings.',
+  'billingSettings.saveError': 'Could not save billing settings. Check your connection.',
+  'billingSettings.validationError': 'Review the highlighted fields and try again.',
+  'billingSettings.saved': 'Settings saved.',
+  'billingSettings.sections.general': 'General',
+  'billingSettings.sections.earlyPayment': 'Early payment',
+  'billingSettings.sections.fine': 'Fine',
+  'billingSettings.overdueGraceDays': 'Grace days after due date',
+  'billingSettings.overdueGraceDaysHelp':
+    'Calendar days after the due date before marking the charge overdue (0–30).',
+  'billingSettings.serviceDescription': 'Boleto service description',
+  'billingSettings.serviceDescriptionHelp': 'Text guardians see on the boleto line (up to 100 characters).',
+  'billingSettings.interestRatePercent': 'Monthly mora interest rate',
+  'billingSettings.interestRatePercentHelp':
+    'Required to issue boletos. Sent to the bank as late-payment interest.',
+  'billingSettings.earlyPaymentDiscountPercent': 'Early payment discount',
+  'billingSettings.earlyPaymentDiscountPercentHelp':
+    'Optional. Valid until the day before the due date (bank default). Leave blank to disable.',
+  'billingSettings.fineOff': 'No fine',
+  'billingSettings.finePercent': 'Percent fine',
+  'billingSettings.fineFixed': 'Fixed fine amount',
+  'billingSettings.fineRatePercent': 'Fine rate',
+  'billingSettings.fineAmount': 'Fine amount',
 
   'contract.preview.title': 'Contract preview',
   'contract.preview.signedTitle': 'Contract',

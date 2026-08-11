@@ -59,11 +59,16 @@ UC-03, Open items, Positioning note).
 - [x] **Single School Lab product** — billing is the first live module in this monorepo;
       communication and academic domains join the same codebase and schema later (not
       separate products or parallel entity tables).
-- [x] **Mora interest (late payment)** — MVP charges mora interest only (no fine, no
-      early-payment discount until ~2027). Rate is **per school** in `school_billing_settings`
-      with **no platform default** — school must configure before issuance; platform sends
-      `interest.rate` to Cora on boleto emission; bank reports settled interest on
-      `payments.interest_amount_cents`. `Billing::LateFeeCalculator` stays zero in MVP.
+- [x] **Mora interest (late payment)** — MVP charges mora interest only. Rate is **per school**
+      in `school_billing_settings` with **no platform default** — school must configure before
+      issuance; platform sends `interest.rate` to Cora on boleto emission; bank reports settled
+      interest on `payments.interest_amount_cents`. `Billing::LateFeeCalculator` stays zero in MVP.
+- [x] **Early payment discount (pontualidade)** — optional nullable `%` per school in
+      `school_billing_settings.early_payment_discount_percent`; sent to Cora as
+      `payment_terms.discount` (`type: PERCENT`). Cora default limit applies (day before due) —
+      no custom `days_before` column.
+- [x] **Multa (fine)** — optional per school: `fine_type` `percent` or `fixed` (NULL = off),
+      mapped to Cora `payment_terms.fine` (`rate` or `amount`); Cora default start date (due + 1).
 - [x] **Collection régua (MVP)** — **out of scope** for platform implementation; no
       `notification` payload on Cora issuance and no platform mailer yet. Overdue detection
       and dashboard remain. **Future channel:** platform email via `CollectionReguaNotifier`.
@@ -184,9 +189,10 @@ in `docs/prds/fintech-first.md` (Open items).
       expecting it to be the missing control.
 - [x] **Late fee / interest rule — decided:** mora **interest only**, configured **per
       school** (no default rate); sent to Cora as `payment_terms.interest.rate` on
-      issuance; no fine in MVP. `Billing::LateFeeCalculator` remains a zero-returning
-      placeholder — portal shows original amount + mora notice; interest estimate is
-      phase 2. Issuance blocked when the school has not configured a rate.
+      issuance. **Multa** and **pontualidade** are optional school settings (PR2) mapped to
+      Cora `payment_terms.fine` and `payment_terms.discount`. `Billing::LateFeeCalculator`
+      remains a zero-returning placeholder — portal shows original amount + mora notice;
+      interest estimate is phase 2. Issuance blocked when the school has not configured a rate.
 - [x] **Collection régua channel — decided (MVP):** platform régua **not implemented**;
       reminders are the bank's native behaviour until phase 2. **Future channel:** email via
       `Billing::CollectionReguaNotifier` and `notification_schedule`. WhatsApp/SMS out of

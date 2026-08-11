@@ -5,7 +5,8 @@ class SchoolBillingSettings < ApplicationRecord
 
   MAX_OVERDUE_GRACE_DAYS = 30
   MAX_SERVICE_DESCRIPTION_LENGTH = 100
-  MAX_INTEREST_RATE_PERCENT = 100
+  MAX_PERCENT = 100
+  FINE_TYPES = %w[percent fixed].freeze
 
   belongs_to :school
 
@@ -16,11 +17,27 @@ class SchoolBillingSettings < ApplicationRecord
   validates :interest_rate_percent,
             numericality: {
               greater_than: 0,
-              less_than_or_equal_to: MAX_INTEREST_RATE_PERCENT,
+              less_than_or_equal_to: MAX_PERCENT,
               allow_nil: true
             }
+  validates :early_payment_discount_percent,
+            numericality: {
+              greater_than: 0,
+              less_than_or_equal_to: MAX_PERCENT,
+              allow_nil: true
+            }
+  validates :fine_type, inclusion: { in: FINE_TYPES }, allow_nil: true
+  validates :fine_rate_percent,
+            numericality: {
+              greater_than: 0,
+              less_than_or_equal_to: MAX_PERCENT,
+              allow_nil: true
+            }
+  validates :fine_amount_cents,
+            numericality: { only_integer: true, greater_than: 0, allow_nil: true }
   validates :school_id, uniqueness: true
   validate :notification_schedule_shape
+  validate :fine_configuration
 
   def self.default_notification_schedule
     {
@@ -39,5 +56,23 @@ class SchoolBillingSettings < ApplicationRecord
     return if notification_schedule.is_a?(Hash) && notification_schedule["reminders"].is_a?(Array)
 
     errors.add(:notification_schedule, :invalid)
+  end
+
+  def fine_configuration
+    if fine_type.blank?
+      return if fine_rate_percent.blank? && fine_amount_cents.blank?
+
+      errors.add(:fine_type, :blank)
+      return
+    end
+
+    case fine_type
+    when "percent"
+      errors.add(:fine_rate_percent, :blank) if fine_rate_percent.blank?
+      errors.add(:fine_amount_cents, :present) if fine_amount_cents.present?
+    when "fixed"
+      errors.add(:fine_amount_cents, :blank) if fine_amount_cents.blank?
+      errors.add(:fine_rate_percent, :present) if fine_rate_percent.present?
+    end
   end
 end

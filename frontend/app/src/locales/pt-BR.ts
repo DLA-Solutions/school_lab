@@ -31,6 +31,7 @@ const ptBR = {
   'nav.jobPositions': 'Cargos',
   'nav.charges': 'Boletos',
   'nav.plans': 'Planos',
+  'nav.billingSettings': 'Financeiro',
   'nav.contract': 'Contrato',
   'nav.schools': 'Escolas',
   'nav.language': 'Idioma',
@@ -116,6 +117,33 @@ const ptBR = {
   'charges.batch.issued': '{count} boleto(s) gerado(s) e enviado(s) ao banco.',
   'charges.batch.skipped': '{count} já tinha(m) cobrança nesta competência.',
   'charges.batch.withoutPayer': '{count} sem responsável financeiro.',
+
+  'billingSettings.title': 'Configurações financeiras',
+  'billingSettings.description':
+    'Parâmetros enviados ao banco na emissão de boletos: mora, pontualidade e multa.',
+  'billingSettings.loadError': 'Não foi possível carregar as configurações financeiras.',
+  'billingSettings.saveError': 'Não foi possível salvar as configurações. Verifique sua conexão.',
+  'billingSettings.validationError': 'Revise os campos destacados e tente novamente.',
+  'billingSettings.saved': 'Configurações salvas.',
+  'billingSettings.sections.general': 'Geral',
+  'billingSettings.sections.earlyPayment': 'Pontualidade',
+  'billingSettings.sections.fine': 'Multa',
+  'billingSettings.overdueGraceDays': 'Dias de tolerância após o vencimento',
+  'billingSettings.overdueGraceDaysHelp':
+    'Quantos dias corridos após o vencimento antes de marcar a cobrança como em atraso (0–30).',
+  'billingSettings.serviceDescription': 'Descrição do serviço no boleto',
+  'billingSettings.serviceDescriptionHelp': 'Texto que o responsável vê na linha do boleto (até 100 caracteres).',
+  'billingSettings.interestRatePercent': 'Taxa de mora mensal',
+  'billingSettings.interestRatePercentHelp':
+    'Obrigatória para emitir boletos. Enviada ao banco como juros de mora.',
+  'billingSettings.earlyPaymentDiscountPercent': 'Desconto por pontualidade',
+  'billingSettings.earlyPaymentDiscountPercentHelp':
+    'Opcional. Válido até o dia anterior ao vencimento (regra padrão do banco). Deixe em branco para desativar.',
+  'billingSettings.fineOff': 'Sem multa',
+  'billingSettings.finePercent': 'Multa em percentual',
+  'billingSettings.fineFixed': 'Multa em valor fixo',
+  'billingSettings.fineRatePercent': 'Percentual da multa',
+  'billingSettings.fineAmount': 'Valor da multa',
 
   'contract.preview.title': 'Pré-visualização do contrato',
   'contract.preview.signedTitle': 'Contrato',

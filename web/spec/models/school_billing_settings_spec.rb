@@ -59,6 +59,46 @@ RSpec.describe SchoolBillingSettings, type: :model do
 
     expect(settings).to be_valid
   end
+
+  it "rejects zero early_payment_discount_percent" do
+    settings.early_payment_discount_percent = 0
+
+    expect(settings).not_to be_valid
+    expect(settings.errors[:early_payment_discount_percent]).to be_present
+  end
+
+  it "rejects percent fine without a rate" do
+    settings.fine_type = "percent"
+
+    expect(settings).not_to be_valid
+    expect(settings.errors[:fine_rate_percent]).to be_present
+  end
+
+  it "rejects fixed fine without an amount" do
+    settings.fine_type = "fixed"
+
+    expect(settings).not_to be_valid
+    expect(settings.errors[:fine_amount_cents]).to be_present
+  end
+
+  it "rejects percent fine with an amount" do
+    settings.assign_attributes(fine_type: "percent", fine_rate_percent: 2.0, fine_amount_cents: 100)
+
+    expect(settings).not_to be_valid
+    expect(settings.errors[:fine_amount_cents]).to be_present
+  end
+
+  it "accepts a valid percent fine configuration" do
+    settings.assign_attributes(fine_type: "percent", fine_rate_percent: 2.0)
+
+    expect(settings).to be_valid
+  end
+
+  it "accepts a valid fixed fine configuration" do
+    settings.assign_attributes(fine_type: "fixed", fine_amount_cents: 1500)
+
+    expect(settings).to be_valid
+  end
 end
 
 RSpec.describe Billing::SchoolSettings do
@@ -92,5 +132,21 @@ RSpec.describe Billing::SchoolSettings do
 
     expect(settings.interest_rate_percent).to eq(BigDecimal("1.0"))
     expect(settings.interest_rate_configured?).to be(true)
+  end
+
+  it "reports discount and fine configuration from persisted settings" do
+    create(
+      :school_billing_settings,
+      :issuance_ready,
+      school: school,
+      early_payment_discount_percent: 5.0,
+      fine_type: "fixed",
+      fine_amount_cents: 1500
+    )
+    settings = described_class.for(school)
+
+    expect(settings.early_payment_discount_configured?).to be(true)
+    expect(settings.fine_configured?).to be(true)
+    expect(settings.fine_amount_cents).to eq(1500)
   end
 end
