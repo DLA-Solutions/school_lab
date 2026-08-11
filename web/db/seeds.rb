@@ -1,19 +1,22 @@
 # frozen_string_literal: true
 
-# Demo data for partner validation in development.
+# Demo data for partner validation in development and staging.
 # Idempotent — safe to run multiple times via `bin/rails db:seed`.
 #
-# Guardian login: guardian@demo.schoollab.local / password123
-# School admin:   admin@demo.schoollab.local / password123
+# Local: runs automatically (Rails.env.local?).
+# Staging: set SEED_DEMO_DATA=true in deploy.staging.yml.
+# Production: never seeded.
 
 require_relative "seeds/demo_school"
 
-# db:prepare runs seeds on an empty database, including the first production boot.
-# Demo data carries well-known credentials and must never reach a deployed environment.
-DemoSchool.seed! if Rails.env.local?
+if DemoSchool.seed_enabled?
+  DemoSchool.seed!
 
-if Rails.env.development?
-  puts "Demo school seeded."
-  puts "  Guardian: #{DemoSchool::GUARDIAN_EMAIL} / #{DemoSchool::PASSWORD}"
-  puts "  Admin:    #{DemoSchool::ADMIN_EMAIL} / #{DemoSchool::PASSWORD}"
+  if Rails.env.development?
+    puts "Demo school seeded (#{DemoSchool.target_student_count} students target)."
+    puts "  Password for all demo users: #{DemoSchool::PASSWORD}"
+    DemoSchool::DEMO_USER_EMAILS.each do |email|
+      puts "  #{email}"
+    end
+  end
 end
