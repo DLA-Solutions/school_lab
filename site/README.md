@@ -16,8 +16,8 @@ Or open `site/public/index.html` directly in a browser.
 ## Deploy
 
 Kamal/nginx configs live in `site/config/`. Deploy with Kamal 2 from this directory — see
-`docs/guidelines/process/deployment.md` for the three-service topology and deploy order
-(site → SPA → API).
+`docs/guidelines/process/deployment.md` for the four-service topology and deploy order
+(site → school SPA → backoffice SPA → API).
 
 ```bash
 cd site

@@ -226,10 +226,10 @@ cd web && bin/deploy-preflight
 
 ### Deploy order
 
-**Routine** (after cutover is done): **site → SPA → API**.
+**Routine** (after cutover is done): **site → school SPA → backoffice SPA → API**.
 
 **Fresh host** (nothing registered on the hostname yet): same order — site first so it
-claims TLS at `/`, then SPA, then API last.
+claims TLS at `/`, then both SPAs, then API last.
 
 **Cutover** (API already owns the full hostname — typical on first site/SPA deploy):
 
@@ -241,10 +241,11 @@ ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
 ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy remove scholarpremium-web-staging'
 # production: scholarpremium-web-production
 
-# 2–4. Deploy site → API → SPA (API paths are down between steps 1 and 3)
-cd site      && kamal deploy -d staging
-cd ../web    && kamal deploy -d staging
-cd ../frontend && kamal deploy -d staging
+# 2–5. Deploy site → API → school SPA → backoffice SPA (API paths down between steps 1 and 3)
+cd site                    && kamal deploy -d staging
+cd ../web                  && kamal deploy -d staging
+cd ../frontend/app         && kamal deploy -d staging
+cd ../frontend/backoffice  && kamal deploy -d staging
 ```
 
 Between cutover steps 1 and 3, `/api` and `/up` are briefly unavailable. Do **not** run
@@ -258,7 +259,8 @@ server):
 
 ```bash
 cd site && kamal setup -d staging && kamal deploy -d staging
-cd frontend && kamal setup -d staging && kamal deploy -d staging
+cd frontend/app && kamal setup -d staging && kamal deploy -d staging
+cd frontend/backoffice && kamal setup -d staging && kamal deploy -d staging
 cd web && kamal setup -d staging && kamal deploy -d staging
 ```
 
@@ -269,14 +271,16 @@ before the first deploy (Let's Encrypt via kamal-proxy).
 
 ```bash
 # Staging — deploy only what changed, in routine order when touching multiple layers
-cd site      && kamal deploy -d staging
-cd frontend  && kamal deploy -d staging
-cd web       && kamal deploy -d staging
+cd site                    && kamal deploy -d staging
+cd frontend/app            && kamal deploy -d staging
+cd frontend/backoffice     && kamal deploy -d staging
+cd web                     && kamal deploy -d staging
 
 # Production (confirm staging first)
-cd site      && kamal deploy -d production
-cd frontend  && kamal deploy -d production
-cd web       && kamal deploy -d production
+cd site                    && kamal deploy -d production
+cd frontend/app            && kamal deploy -d production
+cd frontend/backoffice     && kamal deploy -d production
+cd web                     && kamal deploy -d production
 ```
 
 After an API schema change:
