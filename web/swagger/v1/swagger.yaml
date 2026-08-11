@@ -6166,6 +6166,57 @@
         }
       }
     },
+    "/api/v1/users": {
+      "get": {
+        "summary": "List users",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "enum": [
+              "active",
+              "disabled"
+            ],
+            "schema": {
+              "type": "string"
+            },
+            "description": ":\n * `active` \n * `disabled` \n "
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "users filtered by email and status"
+          },
+          "403": {
+            "description": "forbidden for school admin"
+          }
+        }
+      }
+    },
     "/api/v1/users/{id}/disable": {
       "post": {
         "summary": "Disable user",
@@ -6206,12 +6257,23 @@
     },
     "/api/v1/users/{id}/enable": {
       "post": {
-        "summary": "Enable — users",
+        "summary": "Enable user",
         "tags": [
-          "Schools"
+          "Backoffice"
         ],
-        "operationId": "api_v1_users_enable",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "id",
             "in": "path",
@@ -6222,22 +6284,13 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": "created"
-          },
-          "401": {
-            "description": "not authenticated"
+          "204": {
+            "description": "user enabled"
           },
           "403": {
-            "description": "not allowed"
+            "description": "forbidden for school admin"
           }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
+        }
       }
     }
   },

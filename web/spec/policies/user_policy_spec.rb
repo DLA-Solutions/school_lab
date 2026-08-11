@@ -13,9 +13,17 @@ RSpec.describe UserPolicy do
 
     before { create(:membership, :backoffice, user: user) }
 
-    it "permits disable and enable" do
+    it "permits index, disable, and enable" do
+      expect(policy.index?).to be(true)
       expect(policy.disable?).to be(true)
       expect(policy.enable?).to be(true)
+    end
+
+    it "scopes to all users" do
+      listed = create(:user)
+      scope = described_class::Scope.new(user, User.kept).resolve
+
+      expect(scope).to include(listed)
     end
   end
 
@@ -24,9 +32,17 @@ RSpec.describe UserPolicy do
 
     before { create(:membership, user: user, school: school, role: "school") }
 
-    it "denies disable and enable" do
+    it "denies index, disable, and enable" do
+      expect(policy.index?).to be(false)
       expect(policy.disable?).to be(false)
       expect(policy.enable?).to be(false)
+    end
+
+    it "scopes to none" do
+      create(:user)
+      scope = described_class::Scope.new(user, User.kept).resolve
+
+      expect(scope).to be_empty
     end
   end
 end
