@@ -12,6 +12,21 @@ const enUS: Messages = {
   'nav.language': 'Language',
 
   'shell.notificationsComingSoon': 'Coming soon',
+
+  'backoffice.dashboard.title': 'Dashboard',
+  'backoffice.dashboard.subtitle': 'Platform-wide onboarding overview.',
+  'backoffice.dashboard.onboarding.title': 'Schools by onboarding status',
+  'backoffice.dashboard.loading': 'Loading metrics',
+  'backoffice.dashboard.loadError': 'Could not load dashboard metrics.',
+  'backoffice.dashboard.noAccess.title': 'No access to this area',
+  'backoffice.dashboard.noAccess.description':
+    'The platform dashboard is available only to backoffice operators.',
+  'backoffice.dashboard.status.provisioning': 'Provisioning',
+  'backoffice.dashboard.status.pendingHandoff': 'Pending handoff',
+  'backoffice.dashboard.status.active': 'Active',
+  'backoffice.dashboard.link.provisioning': 'View provisioning',
+  'backoffice.dashboard.link.pendingHandoff': 'View pending handoff',
+  'backoffice.dashboard.viewSchools': 'View all schools',
 } as const;
 
 export default enUS;
