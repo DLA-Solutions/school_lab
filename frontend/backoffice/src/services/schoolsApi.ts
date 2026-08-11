@@ -14,6 +14,21 @@ export type SchoolListFilters = {
   onboarding_mode?: SchoolOnboardingMode | '';
 };
 
+const ONBOARDING_STATUSES: SchoolOnboardingStatus[] = ['provisioning', 'pending_handoff', 'active'];
+
+export type OnboardingStatusCounts = Record<SchoolOnboardingStatus, number>;
+
+/** Uses `meta.total` from the school register list — same source of truth as the register. */
+export const fetchOnboardingStatusCounts = async (): Promise<OnboardingStatusCounts> => {
+  const responses = await Promise.all(
+    ONBOARDING_STATUSES.map((status) => listSchools(1, { onboarding_status: status })),
+  );
+
+  return Object.fromEntries(
+    ONBOARDING_STATUSES.map((status, index) => [status, responses[index]!.meta.total]),
+  ) as OnboardingStatusCounts;
+};
+
 export const listSchools = (page = 1, filters: SchoolListFilters = {}) => {
   const params = new URLSearchParams({ page: String(page) });
 

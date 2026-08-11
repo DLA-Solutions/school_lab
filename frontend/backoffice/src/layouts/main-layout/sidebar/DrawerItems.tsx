@@ -18,9 +18,13 @@ const DrawerItems = () => {
   const location = useLocation();
   const { t } = useTranslation();
 
-  const isRouteActive = (path?: string) => {
+  const isRouteActive = (path?: string, id?: string) => {
     if (!path) {
       return false;
+    }
+
+    if (id === 'dashboard') {
+      return location.pathname === paths.dashboard || location.pathname === paths.dashboardAlias;
     }
 
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -43,7 +47,7 @@ const DrawerItems = () => {
       >
         <ButtonBase
           component={RouterLink}
-          to={paths.schools}
+          to={paths.dashboard}
           disableRipple
           sx={{ width: 1, justifyContent: 'flex-start' }}
         >
@@ -67,7 +71,7 @@ const DrawerItems = () => {
 
       <List component="nav" sx={{ px: 2.5 }}>
         {topListData.map((route) => (
-          <ListItem key={route.id} {...route} active={isRouteActive(route.path)} />
+          <ListItem key={route.id} {...route} active={isRouteActive(route.path, route.id)} />
         ))}
       </List>
 

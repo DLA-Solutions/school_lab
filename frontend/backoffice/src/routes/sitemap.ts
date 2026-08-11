@@ -20,6 +20,12 @@ export interface MenuItem {
 
 const sitemap: MenuItem[] = [
   {
+    id: 'dashboard',
+    subheader: 'nav.dashboard',
+    path: paths.dashboard,
+    icon: 'mingcute:home-3-line',
+  },
+  {
     id: 'schools',
     subheader: 'nav.schools',
     path: paths.schools,
