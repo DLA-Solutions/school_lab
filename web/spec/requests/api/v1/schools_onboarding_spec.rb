@@ -48,6 +48,7 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
           body = JSON.parse(response.body)
           expect(body.dig("data", "onboarding_status")).to eq("pending_handoff")
           expect(body.dig("data", "onboarding_mode")).to eq("self_serve")
+          expect(body.dig("meta", "owner_invite_email_status")).to eq("not_configured")
 
           school = School.find(body.dig("data", "id"))
           owner = school.owner_membership

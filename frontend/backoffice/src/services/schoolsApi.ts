@@ -1,6 +1,6 @@
 import { Paginated } from 'types/academics';
 import { SchoolOnboardingMode, SchoolOnboardingStatus } from 'types/onboarding';
-import { School, SchoolPayload } from 'types/school';
+import { CreateSchoolResult, School, SchoolPayload } from 'types/school';
 import { request } from './api';
 
 /**
@@ -49,10 +49,13 @@ export const getSchool = async (id: number): Promise<School> => {
   return response.data;
 };
 
-export const createSchool = async (school: SchoolPayload): Promise<School> => {
-  const response = await request<{ data: School }>(PATH, { method: 'POST', body: { school } });
+export const createSchool = async (school: SchoolPayload): Promise<CreateSchoolResult> => {
+  const response = await request<{ data: School; meta?: CreateSchoolResult['meta'] }>(PATH, {
+    method: 'POST',
+    body: { school },
+  });
 
-  return response.data;
+  return { school: response.data, meta: response.meta };
 };
 
 export const updateSchool = async (id: number, school: SchoolPayload): Promise<School> => {

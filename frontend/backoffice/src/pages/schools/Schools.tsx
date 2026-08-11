@@ -30,7 +30,7 @@ import { ApiError } from 'services/api';
 import { createSchool, deleteSchool, listSchools, SchoolListFilters, updateSchool } from 'services/schoolsApi';
 import paths from 'routes/paths';
 import { SchoolOnboardingMode } from 'types/onboarding';
-import { School } from 'types/school';
+import { CreateSchoolMeta, School } from 'types/school';
 
 const PAGE_SIZE = 25;
 
@@ -102,6 +102,18 @@ const ONBOARDING_STATUS_LABELS: Record<
   active: { label: 'Ativa', variant: 'success' },
 };
 
+const createdSchoolSuccessMessage = (school: School, meta?: CreateSchoolMeta) => {
+  if (school.onboarding_mode === 'white_glove') {
+    return `${school.name} foi criada e está pronta para provisionamento.`;
+  }
+
+  if (meta?.owner_invite_email_status === 'not_configured') {
+    return `${school.name} foi criada. O convite foi gerado, mas o envio de e-mail não está configurado neste ambiente.`;
+  }
+
+  return `${school.name} foi criada. Um e-mail com o link de ativação foi enviado ao responsável.`;
+};
+
 const renderOptional = ({ value }: GridRenderCellParams<School, string | null>) =>
   value ? (
     <Typography variant="body2">{value}</Typography>
@@ -133,6 +145,7 @@ const Schools = () => {
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
   const [createdSchool, setCreatedSchool] = useState<School | null>(null);
+  const [createdSchoolMeta, setCreatedSchoolMeta] = useState<CreateSchoolMeta | undefined>();
   const [pendingDelete, setPendingDelete] = useState<School | null>(null);
   const [statusFilter, setStatusFilter] = useState<OnboardingStatusFilter>(() =>
     parseStatusFilter(searchParams.get('onboarding_status')),
@@ -203,6 +216,7 @@ const Schools = () => {
     setFormOpen(false);
     setEditing(null);
     setCreatedSchool(null);
+    setCreatedSchoolMeta(undefined);
     setFieldErrors({});
     setFormError('');
   };
@@ -210,6 +224,7 @@ const Schools = () => {
   const openForm = (school: School | null) => {
     setEditing(school);
     setCreatedSchool(null);
+    setCreatedSchoolMeta(undefined);
     setForm(
       school
         ? {
@@ -274,8 +289,9 @@ const Schools = () => {
         closeForm();
         load();
       } else {
-        const school = await createSchool(payload);
+        const { school, meta } = await createSchool(payload);
         setCreatedSchool(school);
+        setCreatedSchoolMeta(meta);
         load();
 
         if (
@@ -556,9 +572,7 @@ const Schools = () => {
             <DialogContent>
               <Stack spacing={2.5} pt={0.5}>
                 <Alert severity="success">
-                  {createdSchool.onboarding_mode === 'white_glove'
-                    ? `${createdSchool.name} foi criada e está pronta para provisionamento.`
-                    : `${createdSchool.name} foi criada. Um convite foi enviado ao responsável.`}
+                  {createdSchoolSuccessMessage(createdSchool, createdSchoolMeta)}
                 </Alert>
 
                 {createdStatusMeta && (

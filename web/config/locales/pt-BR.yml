@@ -17,6 +17,14 @@ pt-BR:
         pay_boleto: "Pagar boleto"
         pix_label: "Pix copia e cola"
         footer: "Se você já pagou, desconsidere este e-mail."
+  people:
+    mailer:
+      membership_invite:
+        subject: "Convite para %{school} — Scholar Premium"
+        greeting: "Olá,"
+        body: "Você foi convidado(a) para acessar %{school} no Scholar Premium. Defina sua senha para ativar o acesso."
+        cta: "Ativar acesso"
+        footer: "Este link é válido por 7 dias. Se você não esperava este convite, ignore este e-mail."
   api:
     errors:
       unauthorized: "Não autorizado."
