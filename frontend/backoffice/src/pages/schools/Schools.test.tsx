@@ -120,24 +120,20 @@ describe('Schools page', () => {
     expect(link).toHaveAttribute('href', paths.provisioningWizard(2));
   });
 
-  it('shows pending handoff affordance distinct from provisioning action', async () => {
+  it('shows pending handoff activation affordance distinct from provisioning action', async () => {
     server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))));
 
     renderPage();
 
     await screen.findByText('Escola Gama');
 
-    const handoffButton = screen.getByRole('button', {
-      name: /repasse pendente para escola gama/i,
+    const activationLink = screen.getByRole('link', {
+      name: /ativar escola gama/i,
     });
+    expect(activationLink).toHaveAttribute('href', paths.schoolActivation(3));
     expect(
       screen.queryByRole('link', { name: /continuar provisionamento de escola gama/i }),
     ).not.toBeInTheDocument();
-
-    await user.click(handoffButton);
-
-    expect(await screen.findByRole('dialog', { name: /repasse pendente/i })).toBeInTheDocument();
-    expect(screen.getByText(/ativação pela plataforma estará disponível em breve/i)).toBeInTheDocument();
   });
 
   it('shows platform-operator empty state copy', async () => {

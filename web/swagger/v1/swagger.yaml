@@ -627,13 +627,13 @@
         ],
         "responses": {
           "200": {
-            "description": "provisioning handoff for white-glove school"
+            "description": "backoffice activates white-glove school after owner accepts"
           },
           "403": {
-            "description": "non-owner staff cannot handoff self-serve school"
+            "description": "school staff without backoffice cannot handoff"
           },
           "422": {
-            "description": "incomplete activation checklist"
+            "description": "activation blocked when owner is not active"
           }
         },
         "requestBody": {

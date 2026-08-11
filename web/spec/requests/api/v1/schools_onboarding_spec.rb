@@ -193,6 +193,95 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
           expect(body.dig("data", "onboarding_status")).to eq("pending_handoff")
         end
       end
+
+      response "200", "backoffice activates white-glove school after owner accepts" do
+        let(:school) { create(:school, :pending_handoff, onboarding_mode: "white_glove") }
+        let(:id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:payload) { {} }
+
+        before do
+          owner = create(:user, email: "owner@whiteglove-active.example")
+          create(:membership, :staff, user: owner, school: school, status: "active").tap do |membership|
+            director = create_system_templates_for(school).find { |t| t.system_key == "director" }
+            create(:staff_profile, :owner, membership: membership, school: school, role_template: director)
+          end
+          create(:school_payment_provider, school: school, active: true)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("data", "onboarding_status")).to eq("active")
+        end
+      end
+
+      response "422", "activation blocked when owner is not active" do
+        let(:school) { create(:school, :pending_handoff, onboarding_mode: "white_glove") }
+        let(:id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:payload) { {} }
+
+        before do
+          owner = create(:user, email: "invited@whiteglove.example")
+          create(:membership, :invited, :staff, user: owner, school: school).tap do |membership|
+            director = create_system_templates_for(school).find { |t| t.system_key == "director" }
+            create(:staff_profile, :owner, membership: membership, school: school, role_template: director)
+          end
+          school.update!(billing_waived_at: Time.current)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("validation_error")
+          expect(body.dig("error", "details", "checklist")).to include("owner_active")
+        end
+      end
+
+      response "403", "backoffice cannot activate self-serve school" do
+        let(:school) { create(:school, :pending_handoff, onboarding_mode: "self_serve") }
+        let(:id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:payload) { { handoff: { billing_waived: true } } }
+
+        before do
+          owner = create(:user, email: "owner@selfserve.example")
+          create(:membership, :staff, user: owner, school: school, status: "active").tap do |membership|
+            director = create_system_templates_for(school).find { |t| t.system_key == "director" }
+            create(:staff_profile, :owner, membership: membership, school: school, role_template: director)
+          end
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("forbidden")
+        end
+      end
+
+      response "403", "school staff without backoffice cannot handoff" do
+        let(:school) { create(:school, :pending_handoff, onboarding_mode: "white_glove") }
+        let(:id) { school.id }
+        let(:staff_user) { create(:user) }
+        let(:Authorization) { auth_headers_for(staff_user)["Authorization"] }
+        let(:payload) { {} }
+
+        before do
+          secretary = create_system_templates_for(school).find { |t| t.system_key == "secretary" }
+          create(:membership, :staff, user: staff_user, school: school, status: "active").tap do |membership|
+            create(:staff_profile, membership: membership, school: school, role_template: secretary)
+          end
+          owner = create(:user, email: "owner@staff-denied.example")
+          create(:membership, :staff, user: owner, school: school, status: "active").tap do |membership|
+            director = school.system_role_template("director")
+            create(:staff_profile, :owner, membership: membership, school: school, role_template: director)
+          end
+          create(:school_payment_provider, school: school, active: true)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("forbidden")
+        end
+      end
     end
   end
 

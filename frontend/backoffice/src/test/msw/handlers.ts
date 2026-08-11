@@ -108,9 +108,32 @@ const defaultProvisioningMemberships = (): Membership[] => [
   },
 ];
 
+const defaultPendingHandoffMemberships = (schoolId: number, schoolName: string): Membership[] => [
+  {
+    id: 60 + schoolId,
+    school_id: schoolId,
+    school_name: schoolName,
+    role: 'staff',
+    status: 'active',
+    email: 'diretor@example.com',
+    role_template: {
+      id: 102,
+      name: 'Direção',
+      system_key: 'director',
+      is_system: true,
+    },
+    is_owner: true,
+    segment_id: null,
+    display_title: 'Diretor',
+    permissions: [],
+    permission_sources: {},
+  },
+];
+
 /** Invited staff on provisioning schools — mutated by POST memberships in tests. */
 export const teamMembershipsBySchool: Record<number, Membership[]> = {
   2: defaultProvisioningMemberships(),
+  3: defaultPendingHandoffMemberships(3, 'Escola Gama'),
 };
 
 export const resetTeamMembershipsBySchool = () => {
@@ -118,6 +141,7 @@ export const resetTeamMembershipsBySchool = () => {
     delete teamMembershipsBySchool[Number(schoolId)];
   });
   teamMembershipsBySchool[2] = defaultProvisioningMemberships();
+  teamMembershipsBySchool[3] = defaultPendingHandoffMemberships(3, 'Escola Gama');
 };
 /** Owner with pending_handoff — drives onboarding route guards in tests. */
 export const ownerPendingMembership: Membership = {
@@ -521,7 +545,12 @@ export const handlers = [
     const billingWaived = body.handoff?.billing_waived === true;
     const schoolId = Number(params.schoolId);
     const school = sampleSchools.find((row) => row.id === schoolId);
-    const billingReady = billingWaived || hasActiveBankCredentials(schoolId);
+    const ownerMembership = (teamMembershipsBySchool[schoolId] ?? []).find(
+      (membership) => membership.is_owner === true,
+    );
+    const ownerActive = ownerMembership?.status === 'active';
+    const billingReady =
+      billingWaived || hasActiveBankCredentials(schoolId) || Boolean(school?.billing_waived_at);
 
     if (school?.onboarding_status === 'provisioning') {
       if (!billingReady) {
@@ -541,6 +570,35 @@ export const handlers = [
           onboarding_status: 'pending_handoff',
           onboarding_mode: school.onboarding_mode,
           billing_waived_at: billingWaived ? '2026-08-10T12:00:00Z' : null,
+          segments_skipped_at: null,
+        },
+      });
+    }
+
+    if (school?.onboarding_status === 'pending_handoff') {
+      const checklist: string[] = [];
+      if (!ownerActive) {
+        checklist.push('owner_active');
+      }
+      if (!billingReady) {
+        checklist.push('billing');
+      }
+
+      if (checklist.length > 0) {
+        return jsonError(422, 'validation_error', 'Checklist incompleta.', { checklist });
+      }
+
+      return HttpResponse.json({
+        data: {
+          id: school.id,
+          name: school.name,
+          cnpj: school.cnpj,
+          address: school.address,
+          saas_plan: school.saas_plan,
+          school_group_id: school.school_group_id,
+          onboarding_status: 'active',
+          onboarding_mode: school.onboarding_mode,
+          billing_waived_at: billingWaived ? '2026-08-10T12:00:00Z' : school.billing_waived_at ?? null,
           segments_skipped_at: null,
         },
       });
