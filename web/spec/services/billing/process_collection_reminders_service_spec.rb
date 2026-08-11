@@ -38,8 +38,7 @@ RSpec.describe Billing::ProcessCollectionRemindersService do
       school: school,
       contract: contract,
       guardian: guardian,
-      due_date: today + 3.days,
-      status: "pending"
+      due_date: today + 3.days
     )
 
     expect do
@@ -56,9 +55,9 @@ RSpec.describe Billing::ProcessCollectionRemindersService do
       school: school,
       contract: contract,
       guardian: guardian,
-      due_date: today - 7.days,
-      status: "overdue"
+      due_date: today - 7.days
     )
+    charge.mark_overdue!
 
     expect do
       described_class.call(school: school)

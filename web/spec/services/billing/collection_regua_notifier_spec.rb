@@ -40,10 +40,10 @@ RSpec.describe Billing::CollectionReguaNotifier do
         contract: contract,
         guardian: guardian,
         due_date: today - 3.days,
-        status: "overdue",
         boleto_url: "https://boleto.example/123",
         pix_copy_paste: "00020126580014BR"
       )
+      charge.mark_overdue!
 
       expect do
         described_class.notify_overdue(charge: charge)
@@ -61,9 +61,9 @@ RSpec.describe Billing::CollectionReguaNotifier do
         school: school,
         contract: contract,
         guardian: guardian,
-        due_date: today - 3.days,
-        status: "overdue"
+        due_date: today - 3.days
       )
+      charge.mark_overdue!
 
       described_class.notify_overdue(charge: charge)
 
@@ -78,9 +78,9 @@ RSpec.describe Billing::CollectionReguaNotifier do
         school: school,
         contract: contract,
         guardian: guardian,
-        due_date: today - 1.day,
-        status: "overdue"
+        due_date: today - 1.day
       )
+      charge.mark_overdue!
 
       expect do
         described_class.notify_overdue(charge: charge)
@@ -96,9 +96,9 @@ RSpec.describe Billing::CollectionReguaNotifier do
         school: school,
         contract: contract,
         guardian: guardian,
-        due_date: today - 3.days,
-        status: "overdue"
+        due_date: today - 3.days
       )
+      charge.mark_overdue!
 
       expect do
         described_class.notify_overdue(charge: charge)
