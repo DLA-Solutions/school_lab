@@ -10,6 +10,7 @@ import {
   backofficeUser,
   http,
   jsonError,
+  sampleBankCredential,
   server,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
@@ -64,6 +65,18 @@ const advanceToCsv = async () => {
 const advanceToHandoff = async () => {
   await advanceToCsv();
   await user.click(screen.getByRole('button', { name: /continuar/i }));
+};
+
+const uploadCredentialsOnBillingStep = async () => {
+  await user.type(screen.getByLabelText(/client id/i), 'client-stage-001');
+
+  const fileInputs = document.querySelectorAll('input[type="file"]');
+  const certificate = new File(['cert-pem'], 'cert.pem', { type: 'application/x-pem-file' });
+  const privateKey = new File(['key-pem'], 'key.pem', { type: 'application/x-pem-file' });
+  await user.upload(fileInputs[0] as HTMLInputElement, certificate);
+  await user.upload(fileInputs[1] as HTMLInputElement, privateKey);
+
+  await user.click(screen.getByRole('button', { name: /enviar credenciais/i }));
 };
 
 const waitForWizardLoaded = async () => {
@@ -197,6 +210,86 @@ describe('ProvisioningWizard', () => {
     await advanceToHandoff();
 
     expect(screen.getByRole('button', { name: /confirmar repasse ao responsável/i })).toBeDisabled();
+    expect(
+      screen.getByText(/configure as credenciais cora ou adie a cobrança/i),
+    ).toBeInTheDocument();
+  });
+
+  it('uploads bank credentials on billing step', async () => {
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToBilling();
+
+    await uploadCredentialsOnBillingStep();
+
+    expect(await screen.findByText(/credenciais enviadas com sucesso/i)).toBeInTheDocument();
+    expect(screen.getByText(/client id: client-stage-001/i)).toBeInTheDocument();
+    expect(screen.getByText(/impressão digital/i)).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /adiar configuração de cobrança/i })).toBeDisabled();
+  });
+
+  it('shows validation errors from credential upload', async () => {
+    server.use(
+      http.post(apiUrl('/api/v1/schools/:schoolId/bank_credentials'), () =>
+        jsonError(422, 'validation_error', 'Não foi possível salvar.', {
+          certificate: ['is invalid'],
+        }),
+      ),
+    );
+
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToBilling();
+
+    await user.type(screen.getByLabelText(/client id/i), 'client-stage-001');
+
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    const certificate = new File(['bad'], 'invalid.pem', { type: 'application/x-pem-file' });
+    const privateKey = new File(['key-pem'], 'key.pem', { type: 'application/x-pem-file' });
+    await user.upload(fileInputs[0] as HTMLInputElement, certificate);
+    await user.upload(fileInputs[1] as HTMLInputElement, privateKey);
+
+    await user.click(screen.getByRole('button', { name: /enviar credenciais/i }));
+
+    expect(await screen.findByText(/erros de validação/i)).toBeInTheDocument();
+    expect(screen.getByText(/certificado: is invalid/i)).toBeInTheDocument();
+  });
+
+  it('shows existing credentials on billing step load', async () => {
+    server.use(
+      http.get(apiUrl('/api/v1/schools/:schoolId/bank_credentials'), () =>
+        HttpResponse.json({ data: [sampleBankCredential(PROVISIONING_SCHOOL_ID, 'client-existing')] }),
+      ),
+    );
+
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToBilling();
+
+    expect(await screen.findByText(/credenciais cora ativas configuradas/i)).toBeInTheDocument();
+    expect(screen.getByText(/client id: client-existing/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /enviar credenciais/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /adiar configuração de cobrança/i })).toBeDisabled();
+  });
+
+  it('completes handoff with uploaded credentials without waiving billing', async () => {
+    renderWizard();
+    await waitForWizardLoaded();
+
+    await advanceToBilling();
+    await uploadCredentialsOnBillingStep();
+    await screen.findByText(/credenciais enviadas com sucesso/i);
+
+    await user.click(screen.getByRole('button', { name: /continuar/i }));
+    await user.click(screen.getByRole('button', { name: /continuar/i }));
+    await user.click(screen.getByRole('button', { name: /continuar/i }));
+
+    expect(screen.getByRole('button', { name: /confirmar repasse ao responsável/i })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: /confirmar repasse ao responsável/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Escolas')).toBeInTheDocument();
+    });
   });
 
   it('shows read-only state for active school', async () => {

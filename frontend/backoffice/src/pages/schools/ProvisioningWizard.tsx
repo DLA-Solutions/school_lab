@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import TextField from '@mui/material/TextField';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -20,8 +21,10 @@ import { EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system'
 import { useAuth } from 'providers/AuthContext';
 import paths from 'routes/paths';
 import { ApiError } from 'services/api';
+import { listBankCredentials, uploadBankCredentials } from 'services/bankCredentialsApi';
 import { importProvisioningCsv, submitHandoff } from 'services/onboardingApi';
 import { getSchool } from 'services/schoolsApi';
+import { SchoolPaymentProvider } from 'types/bankCredential';
 import {
   ProvisioningImportResult,
   ProvisioningImportSummary,
@@ -38,6 +41,53 @@ const CSV_COLUMNS =
   'student_name, student_birth_date, student_rg, school_class_name, guardian_name, guardian_email, guardian_phone, guardian_relationship, guardian_zip_code, guardian_street, guardian_number, guardian_neighborhood, guardian_city, guardian_state';
 
 const READ_ONLY_STATUSES = new Set<SchoolOnboardingStatus>(['active', 'pending_handoff']);
+
+const CREDENTIAL_FIELD_LABELS: Record<string, string> = {
+  client_id: 'Client ID',
+  certificate: 'Certificado',
+  private_key: 'Chave privada',
+  provider: 'Provedor',
+  instrument: 'Instrumento',
+};
+
+const formatCredentialValidationErrors = (details: Record<string, unknown>): string[] =>
+  Object.entries(details).flatMap(([field, value]) => {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    const label = CREDENTIAL_FIELD_LABELS[field] ?? field;
+    return value.map((message) => `${label}: ${String(message)}`);
+  });
+
+const formatCredentialDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+const CredentialMetadata = ({ credential }: { credential: SchoolPaymentProvider }) => (
+  <List dense disablePadding>
+    <ListItem disableGutters>
+      <ListItemText primary={`Provedor: ${credential.provider}`} />
+    </ListItem>
+    <ListItem disableGutters>
+      <ListItemText primary={`Client ID: ${credential.client_id}`} />
+    </ListItem>
+    <ListItem disableGutters>
+      <ListItemText primary={`Impressão digital: ${credential.certificate_fingerprint}`} />
+    </ListItem>
+    <ListItem disableGutters>
+      <ListItemText
+        primary={`Certificado válido até: ${formatCredentialDate(credential.certificate_expires_at)}`}
+      />
+    </ListItem>
+    <ListItem disableGutters>
+      <ListItemText primary={`Enviado em: ${formatCredentialDate(credential.uploaded_at)}`} />
+    </ListItem>
+  </List>
+);
 
 const SummaryList = ({ summary }: { summary: ProvisioningImportSummary }) => (
   <List dense disablePadding>
@@ -69,6 +119,13 @@ const ProvisioningWizard = () => {
 
   const [activeStep, setActiveStep] = useState(0);
   const [billingWaived, setBillingWaived] = useState(false);
+  const [bankCredentials, setBankCredentials] = useState<SchoolPaymentProvider[]>([]);
+  const [loadingCredentials, setLoadingCredentials] = useState(false);
+  const [clientId, setClientId] = useState('');
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [privateKeyFile, setPrivateKeyFile] = useState<File | null>(null);
+  const [credentialErrors, setCredentialErrors] = useState<string[]>([]);
+  const [credentialUploadSuccess, setCredentialUploadSuccess] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [previewResult, setPreviewResult] = useState<ProvisioningImportResult | null>(null);
   const [commitResult, setCommitResult] = useState<ProvisioningImportResult | null>(null);
@@ -119,14 +176,53 @@ const ProvisioningWizard = () => {
     };
   }, [backoffice, schoolId]);
 
-  const handoffReady = billingWaived;
+  useEffect(() => {
+    if (!backoffice || !Number.isFinite(schoolId) || !school) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadCredentials = async () => {
+      setLoadingCredentials(true);
+
+      try {
+        const data = await listBankCredentials(schoolId);
+        if (!cancelled) {
+          setBankCredentials(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setBankCredentials([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingCredentials(false);
+        }
+      }
+    };
+
+    loadCredentials();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [backoffice, school, schoolId]);
+
+  const activeCredential = useMemo(
+    () => bankCredentials.find((credential) => credential.active) ?? null,
+    [bankCredentials],
+  );
+  const hasActiveCredentials = activeCredential !== null;
+  const billingReady = billingWaived || hasActiveCredentials;
+  const handoffReady = billingReady;
 
   const localChecklist = useMemo(
     () => [
-      { key: 'billing', complete: billingWaived },
+      { key: 'billing', complete: billingReady },
       { key: 'owner_invite', complete: true },
     ],
-    [billingWaived],
+    [billingReady],
   );
 
   const goNext = () => {
@@ -137,6 +233,65 @@ const ProvisioningWizard = () => {
   const goBack = () => {
     setBannerError('');
     setActiveStep((step) => Math.max(step - 1, 0));
+  };
+
+  const handleCertificateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setCertificateFile(event.target.files?.[0] ?? null);
+    setCredentialErrors([]);
+    setCredentialUploadSuccess(false);
+    setBannerError('');
+  };
+
+  const handlePrivateKeyChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setPrivateKeyFile(event.target.files?.[0] ?? null);
+    setCredentialErrors([]);
+    setCredentialUploadSuccess(false);
+    setBannerError('');
+  };
+
+  const handleUploadCredentials = async () => {
+    if (!clientId.trim() || !certificateFile || !privateKeyFile || readOnly || billingWaived) {
+      return;
+    }
+
+    setBannerError('');
+    setCredentialErrors([]);
+    setCredentialUploadSuccess(false);
+    setSubmitting(true);
+
+    try {
+      const uploaded = await uploadBankCredentials(schoolId, {
+        client_id: clientId.trim(),
+        certificate: certificateFile,
+        private_key: privateKeyFile,
+      });
+      setBankCredentials((current) => [
+        ...current.map((credential) =>
+          credential.active && credential.instrument === uploaded.instrument
+            ? { ...credential, active: false }
+            : credential,
+        ),
+        uploaded,
+      ]);
+      setCredentialUploadSuccess(true);
+      setChecklistErrors([]);
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'validation_error') {
+        const fieldErrors = formatCredentialValidationErrors(error.details);
+        if (fieldErrors.length > 0) {
+          setCredentialErrors(fieldErrors);
+        }
+        setBannerError(error.message);
+      } else {
+        setBannerError(
+          error instanceof ApiError
+            ? error.message
+            : 'Não foi possível enviar as credenciais. Tente novamente.',
+        );
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -318,10 +473,108 @@ const ProvisioningWizard = () => {
               Configure um provedor de pagamento ou adie a cobrança para concluir o repasse. A escola
               poderá conectar a integração bancária depois, com o responsável.
             </Typography>
+
+            {loadingCredentials ? (
+              <Stack alignItems="center" py={2}>
+                <CircularProgress size={24} />
+              </Stack>
+            ) : (
+              <>
+                {hasActiveCredentials && activeCredential && (
+                  <Alert severity="success" variant="outlined">
+                    {credentialUploadSuccess
+                      ? 'Credenciais enviadas com sucesso.'
+                      : 'Credenciais Cora ativas configuradas.'}
+                    <CredentialMetadata credential={activeCredential} />
+                  </Alert>
+                )}
+
+                {!billingWaived && !hasActiveCredentials && (
+                  <Stack gap={2}>
+                    <Typography variant="subtitle2">Integração Cora (boleto)</Typography>
+                    <TextField
+                      label="Client ID"
+                      value={clientId}
+                      onChange={(event) => {
+                        setClientId(event.target.value);
+                        setCredentialErrors([]);
+                        setCredentialUploadSuccess(false);
+                      }}
+                      disabled={submitting}
+                      fullWidth
+                    />
+                    <Box>
+                      <Button variant="outlined" component="label" disabled={submitting}>
+                        Certificado (.pem)
+                        <input
+                          type="file"
+                          accept=".pem,application/x-pem-file"
+                          hidden
+                          onChange={handleCertificateChange}
+                        />
+                      </Button>
+                      {certificateFile && (
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          Arquivo: {certificateFile.name}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box>
+                      <Button variant="outlined" component="label" disabled={submitting}>
+                        Chave privada (.pem)
+                        <input
+                          type="file"
+                          accept=".pem,application/x-pem-file"
+                          hidden
+                          onChange={handlePrivateKeyChange}
+                        />
+                      </Button>
+                      {privateKeyFile && (
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          Arquivo: {privateKeyFile.name}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Button
+                      variant="contained"
+                      onClick={handleUploadCredentials}
+                      disabled={
+                        submitting || !clientId.trim() || !certificateFile || !privateKeyFile
+                      }
+                      startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
+                    >
+                      Enviar credenciais
+                    </Button>
+                  </Stack>
+                )}
+
+                {credentialErrors.length > 0 && (
+                  <SectionCard>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Erros de validação
+                    </Typography>
+                    <List dense disablePadding>
+                      {credentialErrors.map((message) => (
+                        <ListItem key={message} disableGutters>
+                          <ListItemIcon sx={{ minWidth: 36 }}>
+                            <IconifyIcon icon="mdi:close-circle" color="error.main" />
+                          </ListItemIcon>
+                          <ListItemText primary={message} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </SectionCard>
+                )}
+
+                {bannerError && <ErrorBanner message={bannerError} />}
+              </>
+            )}
+
             <FormControlLabel
               control={
                 <Checkbox
                   checked={billingWaived}
+                  disabled={hasActiveCredentials}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => {
                     setBillingWaived(event.target.checked);
                     setChecklistErrors([]);
@@ -484,7 +737,7 @@ const ProvisioningWizard = () => {
             </Button>
             {!handoffReady && (
               <Typography variant="body2" color="text.secondary" align="center">
-                Adie a cobrança na etapa de cobrança para continuar.
+                Configure as credenciais Cora ou adie a cobrança na etapa de cobrança para continuar.
               </Typography>
             )}
           </Stack>
