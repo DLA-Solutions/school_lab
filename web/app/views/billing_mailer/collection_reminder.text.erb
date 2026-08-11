@@ -1,0 +1,13 @@
+<%= t("billing.mailer.collection_reminder.greeting", name: @guardian.name) %>
+
+<%= t("billing.mailer.collection_reminder.body", amount: @amount, due_date: @due_date) %>
+
+<% if @boleto_url.present? %>
+<%= t("billing.mailer.collection_reminder.pay_boleto") %>: <%= @boleto_url %>
+<% end %>
+
+<% if @pix_copy_paste.present? %>
+<%= t("billing.mailer.collection_reminder.pix_label") %>: <%= @pix_copy_paste %>
+<% end %>
+
+<%= t("billing.mailer.collection_reminder.footer") %>
