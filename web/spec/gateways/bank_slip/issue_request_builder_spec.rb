@@ -143,6 +143,31 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
         .to raise_error(Gateways::BankSlip::ValidationError, /document_number is required/)
     end
 
+    it "maps billing settings for discount and fine into the issue request" do
+      billing_settings.update!(
+        early_payment_discount_percent: 5.0,
+        fine_type: "percent",
+        fine_rate_percent: 2.0
+      )
+
+      request = described_class.from_charge(charge)
+
+      expect(request.early_payment_discount_percent).to eq(BigDecimal("5.0"))
+      expect(request.fine_type).to eq("percent")
+      expect(request.fine_rate_percent).to eq(BigDecimal("2.0"))
+      expect(request.fine_amount_cents).to be_nil
+    end
+
+    it "maps fixed fine settings into the issue request" do
+      billing_settings.update!(fine_type: "fixed", fine_amount_cents: 1500)
+
+      request = described_class.from_charge(charge)
+
+      expect(request.fine_type).to eq("fixed")
+      expect(request.fine_amount_cents).to eq(1500)
+      expect(request.fine_rate_percent).to be_nil
+    end
+
     it "uses localized billing strings rather than hardcoded Portuguese" do
       source = File.read(Rails.root.join("app/services/gateways/bank_slip/issue_request_builder.rb"))
 

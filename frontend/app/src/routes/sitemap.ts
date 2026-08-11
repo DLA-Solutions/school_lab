@@ -98,6 +98,14 @@ const sitemap: MenuItem[] = [
     requiredPermission: 'manage_billing',
   },
   {
+    id: 'billing-settings',
+    subheader: 'nav.billingSettings',
+    path: paths.billingSettings,
+    icon: 'mingcute:settings-3-line',
+    active: true,
+    requiredPermission: 'manage_billing',
+  },
+  {
     id: 'contract-template',
     subheader: 'nav.contract',
     path: paths.contractTemplate,

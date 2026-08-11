@@ -34,6 +34,10 @@ module Api
               :overdue_grace_days,
               :service_description,
               :interest_rate_percent,
+              :early_payment_discount_percent,
+              :fine_type,
+              :fine_rate_percent,
+              :fine_amount_cents,
               notification_schedule: { reminders: %i[days_before_due days_after_due] }
             )
           end

@@ -123,6 +123,77 @@ RSpec.describe "Api::V1::Schools::Billing::Settings", type: :request do
           expect(body.dig("error", "code")).to eq("validation_error")
         end
       end
+
+      response "422", "validation error for percent fine without rate" do
+        let(:payload) do
+          { billing_settings: { fine_type: "percent" } }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("validation_error")
+        end
+      end
+
+      response "422", "validation error for fixed fine without amount" do
+        let(:payload) do
+          { billing_settings: { fine_type: "fixed" } }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("validation_error")
+        end
+      end
+
+      response "422", "validation error for invalid early payment discount" do
+        let(:payload) do
+          { billing_settings: { early_payment_discount_percent: 0 } }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("validation_error")
+        end
+      end
+
+      response "200", "persists early payment discount and percent fine" do
+        let(:payload) do
+          {
+            billing_settings: {
+              early_payment_discount_percent: 5.0,
+              fine_type: "percent",
+              fine_rate_percent: 2.0
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["early_payment_discount_percent"]).to eq(5.0)
+          expect(body["fine_type"]).to eq("percent")
+          expect(body["fine_rate_percent"]).to eq(2.0)
+          expect(body["fine_amount_cents"]).to be_nil
+        end
+      end
+
+      response "200", "persists fixed fine and clears percent rate" do
+        let(:payload) do
+          {
+            billing_settings: {
+              fine_type: "fixed",
+              fine_amount_cents: 1500
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["fine_type"]).to eq("fixed")
+          expect(body["fine_amount_cents"]).to eq(1500)
+          expect(body["fine_rate_percent"]).to be_nil
+        end
+      end
     end
   end
 end

@@ -15,6 +15,14 @@ module Gateways
               rate: issue_request.interest_rate_percent.to_f
             }
           end
+          if issue_request.early_payment_discount_percent.present?
+            payment_terms[:discount] = {
+              type: "PERCENT",
+              value: issue_request.early_payment_discount_percent.to_f
+            }
+          end
+          fine = fine_payload(issue_request)
+          payment_terms[:fine] = fine if fine
 
           payload = {
             code: issue_request.charge_id&.to_s,
@@ -26,6 +34,20 @@ module Gateways
 
           payload.compact
         end
+
+        def fine_payload(issue_request)
+          case issue_request.fine_type
+          when "percent"
+            return nil if issue_request.fine_rate_percent.blank?
+
+            { rate: issue_request.fine_rate_percent.to_f }
+          when "fixed"
+            return nil if issue_request.fine_amount_cents.blank?
+
+            { amount: issue_request.fine_amount_cents }
+          end
+        end
+        private_class_method :fine_payload
 
         def customer_payload(customer)
           data = {

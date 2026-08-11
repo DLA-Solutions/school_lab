@@ -22,6 +22,7 @@ export default {
 
   charges: '/boletos',
   plans: '/planos',
+  billingSettings: '/financeiro/configuracoes',
   contractTemplate: '/contrato',
 
   signin: `/${rootPaths.authRoot}/signin`,
