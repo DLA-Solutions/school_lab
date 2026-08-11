@@ -31,6 +31,11 @@ production:
     queue: billing
     schedule: at 6:30am every day
     timezone: America/Sao_Paulo
+  billing_process_collection_reminders:
+    class: Billing::ProcessCollectionRemindersJob
+    queue: billing
+    schedule: at 6:45am every day
+    timezone: America/Sao_Paulo
   billing_monitor_health:
     class: Billing::MonitorBillingHealthJob
     queue: billing
@@ -62,6 +67,11 @@ development:
     class: Billing::MarkOverdueChargesJob
     queue: billing
     schedule: at 6:30am every day
+    timezone: America/Sao_Paulo
+  billing_process_collection_reminders:
+    class: Billing::ProcessCollectionRemindersJob
+    queue: billing
+    schedule: at 6:45am every day
     timezone: America/Sao_Paulo
   billing_monitor_health:
     class: Billing::MonitorBillingHealthJob

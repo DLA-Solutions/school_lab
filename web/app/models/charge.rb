@@ -15,6 +15,7 @@ class Charge < ApplicationRecord
   has_many :applied_discounts, dependent: :destroy
   has_many :charge_issuances, dependent: :destroy
   has_many :payments, dependent: :destroy
+  has_many :collection_reminder_deliveries, dependent: :destroy
 
   validates :billing_period, presence: true
   validates :original_amount_cents, :total_amount_cents, presence: true

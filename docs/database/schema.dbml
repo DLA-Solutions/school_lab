@@ -359,6 +359,23 @@ Table charges {
   }
 }
 
+Table collection_reminder_deliveries {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  charge_id integer [not null]
+  rule_key varchar [not null, note: 'e.g. days_after_due:3, overdue_transition']
+  sent_on date [not null, note: 'School timezone date — deduplicates same-day reminders per rule']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (charge_id, rule_key, sent_on) [unique]
+    (school_id, sent_on)
+    school_id
+    charge_id
+  }
+}
+
 Table charge_issuances {
   id integer [primary key, increment]
   charge_id integer [not null]
@@ -560,6 +577,9 @@ Ref: charges.contract_id > contracts.id
 Ref: charges.guardian_id > guardians.id
 Ref: charges.discarded_by_id > users.id
 Ref: charges.school_id > schools.id
+
+Ref: collection_reminder_deliveries.school_id > schools.id
+Ref: collection_reminder_deliveries.charge_id > charges.id
 
 Ref: charge_issuances.charge_id > charges.id
 Ref: charge_issuances.school_id > schools.id

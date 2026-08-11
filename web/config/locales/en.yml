@@ -8,6 +8,14 @@ en:
   billing:
     settings:
       default_service_description: "School tuition"
+    mailer:
+      collection_reminder:
+        subject: "Open charge — %{amount}"
+        greeting: "Hello, %{name}."
+        body: "We found an open charge of %{amount} due on %{due_date}."
+        pay_boleto: "Pay boleto"
+        pix_label: "Pix copy and paste"
+        footer: "If you already paid, please disregard this e-mail."
   api:
     errors:
       unauthorized: "Not authorized."

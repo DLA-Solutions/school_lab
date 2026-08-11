@@ -356,7 +356,7 @@ flowchart TB
 
 See `docs/open-questions.md` (Web stack section):
 
-- Email provider (Postmark, SES, etc.)
+- ~~Email provider~~ — **Postmark** for transactional mail (collection régua; `POSTMARK_API_TOKEN`)
 - When to add Redis (cache only)
 
 Open for the school SPA — each is missing today (§3):

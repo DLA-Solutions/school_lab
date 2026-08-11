@@ -9,6 +9,14 @@ pt-BR:
   billing:
     settings:
       default_service_description: "Mensalidade escolar"
+    mailer:
+      collection_reminder:
+        subject: "Cobrança em aberto — %{amount}"
+        greeting: "Olá, %{name}."
+        body: "Identificamos uma cobrança de %{amount} com vencimento em %{due_date} ainda em aberto."
+        pay_boleto: "Pagar boleto"
+        pix_label: "Pix copia e cola"
+        footer: "Se você já pagou, desconsidere este e-mail."
   api:
     errors:
       unauthorized: "Não autorizado."
