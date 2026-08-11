@@ -56,6 +56,19 @@ const renderPage = () =>
 const authenticate = () => setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
 
 describe('BillingSettingsPage', () => {
+  it('shows the page subtitle under the title', async () => {
+    authenticate();
+    server.use(http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })));
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/parâmetros enviados ao banco na emissão de boletos/i),
+      ).toBeInTheDocument(),
+    );
+  });
+
   it('loads billing settings into the form', async () => {
     authenticate();
     server.use(http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })));
