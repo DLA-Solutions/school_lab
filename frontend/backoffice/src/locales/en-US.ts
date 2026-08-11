@@ -8,6 +8,7 @@ import type { Messages } from './index';
 const enUS: Messages = {
   'nav.dashboard': 'Dashboard',
   'nav.schools': 'Schools',
+  'nav.users': 'Users',
   'nav.backoffice': 'Backoffice',
   'nav.language': 'Language',
 

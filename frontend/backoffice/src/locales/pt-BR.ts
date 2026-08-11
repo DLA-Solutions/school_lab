@@ -8,6 +8,7 @@
 const ptBR = {
   'nav.dashboard': 'Dashboard',
   'nav.schools': 'Escolas',
+  'nav.users': 'Usuários',
   'nav.backoffice': 'Backoffice',
   'nav.language': 'Idioma',
 
