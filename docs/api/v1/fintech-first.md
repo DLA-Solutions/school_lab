@@ -69,6 +69,7 @@ See [`002-api-auth.md`](../modeling/002-api-auth.md) for full login/refresh cont
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/v1/schools` | List schools |
+| `GET` | `/api/v1/users` | List platform users (search/filter) |
 | `POST` | `/api/v1/schools` | Create school |
 | `GET` | `/api/v1/schools/:id` | School detail |
 | `PATCH` | `/api/v1/schools/:id` | Update school |
