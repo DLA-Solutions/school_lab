@@ -16,6 +16,14 @@ en:
         pay_boleto: "Pay boleto"
         pix_label: "Pix copy and paste"
         footer: "If you already paid, please disregard this e-mail."
+  people:
+    mailer:
+      membership_invite:
+        subject: "Invitation to %{school} — Scholar Premium"
+        greeting: "Hello,"
+        body: "You were invited to access %{school} on Scholar Premium. Set your password to activate your account."
+        cta: "Activate access"
+        footer: "This link is valid for 7 days. If you were not expecting this invitation, please ignore this e-mail."
   api:
     errors:
       unauthorized: "Not authorized."

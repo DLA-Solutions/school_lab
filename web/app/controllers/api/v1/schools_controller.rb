@@ -25,13 +25,17 @@ module Api
       def create
         authorize School
 
+        owner_email = params.dig(:school, :owner_email).to_s.strip.downcase.presence
         result = ::Schools::CreateSchoolService.call(
           params: school_params,
           actor: Current.user,
-          owner_email: params.dig(:school, :owner_email)
+          owner_email: owner_email
         )
         render_service_result(result, success_status: :created) do |school|
-          render json: { data: SchoolBlueprint.render_as_hash(school) }, status: :created
+          payload = { data: SchoolBlueprint.render_as_hash(school) }
+          payload[:meta] = owner_invite_meta if owner_email.present?
+
+          render json: payload, status: :created
         end
       end
 
@@ -80,6 +84,12 @@ module Api
 
       def handoff_params
         params.fetch(:handoff, {}).permit(:billing_waived)
+      end
+
+      def owner_invite_meta
+        {
+          owner_invite_email_status: SchoolLab::EmailDelivery.configured? ? "queued" : "not_configured"
+        }
       end
 
       def filter_onboarding(scope)

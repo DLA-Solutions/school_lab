@@ -23,3 +23,14 @@ export interface SchoolPayload {
   onboarding_mode?: SchoolOnboardingMode;
   owner_email?: string;
 }
+
+export type OwnerInviteEmailStatus = 'queued' | 'not_configured';
+
+export type CreateSchoolMeta = {
+  owner_invite_email_status?: OwnerInviteEmailStatus;
+};
+
+export type CreateSchoolResult = {
+  school: School;
+  meta?: CreateSchoolMeta;
+};

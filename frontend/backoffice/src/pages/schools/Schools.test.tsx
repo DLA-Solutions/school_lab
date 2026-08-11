@@ -195,6 +195,9 @@ describe('Schools page', () => {
               onboarding_mode: 'self_serve',
               onboarding_status: 'pending_handoff',
             },
+            meta: {
+              owner_invite_email_status: 'queued',
+            },
           },
           { status: 201 },
         );
@@ -223,7 +226,7 @@ describe('Schools page', () => {
     );
 
     expect(await screen.findByText('Escola criada')).toBeInTheDocument();
-    expect(screen.getByText(/convite foi enviado ao responsável/i)).toBeInTheDocument();
+    expect(screen.getByText(/e-mail com o link de ativação foi enviado ao responsável/i)).toBeInTheDocument();
     expect(screen.getByText('Aguardando repasse')).toBeInTheDocument();
   });
 

@@ -1,0 +1,15 @@
+<p>
+  <%= t("people.mailer.membership_invite.greeting") %>
+</p>
+
+<p>
+  <%= t("people.mailer.membership_invite.body", school: @school.name) %>
+</p>
+
+<p>
+  <%= link_to t("people.mailer.membership_invite.cta"), @invite_url %>
+</p>
+
+<p>
+  <%= t("people.mailer.membership_invite.footer") %>
+</p>
