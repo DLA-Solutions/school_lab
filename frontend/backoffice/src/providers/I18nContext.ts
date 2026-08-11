@@ -12,7 +12,7 @@ export interface I18nContextValue {
   locale: LocaleCode;
   language: Language;
   setLocale: (locale: LocaleCode) => void;
-  /** `t('charges.cancelAction', { name })` — placeholders are `{name}`. */
+  /** Look up a localized message by key. */
   t: (key: MessageKey, values?: Record<string, string | number>) => string;
 }
 
