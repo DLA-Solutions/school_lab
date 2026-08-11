@@ -86,8 +86,39 @@ export const roleTemplates = [
   },
 ];
 
+const defaultProvisioningMemberships = (): Membership[] => [
+  {
+    id: 50,
+    school_id: 2,
+    school_name: 'Escola Beta',
+    role: 'staff',
+    status: 'invited',
+    email: 'diretor@example.com',
+    role_template: {
+      id: 102,
+      name: 'Direção',
+      system_key: 'director',
+      is_system: true,
+    },
+    is_owner: true,
+    segment_id: null,
+    display_title: 'Diretor',
+    permissions: [],
+    permission_sources: {},
+  },
+];
+
 /** Invited staff on provisioning schools — mutated by POST memberships in tests. */
-export const teamMembershipsBySchool: Record<number, Membership[]> = {};
+export const teamMembershipsBySchool: Record<number, Membership[]> = {
+  2: defaultProvisioningMemberships(),
+};
+
+export const resetTeamMembershipsBySchool = () => {
+  Object.keys(teamMembershipsBySchool).forEach((schoolId) => {
+    delete teamMembershipsBySchool[Number(schoolId)];
+  });
+  teamMembershipsBySchool[2] = defaultProvisioningMemberships();
+};
 /** Owner with pending_handoff — drives onboarding route guards in tests. */
 export const ownerPendingMembership: Membership = {
   id: 12,
@@ -453,12 +484,32 @@ export const handlers = [
     return paginated(teamMembershipsBySchool[schoolId] ?? [], new URL(request.url));
   }),
 
-  http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships/:id/invite'), ({ request }) => {
+  http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships/:id/invite'), ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
     }
 
-    return new HttpResponse(null, { status: 202 });
+    const schoolId = Number(params.schoolId);
+    const membershipId = Number(params.id);
+    const memberships = teamMembershipsBySchool[schoolId] ?? [];
+    const membership = memberships.find((entry) => entry.id === membershipId);
+
+    if (!membership) {
+      return jsonError(404, 'not_found', 'Membership not found.');
+    }
+
+    return HttpResponse.json({
+      data: {
+        id: membership.id,
+        school_id: membership.school_id,
+        role: membership.role,
+        status: 'invited',
+        email: membership.email,
+        is_owner: membership.is_owner,
+        display_title: membership.display_title,
+        role_template: membership.role_template,
+      },
+    });
   }),
 
   http.post(apiUrl('/api/v1/schools/:schoolId/handoff'), async ({ request, params }) => {

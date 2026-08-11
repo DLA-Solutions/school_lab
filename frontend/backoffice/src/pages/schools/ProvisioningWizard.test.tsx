@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import {
@@ -13,6 +13,7 @@ import {
   sampleBankCredential,
   server,
   SECRETARY_TEMPLATE_ID,
+  resetTeamMembershipsBySchool,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
@@ -85,6 +86,10 @@ const waitForWizardLoaded = async () => {
 };
 
 describe('ProvisioningWizard', () => {
+  beforeEach(() => {
+    resetTeamMembershipsBySchool();
+  });
+
   it('renders wizard steps for provisioning school', async () => {
     renderWizard();
 
@@ -129,7 +134,7 @@ describe('ProvisioningWizard', () => {
     await advanceToPeople();
 
     await user.type(screen.getByLabelText(/^e-mail$/i), 'secretaria@example.com');
-    await user.click(screen.getByRole('button', { name: /enviar convite/i }));
+    await user.click(screen.getByRole('button', { name: /^enviar convite$/i }));
 
     await waitFor(() => {
       expect(invitePayload).not.toBeNull();
@@ -147,13 +152,102 @@ describe('ProvisioningWizard', () => {
     expect(screen.getByText('secretaria@example.com').closest('li')).toHaveTextContent('Secretária');
   });
 
+  it('resends staff invite on people step', async () => {
+    let resendCalled = false;
+
+    server.use(
+      http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships/:id/invite'), ({ params }) => {
+        resendCalled = true;
+        expect(params.id).not.toBe('50');
+
+        return HttpResponse.json({
+          data: {
+            id: Number(params.id),
+            school_id: PROVISIONING_SCHOOL_ID,
+            role: 'staff',
+            status: 'invited',
+            email: 'secretaria@example.com',
+            is_owner: false,
+            display_title: 'Secretária',
+            role_template: {
+              id: SECRETARY_TEMPLATE_ID,
+              name: 'Secretária',
+              system_key: 'secretary',
+              is_system: true,
+            },
+          },
+        });
+      }),
+    );
+
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToPeople();
+
+    await user.type(screen.getByLabelText(/^e-mail$/i), 'secretaria@example.com');
+    await user.click(screen.getByRole('button', { name: /^enviar convite$/i }));
+    await screen.findByText(/convite enviado com sucesso/i);
+
+    const staffRow = screen.getByText('secretaria@example.com').closest('li');
+    expect(staffRow).not.toBeNull();
+    await user.click(within(staffRow as HTMLElement).getByRole('button', { name: /^reenviar convite$/i }));
+
+    await waitFor(() => {
+      expect(resendCalled).toBe(true);
+    });
+    expect(await screen.findByText(/convite reenviado com sucesso/i)).toBeInTheDocument();
+  });
+
+  it('resends owner invite on people step', async () => {
+    let resendCalled = false;
+
+    server.use(
+      http.post(apiUrl('/api/v1/schools/:schoolId/people/memberships/:id/invite'), ({ params }) => {
+        resendCalled = true;
+        expect(params.id).toBe('50');
+
+        return HttpResponse.json({
+          data: {
+            id: 50,
+            school_id: PROVISIONING_SCHOOL_ID,
+            role: 'staff',
+            status: 'invited',
+            email: 'diretor@example.com',
+            is_owner: true,
+            display_title: 'Diretor',
+            role_template: {
+              id: 102,
+              name: 'Direção',
+              system_key: 'director',
+              is_system: true,
+            },
+          },
+        });
+      }),
+    );
+
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToPeople();
+
+    expect(screen.getByText('diretor@example.com')).toBeInTheDocument();
+    const ownerRow = screen.getByText('diretor@example.com').closest('li');
+    expect(ownerRow).not.toBeNull();
+    await user.click(within(ownerRow as HTMLElement).getByRole('button', { name: /^reenviar convite$/i }));
+
+    await waitFor(() => {
+      expect(resendCalled).toBe(true);
+    });
+    expect(await screen.findByText(/convite reenviado com sucesso/i)).toBeInTheDocument();
+  });
+
   it('shows team invite indicator on handoff step after sending invite', async () => {
     renderWizard();
     await waitForWizardLoaded();
     await advanceToPeople();
 
     await user.type(screen.getByLabelText(/^e-mail$/i), 'secretaria@example.com');
-    await user.click(screen.getByRole('button', { name: /enviar convite/i }));
+    await user.click(screen.getByRole('button', { name: /^enviar convite$/i }));
     await screen.findByText(/convite enviado com sucesso/i);
 
     await user.click(screen.getByRole('button', { name: /continuar/i }));
