@@ -5127,7 +5127,7 @@
         }
       ],
       "post": {
-        "summary": "Resend invite",
+        "summary": "Resend invite during provisioning",
         "tags": [
           "People"
         ],
@@ -5147,13 +5147,13 @@
         ],
         "responses": {
           "200": {
-            "description": "invite notification enqueued"
+            "description": "backoffice with provision_school resends invite"
           },
           "422": {
             "description": "active membership cannot be re-invited"
           },
           "403": {
-            "description": "teacher without manage_people cannot resend invite"
+            "description": "backoffice blocked on pending_handoff school"
           }
         }
       }
