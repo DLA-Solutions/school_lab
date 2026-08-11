@@ -282,6 +282,8 @@ no raw credentials — they interpolate environment variables you export before 
 | `REDIS_PASSWORD` | `requirepass` value of the Redis instance |
 | `API_DOCS_USERNAME` | HTTP Basic Auth user for `/api-docs` on staging |
 | `API_DOCS_PASSWORD` | HTTP Basic Auth password for `/api-docs` on staging |
+| `POSTMARK_API_TOKEN_STAGING` | Postmark Server API token for transactional e-mail on staging |
+| `POSTMARK_API_TOKEN_PRODUCTION` | Postmark Server API token for transactional e-mail on production |
 
 URL-encode the database and Redis passwords. A literal `@`, `:`, `/`, `?`, or `#` inside
 a password breaks `DATABASE_URL` parsing, and the failure looks like a wrong host rather
@@ -408,6 +410,31 @@ failed boot. Local development serves `/api-docs` without credentials.
 **Kamal destination merge:** `env.secret` in `deploy.staging.yml` **replaces** the
 base list in `deploy.yml` (it does not append). Staging must repeat every secret from
 `deploy.yml` plus the staging-only `API_DOCS_*` entries.
+
+## Transactional e-mail (Postmark)
+
+Collection régua reminders use Postmark when `POSTMARK_API_TOKEN` is set on the API
+container. `MAIL_FROM` defaults to `noreply@scholarpremium.com.br` via `deploy.yml`
+(`env.clear`); override per destination in `deploy.<destination>.yml` if needed.
+
+Set **distinct** Postmark Server API tokens per destination:
+
+```bash
+export POSTMARK_API_TOKEN_STAGING='...'
+export POSTMARK_API_TOKEN_PRODUCTION='...'
+```
+
+Add `POSTMARK_API_TOKEN=$POSTMARK_API_TOKEN_STAGING` (or `_PRODUCTION`) to the
+gitignored `.kamal/secrets.<destination>` file — see the `.example` templates. Verify
+before deploy:
+
+```bash
+cd web
+kamal secrets print -d staging | grep POSTMARK_API_TOKEN
+```
+
+The `MAIL_FROM` address must be a verified Sender Signature or domain in Postmark.
+Without a token, the API still boots; régua reminders are skipped.
 
 ## Rollback
 
