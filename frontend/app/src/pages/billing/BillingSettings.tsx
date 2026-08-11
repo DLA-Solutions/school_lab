@@ -16,7 +16,7 @@ import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { fetchBillingSettings, updateBillingSettings } from 'services/billingSettingsApi';
-import { BillingSettings, FineType } from 'types/billingSettings';
+import { BillingSettings, BillingSettingsPayload, FineType } from 'types/billingSettings';
 import { formatCentsInput, parseCents } from 'utils/money';
 
 type FineMode = 'off' | FineType;
@@ -106,7 +106,7 @@ const BillingSettingsPage = () => {
     setFieldErrors({});
     setSaved(false);
 
-    const payload = {
+    const payload: BillingSettingsPayload = {
       overdue_grace_days: Number(overdueGraceDays),
       service_description: serviceDescription.trim(),
       interest_rate_percent: parseOptionalPercent(interestRatePercent),
@@ -150,7 +150,7 @@ const BillingSettingsPage = () => {
     <Stack spacing={3} component="form" onSubmit={submit}>
       <PageHeader
         title={t('billingSettings.title')}
-        description={t('billingSettings.description')}
+        subtitle={t('billingSettings.description')}
       />
 
       {error ? <ErrorBanner message={error} /> : null}
