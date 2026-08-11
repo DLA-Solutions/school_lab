@@ -1,4 +1,4 @@
-import { ChangeEvent } from 'react';
+import { ChangeEvent, KeyboardEvent } from 'react';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconifyIcon from 'components/base/IconifyIcon';
@@ -14,6 +14,7 @@ export interface SearchFieldProps {
    */
   ariaLabel?: string;
   fullWidth?: boolean;
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   sx?: object;
 }
 
@@ -23,6 +24,7 @@ const SearchField = ({
   placeholder = 'Search for...',
   ariaLabel = 'Search',
   fullWidth = false,
+  onKeyDown,
   sx,
 }: SearchFieldProps) => {
   return (
@@ -32,6 +34,7 @@ const SearchField = ({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
+      onKeyDown={onKeyDown}
       fullWidth={fullWidth}
       sx={{ width: fullWidth ? 1 : 220, ...sx }}
       slotProps={{
