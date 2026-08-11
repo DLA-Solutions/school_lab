@@ -8,6 +8,7 @@ import IconButton from '@mui/material/IconButton';
 import IconifyIcon from 'components/base/IconifyIcon';
 import LanguageSelect from './LanguageSelect';
 import ProfileMenu from './ProfileMenu';
+import { useTranslation } from 'providers/I18nContext';
 import { BrandLogo, ThemeToggle } from 'design-system';
 
 interface TopbarProps {
@@ -17,6 +18,8 @@ interface TopbarProps {
 }
 
 const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
+  const { t } = useTranslation();
+
   const handleDrawerToggle = () => {
     if (!isClosing) {
       setMobileOpen(!mobileOpen);
@@ -52,10 +55,17 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
         <ThemeToggle />
         <LanguageSelect />
 
-        <Tooltip title="Notifications">
-          <IconButton size="large" sx={{ color: 'text.secondary' }}>
-            <IconifyIcon icon="ion:notifications" />
-          </IconButton>
+        <Tooltip title={t('shell.notificationsComingSoon')}>
+          <span>
+            <IconButton
+              size="large"
+              sx={{ color: 'text.secondary' }}
+              aria-label={t('shell.notificationsComingSoon')}
+              onClick={(event) => event.preventDefault()}
+            >
+              <IconifyIcon icon="ion:notifications" />
+            </IconButton>
+          </span>
         </Tooltip>
 
         <ProfileMenu />
