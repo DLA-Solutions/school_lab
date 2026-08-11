@@ -3,12 +3,13 @@
 Use during `review-web-ui`. Check only what the diff touches.
 
 `frontend/app` today is React 19 + Vite 7 + TypeScript with **MUI v7 and Emotion** for styling
-and **React Router v7**, plus a small `src/services/` API client and `src/providers/AuthProvider`.
-No test runner, i18n library, or data-fetching library is installed yet.
+and **React Router v7**, plus a hand-written `src/services/` API client, React Context providers,
+custom i18n catalogues (`src/locales/`), and **Vitest + RTL + MSW** for tests. No TanStack Query
+or global state library is installed yet.
 
-That means the **Testing**, **i18n**, and **State and data fetching** sections below describe the
-target once those pieces land — do not report their absence as a violation on code that predates
-them. `docs/web-stack.md` §3 documents the MUI-based design system; use `docs/guidelines/web-ui/` for token and pattern rules.
+The **State and data fetching** section below still describes targets for a future data-fetching
+library — do not report the absence of TanStack Query as a violation. Use `docs/guidelines/web-ui/`
+for token, pattern, and test rules.
 
 ## Architecture — thin client
 
