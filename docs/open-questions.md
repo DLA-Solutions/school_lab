@@ -86,7 +86,9 @@ PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draf
       `pending_handoff` → `active`.
 - [x] **Invite flow** — single-use token + set password (not random server password).
 - [x] **Enrollment contract does not block login** — signature gate deferred to phase 2 (BR-O11).
-- [ ] Transactional email provider for invites (Postmark, SES, …).
+- [ ] Transactional email provider for invites (Postmark, SES, …). **Collection régua**
+      uses Postmark when `POSTMARK_API_TOKEN` is set (issue #124); invite mailers can reuse
+      the same configuration.
 - [ ] LGPD consent record location for staff/guardian onboarding.
 - [ ] `segments` MVP depth (full entity vs nullable stub).
 - [ ] Terms acknowledgment persistence for handoff checklists (MVP app flag vs
@@ -402,6 +404,8 @@ Decisions finalized in `docs/web-stack.md`. Open items:
       on. No AA threshold governs a series colour, but a deep blue on dark navy is a legibility
       question the standard does not answer; moving any of them is a minor token bump and a repaint
       of the DashdarkX charts.
+- [x] **Transactional email (collection régua)** — Postmark via `postmark-rails` when
+      `POSTMARK_API_TOKEN` is set; otherwise reminders are skipped. Invite mailers pending.
 - [ ] SPA data fetching — keep hand-rolled `fetch`, or adopt TanStack Query / SWR?
 - [ ] SPA global state — stay on React Context, or add a store?
 - [ ] SPA API types — hand-written in `src/types/`, or generated from the OpenAPI spec?
