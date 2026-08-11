@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router';
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -77,6 +77,22 @@ const ONBOARDING_MODE_FILTER_LABELS: Record<OnboardingModeFilter, string> = {
   self_serve: 'Autoatendimento',
   white_glove: 'Premium (white-glove)',
 };
+
+const parseStatusFilter = (value: string | null): OnboardingStatusFilter => {
+  if (value && value in ONBOARDING_STATUS_FILTER_LABELS && value !== ALL_FILTER) {
+    return value as OnboardingStatusFilter;
+  }
+
+  return ALL_FILTER;
+};
+
+const parseModeFilter = (value: string | null): OnboardingModeFilter => {
+  if (value && value in ONBOARDING_MODE_FILTER_LABELS && value !== ALL_FILTER) {
+    return value as OnboardingModeFilter;
+  }
+
+  return ALL_FILTER;
+};
 const ONBOARDING_STATUS_LABELS: Record<
   NonNullable<School['onboarding_status']>,
   { label: string; variant: 'info' | 'warning' | 'success' }
@@ -100,6 +116,7 @@ const renderOptional = ({ value }: GridRenderCellParams<School, string | null>) 
  */
 const Schools = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const backoffice = true;
 
   const [schools, setSchools] = useState<School[]>([]);
@@ -117,8 +134,12 @@ const Schools = () => {
   const [saving, setSaving] = useState(false);
   const [createdSchool, setCreatedSchool] = useState<School | null>(null);
   const [pendingDelete, setPendingDelete] = useState<School | null>(null);
-  const [statusFilter, setStatusFilter] = useState<OnboardingStatusFilter>(ALL_FILTER);
-  const [modeFilter, setModeFilter] = useState<OnboardingModeFilter>(ALL_FILTER);
+  const [statusFilter, setStatusFilter] = useState<OnboardingStatusFilter>(() =>
+    parseStatusFilter(searchParams.get('onboarding_status')),
+  );
+  const [modeFilter, setModeFilter] = useState<OnboardingModeFilter>(() =>
+    parseModeFilter(searchParams.get('onboarding_mode')),
+  );
 
   const listFilters: SchoolListFilters = {
     onboarding_status: statusFilter === ALL_FILTER ? '' : statusFilter,
@@ -156,6 +177,20 @@ const Schools = () => {
   useEffect(() => {
     setPage(0);
   }, [statusFilter, modeFilter]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    if (statusFilter !== ALL_FILTER) {
+      params.set('onboarding_status', statusFilter);
+    }
+
+    if (modeFilter !== ALL_FILTER) {
+      params.set('onboarding_mode', modeFilter);
+    }
+
+    setSearchParams(params, { replace: true });
+  }, [modeFilter, setSearchParams, statusFilter]);
 
   useEffect(() => {
     load();

@@ -37,11 +37,14 @@ const page = (rows: typeof sampleSchools) => ({
   meta: { page: 1, per_page: 25, total: rows.length },
 });
 
-const renderPage = (auth: AuthContextValue = backofficeAuth) => {
+const renderPage = (
+  auth: AuthContextValue = backofficeAuth,
+  initialEntry: string = paths.schools,
+) => {
   setAccessToken(FRESH_ACCESS_TOKEN, ACCESS_EXPIRES_AT);
 
   return renderWithTheme(
-    <MemoryRouter initialEntries={[paths.schools]}>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <AuthContext.Provider value={auth}>
         <Schools />
       </AuthContext.Provider>
@@ -106,6 +109,32 @@ describe('Schools page', () => {
 
     expect(requests.some((url) => url.includes('onboarding_status=pending_handoff'))).toBe(true);
     expect(requests.some((url) => url.includes('onboarding_mode=white_glove'))).toBe(true);
+  });
+
+  it('initializes filters from onboarding_status query params', async () => {
+    const requests: string[] = [];
+
+    server.use(
+      http.get(apiUrl(SCHOOLS_PATH), ({ request }) => {
+        requests.push(request.url);
+        const url = new URL(request.url);
+        const status = url.searchParams.get('onboarding_status');
+        const rows = status
+          ? sampleSchools.filter((school) => school.onboarding_status === status)
+          : sampleSchools;
+
+        return HttpResponse.json(page(rows));
+      }),
+    );
+
+    renderPage(backofficeAuth, paths.schoolsWithOnboardingStatus('provisioning'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Escola Beta')).toBeInTheDocument();
+      expect(screen.queryByText('Escola Alpha')).not.toBeInTheDocument();
+    });
+
+    expect(requests.some((url) => url.includes('onboarding_status=provisioning'))).toBe(true);
   });
 
   it('offers continue provisioning for white-glove provisioning schools', async () => {
