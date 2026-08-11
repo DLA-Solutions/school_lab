@@ -3,6 +3,8 @@
 require "swagger_helper"
 
 RSpec.describe "Api::V1::Schools onboarding", type: :request do
+  include ActiveJob::TestHelper
+
   let(:backoffice_user) { create(:user) }
   let!(:backoffice_membership) { create(:membership, :with_provision_school, user: backoffice_user) }
   let(:owner_user) { create(:user) }
@@ -295,6 +297,82 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
             }
           }
         end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("forbidden")
+        end
+      end
+    end
+  end
+
+  path "/api/v1/schools/{school_id}/people/memberships/{id}/invite" do
+    parameter name: :school_id, in: :path, type: :integer
+    parameter name: :id, in: :path, type: :integer
+
+    post "Resend invite during provisioning" do
+      tags "People"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+
+      response "200", "backoffice with provision_school resends invite" do
+        let(:school) { create(:school, :provisioning) }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:invitee) { create(:user, email: "secretary@example.com") }
+        let!(:membership) { create(:membership, :invited, :staff, user: invitee, school: school) }
+        let(:secretary_template) { create_system_templates_for(school).find { |t| t.system_key == "secretary" } }
+        let!(:staff_profile) do
+          create(:staff_profile, membership: membership, school: school, role_template: secretary_template)
+        end
+        let!(:existing_token) { create(:membership_invite_token, membership: membership) }
+        let(:id) { membership.id }
+
+        run_test! do
+          expect(existing_token.reload.used_at).to be_present
+          expect(membership.membership_invite_tokens.unused.count).to eq(1)
+          expect(People::InviteMembershipNotificationJob).to have_been_enqueued.with(membership.id, kind_of(String))
+        end
+      end
+
+      response "403", "backoffice without provision_school forbidden" do
+        let(:school) { create(:school, :provisioning) }
+        let(:school_id) { school.id }
+        let(:plain_backoffice) { create(:user) }
+        let!(:plain_membership) { create(:membership, :backoffice, user: plain_backoffice) }
+        let(:Authorization) { auth_headers_for(plain_backoffice)["Authorization"] }
+        let(:invitee) { create(:user, email: "blocked@example.com") }
+        let!(:membership) { create(:membership, :invited, user: invitee, school: school, role: "guardian") }
+        let(:id) { membership.id }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("forbidden")
+        end
+      end
+
+      response "403", "backoffice blocked on active school" do
+        let(:school) { create(:school, onboarding_status: "active") }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:invitee) { create(:user, email: "active@example.com") }
+        let!(:membership) { create(:membership, :invited, user: invitee, school: school, role: "guardian") }
+        let(:id) { membership.id }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("forbidden")
+        end
+      end
+
+      response "403", "backoffice blocked on pending_handoff school" do
+        let(:school) { create(:school, :pending_handoff) }
+        let(:school_id) { school.id }
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:invitee) { create(:user, email: "pending@example.com") }
+        let!(:membership) { create(:membership, :invited, user: invitee, school: school, role: "guardian") }
+        let(:id) { membership.id }
 
         run_test! do |response|
           body = JSON.parse(response.body)

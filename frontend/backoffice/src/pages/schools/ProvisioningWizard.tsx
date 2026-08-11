@@ -29,7 +29,7 @@ import {
   listRoleTemplates,
   submitHandoff,
 } from 'services/onboardingApi';
-import { listMemberships } from 'services/peopleApi';
+import { listMemberships, resendMembershipInvite } from 'services/peopleApi';
 import { getSchool } from 'services/schoolsApi';
 import { SchoolPaymentProvider } from 'types/bankCredential';
 import {
@@ -52,11 +52,22 @@ const READ_ONLY_STATUSES = new Set<SchoolOnboardingStatus>(['active', 'pending_h
 
 const STAFF_INVITE_EXCLUDED_KEYS = new Set(['teacher', 'director']);
 
-interface SentTeamInvite {
+interface PendingInvite {
   id: number;
   email: string;
   roleLabel: string;
 }
+
+const toPendingInvite = (membership: {
+  id: number;
+  email: string | null;
+  display_title?: string | null;
+  role_template?: { name: string } | null;
+}): PendingInvite => ({
+  id: membership.id,
+  email: membership.email ?? '',
+  roleLabel: membership.display_title ?? membership.role_template?.name ?? 'Membro da equipe',
+});
 
 const isStaffAssignableTemplate = (template: RoleTemplateSummary) =>
   template.system_key === null || !STAFF_INVITE_EXCLUDED_KEYS.has(template.system_key);
@@ -150,8 +161,11 @@ const ProvisioningWizard = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | ''>('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteDisplayTitle, setInviteDisplayTitle] = useState('');
-  const [sentInvites, setSentInvites] = useState<SentTeamInvite[]>([]);
+  const [ownerInvite, setOwnerInvite] = useState<PendingInvite | null>(null);
+  const [sentInvites, setSentInvites] = useState<PendingInvite[]>([]);
   const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [resendingInviteId, setResendingInviteId] = useState<number | null>(null);
+  const [resentInviteIds, setResentInviteIds] = useState<Set<number>>(() => new Set());
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [previewResult, setPreviewResult] = useState<ProvisioningImportResult | null>(null);
   const [commitResult, setCommitResult] = useState<ProvisioningImportResult | null>(null);
@@ -270,23 +284,16 @@ const ProvisioningWizard = () => {
           return assignable[0]?.id ?? '';
         });
 
-        const existingInvites = membershipsResponse.data
-          .filter(
-            (membership) =>
-              membership.status === 'invited' &&
-              membership.role === 'staff' &&
-              membership.is_owner !== true,
-          )
-          .map((membership) => ({
-            id: membership.id,
-            email: membership.email ?? '',
-            roleLabel:
-              membership.display_title ??
-              membership.role_template?.name ??
-              'Membro da equipe',
-          }));
+        const pendingInvites = membershipsResponse.data.filter(
+          (membership) => membership.status === 'invited',
+        );
+        const owner = pendingInvites.find((membership) => membership.is_owner === true);
+        const staffInvites = pendingInvites.filter(
+          (membership) => membership.role === 'staff' && membership.is_owner !== true,
+        );
 
-        setSentInvites(existingInvites);
+        setOwnerInvite(owner ? toPendingInvite(owner) : null);
+        setSentInvites(staffInvites.map(toPendingInvite));
       } catch {
         if (!cancelled) {
           setRoleTemplates([]);
@@ -344,6 +351,38 @@ const ProvisioningWizard = () => {
     setCredentialErrors([]);
     setCredentialUploadSuccess(false);
     setBannerError('');
+  };
+
+  const handleResendInvite = async (membershipId: number) => {
+    if (readOnly) {
+      return;
+    }
+
+    setBannerError('');
+    setResendingInviteId(membershipId);
+
+    try {
+      const updated = await resendMembershipInvite(schoolId, membershipId);
+      const refreshed = toPendingInvite(updated);
+
+      if (updated.is_owner === true) {
+        setOwnerInvite(refreshed);
+      } else {
+        setSentInvites((current) =>
+          current.map((invite) => (invite.id === membershipId ? refreshed : invite)),
+        );
+      }
+
+      setResentInviteIds((current) => new Set(current).add(membershipId));
+    } catch (error) {
+      setBannerError(
+        error instanceof ApiError
+          ? error.message
+          : 'Não foi possível reenviar o convite. Tente novamente.',
+      );
+    } finally {
+      setResendingInviteId(null);
+    }
   };
 
   const handleSendTeamInvite = async () => {
@@ -733,9 +772,43 @@ const ProvisioningWizard = () => {
           <Stack gap={2}>
             <Typography variant="body1" color="text.secondary">
               Convide membros da equipe administrativa. Esta etapa é opcional — você pode pular e
-              importar famílias na próxima etapa. O convite ao responsável já foi enviado na criação
-              da escola.
+              importar famílias na próxima etapa.
             </Typography>
+
+            {ownerInvite && (
+              <SectionCard>
+                <Typography variant="subtitle2" gutterBottom>
+                  Convite ao responsável
+                </Typography>
+                <List dense disablePadding>
+                  <ListItem
+                    disableGutters
+                    secondaryAction={
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => handleResendInvite(ownerInvite.id)}
+                        disabled={submitting || resendingInviteId === ownerInvite.id}
+                        startIcon={
+                          resendingInviteId === ownerInvite.id ? (
+                            <CircularProgress size={14} color="inherit" />
+                          ) : null
+                        }
+                      >
+                        Reenviar convite
+                      </Button>
+                    }
+                  >
+                    <ListItemText primary={ownerInvite.email} secondary={ownerInvite.roleLabel} />
+                  </ListItem>
+                </List>
+                {resentInviteIds.has(ownerInvite.id) && (
+                  <Alert severity="success" variant="outlined" sx={{ mt: 1 }}>
+                    Convite reenviado com sucesso.
+                  </Alert>
+                )}
+              </SectionCard>
+            )}
 
             {loadingRoleTemplates ? (
               <Stack alignItems="center" py={2}>
@@ -814,14 +887,34 @@ const ProvisioningWizard = () => {
                 </Typography>
                 <List dense disablePadding>
                   {sentInvites.map((invite) => (
-                    <ListItem key={invite.id} disableGutters>
-                      <ListItemText
-                        primary={invite.email}
-                        secondary={invite.roleLabel}
-                      />
+                    <ListItem
+                      key={invite.id}
+                      disableGutters
+                      secondaryAction={
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => handleResendInvite(invite.id)}
+                          disabled={submitting || resendingInviteId === invite.id}
+                          startIcon={
+                            resendingInviteId === invite.id ? (
+                              <CircularProgress size={14} color="inherit" />
+                            ) : null
+                          }
+                        >
+                          Reenviar convite
+                        </Button>
+                      }
+                    >
+                      <ListItemText primary={invite.email} secondary={invite.roleLabel} />
                     </ListItem>
                   ))}
                 </List>
+                {sentInvites.some((invite) => resentInviteIds.has(invite.id)) && (
+                  <Alert severity="success" variant="outlined" sx={{ mt: 1 }}>
+                    Convite reenviado com sucesso.
+                  </Alert>
+                )}
               </SectionCard>
             )}
 
