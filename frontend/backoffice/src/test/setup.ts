@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { server } from './msw/server';
+import { bankCredentialsBySchool } from './msw/handlers';
 
 // Vitest runs without injected globals, so Testing Library's own auto-cleanup never registers.
 afterEach(cleanup);
@@ -11,6 +12,11 @@ afterEach(cleanup);
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 
 // Drops per-test overrides added with `server.use`, so the defaults are back for the next one.
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  Object.keys(bankCredentialsBySchool).forEach((key) => {
+    delete bankCredentialsBySchool[Number(key)];
+  });
+});
 
 afterAll(() => server.close());

@@ -228,6 +228,39 @@ export const sampleSchools = [
   },
 ];
 
+/** In-memory bank credential configs per school — mutated by POST in tests and default handlers. */
+export const bankCredentialsBySchool: Record<
+  number,
+  Array<{
+    id: number;
+    school_id: number;
+    instrument: string;
+    provider: string;
+    active: boolean;
+    client_id: string;
+    certificate_fingerprint: string;
+    certificate_expires_at: string;
+    uploaded_at: string;
+    uploaded_by_id: number;
+  }>
+> = {};
+
+const hasActiveBankCredentials = (schoolId: number) =>
+  (bankCredentialsBySchool[schoolId] ?? []).some((config) => config.active);
+
+export const sampleBankCredential = (schoolId: number, clientId: string, active = true) => ({
+  id: 900 + schoolId,
+  school_id: schoolId,
+  instrument: 'bank_slip',
+  provider: 'cora',
+  active,
+  client_id: clientId,
+  certificate_fingerprint: 'SHA256:AB:CD:EF:12:34',
+  certificate_expires_at: '2027-12-31T23:59:59Z',
+  uploaded_at: '2026-08-10T12:00:00Z',
+  uploaded_by_id: backofficeUser.id,
+});
+
 /** Three rows so a `per_page` below the total actually slices. */
 export const charges = [
   {
@@ -399,9 +432,10 @@ export const handlers = [
     const billingWaived = body.handoff?.billing_waived === true;
     const schoolId = Number(params.schoolId);
     const school = sampleSchools.find((row) => row.id === schoolId);
+    const billingReady = billingWaived || hasActiveBankCredentials(schoolId);
 
     if (school?.onboarding_status === 'provisioning') {
-      if (!billingWaived) {
+      if (!billingReady) {
         return jsonError(422, 'validation_error', 'Checklist incompleta.', {
           checklist: ['billing'],
         });
@@ -417,13 +451,13 @@ export const handlers = [
           school_group_id: school.school_group_id,
           onboarding_status: 'pending_handoff',
           onboarding_mode: school.onboarding_mode,
-          billing_waived_at: '2026-08-10T12:00:00Z',
+          billing_waived_at: billingWaived ? '2026-08-10T12:00:00Z' : null,
           segments_skipped_at: null,
         },
       });
     }
 
-    if (!billingWaived) {
+    if (!billingReady) {
       return jsonError(422, 'validation_error', 'Checklist incompleta.', {
         checklist: ['billing'],
       });
@@ -434,10 +468,33 @@ export const handlers = [
         id: SCHOOL_ID,
         onboarding_status: 'active',
         onboarding_mode: 'self_serve',
-        billing_waived_at: '2026-08-10T12:00:00Z',
+        billing_waived_at: billingWaived ? '2026-08-10T12:00:00Z' : null,
         segments_skipped_at: null,
       },
     });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/bank_credentials'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+    return HttpResponse.json({ data: bankCredentialsBySchool[schoolId] ?? [] });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/bank_credentials'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+    const existing = bankCredentialsBySchool[schoolId] ?? [];
+    const deactivated = existing.map((config) => ({ ...config, active: false }));
+    const created = sampleBankCredential(schoolId, 'client-stage-001');
+    bankCredentialsBySchool[schoolId] = [...deactivated, created];
+
+    return HttpResponse.json({ data: created }, { status: 201 });
   }),
 
   http.get(apiUrl('/api/v1/schools/:schoolId'), ({ request, params }) => {
