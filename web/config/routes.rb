@@ -147,7 +147,7 @@ Rails.application.routes.draw do
         end
       end
 
-      resources :users, only: [] do
+      resources :users, only: [ :index ] do
         member do
           post :disable
           post :enable
