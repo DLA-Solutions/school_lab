@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -141,10 +141,13 @@ const Schools = () => {
     parseModeFilter(searchParams.get('onboarding_mode')),
   );
 
-  const listFilters: SchoolListFilters = {
-    onboarding_status: statusFilter === ALL_FILTER ? '' : statusFilter,
-    onboarding_mode: modeFilter === ALL_FILTER ? '' : modeFilter,
-  };
+  const listFilters = useMemo<SchoolListFilters>(
+    () => ({
+      onboarding_status: statusFilter === ALL_FILTER ? '' : statusFilter,
+      onboarding_mode: modeFilter === ALL_FILTER ? '' : modeFilter,
+    }),
+    [modeFilter, statusFilter],
+  );
 
   const hasActiveFilters = statusFilter !== ALL_FILTER || modeFilter !== ALL_FILTER;
 
@@ -172,7 +175,7 @@ const Schools = () => {
     } finally {
       setLoading(false);
     }
-  }, [listFilters.onboarding_mode, listFilters.onboarding_status, page]);
+  }, [listFilters, page]);
 
   useEffect(() => {
     setPage(0);
