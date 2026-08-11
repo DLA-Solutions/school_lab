@@ -5,6 +5,7 @@ module Api
     class BaseController < ActionController::API
       include ActionController::Cookies
       include AuditContext
+      include ProvisioningAuditContext
       include Pagy::Method
       include Pundit::Authorization
 
