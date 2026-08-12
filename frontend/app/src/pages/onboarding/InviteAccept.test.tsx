@@ -15,7 +15,8 @@ import {
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { setAccessToken } from 'services/tokenStore';
-import { ACCESS_EXPIRES_AT, FRESH_ACCESS_TOKEN } from 'test/msw/handlers';
+import { ACCESS_EXPIRES_AT, FRESH_ACCESS_TOKEN, invitedStaffMembership } from 'test/msw/handlers';
+import { Membership } from 'types/auth';
 import InviteAccept from './InviteAccept';
 import paths from 'routes/paths';
 
@@ -43,6 +44,22 @@ const renderPage = (initialPath: string, auth: AuthContextValue = guestAuth) =>
 
 const passwordInput = () => document.getElementById('password') as HTMLInputElement;
 
+const backofficeMembership: Membership = {
+  id: 1,
+  school_id: 0,
+  role: 'backoffice',
+  status: 'active',
+  email: 'admin@example.com',
+  school_name: null,
+  role_template: null,
+  permissions: [],
+  is_owner: null,
+  segment_id: null,
+  display_title: null,
+  permission_sources: {},
+  school_onboarding_status: 'active',
+};
+
 describe('InviteAccept', () => {
   it('accepts a valid invite token and activates membership', async () => {
     const login = vi.fn().mockImplementation(async () => {
@@ -52,7 +69,7 @@ describe('InviteAccept', () => {
       id: 3,
       email: INVITEE_EMAIL,
       status: 'active',
-      memberships: [{ id: 13, status: 'active', is_owner: false, school_onboarding_status: 'active' }],
+      memberships: [{ ...invitedStaffMembership, status: 'active' }],
       guardian_profiles: [],
     });
 
@@ -83,7 +100,7 @@ describe('InviteAccept', () => {
       id: 3,
       email: INVITEE_EMAIL,
       status: 'active',
-      memberships: [{ id: 13, status: 'active', is_owner: false, school_onboarding_status: 'active' }],
+      memberships: [{ ...invitedStaffMembership, status: 'active' }],
       guardian_profiles: [],
     });
 
@@ -92,7 +109,7 @@ describe('InviteAccept', () => {
         id: 99,
         email: 'admin@example.com',
         status: 'active',
-        memberships: [{ id: 1, status: 'active', role: 'backoffice', is_owner: null, school_onboarding_status: 'active' }],
+        memberships: [backofficeMembership],
         guardian_profiles: [],
       },
       status: 'authenticated',
@@ -122,7 +139,7 @@ describe('InviteAccept', () => {
       id: 3,
       email: INVITEE_EMAIL,
       status: 'active',
-      memberships: [{ id: 13, status: 'invited', is_owner: false, school_onboarding_status: 'pending_handoff' }],
+      memberships: [{ ...invitedStaffMembership, status: 'invited', school_onboarding_status: 'pending_handoff' }],
       guardian_profiles: [],
     });
 
