@@ -403,9 +403,12 @@ export const handlers = [
     const membershipId = Number(params.id);
 
     if (membershipId === invitedStaffMembership.id) {
-      return HttpResponse.json({
-        data: { ...invitedStaffMembership, status: 'active' },
-      });
+      const updated = { ...invitedStaffMembership, status: 'active' as const };
+      currentUser.memberships = currentUser.memberships.map((membership) =>
+        membership.id === membershipId ? updated : membership,
+      );
+
+      return HttpResponse.json({ data: updated });
     }
 
     return jsonError(404, 'not_found', 'Recurso não encontrado.');

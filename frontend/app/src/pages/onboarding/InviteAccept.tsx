@@ -15,6 +15,7 @@ import { ApiError } from 'services/api';
 import { acceptInvite, acceptMembership } from 'services/onboardingApi';
 import { findInvitedMembership } from 'utils/onboarding/access';
 import paths, { rootPaths } from 'routes/paths';
+import { AuthUser } from 'types/auth';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -74,19 +75,29 @@ const InviteAccept = () => {
     return errors;
   };
 
-  const redirectAfterAccept = async () => {
-    const profile = await refreshUser();
-    const ownerPending = profile.memberships.some(
+  const redirectAfterAccept = async (profile?: AuthUser) => {
+    let currentProfile = profile ?? await refreshUser();
+
+    let invited = findInvitedMembership(currentProfile);
+    while (invited) {
+      const membershipId = invited.id;
+      await acceptMembership(membershipId);
+      currentProfile = await refreshUser();
+      const nextInvited = findInvitedMembership(currentProfile);
+
+      if (nextInvited?.id === membershipId) {
+        throw new Error('membership still invited after accept');
+      }
+
+      invited = nextInvited;
+    }
+
+    const ownerPending = currentProfile.memberships.some(
       (membership) =>
         membership.is_owner === true && membership.school_onboarding_status === 'pending_handoff',
     );
 
     navigate(ownerPending ? paths.ownerOnboarding : rootPaths.root, { replace: true });
-  };
-
-  const activateInvitedMembership = async (membershipId: number) => {
-    await acceptMembership(membershipId);
-    await redirectAfterAccept();
   };
 
   const authenticateInvitee = async (email: string, password: string) => {
@@ -97,31 +108,25 @@ const InviteAccept = () => {
 
   const recoverConsumedInvite = async (email: string, password: string) => {
     await authenticateInvitee(email, password);
-    const profile = await refreshUser();
-    const invited = findInvitedMembership(profile);
-
-    if (!invited) {
-      throw new Error('invited membership missing');
-    }
-
-    await activateInvitedMembership(invited.id);
+    await redirectAfterAccept();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setBannerError('');
 
-    if (membershipOnlyFlow && invitedMembership) {
+    if (membershipOnlyFlow) {
       setSubmitting(true);
 
       try {
-        await activateInvitedMembership(invitedMembership.id);
+        await redirectAfterAccept();
       } catch (error) {
         setBannerError(
           error instanceof ApiError
             ? error.message
             : 'Não foi possível concluir o convite. Tente novamente.',
         );
+      } finally {
         setSubmitting(false);
       }
 
@@ -145,14 +150,14 @@ const InviteAccept = () => {
     const password = form.password;
 
     try {
-      const inviteResult = await acceptInvite({
+      await acceptInvite({
         token: tokenFromQuery,
         password,
         name: form.name.trim() || undefined,
       });
 
       await authenticateInvitee(email, password);
-      await activateInvitedMembership(inviteResult.data.membership_id);
+      await redirectAfterAccept();
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.code === 'validation_error' && error.details) {
@@ -170,7 +175,6 @@ const InviteAccept = () => {
         } else if (error.code === 'invalid_invite_token') {
           try {
             await recoverConsumedInvite(email, password);
-            return;
           } catch {
             setBannerError(mapInviteError(error));
           }
@@ -180,7 +184,7 @@ const InviteAccept = () => {
       } else {
         setBannerError('Não foi possível conectar à API. Verifique se o servidor está no ar.');
       }
-
+    } finally {
       setSubmitting(false);
     }
   };

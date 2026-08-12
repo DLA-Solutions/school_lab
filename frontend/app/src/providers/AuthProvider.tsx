@@ -1,4 +1,5 @@
 import { PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { AuthUser } from 'types/auth';
 import { refreshAccessToken } from 'services/api';
 import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from 'services/authApi';
@@ -73,8 +74,11 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
       throw new Error('profile unavailable');
     }
 
-    setUser(profile);
-    setStatus('authenticated');
+    // Flush before navigation so onboarding guards read the updated memberships.
+    flushSync(() => {
+      setUser(profile);
+      setStatus('authenticated');
+    });
     return profile;
   }, []);
 

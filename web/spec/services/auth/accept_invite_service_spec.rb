@@ -30,12 +30,13 @@ RSpec.describe Auth::AcceptInviteService do
     membership.user.update_columns(encrypted_password: "")
   end
 
-  it "sets the user password and marks the token used" do
+  it "sets the user password, activates the membership, and marks the token used" do
     expect(result).to be_success
     expect(result.data).to eq(user_id: membership.user_id, membership_id: membership.id)
 
     membership.user.reload
     expect(membership.user.valid_password?(password)).to be(true)
+    expect(membership.reload.status).to eq("active")
     expect(invite_token.reload.used_at).to be_present
   end
 

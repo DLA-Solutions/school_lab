@@ -34,6 +34,9 @@ module Auth
         end
 
         invite_token.update!(used_at: Time.current)
+
+        activation = ::People::AcceptMembershipService.call(membership: membership, user: user)
+        return activation unless activation.success?
       end
 
       ResponseService.success(data: { user_id: user.id, membership_id: membership.id })
