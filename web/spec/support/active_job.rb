@@ -2,10 +2,12 @@
 
 RSpec.configure do |config|
   config.before do |example|
-    if example.metadata[:file_path].include?("/spec/jobs/")
-      ActiveJob::Base.queue_adapter = :solid_queue
-    else
-      ActiveJob::Base.queue_adapter = :test
-    end
+    needs_solid_queue =
+      example.metadata[:solid_queue] ||
+      example.metadata[:file_path].end_with?("transactional_enqueue_spec.rb") ||
+      example.metadata[:file_path].include?("/spec/jobs/billing/") ||
+      example.metadata[:file_path].include?("/spec/jobs/signatures/")
+
+    ActiveJob::Base.queue_adapter = needs_solid_queue ? :solid_queue : :test
   end
 end
