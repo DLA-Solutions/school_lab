@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Point this clone at repo git hooks (.githooks/). Run once per machine/clone.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+chmod +x .githooks/pre-commit .githooks/pre-push 2>/dev/null || true
+git config core.hooksPath .githooks
+
+printf 'Git hooks installed (core.hooksPath=.githooks)\n'
+printf '  pre-commit — quick lint on staged files per surface\n'
+printf '  pre-push     — bin/ci (full checks for changed surfaces)\n'
+printf '\nBypass once: git commit --no-verify / git push --no-verify\n'

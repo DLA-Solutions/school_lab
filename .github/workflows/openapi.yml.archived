@@ -1,0 +1,65 @@
+name: OpenAPI
+
+on:
+  pull_request:
+    paths:
+      - "web/spec/requests/api/v1/**"
+      - "web/swagger/v1/swagger.yaml"
+      - "web/spec/swagger_helper.rb"
+      - ".github/workflows/openapi.yml"
+  push:
+    branches: [main]
+    paths:
+      - "web/spec/requests/api/v1/**"
+      - "web/swagger/v1/swagger.yaml"
+      - "web/spec/swagger_helper.rb"
+      - ".github/workflows/openapi.yml"
+
+defaults:
+  run:
+    working-directory: web
+
+jobs:
+  openapi:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: school_lab
+          POSTGRES_PASSWORD: school_lab
+          POSTGRES_DB: school_lab_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U school_lab -d school_lab_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: school_lab
+      POSTGRES_PASSWORD: school_lab
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: web
+
+      - name: Prepare test database
+        run: bin/rails db:test:prepare
+
+      - name: Regenerate OpenAPI from request specs
+        run: bundle exec rake swagger:build
+
+      - name: Fail on swagger drift
+        run: git diff --exit-code swagger/v1/swagger.yaml

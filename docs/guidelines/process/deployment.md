@@ -492,10 +492,8 @@ native gems (`pg`, `bootsnap`) takes several minutes. Uncomment `builder.remote`
   key are stored encrypted on `school_payment_providers`, using the Active Record
   encryption keys from the credentials — which is why those keys must be real before any
   school uploads credentials. See `docs/guidelines/web/gateways.md`.
-- **CI staging deploy on `main`.** On push to `main`, `.github/workflows/ci.yml` builds and
-  pushes images to GHCR for changed surfaces only, then runs `kamal deploy --skip-push -d staging`.
-  PRs run lint/test/npm per surface (path filters) but do not build Docker images. Production
-  deploys remain manual. Requires GitHub repository secrets (`KAMAL_SSH_PRIVATE_KEY`, staging
-  app secrets) and the `staging` environment.
+- **Local CI; manual CD.** GitHub Actions workflows are disabled — see
+  `docs/guidelines/process/local-ci.md`. Run `bin/install-git-hooks` once per clone;
+  `bin/ci` before opening PRs; deploy staging/production manually with Kamal (§ Day-to-day).
 - **Active Storage** writes to a Kamal volume on the app server. That disk is not
   backed up by the deploy process; migrating to S3 is an open decision.

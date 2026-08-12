@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 #
 # Local backend CI — mirrors the web/ jobs in .github/workflows/ci.yml:
-#   lint, scan_ruby (brakeman + bundler-audit), test (+ OpenAPI drift), production image.
+#   lint, scan_ruby (brakeman + bundler-audit), test (+ OpenAPI drift), optional production image.
+#
+# Prefer repo-root bin/ci for monorepo path filters (web + SPAs). Use this script for web/ only.
 #
 # Run from anywhere:
-#   web/bin/backend-ci              # full gate (default)
-#   web/bin/backend-ci --fast       # scoped checks; skips Docker (see below)
+#   web/bin/backend-ci              # lint, security, tests; Docker only if production files changed
+#   web/bin/backend-ci --fast       # scoped checks; skip Docker unless production files changed
 #   web/bin/backend-ci --skip-docker
+#   web/bin/backend-ci --docker     # force production image build
 #   web/bin/backend-ci-fast         # same as --fast
 #
 # On success, writes .cursor/backend-ci.stamp with the current HEAD SHA so PR creation
@@ -25,6 +28,7 @@ STAMP_FILE="$REPO_ROOT/.cursor/backend-ci.stamp"
 
 FAST_MODE=0
 SKIP_DOCKER=0
+FORCE_DOCKER=0
 BASE_REF="origin/main"
 
 usage() {
@@ -32,8 +36,9 @@ usage() {
 Usage: web/bin/backend-ci [OPTIONS]
 
   (no flags)       Full backend CI — same jobs as .github/workflows/ci.yml backend.
-  --fast           Scoped lint/tests; skip Docker. Use for small web/ changes locally.
-  --skip-docker    Full lint/tests/OpenAPI; skip production image build only.
+  --fast           Scoped lint/tests; skip Docker unless production files changed.
+  --skip-docker    Full lint/tests/OpenAPI; skip production image build.
+  --docker         Build production image even when Dockerfile/Gemfile unchanged.
   --base REF       Merge base for --fast change detection (default: origin/main).
   -h, --help       Show this help.
 
@@ -50,6 +55,10 @@ while [ $# -gt 0 ]; do
       ;;
     --skip-docker)
       SKIP_DOCKER=1
+      ;;
+    --docker)
+      FORCE_DOCKER=1
+      SKIP_DOCKER=0
       ;;
     --base)
       shift
@@ -147,15 +156,15 @@ requires_openapi_check() {
 
 requires_docker_build() {
   local changed="$1"
+  if [ "$FORCE_DOCKER" -eq 1 ]; then
+    return 0
+  fi
+
   if [ "$SKIP_DOCKER" -eq 1 ]; then
     return 1
   fi
 
-  if [ "$FAST_MODE" -eq 1 ]; then
-    printf '%s\n' "$changed" | grep -qE '^web/(Dockerfile|Gemfile(\.lock)?|\.ruby-version|config/environments/production\.rb|bin/docker-entrypoint)'
-  else
-    return 0
-  fi
+  printf '%s\n' "$changed" | grep -qE '^web/(Dockerfile|Gemfile(\.lock)?|\.ruby-version|config/environments/production\.rb|bin/docker-entrypoint)'
 }
 
 collect_rubocop_targets() {
@@ -312,9 +321,16 @@ if [ "$failures" -gt 0 ]; then
 fi
 
 mkdir -p "$(dirname "$STAMP_FILE")"
-git -C "$REPO_ROOT" rev-parse HEAD > "$STAMP_FILE"
+HEAD_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+printf '%s\n' "$HEAD_SHA" > "$STAMP_FILE"
 if [ "$FAST_MODE" -eq 1 ]; then
   printf 'mode=fast\n' >> "$STAMP_FILE"
 fi
+
+CI_STAMP_FILE="$REPO_ROOT/.cursor/ci.stamp"
+printf '%s\n' "$HEAD_SHA" > "$CI_STAMP_FILE"
+printf 'surfaces=web\n' >> "$CI_STAMP_FILE"
+[ "$FAST_MODE" -eq 1 ] && printf 'mode=fast\n' >> "$CI_STAMP_FILE"
+
 printf '  \033[32mAll backend CI checks passed.\033[0m Stamp: %s\n\n' "$STAMP_FILE"
 exit 0
