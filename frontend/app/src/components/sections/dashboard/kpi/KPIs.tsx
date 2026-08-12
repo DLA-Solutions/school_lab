@@ -45,9 +45,9 @@ const KPIs = ({ metrics, loading, month, onMonthChange }: KPIsProps) => {
         id="students"
         icon="ph:student-fill"
         title={t('dashboard.kpi.students')}
-        value={String(metrics?.students.value ?? 0)}
+        value={String(metrics?.students?.value ?? 0)}
         rate={rateLabel(metrics?.students, t('dashboard.kpi.new'))}
-        isUp={metrics?.students.is_up ?? true}
+        isUp={metrics?.students?.is_up ?? true}
         caption={sinceJanuary}
         loading={loading}
       />
@@ -56,9 +56,9 @@ const KPIs = ({ metrics, loading, month, onMonthChange }: KPIsProps) => {
         id="collaborators"
         icon="mingcute:user-2-fill"
         title={t('dashboard.kpi.collaborators')}
-        value={String(metrics?.collaborators.value ?? 0)}
+        value={String(metrics?.collaborators?.value ?? 0)}
         rate={rateLabel(metrics?.collaborators, t('dashboard.kpi.new'))}
-        isUp={metrics?.collaborators.is_up ?? true}
+        isUp={metrics?.collaborators?.is_up ?? true}
         caption={sinceJanuary}
         loading={loading}
       />
@@ -67,10 +67,10 @@ const KPIs = ({ metrics, loading, month, onMonthChange }: KPIsProps) => {
         id="average-ticket"
         icon="ph:bag-simple-fill"
         title={t('dashboard.kpi.averageTicket')}
-        value={formatCents(metrics?.average_ticket.value ?? 0)}
+        value={formatCents(metrics?.average_ticket?.value ?? 0)}
         rate={rateLabel(metrics?.average_ticket, t('dashboard.kpi.new'))}
-        isUp={metrics?.average_ticket.is_up ?? true}
-        caption={t('dashboard.kpi.enrolled', { count: metrics?.average_ticket.students ?? 0 })}
+        isUp={metrics?.average_ticket?.is_up ?? true}
+        caption={t('dashboard.kpi.enrolled', { count: metrics?.average_ticket?.students ?? 0 })}
         loading={loading}
       />
 
@@ -78,9 +78,9 @@ const KPIs = ({ metrics, loading, month, onMonthChange }: KPIsProps) => {
         id="monthly-revenue"
         icon="mingcute:currency-dollar-2-line"
         title={t('dashboard.kpi.monthlyRevenue')}
-        value={formatCents(metrics?.monthly_revenue.value ?? 0)}
+        value={formatCents(metrics?.monthly_revenue?.value ?? 0)}
         rate={rateLabel(metrics?.monthly_revenue, t('dashboard.kpi.new'))}
-        isUp={metrics?.monthly_revenue.is_up ?? true}
+        isUp={metrics?.monthly_revenue?.is_up ?? true}
         caption={versusPrevious}
         loading={loading}
         action={monthMenu}
@@ -90,9 +90,9 @@ const KPIs = ({ metrics, loading, month, onMonthChange }: KPIsProps) => {
         id="didactic-material"
         icon="solar:notebook-bold"
         title={t('dashboard.kpi.didacticMaterial')}
-        value={formatCents(metrics?.didactic_material.value ?? 0)}
+        value={formatCents(metrics?.didactic_material?.value ?? 0)}
         rate={rateLabel(metrics?.didactic_material, t('dashboard.kpi.new'))}
-        isUp={metrics?.didactic_material.is_up ?? true}
+        isUp={metrics?.didactic_material?.is_up ?? true}
         caption={versusPrevious}
         loading={loading}
         action={monthMenu}
