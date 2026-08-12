@@ -5,7 +5,9 @@ description: Runs the full backend CI gate for web/ (RuboCop, Brakeman, bundler-
 
 # Run Backend CI
 
-Local mirror of `.github/workflows/ci.yml` **backend jobs** (`lint`, `scan_ruby`, `test`, `build_image`).
+Local mirror of `.github/workflows/ci.yml` **backend PR jobs** (`lint`, `scan_ruby`, `test`). The
+`build_image` job runs on `main` only; use full `web/bin/backend-ci` locally when you want to
+validate the production image before merge.
 
 For the full fix → commit → PR pipeline, delegate to subagent **backend-ci** or follow the loop below.
 
@@ -22,15 +24,17 @@ Prerequisites:
 
 - Ruby + Bundler installed (`cd web && bundle install`)
 - PostgreSQL reachable at `localhost:5432` (defaults match `web/.env.example`). If not: `make services-up`
-- Docker running **only for full CI** (production image build — same as GitHub Actions `build_image` job). Use `--fast` or `--skip-docker` when Docker is unavailable locally.
+- Docker running **only for full local CI** (production image build). GitHub Actions skips
+  `build_image` on PRs; the image is built and pushed on merge to `main`. Use `--fast` or
+  `--skip-docker` when Docker is unavailable locally.
 
-On success, writes `.cursor/backend-ci.stamp` with the current `HEAD` SHA (fast mode adds `mode=fast` on line 2). GitHub Actions still runs the full merge gate on every PR.
+On success, writes `.cursor/backend-ci.stamp` with the current `HEAD` SHA (fast mode adds `mode=fast` on line 2). GitHub Actions runs backend lint/security/test on PRs when `web/` changes (path filters).
 
 ## Full vs fast
 
 | Mode | When to use |
 |------|-------------|
-| `web/bin/backend-ci` | Before merge when Docker is available; matches GitHub backend jobs exactly. |
+| `web/bin/backend-ci` | Before merge when Docker is available; includes local image build (GitHub runs that step on `main` only). |
 | `web/bin/backend-ci-fast` | Small `web/` changes (policy, controller, specs); skips Docker; scopes RuboCop/RSpec to files changed vs `origin/main`. Brakeman and bundler-audit always run in full. |
 | `web/bin/backend-ci --skip-docker` | Full lint/tests/OpenAPI without a local Docker build. |
 
