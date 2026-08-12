@@ -5,7 +5,7 @@ WEB := $(COMPOSE_APP) run --rm web
 
 .PHONY: check-env build up up-d down migrate seed setup console shell logs \
         services-up services-down services-logs services-ps services-reset design-system-docs \
-        site-serve site-build
+        site-serve site-build ci ci-fast install-hooks
 
 check-env:
 	@test -f $(ENV_FILE) || (echo "Missing $(ENV_FILE). Run: cp web/.env.example web/.env" && exit 1)
@@ -78,3 +78,14 @@ site-serve:
 
 site-build:
 	docker build -f site/Dockerfile .
+
+# --- Local CI (path filters match .github/workflows/ci.yml) ---
+
+ci:
+	bin/ci
+
+ci-fast:
+	bin/ci --fast
+
+install-hooks:
+	bin/install-git-hooks

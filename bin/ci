@@ -1,0 +1,263 @@
+#!/usr/bin/env bash
+#
+# Monorepo local CI — path filters match .github/workflows/ci.yml.
+#
+#   bin/ci                 # run only surfaces changed vs origin/main
+#   bin/ci --fast          # scoped web checks; skip Docker unless production files changed
+#   bin/ci --all           # every surface (web, frontend, backoffice)
+#   bin/ci --web           # force web surface only
+#   bin/ci --docker        # include production Docker build when web runs
+#   bin/ci --base REF      # merge base for change detection
+#
+# On success writes .cursor/ci.stamp (and .cursor/backend-ci.stamp when web runs).
+
+set -uo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=lib/ci-surfaces.sh
+source "$REPO_ROOT/bin/lib/ci-surfaces.sh"
+
+STAMP_FILE="$REPO_ROOT/.cursor/ci.stamp"
+BACKEND_STAMP_FILE="$REPO_ROOT/.cursor/backend-ci.stamp"
+
+FAST_MODE=0
+RUN_ALL=0
+FORCE_DOCKER=0
+BASE_REF="origin/main"
+FORCE_WEB=0
+FORCE_SITE=0
+FORCE_FRONTEND=0
+DIFF_MODE="three_dot"
+STAMP=1
+
+usage() {
+  cat <<'EOF'
+Usage: bin/ci [OPTIONS]
+
+  (no flags)     Run CI for surfaces changed vs --base (default: origin/main).
+  --fast         Scoped web lint/tests; skip Docker unless production files changed.
+  --all          Run web + frontend + backoffice (not site — no PR job in GitHub).
+  --web          Force web/ backend CI.
+  --frontend     Force school SPA checks.
+  --backoffice   Force backoffice SPA checks.
+  --site         Note site changes (no automated PR checks; optional docker hint).
+  --docker       Build web production image when web surface runs.
+  --base REF     Merge base for change detection (default: origin/main).
+  --since REF    Diff REF..HEAD (commits being pushed; used by pre-push hook).
+  --no-stamp     Do not write .cursor/ci.stamp on success.
+  -h, --help     Show this help.
+
+Surfaces mirror .github/workflows/ci.yml path filters. Docker builds match PR behavior
+(skipped unless production-related web/ files changed, or --docker).
+EOF
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --fast)
+      FAST_MODE=1
+      ;;
+    --all)
+      RUN_ALL=1
+      ;;
+    --web)
+      FORCE_WEB=1
+      ;;
+    --frontend)
+      FORCE_FRONTEND=1
+      ;;
+    --backoffice)
+      FORCE_BACKOFFICE=1
+      ;;
+    --site)
+      FORCE_SITE=1
+      ;;
+    --docker)
+      FORCE_DOCKER=1
+      ;;
+    --base)
+      shift
+      BASE_REF="${1:?--base requires a ref}"
+      ;;
+    --since)
+      shift
+      BASE_REF="${1:?--since requires a ref}"
+      DIFF_MODE="two_dot"
+      ;;
+    --no-stamp)
+      STAMP=0
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'Unknown option: %s\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+failures=0
+step_num=0
+RAN_SURFACES=""
+
+section() {
+  printf '\n\033[1m[%s] %s\033[0m\n' "$1" "$2"
+}
+
+run_surface() {
+  local name="$1"
+  shift
+  step_num=$((step_num + 1))
+  section "$step_num" "$name"
+  if "$@"; then
+    printf '  \033[32mok\033[0m\n'
+  else
+    printf '  \033[31mFAILED\033[0m\n'
+    failures=$((failures + 1))
+  fi
+}
+
+run_surface_skip() {
+  local name="$1"
+  local reason="$2"
+  step_num=$((step_num + 1))
+  section "$step_num" "$name"
+  printf '  \033[33mskipped\033[0m — %s\n' "$reason"
+}
+
+record_surface() {
+  local surface="$1"
+  if ! printf '%s\n' "$RAN_SURFACES" | grep -qx "$surface"; then
+    RAN_SURFACES="${RAN_SURFACES}${RAN_SURFACES:+$'\n'}${surface}"
+  fi
+}
+
+run_web() {
+  local args=()
+  [ "$FAST_MODE" -eq 1 ] && args+=(--fast)
+  [ "$FORCE_DOCKER" -eq 1 ] && args+=(--docker)
+  args+=(--base "$BASE_REF")
+  "$REPO_ROOT/web/bin/backend-ci" "${args[@]}"
+}
+
+run_npm_surface() {
+  local dir="$1"
+  local base_path="$2"
+
+  (
+    cd "$REPO_ROOT/$dir" || exit 1
+    npm ci
+    npm run test:run
+    VITE_BASE_PATH="$base_path" npm run build
+  )
+}
+
+# --- Resolve surfaces ---
+
+if [ "$RUN_ALL" -eq 1 ]; then
+  RUN_WEB=1
+  RUN_FRONTEND=1
+  RUN_BACKOFFICE=1
+  RUN_SITE=0
+elif [ "$FORCE_WEB" -eq 1 ] || [ "$FORCE_FRONTEND" -eq 1 ] || [ "$FORCE_BACKOFFICE" -eq 1 ] || [ "$FORCE_SITE" -eq 1 ]; then
+  RUN_WEB=$FORCE_WEB
+  RUN_FRONTEND=$FORCE_FRONTEND
+  RUN_BACKOFFICE=$FORCE_BACKOFFICE
+  RUN_SITE=$FORCE_SITE
+else
+  DETECTED="$(ci_detect_surfaces "$REPO_ROOT" "$BASE_REF" "$DIFF_MODE" || true)"
+  RUN_WEB=0
+  RUN_FRONTEND=0
+  RUN_BACKOFFICE=0
+  RUN_SITE=0
+
+  while IFS= read -r surface; do
+    [ -n "$surface" ] || continue
+    case "$surface" in
+      web) RUN_WEB=1 ;;
+      site) RUN_SITE=1 ;;
+      frontend) RUN_FRONTEND=1 ;;
+      backoffice) RUN_BACKOFFICE=1 ;;
+    esac
+  done <<EOF
+$DETECTED
+EOF
+fi
+
+if [ "$RUN_WEB" -eq 0 ] && [ "$RUN_FRONTEND" -eq 0 ] && [ "$RUN_BACKOFFICE" -eq 0 ] && [ "$RUN_SITE" -eq 0 ]; then
+  printf '\033[1mLocal CI\033[0m — no surfaces matched (docs/tooling only?). Nothing to run.\n'
+  mkdir -p "$(dirname "$STAMP_FILE")"
+  git -C "$REPO_ROOT" rev-parse HEAD > "$STAMP_FILE"
+  printf 'surfaces=none\n' >> "$STAMP_FILE"
+  [ "$FAST_MODE" -eq 1 ] && printf 'mode=fast\n' >> "$STAMP_FILE"
+  printf '  \033[32mStamp written:\033[0m %s\n' "$STAMP_FILE"
+  exit 0
+fi
+
+printf '\033[1mLocal CI\033[0m'
+[ "$FAST_MODE" -eq 1 ] && printf ' (fast)'
+if [ "$DIFF_MODE" = "two_dot" ]; then
+  printf ' — range: %s..HEAD\n' "$BASE_REF"
+else
+  printf ' — base: %s\n' "$(ci_resolve_base_ref "$REPO_ROOT" "$BASE_REF")"
+fi
+printf '  surfaces:'
+[ "$RUN_WEB" -eq 1 ] && printf ' web'
+[ "$RUN_FRONTEND" -eq 1 ] && printf ' frontend'
+[ "$RUN_BACKOFFICE" -eq 1 ] && printf ' backoffice'
+[ "$RUN_SITE" -eq 1 ] && printf ' site'
+printf '\n'
+
+if [ "$RUN_WEB" -eq 1 ]; then
+  run_surface "Web (lint, security, test)" run_web
+  record_surface "web"
+else
+  run_surface_skip "Web" "no web/ changes vs $BASE_REF"
+fi
+
+if [ "$RUN_FRONTEND" -eq 1 ]; then
+  run_surface "School SPA (npm test + build)" run_npm_surface "frontend/app" "/app/"
+  record_surface "frontend"
+else
+  run_surface_skip "School SPA" "no frontend/app/ or design-tokens changes"
+fi
+
+if [ "$RUN_BACKOFFICE" -eq 1 ]; then
+  run_surface "Backoffice SPA (npm test + build)" run_npm_surface "frontend/backoffice" "/backoffice/"
+  record_surface "backoffice"
+else
+  run_surface_skip "Backoffice SPA" "no frontend/backoffice/ or design-tokens changes"
+fi
+
+if [ "$RUN_SITE" -eq 1 ]; then
+  run_surface_skip "Site" "no PR CI job in GitHub — use: make site-build before deploy"
+  record_surface "site"
+fi
+
+printf '\n\033[1mResult\033[0m\n'
+if [ "$failures" -gt 0 ]; then
+  printf '  \033[31m%d surface(s) failed.\033[0m Re-run: bin/ci\n\n' "$failures"
+  rm -f "$STAMP_FILE" "$BACKEND_STAMP_FILE"
+  exit 1
+fi
+
+if [ "$STAMP" -eq 1 ]; then
+  mkdir -p "$(dirname "$STAMP_FILE")"
+  HEAD_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+  printf '%s\n' "$HEAD_SHA" > "$STAMP_FILE"
+  printf 'surfaces=%s\n' "$(printf '%s\n' "$RAN_SURFACES" | paste -sd ',' -)" >> "$STAMP_FILE"
+  [ "$FAST_MODE" -eq 1 ] && printf 'mode=fast\n' >> "$STAMP_FILE"
+
+  if printf '%s\n' "$RAN_SURFACES" | grep -qx web; then
+    cp "$STAMP_FILE" "$BACKEND_STAMP_FILE"
+  fi
+
+  printf '  \033[32mAll checks passed.\033[0m Stamp: %s\n\n' "$STAMP_FILE"
+else
+  printf '  \033[32mAll checks passed.\033[0m\n\n'
+fi
+exit 0
