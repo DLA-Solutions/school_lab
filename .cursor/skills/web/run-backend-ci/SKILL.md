@@ -1,11 +1,13 @@
 ---
 name: run-backend-ci
-description: Runs the full backend CI gate for web/ (RuboCop, Brakeman, bundler-audit, RSpec, OpenAPI drift, production Docker image). Use before opening pull requests, when validating web/ changes, or when the user asks to run backend CI.
+description: Runs the full backend CI gate for web/ (RuboCop, Brakeman, bundler-audit, RSpec, OpenAPI drift, production Docker image), fixes failures with atomic commits, and opens a PR when green. Use before shipping web/ changes or when the user asks to run backend CI.
 ---
 
 # Run Backend CI
 
 Local mirror of `.github/workflows/ci.yml` **backend jobs** (`lint`, `scan_ruby`, `test`, `build_image`).
+
+For the full fix → commit → PR pipeline, delegate to subagent **backend-ci** or follow the loop below.
 
 ## Quick start
 
@@ -35,9 +37,17 @@ On success, writes `.cursor/backend-ci.stamp` with the current `HEAD` SHA.
 | Drift | `git diff --exit-code swagger/v1/swagger.yaml` |
 | Image | `docker build .` |
 
-## Scoped re-runs (after a fix)
+## Fix loop (when CI fails)
 
-Run only what failed, then full `web/bin/backend-ci` before PR:
+1. Read failing step output.
+2. Fix with the smallest safe diff.
+3. Re-run the **narrowest** check that proves the fix.
+4. **Commit atomically** — rule `git-atomic-commits`; one concern per commit (RuboCop, spec fix, OpenAPI regen, etc.).
+5. Run full `web/bin/backend-ci` again before push/PR.
+
+Never leave CI fixes uncommitted. Never weaken CI to get green.
+
+## Scoped re-runs (after a fix, before full CI)
 
 ```bash
 cd web
@@ -46,10 +56,25 @@ bin/rubocop -a path/to/changed.rb       # style fix
 bundle exec rake swagger:build            # OpenAPI only
 ```
 
+## Ship when green
+
+When stamp matches `git rev-parse HEAD`:
+
+```bash
+git push -u origin HEAD
+gh pr create --title "..." --body "$(cat <<'EOF'
+## Summary
+- ...
+
+## Test plan
+- [ ] ...
+
+EOF
+)"
+```
+
+Skill `create-pull-request` covers PR format and gate checks. Hook `.cursor/hooks/gate-pr-create.sh` blocks `gh pr create` without a valid stamp.
+
 ## Agent delegation
 
-For automated fix-and-retry, delegate to subagent **backend-ci** (`Task` with `subagent_type: backend-ci` or `@backend-ci`).
-
-## PR gate
-
-Skill `create-pull-request` requires a green `web/bin/backend-ci` before `gh pr create`. Hook `.cursor/hooks/gate-pr-create.sh` enforces the stamp at shell level.
+For automated fix → commit → PR, delegate to subagent **backend-ci** (`Task` with `subagent_type: backend-ci` or `@backend-ci`).
