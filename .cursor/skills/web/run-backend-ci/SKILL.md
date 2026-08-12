@@ -13,16 +13,28 @@ For the full fix → commit → PR pipeline, delegate to subagent **backend-ci**
 
 ```bash
 # From repo root — starts Postgres via Makefile if needed
-web/bin/backend-ci
+web/bin/backend-ci              # full gate (lint, security, all specs, OpenAPI, Docker)
+web/bin/backend-ci-fast           # scoped lint/tests; skips Docker (typical local iteration)
+web/bin/backend-ci --skip-docker  # full lint/tests/OpenAPI; skip Docker only
 ```
 
 Prerequisites:
 
 - Ruby + Bundler installed (`cd web && bundle install`)
 - PostgreSQL reachable at `localhost:5432` (defaults match `web/.env.example`). If not: `make services-up`
-- Docker running (production image build — same as GitHub Actions `build_image` job)
+- Docker running **only for full CI** (production image build — same as GitHub Actions `build_image` job). Use `--fast` or `--skip-docker` when Docker is unavailable locally.
 
-On success, writes `.cursor/backend-ci.stamp` with the current `HEAD` SHA.
+On success, writes `.cursor/backend-ci.stamp` with the current `HEAD` SHA (fast mode adds `mode=fast` on line 2). GitHub Actions still runs the full merge gate on every PR.
+
+## Full vs fast
+
+| Mode | When to use |
+|------|-------------|
+| `web/bin/backend-ci` | Before merge when Docker is available; matches GitHub backend jobs exactly. |
+| `web/bin/backend-ci-fast` | Small `web/` changes (policy, controller, specs); skips Docker; scopes RuboCop/RSpec to files changed vs `origin/main`. Brakeman and bundler-audit always run in full. |
+| `web/bin/backend-ci --skip-docker` | Full lint/tests/OpenAPI without a local Docker build. |
+
+Fast mode **falls back to full RSpec** when the diff touches `Gemfile`, migrations, `schema.rb`, or `Dockerfile`. OpenAPI steps run only when request specs, controllers, serializers, or swagger files changed.
 
 ## Steps (same order as GitHub Actions)
 

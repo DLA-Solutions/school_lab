@@ -22,14 +22,17 @@ Mirror these GitHub Actions jobs (backend only — not frontend, backoffice, or 
 | Test | `bin/rails db:test:prepare` → `bundle exec rspec` → `rake swagger:build` → `git diff --exit-code swagger/v1/swagger.yaml` |
 | Production image | `docker build` in `web/` |
 
-**Canonical entrypoint:** `web/bin/backend-ci` (writes `.cursor/backend-ci.stamp` on success).
+**Canonical entrypoints:**
+
+- `web/bin/backend-ci` — full gate (default before ship when Docker is available).
+- `web/bin/backend-ci-fast` — scoped lint/tests; skips Docker; still runs Brakeman + bundler-audit. Prefer for small `web/` diffs and when Docker is not running locally. Writes the same `.cursor/backend-ci.stamp` (GitHub Actions runs full CI on the PR).
 
 ## End-to-end loop
 
 Do not stop at "ready for PR" — finish the pipeline unless blocked.
 
 1. **Preflight** — `git status`, branch name, recent commits. Ensure PostgreSQL is up (`make services-up` if needed).
-2. **Run** — `web/bin/backend-ci` from repo root.
+2. **Run** — `web/bin/backend-ci-fast` for scoped changes, or `web/bin/backend-ci` / `web/bin/backend-ci --skip-docker` when a full local gate is needed.
 3. **Fix** — on failure, read the failing step; fix only issues in scope of the branch. Re-run the **narrowest** check that proves the fix.
 4. **Commit** — stage and commit each fix as a **separate atomic commit** (see below). Never leave CI fixes uncommitted.
 5. **Verify** — after commits, run full `web/bin/backend-ci` again. Repeat steps 3–5 until green.
