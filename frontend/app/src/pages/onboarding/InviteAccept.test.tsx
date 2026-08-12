@@ -75,6 +75,91 @@ describe('InviteAccept', () => {
     expect(refreshUser).toHaveBeenCalled();
   });
 
+  it('signs in as the invitee even when another session is active', async () => {
+    const login = vi.fn().mockImplementation(async () => {
+      setAccessToken(FRESH_ACCESS_TOKEN, ACCESS_EXPIRES_AT);
+    });
+    const refreshUser = vi.fn().mockResolvedValue({
+      id: 3,
+      email: INVITEE_EMAIL,
+      status: 'active',
+      memberships: [{ id: 13, status: 'active', is_owner: false, school_onboarding_status: 'active' }],
+      guardian_profiles: [],
+    });
+
+    renderPage(`${paths.inviteAccept}?token=${VALID_INVITE_TOKEN}&email=${INVITEE_EMAIL}`, {
+      user: {
+        id: 99,
+        email: 'admin@example.com',
+        status: 'active',
+        memberships: [{ id: 1, status: 'active', role: 'backoffice', is_owner: null, school_onboarding_status: 'active' }],
+        guardian_profiles: [],
+      },
+      status: 'authenticated',
+      isAuthenticated: true,
+      login,
+      logout: vi.fn(),
+      refreshUser,
+    });
+
+    await user.type(screen.getByLabelText(/nome completo/i), 'Maria Silva');
+    await user.type(passwordInput(), INVITEE_PASSWORD);
+    await user.click(screen.getByRole('button', { name: /concluir convite/i }));
+
+    await waitFor(() => {
+      expect(login).toHaveBeenCalledWith({
+        email: INVITEE_EMAIL,
+        password: INVITEE_PASSWORD,
+      });
+    });
+  });
+
+  it('recovers when the invite token was already consumed', async () => {
+    const login = vi.fn().mockImplementation(async () => {
+      setAccessToken(FRESH_ACCESS_TOKEN, ACCESS_EXPIRES_AT);
+    });
+    const refreshUser = vi.fn().mockResolvedValue({
+      id: 3,
+      email: INVITEE_EMAIL,
+      status: 'active',
+      memberships: [{ id: 13, status: 'invited', is_owner: false, school_onboarding_status: 'pending_handoff' }],
+      guardian_profiles: [],
+    });
+
+    server.use(
+      http.post(apiUrl('/api/v1/auth/invite/accept'), () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'invalid_invite_token',
+              message: 'Convite inválido ou expirado.',
+              details: {},
+            },
+          },
+          { status: 401 },
+        ),
+      ),
+    );
+
+    renderPage(`${paths.inviteAccept}?token=${EXPIRED_INVITE_TOKEN}&email=${INVITEE_EMAIL}`, {
+      ...guestAuth,
+      login,
+      refreshUser,
+    });
+
+    await user.type(screen.getByLabelText(/nome completo/i), 'Maria Silva');
+    await user.type(passwordInput(), INVITEE_PASSWORD);
+    await user.click(screen.getByRole('button', { name: /concluir convite/i }));
+
+    await waitFor(() => {
+      expect(login).toHaveBeenCalledWith({
+        email: INVITEE_EMAIL,
+        password: INVITEE_PASSWORD,
+      });
+      expect(refreshUser).toHaveBeenCalled();
+    });
+  });
+
   it('shows pt-BR error for invalid invite token', async () => {
     renderPage(`${paths.inviteAccept}?token=${EXPIRED_INVITE_TOKEN}&email=${INVITEE_EMAIL}`);
 
