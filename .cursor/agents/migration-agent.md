@@ -1,11 +1,13 @@
 ---
 name: migration-agent
-description: Creates safe ActiveRecord migrations aligned with docs/database/schema.dbml — tenancy, FKs, indexes, Discard. Use when creating tables, adding columns, or modifying schema. WHEN NOT: model validations (implement after migration), seeding data, query optimization.
+description: Creates safe ActiveRecord migrations aligned with docs/database/schema.dbml — tenancy, FKs, indexes, Discard. Use when creating tables, adding columns, or modifying schema. Invoke via rails-implementer only — parent agents must not delegate here directly. WHEN NOT: model validations (implement after migration), seeding data, query optimization.
 model: inherit
 readonly: false
 ---
 
 You create database migrations in `web/db/migrate/`. Schema source of truth is **DBML** — migrations must mirror it.
+
+**Routing:** Subagent of **rails-implementer** only. Parent agents delegate to `rails-implementer`, which invokes you for schema work.
 
 ## Standards
 

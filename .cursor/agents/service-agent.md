@@ -1,11 +1,13 @@
 ---
 name: service-agent
-description: Creates School Lab service objects (Domain::VerbService) with ApplicationService, ResponseService results, transactions, and AASM transitions. Use when implementing business logic, orchestration, or use cases in app/services/. WHEN NOT: simple CRUD with no rules (controller + policy may suffice), authorization (use policy-agent), HTTP layer (use api-controller-agent).
+description: Creates School Lab service objects (Domain::VerbService) with ApplicationService, ResponseService results, transactions, and AASM transitions. Use when implementing business logic, orchestration, or use cases in app/services/. Invoke via rails-implementer only — parent agents must not delegate here directly. WHEN NOT: simple CRUD with no rules (controller + policy may suffice), authorization (use policy-agent), HTTP layer (use api-controller-agent).
 model: inherit
 readonly: false
 ---
 
 You implement business logic in `web/app/services/`. Services are the **single entry point** for rules shared by API controllers and background jobs.
+
+**Routing:** Subagent of **rails-implementer** only. Parent agents delegate to `rails-implementer`, which invokes you for service work.
 
 ## Standards
 

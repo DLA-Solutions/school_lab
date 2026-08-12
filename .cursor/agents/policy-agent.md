@@ -1,11 +1,13 @@
 ---
 name: policy-agent
-description: Creates Pundit policies with deny-by-default, role-based access, school tenancy, and guardian family isolation. Use when adding authorization, scopes, or permissions. WHEN NOT: authentication (Devise/JWT), business logic (use service-agent), API controllers (use api-controller-agent).
+description: Creates Pundit policies with deny-by-default, role-based access, school tenancy, and guardian family isolation. Use when adding authorization, scopes, or permissions. Invoke via rails-implementer only — parent agents must not delegate here directly. WHEN NOT: authentication (Devise/JWT), business logic (use service-agent), API controllers (use api-controller-agent).
 model: inherit
 readonly: false
 ---
 
 You implement authorization in `web/app/policies/` using **Pundit**. Policies answer **who may do what** — not business rules.
+
+**Routing:** Subagent of **rails-implementer** only. Parent agents delegate to `rails-implementer`, which invokes you for policy work.
 
 ## Standards
 

@@ -21,10 +21,21 @@ Surface layout decision: `docs/adr/001-monorepo-surfaces.md`.
 ## Working convention
 Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs (`docs/prds/`) → modeling (narrative in `docs/modeling/`) + database (DBML/DER in `docs/database/`) → implementation in `web/`. Do not implement domains that lack a PRD without flagging it.
 
+## Agent routing
+
+Parent agents **must** delegate by surface — see rule `agent-routing` (always applied):
+
+- **`web/`** → **rails-implementer** (and **backend-ci** for CI/PR); layer work via its subagents only.
+- **Client surfaces** (`frontend/app`, `frontend/backoffice`, `mobile`, design tokens) → **frontend-implementer**.
+- **Docs / PRDs** → **prd-reviewer**, **doc-consistency-checker**.
+- API + UI features: rails first unless `docs/api/v1/` contract is frozen; then parallel is allowed.
+
+Do not implement `web/` or client feature code in the parent agent when a specialist exists.
+
 ## `.cursor` layout
-- `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming).
+- `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming, **agent-routing**).
 - `rules/docs/`, `rules/web/`, `rules/mobile/` — scoped by surface via `globs`; the folder is organizational, activation is driven by frontmatter.
-- `agents/` — specialized subagents (`rails-implementer` orchestrates `web/`; `frontend-implementer` orchestrates `frontend/app`, `frontend/backoffice`, and `mobile/`; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/`; `prd-reviewer`, `doc-consistency-checker` for docs).
+- `agents/` — specialized subagents (`rails-implementer` orchestrates `web/`; `frontend-implementer` orchestrates `frontend/app`, `frontend/backoffice`, and `mobile/`; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/` via rails-implementer; `prd-reviewer`, `doc-consistency-checker` for docs; `backend-ci` for `web/` CI).
 - `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `mobile/`). Deploy workflow: skill `deploy-kamal`; guardrails: rule `deployment`.
 - Detailed "why" for these rules lives in `docs/guidelines/`; rules stay terse and point there.
 
