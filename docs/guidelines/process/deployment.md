@@ -497,5 +497,11 @@ native gems (`pg`, `bootsnap`) takes several minutes. Uncomment `builder.remote`
   PRs run lint/test/npm per surface (path filters) but do not build Docker images. Production
   deploys remain manual. Requires GitHub repository secrets (`KAMAL_SSH_PRIVATE_KEY`, staging
   app secrets) and the `staging` environment.
+- **GitHub Actions billing / hosted runners.** CI uses a **self-hosted runner** on the Hetzner
+  app server (`runs-on: [self-hosted, hetzner, linux]`) so workflows do not consume GitHub-hosted
+  minutes. Install and register the runner before relying on CI or auto-deploy:
+  `docs/guidelines/process/github-actions-runner.md`. Until the runner is online, jobs queue as
+  "Waiting for a runner" — use local `web/bin/backend-ci` for PR gates and manual Kamal deploy
+  for staging (§ Day-to-day above).
 - **Active Storage** writes to a Kamal volume on the app server. That disk is not
   backed up by the deploy process; migrating to S3 is an open decision.

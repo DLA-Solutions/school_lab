@@ -449,3 +449,8 @@ Deploy setup is documented in `docs/guidelines/process/deployment.md`.
 - [x] **Continuous deployment** — staging deploys automatically on push to `main` for affected
       surfaces (`.github/workflows/ci.yml`: GHCR push + `kamal deploy --skip-push`). Production
       stays manual. Ensure GitHub secrets and the `staging` environment are configured.
+- [x] **GitHub Actions runner — self-hosted on Hetzner** — workflows use
+      `runs-on: [self-hosted, hetzner, linux]` on the app server to avoid GitHub-hosted minutes
+      when billing/spending limits block hosted runners. Setup:
+      `docs/guidelines/process/github-actions-runner.md`. Until the runner is registered, CI jobs
+      queue; use local `web/bin/backend-ci` and manual Kamal staging deploy as fallback.
