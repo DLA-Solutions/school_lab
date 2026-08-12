@@ -7,8 +7,13 @@ on:
   push:
     branches: [ main ]
 
-# Deliberately unfiltered by path: this is the merge gate, and a workflow skipped by a paths
-# filter never reports a status, which leaves a required check pending forever.
+# Workflow always runs so required checks report a status. Path filters live on each job via
+# dorny/paths-filter — skipped jobs satisfy branch protection; a workflow-level paths filter
+# would leave required checks pending forever.
+
+permissions:
+  contents: read
+  packages: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -19,9 +24,43 @@ defaults:
     working-directory: web
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      site: ${{ steps.filter.outputs.site }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backoffice: ${{ steps.filter.outputs.backoffice }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'web/**'
+              - '.github/workflows/ci.yml'
+            site:
+              - 'site/**'
+              - '.github/workflows/ci.yml'
+            frontend:
+              - 'frontend/app/**'
+              - 'packages/design-tokens/**'
+              - '.github/workflows/ci.yml'
+            backoffice:
+              - 'frontend/backoffice/**'
+              - 'packages/design-tokens/**'
+              - '.github/workflows/ci.yml'
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true'
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
@@ -50,6 +89,8 @@ jobs:
   scan_ruby:
     name: Security scan
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -69,6 +110,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true'
 
     services:
       postgres:
@@ -119,6 +162,8 @@ jobs:
   build_image:
     name: Production image
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.web == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -126,19 +171,29 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       # Nothing else exercises the production bundle, so a gem that is absent outside the
       # development group only surfaces here.
-      - name: Build the production image
+      - name: Build and push the production image
         uses: docker/build-push-action@v6
         with:
           context: web
-          push: false
+          push: true
+          tags: ghcr.io/dla-solutions/scholarpremium:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   build_site_image:
     name: Site image
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.site == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -146,18 +201,28 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build the site image
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push the site image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: site/Dockerfile
-          push: false
+          push: true
+          tags: ghcr.io/dla-solutions/scholarpremium-site:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   build_frontend_image:
     name: Frontend image
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.frontend == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -165,18 +230,28 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build the frontend image
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push the frontend image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: frontend/app/Dockerfile
-          push: false
+          push: true
+          tags: ghcr.io/dla-solutions/scholarpremium-spa:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.frontend == 'true'
     defaults:
       run:
         working-directory: frontend/app
@@ -203,6 +278,8 @@ jobs:
   build_backoffice_image:
     name: Backoffice image
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.backoffice == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -210,18 +287,28 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build the backoffice image
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push the backoffice image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: frontend/backoffice/Dockerfile
-          push: false
+          push: true
+          tags: ghcr.io/dla-solutions/scholarpremium-backoffice-spa:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   backoffice:
     name: Backoffice SPA
     runs-on: ubuntu-latest
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.backoffice == 'true'
     defaults:
       run:
         working-directory: frontend/backoffice
@@ -244,3 +331,181 @@ jobs:
 
       - name: Build with /backoffice base path
         run: VITE_BASE_PATH=/backoffice/ npm run build
+
+  deploy_web:
+    name: Deploy API (staging)
+    runs-on: ubuntu-latest
+    needs: [changes, build_image]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.web == 'true'
+    environment: staging
+    env:
+      KAMAL_REGISTRY_USERNAME: ${{ github.repository_owner }}
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY_STAGING }}
+      JWT_SECRET_KEY_STAGING: ${{ secrets.JWT_SECRET_KEY_STAGING }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      API_DOCS_USERNAME: ${{ secrets.API_DOCS_USERNAME }}
+      API_DOCS_PASSWORD: ${{ secrets.API_DOCS_PASSWORD }}
+      POSTMARK_API_TOKEN_STAGING: ${{ secrets.POSTMARK_API_TOKEN_STAGING }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: web
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.KAMAL_SSH_PRIVATE_KEY }}
+
+      - name: Add deploy host to known_hosts
+        run: ssh-keyscan -H 77.42.33.33 >> ~/.ssh/known_hosts
+
+      - name: Write Kamal secrets
+        run: |
+          mkdir -p .kamal
+          printf '%s\n' \
+            "KAMAL_REGISTRY_USERNAME=${KAMAL_REGISTRY_USERNAME}" \
+            "KAMAL_REGISTRY_PASSWORD=${KAMAL_REGISTRY_PASSWORD}" \
+            "RAILS_MASTER_KEY=${RAILS_MASTER_KEY}" \
+            > .kamal/secrets-common
+          printf '%s\n' \
+            "JWT_SECRET_KEY=${JWT_SECRET_KEY_STAGING}" \
+            "API_DOCS_USERNAME=${API_DOCS_USERNAME}" \
+            "API_DOCS_PASSWORD=${API_DOCS_PASSWORD}" \
+            "POSTMARK_API_TOKEN=${POSTMARK_API_TOKEN_STAGING}" \
+            "DATABASE_URL=postgres://scholarpremium:${POSTGRES_PASSWORD}@10.0.0.3:5432/scholarpremium_staging" \
+            "CABLE_DATABASE_URL=postgres://scholarpremium:${POSTGRES_PASSWORD}@10.0.0.3:5432/scholarpremium_staging_cable" \
+            "REDIS_URL=redis://:${REDIS_PASSWORD}@10.0.0.3:6379/1" \
+            > .kamal/secrets.staging
+
+      - name: Deploy to staging
+        run: bundle exec kamal deploy --skip-push -d staging
+
+  deploy_site:
+    name: Deploy site (staging)
+    runs-on: ubuntu-latest
+    needs: [changes, build_site_image]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.site == 'true'
+    environment: staging
+    env:
+      KAMAL_REGISTRY_USERNAME: ${{ github.repository_owner }}
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: web
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.KAMAL_SSH_PRIVATE_KEY }}
+
+      - name: Add deploy host to known_hosts
+        run: ssh-keyscan -H 77.42.33.33 >> ~/.ssh/known_hosts
+
+      - name: Write Kamal secrets
+        working-directory: site
+        run: |
+          mkdir -p .kamal
+          printf '%s\n' \
+            "KAMAL_REGISTRY_USERNAME=${KAMAL_REGISTRY_USERNAME}" \
+            "KAMAL_REGISTRY_PASSWORD=${KAMAL_REGISTRY_PASSWORD}" \
+            > .kamal/secrets-common
+
+      - name: Deploy to staging
+        working-directory: site
+        run: bin/kamal deploy --skip-push -d staging
+
+  deploy_frontend:
+    name: Deploy school SPA (staging)
+    runs-on: ubuntu-latest
+    needs: [changes, build_frontend_image]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.frontend == 'true'
+    environment: staging
+    env:
+      KAMAL_REGISTRY_USERNAME: ${{ github.repository_owner }}
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: web
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.KAMAL_SSH_PRIVATE_KEY }}
+
+      - name: Add deploy host to known_hosts
+        run: ssh-keyscan -H 77.42.33.33 >> ~/.ssh/known_hosts
+
+      - name: Write Kamal secrets
+        working-directory: frontend/app
+        run: |
+          mkdir -p .kamal
+          printf '%s\n' \
+            "KAMAL_REGISTRY_USERNAME=${KAMAL_REGISTRY_USERNAME}" \
+            "KAMAL_REGISTRY_PASSWORD=${KAMAL_REGISTRY_PASSWORD}" \
+            > .kamal/secrets-common
+
+      - name: Deploy to staging
+        working-directory: frontend/app
+        run: bin/kamal deploy --skip-push -d staging
+
+  deploy_backoffice:
+    name: Deploy backoffice SPA (staging)
+    runs-on: ubuntu-latest
+    needs: [changes, build_backoffice_image]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.backoffice == 'true'
+    environment: staging
+    env:
+      KAMAL_REGISTRY_USERNAME: ${{ github.repository_owner }}
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: web
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.KAMAL_SSH_PRIVATE_KEY }}
+
+      - name: Add deploy host to known_hosts
+        run: ssh-keyscan -H 77.42.33.33 >> ~/.ssh/known_hosts
+
+      - name: Write Kamal secrets
+        working-directory: frontend/backoffice
+        run: |
+          mkdir -p .kamal
+          printf '%s\n' \
+            "KAMAL_REGISTRY_USERNAME=${KAMAL_REGISTRY_USERNAME}" \
+            "KAMAL_REGISTRY_PASSWORD=${KAMAL_REGISTRY_PASSWORD}" \
+            > .kamal/secrets-common
+
+      - name: Deploy to staging
+        working-directory: frontend/backoffice
+        run: bin/kamal deploy --skip-push -d staging
