@@ -84,13 +84,27 @@ const InviteAccept = () => {
     navigate(ownerPending ? paths.ownerOnboarding : rootPaths.root, { replace: true });
   };
 
-  const handleMembershipAccept = async (membershipId: number, email: string, password: string) => {
-    if (status !== 'authenticated') {
-      await login({ email, password });
-    }
-
+  const activateInvitedMembership = async (membershipId: number) => {
     await acceptMembership(membershipId);
     await redirectAfterAccept();
+  };
+
+  const authenticateInvitee = async (email: string, password: string) => {
+    // Always sign in as the invitee after setting their password. Reusing an existing
+    // session (e.g. backoffice in the same browser) would POST accept with the wrong user → 404.
+    await login({ email, password });
+  };
+
+  const recoverConsumedInvite = async (email: string, password: string) => {
+    await authenticateInvitee(email, password);
+    const profile = await refreshUser();
+    const invited = findInvitedMembership(profile);
+
+    if (!invited) {
+      throw new Error('invited membership missing');
+    }
+
+    await activateInvitedMembership(invited.id);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -101,8 +115,7 @@ const InviteAccept = () => {
       setSubmitting(true);
 
       try {
-        await acceptMembership(invitedMembership.id);
-        await redirectAfterAccept();
+        await activateInvitedMembership(invitedMembership.id);
       } catch (error) {
         setBannerError(
           error instanceof ApiError
@@ -128,18 +141,18 @@ const InviteAccept = () => {
 
     setSubmitting(true);
 
+    const email = form.email.trim();
+    const password = form.password;
+
     try {
       const inviteResult = await acceptInvite({
         token: tokenFromQuery,
-        password: form.password,
+        password,
         name: form.name.trim() || undefined,
       });
 
-      await handleMembershipAccept(
-        inviteResult.data.membership_id,
-        form.email.trim(),
-        form.password,
-      );
+      await authenticateInvitee(email, password);
+      await activateInvitedMembership(inviteResult.data.membership_id);
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.code === 'validation_error' && error.details) {
@@ -154,6 +167,13 @@ const InviteAccept = () => {
             setFieldErrors(nextErrors);
           }
           setBannerError(error.message);
+        } else if (error.code === 'invalid_invite_token') {
+          try {
+            await recoverConsumedInvite(email, password);
+            return;
+          } catch {
+            setBannerError(mapInviteError(error));
+          }
         } else {
           setBannerError(mapInviteError(error));
         }
