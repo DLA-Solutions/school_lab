@@ -25,12 +25,14 @@ RSpec.describe PeopleMailer do
     end
 
     it "renders pt-BR content with the invite link" do
+      body = [ mail.text_part&.decoded, mail.html_part&.decoded ].compact.join("\n")
+
       expect(mail.to).to eq([ "director@example.com" ])
       expect(mail.subject).to include("Escola Exemplo")
-      expect(mail.body.encoded).to include("Escola Exemplo")
-      expect(mail.body.encoded).to include("token=invite-token-abc")
-      expect(mail.body.encoded).to include("email=director%40example.com")
-      expect(mail.body.encoded).to include("https://scholarpremium.com.br/app/invite/accept")
+      expect(body).to include("Escola Exemplo")
+      expect(body).to include("token=invite-token-abc")
+      expect(body).to include("email=director%40example.com")
+      expect(body).to include("https://scholarpremium.com.br/app/invite/accept")
     end
   end
 end
