@@ -3414,10 +3414,10 @@
         ],
         "responses": {
           "200": {
-            "description": "school staff updates settings"
+            "description": "persists fixed fine and clears percent rate"
           },
           "422": {
-            "description": "validation error for long service description"
+            "description": "validation error for invalid early payment discount"
           },
           "403": {
             "description": "forbidden for guardian update"
