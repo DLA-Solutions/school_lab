@@ -8,8 +8,12 @@ export interface DashboardMetricsState {
   metrics: DashboardMetrics | null;
   loading: boolean;
   error: string;
+  accessDenied: boolean;
   reload: () => void;
 }
+
+const isAccessDeniedError = (err: unknown): err is ApiError =>
+  err instanceof ApiError && (err.status === 403 || err.status === 404);
 
 /**
  * The dashboard's figures, fetched once for the whole page: the KPI row, the income chart and the
@@ -22,23 +26,31 @@ export const useDashboardMetrics = (month: string, enabled = true): DashboardMet
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const load = useCallback(async () => {
     if (!schoolId || !enabled) {
       setMetrics(null);
       setLoading(false);
       setError('');
+      setAccessDenied(false);
       return;
     }
 
     setLoading(true);
     setError('');
+    setAccessDenied(false);
 
     try {
       setMetrics(await getDashboardMetrics(schoolId, month));
     } catch (err) {
       setMetrics(null);
-      setError(err instanceof ApiError ? err.message : 'Could not load the dashboard figures.');
+      if (isAccessDeniedError(err)) {
+        setAccessDenied(true);
+        setError('');
+      } else {
+        setError(err instanceof ApiError ? err.message : 'Could not load the dashboard figures.');
+      }
     } finally {
       setLoading(false);
     }
@@ -48,7 +60,7 @@ export const useDashboardMetrics = (month: string, enabled = true): DashboardMet
     load();
   }, [load]);
 
-  return { metrics, loading, error, reload: load };
+  return { metrics, loading, error, accessDenied, reload: load };
 };
 
 export default useDashboardMetrics;

@@ -84,9 +84,9 @@ const Ledger = ({ month, onChanged }: LedgerProps) => {
     } catch (err) {
       setRows([]);
       setTotal(0);
-      setError(
-        err instanceof ApiError ? err.message : t('ledger.loadError'),
-      );
+      if (!(err instanceof ApiError && (err.status === 403 || err.status === 404))) {
+        setError(err instanceof ApiError ? err.message : t('ledger.loadError'));
+      }
     } finally {
       setLoading(false);
     }

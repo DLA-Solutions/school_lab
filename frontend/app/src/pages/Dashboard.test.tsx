@@ -49,6 +49,22 @@ const billingMembership: Membership = {
   },
 };
 
+const viewBillingSummaryMembership: Membership = {
+  ...staffMembership,
+  permissions: ['view_billing_summary'],
+  permission_sources: {
+    view_billing_summary: 'template',
+  },
+};
+
+const manageBillingOnlyMembership: Membership = {
+  ...staffMembership,
+  permissions: ['manage_billing'],
+  permission_sources: {
+    manage_billing: 'template',
+  },
+};
+
 const dashboardMetrics: DashboardMetrics = {
   month: '2026-08',
   students: { value: 42, previous: 40, change_percent: 5, is_up: true },
@@ -64,6 +80,20 @@ const dashboardMetrics: DashboardMetrics = {
   monthly_revenue: { value: 2100000, previous: 2000000, change_percent: 5, is_up: true },
   didactic_material: { value: 100000, previous: 90000, change_percent: 11.1, is_up: true },
   monthly_income_series: [{ month: '2026-08', amount_cents: 2100000 }],
+  students_by_class: [
+    {
+      school_class_id: 1,
+      name: 'Turma A',
+      grade_level: '1',
+      year: 2026,
+      students: 20,
+    },
+  ],
+};
+
+const secretaryDashboardMetrics: DashboardMetrics = {
+  month: '2026-08',
+  students: { value: 42, previous: 40, change_percent: 5, is_up: true },
   students_by_class: [
     {
       school_class_id: 1,
@@ -100,7 +130,7 @@ const renderDashboard = (membership: Membership) =>
   );
 
 describe('Dashboard permission gating', () => {
-  it('shows billing sections to a user with billing access', async () => {
+  it('shows billing sections to a user with full billing access', async () => {
     server.use(
       http.get(apiUrl(DASHBOARD_PATH), () =>
         HttpResponse.json({ data: dashboardMetrics }),
@@ -122,7 +152,7 @@ describe('Dashboard permission gating', () => {
   it('shows the people section to a secretary with manage_people', async () => {
     server.use(
       http.get(apiUrl(DASHBOARD_PATH), () =>
-        HttpResponse.json({ data: dashboardMetrics }),
+        HttpResponse.json({ data: secretaryDashboardMetrics }),
       ),
       http.get(apiUrl(TRANSACTIONS_PATH), () => emptyTransactions()),
     );
@@ -134,6 +164,42 @@ describe('Dashboard permission gating', () => {
     });
     expect(screen.queryByText('Receita do mês')).not.toBeInTheDocument();
     expect(screen.queryByText('Entradas e saídas')).not.toBeInTheDocument();
+    expect(screen.queryByText('Não encontrado')).not.toBeInTheDocument();
+    expect(screen.queryByText('Acesso negado')).not.toBeInTheDocument();
+    expect(screen.queryByText('Acesso negado.')).not.toBeInTheDocument();
+  });
+
+  it('shows KPIs but not the ledger to a user with view_billing_summary only', async () => {
+    server.use(
+      http.get(apiUrl(DASHBOARD_PATH), () =>
+        HttpResponse.json({ data: dashboardMetrics }),
+      ),
+      http.get(apiUrl(TRANSACTIONS_PATH), () => emptyTransactions()),
+    );
+
+    renderDashboard(viewBillingSummaryMembership);
+
+    await waitFor(() => {
+      expect(screen.getByText('Receita do mês')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Entradas da escola ao longo do ano')).toBeInTheDocument();
+    expect(screen.queryByText('Entradas e saídas')).not.toBeInTheDocument();
+  });
+
+  it('shows KPIs and the ledger to a user with manage_billing only', async () => {
+    server.use(
+      http.get(apiUrl(DASHBOARD_PATH), () =>
+        HttpResponse.json({ data: dashboardMetrics }),
+      ),
+      http.get(apiUrl(TRANSACTIONS_PATH), () => emptyTransactions()),
+    );
+
+    renderDashboard(manageBillingOnlyMembership);
+
+    await waitFor(() => {
+      expect(screen.getByText('Receita do mês')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Entradas e saídas')).toBeInTheDocument();
   });
 
   it('shows a welcome state to a teacher without billing or people access', () => {
@@ -143,5 +209,21 @@ describe('Dashboard permission gating', () => {
     expect(screen.queryByText('Receita do mês')).not.toBeInTheDocument();
     expect(screen.queryByText('Alunos por turma')).not.toBeInTheDocument();
     expect(screen.queryByText('$240.8K')).not.toBeInTheDocument();
+  });
+
+  it('shows an error banner when the dashboard API fails unexpectedly', async () => {
+    server.use(
+      http.get(apiUrl(DASHBOARD_PATH), () =>
+        HttpResponse.json(
+          { error: { code: 'internal_error', message: 'Erro interno do servidor.', details: {} } },
+          { status: 500 },
+        ),
+      ),
+      http.get(apiUrl(TRANSACTIONS_PATH), () => emptyTransactions()),
+    );
+
+    renderDashboard(billingMembership);
+
+    expect(await screen.findByText('Erro interno do servidor.')).toBeInTheDocument();
   });
 });

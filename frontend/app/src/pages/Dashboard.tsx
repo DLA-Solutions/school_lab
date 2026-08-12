@@ -14,17 +14,25 @@ import { currentMonth } from 'utils/month';
 const Dashboard = () => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
-  const canViewBilling =
+  const canViewBillingSummary =
     school !== null &&
     (membershipHasPermission(school, 'view_billing_summary') ||
       membershipHasPermission(school, 'manage_billing'));
-  const canManagePeople =
+
+  const canManageLedger =
+    school !== null && membershipHasPermission(school, 'manage_billing');
+
+  const canViewPeopleMetrics =
     school !== null && membershipHasPermission(school, 'manage_people');
-  const hasContent = canViewBilling || canManagePeople;
+
+  const hasContent = canViewBillingSummary || canViewPeopleMetrics;
 
   // One month drives the whole page: the KPI row, the income chart and the ledger all report it.
   const [month, setMonth] = useState(currentMonth);
-  const { metrics, loading, error, reload } = useDashboardMetrics(month, hasContent);
+  const { metrics, loading, error, accessDenied, reload } = useDashboardMetrics(
+    month,
+    hasContent,
+  );
 
   if (!hasContent) {
     return (
@@ -38,34 +46,34 @@ const Dashboard = () => {
 
   return (
     <Grid container spacing={{ xs: 2.5, sm: 3, lg: 3.75 }}>
-      {error && (
+      {error && !accessDenied && (
         <Grid size={12}>
           <ErrorBanner message={error} />
         </Grid>
       )}
 
-      {canViewBilling && (
+      {canViewBillingSummary && (
         <Grid size={12}>
           <KPIs metrics={metrics} loading={loading} month={month} onMonthChange={setMonth} />
         </Grid>
       )}
 
-      {canManagePeople && (
-        <Grid size={{ xs: 12, xl: canViewBilling ? 4 : 12 }}>
+      {canViewPeopleMetrics && (
+        <Grid size={{ xs: 12, xl: canViewBillingSummary ? 4 : 12 }}>
           <StudentsByClass metrics={metrics} loading={loading} />
         </Grid>
       )}
 
-      {canViewBilling && (
-        <>
-          <Grid size={{ xs: 12, xl: 8 }}>
-            <SchoolIncome metrics={metrics} loading={loading} />
-          </Grid>
+      {canViewBillingSummary && (
+        <Grid size={{ xs: 12, xl: 8 }}>
+          <SchoolIncome metrics={metrics} loading={loading} />
+        </Grid>
+      )}
 
-          <Grid size={12}>
-            <Ledger month={month} onChanged={reload} />
-          </Grid>
-        </>
+      {canManageLedger && (
+        <Grid size={12}>
+          <Ledger month={month} onChanged={reload} />
+        </Grid>
       )}
     </Grid>
   );
