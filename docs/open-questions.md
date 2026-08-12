@@ -446,6 +446,7 @@ Deploy setup is documented in `docs/guidelines/process/deployment.md`.
       databases but no `vector` column exists, so `schema.rb` loses nothing today. The
       first embedding migration (arriving with `ruby_llm`) requires switching to
       `:sql` **and** ensuring the extension is created by migration, not by hand.
-- [x] **Continuous deployment** — staging deploys automatically on push to `main` for affected
-      surfaces (`.github/workflows/ci.yml`: GHCR push + `kamal deploy --skip-push`). Production
-      stays manual. Ensure GitHub secrets and the `staging` environment are configured.
+- [x] **Continuous deployment** — **manual only** for now (deploy owner runs Kamal). GitHub
+      Actions workflows disabled; local CI via `bin/ci` and `.githooks/`. See
+      `docs/guidelines/process/local-ci.md`. Revisit automation when billing or runner strategy
+      is decided.

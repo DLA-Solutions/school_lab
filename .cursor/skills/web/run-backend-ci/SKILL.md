@@ -1,98 +1,87 @@
 ---
 name: run-backend-ci
-description: Runs the full backend CI gate for web/ (RuboCop, Brakeman, bundler-audit, RSpec, OpenAPI drift, production Docker image), fixes failures with atomic commits, and opens a PR when green. Use before shipping web/ changes or when the user asks to run backend CI.
+description: Runs local CI for web/ or the full monorepo (path filters match GitHub Actions). Use bin/ci before PRs, web/bin/backend-ci for web-only, or when the user asks to run backend CI.
 ---
 
-# Run Backend CI
+# Run Local CI
 
-Local mirror of `.github/workflows/ci.yml` **backend PR jobs** (`lint`, `scan_ruby`, `test`). The
-`build_image` job runs on `main` only; use full `web/bin/backend-ci` locally when you want to
-validate the production image before merge.
+**Preferred entrypoint:** `bin/ci` at the repo root — path filters match `.github/workflows/ci.yml`
+(only runs surfaces changed vs `origin/main`).
 
-For the full fix → commit → PR pipeline, delegate to subagent **backend-ci** or follow the loop below.
+`web/bin/backend-ci` remains for **web/** only (lint, security, RSpec, OpenAPI, optional Docker).
+
+## Install git hooks (once per clone)
+
+```bash
+bin/install-git-hooks   # or: make install-hooks
+```
+
+| Hook | What |
+|------|------|
+| `pre-commit` | Fast lint on staged files (RuboCop / ESLint per surface) |
+| `pre-push` | Full `bin/ci` for changed surfaces |
+
+Bypass: `git commit --no-verify` / `git push --no-verify`.
 
 ## Quick start
 
 ```bash
-# From repo root — starts Postgres via Makefile if needed
-web/bin/backend-ci              # full gate (lint, security, all specs, OpenAPI, Docker)
-web/bin/backend-ci-fast           # scoped lint/tests; skips Docker (typical local iteration)
-web/bin/backend-ci --skip-docker  # full lint/tests/OpenAPI; skip Docker only
+# Monorepo — only changed surfaces (recommended before PR)
+bin/ci
+bin/ci --fast          # scoped web checks + SPAs; skip Docker unless production files changed
+
+# Web only
+web/bin/backend-ci
+web/bin/backend-ci-fast
+web/bin/backend-ci --docker   # force production image build
 ```
 
-Prerequisites:
+Makefile aliases: `make ci`, `make ci-fast`.
 
-- Ruby + Bundler installed (`cd web && bundle install`)
-- PostgreSQL reachable at `localhost:5432` (defaults match `web/.env.example`). If not: `make services-up`
-- Docker running **only for full local CI** (production image build). GitHub Actions skips
-  `build_image` on PRs; the image is built and pushed on merge to `main`. Use `--fast` or
-  `--skip-docker` when Docker is unavailable locally.
+## Surface mapping (same as GitHub Actions)
 
-On success, writes `.cursor/backend-ci.stamp` with the current `HEAD` SHA (fast mode adds `mode=fast` on line 2). GitHub Actions runs backend lint/security/test on PRs when `web/` changes (path filters).
+| Changed paths | Local jobs |
+|---------------|------------|
+| `web/**` | RuboCop, Brakeman, bundler-audit, RSpec, OpenAPI drift |
+| `frontend/app/**`, `packages/design-tokens/**` | `npm ci`, `test:run`, build (`/app/`) |
+| `frontend/backoffice/**`, `packages/design-tokens/**` | same for backoffice (`/backoffice/`) |
+| `site/**` | noted only (no PR CI job — validate with `make site-build` before deploy) |
+| `.github/workflows/ci.yml`, `bin/ci` | all surfaces |
 
-## Full vs fast
+Docker image build runs only when `web/Dockerfile`, `Gemfile`, or production-related files
+changed — or with `bin/ci --docker` / `web/bin/backend-ci --docker`.
+
+## Stamps and PR gate
+
+On success, `bin/ci` writes `.cursor/ci.stamp` with `surfaces=web,frontend,...`.
+`web/bin/backend-ci` also writes `.cursor/backend-ci.stamp` and `ci.stamp` (`surfaces=web`).
+
+Hook `.cursor/hooks/gate-pr-create.sh` requires `ci.stamp` on `HEAD` covering all surfaces in
+the diff vs `origin/main`.
+
+## Prerequisites
+
+- Ruby + Bundler (`cd web && bundle install`)
+- PostgreSQL at `localhost:5432` — `make services-up` if needed
+- Node 22 for SPA surfaces
+- Docker only when production image step runs
+
+## Full vs fast (web surface)
 
 | Mode | When to use |
 |------|-------------|
-| `web/bin/backend-ci` | Before merge when Docker is available; includes local image build (GitHub runs that step on `main` only). |
-| `web/bin/backend-ci-fast` | Small `web/` changes (policy, controller, specs); skips Docker; scopes RuboCop/RSpec to files changed vs `origin/main`. Brakeman and bundler-audit always run in full. |
-| `web/bin/backend-ci --skip-docker` | Full lint/tests/OpenAPI without a local Docker build. |
+| `bin/ci` | Default before PR — all changed surfaces |
+| `bin/ci --fast` | Iteration; scoped web lint/specs |
+| `web/bin/backend-ci` | Web-only full gate |
+| `web/bin/backend-ci --skip-docker` | Web full tests without Docker |
 
-Fast mode **falls back to full RSpec** when the diff touches `Gemfile`, migrations, `schema.rb`, or `Dockerfile`. OpenAPI steps run only when request specs, controllers, serializers, or swagger files changed.
-
-## Steps (same order as GitHub Actions)
-
-| Step | Command (from `web/`) |
-|------|------------------------|
-| Lint | `bin/rubocop -f github` |
-| Brakeman | `bin/brakeman --no-pager --exit-on-error` |
-| Gem audit | `bin/bundler-audit` |
-| DB | `RAILS_ENV=test bin/rails db:test:prepare` |
-| Tests | `bundle exec rspec` |
-| OpenAPI | `bundle exec rake swagger:build` |
-| Drift | `git diff --exit-code swagger/v1/swagger.yaml` |
-| Image | `docker build .` |
-
-## Fix loop (when CI fails)
-
-1. Read failing step output.
-2. Fix with the smallest safe diff.
-3. Re-run the **narrowest** check that proves the fix.
-4. **Commit atomically** — rule `git-atomic-commits`; one concern per commit (RuboCop, spec fix, OpenAPI regen, etc.).
-5. Run full `web/bin/backend-ci` again before push/PR.
-
-Never leave CI fixes uncommitted. Never weaken CI to get green.
-
-## Scoped re-runs (after a fix, before full CI)
-
-```bash
-cd web
-bundle exec rspec spec/path/to_spec.rb    # single spec
-bin/rubocop -a path/to/changed.rb       # style fix
-bundle exec rake swagger:build            # OpenAPI only
-```
+Fast mode **falls back to full RSpec** when the diff touches `Gemfile`, migrations, `schema.rb`, or `Dockerfile`. OpenAPI steps run only when API contract files changed.
 
 ## Ship when green
 
-When stamp matches `git rev-parse HEAD`:
-
 ```bash
 git push -u origin HEAD
-gh pr create --title "..." --body "$(cat <<'EOF'
-## Summary
-- ...
-
-## Test plan
-- [ ] ...
-
-EOF
-)"
+gh pr create ...
 ```
 
-Skill `create-pull-request` covers PR format and gate checks. Hook `.cursor/hooks/gate-pr-create.sh` blocks `gh pr create` without a valid stamp.
-
-## Agent delegation
-
-Rule `agent-routing`: parent agents delegate **web/** CI to **backend-ci**, not direct implementation.
-
-For automated fix → commit → PR, delegate to subagent **backend-ci** (`Task` with `subagent_type: backend-ci` or `@backend-ci`).
+Skill `create-pull-request` covers PR format. Delegate web/ fix loops to **backend-ci**.

@@ -13,8 +13,9 @@ Subagent **backend-ci** runs this full pipeline by default (CI → fix → atomi
 
 **Do not run `gh pr create` until backend CI passes.**
 
-1. Run `web/bin/backend-ci` (or delegate to subagent **backend-ci**).
-2. Confirm exit code 0 and `.cursor/backend-ci.stamp` contains the same SHA as `git rev-parse HEAD`.
+1. Run `bin/ci` from repo root (or `web/bin/backend-ci` when only `web/` changed). For monorepo
+   changes, `bin/ci` applies the same path filters as GitHub Actions.
+2. Confirm exit code 0 and `.cursor/ci.stamp` contains the same SHA as `git rev-parse HEAD`.
 3. If CI fails: fix issues, commit atomically, re-run until green. **Stop and report** if blocked — never open a PR on red CI.
 
 For branches that only touch `frontend/`, `site/`, or docs, still run backend CI when `web/` files changed; skip only when the diff has **zero** files under `web/`.
@@ -25,7 +26,7 @@ Copy and track:
 
 ```
 - [ ] 1. git status / diff / log (parallel)
-- [ ] 2. Backend CI green (web/bin/backend-ci)
+- [ ] 2. Local CI green (`bin/ci` or `web/bin/backend-ci` when web-only)
 - [ ] 3. Commit any CI fixes (atomic, one concern per commit)
 - [ ] 4. Re-run backend CI if commits were made
 - [ ] 5. Push branch if needed (git push -u origin HEAD)
@@ -45,8 +46,8 @@ git rev-parse @{u} 2>/dev/null || true
 ### 2. Backend CI
 
 ```bash
-web/bin/backend-ci
-head -1 .cursor/backend-ci.stamp
+bin/ci
+head -1 .cursor/ci.stamp
 git rev-parse HEAD
 ```
 

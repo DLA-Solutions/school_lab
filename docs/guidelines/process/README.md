@@ -62,3 +62,5 @@ anchor docs  ──▶  domain PRD  ──▶  data modeling  ──▶  impleme
 - Kamal 2 topology, destinations, secrets, first deploy, rollback:
   [`deployment.md`](deployment.md).
 - Deploys are manual and always take an explicit destination (`-d production|staging`).
+- Local CI (git hooks + `bin/ci`); GitHub Actions disabled:
+  [`local-ci.md`](local-ci.md).
