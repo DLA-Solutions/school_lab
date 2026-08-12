@@ -1,5 +1,7 @@
 name: OpenAPI
 
+# Self-hosted runner — see docs/guidelines/process/github-actions-runner.md
+
 on:
   pull_request:
     paths:
@@ -21,7 +23,8 @@ defaults:
 
 jobs:
   openapi:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
     services:
       postgres:

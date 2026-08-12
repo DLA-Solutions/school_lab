@@ -1,5 +1,8 @@
 name: CI
 
+# Self-hosted runner on the Hetzner app server — no GitHub-hosted minutes. Install and register
+# before merging workflow changes: docs/guidelines/process/github-actions-runner.md
+#
 # GitHub Actions only reads workflows from .github/workflows at the repository root, so this
 # lives here even though the Rails app is in web/. Every job below therefore runs from web/.
 on:
@@ -26,7 +29,7 @@ defaults:
 jobs:
   changes:
     name: Detect changes
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     outputs:
       web: ${{ steps.filter.outputs.web }}
       site: ${{ steps.filter.outputs.site }}
@@ -58,9 +61,9 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true' && github.event.pull_request.head.repo.full_name == github.repository
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
@@ -88,9 +91,9 @@ jobs:
 
   scan_ruby:
     name: Security scan
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true' && github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -109,9 +112,9 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.web == 'true' && github.event.pull_request.head.repo.full_name == github.repository
 
     services:
       postgres:
@@ -161,7 +164,7 @@ jobs:
 
   build_image:
     name: Production image
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.web == 'true'
     steps:
@@ -191,7 +194,7 @@ jobs:
 
   build_site_image:
     name: Site image
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.site == 'true'
     steps:
@@ -220,7 +223,7 @@ jobs:
 
   build_frontend_image:
     name: Frontend image
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.frontend == 'true'
     steps:
@@ -249,9 +252,9 @@ jobs:
 
   frontend:
     name: Frontend
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.frontend == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.frontend == 'true' && github.event.pull_request.head.repo.full_name == github.repository
     defaults:
       run:
         working-directory: frontend/app
@@ -277,7 +280,7 @@ jobs:
 
   build_backoffice_image:
     name: Backoffice image
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.backoffice == 'true'
     steps:
@@ -306,9 +309,9 @@ jobs:
 
   backoffice:
     name: Backoffice SPA
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.backoffice == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.backoffice == 'true' && github.event.pull_request.head.repo.full_name == github.repository
     defaults:
       run:
         working-directory: frontend/backoffice
@@ -334,7 +337,7 @@ jobs:
 
   deploy_web:
     name: Deploy API (staging)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: [changes, build_image]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.web == 'true'
     environment: staging
@@ -392,7 +395,7 @@ jobs:
 
   deploy_site:
     name: Deploy site (staging)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: [changes, build_site_image]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.site == 'true'
     environment: staging
@@ -432,7 +435,7 @@ jobs:
 
   deploy_frontend:
     name: Deploy school SPA (staging)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: [changes, build_frontend_image]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.frontend == 'true'
     environment: staging
@@ -472,7 +475,7 @@ jobs:
 
   deploy_backoffice:
     name: Deploy backoffice SPA (staging)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner, linux]
     needs: [changes, build_backoffice_image]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.backoffice == 'true'
     environment: staging
