@@ -154,6 +154,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_183000) do
     t.check_constraint "total_amount_cents >= 0", name: "charges_total_amount_cents_non_negative"
   end
 
+  create_table "collection_reminder_deliveries", force: :cascade do |t|
+    t.bigint "charge_id", null: false
+    t.datetime "created_at", null: false
+    t.string "rule_key", null: false
+    t.bigint "school_id", null: false
+    t.date "sent_on", null: false
+    t.datetime "updated_at", null: false
+    t.index ["charge_id", "rule_key", "sent_on"], name: "index_collection_reminder_deliveries_on_charge_rule_sent_on", unique: true
+    t.index ["charge_id"], name: "index_collection_reminder_deliveries_on_charge_id"
+    t.index ["school_id", "sent_on"], name: "index_collection_reminder_deliveries_on_school_id_and_sent_on"
+    t.index ["school_id"], name: "index_collection_reminder_deliveries_on_school_id"
+  end
+
   create_table "contract_templates", force: :cascade do |t|
     t.text "body_html", null: false
     t.string "copy_emails", default: [], null: false, array: true
@@ -830,6 +843,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_183000) do
   add_foreign_key "charges", "guardians"
   add_foreign_key "charges", "schools"
   add_foreign_key "charges", "users", column: "discarded_by_id"
+  add_foreign_key "collection_reminder_deliveries", "charges"
+  add_foreign_key "collection_reminder_deliveries", "schools"
   add_foreign_key "contract_templates", "schools"
   add_foreign_key "contract_templates", "users", column: "updated_by_id"
   add_foreign_key "contracts", "billing_plans"
