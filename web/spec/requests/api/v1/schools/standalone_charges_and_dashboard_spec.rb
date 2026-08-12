@@ -347,5 +347,51 @@ RSpec.describe "Standalone boletos, batch issuing and the dashboard", type: :req
 
       expect(response).to have_http_status(:forbidden)
     end
+
+    it "returns people metrics only for a secretary" do
+      secretary_user = create(:user)
+      secretary_membership = create(:membership, :staff, user: secretary_user, school: school)
+      secretary_template = create_system_templates_for(school).find { |t| t.system_key == "secretary" }
+      create(:staff_profile, membership: secretary_membership, school: school, role_template: secretary_template)
+      school_class = create(:school_class, school: school)
+      create(:student, school: school, school_class: school_class)
+      create(:school_transaction, school: school, kind: "income", category: "didactic_material",
+                                  amount_cents: 30_000, occurred_on: Date.new(2026, 9, 2))
+
+      get dashboard_path, params: { month: "2026-09" }, headers: auth_headers_for(secretary_user)
+
+      expect(response).to have_http_status(:ok)
+
+      data = response.parsed_body["data"]
+      expect(data.keys).to contain_exactly("month", "students", "students_by_class")
+      expect(data["month"]).to eq("2026-09")
+      expect(data["students"]).to include("value")
+      expect(data["students_by_class"]).to be_an(Array)
+      expect(data).not_to have_key("monthly_revenue")
+      expect(data).not_to have_key("collaborators")
+      expect(data).not_to have_key("monthly_income_series")
+    end
+
+    it "returns full billing metrics for staff with manage_billing" do
+      link(mother)
+      contract = create(:contract, school: school, student: student, billing_plan: plan,
+                                   payer_guardian: mother)
+      create(:charge, school: school, contract: contract, guardian: mother, kind: "tuition",
+                      billing_period: Date.new(2026, 9, 1), total_amount_cents: 80_000)
+      create(:school_transaction, school: school, kind: "income", category: "didactic_material",
+                                    amount_cents: 30_000, occurred_on: Date.new(2026, 9, 2))
+
+      get dashboard_path, params: { month: "2026-09" }, headers: headers
+
+      expect(response).to have_http_status(:ok)
+
+      data = response.parsed_body["data"]
+      expect(data.keys).to contain_exactly(
+        "month", "students", "collaborators", "average_ticket", "monthly_revenue",
+        "didactic_material", "monthly_income_series", "students_by_class"
+      )
+      expect(data["monthly_revenue"]["value"]).to eq(80_000)
+      expect(data["didactic_material"]["value"]).to eq(30_000)
+    end
   end
 end

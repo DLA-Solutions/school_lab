@@ -20,8 +20,10 @@ RSpec.describe DashboardPolicy do
       Current.effective_permission_keys = nil
     end
 
-    it "permits show" do
+    it "permits show and both metric groups" do
       expect(policy.show?).to be(true)
+      expect(policy.billing_metrics?).to be(true)
+      expect(policy.people_metrics?).to be(true)
     end
   end
 
@@ -37,8 +39,10 @@ RSpec.describe DashboardPolicy do
       Current.effective_permission_keys = nil
     end
 
-    it "denies show" do
-      expect(policy.show?).to be(false)
+    it "permits show via people metrics only" do
+      expect(policy.show?).to be(true)
+      expect(policy.billing_metrics?).to be(false)
+      expect(policy.people_metrics?).to be(true)
     end
   end
 end

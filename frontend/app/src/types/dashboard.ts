@@ -36,13 +36,14 @@ export interface StudentsByClassSlice {
 export interface DashboardMetrics {
   /** The month the money figures describe, `YYYY-MM`. */
   month: string;
-  students: DashboardMetric;
-  collaborators: DashboardMetric;
-  average_ticket: AverageTicketMetric;
-  monthly_revenue: DashboardMetric;
-  didactic_material: DashboardMetric;
-  /** Twelve points, one per month of the reference year. */
-  monthly_income_series: MonthlyIncomePoint[];
+  /** Present when the caller may read people metrics (and often with billing). */
+  students?: DashboardMetric;
   /** Largest cohort first; the slices add up to `students.value`. */
-  students_by_class: StudentsByClassSlice[];
+  students_by_class?: StudentsByClassSlice[];
+  collaborators?: DashboardMetric;
+  average_ticket?: AverageTicketMetric;
+  monthly_revenue?: DashboardMetric;
+  didactic_material?: DashboardMetric;
+  /** Twelve points, one per month of the reference year. */
+  monthly_income_series?: MonthlyIncomePoint[];
 }
