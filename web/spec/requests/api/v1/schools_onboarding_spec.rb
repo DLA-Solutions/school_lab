@@ -33,6 +33,14 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
       }
 
       response "201", "self-serve school created with owner invite" do
+        around do |example|
+          original_token = ENV["POSTMARK_API_TOKEN"]
+          ENV.delete("POSTMARK_API_TOKEN")
+          example.run
+        ensure
+          ENV["POSTMARK_API_TOKEN"] = original_token
+        end
+
         let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
         let(:payload) do
           {
