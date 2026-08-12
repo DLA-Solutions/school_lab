@@ -4,16 +4,69 @@
 #   lint, scan_ruby (brakeman + bundler-audit), test (+ OpenAPI drift), production image.
 #
 # Run from anywhere:
-#   web/bin/backend-ci
+#   web/bin/backend-ci              # full gate (default)
+#   web/bin/backend-ci --fast       # scoped checks; skips Docker (see below)
+#   web/bin/backend-ci --skip-docker
+#   web/bin/backend-ci-fast         # same as --fast
 #
 # On success, writes .cursor/backend-ci.stamp with the current HEAD SHA so PR creation
-# hooks can verify CI ran on the commit being opened.
+# hooks can verify CI ran on the commit being opened. GitHub Actions still runs the full
+# merge gate on the PR.
+#
+# --fast skips Docker and narrows lint/tests to files changed vs --base (default:
+# origin/main). Falls back to the full suite when Gemfile, migrations, schema, or
+# Dockerfile change. Security scans (Brakeman, bundler-audit) always run in full.
 
 set -uo pipefail
 
 WEB_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO_ROOT="$(cd "$WEB_ROOT/.." && pwd)"
 STAMP_FILE="$REPO_ROOT/.cursor/backend-ci.stamp"
+
+FAST_MODE=0
+SKIP_DOCKER=0
+BASE_REF="origin/main"
+
+usage() {
+  cat <<'EOF'
+Usage: web/bin/backend-ci [OPTIONS]
+
+  (no flags)       Full backend CI — same jobs as .github/workflows/ci.yml backend.
+  --fast           Scoped lint/tests; skip Docker. Use for small web/ changes locally.
+  --skip-docker    Full lint/tests/OpenAPI; skip production image build only.
+  --base REF       Merge base for --fast change detection (default: origin/main).
+  -h, --help       Show this help.
+
+Fast mode still runs Brakeman and bundler-audit in full. GitHub Actions runs the full
+gate on every PR regardless of local mode.
+EOF
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --fast)
+      FAST_MODE=1
+      SKIP_DOCKER=1
+      ;;
+    --skip-docker)
+      SKIP_DOCKER=1
+      ;;
+    --base)
+      shift
+      BASE_REF="${1:?--base requires a ref}"
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'Unknown option: %s\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
 
 cd "$WEB_ROOT"
 
@@ -37,6 +90,13 @@ run_step() {
   fi
 }
 
+run_step_skip() {
+  local name="$1"
+  step_num=$((step_num + 1))
+  section "$step_num" "$name"
+  printf '  \033[33mskipped\033[0m\n'
+}
+
 ensure_postgres() {
   if RAILS_ENV=test bin/rails runner 'ActiveRecord::Base.connection_pool.checkout' >/dev/null 2>&1; then
     return 0
@@ -51,35 +111,197 @@ ensure_postgres() {
   RAILS_ENV=test bin/rails runner 'ActiveRecord::Base.connection_pool.checkout' >/dev/null 2>&1
 }
 
+resolve_base_ref() {
+  if git -C "$REPO_ROOT" rev-parse --verify "$BASE_REF" >/dev/null 2>&1; then
+    printf '%s' "$BASE_REF"
+    return 0
+  fi
+
+  if git -C "$REPO_ROOT" rev-parse --verify "${BASE_REF#origin/}" >/dev/null 2>&1; then
+    printf '%s' "${BASE_REF#origin/}"
+    return 0
+  fi
+
+  git -C "$REPO_ROOT" merge-base HEAD origin/main 2>/dev/null || git -C "$REPO_ROOT" rev-parse HEAD~1
+}
+
+collect_changed_web_files() {
+  local base
+  base="$(resolve_base_ref)"
+  git -C "$REPO_ROOT" diff --name-only "$base"...HEAD -- web/ 2>/dev/null || true
+}
+
+requires_full_test_suite() {
+  local changed="$1"
+  printf '%s\n' "$changed" | grep -qE '^web/(Gemfile(\.lock)?|Dockerfile|db/(migrate/|schema\.rb))'
+}
+
+requires_openapi_check() {
+  local changed="$1"
+  if [ "$FAST_MODE" -eq 0 ]; then
+    return 0
+  fi
+
+  printf '%s\n' "$changed" | grep -qE '^web/(spec/requests/|swagger/)'
+}
+
+requires_docker_build() {
+  local changed="$1"
+  if [ "$SKIP_DOCKER" -eq 1 ]; then
+    return 1
+  fi
+
+  if [ "$FAST_MODE" -eq 1 ]; then
+    printf '%s\n' "$changed" | grep -qE '^web/(Dockerfile|Gemfile(\.lock)?|\.ruby-version|config/environments/production\.rb|bin/docker-entrypoint)'
+  else
+    return 0
+  fi
+}
+
+collect_rubocop_targets() {
+  local changed="$1"
+  local file
+
+  if printf '%s\n' "$changed" | grep -qE '^web/(\.rubocop|Gemfile)'; then
+    return 0
+  fi
+
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    case "$file" in
+      web/*.rb)
+        printf '%s\n' "${file#web/}"
+        ;;
+    esac
+  done <<EOF
+$changed
+EOF
+}
+
+rspec_specs=""
+rspec_spec_count=0
+
+add_rspec_target() {
+  local spec="$1"
+  local existing
+
+  [ -n "$spec" ] || return 0
+  [ -f "$WEB_ROOT/$spec" ] || return 0
+
+  for existing in $rspec_specs; do
+    [ "$existing" = "$spec" ] && return 0
+  done
+
+  rspec_specs="$rspec_specs $spec"
+  rspec_spec_count=$((rspec_spec_count + 1))
+}
+
+collect_rspec_targets() {
+  local changed="$1"
+  local file rel
+
+  rspec_specs=""
+  rspec_spec_count=0
+
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    case "$file" in
+      web/spec/*_spec.rb)
+        add_rspec_target "${file#web/}"
+        ;;
+      web/app/models/* | web/app/policies/* | web/app/services/* | web/app/serializers/* | web/app/blueprints/*)
+        rel="${file#web/app/}"
+        add_rspec_target "spec/${rel%.rb}_spec.rb"
+        ;;
+      web/app/controllers/*)
+        rel="${file#web/app/}"
+        add_rspec_target "spec/requests/${rel%.rb}_spec.rb"
+        add_rspec_target "spec/${rel%.rb}_spec.rb"
+        ;;
+    esac
+  done <<EOF
+$changed
+EOF
+
+  if [ "$rspec_spec_count" -eq 0 ]; then
+    return 1
+  fi
+
+  printf '%s\n' $rspec_specs
+}
+
 export RAILS_ENV=test
 export POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
 export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 export POSTGRES_USER="${POSTGRES_USER:-school_lab}"
 export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-school_lab}"
+export RUBOCOP_CACHE_ROOT="${RUBOCOP_CACHE_ROOT:-$WEB_ROOT/tmp/rubocop}"
 
-printf '\033[1mBackend CI\033[0m (web/ — matches .github/workflows/ci.yml backend jobs)\n'
+if [ "$FAST_MODE" -eq 1 ]; then
+  printf '\033[1mBackend CI (fast)\033[0m — scoped lint/tests; security scans full; Docker skipped\n'
+else
+  printf '\033[1mBackend CI\033[0m (web/ — matches .github/workflows/ci.yml backend jobs)\n'
+fi
 
-run_step "Lint (RuboCop)" bin/rubocop -f github
+CHANGED_FILES="$(collect_changed_web_files)"
+
+if [ "$FAST_MODE" -eq 1 ]; then
+  RUBOCOP_TARGETS="$(collect_rubocop_targets "$CHANGED_FILES")"
+  if [ -z "$RUBOCOP_TARGETS" ]; then
+    run_step "Lint (RuboCop)" bin/rubocop -f github
+  else
+    # shellcheck disable=SC2086
+    run_step "Lint (RuboCop, changed files)" bin/rubocop -f github --force-exclusion $RUBOCOP_TARGETS
+  fi
+else
+  run_step "Lint (RuboCop)" bin/rubocop -f github
+fi
+
 run_step "Security scan (Brakeman)" bin/brakeman --no-pager --exit-on-error
 run_step "Security scan (Bundler audit)" bin/bundler-audit
 
 section "—" "Test suite (requires PostgreSQL)"
 if ensure_postgres; then
   run_step "Prepare test database" bin/rails db:test:prepare
-  run_step "RSpec" bundle exec rspec
-  run_step "Regenerate OpenAPI" bundle exec rake swagger:build
-  run_step "OpenAPI drift check" git diff --exit-code swagger/v1/swagger.yaml
+
+  if requires_full_test_suite "$CHANGED_FILES"; then
+    [ "$FAST_MODE" -eq 1 ] && printf '  \033[33mGemfile/migration/schema/Dockerfile changed — running full RSpec suite\033[0m\n'
+    run_step "RSpec" bundle exec rspec
+  elif [ "$FAST_MODE" -eq 1 ]; then
+    RSPEC_TARGETS="$(collect_rspec_targets "$CHANGED_FILES" || true)"
+    if [ -z "$RSPEC_TARGETS" ]; then
+      run_step_skip "RSpec (no mapped specs for changed files)"
+    else
+      printf '  \033[33mRunning scoped specs: %s\033[0m\n' "$RSPEC_TARGETS"
+      # shellcheck disable=SC2086
+      run_step "RSpec (changed files)" bundle exec rspec $RSPEC_TARGETS
+    fi
+  else
+    run_step "RSpec" bundle exec rspec
+  fi
+
+  if requires_openapi_check "$CHANGED_FILES"; then
+    run_step "Regenerate OpenAPI" bundle exec rake swagger:build
+    run_step "OpenAPI drift check" git diff --exit-code swagger/v1/swagger.yaml
+  else
+    run_step_skip "Regenerate OpenAPI (no API contract files changed)"
+    run_step_skip "OpenAPI drift check (no API contract files changed)"
+  fi
 else
   printf '  \033[31mFAILED\033[0m — PostgreSQL unavailable. Run: make services-up\n'
   failures=$((failures + 1))
 fi
 
 section "—" "Production image"
-if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-  run_step "Docker build (production)" docker build -q .
+if requires_docker_build "$CHANGED_FILES"; then
+  if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+    run_step "Docker build (production)" docker build -q .
+  else
+    printf '  \033[31mFAILED\033[0m — Docker not running. Start Docker Desktop, or re-run with --skip-docker / --fast.\n'
+    failures=$((failures + 1))
+  fi
 else
-  printf '  \033[31mFAILED\033[0m — Docker not running. Start Docker Desktop and re-run.\n'
-  failures=$((failures + 1))
+  run_step_skip "Docker build (production) — unchanged in diff vs $BASE_REF"
 fi
 
 printf '\n\033[1mResult\033[0m\n'
@@ -91,5 +313,8 @@ fi
 
 mkdir -p "$(dirname "$STAMP_FILE")"
 git -C "$REPO_ROOT" rev-parse HEAD > "$STAMP_FILE"
+if [ "$FAST_MODE" -eq 1 ]; then
+  printf 'mode=fast\n' >> "$STAMP_FILE"
+fi
 printf '  \033[32mAll backend CI checks passed.\033[0m Stamp: %s\n\n' "$STAMP_FILE"
 exit 0
