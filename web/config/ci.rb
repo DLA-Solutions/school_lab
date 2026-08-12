@@ -1,4 +1,5 @@
-# Run using bin/ci
+# Run using bin/ci (lint + security only).
+# Full backend gate (RSpec, OpenAPI drift, production image): bin/backend-ci
 
 CI.run do
   step "Setup", "bin/setup --skip-server"
