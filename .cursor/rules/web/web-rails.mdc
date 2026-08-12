@@ -9,6 +9,8 @@ alwaysApply: false
 Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. API conventions in `docs/api/README.md`.
 Index: `docs/guidelines/web/README.md`.
 
+**Agent routing:** Feature work in `web/` is owned by **rails-implementer** (rule `agent-routing`). Parent agents delegate; layer subagents are invoked only through rails-implementer. CI/PR: **backend-ci**.
+
 ## Architecture
 - Business logic in **service objects** (`app/services/`). API controllers delegate to services — no duplicated rules.
 - **Generators:** `bin/rails generate` for models (`--skip-migration` after migration-agent) and controllers (`api/v1/... --skip-routes`); no scaffold.

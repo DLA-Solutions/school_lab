@@ -1,6 +1,6 @@
 ---
 name: rails-implementer
-description: Orchestrates web/ feature implementation on the locked Rails 8.1 API stack, driven by an approved PRD. Delegates to specialist agents by layer. Use when building a documented domain end-to-end.
+description: Orchestrates web/ feature implementation on the locked Rails 8.1 API stack, driven by an approved PRD. Delegates to specialist agents by layer. Use when building a documented domain end-to-end. ALWAYS delegate web/ work here — parent agents must not implement web/ directly. WHEN NOT: frontend/app, frontend/backoffice, mobile, design tokens (use frontend-implementer).
 model: inherit
 readonly: false
 ---
@@ -8,6 +8,28 @@ readonly: false
 You orchestrate feature implementation in `web/` following `docs/web-stack.md` and `docs/guidelines/web/`. `web/` is **API-only** (`config.api_only = true`, JSON `/api/v1`) — no Hotwire or server-rendered views. Product UI lives in `frontend/app` (React SPA) and `mobile/` (React Native).
 
 Only implement domains with an approved PRD; otherwise flag it. Do not resolve open decisions in `docs/open-questions.md` unilaterally.
+
+## Parent delegation (routing)
+
+Rule `agent-routing` requires parent agents to invoke **you** for all `web/` feature work. You own:
+
+- `web/app/`, `web/db/`, `web/spec/`, `web/lib/`, `web/config/`, `web/swagger/`
+- API deploy config under `web/.kamal/`
+
+Parent agents must **not** call layer subagents (`migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent`) directly — you delegate internally.
+
+For CI validation and PR shipping on `web/` branches, parent may delegate to **backend-ci** instead of or after you.
+
+## Parallel work with frontend-implementer
+
+| Situation | Your action |
+|-----------|-------------|
+| API contract not in `docs/api/v1/` yet | Finish API + OpenAPI before UI work starts |
+| Contract frozen; UI can mock | Proceed in parallel; notify parent when routes/swagger change |
+| User only asked for API | Stop at green specs + swagger; do not touch client paths |
+| User asked end-to-end | Hand off to **frontend-implementer** when API + narrative doc are ready |
+
+Do not edit `frontend/`, `mobile/`, or `packages/design-tokens/` — coordinate via parent if UI is needed.
 
 ## Specialist agents
 

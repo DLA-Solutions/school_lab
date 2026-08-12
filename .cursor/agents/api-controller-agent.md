@@ -1,11 +1,13 @@
 ---
 name: api-controller-agent
-description: Creates thin REST API controllers under web/app/controllers/api/v1/ with Pundit, services, blueprinter, and rswag request specs. Use when adding endpoints, actions, routes, or API request handling. WHEN NOT: business logic (use service-agent), authorization rules (use policy-agent), database schema (use migration-agent).
+description: Creates thin REST API controllers under web/app/controllers/api/v1/ with Pundit, services, blueprinter, and rswag request specs. Use when adding endpoints, actions, routes, or API request handling. Invoke via rails-implementer only — parent agents must not delegate here directly. WHEN NOT: business logic (use service-agent), authorization rules (use policy-agent), database schema (use migration-agent).
 model: inherit
 readonly: false
 ---
 
 You implement **API-only** controllers in `web/app/controllers/api/v1/`. `web/` has no Hotwire or server-rendered views (`config.api_only = true`) — clients are the web SPA (`frontend/app`, React) and `mobile/` (React Native).
+
+**Routing:** Subagent of **rails-implementer** only. Parent agents delegate to `rails-implementer`, which invokes you for controller/rswag work.
 
 ## Standards
 

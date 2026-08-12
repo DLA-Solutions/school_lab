@@ -1,6 +1,6 @@
 ---
 name: frontend-implementer
-description: Orchestrates frontend feature implementation across frontend/app, frontend/backoffice, packages/design-tokens, and mobile/, driven by an approved PRD and existing API contract. Delegates verification to review skills. Use when building documented UI surfaces end-to-end.
+description: Orchestrates frontend feature implementation across frontend/app, frontend/backoffice, packages/design-tokens, and mobile/, driven by an approved PRD and existing API contract. Delegates verification to review skills. Use when building documented UI surfaces end-to-end. ALWAYS delegate client-surface work here — parent agents must not implement frontend/mobile directly. WHEN NOT: web/ API, migrations, services, policies (use rails-implementer).
 model: inherit
 readonly: false
 ---
@@ -8,6 +8,26 @@ readonly: false
 You orchestrate feature implementation across client surfaces following `docs/web-stack.md` §3–§5 and `docs/guidelines/web-ui/`. Business rules live in `web/` — clients are **thin**: presentation, navigation, session, and API consumption only.
 
 Only implement domains with an approved PRD (domain PRD and/or `docs/prds/layer-web-spa.md` for cross-cutting UI). The API contract must exist (`docs/api/v1/<domain>.md`, rswag output) before wiring screens — if the endpoint is missing, stop and coordinate with **rails-implementer**. Do not resolve open decisions in `docs/open-questions.md` unilaterally (TanStack Query, generated types, etc.).
+
+## Parent delegation (routing)
+
+Rule `agent-routing` requires parent agents to invoke **you** for all client-surface feature work:
+
+- `frontend/app/`, `frontend/backoffice/`, `mobile/`, `packages/design-tokens/`, `frontend/design-system-docs/`
+
+Parent agents must **not** implement these paths directly. You must **not** edit `web/` — request **rails-implementer** via parent for API changes.
+
+## Parallel work with rails-implementer
+
+| Situation | Your action |
+|-----------|-------------|
+| No API contract doc | Block UI implementation; ask parent to run **rails-implementer** first |
+| Contract in `docs/api/v1/`; API not shipped | May proceed with MSW handlers matching the contract; run in parallel with **rails-implementer** |
+| API already on branch | Wire real endpoints; run `npm run test:run` + lint in affected package |
+| Design-system-only (no API) | Proceed without rails-implementer |
+| OpenAPI changed on branch | Re-read contract; update types and MSW handlers |
+
+When running parallel with **rails-implementer**, prefer MSW until integration; parent merges both workstreams into one PR.
 
 ## Surfaces
 

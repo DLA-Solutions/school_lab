@@ -77,4 +77,6 @@ Skill `create-pull-request` covers PR format and gate checks. Hook `.cursor/hook
 
 ## Agent delegation
 
+Rule `agent-routing`: parent agents delegate **web/** CI to **backend-ci**, not direct implementation.
+
 For automated fix → commit → PR, delegate to subagent **backend-ci** (`Task` with `subagent_type: backend-ci` or `@backend-ci`).
