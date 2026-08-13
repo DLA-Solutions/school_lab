@@ -653,12 +653,9 @@ const ProvisioningWizard = () => {
         return (
           <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
-              Provisionamento premium de <strong>{school.name}</strong>. Configure cobrança, cadastre
-              famílias e conclua o repasse ao responsável quando tudo estiver pronto.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Durante o provisionamento, o backoffice pode configurar billing, importar pessoas via CSV
-              e finalizar o repasse para que o diretor aceite o convite e ative a escola.
+              Provisionamento premium de <strong>{school.name}</strong>. Configure cobrança, convide a
+              equipe, importe famílias via CSV e conclua o repasse ao responsável quando tudo estiver
+              pronto.
             </Typography>
           </Stack>
         );
@@ -700,38 +697,32 @@ const ProvisioningWizard = () => {
                       disabled={submitting}
                       fullWidth
                     />
-                    <Box>
+                    <Stack direction="column" gap={1.5} alignItems="flex-start">
                       <Button variant="outlined" component="label" disabled={submitting}>
-                        Certificado (.pem)
+                        Certificado (.pem, .cert)
                         <input
                           type="file"
-                          accept=".pem,application/x-pem-file"
+                          accept=".pem,.cert,application/x-pem-file"
                           hidden
                           onChange={handleCertificateChange}
                         />
                       </Button>
                       {certificateFile && (
-                        <Typography variant="body2" sx={{ mt: 1 }}>
-                          Arquivo: {certificateFile.name}
-                        </Typography>
+                        <Typography variant="body2">Arquivo: {certificateFile.name}</Typography>
                       )}
-                    </Box>
-                    <Box>
                       <Button variant="outlined" component="label" disabled={submitting}>
-                        Chave privada (.pem)
+                        Chave privada (.pem, .cert)
                         <input
                           type="file"
-                          accept=".pem,application/x-pem-file"
+                          accept=".pem,.cert,application/x-pem-file"
                           hidden
                           onChange={handlePrivateKeyChange}
                         />
                       </Button>
                       {privateKeyFile && (
-                        <Typography variant="body2" sx={{ mt: 1 }}>
-                          Arquivo: {privateKeyFile.name}
-                        </Typography>
+                        <Typography variant="body2">Arquivo: {privateKeyFile.name}</Typography>
                       )}
-                    </Box>
+                    </Stack>
                     <Button
                       variant="contained"
                       onClick={handleUploadCredentials}
@@ -983,10 +974,12 @@ const ProvisioningWizard = () => {
               </Button>
             </Stack>
             {previewResult && !commitResult && (
-              <Alert severity="success" variant="outlined">
-                Pré-visualização concluída — nenhum dado foi gravado.
+              <SectionCard title="Pré-visualização">
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Pré-visualização concluída — nenhum dado foi gravado.
+                </Typography>
                 <SummaryList summary={previewResult.summary} />
-              </Alert>
+              </SectionCard>
             )}
             {commitResult && (
               <Alert severity="success">
@@ -995,10 +988,8 @@ const ProvisioningWizard = () => {
               </Alert>
             )}
             {importErrors.length > 0 && (
-              <SectionCard>
-                <Typography variant="subtitle2" gutterBottom>
-                  Erros de validação
-                </Typography>
+              <>
+                <Typography variant="subtitle2">Erros de validação</Typography>
                 <List dense disablePadding>
                   {importErrors.map((message) => (
                     <ListItem key={message} disableGutters>
@@ -1009,7 +1000,7 @@ const ProvisioningWizard = () => {
                     </ListItem>
                   ))}
                 </List>
-              </SectionCard>
+              </>
             )}
             {bannerError && <ErrorBanner message={bannerError} />}
           </Stack>
@@ -1071,6 +1062,11 @@ const ProvisioningWizard = () => {
               </SectionCard>
             )}
             {bannerError && <ErrorBanner message={bannerError} />}
+            {!handoffReady && (
+              <Typography variant="body2" color="text.secondary">
+                Configure as credenciais Cora ou adie a cobrança na etapa de cobrança para continuar.
+              </Typography>
+            )}
           </Stack>
         );
 
