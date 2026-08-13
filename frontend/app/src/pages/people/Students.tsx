@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -224,8 +224,7 @@ const Students = () => {
     }
   };
 
-  const columns: GridColDef<Student>[] = useMemo(
-    () => [
+  const columns: GridColDef<Student>[] = [
       { field: 'name', headerName: t('common.name'), flex: 1, minWidth: 180 },
       { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
       { field: 'rg', headerName: 'RG', width: 140 },
@@ -303,9 +302,7 @@ const Students = () => {
           </Stack>
         ),
       },
-    ],
-    [t],
-  );
+  ];
 
   if (!school) {
     return (

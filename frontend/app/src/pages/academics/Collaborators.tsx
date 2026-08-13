@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -168,8 +168,7 @@ const Collaborators = () => {
     }
   };
 
-  const columns: GridColDef<Teacher>[] = useMemo(
-    () => [
+  const columns: GridColDef<Teacher>[] = [
       { field: 'name', headerName: t('common.name'), width: 170 },
       { field: 'job_title', headerName: t('common.position'), width: 160 },
       { field: 'cpf', headerName: 'CPF', width: 140, renderCell: renderCpf },
@@ -240,9 +239,7 @@ const Collaborators = () => {
           </Stack>
         ),
       },
-    ],
-    [t],
-  );
+  ];
 
   if (!school) {
     return (

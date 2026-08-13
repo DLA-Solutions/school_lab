@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -176,8 +176,7 @@ const JobPositions = () => {
     }
   };
 
-  const columns: GridColDef<JobPosition>[] = useMemo(
-    () => [
+  const columns: GridColDef<JobPosition>[] = [
       { field: 'name', headerName: t('common.position'), flex: 1, minWidth: 220 },
       {
         field: 'collaborator_count',
@@ -221,9 +220,7 @@ const JobPositions = () => {
           </Stack>
         ),
       },
-    ],
-    [t],
-  );
+  ];
 
   if (!school) {
     return (

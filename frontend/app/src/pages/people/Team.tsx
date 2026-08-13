@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
@@ -103,8 +103,7 @@ const Team = () => {
     setPermissionsFor(updated);
   };
 
-  const columns: GridColDef<TeamMembership>[] = useMemo(
-    () => [
+  const columns: GridColDef<TeamMembership>[] = [
       {
         field: 'email',
         headerName: t('common.email'),
@@ -162,9 +161,7 @@ const Team = () => {
             </Button>
           ) : null,
       },
-    ],
-    [isOwner, t],
-  );
+  ];
 
   if (!school) {
     return (
