@@ -79,7 +79,7 @@ const PersonDocumentsDialog = ({
   title,
   subtitle,
   documentTypes = PERSONAL_DOCUMENT_TYPES,
-  emptyDescription = 'Envie CPF, RG ou comprovante de residência desta pessoa.',
+  emptyDescription = t('documents.empty.default'),
   onClose,
 }: PersonDocumentsDialogProps) => {
   const { t } = useTranslation();
@@ -229,7 +229,7 @@ const PersonDocumentsDialog = ({
               <CircularProgress size={24} />
             </Stack>
           ) : documents.length === 0 ? (
-            <EmptyState title="Nenhum documento enviado" description={emptyDescription} />
+            <EmptyState title={t('documents.empty.title')} description={emptyDescription} />
           ) : (
             <List disablePadding>
               {documents.map((document) => {
