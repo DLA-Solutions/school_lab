@@ -98,6 +98,28 @@ describe('ProvisioningWizard', () => {
     expect(screen.getAllByText(/escola beta/i).length).toBeGreaterThan(0);
   });
 
+  it('renders wizard page sections in vertical column layout', async () => {
+    renderWizard();
+    await waitForWizardLoaded();
+
+    const root = screen.getByTestId('provisioning-wizard');
+    expect(root).toHaveStyle({ flexDirection: 'column' });
+
+    const pageTitle = screen.getByRole('heading', { name: /provisionamento da escola/i });
+    const stepTitle = screen.getByRole('heading', { name: /^boas-vindas$/i });
+    const stepper = root.querySelector('.MuiStepper-root');
+    const stepCard = stepTitle.closest('.MuiPaper-root');
+
+    expect(stepper).not.toBeNull();
+    expect(stepCard).not.toBeNull();
+    expect(
+      pageTitle.compareDocumentPosition(stepper as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      (stepper as Node).compareDocumentPosition(stepCard as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('navigates through billing and people steps', async () => {
     renderWizard();
     await waitForWizardLoaded();

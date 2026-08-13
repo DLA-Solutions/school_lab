@@ -1107,7 +1107,7 @@ const ProvisioningWizard = () => {
           Voltar
         </Button>
         <Button variant="contained" onClick={goNext} disabled={submitting}>
-          {activeStep === STEPS.length - 2 ? 'Revisar repasse' : 'Continuar'}
+          {isCsvStep ? 'Continuar' : activeStep === STEPS.length - 2 ? 'Revisar repasse' : 'Continuar'}
         </Button>
       </Stack>
     );
