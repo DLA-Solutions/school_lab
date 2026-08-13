@@ -155,6 +155,7 @@ const ptBR = {
   'charges.batch.empty.description': 'Só contratos ativos entram no fechamento do mês.',
   'charges.batch.selectAll': 'Selecionar todos os contratos',
   'charges.batch.selectOne': 'Selecionar contrato de {student}',
+  'charges.batch.selectRow': 'Selecionar contrato',
   'charges.batch.monthly': 'Mensalidade',
   'charges.batch.dueDay': 'Vence dia',
   'charges.batch.alreadyBilled': 'Já cobrado nesta competência',

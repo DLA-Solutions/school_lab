@@ -155,6 +155,7 @@ const enUS: Messages = {
   'charges.batch.empty.description': "Only active contracts take part in the month's billing.",
   'charges.batch.selectAll': 'Select every contract',
   'charges.batch.selectOne': 'Select contract for {student}',
+  'charges.batch.selectRow': 'Select contract',
   'charges.batch.monthly': 'Monthly',
   'charges.batch.dueDay': 'Due day',
   'charges.batch.alreadyBilled': 'Already billed for this period',

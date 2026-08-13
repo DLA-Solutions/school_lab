@@ -46,12 +46,25 @@ type BillableRow = BillableContract & { id: number };
  */
 const fifthOf = (period: string) => `${period}-05`;
 
+const emptySelection = (): GridRowSelectionModel => ({
+  type: 'include',
+  ids: new Set(),
+});
+
+const includeSelection = (ids: number[]): GridRowSelectionModel => ({
+  type: 'include',
+  ids: new Set(ids),
+});
+
+const selectionIds = (model: GridRowSelectionModel): number[] =>
+  Array.from(model.ids).filter((id): id is number => typeof id === 'number');
+
 const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDialogProps) => {
   const { t } = useTranslation();
   const [period, setPeriod] = useState(currentMonth);
   const [dueDate, setDueDate] = useState(() => fifthOf(currentMonth()));
   const [rows, setRows] = useState<BillableRow[]>([]);
-  const [selected, setSelected] = useState<GridRowSelectionModel>([]);
+  const [selected, setSelected] = useState<GridRowSelectionModel>(emptySelection);
   const [loading, setLoading] = useState(false);
   const [issuing, setIssuing] = useState(false);
   const [error, setError] = useState('');
@@ -67,11 +80,11 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
       // Everything the period does not cover yet starts ticked: billing the whole month is what
       // this screen is for, and unticking a few is less work than ticking a hundred.
       setSelected(
-        mapped.filter((row) => !row.already_charged).map((row) => row.contract_id),
+        includeSelection(mapped.filter((row) => !row.already_charged).map((row) => row.contract_id)),
       );
     } catch (err) {
       setRows([]);
-      setSelected([]);
+      setSelected(emptySelection());
       setError(
         err instanceof ApiError ? err.message : t('charges.batch.loadError'),
       );
@@ -88,10 +101,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
     load();
   }, [open, load]);
 
-  const selectedIds = useMemo(
-    () => selected.filter((id): id is number => typeof id === 'number'),
-    [selected],
-  );
+  const selectedIds = useMemo(() => selectionIds(selected), [selected]);
 
   const totalCents = useMemo(
     () =>
@@ -261,6 +271,10 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                     density="compact"
                     localeText={{
                       noRowsLabel: t('charges.batch.empty.title'),
+                      checkboxSelectionSelectAllRows: t('charges.batch.selectAll'),
+                      checkboxSelectionUnselectAllRows: t('charges.batch.selectAll'),
+                      checkboxSelectionSelectRow: t('charges.batch.selectRow'),
+                      checkboxSelectionUnselectRow: t('charges.batch.selectRow'),
                     }}
                   />
                 </Box>
