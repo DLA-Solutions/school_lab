@@ -323,7 +323,7 @@ const ContractTemplatePage = () => {
                         borderColor: 'divider',
                         // The contract is a printed white page; a logo drawn for it disappears
                         // against a dark card, which is half of why this looked broken.
-                        bgcolor: '#fff',
+                        bgcolor: 'common.white',
                         display: 'flex',
                         justifyContent: 'center',
                       }}
@@ -449,7 +449,7 @@ const ContractTemplatePage = () => {
                   border: 1,
                   borderColor: 'divider',
                   borderRadius: 1,
-                  background: '#fff',
+                  background: 'common.white',
                 }}
               />
             )}

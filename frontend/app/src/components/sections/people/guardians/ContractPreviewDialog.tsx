@@ -139,7 +139,7 @@ const ContractPreviewDialog = ({
                 border: 0,
                 // The document is a printed page; a white sheet is what it is designed against,
                 // in either scheme.
-                bgcolor: '#fff',
+                bgcolor: 'common.white',
                 borderRadius: 1,
               }}
             />
