@@ -40,6 +40,10 @@ const useChartTheme = (): ChartTheme => {
     // needs a resolved value for the scheme currently on screen, which is what
     // `theme.colorSchemes[scheme].palette` holds.
     const palette = theme.colorSchemes[scheme]?.palette ?? theme.palette;
+    const secondary = palette.secondary as typeof palette.secondary & {
+      lighter?: string;
+      darker?: string;
+    };
 
     return {
       textColor: palette.text.secondary,
@@ -48,7 +52,7 @@ const useChartTheme = (): ChartTheme => {
       splitLineColor: scheme === 'dark' ? palette.grey[700] : palette.grey[200],
       seriesColors: [
         palette.primary.main,
-        palette.secondary.lighter,
+        secondary.lighter ?? secondary.light,
         palette.secondary.main,
         palette.secondary.light,
         palette.success.main,
@@ -56,7 +60,7 @@ const useChartTheme = (): ChartTheme => {
       ],
       mutedSeriesColors: [
         palette.primary.dark,
-        palette.secondary.darker,
+        secondary.darker ?? secondary.dark,
         palette.secondary.dark,
         palette.text.disabled,
         palette.text.disabled,
