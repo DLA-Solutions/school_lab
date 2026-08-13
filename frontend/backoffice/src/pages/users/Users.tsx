@@ -1,4 +1,4 @@
-import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
@@ -82,10 +82,13 @@ const Users = () => {
   const [pendingEnable, setPendingEnable] = useState<PlatformUser | null>(null);
   const [actionError, setActionError] = useState('');
 
-  const listFilters: UserListFilters = {
-    q: searchQuery,
-    status: statusFilter === ALL_FILTER ? '' : statusFilter,
-  };
+  const listFilters = useMemo<UserListFilters>(
+    () => ({
+      q: searchQuery,
+      status: statusFilter === ALL_FILTER ? '' : statusFilter,
+    }),
+    [searchQuery, statusFilter],
+  );
 
   const hasActiveFilters = Boolean(searchQuery) || statusFilter !== ALL_FILTER;
 
@@ -113,7 +116,7 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  }, [listFilters.q, listFilters.status, page]);
+  }, [listFilters, page]);
 
   useEffect(() => {
     setPage(0);

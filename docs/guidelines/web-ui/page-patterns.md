@@ -2,6 +2,26 @@
 
 Target structure as features migrate out of the dashboard template.
 
+## Page roots
+
+Page roots: always `<Stack direction="column">` — the backoffice theme defaults `Stack` to `row` (intentional for toolbars). Explicit column direction prevents headers, steppers, and cards from rendering in a single horizontal row.
+
+**Reference:** `Dashboard`, `ProvisioningWizard`, `SchoolActivation` under `frontend/backoffice/src/pages/`.
+
+## Wizard page
+
+```
+Stack direction="column" gap={3.5} (maxWidth ~960)
+  PageHeader (title, subtitle, actions: back link)
+  Box overflowX auto
+    └─ Stepper alternativeLabel
+  SectionCard padding={3.5} title={active step}
+    └─ step content
+    └─ footer: [Back] [Continue] space-between
+```
+
+**Reference:** `ProvisioningWizard`, design-system-docs `NavigationSection` (Stepper).
+
 ## List page
 
 ```

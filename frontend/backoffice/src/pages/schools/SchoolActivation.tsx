@@ -156,7 +156,7 @@ const SchoolActivation = () => {
 
   if (loading) {
     return (
-      <Stack alignItems="center" justifyContent="center" py={8}>
+      <Stack direction="column" alignItems="center" justifyContent="center" py={8}>
         <CircularProgress />
       </Stack>
     );
@@ -164,7 +164,7 @@ const SchoolActivation = () => {
 
   if (loadError || !school) {
     return (
-      <Stack gap={3.5} py={2}>
+      <Stack direction="column" gap={3.5} py={2}>
         <PageHeader title="Ativação da escola" />
         <SectionCard>
           <EmptyState
@@ -179,7 +179,7 @@ const SchoolActivation = () => {
 
   if (school.onboarding_status === 'active') {
     return (
-      <Stack gap={3.5} py={2}>
+      <Stack direction="column" gap={3.5} py={2}>
         <PageHeader title="Ativação da escola" subtitle={school.name} />
         <SectionCard>
           <EmptyState
@@ -197,7 +197,7 @@ const SchoolActivation = () => {
 
   if (school.onboarding_status !== 'pending_handoff') {
     return (
-      <Stack gap={3.5} py={2}>
+      <Stack direction="column" gap={3.5} py={2}>
         <PageHeader title="Ativação da escola" subtitle={school.name} />
         <SectionCard>
           <EmptyState
@@ -214,7 +214,7 @@ const SchoolActivation = () => {
   }
 
   return (
-    <Stack gap={3.5} py={2}>
+    <Stack direction="column" gap={3.5} py={2}>
       <PageHeader
         title="Ativação da escola"
         subtitle={`Confirme a ativação de ${school.name} após o responsável aceitar o convite.`}
