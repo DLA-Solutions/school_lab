@@ -28,6 +28,18 @@ const ptBR = {
   'backoffice.dashboard.link.provisioning': 'Ver em provisionamento',
   'backoffice.dashboard.link.pendingHandoff': 'Ver aguardando repasse',
   'backoffice.dashboard.viewSchools': 'Ver todas as escolas',
+
+  'backoffice.schools.title': 'Escolas',
+  'backoffice.users.title': 'Usuários',
+  'backoffice.schoolActivation.title': 'Ativação da escola',
+  'backoffice.provisioning.title': 'Provisionamento da escola',
+  'backoffice.provisioning.completeTitle': 'Provisionamento concluído',
+  'backoffice.provisioning.closedTitle': 'Provisionamento encerrado',
+
+  'error404.title': 'Página não encontrada',
+  'error404.description':
+    'A página que você está buscando não existe ou foi movida.',
+  'error404.home': 'Voltar ao início',
 } as const;
 
 export default ptBR;

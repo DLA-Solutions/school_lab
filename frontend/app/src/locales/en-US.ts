@@ -479,6 +479,10 @@ const enUS: Messages = {
   'plans.discountNamePlaceholder': '15% discount, partial scholarship...',
   'plans.discountPercentHelper': '100% equals a full scholarship.',
   'plans.fullPercent': '100% (full)',
+
+  'error404.title': 'Page not found',
+  'error404.description': 'The page you are looking for does not exist or has been moved.',
+  'error404.home': 'Go back home',
 } as const;
 
 export default enUS;

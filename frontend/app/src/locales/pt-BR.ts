@@ -486,6 +486,11 @@ const ptBR = {
   'plans.discountNamePlaceholder': 'Desconto 15%, Bolsa parcial...',
   'plans.discountPercentHelper': '100% equivale a bolsa integral.',
   'plans.fullPercent': '100% (integral)',
+
+  'error404.title': 'Página não encontrada',
+  'error404.description':
+    'A página que você está buscando não existe ou foi movida.',
+  'error404.home': 'Voltar ao início',
 } as const;
 
 export default ptBR;
