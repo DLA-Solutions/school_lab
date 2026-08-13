@@ -3,6 +3,7 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 COPY packages/design-tokens packages/design-tokens
+COPY packages/design-system-ui packages/design-system-ui
 COPY frontend/app/package*.json frontend/app/
 WORKDIR /app/frontend/app
 RUN npm ci
