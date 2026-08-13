@@ -356,6 +356,8 @@ const enUS: Messages = {
     'Delete {name}? It will no longer appear in collaborator records.',
   'jobPositions.deleteError': 'Could not delete the position.',
   'jobPositions.inUseTooltip': 'Position in use — reassign collaborators first',
+  'jobPositions.editAria': 'Edit {name}',
+  'jobPositions.deleteAria': 'Delete {name}',
 } as const;
 
 export default enUS;

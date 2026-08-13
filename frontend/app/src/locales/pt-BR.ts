@@ -358,6 +358,8 @@ const ptBR = {
     'Excluir {name}? Ele deixa de aparecer no cadastro de colaboradores.',
   'jobPositions.deleteError': 'Não foi possível excluir o cargo.',
   'jobPositions.inUseTooltip': 'Cargo em uso — mova os colaboradores antes',
+  'jobPositions.editAria': 'Editar {name}',
+  'jobPositions.deleteAria': 'Excluir {name}',
 } as const;
 
 export default ptBR;
