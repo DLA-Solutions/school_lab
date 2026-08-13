@@ -1,7 +1,7 @@
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { SxProps, Theme, useColorScheme } from '@mui/material/styles';
-import IconifyIcon from 'components/base/IconifyIcon';
+import IconifyIcon from '../IconifyIcon';
 
 export interface ThemeToggleProps {
   /**

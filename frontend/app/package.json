@@ -22,6 +22,7 @@
     "@mui/x-data-grid": "^8.23.0",
     "@mui/x-date-pickers": "^8.23.0",
     "@school-lab/design-tokens": "file:../../packages/design-tokens",
+    "@school-lab/design-system-ui": "file:../../packages/design-system-ui",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "echarts": "^6.0.0",

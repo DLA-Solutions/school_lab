@@ -1,5 +1,5 @@
 import Chip from '@mui/material/Chip';
-import IconifyIcon from 'components/base/IconifyIcon';
+import IconifyIcon from '../IconifyIcon';
 
 export type SemanticChipVariant = 'success' | 'warning' | 'error' | 'info';
 

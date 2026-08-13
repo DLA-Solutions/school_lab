@@ -1,7 +1,7 @@
 import { ChangeEvent, KeyboardEvent } from 'react';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-import IconifyIcon from 'components/base/IconifyIcon';
+import IconifyIcon from '../IconifyIcon';
 
 export interface SearchFieldProps {
   value: string;

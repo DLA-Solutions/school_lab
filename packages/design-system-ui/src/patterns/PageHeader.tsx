@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { fontFamily } from 'theme/typography';
+import { fontFamily } from '../typography';
 
 export interface PageHeaderProps {
   title: string;
