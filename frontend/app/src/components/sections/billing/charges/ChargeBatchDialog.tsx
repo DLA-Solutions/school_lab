@@ -2,7 +2,6 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -10,14 +9,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { EmptyState, ErrorBanner } from 'design-system';
+import { GridColDef, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid';
+import { DataTable, EmptyState, ErrorBanner } from 'design-system';
 import { ApiError } from 'services/api';
 import { createChargeBatch, listBillableContracts } from 'services/chargesApi';
 import { BillableContract, ChargeBatchResult } from 'types/charge';
@@ -33,6 +28,8 @@ interface ChargeBatchDialogProps {
   /** Fired once the batch went out, so the listing behind the dialog can refresh. */
   onIssued: (result: ChargeBatchResult) => void;
 }
+
+type BillableRow = BillableContract & { id: number };
 
 /**
  * Billing a whole month at once. The school picks contracts — all of them, in one click, is the
@@ -53,13 +50,11 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
   const { t } = useTranslation();
   const [period, setPeriod] = useState(currentMonth);
   const [dueDate, setDueDate] = useState(() => fifthOf(currentMonth()));
-  const [rows, setRows] = useState<BillableContract[]>([]);
-  const [selected, setSelected] = useState<number[]>([]);
+  const [rows, setRows] = useState<BillableRow[]>([]);
+  const [selected, setSelected] = useState<GridRowSelectionModel>([]);
   const [loading, setLoading] = useState(false);
   const [issuing, setIssuing] = useState(false);
   const [error, setError] = useState('');
-
-  const billable = useMemo(() => rows.filter((row) => !row.already_charged), [rows]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,10 +62,13 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
 
     try {
       const data = await listBillableContracts(schoolId, period);
-      setRows(data);
+      const mapped = data.map((row) => ({ ...row, id: row.contract_id }));
+      setRows(mapped);
       // Everything the period does not cover yet starts ticked: billing the whole month is what
       // this screen is for, and unticking a few is less work than ticking a hundred.
-      setSelected(data.filter((row) => !row.already_charged).map((row) => row.contract_id));
+      setSelected(
+        mapped.filter((row) => !row.already_charged).map((row) => row.contract_id),
+      );
     } catch (err) {
       setRows([]);
       setSelected([]);
@@ -90,32 +88,23 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
     load();
   }, [open, load]);
 
-  const toggle = (contractId: number) => {
-    setSelected((current) =>
-      current.includes(contractId)
-        ? current.filter((id) => id !== contractId)
-        : [...current, contractId],
-    );
-  };
-
-  const toggleAll = () => {
-    setSelected((current) =>
-      current.length === billable.length ? [] : billable.map((row) => row.contract_id),
-    );
-  };
+  const selectedIds = useMemo(
+    () => selected.filter((id): id is number => typeof id === 'number'),
+    [selected],
+  );
 
   const totalCents = useMemo(
     () =>
       rows
-        .filter((row) => selected.includes(row.contract_id))
+        .filter((row) => selectedIds.includes(row.contract_id))
         .reduce((sum, row) => sum + row.monthly_amount_cents, 0),
-    [rows, selected],
+    [rows, selectedIds],
   );
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (selected.length === 0) {
+    if (selectedIds.length === 0) {
       setError(t('charges.batch.selectAtLeastOne'));
       return;
     }
@@ -125,7 +114,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
 
     try {
       const result = await createChargeBatch(schoolId, {
-        contract_ids: selected,
+        contract_ids: selectedIds,
         billing_period: period,
         due_date: dueDate || null,
       });
@@ -144,7 +133,67 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
     }
   };
 
-  const allSelected = billable.length > 0 && selected.length === billable.length;
+  const columns: GridColDef<BillableRow>[] = useMemo(
+    () => [
+      {
+        field: 'student_name',
+        headerName: t('common.student'),
+        flex: 1,
+        minWidth: 140,
+        renderCell: ({ row }: GridRenderCellParams<BillableRow>) => (
+          <>
+            <Typography variant="body2">{row.student_name ?? '—'}</Typography>
+            {row.already_charged && (
+              <Typography variant="caption" color="text.secondary" display="block">
+                {t('charges.batch.alreadyBilled')}
+              </Typography>
+            )}
+          </>
+        ),
+      },
+      {
+        field: 'payer',
+        headerName: t('charges.column.billedTo'),
+        flex: 1,
+        minWidth: 160,
+        sortable: false,
+        renderCell: ({ row }: GridRenderCellParams<BillableRow>) =>
+          row.payer ? (
+            <>
+              <Typography variant="body2">{row.payer.name}</Typography>
+              <Typography variant="caption" color="text.secondary" display="block">
+                CPF {formatCpf(row.payer.cpf)}
+              </Typography>
+            </>
+          ) : (
+            <Typography variant="body2" color="error.main">
+              {t('charges.batch.noPayer')}
+            </Typography>
+          ),
+      },
+      {
+        field: 'monthly_amount_cents',
+        headerName: t('charges.batch.monthly'),
+        width: 120,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: ({ value }: GridRenderCellParams<BillableRow, number>) => (
+          <Typography variant="body2">{formatCents(value ?? 0)}</Typography>
+        ),
+      },
+      {
+        field: 'due_day',
+        headerName: t('charges.batch.dueDay'),
+        width: 100,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: ({ value }: GridRenderCellParams<BillableRow, number | null>) => (
+          <Typography variant="body2">{value ?? 10}</Typography>
+        ),
+      },
+    ],
+    [t],
+  );
 
   return (
     <Dialog open={open} onClose={issuing ? undefined : onClose} maxWidth="md" fullWidth>
@@ -199,83 +248,30 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                   headingLevel={3}
                 />
               ) : (
-                <Box sx={{ maxHeight: 340, overflowY: 'auto' }}>
-                  <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell padding="checkbox">
-                          <Checkbox
-                            checked={allSelected}
-                            indeterminate={selected.length > 0 && !allSelected}
-                            onChange={toggleAll}
-                            disabled={billable.length === 0}
-                            inputProps={{ 'aria-label': t('charges.batch.selectAll') }}
-                          />
-                        </TableCell>
-                        <TableCell>{t('common.student')}</TableCell>
-                        <TableCell>{t('charges.column.billedTo')}</TableCell>
-                        <TableCell align="right">{t('charges.batch.monthly')}</TableCell>
-                        <TableCell align="right">{t('charges.batch.dueDay')}</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows.map((row) => (
-                        <TableRow key={row.contract_id} hover>
-                          <TableCell padding="checkbox">
-                            <Checkbox
-                              checked={selected.includes(row.contract_id)}
-                              onChange={() => toggle(row.contract_id)}
-                              disabled={row.already_charged}
-                              inputProps={{
-                                'aria-label': t('charges.batch.selectOne', {
-                                  student: row.student_name ?? row.contract_id,
-                                }),
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">{row.student_name ?? '—'}</Typography>
-                            {row.already_charged && (
-                              <Typography variant="caption" color="text.secondary">
-                                {t('charges.batch.alreadyBilled')}
-                              </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {row.payer ? (
-                              <>
-                                <Typography variant="body2">{row.payer.name}</Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  CPF {formatCpf(row.payer.cpf)}
-                                </Typography>
-                              </>
-                            ) : (
-                              <Typography variant="body2" color="error.main">
-                                {t('charges.batch.noPayer')}
-                              </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2">
-                              {formatCents(row.monthly_amount_cents)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2">{row.due_day ?? 10}</Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <Box sx={{ height: 340, width: 1 }}>
+                  <DataTable
+                    rows={rows}
+                    columns={columns}
+                    checkboxSelection
+                    disableRowSelectionOnClick
+                    rowSelectionModel={selected}
+                    onRowSelectionModelChange={setSelected}
+                    isRowSelectable={({ row }) => !row.already_charged}
+                    hideFooter
+                    density="compact"
+                    localeText={{
+                      noRowsLabel: t('charges.batch.empty.title'),
+                    }}
+                  />
                 </Box>
               )}
             </Grid>
 
-            {selected.length > 0 && (
+            {selectedIds.length > 0 && (
               <Grid size={12}>
                 <Alert severity="info">
                   {t('charges.batch.selected', {
-                    count: selected.length,
+                    count: selectedIds.length,
                     amount: formatCents(totalCents),
                   })}
                 </Alert>
@@ -296,12 +292,12 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
           <Button
             type="submit"
             variant="contained"
-            disabled={issuing || loading || selected.length === 0}
+            disabled={issuing || loading || selectedIds.length === 0}
             startIcon={issuing ? <CircularProgress size={16} color="inherit" /> : null}
           >
             {issuing
               ? t('charges.batch.submitting')
-              : t('charges.batch.submit', { count: selected.length })}
+              : t('charges.batch.submit', { count: selectedIds.length })}
           </Button>
         </DialogActions>
       </Stack>
