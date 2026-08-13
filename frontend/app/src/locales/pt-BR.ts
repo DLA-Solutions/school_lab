@@ -360,6 +360,85 @@ const ptBR = {
   'jobPositions.inUseTooltip': 'Cargo em uso — mova os colaboradores antes',
   'jobPositions.editAria': 'Editar {name}',
   'jobPositions.deleteAria': 'Excluir {name}',
+
+  'guardians.title': 'Responsáveis',
+  'guardians.noAccess.description':
+    'O cadastro de responsáveis está disponível apenas para usuários com vínculo ativo de escola.',
+  'guardians.loadError': 'Não foi possível carregar os responsáveis. Verifique sua conexão.',
+  'guardians.empty.title': 'Nenhum responsável cadastrado',
+  'guardians.empty.description':
+    'Cadastre o primeiro responsável para vinculá-lo a alunos e cobranças.',
+  'guardians.empty.searchTitle': 'Nenhum resultado',
+  'guardians.empty.searchDescription':
+    'Nada encontrado para "{query}". Verifique o nome ou o CPF.',
+  'guardians.new': 'Novo responsável',
+  'guardians.searchPlaceholder': 'Buscar por nome ou CPF',
+  'guardians.searchAria': 'Buscar responsáveis',
+  'guardians.activateError': 'Não foi possível ativar o responsável.',
+  'guardians.deleteTitle': 'Excluir responsável',
+  'guardians.deleteMessage':
+    'Excluir {name}? Ele deixa de aparecer na listagem, mas o histórico de cobranças é preservado.',
+  'guardians.deleteError': 'Não foi possível excluir o responsável. Tente novamente.',
+  'guardians.activateAria': 'Ativar {name}',
+
+  'students.title': 'Estudantes',
+  'students.noAccess.description':
+    'O cadastro de estudantes está disponível apenas para usuários com vínculo ativo de escola.',
+  'students.loadError': 'Não foi possível carregar os estudantes. Verifique sua conexão.',
+  'students.empty.title': 'Nenhum estudante cadastrado',
+  'students.empty.description':
+    'Cadastre o primeiro estudante para matriculá-lo em uma turma e gerar contratos.',
+  'students.empty.searchTitle': 'Nenhum resultado',
+  'students.empty.searchDescription':
+    'Nada encontrado para "{query}". Verifique o nome ou o CPF.',
+  'students.new': 'Novo estudante',
+  'students.searchPlaceholder': 'Buscar por nome ou CPF',
+  'students.searchAria': 'Buscar estudantes',
+  'students.activateError': 'Não foi possível ativar o estudante.',
+  'students.deleteTitle': 'Excluir estudante',
+  'students.deleteMessage':
+    'Excluir {name}? Ele deixa de aparecer na listagem, mas contratos e cobranças são preservados.',
+  'students.deleteError': 'Não foi possível excluir o estudante. Tente novamente.',
+  'students.activateAria': 'Ativar {name}',
+  'students.relationship.father': 'Pai',
+  'students.relationship.mother': 'Mãe',
+  'students.relationship.other': 'Responsável',
+
+  'team.title': 'Equipe',
+  'team.noAccess.description':
+    'A listagem da equipe está disponível apenas para usuários com vínculo ativo de escola.',
+  'team.loadError': 'Não foi possível carregar a equipe. Verifique sua conexão.',
+  'team.empty.title': 'Nenhum membro da equipe',
+  'team.empty.description':
+    'Convide colaboradores durante o onboarding ou peça ao proprietário para adicionar contas de equipe.',
+
+  'collaborators.title': 'Colaboradores',
+  'collaborators.noAccess.description':
+    'O cadastro de colaboradores está disponível apenas para usuários com vínculo ativo de escola.',
+  'collaborators.loadError':
+    'Não foi possível carregar os colaboradores. Verifique sua conexão.',
+  'collaborators.empty.title': 'Nenhum colaborador cadastrado',
+  'collaborators.empty.description':
+    'Cadastre um colaborador para depois atribuí-lo às turmas e matérias.',
+  'collaborators.empty.searchTitle': 'Nenhum resultado',
+  'collaborators.empty.searchDescription':
+    'Nada encontrado para "{query}". Verifique o nome ou o CPF.',
+  'collaborators.new': 'Novo colaborador',
+  'collaborators.searchPlaceholder': 'Buscar por nome ou CPF',
+  'collaborators.searchAria': 'Buscar colaboradores',
+  'collaborators.hiredOn': 'Contratação',
+  'collaborators.classesColumn': 'Turmas e matérias',
+  'collaborators.classesTooltip': 'Turmas e matérias',
+  'collaborators.classesAria': 'Turmas de {name}',
+  'collaborators.deleteTitle': 'Excluir colaborador',
+  'collaborators.deleteMessage':
+    'Excluir {name}? Ele deixa de aparecer na listagem e perde suas turmas.',
+  'collaborators.deleteError': 'Não foi possível excluir o colaborador.',
+
+  'documents.empty.guardian':
+    'Envie CPF, RG ou comprovante de residência deste responsável.',
+  'documents.empty.collaborator':
+    'Envie RG, CPF, contrato de trabalho ou diploma deste colaborador.',
 } as const;
 
 export default ptBR;

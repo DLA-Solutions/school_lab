@@ -358,6 +358,82 @@ const enUS: Messages = {
   'jobPositions.inUseTooltip': 'Position in use — reassign collaborators first',
   'jobPositions.editAria': 'Edit {name}',
   'jobPositions.deleteAria': 'Delete {name}',
+
+  'guardians.title': 'Guardians',
+  'guardians.noAccess.description':
+    'Guardian management is available only to users with an active school membership.',
+  'guardians.loadError': 'Could not load guardians. Check your connection.',
+  'guardians.empty.title': 'No guardians yet',
+  'guardians.empty.description':
+    'Register the first guardian to link them to students and charges.',
+  'guardians.empty.searchTitle': 'No results',
+  'guardians.empty.searchDescription': 'Nothing found for "{query}". Check the name or CPF.',
+  'guardians.new': 'New guardian',
+  'guardians.searchPlaceholder': 'Search by name or CPF',
+  'guardians.searchAria': 'Search guardians',
+  'guardians.activateError': 'Could not activate the guardian.',
+  'guardians.deleteTitle': 'Delete guardian',
+  'guardians.deleteMessage':
+    'Delete {name}? They will no longer appear in the list, but charge history is preserved.',
+  'guardians.deleteError': 'Could not delete the guardian. Try again.',
+  'guardians.activateAria': 'Activate {name}',
+
+  'students.title': 'Students',
+  'students.noAccess.description':
+    'Student management is available only to users with an active school membership.',
+  'students.loadError': 'Could not load students. Check your connection.',
+  'students.empty.title': 'No students yet',
+  'students.empty.description':
+    'Register the first student to enroll them in a class and generate contracts.',
+  'students.empty.searchTitle': 'No results',
+  'students.empty.searchDescription': 'Nothing found for "{query}". Check the name or CPF.',
+  'students.new': 'New student',
+  'students.searchPlaceholder': 'Search by name or CPF',
+  'students.searchAria': 'Search students',
+  'students.activateError': 'Could not activate the student.',
+  'students.deleteTitle': 'Delete student',
+  'students.deleteMessage':
+    'Delete {name}? They will no longer appear in the list, but contracts and charges are preserved.',
+  'students.deleteError': 'Could not delete the student. Try again.',
+  'students.activateAria': 'Activate {name}',
+  'students.relationship.father': 'Father',
+  'students.relationship.mother': 'Mother',
+  'students.relationship.other': 'Guardian',
+
+  'team.title': 'Team',
+  'team.noAccess.description':
+    'The team listing is available only to users with an active school membership.',
+  'team.loadError': 'Could not load the team. Check your connection.',
+  'team.empty.title': 'No team members',
+  'team.empty.description':
+    'Invite collaborators during onboarding or ask the owner to add team accounts.',
+
+  'collaborators.title': 'Collaborators',
+  'collaborators.noAccess.description':
+    'Collaborator management is available only to users with an active school membership.',
+  'collaborators.loadError': 'Could not load collaborators. Check your connection.',
+  'collaborators.empty.title': 'No collaborators yet',
+  'collaborators.empty.description':
+    'Register a collaborator to assign them to classes and subjects.',
+  'collaborators.empty.searchTitle': 'No results',
+  'collaborators.empty.searchDescription':
+    'Nothing found for "{query}". Check the name or CPF.',
+  'collaborators.new': 'New collaborator',
+  'collaborators.searchPlaceholder': 'Search by name or CPF',
+  'collaborators.searchAria': 'Search collaborators',
+  'collaborators.hiredOn': 'Hired on',
+  'collaborators.classesColumn': 'Classes and subjects',
+  'collaborators.classesTooltip': 'Classes and subjects',
+  'collaborators.classesAria': 'Classes for {name}',
+  'collaborators.deleteTitle': 'Delete collaborator',
+  'collaborators.deleteMessage':
+    'Delete {name}? They will no longer appear in the list and lose their class assignments.',
+  'collaborators.deleteError': 'Could not delete the collaborator.',
+
+  'documents.empty.guardian':
+    'Upload CPF, ID or proof of residence for this guardian.',
+  'documents.empty.collaborator':
+    'Upload ID, CPF, employment contract or diploma for this collaborator.',
 } as const;
 
 export default enUS;

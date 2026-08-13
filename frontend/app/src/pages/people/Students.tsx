@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -21,6 +21,7 @@ import {
   SectionCard,
   SemanticChip,
 } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { activateStudent, deleteStudent, listStudents } from 'services/studentsApi';
@@ -28,48 +29,14 @@ import { Student } from 'types/student';
 import { formatCpf } from 'utils/documentNumber';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
 import { gradeLevelLabel } from 'utils/gradeLevels';
+import type { MessageKey } from 'locales';
 
-// The API paginates with Pagy at a fixed 25 per page and takes no page-size parameter.
 const PAGE_SIZE = 25;
 
 const renderCpf = ({ value }: GridRenderCellParams<Student, string>) => (
   <Typography variant="body2">{formatCpf(value)}</Typography>
 );
 
-/** The cohort as a person reads it: "Ensino Fundamental I — 5º ano A". */
-const renderClass = ({ row }: GridRenderCellParams<Student>) =>
-  row.school_class_id ? (
-    <Typography variant="body2">
-      {`${gradeLevelLabel(row.grade_level)} ${row.school_class_name ?? ''}`.trim()}
-    </Typography>
-  ) : (
-    <Typography variant="body2" color="text.secondary">
-      Sem turma
-    </Typography>
-  );
-
-const RELATIONSHIP_LABELS: Record<string, string> = {
-  father: 'Pai',
-  mother: 'Mãe',
-  other: 'Responsável',
-};
-
-const renderGuardians = ({ row }: GridRenderCellParams<Student>) =>
-  row.guardians.length === 0 ? (
-    <Typography variant="body2" color="text.secondary">
-      —
-    </Typography>
-  ) : (
-    <Stack direction="column" justifyContent="center" py={1}>
-      {row.guardians.map((link) => (
-        <Typography key={link.link_id} variant="caption">
-          {`${RELATIONSHIP_LABELS[link.relationship] ?? 'Responsável'}: ${link.name}`}
-        </Typography>
-      ))}
-    </Stack>
-  );
-
-/** Birth dates arrive as ISO (`2015-03-10`) and are read here as pt-BR. */
 const renderBirthDate = ({ value }: GridRenderCellParams<Student, string>) => {
   if (!value) {
     return (
@@ -79,43 +46,69 @@ const renderBirthDate = ({ value }: GridRenderCellParams<Student, string>) => {
     );
   }
 
-  // Split rather than `new Date(value)`: parsing a bare ISO date as UTC and rendering it in a
-  // negative-offset timezone shows the day before.
   const [year, month, day] = value.split('-');
 
   return <Typography variant="body2">{`${day}/${month}/${year}`}</Typography>;
 };
 
-const renderStatus = ({ value }: GridRenderCellParams<Student, Student['status']>) => (
-  <SemanticChip
-    variant={value === 'active' ? 'success' : 'info'}
-    label={value === 'active' ? 'Ativo' : 'Transferido'}
-  />
-);
+const RELATIONSHIP_KEYS: Record<string, MessageKey> = {
+  father: 'students.relationship.father',
+  mother: 'students.relationship.mother',
+  other: 'students.relationship.other',
+};
 
 const Students = () => {
+  const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
   const [students, setStudents] = useState<Student[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0); // zero-based, as the grid counts
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // The term lives in the URL so it survives a reload, can be linked to, and lets the global
-  // search in the menu open this listing already filtered.
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get('q') ?? '';
-  // The API does the filtering, so the term is debounced rather than sent per keystroke.
   const debouncedSearch = useDebouncedValue(search);
-  // Which records are shown. Inactive ones have to be reachable, or there is no way to bring
-  // them back.
   const activation = (searchParams.get('status') ?? 'active') as 'active' | 'inactive' | 'all';
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const renderClass = ({ row }: GridRenderCellParams<Student>) =>
+    row.school_class_id ? (
+      <Typography variant="body2">
+        {`${gradeLevelLabel(row.grade_level)} ${row.school_class_name ?? ''}`.trim()}
+      </Typography>
+    ) : (
+      <Typography variant="body2" color="text.secondary">
+        {t('common.noClass')}
+      </Typography>
+    );
+
+  const renderGuardians = ({ row }: GridRenderCellParams<Student>) =>
+    row.guardians.length === 0 ? (
+      <Typography variant="body2" color="text.secondary">
+        —
+      </Typography>
+    ) : (
+      <Stack direction="column" justifyContent="center" py={1}>
+        {row.guardians.map((link) => (
+          <Typography key={link.link_id} variant="caption">
+            {`${t(RELATIONSHIP_KEYS[link.relationship] ?? 'students.relationship.other')}: ${link.name}`}
+          </Typography>
+        ))}
+      </Stack>
+    );
+
+  const renderStatus = ({ value }: GridRenderCellParams<Student, Student['status']>) => (
+    <SemanticChip
+      variant={value === 'active' ? 'success' : 'info'}
+      label={value === 'active' ? t('common.activeStatus') : t('common.transferred')}
+    />
+  );
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -137,15 +130,11 @@ const Students = () => {
     } catch (err) {
       setStudents([]);
       setTotal(0);
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar os estudantes. Verifique sua conexão.',
-      );
+      setError(err instanceof ApiError ? err.message : t('students.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, debouncedSearch, activation]);
+  }, [schoolId, page, debouncedSearch, activation, t]);
 
   useEffect(() => {
     load();
@@ -164,10 +153,8 @@ const Students = () => {
         }
         return next;
       },
-      // Typing must not push a history entry per keystroke.
       { replace: true },
     );
-    // A narrower result rarely has the page the user is on — start over at the first.
     setPage(0);
   };
 
@@ -198,9 +185,7 @@ const Students = () => {
       await activateStudent(schoolId, record.id);
       load();
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Não foi possível ativar o estudante.',
-      );
+      setError(err instanceof ApiError ? err.message : t('students.activateError'));
     }
   };
 
@@ -212,7 +197,6 @@ const Students = () => {
   const handleSaved = () => {
     setFormOpen(false);
     setEditing(null);
-    // Ordered by name, so a new student may land on any page — refetch rather than splice.
     load();
   };
 
@@ -233,102 +217,104 @@ const Students = () => {
         load();
       }
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível excluir o estudante. Tente novamente.',
-      );
+      setError(err instanceof ApiError ? err.message : t('students.deleteError'));
       setPendingDelete(null);
     } finally {
       setDeleting(false);
     }
   };
 
-  const columns: GridColDef<Student>[] = [
-    { field: 'name', headerName: 'Nome', flex: 1, minWidth: 180 },
-    { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
-    { field: 'rg', headerName: 'RG', width: 140 },
-    {
-      field: 'birth_date',
-      headerName: 'Nascimento',
-      width: 130,
-      renderCell: renderBirthDate,
-    },
-    {
-      field: 'grade_level',
-      headerName: 'Turma',
-      width: 210,
-      sortable: false,
-      renderCell: renderClass,
-    },
-    {
-      field: 'guardians',
-      headerName: 'Responsáveis',
-      width: 200,
-      sortable: false,
-      renderCell: renderGuardians,
-    },
-    { field: 'status', headerName: 'Situação', width: 130, renderCell: renderStatus },
-    {
-      field: 'actions',
-      headerName: 'Ações',
-      width: 110,
-      sortable: false,
-      filterable: false,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: ({ row }: GridRenderCellParams<Student>) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
-          {/* An inactive record offers only the way back. */}
-          {!row.active ? (
-            <Tooltip title="Ativar">
-              <IconButton
-                size="small"
-                aria-label={`Ativar ${row.name}`}
-                onClick={() => handleActivate(row)}
-              >
-                <IconifyIcon icon="mingcute:refresh-2-line" />
-              </IconButton>
-            </Tooltip>
-          ) : (
-            <>
-          <Tooltip title="Editar">
-            <IconButton
-              size="small"
-              aria-label={`Editar ${row.name}`}
-              onClick={() => {
-                setEditing(row);
-                setFormOpen(true);
-              }}
-            >
-              <IconifyIcon icon="mingcute:edit-2-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Excluir">
-            <IconButton
-              size="small"
-              aria-label={`Excluir ${row.name}`}
-              onClick={() => setPendingDelete(row)}
-            >
-              <IconifyIcon icon="mingcute:delete-2-line" />
-            </IconButton>
-          </Tooltip>
-            </>
-          )}
-        </Stack>
-      ),
-    },
-  ];
+  const columns: GridColDef<Student>[] = useMemo(
+    () => [
+      { field: 'name', headerName: t('common.name'), flex: 1, minWidth: 180 },
+      { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
+      { field: 'rg', headerName: 'RG', width: 140 },
+      {
+        field: 'birth_date',
+        headerName: t('common.birthDate'),
+        width: 130,
+        renderCell: renderBirthDate,
+      },
+      {
+        field: 'grade_level',
+        headerName: t('common.class'),
+        width: 210,
+        sortable: false,
+        renderCell: renderClass,
+      },
+      {
+        field: 'guardians',
+        headerName: t('common.guardians'),
+        width: 200,
+        sortable: false,
+        renderCell: renderGuardians,
+      },
+      {
+        field: 'status',
+        headerName: t('common.status'),
+        width: 130,
+        renderCell: renderStatus,
+      },
+      {
+        field: 'actions',
+        headerName: t('common.actions'),
+        width: 110,
+        sortable: false,
+        filterable: false,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: ({ row }: GridRenderCellParams<Student>) => (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            {!row.active ? (
+              <Tooltip title={t('common.activate')}>
+                <IconButton
+                  size="small"
+                  aria-label={t('students.activateAria', { name: row.name })}
+                  onClick={() => handleActivate(row)}
+                >
+                  <IconifyIcon icon="mingcute:refresh-2-line" />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <>
+                <Tooltip title={t('common.edit')}>
+                  <IconButton
+                    size="small"
+                    aria-label={`${t('common.edit')} ${row.name}`}
+                    onClick={() => {
+                      setEditing(row);
+                      setFormOpen(true);
+                    }}
+                  >
+                    <IconifyIcon icon="mingcute:edit-2-line" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={t('common.delete')}>
+                  <IconButton
+                    size="small"
+                    aria-label={`${t('common.delete')} ${row.name}`}
+                    onClick={() => setPendingDelete(row)}
+                  >
+                    <IconifyIcon icon="mingcute:delete-2-line" />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
+          </Stack>
+        ),
+      },
+    ],
+    [t],
+  );
 
-  // Every People endpoint is gated by `school_staff?`, so a guardian-only user would get a 403.
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Estudantes" />
+        <PageHeader title={t('students.title')} />
         <SectionCard>
           <EmptyState
-            title="Sem acesso a esta área"
-            description="O cadastro de estudantes está disponível apenas para usuários com vínculo ativo de escola."
+            title={t('common.noAccess.title')}
+            description={t('students.noAccess.description')}
             headingLevel={2}
           />
         </SectionCard>
@@ -339,12 +325,12 @@ const Students = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title="Estudantes"
+        title={t('students.title')}
         actions={
           <>
             <TextField
               id="activation-filter"
-              label="Situação"
+              label={t('common.status')}
               value={activation}
               onChange={(e) => handleActivationChange(e.target.value)}
               select
@@ -352,19 +338,19 @@ const Students = () => {
               variant="filled"
               sx={{ width: 150 }}
             >
-              <MenuItem value="active">Ativos</MenuItem>
-              <MenuItem value="inactive">Inativos</MenuItem>
-              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="active">{t('common.actives')}</MenuItem>
+              <MenuItem value="inactive">{t('common.inactives')}</MenuItem>
+              <MenuItem value="all">{t('common.allStatus')}</MenuItem>
             </TextField>
             <SearchField
               value={search}
               onChange={handleSearchChange}
-              placeholder="Buscar por nome ou CPF"
-              ariaLabel="Buscar estudantes"
+              placeholder={t('students.searchPlaceholder')}
+              ariaLabel={t('students.searchAria')}
               sx={{ width: 260 }}
             />
             <Button variant="contained" size="small" onClick={handleCreate}>
-              Novo estudante
+              {t('students.new')}
             </Button>
           </>
         }
@@ -375,15 +361,17 @@ const Students = () => {
       <SectionCard padding={0}>
         {!loading && students.length === 0 && !error ? (
           <EmptyState
-            title={debouncedSearch ? 'Nenhum resultado' : 'Nenhum estudante cadastrado'}
+            title={
+              debouncedSearch ? t('students.empty.searchTitle') : t('students.empty.title')
+            }
             description={
               debouncedSearch
-                ? `Nada encontrado para "${debouncedSearch}". Verifique o nome ou o CPF.`
-                : 'Cadastre o primeiro estudante para matriculá-lo em uma turma e gerar contratos.'
+                ? t('students.empty.searchDescription', { query: debouncedSearch })
+                : t('students.empty.description')
             }
             action={
               <Button variant="contained" size="small" onClick={handleCreate}>
-                Novo estudante
+                {t('students.new')}
               </Button>
             }
           />
@@ -400,13 +388,12 @@ const Students = () => {
               pageSizeOptions={[PAGE_SIZE]}
               paginationModel={{ page, pageSize: PAGE_SIZE }}
               onPaginationModelChange={(model) => setPage(model.page)}
-              rangeLabel={({ from, to, count }) => `${from}-${to} de ${count}`}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
             />
           </Box>
         )}
       </SectionCard>
 
-      {/* The key remounts the dialog each time it opens, which is what clears the form. */}
       <StudentFormDialog
         key={`${formOpen}-${editing?.id ?? 'new'}`}
         open={formOpen}
@@ -418,10 +405,10 @@ const Students = () => {
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Excluir estudante"
-        message={`Excluir ${pendingDelete?.name ?? ''}? Ele deixa de aparecer na listagem, mas contratos e cobranças são preservados.`}
-        confirmLabel={deleting ? 'Excluindo...' : 'Excluir'}
-        cancelLabel="Cancelar"
+        title={t('students.deleteTitle')}
+        message={t('students.deleteMessage', { name: pendingDelete?.name ?? '' })}
+        confirmLabel={deleting ? t('common.deleting') : t('common.delete')}
+        cancelLabel={t('common.cancel')}
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
