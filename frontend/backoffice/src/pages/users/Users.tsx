@@ -18,6 +18,7 @@ import {
   SectionCard,
   SemanticChip,
 } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useAuth } from 'providers/AuthContext';
 import { ApiError } from 'services/api';
 import {
@@ -65,6 +66,7 @@ const formatMembership = (membership: PlatformUser['memberships'][number]) => {
  * Platform user register — search, list, and disable/enable accounts for backoffice operators.
  */
 const Users = () => {
+  const { t } = useTranslation();
   const { user: currentUser } = useAuth();
 
   const [users, setUsers] = useState<PlatformUser[]>([]);
@@ -272,7 +274,7 @@ const Users = () => {
   if (forbidden) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Usuários" />
+        <PageHeader title={t('backoffice.users.title')} />
         <SectionCard>
           <EmptyState
             title="Sem acesso a esta área"
@@ -287,7 +289,7 @@ const Users = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title="Usuários"
+        title={t('backoffice.users.title')}
         subtitle="Desative ou reative contas em toda a plataforma."
         actions={
           <Stack direction="row" spacing={1.5} alignItems="center">
