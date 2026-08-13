@@ -434,6 +434,51 @@ const enUS: Messages = {
     'Upload CPF, ID or proof of residence for this guardian.',
   'documents.empty.collaborator':
     'Upload ID, CPF, employment contract or diploma for this collaborator.',
+  'documents.empty.default': 'Upload CPF, ID or proof of residence for this person.',
+  'documents.empty.title': 'No documents uploaded',
+
+  'plans.title': 'Plans',
+  'plans.noAccess.description':
+    'Plans are available only to users with an active school membership.',
+  'plans.loadError': 'Could not load plans.',
+  'plans.plansSection': 'Plans',
+  'plans.discountsSection': 'Discounts',
+  'plans.empty.plan.title': 'No plans yet',
+  'plans.empty.plan.description':
+    'Register the full tuition amount to issue contracts.',
+  'plans.empty.discount.title': 'No discounts yet',
+  'plans.empty.discount.description':
+    'Start with the default bands (10%, 20%, 30%, 40% and full scholarship) or create your own.',
+  'plans.newPlan': 'New plan',
+  'plans.editPlan': 'Edit plan',
+  'plans.newDiscount': 'New discount',
+  'plans.editDiscount': 'Edit discount',
+  'plans.defaultsDiscounts': 'Default discounts',
+  'plans.createDefaultsDiscounts': 'Create default discounts',
+  'plans.planNameRequired': 'Enter the plan name.',
+  'plans.planAmountRequired': 'Enter the full tuition amount.',
+  'plans.planSaveError': 'Could not save the plan.',
+  'plans.discountNameRequired': 'Enter the discount name.',
+  'plans.discountPercentInvalid': 'Percent must be between 0 and 100.',
+  'plans.discountSaveError': 'Could not save the discount.',
+  'plans.provisionError': 'Could not create the default discounts.',
+  'plans.deleteError': 'Could not delete.',
+  'plans.deletePlanTitle': 'Delete plan',
+  'plans.deletePlanMessage': 'Delete {name}? It will no longer appear when issuing contracts.',
+  'plans.deleteDiscountTitle': 'Delete discount',
+  'plans.deleteDiscountMessage':
+    'Delete {name}? It will no longer appear when issuing contracts.',
+  'plans.inUseDiscountTooltip': 'Applied on contracts — cannot be removed',
+  'plans.editPlanAria': 'Edit plan {name}',
+  'plans.deletePlanAria': 'Delete plan {name}',
+  'plans.editDiscountAria': 'Edit discount {name}',
+  'plans.deleteDiscountAria': 'Delete discount {name}',
+  'plans.planNameLabel': 'Plan name',
+  'plans.planNamePlaceholder': 'Early childhood, Elementary school...',
+  'plans.planAmountLabel': 'Full tuition amount',
+  'plans.discountNamePlaceholder': '15% discount, partial scholarship...',
+  'plans.discountPercentHelper': '100% equals a full scholarship.',
+  'plans.fullPercent': '100% (full)',
 } as const;
 
 export default enUS;

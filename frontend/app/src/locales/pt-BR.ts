@@ -439,6 +439,53 @@ const ptBR = {
     'Envie CPF, RG ou comprovante de residência deste responsável.',
   'documents.empty.collaborator':
     'Envie RG, CPF, contrato de trabalho ou diploma deste colaborador.',
+  'documents.empty.default':
+    'Envie CPF, RG ou comprovante de residência desta pessoa.',
+  'documents.empty.title': 'Nenhum documento enviado',
+
+  'plans.title': 'Planos',
+  'plans.noAccess.description':
+    'Os planos estão disponíveis apenas para usuários com vínculo ativo de escola.',
+  'plans.loadError': 'Não foi possível carregar os planos.',
+  'plans.plansSection': 'Planos',
+  'plans.discountsSection': 'Descontos',
+  'plans.empty.plan.title': 'Nenhum plano cadastrado',
+  'plans.empty.plan.description':
+    'Cadastre o valor cheio da mensalidade para poder emitir contratos.',
+  'plans.empty.discount.title': 'Nenhum desconto cadastrado',
+  'plans.empty.discount.description':
+    'Comece pelas faixas padrão (10%, 20%, 30%, 40% e bolsa integral) ou crie a sua.',
+  'plans.newPlan': 'Novo plano',
+  'plans.editPlan': 'Editar plano',
+  'plans.newDiscount': 'Novo desconto',
+  'plans.editDiscount': 'Editar desconto',
+  'plans.defaultsDiscounts': 'Descontos padrão',
+  'plans.createDefaultsDiscounts': 'Criar descontos padrão',
+  'plans.planNameRequired': 'Informe o nome do plano.',
+  'plans.planAmountRequired': 'Informe o valor cheio da mensalidade.',
+  'plans.planSaveError': 'Não foi possível salvar o plano.',
+  'plans.discountNameRequired': 'Informe o nome do desconto.',
+  'plans.discountPercentInvalid': 'O percentual deve estar entre 0 e 100.',
+  'plans.discountSaveError': 'Não foi possível salvar o desconto.',
+  'plans.provisionError': 'Não foi possível criar os descontos padrão.',
+  'plans.deleteError': 'Não foi possível excluir.',
+  'plans.deletePlanTitle': 'Excluir plano',
+  'plans.deletePlanMessage':
+    'Excluir {name}? Ele deixa de aparecer ao emitir contratos.',
+  'plans.deleteDiscountTitle': 'Excluir desconto',
+  'plans.deleteDiscountMessage':
+    'Excluir {name}? Ele deixa de aparecer ao emitir contratos.',
+  'plans.inUseDiscountTooltip': 'Aplicado em contratos — não pode ser removido',
+  'plans.editPlanAria': 'Editar plano {name}',
+  'plans.deletePlanAria': 'Excluir plano {name}',
+  'plans.editDiscountAria': 'Editar desconto {name}',
+  'plans.deleteDiscountAria': 'Excluir desconto {name}',
+  'plans.planNameLabel': 'Nome do plano',
+  'plans.planNamePlaceholder': 'Educação Infantil, Ensino Fundamental...',
+  'plans.planAmountLabel': 'Valor cheio da mensalidade',
+  'plans.discountNamePlaceholder': 'Desconto 15%, Bolsa parcial...',
+  'plans.discountPercentHelper': '100% equivale a bolsa integral.',
+  'plans.fullPercent': '100% (integral)',
 } as const;
 
 export default ptBR;

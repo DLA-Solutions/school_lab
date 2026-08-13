@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -23,6 +23,7 @@ import {
   PageHeader,
   SectionCard,
 } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import {
@@ -43,16 +44,17 @@ const renderAmount = ({ value }: GridRenderCellParams<BillingPlan, number | null
   <Typography variant="body2">{formatCents(value)}</Typography>
 );
 
-const renderPercent = ({ value }: GridRenderCellParams<PlanDiscount, number>) => (
-  <Typography variant="body2">{value === 100 ? '100% (integral)' : `${value}%`}</Typography>
+const renderPercent = (
+  { value }: GridRenderCellParams<PlanDiscount, number>,
+  fullPercentLabel: string,
+) => (
+  <Typography variant="body2">
+    {value === 100 ? fullPercentLabel : `${value}%`}
+  </Typography>
 );
 
-/**
- * Where a school states what it charges: the full tuition of each plan, and the bands it grants
- * against them. A contract picks one of each, so the amount a family pays is explainable rather
- * than typed in by hand every time.
- */
 const Plans = () => {
+  const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -100,11 +102,11 @@ const Plans = () => {
       setPlans(planList.data);
       setDiscounts(discountList.data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os planos.');
+      setError(err instanceof ApiError ? err.message : t('plans.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId]);
+  }, [schoolId, t]);
 
   useEffect(() => {
     load();
@@ -125,11 +127,11 @@ const Plans = () => {
 
     const cents = parseCents(planAmount);
     if (!planName.trim()) {
-      setPlanError('Informe o nome do plano.');
+      setPlanError(t('plans.planNameRequired'));
       return;
     }
     if (!cents) {
-      setPlanError('Informe o valor cheio da mensalidade.');
+      setPlanError(t('plans.planAmountRequired'));
       return;
     }
 
@@ -152,7 +154,7 @@ const Plans = () => {
       setPlanForm({ open: false, editing: null });
       load();
     } catch (err) {
-      setPlanError(err instanceof ApiError ? err.message : 'Não foi possível salvar o plano.');
+      setPlanError(err instanceof ApiError ? err.message : t('plans.planSaveError'));
     } finally {
       setSaving(false);
     }
@@ -173,11 +175,11 @@ const Plans = () => {
 
     const percent = Number(discountPercent);
     if (!discountName.trim()) {
-      setDiscountError('Informe o nome do desconto.');
+      setDiscountError(t('plans.discountNameRequired'));
       return;
     }
     if (Number.isNaN(percent) || percent < 0 || percent > 100) {
-      setDiscountError('O percentual deve estar entre 0 e 100.');
+      setDiscountError(t('plans.discountPercentInvalid'));
       return;
     }
 
@@ -202,7 +204,7 @@ const Plans = () => {
           Array.isArray(detail) && typeof detail[0] === 'string' ? detail[0] : err.message,
         );
       } else {
-        setDiscountError('Não foi possível salvar o desconto.');
+        setDiscountError(err instanceof ApiError ? err.message : t('plans.discountSaveError'));
       }
     } finally {
       setSaving(false);
@@ -221,9 +223,7 @@ const Plans = () => {
       await provisionDefaultDiscounts(schoolId);
       load();
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Não foi possível criar os descontos padrão.',
-      );
+      setError(err instanceof ApiError ? err.message : t('plans.provisionError'));
     } finally {
       setProvisioning(false);
     }
@@ -248,7 +248,7 @@ const Plans = () => {
         const base = err.details.base;
         setError(Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message);
       } else {
-        setError('Não foi possível excluir.');
+        setError(t('plans.deleteError'));
       }
     } finally {
       setPendingPlanDelete(null);
@@ -256,95 +256,107 @@ const Plans = () => {
     }
   };
 
-  const planColumns: GridColDef<BillingPlan>[] = [
-    { field: 'name', headerName: 'Plano', flex: 1, minWidth: 220 },
-    {
-      field: 'base_amount_cents',
-      headerName: 'Valor cheio',
-      width: 160,
-      renderCell: renderAmount,
-    },
-    {
-      field: 'actions',
-      headerName: 'Ações',
-      width: 110,
-      sortable: false,
-      filterable: false,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: ({ row }: GridRenderCellParams<BillingPlan>) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
-          <Tooltip title="Editar">
-            <IconButton
-              size="small"
-              aria-label={`Editar plano ${row.name}`}
-              onClick={() => openPlanForm(row)}
-            >
-              <IconifyIcon icon="mingcute:edit-2-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Excluir">
-            <IconButton
-              size="small"
-              aria-label={`Excluir plano ${row.name}`}
-              onClick={() => setPendingPlanDelete(row)}
-            >
-              <IconifyIcon icon="mingcute:delete-2-line" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
-    },
-  ];
-
-  const discountColumns: GridColDef<PlanDiscount>[] = [
-    { field: 'name', headerName: 'Desconto', flex: 1, minWidth: 200 },
-    { field: 'percent', headerName: 'Percentual', width: 150, renderCell: renderPercent },
-    {
-      field: 'actions',
-      headerName: 'Ações',
-      width: 110,
-      sortable: false,
-      filterable: false,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: ({ row }: GridRenderCellParams<PlanDiscount>) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
-          <Tooltip title="Editar">
-            <IconButton
-              size="small"
-              aria-label={`Editar desconto ${row.name}`}
-              onClick={() => openDiscountForm(row)}
-            >
-              <IconifyIcon icon="mingcute:edit-2-line" />
-            </IconButton>
-          </Tooltip>
-          {/* Removal is refused while a contract still points at the band. */}
-          <Tooltip title={row.in_use ? 'Aplicado em contratos — não pode ser removido' : 'Excluir'}>
-            <span>
+  const planColumns: GridColDef<BillingPlan>[] = useMemo(
+    () => [
+      { field: 'name', headerName: t('common.plan'), flex: 1, minWidth: 220 },
+      {
+        field: 'base_amount_cents',
+        headerName: t('common.fullAmount'),
+        width: 160,
+        renderCell: renderAmount,
+      },
+      {
+        field: 'actions',
+        headerName: t('common.actions'),
+        width: 110,
+        sortable: false,
+        filterable: false,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: ({ row }: GridRenderCellParams<BillingPlan>) => (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            <Tooltip title={t('common.edit')}>
               <IconButton
                 size="small"
-                aria-label={`Excluir desconto ${row.name}`}
-                onClick={() => setPendingDiscountDelete(row)}
-                disabled={row.in_use}
+                aria-label={t('plans.editPlanAria', { name: row.name })}
+                onClick={() => openPlanForm(row)}
+              >
+                <IconifyIcon icon="mingcute:edit-2-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('common.delete')}>
+              <IconButton
+                size="small"
+                aria-label={t('plans.deletePlanAria', { name: row.name })}
+                onClick={() => setPendingPlanDelete(row)}
               >
                 <IconifyIcon icon="mingcute:delete-2-line" />
               </IconButton>
-            </span>
-          </Tooltip>
-        </Stack>
-      ),
-    },
-  ];
+            </Tooltip>
+          </Stack>
+        ),
+      },
+    ],
+    [t],
+  );
+
+  const discountColumns: GridColDef<PlanDiscount>[] = useMemo(
+    () => [
+      { field: 'name', headerName: t('common.discount'), flex: 1, minWidth: 200 },
+      {
+        field: 'percent',
+        headerName: t('common.percent'),
+        width: 150,
+        renderCell: (params) => renderPercent(params, t('plans.fullPercent')),
+      },
+      {
+        field: 'actions',
+        headerName: t('common.actions'),
+        width: 110,
+        sortable: false,
+        filterable: false,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: ({ row }: GridRenderCellParams<PlanDiscount>) => (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            <Tooltip title={t('common.edit')}>
+              <IconButton
+                size="small"
+                aria-label={t('plans.editDiscountAria', { name: row.name })}
+                onClick={() => openDiscountForm(row)}
+              >
+                <IconifyIcon icon="mingcute:edit-2-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip
+              title={row.in_use ? t('plans.inUseDiscountTooltip') : t('common.delete')}
+            >
+              <span>
+                <IconButton
+                  size="small"
+                  aria-label={t('plans.deleteDiscountAria', { name: row.name })}
+                  onClick={() => setPendingDiscountDelete(row)}
+                  disabled={row.in_use}
+                >
+                  <IconifyIcon icon="mingcute:delete-2-line" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Stack>
+        ),
+      },
+    ],
+    [t],
+  );
 
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Planos" />
+        <PageHeader title={t('plans.title')} />
         <SectionCard>
           <EmptyState
-            title="Sem acesso a esta área"
-            description="Os planos estão disponíveis apenas para usuários com vínculo ativo de escola."
+            title={t('common.noAccess.title')}
+            description={t('plans.noAccess.description')}
             headingLevel={2}
           />
         </SectionCard>
@@ -354,26 +366,26 @@ const Plans = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader title="Planos" subtitle="" />
+      <PageHeader title={t('plans.title')} subtitle="" />
 
       {error && <ErrorBanner message={error} />}
 
       <SectionCard
-        title="Planos"
+        title={t('plans.plansSection')}
         padding={0}
         headerActions={
           <Button variant="contained" size="small" onClick={() => openPlanForm(null)}>
-            Novo plano
+            {t('plans.newPlan')}
           </Button>
         }
       >
         {!loading && plans.length === 0 ? (
           <EmptyState
-            title="Nenhum plano cadastrado"
-            description="Cadastre o valor cheio da mensalidade para poder emitir contratos."
+            title={t('plans.empty.plan.title')}
+            description={t('plans.empty.plan.description')}
             action={
               <Button variant="contained" size="small" onClick={() => openPlanForm(null)}>
-                Novo plano
+                {t('plans.newPlan')}
               </Button>
             }
           />
@@ -391,7 +403,7 @@ const Plans = () => {
       </SectionCard>
 
       <SectionCard
-        title="Descontos"
+        title={t('plans.discountsSection')}
         padding={0}
         headerActions={
           <>
@@ -402,18 +414,18 @@ const Plans = () => {
               disabled={provisioning}
               startIcon={provisioning ? <CircularProgress size={14} /> : null}
             >
-              Descontos padrão
+              {t('plans.defaultsDiscounts')}
             </Button>
             <Button variant="contained" size="small" onClick={() => openDiscountForm(null)}>
-              Novo desconto
+              {t('plans.newDiscount')}
             </Button>
           </>
         }
       >
         {!loading && discounts.length === 0 ? (
           <EmptyState
-            title="Nenhum desconto cadastrado"
-            description="Comece pelas faixas padrão (10%, 20%, 30%, 40% e bolsa integral) ou crie a sua."
+            title={t('plans.empty.discount.title')}
+            description={t('plans.empty.discount.description')}
             action={
               <Button
                 variant="contained"
@@ -421,7 +433,7 @@ const Plans = () => {
                 onClick={handleProvisionDefaults}
                 disabled={provisioning}
               >
-                {provisioning ? 'Criando...' : 'Criar descontos padrão'}
+                {provisioning ? t('common.creating') : t('plans.createDefaultsDiscounts')}
               </Button>
             }
           />
@@ -444,15 +456,17 @@ const Plans = () => {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>{planForm.editing ? 'Editar plano' : 'Novo plano'}</DialogTitle>
+        <DialogTitle>
+          {planForm.editing ? t('plans.editPlan') : t('plans.newPlan')}
+        </DialogTitle>
         <Stack component="form" onSubmit={submitPlan} direction="column" noValidate>
           <DialogContent>
             <Grid container spacing={2.5} pt={0.5}>
               <Grid size={12}>
                 <TextField
                   id="plan-name"
-                  label="Nome do plano"
-                  placeholder="Educação Infantil, Ensino Fundamental..."
+                  label={t('plans.planNameLabel')}
+                  placeholder={t('plans.planNamePlaceholder')}
                   value={planName}
                   onChange={(e) => setPlanName(e.target.value)}
                   variant="filled"
@@ -464,7 +478,7 @@ const Plans = () => {
               <Grid size={12}>
                 <TextField
                   id="plan-amount"
-                  label="Valor cheio da mensalidade"
+                  label={t('plans.planAmountLabel')}
                   value={planAmount}
                   onChange={(e) => setPlanAmount(formatCentsInput(e.target.value))}
                   variant="filled"
@@ -491,10 +505,10 @@ const Plans = () => {
               color="inherit"
               disabled={saving}
             >
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="contained" disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? t('common.saving') : t('common.save')}
             </Button>
           </DialogActions>
         </Stack>
@@ -506,15 +520,17 @@ const Plans = () => {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>{discountForm.editing ? 'Editar desconto' : 'Novo desconto'}</DialogTitle>
+        <DialogTitle>
+          {discountForm.editing ? t('plans.editDiscount') : t('plans.newDiscount')}
+        </DialogTitle>
         <Stack component="form" onSubmit={submitDiscount} direction="column" noValidate>
           <DialogContent>
             <Grid container spacing={2.5} pt={0.5}>
               <Grid size={12}>
                 <TextField
                   id="discount-name"
-                  label="Nome"
-                  placeholder="Desconto 15%, Bolsa parcial..."
+                  label={t('common.name')}
+                  placeholder={t('plans.discountNamePlaceholder')}
                   value={discountName}
                   onChange={(e) => setDiscountName(e.target.value)}
                   variant="filled"
@@ -526,14 +542,14 @@ const Plans = () => {
               <Grid size={12}>
                 <TextField
                   id="discount-percent"
-                  label="Percentual"
+                  label={t('common.percent')}
                   type="number"
                   value={discountPercent}
                   onChange={(e) => setDiscountPercent(e.target.value)}
                   variant="filled"
                   fullWidth
                   required
-                  helperText="100% equivale a bolsa integral."
+                  helperText={t('plans.discountPercentHelper')}
                   slotProps={{
                     input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
                     htmlInput: { min: 0, max: 100, step: 1 },
@@ -553,10 +569,10 @@ const Plans = () => {
               color="inherit"
               disabled={saving}
             >
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button type="submit" variant="contained" disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? t('common.saving') : t('common.save')}
             </Button>
           </DialogActions>
         </Stack>
@@ -564,10 +580,10 @@ const Plans = () => {
 
       <ConfirmDialog
         open={Boolean(pendingPlanDelete)}
-        title="Excluir plano"
-        message={`Excluir ${pendingPlanDelete?.name ?? ''}? Ele deixa de aparecer ao emitir contratos.`}
-        confirmLabel="Excluir"
-        cancelLabel="Cancelar"
+        title={t('plans.deletePlanTitle')}
+        message={t('plans.deletePlanMessage', { name: pendingPlanDelete?.name ?? '' })}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         destructive
         onConfirm={() => confirmDelete('plan')}
         onCancel={() => setPendingPlanDelete(null)}
@@ -575,10 +591,10 @@ const Plans = () => {
 
       <ConfirmDialog
         open={Boolean(pendingDiscountDelete)}
-        title="Excluir desconto"
-        message={`Excluir ${pendingDiscountDelete?.name ?? ''}? Ele deixa de aparecer ao emitir contratos.`}
-        confirmLabel="Excluir"
-        cancelLabel="Cancelar"
+        title={t('plans.deleteDiscountTitle')}
+        message={t('plans.deleteDiscountMessage', { name: pendingDiscountDelete?.name ?? '' })}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         destructive
         onConfirm={() => confirmDelete('discount')}
         onCancel={() => setPendingDiscountDelete(null)}
