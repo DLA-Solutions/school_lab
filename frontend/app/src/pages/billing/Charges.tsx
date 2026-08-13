@@ -1,5 +1,4 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import Alert from '@mui/material/Alert';
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -24,6 +23,7 @@ import {
   DataTable,
   EmptyState,
   ErrorBanner,
+  SuccessBanner,
   PageHeader,
   SearchField,
   SectionCard,
@@ -496,7 +496,7 @@ const Charges = () => {
       />
 
       {error && <ErrorBanner message={error} />}
-      {notice && <Alert severity="success">{notice}</Alert>}
+      {notice && <SuccessBanner message={notice} />}
 
       <SectionCard padding={0}>
         {!loading && charges.length === 0 && !error ? (

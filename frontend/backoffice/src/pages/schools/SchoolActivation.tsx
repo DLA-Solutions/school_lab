@@ -1,6 +1,5 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router';
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -13,7 +12,8 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
-import { EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
+import { EmptyState, ErrorBanner, InfoBanner, PageHeader, SectionCard } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useAuth } from 'providers/AuthContext';
 import paths from 'routes/paths';
 import { ApiError } from 'services/api';
@@ -30,6 +30,7 @@ import { handoffChecklistLabel, parseHandoffChecklist } from 'utils/onboarding/c
 const ACTIVATION_CHECKLIST: HandoffChecklistItem[] = ['owner_active', 'billing'];
 
 const SchoolActivation = () => {
+  const { t } = useTranslation();
   const { schoolId: schoolIdParam } = useParams();
   const schoolId = Number(schoolIdParam);
   const { user } = useAuth();
@@ -165,7 +166,7 @@ const SchoolActivation = () => {
   if (loadError || !school) {
     return (
       <Stack direction="column" gap={3.5} py={2}>
-        <PageHeader title="Ativação da escola" />
+        <PageHeader title={t('backoffice.schoolActivation.title')} />
         <SectionCard>
           <EmptyState
             title="Escola não encontrada"
@@ -180,7 +181,7 @@ const SchoolActivation = () => {
   if (school.onboarding_status === 'active') {
     return (
       <Stack direction="column" gap={3.5} py={2}>
-        <PageHeader title="Ativação da escola" subtitle={school.name} />
+        <PageHeader title={t('backoffice.schoolActivation.title')} subtitle={school.name} />
         <SectionCard>
           <EmptyState
             title="Escola já ativa"
@@ -198,7 +199,7 @@ const SchoolActivation = () => {
   if (school.onboarding_status !== 'pending_handoff') {
     return (
       <Stack direction="column" gap={3.5} py={2}>
-        <PageHeader title="Ativação da escola" subtitle={school.name} />
+        <PageHeader title={t('backoffice.schoolActivation.title')} subtitle={school.name} />
         <SectionCard>
           <EmptyState
             title="Ativação indisponível"
@@ -226,11 +227,11 @@ const SchoolActivation = () => {
       />
 
       {school.onboarding_mode === 'self_serve' && (
-        <Alert severity="info" variant="outlined">
+        <InfoBanner variant="outlined">
           Escolas em autoatendimento são ativadas pelo responsável no portal da escola após aceitar o
           convite e concluir a configuração inicial. Use esta página para monitorar o status do
           checklist.
-        </Alert>
+        </InfoBanner>
       )}
 
       <SectionCard>
