@@ -22,6 +22,7 @@ import {
   SearchField,
   SectionCard,
 } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { activateGuardian, deleteGuardian, listGuardians } from 'services/guardiansApi';
@@ -51,6 +52,7 @@ const renderCity = ({ row }: GridRenderCellParams<Guardian>) =>
   );
 
 const Guardians = () => {
+  const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -96,15 +98,11 @@ const Guardians = () => {
     } catch (err) {
       setGuardians([]);
       setTotal(0);
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar os responsáveis. Verifique sua conexão.',
-      );
+      setError(err instanceof ApiError ? err.message : t('guardians.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, debouncedSearch, activation]);
+  }, [schoolId, page, debouncedSearch, activation, t]);
 
   useEffect(() => {
     load();
@@ -157,9 +155,7 @@ const Guardians = () => {
       await activateGuardian(schoolId, record.id);
       load();
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Não foi possível ativar o responsável.',
-      );
+      setError(err instanceof ApiError ? err.message : t('guardians.activateError'));
     }
   };
 
@@ -199,11 +195,7 @@ const Guardians = () => {
         load();
       }
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível excluir o responsável. Tente novamente.',
-      );
+      setError(err instanceof ApiError ? err.message : t('guardians.deleteError'));
       setPendingDelete(null);
     } finally {
       setDeleting(false);
@@ -211,20 +203,20 @@ const Guardians = () => {
   };
 
   const columns: GridColDef<Guardian>[] = [
-    { field: 'name', headerName: 'Nome', flex: 1, minWidth: 180 },
+    { field: 'name', headerName: t('common.name'), flex: 1, minWidth: 180 },
     { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
-    { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 190 },
-    { field: 'phone', headerName: 'Telefone', width: 150 },
+    { field: 'email', headerName: t('common.email'), flex: 1, minWidth: 190 },
+    { field: 'phone', headerName: t('common.phone'), width: 150 },
     {
       field: 'city',
-      headerName: 'Cidade',
+      headerName: t('common.city'),
       width: 150,
       sortable: false,
       renderCell: renderCity,
     },
     {
       field: 'actions',
-      headerName: 'Ações',
+      headerName: t('common.actions'),
       width: 180,
       sortable: false,
       filterable: false,
@@ -235,10 +227,10 @@ const Guardians = () => {
           {/* An inactive record offers only the way back; editing or deleting it makes no sense
               until it is on the books again. */}
           {!row.active ? (
-            <Tooltip title="Ativar">
+            <Tooltip title={t('common.activate')}>
               <IconButton
                 size="small"
-                aria-label={`Ativar ${row.name}`}
+                aria-label={t('guardians.activateAria', { name: row.name })}
                 onClick={() => handleActivate(row)}
               >
                 <IconifyIcon icon="mingcute:refresh-2-line" />
@@ -246,37 +238,37 @@ const Guardians = () => {
             </Tooltip>
           ) : (
             <>
-          <Tooltip title="Contratos">
+          <Tooltip title={t('common.contracts')}>
             <IconButton
               size="small"
-              aria-label={`Contratos de ${row.name}`}
+              aria-label={`${t('common.contracts')} ${row.name}`}
               onClick={() => setContractsFor(row)}
             >
               <IconifyIcon icon="mingcute:contacts-2-line" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Documentos pessoais">
+          <Tooltip title={t('common.personalDocuments')}>
             <IconButton
               size="small"
-              aria-label={`Documentos de ${row.name}`}
+              aria-label={`${t('common.personalDocuments')} ${row.name}`}
               onClick={() => setDocumentsFor(row)}
             >
               <IconifyIcon icon="mingcute:file-certificate-line" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Editar">
+          <Tooltip title={t('common.edit')}>
             <IconButton
               size="small"
-              aria-label={`Editar ${row.name}`}
+              aria-label={`${t('common.edit')} ${row.name}`}
               onClick={() => handleEdit(row)}
             >
               <IconifyIcon icon="mingcute:edit-2-line" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Excluir">
+          <Tooltip title={t('common.delete')}>
             <IconButton
               size="small"
-              aria-label={`Excluir ${row.name}`}
+              aria-label={`${t('common.delete')} ${row.name}`}
               onClick={() => setPendingDelete(row)}
             >
               <IconifyIcon icon="mingcute:delete-2-line" />
@@ -294,11 +286,11 @@ const Guardians = () => {
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Responsáveis" />
+        <PageHeader title={t('guardians.title')} />
         <SectionCard>
           <EmptyState
-            title="Sem acesso a esta área"
-            description="O cadastro de responsáveis está disponível apenas para usuários com vínculo ativo de escola."
+            title={t('common.noAccess.title')}
+            description={t('guardians.noAccess.description')}
             headingLevel={2}
           />
         </SectionCard>
@@ -309,12 +301,12 @@ const Guardians = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title="Responsáveis"
+        title={t('guardians.title')}
         actions={
           <>
             <TextField
               id="activation-filter"
-              label="Situação"
+              label={t('common.status')}
               value={activation}
               onChange={(e) => handleActivationChange(e.target.value)}
               select
@@ -322,19 +314,19 @@ const Guardians = () => {
               variant="filled"
               sx={{ width: 150 }}
             >
-              <MenuItem value="active">Ativos</MenuItem>
-              <MenuItem value="inactive">Inativos</MenuItem>
-              <MenuItem value="all">Todos</MenuItem>
+              <MenuItem value="active">{t('common.actives')}</MenuItem>
+              <MenuItem value="inactive">{t('common.inactives')}</MenuItem>
+              <MenuItem value="all">{t('common.allStatus')}</MenuItem>
             </TextField>
             <SearchField
               value={search}
               onChange={handleSearchChange}
-              placeholder="Buscar por nome ou CPF"
-              ariaLabel="Buscar responsáveis"
+              placeholder={t('guardians.searchPlaceholder')}
+              ariaLabel={t('guardians.searchAria')}
               sx={{ width: 260 }}
             />
             <Button variant="contained" size="small" onClick={handleCreate}>
-              Novo responsável
+              {t('guardians.new')}
             </Button>
           </>
         }
@@ -345,15 +337,17 @@ const Guardians = () => {
       <SectionCard padding={0}>
         {!loading && guardians.length === 0 && !error ? (
           <EmptyState
-            title={debouncedSearch ? 'Nenhum resultado' : 'Nenhum responsável cadastrado'}
+            title={
+              debouncedSearch ? t('guardians.empty.searchTitle') : t('guardians.empty.title')
+            }
             description={
               debouncedSearch
-                ? `Nada encontrado para "${debouncedSearch}". Verifique o nome ou o CPF.`
-                : 'Cadastre o primeiro responsável para vinculá-lo a alunos e cobranças.'
+                ? t('guardians.empty.searchDescription', { query: debouncedSearch })
+                : t('guardians.empty.description')
             }
             action={
               <Button variant="contained" size="small" onClick={handleCreate}>
-                Novo responsável
+                {t('guardians.new')}
               </Button>
             }
           />
@@ -369,7 +363,7 @@ const Guardians = () => {
               pageSizeOptions={[PAGE_SIZE]}
               paginationModel={{ page, pageSize: PAGE_SIZE }}
               onPaginationModelChange={(model) => setPage(model.page)}
-              rangeLabel={({ from, to, count }) => `${from}-${to} de ${count}`}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
             />
           </Box>
         )}
@@ -404,17 +398,17 @@ const Guardians = () => {
           documentableId={documentsFor.id}
           title={documentsFor.name}
           subtitle={`CPF ${formatCpf(documentsFor.cpf)}`}
-          emptyDescription="Envie CPF, RG ou comprovante de residência deste responsável."
+          emptyDescription={t('documents.empty.guardian')}
           onClose={() => setDocumentsFor(null)}
         />
       )}
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Excluir responsável"
-        message={`Excluir ${pendingDelete?.name ?? ''}? Ele deixa de aparecer na listagem, mas o histórico de cobranças é preservado.`}
-        confirmLabel={deleting ? 'Excluindo...' : 'Excluir'}
-        cancelLabel="Cancelar"
+        title={t('guardians.deleteTitle')}
+        message={t('guardians.deleteMessage', { name: pendingDelete?.name ?? '' })}
+        confirmLabel={deleting ? t('common.deleting') : t('common.delete')}
+        cancelLabel={t('common.cancel')}
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}

@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import RateChip from 'components/common/RateChip';
 import IconifyIcon from 'components/base/IconifyIcon';
+import { SectionCard } from 'design-system';
 import { DashboardMetrics } from 'types/dashboard';
 import { formatCents } from 'utils/money';
 import { monthNumber } from 'utils/month';
@@ -50,7 +50,8 @@ const SchoolIncome = ({ metrics, loading }: SchoolIncomeProps) => {
       : t('dashboard.kpi.new');
 
   return (
-    <Paper sx={{ height: 300 }}>
+    <SectionCard padding={2.25}>
+      <Stack sx={{ height: 300 }} direction="column">
       <Stack alignItems="center" spacing={0.6}>
         <IconifyIcon icon="ph:trend-up-fill" color="text.secondary" fontSize="h6.fontSize" />
         <Typography variant="body2" color="text.secondary">
@@ -72,7 +73,8 @@ const SchoolIncome = ({ metrics, loading }: SchoolIncomeProps) => {
       </Stack>
 
       <CompletedTaskChart sx={{ height: '220px !important' }} data={data} />
-    </Paper>
+      </Stack>
+    </SectionCard>
   );
 };
 

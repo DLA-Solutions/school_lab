@@ -147,7 +147,7 @@ const BillingSettingsPage = () => {
   }
 
   return (
-    <Stack spacing={3} component="form" onSubmit={submit}>
+    <Stack direction="column" gap={3.5} component="form" onSubmit={submit}>
       <PageHeader
         title={t('billingSettings.title')}
         subtitle={t('billingSettings.description')}

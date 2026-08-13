@@ -21,6 +21,7 @@ import {
   SearchField,
   SectionCard,
 } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { deleteTeacher, listTeachers } from 'services/academicsApi';
@@ -36,7 +37,6 @@ const renderCpf = ({ value }: GridRenderCellParams<Teacher, string>) => (
   <Typography variant="body2">{formatCpf(value)}</Typography>
 );
 
-/** Hire dates arrive as ISO (`2024-02-01`) and are read here as pt-BR. */
 const renderHiredOn = ({ value }: GridRenderCellParams<Teacher, string | null>) => {
   if (!value) {
     return (
@@ -46,47 +46,13 @@ const renderHiredOn = ({ value }: GridRenderCellParams<Teacher, string | null>) 
     );
   }
 
-  // Split rather than `new Date(value)`: parsing a bare ISO date as UTC and rendering it in a
-  // negative-offset timezone shows the day before.
   const [year, month, day] = value.split('-');
 
   return <Typography variant="body2">{`${day}/${month}/${year}`}</Typography>;
 };
 
-/**
- * One chip per class, labelled with the subjects held there — the listing's whole point is to
- * answer "which classes, and which subjects in each" without opening a row.
- */
-const renderClasses = ({ row }: GridRenderCellParams<Teacher>) => {
-  if (row.classes.length === 0) {
-    return (
-      <Typography variant="body2" color="text.secondary">
-        Sem turmas
-      </Typography>
-    );
-  }
-
-  return (
-    <Stack direction="row" gap={0.75} flexWrap="wrap" alignItems="center" py={1}>
-      {row.classes.map((schoolClass) => (
-        <Tooltip
-          key={schoolClass.id}
-          title={schoolClass.subjects.map((subject) => subject.name).join(', ')}
-        >
-          <Chip
-            size="small"
-            variant="outlined"
-            label={`${gradeLevelLabel(schoolClass.grade_level)} ${schoolClass.name}: ${schoolClass.subjects
-              .map((subject) => subject.name)
-              .join(', ')}`}
-          />
-        </Tooltip>
-      ))}
-    </Stack>
-  );
-};
-
 const Collaborators = () => {
+  const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -95,11 +61,8 @@ const Collaborators = () => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // The term lives in the URL so it survives a reload, can be linked to, and lets the global
-  // search in the menu open this listing already filtered.
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get('q') ?? '';
-  // The API does the filtering, so the term is debounced rather than sent per keystroke.
   const debouncedSearch = useDebouncedValue(search);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -108,6 +71,35 @@ const Collaborators = () => {
   const [documentsFor, setDocumentsFor] = useState<Teacher | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const renderClasses = ({ row }: GridRenderCellParams<Teacher>) => {
+    if (row.classes.length === 0) {
+      return (
+        <Typography variant="body2" color="text.secondary">
+          {t('common.noClasses')}
+        </Typography>
+      );
+    }
+
+    return (
+      <Stack direction="row" gap={0.75} flexWrap="wrap" alignItems="center" py={1}>
+        {row.classes.map((schoolClass) => (
+          <Tooltip
+            key={schoolClass.id}
+            title={schoolClass.subjects.map((subject) => subject.name).join(', ')}
+          >
+            <Chip
+              size="small"
+              variant="outlined"
+              label={`${gradeLevelLabel(schoolClass.grade_level)} ${schoolClass.name}: ${schoolClass.subjects
+                .map((subject) => subject.name)
+                .join(', ')}`}
+            />
+          </Tooltip>
+        ))}
+      </Stack>
+    );
+  };
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -124,15 +116,11 @@ const Collaborators = () => {
     } catch (err) {
       setTeachers([]);
       setTotal(0);
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar os colaboradores. Verifique sua conexão.',
-      );
+      setError(err instanceof ApiError ? err.message : t('collaborators.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, debouncedSearch]);
+  }, [schoolId, page, debouncedSearch, t]);
 
   useEffect(() => {
     load();
@@ -151,10 +139,8 @@ const Collaborators = () => {
         }
         return next;
       },
-      // Typing must not push a history entry per keystroke.
       { replace: true },
     );
-    // A narrower result rarely has the page the user is on — start over at the first.
     setPage(0);
   };
 
@@ -175,9 +161,7 @@ const Collaborators = () => {
         load();
       }
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Não foi possível excluir o colaborador.',
-      );
+      setError(err instanceof ApiError ? err.message : t('collaborators.deleteError'));
       setPendingDelete(null);
     } finally {
       setDeleting(false);
@@ -185,86 +169,86 @@ const Collaborators = () => {
   };
 
   const columns: GridColDef<Teacher>[] = [
-    { field: 'name', headerName: 'Nome', width: 170 },
-    { field: 'job_title', headerName: 'Cargo', width: 160 },
-    { field: 'cpf', headerName: 'CPF', width: 140, renderCell: renderCpf },
-    {
-      field: 'hired_on',
-      headerName: 'Contratação',
-      width: 130,
-      renderCell: renderHiredOn,
-    },
-    { field: 'email', headerName: 'E-mail', width: 190 },
-    {
-      field: 'classes',
-      headerName: 'Turmas e matérias',
-      flex: 1,
-      minWidth: 280,
-      sortable: false,
-      renderCell: renderClasses,
-    },
-    {
-      field: 'actions',
-      headerName: 'Ações',
-      width: 180,
-      sortable: false,
-      filterable: false,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: ({ row }: GridRenderCellParams<Teacher>) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
-          <Tooltip title="Documentos pessoais">
-            <IconButton
-              size="small"
-              aria-label={`Documentos de ${row.name}`}
-              onClick={() => setDocumentsFor(row)}
-            >
-              <IconifyIcon icon="mingcute:file-certificate-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Turmas e matérias">
-            <IconButton
-              size="small"
-              aria-label={`Turmas de ${row.name}`}
-              onClick={() => setAssignmentsFor(row)}
-            >
-              <IconifyIcon icon="mingcute:book-2-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Editar">
-            <IconButton
-              size="small"
-              aria-label={`Editar ${row.name}`}
-              onClick={() => {
-                setEditing(row);
-                setFormOpen(true);
-              }}
-            >
-              <IconifyIcon icon="mingcute:edit-2-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Excluir">
-            <IconButton
-              size="small"
-              aria-label={`Excluir ${row.name}`}
-              onClick={() => setPendingDelete(row)}
-            >
-              <IconifyIcon icon="mingcute:delete-2-line" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
-    },
+      { field: 'name', headerName: t('common.name'), width: 170 },
+      { field: 'job_title', headerName: t('common.position'), width: 160 },
+      { field: 'cpf', headerName: 'CPF', width: 140, renderCell: renderCpf },
+      {
+        field: 'hired_on',
+        headerName: t('collaborators.hiredOn'),
+        width: 130,
+        renderCell: renderHiredOn,
+      },
+      { field: 'email', headerName: t('common.email'), width: 190 },
+      {
+        field: 'classes',
+        headerName: t('collaborators.classesColumn'),
+        flex: 1,
+        minWidth: 280,
+        sortable: false,
+        renderCell: renderClasses,
+      },
+      {
+        field: 'actions',
+        headerName: t('common.actions'),
+        width: 180,
+        sortable: false,
+        filterable: false,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: ({ row }: GridRenderCellParams<Teacher>) => (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            <Tooltip title={t('common.personalDocuments')}>
+              <IconButton
+                size="small"
+                aria-label={`${t('common.personalDocuments')} ${row.name}`}
+                onClick={() => setDocumentsFor(row)}
+              >
+                <IconifyIcon icon="mingcute:file-certificate-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('collaborators.classesTooltip')}>
+              <IconButton
+                size="small"
+                aria-label={t('collaborators.classesAria', { name: row.name })}
+                onClick={() => setAssignmentsFor(row)}
+              >
+                <IconifyIcon icon="mingcute:book-2-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('common.edit')}>
+              <IconButton
+                size="small"
+                aria-label={`${t('common.edit')} ${row.name}`}
+                onClick={() => {
+                  setEditing(row);
+                  setFormOpen(true);
+                }}
+              >
+                <IconifyIcon icon="mingcute:edit-2-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('common.delete')}>
+              <IconButton
+                size="small"
+                aria-label={`${t('common.delete')} ${row.name}`}
+                onClick={() => setPendingDelete(row)}
+              >
+                <IconifyIcon icon="mingcute:delete-2-line" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        ),
+      },
   ];
 
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Colaboradores" />
+        <PageHeader title={t('collaborators.title')} />
         <SectionCard>
           <EmptyState
-            title="Sem acesso a esta área"
-            description="O cadastro de colaboradores está disponível apenas para usuários com vínculo ativo de escola."
+            title={t('common.noAccess.title')}
+            description={t('collaborators.noAccess.description')}
             headingLevel={2}
           />
         </SectionCard>
@@ -275,14 +259,14 @@ const Collaborators = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title="Colaboradores"
+        title={t('collaborators.title')}
         actions={
           <>
             <SearchField
               value={search}
               onChange={handleSearchChange}
-              placeholder="Buscar por nome ou CPF"
-              ariaLabel="Buscar colaboradores"
+              placeholder={t('collaborators.searchPlaceholder')}
+              ariaLabel={t('collaborators.searchAria')}
               sx={{ width: 260 }}
             />
             <Button
@@ -293,7 +277,7 @@ const Collaborators = () => {
                 setFormOpen(true);
               }}
             >
-              Novo colaborador
+              {t('collaborators.new')}
             </Button>
           </>
         }
@@ -304,11 +288,15 @@ const Collaborators = () => {
       <SectionCard padding={0}>
         {!loading && teachers.length === 0 && !error ? (
           <EmptyState
-            title={debouncedSearch ? 'Nenhum resultado' : 'Nenhum colaborador cadastrado'}
+            title={
+              debouncedSearch
+                ? t('collaborators.empty.searchTitle')
+                : t('collaborators.empty.title')
+            }
             description={
               debouncedSearch
-                ? `Nada encontrado para "${debouncedSearch}". Verifique o nome ou o CPF.`
-                : 'Cadastre um colaborador para depois atribuí-lo às turmas e matérias.'
+                ? t('collaborators.empty.searchDescription', { query: debouncedSearch })
+                : t('collaborators.empty.description')
             }
             action={
               <Button
@@ -319,7 +307,7 @@ const Collaborators = () => {
                   setFormOpen(true);
                 }}
               >
-                Novo colaborador
+                {t('collaborators.new')}
               </Button>
             }
           />
@@ -336,7 +324,7 @@ const Collaborators = () => {
               pageSizeOptions={[PAGE_SIZE]}
               paginationModel={{ page, pageSize: PAGE_SIZE }}
               onPaginationModelChange={(model) => setPage(model.page)}
-              rangeLabel={({ from, to, count }) => `${from}-${to} de ${count}`}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
             />
           </Box>
         )}
@@ -374,17 +362,17 @@ const Collaborators = () => {
           title={documentsFor.name}
           subtitle={documentsFor.job_title ?? undefined}
           documentTypes={COLLABORATOR_DOCUMENT_TYPES}
-          emptyDescription="Envie RG, CPF, contrato de trabalho ou diploma deste colaborador."
+          emptyDescription={t('documents.empty.collaborator')}
           onClose={() => setDocumentsFor(null)}
         />
       )}
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Excluir colaborador"
-        message={`Excluir ${pendingDelete?.name ?? ''}? Ele deixa de aparecer na listagem e perde suas turmas.`}
-        confirmLabel={deleting ? 'Excluindo...' : 'Excluir'}
-        cancelLabel="Cancelar"
+        title={t('collaborators.deleteTitle')}
+        message={t('collaborators.deleteMessage', { name: pendingDelete?.name ?? '' })}
+        confirmLabel={deleting ? t('common.deleting') : t('common.delete')}
+        cancelLabel={t('common.cancel')}
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}

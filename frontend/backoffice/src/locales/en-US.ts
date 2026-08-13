@@ -28,6 +28,17 @@ const enUS: Messages = {
   'backoffice.dashboard.link.provisioning': 'View provisioning',
   'backoffice.dashboard.link.pendingHandoff': 'View pending handoff',
   'backoffice.dashboard.viewSchools': 'View all schools',
+
+  'backoffice.schools.title': 'Schools',
+  'backoffice.users.title': 'Users',
+  'backoffice.schoolActivation.title': 'School activation',
+  'backoffice.provisioning.title': 'School provisioning',
+  'backoffice.provisioning.completeTitle': 'Provisioning complete',
+  'backoffice.provisioning.closedTitle': 'Provisioning closed',
+
+  'error404.title': 'Page not found',
+  'error404.description': 'The page you are looking for does not exist or has been moved.',
+  'error404.home': 'Go back home',
 } as const;
 
 export default enUS;

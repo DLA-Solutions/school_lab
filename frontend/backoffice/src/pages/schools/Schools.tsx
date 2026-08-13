@@ -1,6 +1,5 @@
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router';
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -25,7 +24,9 @@ import {
   PageHeader,
   SectionCard,
   SemanticChip,
+  SuccessBanner,
 } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { ApiError } from 'services/api';
 import { createSchool, deleteSchool, listSchools, SchoolListFilters, updateSchool } from 'services/schoolsApi';
 import paths from 'routes/paths';
@@ -127,6 +128,7 @@ const renderOptional = ({ value }: GridRenderCellParams<School, string | null>) 
  * Platform school register — lists every school for backoffice operators.
  */
 const Schools = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const backoffice = true;
@@ -463,7 +465,7 @@ const Schools = () => {
   if (forbidden) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Escolas" />
+        <PageHeader title={t('backoffice.schools.title')} />
         <SectionCard>
           <EmptyState
             title="Sem acesso a esta área"
@@ -478,7 +480,7 @@ const Schools = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title="Escolas"
+        title={t('backoffice.schools.title')}
         subtitle=""
         actions={
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -571,9 +573,9 @@ const Schools = () => {
             <DialogTitle>Escola criada</DialogTitle>
             <DialogContent>
               <Stack spacing={2.5} pt={0.5}>
-                <Alert severity="success">
+                <SuccessBanner>
                   {createdSchoolSuccessMessage(createdSchool, createdSchoolMeta)}
-                </Alert>
+                </SuccessBanner>
 
                 {createdStatusMeta && (
                   <Stack direction="row" spacing={1} alignItems="center">

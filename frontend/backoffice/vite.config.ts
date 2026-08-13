@@ -1,11 +1,26 @@
 /// <reference types="vitest/config" />
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import checker from 'vite-plugin-checker';
 
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  resolve: {
+    alias: {
+      react: path.resolve(rootDir, 'node_modules/react'),
+      'react-dom': path.resolve(rootDir, 'node_modules/react-dom'),
+      'react/jsx-dev-runtime': path.resolve(rootDir, 'node_modules/react/jsx-dev-runtime'),
+      'react/jsx-runtime': path.resolve(rootDir, 'node_modules/react/jsx-runtime'),
+      '@mui/material': path.resolve(rootDir, 'node_modules/@mui/material'),
+      '@mui/x-data-grid': path.resolve(rootDir, 'node_modules/@mui/x-data-grid'),
+      '@iconify/react': path.resolve(rootDir, 'node_modules/@iconify/react'),
+    },
+  },
   plugins: [
     // Single source of path aliases (tsconfig.json `paths`), so `theme`, `components`,
     // `design-system`, `providers` and `assets` resolve the same way in the app and in tests.
@@ -59,7 +74,7 @@ export default defineConfig(({ mode }) => ({
       deps: {
         // The design-system barrel reaches DataTable, and the DataGrid package imports a
         // stylesheet Node cannot load on its own. Inlining lets Vite handle that import.
-        inline: ['@mui/x-data-grid'],
+        inline: ['@mui/x-data-grid', '@school-lab/design-system-ui'],
       },
     },
   },

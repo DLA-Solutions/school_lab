@@ -79,10 +79,11 @@ const PersonDocumentsDialog = ({
   title,
   subtitle,
   documentTypes = PERSONAL_DOCUMENT_TYPES,
-  emptyDescription = 'Envie CPF, RG ou comprovante de residência desta pessoa.',
+  emptyDescription,
   onClose,
 }: PersonDocumentsDialogProps) => {
   const { t } = useTranslation();
+  const resolvedEmptyDescription = emptyDescription ?? t('documents.empty.default');
   // A type the API carries that this build does not know keeps its raw value: better an
   // unfamiliar word than an empty cell.
   const typeLabel = (value: string) => {
@@ -229,7 +230,7 @@ const PersonDocumentsDialog = ({
               <CircularProgress size={24} />
             </Stack>
           ) : documents.length === 0 ? (
-            <EmptyState title="Nenhum documento enviado" description={emptyDescription} />
+            <EmptyState title={t('documents.empty.title')} description={resolvedEmptyDescription} />
           ) : (
             <List disablePadding>
               {documents.map((document) => {

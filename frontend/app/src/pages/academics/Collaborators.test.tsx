@@ -144,7 +144,7 @@ describe('Collaborators page', () => {
     renderPage();
     await screen.findByText('Carla Nogueira');
 
-    await user.click(screen.getByRole('button', { name: /documentos de carla nogueira/i }));
+    await user.click(screen.getByRole('button', { name: /documentos pessoais carla nogueira/i }));
 
     // The heading names whose file is open, and the list is narrowed to that collaborator.
     expect(await screen.findByText(/documentos pessoais/i)).toBeInTheDocument();
@@ -167,7 +167,7 @@ describe('Collaborators page', () => {
 
     renderPage();
     await screen.findByText('Carla Nogueira');
-    await user.click(screen.getByRole('button', { name: /documentos de carla nogueira/i }));
+    await user.click(screen.getByRole('button', { name: /documentos pessoais carla nogueira/i }));
 
     await user.click(await screen.findByRole('combobox', { name: /tipo de documento/i }));
 

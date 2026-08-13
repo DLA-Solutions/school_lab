@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -20,6 +20,7 @@ import {
   PageHeader,
   SectionCard,
 } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { createSubject, deleteSubject, listSubjects, updateSubject } from 'services/academicsApi';
 import { ApiError } from 'services/api';
@@ -28,6 +29,7 @@ import { Subject } from 'types/academics';
 const PAGE_SIZE = 25;
 
 const Subjects = () => {
+  const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -59,15 +61,11 @@ const Subjects = () => {
     } catch (err) {
       setSubjects([]);
       setTotal(0);
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar as matérias. Verifique sua conexão.',
-      );
+      setError(err instanceof ApiError ? err.message : t('subjects.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page]);
+  }, [schoolId, page, t]);
 
   useEffect(() => {
     load();
@@ -87,7 +85,7 @@ const Subjects = () => {
     }
 
     if (!name.trim()) {
-      setNameError('Informe o nome da matéria.');
+      setNameError(t('subjects.nameRequired'));
       return;
     }
 
@@ -110,7 +108,7 @@ const Subjects = () => {
           Array.isArray(detail) && typeof detail[0] === 'string' ? detail[0] : err.message,
         );
       } else {
-        setNameError('Não foi possível salvar. Verifique sua conexão.');
+        setNameError(t('common.saveConnectionError'));
       }
     } finally {
       setSaving(false);
@@ -127,50 +125,57 @@ const Subjects = () => {
       setPendingDelete(null);
       load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível excluir a matéria.');
+      setError(err instanceof ApiError ? err.message : t('subjects.deleteError'));
       setPendingDelete(null);
     }
   };
 
-  const columns: GridColDef<Subject>[] = [
-    { field: 'name', headerName: 'Matéria', flex: 1, minWidth: 220 },
-    {
-      field: 'actions',
-      headerName: 'Ações',
-      width: 110,
-      sortable: false,
-      filterable: false,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: ({ row }: GridRenderCellParams<Subject>) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
-          <Tooltip title="Editar">
-            <IconButton size="small" aria-label={`Editar ${row.name}`} onClick={() => openForm(row)}>
-              <IconifyIcon icon="mingcute:edit-2-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Excluir">
-            <IconButton
-              size="small"
-              aria-label={`Excluir ${row.name}`}
-              onClick={() => setPendingDelete(row)}
-            >
-              <IconifyIcon icon="mingcute:delete-2-line" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
-    },
-  ];
+  const columns: GridColDef<Subject>[] = useMemo(
+    () => [
+      { field: 'name', headerName: t('common.subject'), flex: 1, minWidth: 220 },
+      {
+        field: 'actions',
+        headerName: t('common.actions'),
+        width: 110,
+        sortable: false,
+        filterable: false,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: ({ row }: GridRenderCellParams<Subject>) => (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            <Tooltip title={t('common.edit')}>
+              <IconButton
+                size="small"
+                aria-label={t('subjects.editAria', { name: row.name })}
+                onClick={() => openForm(row)}
+              >
+                <IconifyIcon icon="mingcute:edit-2-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('common.delete')}>
+              <IconButton
+                size="small"
+                aria-label={t('subjects.deleteAria', { name: row.name })}
+                onClick={() => setPendingDelete(row)}
+              >
+                <IconifyIcon icon="mingcute:delete-2-line" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        ),
+      },
+    ],
+    [t],
+  );
 
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title="Matérias" />
+        <PageHeader title={t('subjects.title')} />
         <SectionCard>
           <EmptyState
-            title="Sem acesso a esta área"
-            description="O cadastro de matérias está disponível apenas para usuários com vínculo ativo de escola."
+            title={t('common.noAccess.title')}
+            description={t('subjects.noAccess.description')}
             headingLevel={2}
           />
         </SectionCard>
@@ -181,10 +186,10 @@ const Subjects = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title="Matérias"
+        title={t('subjects.title')}
         actions={
           <Button variant="contained" size="small" onClick={() => openForm(null)}>
-            Nova matéria
+            {t('subjects.new')}
           </Button>
         }
       />
@@ -194,11 +199,11 @@ const Subjects = () => {
       <SectionCard padding={0}>
         {!loading && subjects.length === 0 && !error ? (
           <EmptyState
-            title="Nenhuma matéria cadastrada"
-            description="Cadastre as matérias para atribuí-las aos professores em cada turma."
+            title={t('subjects.empty.title')}
+            description={t('subjects.empty.description')}
             action={
               <Button variant="contained" size="small" onClick={() => openForm(null)}>
-                Nova matéria
+                {t('subjects.new')}
               </Button>
             }
           />
@@ -214,7 +219,7 @@ const Subjects = () => {
               pageSizeOptions={[PAGE_SIZE]}
               paginationModel={{ page, pageSize: PAGE_SIZE }}
               onPaginationModelChange={(model) => setPage(model.page)}
-              rangeLabel={({ from, to, count }) => `${from}-${to} de ${count}`}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
             />
           </Box>
         )}
@@ -226,13 +231,13 @@ const Subjects = () => {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>{editing ? 'Editar matéria' : 'Nova matéria'}</DialogTitle>
+        <DialogTitle>{editing ? t('subjects.edit') : t('subjects.new')}</DialogTitle>
         <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
           <DialogContent>
             <TextField
               id="subject-name"
               name="name"
-              label="Nome"
+              label={t('common.name')}
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -249,7 +254,7 @@ const Subjects = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setFormOpen(false)} color="inherit" disabled={saving}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -257,7 +262,7 @@ const Subjects = () => {
               disabled={saving}
               startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
             >
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? t('common.saving') : t('common.save')}
             </Button>
           </DialogActions>
         </Stack>
@@ -265,10 +270,10 @@ const Subjects = () => {
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Excluir matéria"
-        message={`Excluir ${pendingDelete?.name ?? ''}? Ela deixa de aparecer nas turmas e nas atribuições dos professores.`}
-        confirmLabel="Excluir"
-        cancelLabel="Cancelar"
+        title={t('subjects.deleteTitle')}
+        message={t('subjects.deleteMessage', { name: pendingDelete?.name ?? '' })}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}

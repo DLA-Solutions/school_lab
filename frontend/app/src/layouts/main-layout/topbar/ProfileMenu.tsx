@@ -12,8 +12,10 @@ import IconifyIcon from 'components/base/IconifyIcon';
 import AvatarImage from 'assets/images/avatar.png';
 import { listClasses } from '@mui/material';
 import { useAuth } from 'providers/AuthContext';
+import { useTranslation } from 'providers/I18nContext';
 
 const ProfileMenu = () => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const { user, logout } = useAuth();
@@ -31,7 +33,7 @@ const ProfileMenu = () => {
 
   return (
     <>
-      <Tooltip title="Profile">
+      <Tooltip title={t('common.profile')}>
         <ButtonBase
           onClick={handleProfileClick}
           disableRipple

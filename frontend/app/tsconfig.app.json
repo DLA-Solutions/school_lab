@@ -23,7 +23,16 @@
 
     // Single source of the path aliases that vite-tsconfig-paths feeds to Vite and Vitest.
     "paths": {
-      "*": ["./src/*"]
+      "*": ["./src/*"],
+      "@school-lab/design-system-ui": ["../../packages/design-system-ui/index.ts"],
+      "@school-lab/design-system-ui/*": ["../../packages/design-system-ui/*"],
+      "react": ["./node_modules/@types/react"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "@mui/material": ["./node_modules/@mui/material"],
+      "@mui/material/*": ["./node_modules/@mui/material/*"],
+      "@mui/x-data-grid": ["./node_modules/@mui/x-data-grid"],
+      "@iconify/react": ["./node_modules/@iconify/react"]
     }
   },
   // `.ladle` holds the sandbox's global provider, which imports the app theme; type-checking it

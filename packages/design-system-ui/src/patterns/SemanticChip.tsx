@@ -1,5 +1,5 @@
 import Chip from '@mui/material/Chip';
-import IconifyIcon from 'components/base/IconifyIcon';
+import IconifyIcon from '../IconifyIcon';
 
 export type SemanticChipVariant = 'success' | 'warning' | 'error' | 'info';
 
@@ -27,7 +27,7 @@ const SemanticChip = ({ variant, label, width }: SemanticChipProps) => {
         <IconifyIcon
           icon={variantIcon[variant]}
           sx={(theme) => ({
-            color: `${theme.palette[colorKey].main} !important`,
+            color: `${(theme.vars || theme).palette[colorKey].main} !important`,
           })}
         />
       }

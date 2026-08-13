@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
 import { fontFamily } from 'theme/typography';
 import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import useChartTheme from 'design-system/hooks/useChartTheme';
-import { EmptyState } from 'design-system';
+import { EmptyState, SectionCard } from 'design-system';
 import { DashboardMetrics } from 'types/dashboard';
 import StudentsByClassChart from './StudentsByClassChart';
 import { colorForIndex } from './sliceColors';
@@ -38,7 +37,8 @@ const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
   const total = data.reduce((sum, item) => sum + item.students, 0);
 
   return (
-    <Paper sx={{ height: 500 }}>
+    <SectionCard padding={3.5}>
+      <Stack sx={{ height: 500 }} direction="column">
       <Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
         {t('dashboard.studentsByClass.title')}
       </Typography>
@@ -88,7 +88,8 @@ const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
           </Stack>
         </>
       )}
-    </Paper>
+      </Stack>
+    </SectionCard>
   );
 };
 

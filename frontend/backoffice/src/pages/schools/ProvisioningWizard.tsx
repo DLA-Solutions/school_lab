@@ -1,6 +1,6 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router';
-import Alert from '@mui/material/Alert';
+import { EmptyState, ErrorBanner, InfoBanner, PageHeader, SectionCard, SuccessBanner } from 'design-system';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -18,7 +18,7 @@ import StepLabel from '@mui/material/StepLabel';
 import Stepper from '@mui/material/Stepper';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
-import { EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useAuth } from 'providers/AuthContext';
 import paths from 'routes/paths';
 import { ApiError } from 'services/api';
@@ -139,6 +139,7 @@ const SummaryList = ({ summary }: { summary: ProvisioningImportSummary }) => (
 );
 
 const ProvisioningWizard = () => {
+  const { t } = useTranslation();
   const { schoolId: schoolIdParam } = useParams();
   const schoolId = Number(schoolIdParam);
   const { user } = useAuth();
@@ -622,7 +623,7 @@ const ProvisioningWizard = () => {
         <ProvisioningPageHeader schoolName={school.name} />
         <SectionCard padding={3.5}>
           <EmptyState
-            title={isPendingHandoff ? 'Provisionamento concluído' : 'Provisionamento encerrado'}
+            title={isPendingHandoff ? t('backoffice.provisioning.completeTitle') : t('backoffice.provisioning.closedTitle')}
             description={
               school.onboarding_status === 'active'
                 ? 'Esta escola já está ativa. O assistente de provisionamento não está mais disponível.'
@@ -675,12 +676,12 @@ const ProvisioningWizard = () => {
             ) : (
               <>
                 {hasActiveCredentials && activeCredential && (
-                  <Alert severity="success" variant="outlined">
+                  <SuccessBanner variant="outlined">
                     {credentialUploadSuccess
                       ? 'Credenciais enviadas com sucesso.'
                       : 'Credenciais Cora ativas configuradas.'}
                     <CredentialMetadata credential={activeCredential} />
-                  </Alert>
+                  </SuccessBanner>
                 )}
 
                 {!billingWaived && !hasActiveCredentials && (
@@ -810,9 +811,7 @@ const ProvisioningWizard = () => {
                   </ListItem>
                 </List>
                 {resentInviteIds.has(ownerInvite.id) && (
-                  <Alert severity="success" variant="outlined" sx={{ mt: 1 }}>
-                    Convite reenviado com sucesso.
-                  </Alert>
+                  <SuccessBanner variant="outlined" sx={{ mt: 1 }} message="Convite reenviado com sucesso." />
                 )}
               </SectionCard>
             )}
@@ -875,16 +874,14 @@ const ProvisioningWizard = () => {
                 </Button>
               </Stack>
             ) : (
-              <Alert severity="info" variant="outlined">
+              <InfoBanner variant="outlined">
                 Nenhum modelo de função disponível para convite — pule esta etapa e convide a equipe
                 depois.
-              </Alert>
+              </InfoBanner>
             )}
 
             {inviteSuccess && (
-              <Alert severity="success" variant="outlined">
-                Convite enviado com sucesso.
-              </Alert>
+              <SuccessBanner variant="outlined" message="Convite enviado com sucesso." />
             )}
 
             {sentInvites.length > 0 && (
@@ -918,9 +915,7 @@ const ProvisioningWizard = () => {
                   ))}
                 </List>
                 {sentInvites.some((invite) => resentInviteIds.has(invite.id)) && (
-                  <Alert severity="success" variant="outlined" sx={{ mt: 1 }}>
-                    Convite reenviado com sucesso.
-                  </Alert>
+                  <SuccessBanner variant="outlined" sx={{ mt: 1 }} message="Convite reenviado com sucesso." />
                 )}
               </SectionCard>
             )}
@@ -982,10 +977,10 @@ const ProvisioningWizard = () => {
               </SectionCard>
             )}
             {commitResult && (
-              <Alert severity="success">
+              <SuccessBanner>
                 Importação concluída com sucesso.
                 <SummaryList summary={commitResult.summary} />
-              </Alert>
+              </SuccessBanner>
             )}
             {importErrors.length > 0 && (
               <>
@@ -1141,20 +1136,24 @@ const ProvisioningWizard = () => {
   );
 };
 
-const ProvisioningPageHeader = ({ schoolName }: { schoolName: string | null }) => (
-  <PageHeader
-    title="Provisionamento da escola"
-    subtitle={
-      schoolName
-        ? `Configure ${schoolName} antes do repasse ao responsável.`
-        : 'Assistente de provisionamento premium.'
-    }
-    actions={
-      <Button component={RouterLink} to={paths.schools} variant="outlined" size="small">
-        Voltar às escolas
-      </Button>
-    }
-  />
-);
+const ProvisioningPageHeader = ({ schoolName }: { schoolName: string | null }) => {
+  const { t } = useTranslation();
+
+  return (
+    <PageHeader
+      title={t('backoffice.provisioning.title')}
+      subtitle={
+        schoolName
+          ? `Configure ${schoolName} antes do repasse ao responsável.`
+          : 'Assistente de provisionamento premium.'
+      }
+      actions={
+        <Button component={RouterLink} to={paths.schools} variant="outlined" size="small">
+          Voltar às escolas
+        </Button>
+      }
+    />
+  );
+};
 
 export default ProvisioningWizard;

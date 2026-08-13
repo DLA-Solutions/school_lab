@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   ACCESS_EXPIRES_AT,
@@ -74,9 +74,10 @@ describe('ChargeBatchDialog', () => {
 
     renderDialog();
 
-    const checkbox = await screen.findByRole('checkbox', {
-      name: 'Selecionar contrato de Bruno Costa',
-    });
+    const brunoRow = (await screen.findByText('Bruno Costa')).closest('[role="row"]');
+    expect(brunoRow).toBeTruthy();
+
+    const checkbox = within(brunoRow as HTMLElement).getByRole('checkbox');
 
     expect(checkbox).toBeDisabled();
     expect(screen.getByText('J\u00e1 cobrado nesta compet\u00eancia')).toBeInTheDocument();

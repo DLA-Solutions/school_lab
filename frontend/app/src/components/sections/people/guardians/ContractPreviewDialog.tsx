@@ -6,8 +6,8 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import { SuccessBanner } from 'design-system';
 import Typography from '@mui/material/Typography';
 import { ErrorBanner } from 'design-system';
 import { ApiError } from 'services/api';
@@ -99,8 +99,12 @@ const ContractPreviewDialog = ({
             that was sent; the provider's file is that same agreement plus the signature page it
             appends, and it is the one that proves anything. */}
         {signed && (
-          <Alert
-            severity="success"
+          <SuccessBanner
+            message={
+              contract?.signed_document_url
+                ? t('contract.preview.signedWithFile')
+                : t('contract.preview.signedWithoutFile')
+            }
             sx={{ mb: 2 }}
             action={
               contract?.signed_document_url ? (
@@ -115,11 +119,7 @@ const ContractPreviewDialog = ({
                 </Button>
               ) : null
             }
-          >
-            {contract?.signed_document_url
-              ? t('contract.preview.signedWithFile')
-              : t('contract.preview.signedWithoutFile')}
-          </Alert>
+          />
         )}
 
         {loading ? (
@@ -139,7 +139,7 @@ const ContractPreviewDialog = ({
                 border: 0,
                 // The document is a printed page; a white sheet is what it is designed against,
                 // in either scheme.
-                bgcolor: '#fff',
+                bgcolor: 'common.white',
                 borderRadius: 1,
               }}
             />

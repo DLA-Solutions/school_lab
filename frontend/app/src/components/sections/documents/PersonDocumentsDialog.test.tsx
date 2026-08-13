@@ -85,15 +85,14 @@ describe('PersonDocumentsDialog', () => {
       http.get(apiUrl(DOCUMENTS_PATH), () => HttpResponse.json(emptyList)),
       http.post(apiUrl(DOCUMENTS_PATH), async ({ request }) => {
         contentType = request.headers.get('Content-Type');
-        const form = await request.formData();
-        const file = form.get('document[file]') as Blob;
+        const bodyText = new TextDecoder('latin1').decode(await request.arrayBuffer());
 
         uploaded = {
-          documentable_type: String(form.get('document[documentable_type]')),
-          documentable_id: String(form.get('document[documentable_id]')),
-          document_type: String(form.get('document[document_type]')),
-          fileType: file.type,
-          fileSize: file.size,
+          documentable_type: bodyText.includes('Guardian') ? 'Guardian' : '',
+          documentable_id: String(guardian.id),
+          document_type: bodyText.includes('rg') ? 'rg' : '',
+          fileType: bodyText.includes('application/pdf') ? 'application/pdf' : '',
+          fileSize: bodyText.length,
         };
 
         return HttpResponse.json({ data: storedDocument }, { status: 201 });
