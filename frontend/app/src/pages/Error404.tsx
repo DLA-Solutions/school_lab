@@ -24,7 +24,7 @@ const Error404 = () => {
         <EmptyState
           title={t('error404.title')}
           description={t('error404.description')}
-          headingLevel={1}
+          headingLevel={2}
           action={
             <Button variant="contained" size="large" onClick={() => navigate('/')}>
               {t('error404.home')}
