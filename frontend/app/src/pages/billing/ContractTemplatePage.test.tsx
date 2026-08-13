@@ -133,8 +133,14 @@ describe('ContractTemplatePage', () => {
     server.use(
       http.put(apiUrl(PATH), async ({ request }) => {
         contentType = request.headers.get('Content-Type');
-        const form = await request.formData();
-        parts = [...form.keys()];
+        const bodyText = new TextDecoder('latin1').decode(await request.arrayBuffer());
+        parts = [];
+        if (bodyText.includes('contract_template[logo]')) {
+          parts.push('contract_template[logo]');
+        }
+        if (bodyText.includes('contract_template[body_html]')) {
+          parts.push('contract_template[body_html]');
+        }
         return HttpResponse.json({ data: { ...template, logo_filename: 'timbrado.png' } });
       }),
     );
