@@ -591,7 +591,7 @@ const ProvisioningWizard = () => {
 
   if (loadingSchool) {
     return (
-      <Stack alignItems="center" justifyContent="center" py={8}>
+      <Stack direction="column" alignItems="center" justifyContent="center" py={8}>
         <CircularProgress />
       </Stack>
     );
@@ -599,7 +599,7 @@ const ProvisioningWizard = () => {
 
   if (loadError || !school) {
     return (
-      <Stack gap={3.5} py={2}>
+      <Stack direction="column" gap={3.5} py={2}>
         <ProvisioningPageHeader schoolName={null} />
         <SectionCard>
           <EmptyState
@@ -616,7 +616,7 @@ const ProvisioningWizard = () => {
     const isPendingHandoff = school.onboarding_status === 'pending_handoff';
 
     return (
-      <Stack gap={3.5} py={2}>
+      <Stack direction="column" gap={3.5} py={2}>
         <ProvisioningPageHeader schoolName={school.name} />
         <SectionCard>
           <EmptyState
@@ -649,7 +649,7 @@ const ProvisioningWizard = () => {
     switch (activeStep) {
       case 0:
         return (
-          <Stack gap={2}>
+          <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
               Provisionamento premium de <strong>{school.name}</strong>. Configure cobrança, cadastre
               famílias e conclua o repasse ao responsável quando tudo estiver pronto.
@@ -663,14 +663,14 @@ const ProvisioningWizard = () => {
 
       case 1:
         return (
-          <Stack gap={2}>
+          <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
               Configure um provedor de pagamento ou adie a cobrança para concluir o repasse. A escola
               poderá conectar a integração bancária depois, com o responsável.
             </Typography>
 
             {loadingCredentials ? (
-              <Stack alignItems="center" py={2}>
+              <Stack direction="column" alignItems="center" py={2}>
                 <CircularProgress size={24} />
               </Stack>
             ) : (
@@ -685,7 +685,7 @@ const ProvisioningWizard = () => {
                 )}
 
                 {!billingWaived && !hasActiveCredentials && (
-                  <Stack gap={2}>
+                  <Stack direction="column" gap={2}>
                     <Typography variant="subtitle2">Integração Cora (boleto)</Typography>
                     <TextField
                       label="Client ID"
@@ -783,7 +783,7 @@ const ProvisioningWizard = () => {
 
       case 2:
         return (
-          <Stack gap={2}>
+          <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
               Convide membros da equipe administrativa. Esta etapa é opcional — você pode pular e
               importar famílias na próxima etapa.
@@ -825,11 +825,11 @@ const ProvisioningWizard = () => {
             )}
 
             {loadingRoleTemplates ? (
-              <Stack alignItems="center" py={2}>
+              <Stack direction="column" alignItems="center" py={2}>
                 <CircularProgress size={24} />
               </Stack>
             ) : staffAssignableTemplates.length > 0 ? (
-              <Stack gap={2}>
+              <Stack direction="column" gap={2}>
                 <TextField
                   label="E-mail"
                   type="email"
@@ -938,7 +938,7 @@ const ProvisioningWizard = () => {
 
       case 3:
         return (
-          <Stack gap={2}>
+          <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
               Envie um arquivo CSV com as colunas obrigatórias. Valide com a pré-visualização antes de
               confirmar a importação.
@@ -1015,7 +1015,7 @@ const ProvisioningWizard = () => {
 
       case 4:
         return (
-          <Stack gap={2}>
+          <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
               Revise os itens abaixo antes de repassar a escola ao responsável. Após a confirmação, o
               status passará para &quot;Aguardando repasse&quot; e o diretor poderá aceitar o convite.
@@ -1095,7 +1095,7 @@ const ProvisioningWizard = () => {
   const isHandoffStep = activeStep === 4;
 
   return (
-    <Stack gap={3.5} py={2}>
+    <Stack direction="column" gap={3.5} py={2}>
       <ProvisioningPageHeader schoolName={school.name} />
 
       <Stepper activeStep={activeStep} alternativeLabel>
