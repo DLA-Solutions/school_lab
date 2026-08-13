@@ -2,11 +2,11 @@ import { ReactNode } from 'react';
 import { fontFamily } from 'theme/typography';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
 import RateChip from 'components/common/RateChip';
+import { SectionCard } from 'design-system';
 
 export interface KPIProps {
   id: number | string;
@@ -27,15 +27,8 @@ const KPI = (props: KPIProps) => {
 
   return (
     <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2.4 }}>
-      <Stack
-        component={Paper}
-        direction="column"
-        p={2.25}
-        pl={2.5}
-        gap={1.5}
-        minHeight={116}
-        width={1}
-      >
+      <SectionCard padding={2.25}>
+        <Stack direction="column" gap={1.5} minHeight={116} width={1} pl={0.25}>
         <Stack justifyContent="space-between">
           <Stack alignItems="center" gap={1}>
             <IconifyIcon icon={icon} color="primary.main" fontSize="h5.fontSize" />
@@ -63,7 +56,8 @@ const KPI = (props: KPIProps) => {
             {caption}
           </Typography>
         )}
-      </Stack>
+        </Stack>
+      </SectionCard>
     </Grid>
   );
 };
