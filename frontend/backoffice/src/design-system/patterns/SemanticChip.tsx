@@ -27,7 +27,7 @@ const SemanticChip = ({ variant, label, width }: SemanticChipProps) => {
         <IconifyIcon
           icon={variantIcon[variant]}
           sx={(theme) => ({
-            color: `${theme.palette[colorKey].main} !important`,
+            color: `${(theme.vars || theme).palette[colorKey].main} !important`,
           })}
         />
       }
