@@ -45,6 +45,8 @@ import { formatImportErrorReport } from 'utils/onboarding/importErrors';
 
 const STEPS = ['Boas-vindas', 'Cobrança', 'Pessoas', 'Importação CSV', 'Repasse'] as const;
 
+const WIZARD_CONTAINER_SX = { maxWidth: 960, width: '100%', mx: 'auto' } as const;
+
 const CSV_COLUMNS =
   'student_name, student_birth_date, student_rg, school_class_name, guardian_name, guardian_email, guardian_phone, guardian_relationship, guardian_zip_code, guardian_street, guardian_number, guardian_neighborhood, guardian_city, guardian_state';
 
@@ -599,7 +601,7 @@ const ProvisioningWizard = () => {
 
   if (loadError || !school) {
     return (
-      <Stack direction="column" gap={3.5} py={2}>
+      <Stack direction="column" gap={3.5} py={2} sx={WIZARD_CONTAINER_SX}>
         <ProvisioningPageHeader schoolName={null} />
         <SectionCard>
           <EmptyState
@@ -616,9 +618,9 @@ const ProvisioningWizard = () => {
     const isPendingHandoff = school.onboarding_status === 'pending_handoff';
 
     return (
-      <Stack direction="column" gap={3.5} py={2}>
+      <Stack direction="column" gap={3.5} py={2} sx={WIZARD_CONTAINER_SX}>
         <ProvisioningPageHeader schoolName={school.name} />
-        <SectionCard>
+        <SectionCard padding={3.5}>
           <EmptyState
             title={isPendingHandoff ? 'Provisionamento concluído' : 'Provisionamento encerrado'}
             description={
@@ -1069,20 +1071,6 @@ const ProvisioningWizard = () => {
               </SectionCard>
             )}
             {bannerError && <ErrorBanner message={bannerError} />}
-            <Button
-              variant="contained"
-              onClick={handleConfirmHandoff}
-              disabled={submitting || !handoffReady}
-              startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
-              fullWidth
-            >
-              {submitting ? 'Concluindo repasse...' : 'Confirmar repasse ao responsável'}
-            </Button>
-            {!handoffReady && (
-              <Typography variant="body2" color="text.secondary" align="center">
-                Configure as credenciais Cora ou adie a cobrança na etapa de cobrança para continuar.
-              </Typography>
-            )}
           </Stack>
         );
 
@@ -1094,52 +1082,65 @@ const ProvisioningWizard = () => {
   const isCsvStep = activeStep === 3;
   const isHandoffStep = activeStep === 4;
 
-  return (
-    <Stack direction="column" gap={3.5} py={2}>
-      <ProvisioningPageHeader schoolName={school.name} />
-
-      <Stepper activeStep={activeStep} alternativeLabel>
-        {STEPS.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-
-      <SectionCard>
-        <Typography variant="h6" fontWeight={600} gutterBottom>
-          {STEPS[activeStep]}
-        </Typography>
-        {renderStepContent()}
-      </SectionCard>
-
-      {!isCsvStep && !isHandoffStep && (
-        <Stack direction="row" gap={1.5} justifyContent="space-between">
-          <Button variant="outlined" onClick={goBack} disabled={activeStep === 0 || submitting}>
-            Voltar
-          </Button>
-          <Button variant="contained" onClick={goNext} disabled={submitting}>
-            {activeStep === STEPS.length - 2 ? 'Revisar repasse' : 'Continuar'}
-          </Button>
-        </Stack>
-      )}
-
-      {isCsvStep && (
-        <Stack direction="row" gap={1.5} justifyContent="space-between">
+  const renderWizardFooter = () => {
+    if (isHandoffStep) {
+      return (
+        <Stack direction="row" gap={1.5} justifyContent="space-between" sx={{ mt: 3 }}>
           <Button variant="outlined" onClick={goBack} disabled={submitting}>
             Voltar
           </Button>
-          <Button variant="contained" onClick={goNext} disabled={submitting}>
-            Continuar
+          <Button
+            variant="contained"
+            onClick={handleConfirmHandoff}
+            disabled={submitting || !handoffReady}
+            startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
+          >
+            {submitting ? 'Concluindo repasse...' : 'Confirmar repasse ao responsável'}
           </Button>
         </Stack>
-      )}
+      );
+    }
 
-      {isHandoffStep && (
-        <Button variant="outlined" onClick={goBack} disabled={submitting} sx={{ alignSelf: 'flex-start' }}>
+    return (
+      <Stack direction="row" gap={1.5} justifyContent="space-between" sx={{ mt: 3 }}>
+        <Button
+          variant="outlined"
+          onClick={goBack}
+          disabled={(!isCsvStep && activeStep === 0) || submitting}
+        >
           Voltar
         </Button>
-      )}
+        <Button variant="contained" onClick={goNext} disabled={submitting}>
+          {activeStep === STEPS.length - 2 ? 'Revisar repasse' : 'Continuar'}
+        </Button>
+      </Stack>
+    );
+  };
+
+  return (
+    <Stack
+      direction="column"
+      gap={3.5}
+      py={2}
+      data-testid="provisioning-wizard"
+      sx={WIZARD_CONTAINER_SX}
+    >
+      <ProvisioningPageHeader schoolName={school.name} />
+
+      <Box sx={{ width: '100%', overflowX: 'auto', pb: 0.5 }}>
+        <Stepper activeStep={activeStep} alternativeLabel>
+          {STEPS.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+      </Box>
+
+      <SectionCard padding={3.5} title={STEPS[activeStep]}>
+        {renderStepContent()}
+        {renderWizardFooter()}
+      </SectionCard>
     </Stack>
   );
 };
@@ -1151,6 +1152,11 @@ const ProvisioningPageHeader = ({ schoolName }: { schoolName: string | null }) =
       schoolName
         ? `Configure ${schoolName} antes do repasse ao responsável.`
         : 'Assistente de provisionamento premium.'
+    }
+    actions={
+      <Button component={RouterLink} to={paths.schools} variant="outlined" size="small">
+        Voltar às escolas
+      </Button>
     }
   />
 );
