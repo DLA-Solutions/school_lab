@@ -13,6 +13,14 @@ class AcademicPeriodPolicy < ApplicationPolicy
     staff_with?(:manage_school_settings)
   end
 
+  class Scope < Scope
+    def resolve
+      return scope.none unless Current.school
+
+      scope.kept.where(school_id: Current.school.id)
+    end
+  end
+
   private
 
   def active_staff?

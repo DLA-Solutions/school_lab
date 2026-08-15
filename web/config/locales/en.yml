@@ -85,6 +85,12 @@ en:
       provisioning_import_duplicate_cpf_in_file: "The same CPF appears more than once in this file."
       provisioning_import_duplicate_email_in_file: "The same guardian e-mail appears more than once in this file."
       provisioning_import_commit_failed: "The import could not be committed."
+      year_in_use: "This school year has linked enrollments or charges."
+      active_year_exists: "Another school year is already active."
+      period_overlap: "Academic periods cannot overlap within the same year."
+      invalid_period_range: "The period must fall within the school year dates."
+      archived_school_year: "Changes are not allowed on an archived school year."
+      no_active_school_year: "No active school year."
     # Not blocking — the contract goes out with a gap someone has to fill in later.
     warnings:
       student_without_cpf: "This student has no CPF on file; the contract will go out with that field blank."
