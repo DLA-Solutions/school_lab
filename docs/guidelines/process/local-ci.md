@@ -19,7 +19,7 @@ bin/install-git-hooks
 | Hook | When | What |
 |------|------|------|
 | `pre-commit` | `git commit` | Fast lint on **staged** files per surface (RuboCop, ESLint) |
-| `pre-push` | `git push` | Full `bin/ci` for surfaces in commits being pushed |
+| `pre-push` | `git push` | Fast `bin/ci` for surfaces in commits being pushed |
 
 Bypass when needed: `git commit --no-verify`, `git push --no-verify`.
 
@@ -28,24 +28,28 @@ Bypass when needed: `git commit --no-verify`, `git push --no-verify`.
 Path filters match the archived GitHub workflow (`ci.yml.archived`).
 
 ```bash
-bin/ci                 # surfaces changed vs origin/main
-bin/ci --fast          # scoped web checks; skip Docker unless production files changed
+bin/ci                 # fast path for surfaces changed vs origin/main (default)
+bin/ci --full          # full web gate: all RuboCop, Brakeman, bundler-audit, full RSpec
+CI_FULL=1 bin/ci       # same as --full
 bin/ci --since REF     # REF..HEAD (pre-push uses remote tip)
 bin/ci --web           # force web/ only
-make ci                # Makefile alias
+make ci                # Makefile alias (fast)
 ```
 
 ### Surface mapping
 
 | Changed paths | Checks |
 |---------------|--------|
-| `web/**` | RuboCop, Brakeman, bundler-audit, RSpec, OpenAPI drift |
+| `web/**` (fast) | Scoped RuboCop + RSpec for changed files; OpenAPI when contract files change |
+| `web/**` (`--full`) | All RuboCop, Brakeman, bundler-audit, full RSpec, OpenAPI drift |
 | `frontend/app/**`, `packages/design-tokens/**` | `npm ci`, `test:run`, production build |
 | `frontend/backoffice/**`, design-tokens | same for backoffice |
 | `site/**` | no automated tests — `make site-build` before deploy |
 
-Docker image build runs only when `web/Dockerfile`, `Gemfile`, or production-related files
-changed, or with `bin/ci --docker`.
+Fast mode skips Brakeman, bundler-audit, and Docker. Docs-only changes skip all surfaces
+(stamp written; nothing to run).
+
+Docker image build runs only on `--full` when production-related `web/` files changed, or with `bin/ci --docker`.
 
 On success, writes `.cursor/ci.stamp` (used by `gh pr create` hook).
 

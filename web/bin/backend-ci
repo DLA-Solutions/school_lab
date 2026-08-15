@@ -6,8 +6,9 @@
 # Prefer repo-root bin/ci for monorepo path filters (web + SPAs). Use this script for web/ only.
 #
 # Run from anywhere:
-#   web/bin/backend-ci              # lint, security, tests; Docker only if production files changed
-#   web/bin/backend-ci --fast       # scoped checks; skip Docker unless production files changed
+#   web/bin/backend-ci              # default: fast scoped lint/tests + OpenAPI when needed
+#   web/bin/backend-ci --full       # full gate (RuboCop all, Brakeman, bundler-audit, all RSpec)
+#   web/bin/backend-ci --fast       # same as default; CI_FULL=1 enables --full
 #   web/bin/backend-ci --skip-docker
 #   web/bin/backend-ci --docker     # force production image build
 #   web/bin/backend-ci-fast         # same as --fast
@@ -16,9 +17,9 @@
 # hooks can verify CI ran on the commit being opened. GitHub Actions still runs the full
 # merge gate on the PR.
 #
-# --fast skips Docker and narrows lint/tests to files changed vs --base (default:
-# origin/main). Falls back to the full suite when Gemfile, migrations, schema, or
-# Dockerfile change. Security scans (Brakeman, bundler-audit) always run in full.
+# Default fast mode skips Docker and security scans; narrows lint/tests vs --base.
+# Falls back to full RSpec when Gemfile, migrations, schema, or Dockerfile change.
+# Use --full or CI_FULL=1 for the complete merge gate.
 
 set -uo pipefail
 
@@ -26,8 +27,10 @@ WEB_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO_ROOT="$(cd "$WEB_ROOT/.." && pwd)"
 STAMP_FILE="$REPO_ROOT/.cursor/backend-ci.stamp"
 
-FAST_MODE=0
-SKIP_DOCKER=0
+FAST_MODE=1
+FULL_EXPLICIT=0
+FAST_EXPLICIT=0
+SKIP_DOCKER=1
 FORCE_DOCKER=0
 BASE_REF="origin/main"
 
@@ -35,25 +38,37 @@ usage() {
   cat <<'EOF'
 Usage: web/bin/backend-ci [OPTIONS]
 
-  (no flags)       Full backend CI — same jobs as .github/workflows/ci.yml backend.
-  --fast           Scoped lint/tests; skip Docker unless production files changed.
+  (no flags)       Fast backend CI — scoped RuboCop/RSpec; OpenAPI when contract files change.
+  --full           Full backend CI — same jobs as archived GitHub workflow. CI_FULL=1 same.
+  --fast           Explicit fast path (default).
   --skip-docker    Full lint/tests/OpenAPI; skip production image build.
   --docker         Build production image even when Dockerfile/Gemfile unchanged.
   --base REF       Merge base for --fast change detection (default: origin/main).
   -h, --help       Show this help.
 
-Fast mode still runs Brakeman and bundler-audit in full. GitHub Actions runs the full
-gate on every PR regardless of local mode.
+Fast mode skips Brakeman, bundler-audit, and Docker. Use --full or CI_FULL=1 before merge.
 EOF
 }
 
+if [ "${CI_FULL:-0}" = "1" ]; then
+  FAST_MODE=0
+fi
+
 while [ $# -gt 0 ]; do
   case "$1" in
+    --full)
+      FULL_EXPLICIT=1
+      FAST_MODE=0
+      SKIP_DOCKER=0
+      ;;
     --fast)
+      FAST_EXPLICIT=1
       FAST_MODE=1
       SKIP_DOCKER=1
       ;;
     --skip-docker)
+      FULL_EXPLICIT=1
+      FAST_MODE=0
       SKIP_DOCKER=1
       ;;
     --docker)
@@ -76,6 +91,17 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
+
+if [ "$FAST_EXPLICIT" -eq 1 ]; then
+  FAST_MODE=1
+  SKIP_DOCKER=1
+elif [ "$FULL_EXPLICIT" -eq 1 ]; then
+  FAST_MODE=0
+elif [ "${CI_FULL:-0}" = "1" ]; then
+  FAST_MODE=0
+  SKIP_DOCKER=0
+fi
+
 
 cd "$WEB_ROOT"
 
@@ -140,9 +166,15 @@ collect_changed_web_files() {
   git -C "$REPO_ROOT" diff --name-only "$base"...HEAD -- web/ 2>/dev/null || true
 }
 
+
+requires_full_rubocop() {
+  local changed="$1"
+  printf '%s\n' "$changed" | grep -qE '^web/(\.rubocop|Gemfile$)'
+}
+
 requires_full_test_suite() {
   local changed="$1"
-  printf '%s\n' "$changed" | grep -qE '^web/(Gemfile(\.lock)?|Dockerfile|db/(migrate/|schema\.rb))'
+  printf '%s\n' "$changed" | grep -qE '^web/(Gemfile$|Dockerfile|db/(migrate/|schema\.rb))'
 }
 
 requires_openapi_check() {
@@ -151,7 +183,7 @@ requires_openapi_check() {
     return 0
   fi
 
-  printf '%s\n' "$changed" | grep -qE '^web/(spec/requests/|swagger/)'
+  printf '%s\n' "$changed" | grep -qE '^web/(spec/requests/|swagger/|config/routes\.rb|app/controllers/)'
 }
 
 requires_docker_build() {
@@ -170,10 +202,6 @@ requires_docker_build() {
 collect_rubocop_targets() {
   local changed="$1"
   local file
-
-  if printf '%s\n' "$changed" | grep -qE '^web/(\.rubocop|Gemfile)'; then
-    return 0
-  fi
 
   while IFS= read -r file; do
     [ -n "$file" ] || continue
@@ -247,27 +275,36 @@ export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-school_lab}"
 export RUBOCOP_CACHE_ROOT="${RUBOCOP_CACHE_ROOT:-$WEB_ROOT/tmp/rubocop}"
 
 if [ "$FAST_MODE" -eq 1 ]; then
-  printf '\033[1mBackend CI (fast)\033[0m — scoped lint/tests; security scans full; Docker skipped\n'
+  printf '\033[1mBackend CI (fast)\033[0m — scoped RuboCop/RSpec; OpenAPI when needed; Docker/security skipped\n'
 else
-  printf '\033[1mBackend CI\033[0m (web/ — matches .github/workflows/ci.yml backend jobs)\n'
+  printf '\033[1mBackend CI (full)\033[0m — matches archived .github/workflows/ci.yml backend jobs\n'
 fi
 
 CHANGED_FILES="$(collect_changed_web_files)"
 
 if [ "$FAST_MODE" -eq 1 ]; then
-  RUBOCOP_TARGETS="$(collect_rubocop_targets "$CHANGED_FILES")"
-  if [ -z "$RUBOCOP_TARGETS" ]; then
+  if requires_full_rubocop "$CHANGED_FILES"; then
     run_step "Lint (RuboCop)" bin/rubocop -f github
   else
-    # shellcheck disable=SC2086
-    run_step "Lint (RuboCop, changed files)" bin/rubocop -f github --force-exclusion $RUBOCOP_TARGETS
+    RUBOCOP_TARGETS="$(collect_rubocop_targets "$CHANGED_FILES" || true)"
+    if [ -z "${RUBOCOP_TARGETS// }" ]; then
+      run_step_skip "Lint (RuboCop) — no changed web/*.rb vs $BASE_REF"
+    else
+      # shellcheck disable=SC2086
+      run_step "Lint (RuboCop, changed files)" bin/rubocop -f github --force-exclusion $RUBOCOP_TARGETS
+    fi
   fi
 else
   run_step "Lint (RuboCop)" bin/rubocop -f github
 fi
 
-run_step "Security scan (Brakeman)" bin/brakeman --no-pager --exit-on-error
-run_step "Security scan (Bundler audit)" bin/bundler-audit
+if [ "$FAST_MODE" -eq 1 ]; then
+  run_step_skip "Security scan (Brakeman) — use --full or CI_FULL=1"
+  run_step_skip "Security scan (Bundler audit) — use --full or CI_FULL=1"
+else
+  run_step "Security scan (Brakeman)" bin/brakeman --no-pager --exit-on-error
+  run_step "Security scan (Bundler audit)" bin/bundler-audit
+fi
 
 section "—" "Test suite (requires PostgreSQL)"
 if ensure_postgres; then

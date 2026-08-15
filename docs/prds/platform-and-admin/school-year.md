@@ -36,6 +36,19 @@ holidays** that academic, billing, enrollment, and archive domains use as their 
 
 ---
 
+## Actors and surfaces
+
+| Actor | Surfaces | Notes |
+|-------|----------|-------|
+| director, owner | Web SPA (`/app`) | Create, activate, and archive school years; manage periods and holidays (`manage_school_settings`) |
+| staff, teacher | Web SPA + mobile | Read active year, periods, and holidays |
+| backoffice | Web SPA (`/backoffice`) | Create first school year during provisioning (`provision_school`) |
+| guardian | — | No Platform W1 access — `403 forbidden` on all routes |
+
+Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md).
+
+---
+
 ## Context
 
 Proesc models **exercício** as the top-level academic/financial container. School Lab academic PRDs
@@ -67,7 +80,7 @@ BR-SY03
 
 BR-SY04
 
-On year create, secretary may apply a **template**: `bimester` (4 periods), `trimester` (3), or
+On year create, **director or owner** may apply a **template**: `bimester` (4 periods), `trimester` (3), or
 `custom`. Default template **`trimester`** for new schools `[product decision Aug 2026]` — schools
 may switch to `bimester` at year create; infantil may use fewer periods via `custom`.
 
@@ -140,50 +153,39 @@ Flow
 
 ## API
 
-### GET /api/v1/school_years
+**Frozen contract (Phase 4C.1):** [`docs/api/v1/platform-and-admin.md`](../../api/v1/platform-and-admin.md) § School years, Academic periods, Holidays.
 
-List years for current school (staff).
+All routes are tenant-scoped under `/api/v1/schools/:school_id`. Mutations require
+`manage_school_settings` (director system template or owner). Reads require any active staff
+membership.
 
-### POST /api/v1/school_years
+| Area | Summary |
+|------|---------|
+| School years | List, create, show, update (draft only), delete, activate, archive, `GET /school_years/active` |
+| Academic periods | List/create under year; PATCH dates on draft year only — closure via Academic BC6 |
+| Holidays | Nested CRUD under `/school_years/:year_id/holidays`; flat PATCH/DELETE on `/holidays/:id` |
 
-Create draft year with optional template.
-
-Request
-
-```json
-{
-  "name": "2026",
-  "starts_on": "2026-02-01",
-  "ends_on": "2026-12-15",
-  "period_template": "trimester"
-}
-```
-
-### POST /api/v1/school_years/:id/activate
-
-Activate year (BR-SY06).
-
-### GET /api/v1/school_years/active
-
-Returns active year with embedded periods and holidays.
-
-### PATCH /api/v1/academic_periods/:id
-
-Adjust period dates within year bounds (secretary).
-
-### CRUD /api/v1/school_holidays
-
-Holiday management.
+Do not implement flat `/api/v1/school_years` paths — superseded by tenant-scoped routes above.
 
 ---
 
 ## Errors
 
+Standard envelope per [`docs/api/README.md`](../../api/README.md). Full catalog in frozen API narrative.
+
 | Status | Code | Description |
 |--------|------|-------------|
-| 409 | `year_in_use` | BR-SY08 |
-| 422 | `invalid_period_range` | Overlap or out of bounds |
-| 422 | `no_active_school_year` | Downstream guard |
+| 403 | `forbidden` | Guardian or staff without required permission |
+| 404 | `not_found` | Unknown id or cross-school access |
+| 409 | `year_in_use` | DELETE year with enrollments or charges (BR-SY08) |
+| 409 | `active_year_exists` | Concurrent activate when another year is active |
+| 409 | `invalid_state_transition` | e.g. activate archived year, PATCH draft fields on active year |
+| 422 | `validation_error` | Invalid dates, unknown template |
+| 422 | `period_overlap` | Overlapping period ranges within year (BR-SY03) |
+| 422 | `invalid_period_range` | Period outside year bounds (BR-SY03) |
+| 422 | `archived_school_year` | Mutation blocked on archived year |
+| 422 | `no_active_school_year` | Downstream guard (UC-SY04) |
+| 501 | `not_implemented` | Route frozen but not yet shipped in `web/` |
 
 ---
 
@@ -220,8 +222,8 @@ Academic BC6 owns closure transitions.
 
 | Action | Permission key |
 |--------|----------------|
-| CRUD years, periods, holidays | `manage_school_settings` on director/secretary templates |
-| Read active year | All staff memberships |
+| CRUD years, periods, holidays | `manage_school_settings` — director system template or owner (see permissions PRD appendix) |
+| Read active year | All active staff memberships |
 
 Backoffice may configure during `provisioning` via `provision_school` (identity BR-O03).
 
@@ -238,12 +240,12 @@ Backoffice may configure during `provisioning` via `provision_school` (identity 
 
 AC-SY01
 
-- [ ] Given no active year, when secretary creates 2026 with trimester template, then 3 periods are generated within year dates.
+- [ ] Given no active year, when **director or owner** creates 2026 with trimester template, then 3 periods are generated within year dates.
 - Source: [`proesc/gestao-academica/modelo-de-dominio.md`](../../ref/proesc/gestao-academica/modelo-de-dominio.md)
 
 AC-SY02
 
-- [ ] Given active year 2025, when secretary activates 2026, then 2025 becomes archived and 2026 is sole active.
+- [ ] Given active year 2025, when **director or owner** activates 2026, then 2025 becomes archived and 2026 is sole active.
 - Source: `[product decision]`
 
 AC-SY03

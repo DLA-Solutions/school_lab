@@ -19,7 +19,7 @@ bin/install-git-hooks   # or: make install-hooks
 | Hook | What |
 |------|------|
 | `pre-commit` | Fast lint on staged files (RuboCop / ESLint per surface) |
-| `pre-push` | Full `bin/ci` for changed surfaces |
+| `pre-push` | Fast `bin/ci` for changed surfaces (`CI_FULL=1` for full) |
 
 Bypass: `git commit --no-verify` / `git push --no-verify`.
 
@@ -27,11 +27,13 @@ Bypass: `git commit --no-verify` / `git push --no-verify`.
 
 ```bash
 # Monorepo — only changed surfaces (recommended before PR)
-bin/ci
-bin/ci --fast          # scoped web checks + SPAs; skip Docker unless production files changed
+bin/ci                 # fast path (default)
+bin/ci --full          # full merge gate before merge
+CI_FULL=1 bin/ci
 
 # Web only
-web/bin/backend-ci
+web/bin/backend-ci     # fast (default)
+web/bin/backend-ci --full
 web/bin/backend-ci-fast
 web/bin/backend-ci --docker   # force production image build
 ```

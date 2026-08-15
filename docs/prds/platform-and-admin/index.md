@@ -241,17 +241,17 @@ Shared with [`academic/`](../academic/index.md), [`billing/`](../billing/index.m
 
 ```mermaid
 sequenceDiagram
-    participant Sec as Secretary (web)
+    participant Dir as Director (web)
     participant Plat as Platform API
     participant SY as School year BC1
     participant Acad as Academic API
     participant Bill as Billing API
 
-    Sec->>Plat: POST /school_years (2026)
+    Dir->>Plat: POST /school_years (2026)
     Plat->>SY: create year + periods + holidays
-    SY-->>Sec: school_year_id active
-    Sec->>Acad: configure diary (uses academic_period_id)
-    Sec->>Bill: generate charges (uses school_year_id)
+    SY-->>Dir: school_year_id active
+    Dir->>Acad: configure diary (uses academic_period_id)
+    Dir->>Bill: generate charges (uses school_year_id)
     Note over SY,Bill: Same year boundary; no duplicate calendars
 ```
 
@@ -259,16 +259,18 @@ sequenceDiagram
 
 ## 9. Delivery waves
 
-| Wave | Primary doc | Deliverable |
-|------|-------------|-------------|
-| **W1** | school-year.md | `school_years`, `academic_periods`, holidays API; one active year enforcement |
-| **W2** | backoffice.md | Backoffice school register, module flags, provisioning dashboard |
-| **W3** | staff-users.md | Staff roster list, menu visibility map from permission payload |
-| **W4** | calendar.md | Institutional + personal events CRUD |
-| **W5** | onboarding.md | In-app getting started, store links, optional checklist UI |
-| **Phase 2** | — | Multi-unit, help taxonomy, analytics |
+| Wave | Primary doc | Deliverable | Status |
+|------|-------------|-------------|--------|
+| **W1** | school-year.md | `school_years`, `academic_periods`, holidays API; one active year enforcement | **API frozen (4C.1)** — see [`platform-and-admin.md`](../../api/v1/platform-and-admin.md) |
+| **W2** | calendar.md | Institutional + personal events CRUD (`calendar_events`) | Deferred — Phase 4C.1b |
+| **W3** | backoffice.md | Backoffice school register, module flags, provisioning dashboard | Deferred — Phase 4C.1b |
+| **W4** | staff-users.md | Staff roster list, menu visibility map from permission payload | Deferred — Phase 4C.1b |
+| **W5** | onboarding.md | In-app getting started, store links, optional checklist UI | Deferred — Phase 4C.1b |
+| **Phase 2** | — | Multi-unit, help taxonomy, analytics | — |
 
-W1 is a **hard dependency** for academic modeling and period closure implementation.
+W1 is a **hard dependency** for academic modeling and period closure implementation. W2–W5 wave
+ordering matches the frozen deferred table in [`platform-and-admin.md`](../../api/v1/platform-and-admin.md)
+§ Deferred — Phase 4C.1b (W numbers ≠ BC numbers: BC2=backoffice, BC3=calendar).
 
 ---
 

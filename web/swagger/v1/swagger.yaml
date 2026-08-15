@@ -711,6 +711,120 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/academic_periods/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "patch": {
+        "summary": "Update academic period (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "Academic Periods"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "starts_on": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "ends_on": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update academic periods",
+        "tags": [
+          "Schools"
+        ],
+        "operationId": "api_v1_schools_academic_periods_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/schools/{school_id}/academics/job_positions": {
       "get": {
         "summary": "List job positions",
@@ -4303,6 +4417,148 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/holidays/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "patch": {
+        "summary": "Update holiday (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "Holidays"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "applies_to_attendance": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete holiday (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "Holidays"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update holidays",
+        "tags": [
+          "Schools"
+        ],
+        "operationId": "api_v1_schools_holidays_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/schools/{school_id}/me/charges": {
       "parameters": [
         {
@@ -5511,7 +5767,8 @@
                         "description": "Accepted formatted or bare; stored as 11 digits and unique per school"
                       },
                       "rg": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Optional"
                       },
                       "birth_date": {
                         "type": "string",
@@ -5535,7 +5792,6 @@
                     "required": [
                       "name",
                       "cpf",
-                      "rg",
                       "birth_date",
                       "school_class_id"
                     ]
@@ -6331,6 +6587,646 @@
                   }
                 },
                 "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/school_years": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List school years (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "School Years"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filter by status (draft, active, archived)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "501": {
+            "description": "not implemented"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create school year (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "School Years"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "starts_on": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "ends_on": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "period_template": {
+                    "type": "string",
+                    "enum": [
+                      "bimester",
+                      "trimester",
+                      "custom"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "starts_on",
+                  "ends_on"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/school_years/active": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show active school year (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "School Years"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented for active staff"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/school_years/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show school year (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "School Years"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "description": "Optional embeds: periods,holidays",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update school year (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "School Years"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "starts_on": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "ends_on": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete school year (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "School Years"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update school years",
+        "tags": [
+          "Schools"
+        ],
+        "operationId": "api_v1_schools_school_years_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/school_years/{id}/activate": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Activate school year (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "School Years"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/school_years/{id}/archive": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Archive school year (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "School Years"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/school_years/{school_year_id}/academic_periods": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "school_year_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List academic periods (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "Academic Periods"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "501": {
+            "description": "not implemented"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create academic period (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "Academic Periods"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "sequence": {
+                    "type": "integer"
+                  },
+                  "starts_on": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "ends_on": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                },
+                "required": [
+                  "name",
+                  "sequence",
+                  "starts_on",
+                  "ends_on"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/school_years/{school_year_id}/holidays": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "school_year_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List holidays (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "Holidays"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "501": {
+            "description": "not implemented"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create holiday (phase 4C.1)",
+        "tags": [
+          "Platform",
+          "Holidays"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "not implemented"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "applies_to_attendance": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "date",
                   "name"
                 ]
               }
