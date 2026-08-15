@@ -6767,6 +6767,9 @@
           },
           "403": {
             "description": "forbidden for guardian"
+          },
+          "404": {
+            "description": "cross-school access"
           }
         }
       }
@@ -7003,6 +7006,9 @@
           },
           "409": {
             "description": "activate without periods"
+          },
+          "422": {
+            "description": "period overlap blocks activate"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
