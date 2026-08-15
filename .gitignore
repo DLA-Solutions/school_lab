@@ -21,3 +21,6 @@ docker-compose.override.yml
 *.pem
 *.key
 .certs/
+
+frontend/node_modules/*
+app/node_modules/*
