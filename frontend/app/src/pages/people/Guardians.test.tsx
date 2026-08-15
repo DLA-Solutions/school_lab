@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server, staffMembership } from 'test/msw';
@@ -207,6 +207,7 @@ describe('Guardians page row actions', () => {
     await screen.findByText('Maria Silva');
 
     const actions = [
+      /ver detalhes de maria silva/i,
       /enviar acesso ao sistema para maria silva/i,
       /contratos maria silva/i,
       /documentos pessoais maria silva/i,
@@ -220,3 +221,31 @@ describe('Guardians page row actions', () => {
   });
 });
 
+describe('Guardians page details', () => {
+  // The listing carries only what tells two people apart; the rest lives one click away.
+  it('keeps the email and the city out of the listing', async () => {
+    setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
+    recordQueries();
+
+    renderPage();
+    await screen.findByText('Maria Silva');
+
+    expect(screen.queryByRole('columnheader', { name: /e-mail/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: /cidade/i })).not.toBeInTheDocument();
+  });
+
+  it("opens a guardian's full record in a dialog", async () => {
+    setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
+    recordQueries();
+
+    renderPage();
+    await screen.findByText('Maria Silva');
+
+    await user.click(screen.getByRole('button', { name: /ver detalhes de maria silva/i }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(maria.email)).toBeInTheDocument();
+    expect(within(dialog).getByText('123.456.789-09')).toBeInTheDocument();
+    expect(within(dialog).getByText(/endereço/i)).toBeInTheDocument();
+  });
+});

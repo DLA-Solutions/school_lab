@@ -13,6 +13,7 @@ import IconifyIcon from 'components/base/IconifyIcon';
 import PersonDocumentsDialog from 'components/sections/documents/PersonDocumentsDialog';
 import GuardianChargesDialog from 'components/sections/people/guardians/GuardianChargesDialog';
 import GuardianContractsDialog from 'components/sections/people/guardians/GuardianContractsDialog';
+import GuardianDetailsDialog from 'components/sections/people/guardians/GuardianDetailsDialog';
 import GuardianFormDialog from 'components/sections/people/guardians/GuardianFormDialog';
 import {
   ConfirmDialog,
@@ -46,18 +47,6 @@ const renderCpf = ({ value }: GridRenderCellParams<Guardian, string>) => (
   <Typography variant="body2">{formatCpf(value)}</Typography>
 );
 
-const renderCity = ({ row }: GridRenderCellParams<Guardian>) =>
-  row.city ? (
-    <Typography variant="body2">
-      {row.city}
-      {row.state ? `/${row.state}` : ''}
-    </Typography>
-  ) : (
-    <Typography variant="body2" color="text.secondary">
-      —
-    </Typography>
-  );
-
 const Guardians = () => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
@@ -85,6 +74,7 @@ const Guardians = () => {
   const [documentsFor, setDocumentsFor] = useState<Guardian | null>(null);
   const [contractsFor, setContractsFor] = useState<Guardian | null>(null);
   const [chargesFor, setChargesFor] = useState<Guardian | null>(null);
+  const [detailsFor, setDetailsFor] = useState<Guardian | null>(null);
   const [sendingAccessTo, setSendingAccessTo] = useState<number | null>(null);
   const [accessSent, setAccessSent] = useState('');
 
@@ -236,21 +226,13 @@ const Guardians = () => {
   const columns: GridColDef<Guardian>[] = [
     { field: 'name', headerName: t('common.name'), flex: 1, minWidth: 180 },
     { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
-    { field: 'email', headerName: t('common.email'), flex: 1, minWidth: 190 },
     { field: 'phone', headerName: t('common.phone'), width: 150 },
-    {
-      field: 'city',
-      headerName: t('common.city'),
-      width: 150,
-      sortable: false,
-      renderCell: renderCity,
-    },
     {
       field: 'actions',
       headerName: t('common.actions'),
-      // Six buttons on an active row. Sized to fit them all: at 180 the cell clipped the ones on
-      // the left, which read as the actions having disappeared.
-      width: 280,
+      // Seven buttons on an active row. Sized to fit them all: a cell too narrow clips the ones
+      // on the left, which reads as the actions having disappeared rather than as an overflow.
+      width: 320,
       sortable: false,
       filterable: false,
       align: 'right',
@@ -271,6 +253,15 @@ const Guardians = () => {
             </Tooltip>
           ) : (
             <>
+              <Tooltip title={t('guardians.details.tooltip')}>
+                <IconButton
+                  size="small"
+                  aria-label={t('guardians.details.aria', { name: row.name })}
+                  onClick={() => setDetailsFor(row)}
+                >
+                  <IconifyIcon icon="mingcute:information-line" />
+                </IconButton>
+              </Tooltip>
               {/* Gives the family a way in: an invitation if they have never set a password, a
                   reset if they have. Either way it ends at a screen where they choose one. */}
               <Tooltip title={t('guardians.sendAccess')}>
@@ -439,6 +430,14 @@ const Guardians = () => {
       />
 
       {/* Mounted only while open so each guardian's dialog fetches its own data on mount. */}
+      {detailsFor && (
+        <GuardianDetailsDialog
+          open
+          guardian={detailsFor}
+          onClose={() => setDetailsFor(null)}
+        />
+      )}
+
       {chargesFor && (
         <GuardianChargesDialog
           open

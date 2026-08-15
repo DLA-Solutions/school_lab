@@ -231,85 +231,83 @@ const Lessons = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader
-        title={t('nav.lessons')}
-        actions={
-          tab === 'lessons' ? (
-            <>
-              <SearchField
-                value={search}
-                onChange={(e) => setFilter('q', e.target.value)}
-                placeholder={t('lessons.searchPlaceholder')}
-                ariaLabel={t('lessons.searchAria')}
-                sx={{ width: 200 }}
-              />
-              <TextField
-                id="lessons-filter-class"
-                label={t('common.class')}
-                value={classFilter}
-                onChange={(e) => setFilter('school_class_id', e.target.value)}
-                variant="filled"
-                size="small"
-                select
-                sx={{ width: 120 }}
-              >
-                <MenuItem value="">{t('common.all')}</MenuItem>
-                {/* The letter alone: the year is its own filter, and repeating it here made the
-                    same cohort look like several. Duplicated letters across years are told apart
-                    by narrowing the year rather than by a longer label. */}
-                {classes.map((schoolClass) => (
-                  <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
-                    {schoolClass.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                id="lessons-filter-subject"
-                label={t('common.subject')}
-                value={subjectFilter}
-                onChange={(e) => setFilter('subject_id', e.target.value)}
-                variant="filled"
-                size="small"
-                select
-                sx={{ width: 170 }}
-              >
-                <MenuItem value="">{t('common.all')}</MenuItem>
-                {subjects.map((subject) => (
-                  <MenuItem key={subject.id} value={String(subject.id)}>
-                    {subject.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                id="lessons-filter-year"
-                label={t('common.year')}
-                value={yearFilter}
-                onChange={(e) => setFilter('year', e.target.value)}
-                variant="filled"
-                size="small"
-                select
-                sx={{ width: 120 }}
-              >
-                <MenuItem value="">{t('common.all')}</MenuItem>
-                {YEAR_OPTIONS.map((year) => (
-                  <MenuItem key={year} value={String(year)}>
-                    {year}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <Button variant="contained" size="small" onClick={() => setFormOpen(true)}>
-                {t('lessons.new')}
-              </Button>
-            </>
-          ) : undefined
-        }
-      />
+      <PageHeader title={t('nav.lessons')} />
 
       <Tabs value={tab} onChange={(_, value: LessonsTab) => setFilter('tab', value)}>
         <Tab value="lessons" label={t('nav.lessons')} />
         <Tab value="classes" label={t('nav.classes')} />
         <Tab value="subjects" label={t('nav.subjects')} />
       </Tabs>
+
+      {/* Under the tabs, where Turmas and Matérias put their own: the controls belong to the tab
+          they filter, not to the page that holds all three. */}
+      {tab === 'lessons' && (
+        <Stack direction="row" gap={1.5} flexWrap="wrap" alignItems="center">
+          <SearchField
+            value={search}
+            onChange={(e) => setFilter('q', e.target.value)}
+            placeholder={t('lessons.searchPlaceholder')}
+            ariaLabel={t('lessons.searchAria')}
+            sx={{ width: 240 }}
+          />
+          <TextField
+            id="lessons-filter-class"
+            label={t('common.class')}
+            value={classFilter}
+            onChange={(e) => setFilter('school_class_id', e.target.value)}
+            variant="filled"
+            size="small"
+            select
+            sx={{ width: 120 }}
+          >
+            <MenuItem value="">{t('common.all')}</MenuItem>
+            {/* The letter alone: the year is its own filter, and repeating it here made the same
+                cohort look like several. */}
+            {classes.map((schoolClass) => (
+              <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
+                {schoolClass.name}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            id="lessons-filter-subject"
+            label={t('common.subject')}
+            value={subjectFilter}
+            onChange={(e) => setFilter('subject_id', e.target.value)}
+            variant="filled"
+            size="small"
+            select
+            sx={{ width: 170 }}
+          >
+            <MenuItem value="">{t('common.all')}</MenuItem>
+            {subjects.map((subject) => (
+              <MenuItem key={subject.id} value={String(subject.id)}>
+                {subject.name}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            id="lessons-filter-year"
+            label={t('common.year')}
+            value={yearFilter}
+            onChange={(e) => setFilter('year', e.target.value)}
+            variant="filled"
+            size="small"
+            select
+            sx={{ width: 120 }}
+          >
+            <MenuItem value="">{t('common.all')}</MenuItem>
+            {YEAR_OPTIONS.map((year) => (
+              <MenuItem key={year} value={String(year)}>
+                {year}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button variant="contained" size="small" onClick={() => setFormOpen(true)}>
+            {t('lessons.new')}
+          </Button>
+        </Stack>
+      )}
 
       {/* Turmas and Matérias keep their own pages, headers and all: they are reached from here
           rather than reimplemented here. */}
