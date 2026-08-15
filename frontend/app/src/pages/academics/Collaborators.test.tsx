@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server, staffMembership } from 'test/msw';
@@ -98,7 +98,7 @@ const stubListing = () => {
 const authenticate = () => setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
 
 describe('Collaborators page', () => {
-  it('shows the post and the hire date of each collaborator', async () => {
+  it('shows the post of each collaborator', async () => {
     authenticate();
     stubListing();
 
@@ -107,8 +107,35 @@ describe('Collaborators page', () => {
     expect(await screen.findByText('Carla Nogueira')).toBeInTheDocument();
     expect(screen.getByText('Professora')).toBeInTheDocument();
     expect(screen.getByText('Porteiro')).toBeInTheDocument();
-    // ISO on the wire, formatted on screen.
-    expect(screen.getAllByText('01/02/2024')).toHaveLength(2);
+  });
+
+  // The listing carries only what tells two people apart; their own details live one click away.
+  it('leaves the email and the hire date out of the listing', async () => {
+    authenticate();
+    stubListing();
+
+    renderPage();
+    await screen.findByText('Carla Nogueira');
+
+    expect(screen.queryByText('1@example.com')).not.toBeInTheDocument();
+    expect(screen.queryByText('01/02/2024')).not.toBeInTheDocument();
+  });
+
+  it('opens a collaborator\'s full record in a dialog', async () => {
+    authenticate();
+    stubListing();
+
+    renderPage();
+    await screen.findByText('Carla Nogueira');
+
+    await user.click(screen.getByRole('button', { name: /ver detalhes de carla nogueira/i }));
+
+    const dialog = await screen.findByRole('dialog');
+    // Everything the listing dropped is here, alongside what it kept.
+    expect(within(dialog).getByText('1@example.com')).toBeInTheDocument();
+    expect(within(dialog).getByText('01/02/2024')).toBeInTheDocument();
+    expect(within(dialog).getByText('123.456.789-09')).toBeInTheDocument();
+    expect(within(dialog).getAllByText('Professora').length).toBeGreaterThan(0);
   });
 
   it('searches by name', async () => {

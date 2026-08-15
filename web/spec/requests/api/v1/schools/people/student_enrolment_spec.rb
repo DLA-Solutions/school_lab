@@ -28,6 +28,52 @@ RSpec.describe "Enrolling a student against the parents' CPFs", type: :request d
          as: :json
   end
 
+  describe "editing the parents afterwards" do
+    def enrol_with_mother_only
+      enrol(mother_cpf: "123.456.789-09")
+      response.parsed_body.dig("data", "id")
+    end
+
+    def links_of(id)
+      get "#{path}/#{id}", headers: headers
+      response.parsed_body.dig("data", "guardians").to_h { |g| [ g["relationship"], g["name"] ] }
+    end
+
+    # The form has always offered both parent fields on edit. Until the update read them, the
+    # second parent could never be added, and every contract went out naming only one.
+    it "attaches the father named on the edit form" do
+      id = enrol_with_mother_only
+
+      patch "#{path}/#{id}",
+            params: { student: { father_cpf: "529.982.247-25", mother_cpf: "123.456.789-09" } },
+            headers: headers, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(links_of(id)).to eq("father" => "João Silva", "mother" => "Maria Silva")
+    end
+
+    # A rename says nothing about the parents and must not be read as clearing them.
+    it "leaves the parents alone when the form did not send them" do
+      id = enrol_with_mother_only
+
+      patch "#{path}/#{id}", params: { student: { name: "Pedro" } }, headers: headers, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(links_of(id)).to eq("mother" => "Maria Silva")
+    end
+
+    it "refuses to leave the student with no parent at all" do
+      id = enrol_with_mother_only
+
+      patch "#{path}/#{id}",
+            params: { student: { father_cpf: nil, mother_cpf: nil } },
+            headers: headers, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(links_of(id)).to eq("mother" => "Maria Silva")
+    end
+  end
+
   it "links both parents when both CPFs are given" do
     enrol(father_cpf: "529.982.247-25", mother_cpf: "123.456.789-09")
 

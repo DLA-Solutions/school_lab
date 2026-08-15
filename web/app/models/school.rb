@@ -37,9 +37,28 @@ class School < ApplicationRecord
   has_many :membership_invite_tokens, dependent: :destroy
   has_many :provisioning_imports, dependent: :destroy
 
+  # Loose on purpose, like the template's copy addresses: a hint that someone mistyped, not an
+  # attempt to decide what the RFC allows.
+  EMAIL_FORMAT = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
+
+  before_validation :normalize_signature_email
+
   validates :name, presence: true
   validates :onboarding_status, inclusion: { in: ONBOARDING_STATUSES }
   validates :onboarding_mode, inclusion: { in: ONBOARDING_MODES }
+  validates :signature_email, format: { with: EMAIL_FORMAT }, allow_blank: true
+  validate :signature_email_requires_a_cnpj
+
+  # Whether the school is itself a party to the contracts it sends. The provider identifies a
+  # signer by e-mail and demands a document from whoever opens the link, so the school can only
+  # sign once both are on file — its own address, and the CNPJ it signs under.
+  def signs_contracts?
+    signature_email.present? && Cnpj.valid?(cnpj)
+  end
+
+  def formatted_cnpj
+    Cnpj.format(cnpj)
+  end
 
   def provisioning?
     onboarding_status == "provisioning"
@@ -69,5 +88,20 @@ class School < ApplicationRecord
 
   def system_role_template(system_key)
     school_role_templates.kept.find_by(system_key: system_key.to_s)
+  end
+
+  private
+
+  def normalize_signature_email
+    self.signature_email = signature_email.to_s.strip.downcase.presence
+  end
+
+  # An address with no valid CNPJ behind it would be sent to the provider as a signer it cannot
+  # identify, and the whole contract would be rejected with a family already expecting it.
+  def signature_email_requires_a_cnpj
+    return if signature_email.blank?
+    return if Cnpj.valid?(cnpj)
+
+    errors.add(:signature_email, :requires_valid_cnpj)
   end
 end

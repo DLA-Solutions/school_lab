@@ -9,4 +9,5 @@ export default {
     `/schools?onboarding_status=${status}`,
   provisioningWizard: (schoolId: number) => `/schools/${schoolId}/provisioning`,
   schoolActivation: (schoolId: number) => `/schools/${schoolId}/activation`,
+  bankCredentials: (schoolId: number) => `/schools/${schoolId}/bank-credentials`,
 };

@@ -140,6 +140,7 @@ RSpec.describe Billing::SchoolSettings do
       :issuance_ready,
       school: school,
       early_payment_discount_percent: 5.0,
+      early_payment_discount_day: 5,
       fine_type: "fixed",
       fine_amount_cents: 1500
     )

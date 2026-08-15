@@ -1,30 +1,38 @@
 /// <reference types="vitest/config" />
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import checker from 'vite-plugin-checker';
 
-const rootDir = path.dirname(fileURLToPath(import.meta.url));
-
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   resolve: {
-    alias: {
-      react: path.resolve(rootDir, 'node_modules/react'),
-      'react-dom': path.resolve(rootDir, 'node_modules/react-dom'),
-      'react/jsx-dev-runtime': path.resolve(rootDir, 'node_modules/react/jsx-dev-runtime'),
-      'react/jsx-runtime': path.resolve(rootDir, 'node_modules/react/jsx-runtime'),
-      '@mui/material': path.resolve(rootDir, 'node_modules/@mui/material'),
-      '@mui/x-data-grid': path.resolve(rootDir, 'node_modules/@mui/x-data-grid'),
-      '@iconify/react': path.resolve(rootDir, 'node_modules/@iconify/react'),
-    },
+    // `@school-lab/design-system-ui` is linked from `packages/`, which has no `node_modules` of
+    // its own, so its bare imports have to be resolved from here. `dedupe` does that through
+    // normal package resolution — honouring each package's `exports` map, so MUI is loaded as
+    // ESM. Filesystem aliases (what stood here before) point past `exports` and pull in the CJS
+    // builds instead: every MUI module then goes through esbuild's CJS→ESM interop, and a
+    // half-stale optimize generation hands React a namespace object where a component belongs
+    // ("Element type is invalid … got: object", raised from the DataGrid's `BasePopper`).
+    dedupe: [
+      'react',
+      'react-dom',
+      '@emotion/react',
+      '@emotion/styled',
+      '@mui/material',
+      '@mui/system',
+      '@mui/utils',
+      '@mui/x-data-grid',
+      '@mui/x-date-pickers',
+      '@iconify/react',
+    ],
   },
   plugins: [
-    // Single source of path aliases (tsconfig.json `paths`), so `theme`, `components`,
-    // `design-system`, `providers` and `assets` resolve the same way in the app and in tests.
-    tsconfigPaths(),
+    // Single source of path aliases, so `theme`, `components`, `design-system`, `providers` and
+    // `assets` resolve the same way in the app and in tests. Pinned to `tsconfig.paths.json`:
+    // `tsconfig.app.json` carries extra, type-only `@mui/*` mappings that must not reach the
+    // bundler — see the comment in that file.
+    tsconfigPaths({ projects: ['./tsconfig.paths.json'] }),
     react(),
     // Vitest resolves this config with mode 'test'. Skip the checker there: it would spawn
     // an extra tsc + eslint pass on every run, duplicating what `npm run build` already does.
@@ -48,8 +56,43 @@ export default defineConfig(({ mode }) => ({
   preview: {
     port: 4173,
   },
+  // `@school-lab/design-system-ui` ships source, not a build, so its `@mui/material/*` imports
+  // are only discovered once a module that uses them is requested. Left to that, each discovery
+  // re-runs the optimizer and forces a reload, and a browser part-way through one holds modules
+  // from two generations at once — which is how a component slot ends up holding a namespace
+  // object. Listing them keeps every dependency bundled in the first pass.
+  optimizeDeps: {
+    include: [
+      '@mui/material',
+      '@mui/material/styles',
+      '@mui/material/Alert',
+      '@mui/material/Box',
+      '@mui/material/Button',
+      '@mui/material/Chip',
+      '@mui/material/Dialog',
+      '@mui/material/DialogActions',
+      '@mui/material/DialogContent',
+      '@mui/material/DialogContentText',
+      '@mui/material/DialogTitle',
+      '@mui/material/IconButton',
+      '@mui/material/InputAdornment',
+      '@mui/material/Pagination',
+      '@mui/material/Paper',
+      '@mui/material/Stack',
+      '@mui/material/TextField',
+      '@mui/material/Tooltip',
+      '@mui/material/Typography',
+      '@mui/x-data-grid',
+      '@iconify/react',
+    ],
+  },
   server: {
     host: '0.0.0.0',
+    fs: {
+      // The design-system package is a sibling of this app, outside the Vite root, so serving its
+      // source needs the repository root on the allow list.
+      allow: ['../..'],
+    },
     // Matches the API's default CORS_ORIGINS (http://localhost:5173) so the refresh
     // cookie is accepted without extra backend configuration.
     port: 5173,

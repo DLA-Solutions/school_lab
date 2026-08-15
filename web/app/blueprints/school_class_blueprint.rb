@@ -3,7 +3,7 @@
 class SchoolClassBlueprint < Blueprinter::Base
   identifier :id
 
-  fields :school_id, :name, :grade_level, :year
+  fields :school_id, :name, :grade_level, :shift, :year
 
   field :student_count do |school_class|
     school_class.students.kept.size

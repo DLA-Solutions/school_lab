@@ -16,11 +16,17 @@ class ContractTemplate < ApplicationRecord
     "aluno.rg" => "RG do aluno",
     "aluno.nascimento" => "Data de nascimento do aluno",
     "aluno.turma" => "Turma e ano letivo",
-    "contrato.valor" => "Mensalidade, por extenso e em algarismos",
+    "contrato.valor" => "Mensalidade acordada com a família",
+    "contrato.valor.tabela" => "Mensalidade de tabela do plano, antes de descontos",
+    "contrato.pontualidade.percentual" => "Percentual do desconto pontualidade (ex.: 10%)",
+    "contrato.pontualidade.dia" => "Dia limite para o desconto pontualidade",
+    "contrato.pontualidade.desconto" => "Valor abatido pelo desconto pontualidade",
+    "contrato.pontualidade.valor" => "Mensalidade já com o desconto pontualidade",
     "contrato.vencimento" => "Dia de vencimento",
     "contrato.inicio" => "Início da vigência",
     "responsaveis" => "Bloco com os dados de todos os responsáveis (um ou dois)",
     "responsaveis.nomes" => "Nomes dos responsáveis separados por vírgula",
+    "responsaveis.assinaturas" => "Linhas de assinatura de todos os responsáveis, para o fim do contrato",
     "contrato.responsavel" => "Responsável pelos boletos",
     "contrato.responsavel.cpf" => "CPF do responsável pelos boletos",
     "data.hoje" => "Data de hoje por extenso"
@@ -76,6 +82,8 @@ class ContractTemplate < ApplicationRecord
 
       <h2>4. Assinaturas</h2>
       <p>Este contrato é assinado eletronicamente pelas partes, em {{data.hoje}}.</p>
+      {{responsaveis.assinaturas}}
+      <p class="signature">___________________________________________<br />{{escola.nome}} — CNPJ {{escola.cnpj}} (CONTRATADA)</p>
     HTML
   end
 

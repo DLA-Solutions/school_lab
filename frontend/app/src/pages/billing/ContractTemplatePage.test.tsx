@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server, staffMembership } from 'test/msw';
@@ -123,6 +123,26 @@ describe('ContractTemplatePage', () => {
     expect(received?.contract_template).not.toHaveProperty('signature_y');
   });
 
+  // A line above the editor was easy to miss on a page this long, so the save is confirmed where
+  // the eye already is and stays until it is acknowledged.
+  it('confirms the save in a modal the user dismisses', async () => {
+    authenticate();
+    stubTemplate();
+    server.use(http.put(apiUrl(PATH), () => HttpResponse.json({ data: template })));
+
+    renderPage();
+    await waitFor(() => expect(editor()).toHaveValue(template.body_html));
+
+    await user.click(screen.getByRole('button', { name: /salvar modelo/i }));
+
+    const modal = await screen.findByRole('dialog');
+    expect(within(modal).getByText(/contrato salvo com sucesso/i)).toBeInTheDocument();
+
+    await user.click(within(modal).getByRole('button', { name: 'OK' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
   // The logo cannot travel in a JSON body, so a save carrying one goes up as multipart.
   it('uploads the logo as multipart', async () => {
     authenticate();
@@ -194,6 +214,14 @@ describe('ContractTemplatePage', () => {
       expect(frame).toHaveAttribute('srcdoc', expect.stringContaining('Pedro Silva'));
       // Nothing inside the preview may run, whatever the HTML contains.
       expect(frame).toHaveAttribute('sandbox', '');
+      // A contract is a printed white page, and the preview HTML sets no background of its own —
+      // so the frame has to paint one, or the dark page shows straight through it.
+      // A contract is a printed white page, and the preview HTML sets no background of its own, so
+      // the frame has to paint one or the dark page shows straight through it. Asserting the
+      // resolved colour rather than "not transparent": `background: 'common.white'` — the CSS
+      // shorthand, which `sx` does not resolve against the palette — silently left it at
+      // rgba(0, 0, 0, 0), which is exactly the bug this guards.
+      expect(getComputedStyle(frame).backgroundColor).toBe('var(--mui-palette-common-white)');
     });
 
     it('says when it is showing stand-in data', async () => {

@@ -14,13 +14,15 @@ module Gateways
         end
       end
 
-      # One party. `cpf` is bare digits — the provider is told to demand that document from
-      # whoever opens the link, so the person who signs is the person on the contract.
+      # One party. `cpf` and `cnpj` are bare digits — the provider is told to demand that document
+      # from whoever opens the link, so the party who signs is the party on the contract. A
+      # guardian signs under a CPF and the school, as a legal entity, under its CNPJ; exactly one
+      # of the two is set.
       #
       # `positions` says where the signature is drawn, as `{ x:, y:, z: }` in percent of the page
       # from its top-left corner. Empty leaves the placement to the provider's default.
-      Signer = Data.define(:name, :email, :cpf, :positions) do
-        def initialize(name:, email:, cpf:, positions: [])
+      Signer = Data.define(:name, :email, :cpf, :cnpj, :positions) do
+        def initialize(name:, email:, cpf: nil, cnpj: nil, positions: [])
           super
         end
       end

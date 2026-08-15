@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { useSearchParams } from 'react-router';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
+import CollaboratorDetailsDialog from 'components/sections/academics/CollaboratorDetailsDialog';
 import CollaboratorFormDialog from 'components/sections/academics/CollaboratorFormDialog';
 import TeacherAssignmentsDialog from 'components/sections/academics/TeacherAssignmentsDialog';
 import PersonDocumentsDialog from 'components/sections/documents/PersonDocumentsDialog';
@@ -37,20 +38,6 @@ const renderCpf = ({ value }: GridRenderCellParams<Teacher, string>) => (
   <Typography variant="body2">{formatCpf(value)}</Typography>
 );
 
-const renderHiredOn = ({ value }: GridRenderCellParams<Teacher, string | null>) => {
-  if (!value) {
-    return (
-      <Typography variant="body2" color="text.secondary">
-        —
-      </Typography>
-    );
-  }
-
-  const [year, month, day] = value.split('-');
-
-  return <Typography variant="body2">{`${day}/${month}/${year}`}</Typography>;
-};
-
 const Collaborators = () => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
@@ -68,6 +55,7 @@ const Collaborators = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Teacher | null>(null);
   const [assignmentsFor, setAssignmentsFor] = useState<Teacher | null>(null);
+  const [detailsFor, setDetailsFor] = useState<Teacher | null>(null);
   const [documentsFor, setDocumentsFor] = useState<Teacher | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -173,13 +161,6 @@ const Collaborators = () => {
       { field: 'job_title', headerName: t('common.position'), width: 160 },
       { field: 'cpf', headerName: 'CPF', width: 140, renderCell: renderCpf },
       {
-        field: 'hired_on',
-        headerName: t('collaborators.hiredOn'),
-        width: 130,
-        renderCell: renderHiredOn,
-      },
-      { field: 'email', headerName: t('common.email'), width: 190 },
-      {
         field: 'classes',
         headerName: t('collaborators.classesColumn'),
         flex: 1,
@@ -190,13 +171,22 @@ const Collaborators = () => {
       {
         field: 'actions',
         headerName: t('common.actions'),
-        width: 180,
+        width: 210,
         sortable: false,
         filterable: false,
         align: 'right',
         headerAlign: 'right',
         renderCell: ({ row }: GridRenderCellParams<Teacher>) => (
           <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            <Tooltip title={t('collaborators.details')}>
+              <IconButton
+                size="small"
+                aria-label={t('collaborators.detailsAria', { name: row.name })}
+                onClick={() => setDetailsFor(row)}
+              >
+                <IconifyIcon icon="mingcute:information-line" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title={t('common.personalDocuments')}>
               <IconButton
                 size="small"
@@ -342,6 +332,14 @@ const Collaborators = () => {
           load();
         }}
       />
+
+      {detailsFor && (
+        <CollaboratorDetailsDialog
+          open
+          teacher={detailsFor}
+          onClose={() => setDetailsFor(null)}
+        />
+      )}
 
       {assignmentsFor && (
         <TeacherAssignmentsDialog

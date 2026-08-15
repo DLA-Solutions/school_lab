@@ -38,13 +38,71 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
   describe "school classes" do
     it "creates a cohort" do
       post "#{base}/school_classes",
-           params: { school_class: { name: "A", grade_level: "fundamental_i_5", year: 2026 } },
+           params: { school_class: { name: "A", grade_level: "fundamental_i_5",
+                                     shift: "vespertino", year: 2026 } },
            headers: headers, as: :json
 
       expect(response).to have_http_status(:created)
       expect(response.parsed_body["data"]).to include(
-        "name" => "A", "grade_level" => "fundamental_i_5", "year" => 2026
+        "name" => "A", "grade_level" => "fundamental_i_5", "shift" => "vespertino", "year" => 2026
       )
+    end
+
+    # A cohort that says nothing about when it is taught defaults to the morning, and is called "A".
+    it "defaults to the morning and to A" do
+      post "#{base}/school_classes",
+           params: { school_class: { grade_level: "fundamental_i_5", year: 2026 } },
+           headers: headers, as: :json
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body["data"]).to include("name" => "A", "shift" => "matutino")
+    end
+
+    # Students, teaching assignments and signed contracts all point at a cohort, so there is no
+    # endpoint to delete one at all — not a permission that could be granted later.
+    it "offers no way to delete a cohort" do
+      school_class = create(:school_class, school: school)
+
+      delete "#{base}/school_classes/#{school_class.id}", headers: headers
+
+      expect(response).to have_http_status(:not_found)
+      expect(school_class.reload).to be_kept
+    end
+
+    it "rejects a second cohort spelled in another case" do
+      create(:school_class, school: school, name: "A", grade_level: "fundamental_i_5",
+                            shift: "matutino", year: 2026)
+
+      post "#{base}/school_classes",
+           params: { school_class: { name: "a", grade_level: "fundamental_i_5",
+                                     shift: "matutino", year: 2026 } },
+           headers: headers, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("error", "details")).to have_key("name")
+    end
+
+    it "rejects a shift outside the list" do
+      post "#{base}/school_classes",
+           params: { school_class: { name: "A", grade_level: "fundamental_i_5",
+                                     shift: "noturno", year: 2026 } },
+           headers: headers, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("error", "details")).to have_key("shift")
+    end
+
+    # The same letter in the same grade and year is a different group in the other shift.
+    it "allows the same name in the other shift" do
+      create(:school_class, school: school, name: "A",
+                            grade_level: "fundamental_i_5", shift: "matutino", year: 2026)
+
+      post "#{base}/school_classes",
+           params: { school_class: { name: "A", grade_level: "fundamental_i_5",
+                                     shift: "vespertino", year: 2026 } },
+           headers: headers, as: :json
+
+      expect(response).to have_http_status(:created)
     end
 
     it "rejects a grade outside the list" do

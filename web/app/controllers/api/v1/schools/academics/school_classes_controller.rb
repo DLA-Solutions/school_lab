@@ -10,8 +10,9 @@ module Api
 
             classes = policy_scope(SchoolClass)
                       .includes(teaching_assignments: :subject)
-                      .order(year: :desc, grade_level: :asc, name: :asc)
+                      .order(year: :desc, grade_level: :asc, shift: :asc, name: :asc)
             classes = classes.for_year(params[:year]) if params[:year].present?
+            classes = classes.for_shift(params[:shift]) if params[:shift].present?
 
             pagy, records = pagy(classes)
 
@@ -45,14 +46,6 @@ module Api
             save_and_render(school_class)
           end
 
-          def destroy
-            school_class = policy_scope(SchoolClass).find(params[:id])
-            authorize school_class
-
-            school_class.discard
-            head :no_content
-          end
-
           private
 
           def save_and_render(school_class, status: :ok)
@@ -67,7 +60,7 @@ module Api
           end
 
           def school_class_params
-            params.require(:school_class).permit(:name, :grade_level, :year)
+            params.require(:school_class).permit(:name, :grade_level, :shift, :year)
           end
         end
       end

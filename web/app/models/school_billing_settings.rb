@@ -26,6 +26,17 @@ class SchoolBillingSettings < ApplicationRecord
               less_than_or_equal_to: MAX_PERCENT,
               allow_nil: true
             }
+  # The day a family has to pay by to earn the punctuality discount. Not the due date: a contract
+  # can fall due on the 10th and still reward payment made by the 5th.
+  validates :early_payment_discount_day,
+            numericality: {
+              only_integer: true,
+              greater_than_or_equal_to: 1,
+              less_than_or_equal_to: 28
+            },
+            allow_nil: true
+  validate :early_payment_discount_is_complete
+
   validates :fine_type, inclusion: { in: FINE_TYPES }, allow_nil: true
   validates :fine_rate_percent,
             numericality: {
@@ -74,5 +85,16 @@ class SchoolBillingSettings < ApplicationRecord
       errors.add(:fine_amount_cents, :blank) if fine_amount_cents.blank?
       errors.add(:fine_rate_percent, :present) if fine_rate_percent.present?
     end
+  end
+
+  private
+
+  # A deadline with no percentage behind it rewards nothing, and a percentage with no deadline
+  # cannot be earned.
+  def early_payment_discount_is_complete
+    return if early_payment_discount_percent.blank? == early_payment_discount_day.blank?
+
+    missing = early_payment_discount_day.blank? ? :early_payment_discount_day : :early_payment_discount_percent
+    errors.add(missing, :blank)
   end
 end

@@ -110,14 +110,15 @@ module Gateways
           }
         end
 
-        # The signer is reached by e-mail and identified by CPF: `configs.cpf` makes the provider
-        # demand that document from whoever opens the link, so the person who signs is the person
-        # named on the contract.
+        # The signer is reached by e-mail and identified by a document: `configs.cpf` or
+        # `configs.cnpj` makes the provider demand it from whoever opens the link, so the party who
+        # signs is the party named on the contract. A guardian signs under a CPF; the school, being
+        # a legal entity, signs under its CNPJ.
         def signer_input(signer)
           {
             email: signer.email,
             action: "SIGN",
-            configs: { cpf: signer.cpf }.compact_blank,
+            configs: { cpf: signer.cpf, cnpj: signer.cnpj }.compact_blank,
             positions: signer.positions.map { |position| signature_position(position) }
           }.compact_blank
         end

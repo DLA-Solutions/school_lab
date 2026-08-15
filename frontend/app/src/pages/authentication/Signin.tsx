@@ -1,5 +1,6 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router';
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -14,7 +15,7 @@ import { ErrorBanner } from 'design-system';
 import { useAuth } from 'providers/AuthContext';
 import { ApiError } from 'services/api';
 import { applyPostLoginDestination, postLoginDestination } from 'utils/auth/postLogin';
-import { rootPaths } from 'routes/paths';
+import paths, { rootPaths } from 'routes/paths';
 
 interface SigninLocationState {
   from?: string;
@@ -140,6 +141,17 @@ const SignIn = () => {
         >
           {submitting ? 'Entrando...' : 'Submit'}
         </Button>
+
+        {/* The two ways in for someone who cannot sign in: a family who has never set a password,
+            and anybody who has forgotten theirs. */}
+        <Stack direction="column" gap={0.75} alignItems="center">
+          <Link component={RouterLink} to={paths.forgotPassword} variant="body2">
+            Esqueci minha senha
+          </Link>
+          <Link component={RouterLink} to={paths.guardianAccess} variant="body2">
+            Primeiro acesso de responsável
+          </Link>
+        </Stack>
       </Stack>
     </>
   );

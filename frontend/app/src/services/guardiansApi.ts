@@ -75,6 +75,19 @@ export const activateGuardian = async (schoolId: number, id: number): Promise<Gu
 };
 
 /**
+ * POST .../guardians/:id/access — provisions whatever the guardian is missing (an account, a
+ * membership) and mails them the link that sets their password. Safe to press twice: someone who
+ * already has an account is sent a reset rather than a second invitation.
+ */
+export const sendGuardianAccess = async (schoolId: number, id: number): Promise<Guardian> => {
+  const response = await request<GuardianResponse>(`${memberPath(schoolId, id)}/access`, {
+    method: 'POST',
+  });
+
+  return response.data;
+};
+
+/**
  * DELETE /api/v1/schools/:school_id/people/guardians/:id — a soft delete (`Discard::Model`),
  * so the record leaves the list but its charges and documents stay linked.
  */

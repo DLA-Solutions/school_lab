@@ -24,8 +24,8 @@ FactoryBot.define do
 
   factory :user do
     sequence(:email) { |n| "user#{n}-#{SecureRandom.hex(4)}@example.com" }
-    password { "password123" }
-    password_confirmation { "password123" }
+    password { "Password123!" }
+    password_confirmation { "Password123!" }
     status { "active" }
     confirmed_at { Time.current }
 
@@ -112,6 +112,7 @@ FactoryBot.define do
     school
     sequence(:name) { |n| ("A".."Z").to_a[n % 26] }
     grade_level { "fundamental_i_1" }
+    shift { "matutino" }
     year { 2026 }
   end
 

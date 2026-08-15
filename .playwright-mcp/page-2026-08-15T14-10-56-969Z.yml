@@ -1,0 +1,5 @@
+- generic [active] [ref=f4e1]:
+  - progressbar [ref=f4e4]
+  - button "❗️5⚠️0" [ref=f4e7] [cursor=pointer]:
+    - generic [ref=f4e8]: ❗️5
+    - generic [ref=f4e9]: ⚠️0

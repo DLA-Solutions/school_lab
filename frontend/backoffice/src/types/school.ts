@@ -12,6 +12,10 @@ export interface School {
   onboarding_mode?: SchoolOnboardingMode;
   billing_waived_at?: string | null;
   segments_skipped_at?: string | null;
+  /** Where the school signs its contracts from. Null means it does not sign them at all. */
+  signature_email?: string | null;
+  /** Derived by the API: needs both the address above and a valid CNPJ. */
+  signs_contracts?: boolean;
 }
 
 /** Backoffice create sends onboarding fields; school-admin self-serve create omits them. */
@@ -22,6 +26,7 @@ export interface SchoolPayload {
   saas_plan?: string | null;
   onboarding_mode?: SchoolOnboardingMode;
   owner_email?: string;
+  signature_email?: string | null;
 }
 
 export type OwnerInviteEmailStatus = 'queued' | 'not_configured';

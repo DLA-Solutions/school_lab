@@ -21,7 +21,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    // Single source of the path aliases that vite-tsconfig-paths feeds to Vite and Vitest.
     "paths": {
       "*": ["./src/*"],
       "@school-lab/design-system-ui": ["../../packages/design-system-ui/index.ts"],
@@ -29,6 +28,11 @@
       "react": ["./node_modules/@types/react"],
       "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"],
       "react-dom": ["./node_modules/@types/react-dom"],
+      // Type resolution only. `packages/design-system-ui` sits outside this app's `node_modules`
+      // chain, so TypeScript cannot find MUI's declarations for the files it pulls in from there.
+      // These mappings are deliberately kept out of `tsconfig.paths.json` — the project
+      // `vite-tsconfig-paths` reads — because a filesystem mapping resolves past MUI's `exports`
+      // map at runtime and loads the CJS build instead of the ESM one.
       "@mui/material": ["./node_modules/@mui/material"],
       "@mui/material/*": ["./node_modules/@mui/material/*"],
       "@mui/x-data-grid": ["./node_modules/@mui/x-data-grid"],

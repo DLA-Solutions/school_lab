@@ -40,6 +40,9 @@ const ptBR = {
   'common.transferred': 'Transferido',
   'common.grade': 'Série',
   'common.class': 'Turma',
+  'common.shift': 'Turno',
+  'common.shift.matutino': 'Matutino',
+  'common.shift.vespertino': 'Vespertino',
   'common.students': 'Alunos',
   'common.position': 'Cargo',
   'common.template': 'Template',
@@ -75,7 +78,6 @@ const ptBR = {
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Estudantes',
   'nav.guardians': 'Responsáveis',
-  'nav.team': 'Equipe',
   'nav.collaborators': 'Colaboradores',
   'nav.classes': 'Turmas',
   'nav.subjects': 'Matérias',
@@ -332,13 +334,9 @@ const ptBR = {
   'classes.edit': 'Editar turma',
   'classes.nameRequired': 'Informe o identificador da turma (ex.: A).',
   'classes.gradeRequired': 'Selecione a série.',
+  'classes.shiftRequired': 'Selecione o turno.',
   'classes.yearRequired': 'Informe o ano letivo.',
-  'classes.deleteTitle': 'Excluir turma',
-  'classes.deleteMessage':
-    'Excluir {grade} {name}? Os estudantes matriculados ficam sem turma.',
-  'classes.deleteError': 'Não foi possível excluir a turma.',
   'classes.editAria': 'Editar turma {name}',
-  'classes.deleteAria': 'Excluir turma {name}',
 
   'jobPositions.title': 'Cargos',
   'jobPositions.noAccess.description':
@@ -380,6 +378,10 @@ const ptBR = {
   'guardians.deleteMessage':
     'Excluir {name}? Ele deixa de aparecer na listagem, mas o histórico de cobranças é preservado.',
   'guardians.deleteError': 'Não foi possível excluir o responsável. Tente novamente.',
+  'guardians.sendAccess': 'Enviar acesso ao sistema',
+  'guardians.sendAccessAria': 'Enviar acesso ao sistema para {name}',
+  'guardians.accessSent': 'Enviamos o link de acesso para {email}. Ele vale por 7 dias.',
+  'guardians.accessError': 'Não foi possível enviar o acesso. Verifique sua conexão.',
   'guardians.activateAria': 'Ativar {name}',
 
   'students.title': 'Estudantes',
@@ -428,6 +430,9 @@ const ptBR = {
   'collaborators.searchPlaceholder': 'Buscar por nome ou CPF',
   'collaborators.searchAria': 'Buscar colaboradores',
   'collaborators.hiredOn': 'Contratação',
+  'collaborators.noPosition': 'Sem cargo definido',
+  'collaborators.details': 'Detalhes',
+  'collaborators.detailsAria': 'Ver detalhes de {name}',
   'collaborators.classesColumn': 'Turmas e matérias',
   'collaborators.classesTooltip': 'Turmas e matérias',
   'collaborators.classesAria': 'Turmas de {name}',

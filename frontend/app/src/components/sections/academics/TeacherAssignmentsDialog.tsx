@@ -13,6 +13,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { EmptyState, ErrorBanner } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import {
   assignTeaching,
   listSchoolClasses,
@@ -21,7 +22,7 @@ import {
 } from 'services/academicsApi';
 import { ApiError } from 'services/api';
 import { SchoolClass, Subject, Teacher } from 'types/academics';
-import { gradeLevelLabel } from 'utils/gradeLevels';
+import { schoolClassLabel } from 'utils/schoolClassLabel';
 
 export interface TeacherAssignmentsDialogProps {
   open: boolean;
@@ -39,6 +40,8 @@ const TeacherAssignmentsDialog = ({
   onClose,
   onChanged,
 }: TeacherAssignmentsDialogProps) => {
+  // Only the cohort labels are translated here — the rest of this dialog is pt-BR copy.
+  const { t } = useTranslation();
   // Seeded from the row that opened the dialog, then kept current by each successful change —
   // the API returns the teacher with every assignment regrouped.
   const [current, setCurrent] = useState<Teacher>(teacher);
@@ -155,7 +158,7 @@ const TeacherAssignmentsDialog = ({
               {current.classes.map((schoolClass) => (
                 <Stack key={schoolClass.id} direction="column" gap={1}>
                   <Typography variant="body2">
-                    {`${gradeLevelLabel(schoolClass.grade_level)} ${schoolClass.name} — ${schoolClass.year}`}
+                    {schoolClassLabel(schoolClass, t)}
                   </Typography>
                   <Stack direction="row" gap={0.75} flexWrap="wrap">
                     {schoolClass.subjects.map((subject) => (
@@ -206,7 +209,7 @@ const TeacherAssignmentsDialog = ({
                 >
                   {classes.map((schoolClass) => (
                     <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
-                      {`${gradeLevelLabel(schoolClass.grade_level)} ${schoolClass.name} — ${schoolClass.year}`}
+                      {schoolClassLabel(schoolClass, t)}
                     </MenuItem>
                   ))}
                 </TextField>

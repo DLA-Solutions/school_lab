@@ -150,7 +150,7 @@ RSpec.describe "Filling a contract from the register and reading it before it go
       expect(html).to include("Pedro Silva")
       expect(html).to include("529.982.247-25")
       expect(html).to include("Maria Silva")
-      expect(html).to include("R$850,00")
+      expect(html).to include("R$ 850,00")
     end
 
     # Reading is not sending: a preview that dispatched would defeat its own purpose.

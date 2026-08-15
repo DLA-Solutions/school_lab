@@ -21,11 +21,17 @@ import {
   PageHeader,
   SearchField,
   SectionCard,
+  SuccessBanner,
 } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
-import { activateGuardian, deleteGuardian, listGuardians } from 'services/guardiansApi';
+import {
+  activateGuardian,
+  sendGuardianAccess,
+  deleteGuardian,
+  listGuardians,
+} from 'services/guardiansApi';
 import { Guardian } from 'types/guardian';
 import { formatCpf } from 'utils/documentNumber';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
@@ -77,6 +83,8 @@ const Guardians = () => {
   const [deleting, setDeleting] = useState(false);
   const [documentsFor, setDocumentsFor] = useState<Guardian | null>(null);
   const [contractsFor, setContractsFor] = useState<Guardian | null>(null);
+  const [sendingAccessTo, setSendingAccessTo] = useState<number | null>(null);
+  const [accessSent, setAccessSent] = useState('');
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -142,6 +150,27 @@ const Guardians = () => {
       { replace: true },
     );
     setPage(0);
+  };
+
+  const handleSendAccess = async (record: Guardian) => {
+    if (!schoolId) {
+      return;
+    }
+
+    setError('');
+    setAccessSent('');
+    setSendingAccessTo(record.id);
+
+    try {
+      await sendGuardianAccess(schoolId, record.id);
+      // The API answers the same whether it invited or reset, so the confirmation says what the
+      // school can rely on — a link is on its way to the address on file.
+      setAccessSent(t('guardians.accessSent', { email: record.email ?? '' }));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('guardians.accessError'));
+    } finally {
+      setSendingAccessTo(null);
+    }
   };
 
   const handleActivate = async (record: Guardian) => {
@@ -217,7 +246,9 @@ const Guardians = () => {
     {
       field: 'actions',
       headerName: t('common.actions'),
-      width: 180,
+      // Five buttons on an active row. Sized to fit them all: at 180 the cell clipped the two on
+      // the left, which read as the actions having disappeared.
+      width: 240,
       sortable: false,
       filterable: false,
       align: 'right',
@@ -238,42 +269,57 @@ const Guardians = () => {
             </Tooltip>
           ) : (
             <>
-          <Tooltip title={t('common.contracts')}>
-            <IconButton
-              size="small"
-              aria-label={`${t('common.contracts')} ${row.name}`}
-              onClick={() => setContractsFor(row)}
-            >
-              <IconifyIcon icon="mingcute:contacts-2-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('common.personalDocuments')}>
-            <IconButton
-              size="small"
-              aria-label={`${t('common.personalDocuments')} ${row.name}`}
-              onClick={() => setDocumentsFor(row)}
-            >
-              <IconifyIcon icon="mingcute:file-certificate-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('common.edit')}>
-            <IconButton
-              size="small"
-              aria-label={`${t('common.edit')} ${row.name}`}
-              onClick={() => handleEdit(row)}
-            >
-              <IconifyIcon icon="mingcute:edit-2-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('common.delete')}>
-            <IconButton
-              size="small"
-              aria-label={`${t('common.delete')} ${row.name}`}
-              onClick={() => setPendingDelete(row)}
-            >
-              <IconifyIcon icon="mingcute:delete-2-line" />
-            </IconButton>
-          </Tooltip>
+              {/* Gives the family a way in: an invitation if they have never set a password, a
+                  reset if they have. Either way it ends at a screen where they choose one. */}
+              <Tooltip title={t('guardians.sendAccess')}>
+                {/* A disabled button gives no events, so the tooltip needs a wrapper to hang on. */}
+                <span>
+                  <IconButton
+                    size="small"
+                    aria-label={t('guardians.sendAccessAria', { name: row.name })}
+                    disabled={sendingAccessTo === row.id}
+                    onClick={() => handleSendAccess(row)}
+                  >
+                    <IconifyIcon icon="mingcute:mail-send-line" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title={t('common.contracts')}>
+                <IconButton
+                  size="small"
+                  aria-label={`${t('common.contracts')} ${row.name}`}
+                  onClick={() => setContractsFor(row)}
+                >
+                  <IconifyIcon icon="mingcute:contacts-2-line" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.personalDocuments')}>
+                <IconButton
+                  size="small"
+                  aria-label={`${t('common.personalDocuments')} ${row.name}`}
+                  onClick={() => setDocumentsFor(row)}
+                >
+                  <IconifyIcon icon="mingcute:file-certificate-line" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.edit')}>
+                <IconButton
+                  size="small"
+                  aria-label={`${t('common.edit')} ${row.name}`}
+                  onClick={() => handleEdit(row)}
+                >
+                  <IconifyIcon icon="mingcute:edit-2-line" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.delete')}>
+                <IconButton
+                  size="small"
+                  aria-label={`${t('common.delete')} ${row.name}`}
+                  onClick={() => setPendingDelete(row)}
+                >
+                  <IconifyIcon icon="mingcute:delete-2-line" />
+                </IconButton>
+              </Tooltip>
             </>
           )}
         </Stack>
@@ -333,13 +379,12 @@ const Guardians = () => {
       />
 
       {error && <ErrorBanner message={error} />}
+      {accessSent && <SuccessBanner message={accessSent} />}
 
       <SectionCard padding={0}>
         {!loading && guardians.length === 0 && !error ? (
           <EmptyState
-            title={
-              debouncedSearch ? t('guardians.empty.searchTitle') : t('guardians.empty.title')
-            }
+            title={debouncedSearch ? t('guardians.empty.searchTitle') : t('guardians.empty.title')}
             description={
               debouncedSearch
                 ? t('guardians.empty.searchDescription', { query: debouncedSearch })

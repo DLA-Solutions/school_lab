@@ -14,6 +14,7 @@ const PLANS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/plans`;
 const DISCOUNTS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/plan_discounts`;
 const PREFILL_PATH = `${CONTRACTS_PATH}/prefill`;
 const previewPath = (id: number) => `${CONTRACTS_PATH}/${id}/preview`;
+const DRAFT_PREVIEW_PATH = `${CONTRACTS_PATH}/preview_draft`;
 
 const user = userEvent.setup({ delay: null });
 
@@ -142,6 +143,9 @@ const stubFormOptions = () => {
     http.get(apiUrl(PLANS_PATH), () => HttpResponse.json(plans)),
     http.get(apiUrl(DISCOUNTS_PATH), () => HttpResponse.json(discounts)),
     http.get(apiUrl(PREFILL_PATH), () => HttpResponse.json({ data: prefill })),
+    http.post(apiUrl(DRAFT_PREVIEW_PATH), () =>
+      HttpResponse.json({ data: { html: '<p>Contrato</p>', filename: 'contrato.html' } }),
+    ),
     http.get(apiUrl(previewPath(pendingContract.id)), () =>
       HttpResponse.json({ data: { html: '<p>Contrato</p>', filename: 'contrato.html' } }),
     ),
@@ -154,8 +158,15 @@ const stubFormOptions = () => {
   );
 };
 
-/** The form's own submit — distinct from the per-row send and the one inside the preview. */
+/** The form's own submit — it only renders the draft; nothing is recorded by it. */
 const submitButton = () => screen.getByRole('button', { name: /gerar contrato/i });
+
+/** Generating leaves the school in the preview; sending from there is what creates anything. */
+const sendFromPreview = async () => {
+  await user.click(submitButton());
+  await screen.findByTitle('Contrato');
+  await user.click(screen.getByRole('button', { name: 'Enviar para assinatura' }));
+};
 
 const renderDialog = () => {
   const onClose = vi.fn();
@@ -249,7 +260,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
     fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
 
-    await user.click(submitButton());
+    await sendFromPreview();
 
     await waitFor(() => expect(received).toBeDefined());
 
@@ -266,7 +277,7 @@ describe('GuardianContractsDialog', () => {
     });
   });
 
-  it('lands on the pending tab once the contract exists, since that is where it goes', async () => {
+  it('lands on the pending tab once the contract was sent, since that is where it goes', async () => {
     authenticate();
     stubFormOptions();
 
@@ -293,9 +304,9 @@ describe('GuardianContractsDialog', () => {
 
     expect(await screen.findByText(/pré-visualização do contrato/i)).toBeInTheDocument();
 
-    // The preview is a modal, so the dialog behind it is out of the accessibility tree until it
-    // closes — which is also the moment the school is back on the listing.
-    await user.click(screen.getByRole('button', { name: 'Fechar' }));
+    // Sending closes the preview by itself: the draft became a contract and the school is back
+    // on the listing that now holds it.
+    await user.click(screen.getByRole('button', { name: 'Enviar para assinatura' }));
 
     await waitFor(() =>
       expect(screen.getByRole('tab', { name: /aguardando assinatura/i })).toHaveAttribute(
@@ -355,7 +366,7 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('combobox', { name: /desconto/i }));
     await user.click(screen.getByRole('option', { name: 'Desconto 10%' }));
 
-    await user.click(submitButton());
+    await sendFromPreview();
 
     await waitFor(() => expect(received).toBeDefined());
     expect(received?.contract.plan_discount_id).toBe(7);
@@ -377,21 +388,18 @@ describe('GuardianContractsDialog', () => {
     expect(screen.getByText(/informe o valor da mensalidade/i)).toBeInTheDocument();
   });
 
-  // Creating is not sending. The school reads the actual document first — a contract in a
-  // family's inbox cannot be recalled, and the old flow dispatched before anyone had seen it.
-  it('sends nothing to the provider when the contract is created', async () => {
+  // Generating is reading, not committing: every attempt the school decides against would
+  // otherwise pile up in the listing as a contract nobody meant to keep.
+  it('records nothing when a draft is generated', async () => {
     authenticate();
     stubFormOptions();
 
-    let dispatched = false;
+    let created = false;
     server.use(
       http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([]))),
-      http.post(apiUrl(CONTRACTS_PATH), () =>
-        HttpResponse.json({ data: pendingContract }, { status: 201 }),
-      ),
-      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/send_for_signature`), () => {
-        dispatched = true;
-        return HttpResponse.json({ data: pendingContract });
+      http.post(apiUrl(CONTRACTS_PATH), () => {
+        created = true;
+        return HttpResponse.json({ data: pendingContract }, { status: 201 });
       }),
     );
 
@@ -410,7 +418,48 @@ describe('GuardianContractsDialog', () => {
 
     // The preview opens instead, showing the agreement as the family would receive it.
     expect(await screen.findByTitle('Contrato')).toBeInTheDocument();
-    expect(dispatched).toBe(false);
+    expect(created).toBe(false);
+  });
+
+  // A refused send leaves nothing behind — the API discards the contract — so the school gets the
+  // reason back on the form it can still fix, rather than a row it never managed to send.
+  it('keeps the draft out of the listing when the send fails', async () => {
+    authenticate();
+    stubFormOptions();
+
+    server.use(
+      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([]))),
+      http.post(apiUrl(CONTRACTS_PATH), () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'validation_error',
+              message: 'Dados inválidos.',
+              details: { base: ['Nenhuma integração de assinatura configurada para esta escola.'] },
+            },
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    renderDialog();
+    await screen.findByText(/nenhum contrato assinado/i);
+
+    await user.click(screen.getByRole('combobox', { name: /filho/i }));
+    await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
+    await user.click(screen.getByRole('combobox', { name: /plano/i }));
+    await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
+    fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), {
+      target: { value: '85000' },
+    });
+
+    await sendFromPreview();
+
+    expect(await screen.findByText(/nenhuma integração de assinatura/i)).toBeInTheDocument();
+    // The form is still filled in, so the school fixes what was wrong and sends again. The
+    // preview gives way to it — the banner lives on the dialog behind.
+    expect(await screen.findByRole('textbox', { name: /mensalidade/i })).toHaveValue('850,00');
   });
 
   // The contract must survive a provider outage: it exists and can be sent again.

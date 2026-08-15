@@ -25,13 +25,20 @@ import {
   listBillingPlans,
   listContracts,
   listPlanDiscounts,
+  previewDraftContract,
   sendContract,
   signContract,
 } from 'services/contractsApi';
 import { listStudents } from 'services/studentsApi';
-import { BillingPlan, Contract, ContractPrefill, PlanDiscount } from 'types/contract';
+import {
+  BillingPlan,
+  Contract,
+  ContractPayload,
+  ContractPrefill,
+  PlanDiscount,
+} from 'types/contract';
 import ContractPrefillSummary from './ContractPrefillSummary';
-import ContractPreviewDialog from './ContractPreviewDialog';
+import ContractPreviewDialog, { ContractDraft } from './ContractPreviewDialog';
 import { Guardian } from 'types/guardian';
 import { Student } from 'types/student';
 import { formatCpf } from 'utils/documentNumber';
@@ -120,11 +127,16 @@ const GuardianContractsDialog = ({
   const [sending, setSending] = useState(false);
   const [signingId, setSigningId] = useState<number | null>(null);
   const [dispatchingId, setDispatchingId] = useState<number | null>(null);
+  const [dispatchingDraft, setDispatchingDraft] = useState(false);
 
   // What the register already holds about the chosen student, and what would stop the send.
   const [prefill, setPrefill] = useState<ContractPrefill | null>(null);
   const [prefilling, setPrefilling] = useState(false);
   const [previewing, setPreviewing] = useState<Contract | null>(null);
+
+  // The agreement as generated, before anything was recorded. It becomes a contract only when the
+  // school sends it from here.
+  const [draft, setDraft] = useState<(ContractDraft & { payload: ContractPayload }) | null>(null);
 
   const loadContracts = useCallback(
     async (signatureStatus: Contract['signature_status']) => {
@@ -275,7 +287,32 @@ const GuardianContractsDialog = ({
     setError('');
   };
 
-  const handleSend = async (e: FormEvent<HTMLFormElement>) => {
+  const applyApiErrors = (err: unknown, fallback: string) => {
+    if (!(err instanceof ApiError)) {
+      setError(fallback);
+      return;
+    }
+
+    const mapped = Object.entries(err.details).reduce<FieldErrors>((acc, [key, value]) => {
+      const field = API_FIELD_TO_FORM[key];
+      if (field && Array.isArray(value) && typeof value[0] === 'string') {
+        acc[field] = value[0];
+      }
+      return acc;
+    }, {});
+
+    setFieldErrors(mapped);
+    if (Object.keys(mapped).length === 0) {
+      setError(dispatchMessage(err));
+    }
+  };
+
+  /**
+   * Generating is reading, not committing. The agreement is rendered from the form and shown as
+   * the family would receive it; nothing is recorded, so a draft the school decides against
+   * leaves no contract behind — only sending it does.
+   */
+  const handleGenerate = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const errors: FieldErrors = {};
@@ -299,44 +336,58 @@ const GuardianContractsDialog = ({
     setSending(true);
     setError('');
 
+    const payload: ContractPayload = {
+      student_id: Number(form.student_id),
+      billing_plan_id: Number(form.billing_plan_id),
+      negotiated_amount_cents: cents as number,
+      plan_discount_id: form.plan_discount_id ? Number(form.plan_discount_id) : null,
+      payer_guardian_id: form.payer_guardian_id ? Number(form.payer_guardian_id) : null,
+      due_day: form.due_day ? Number(form.due_day) : null,
+    };
+
     try {
-      const contract = await sendContract(schoolId, {
-        student_id: Number(form.student_id),
-        billing_plan_id: Number(form.billing_plan_id),
-        negotiated_amount_cents: cents as number,
-        plan_discount_id: form.plan_discount_id ? Number(form.plan_discount_id) : null,
-        payer_guardian_id: form.payer_guardian_id ? Number(form.payer_guardian_id) : null,
-        due_day: form.due_day ? Number(form.due_day) : null,
+      const preview = await previewDraftContract(schoolId, payload);
+
+      setDraft({
+        payload,
+        html: preview.html,
+        studentName:
+          students.find((student) => String(student.id) === form.student_id)?.name ?? '',
       });
-
-      setForm({ ...emptyForm, payer_guardian_id: String(guardian.id) });
-      setPrefill(null);
-
-      // Creating is not sending. The contract lands in the listing as "não enviado" so the
-      // school can read the actual document before a family ever sees it — dispatching to
-      // Autentique is the separate, deliberate step that follows.
-      setTab('pending_signature');
-      await loadContracts('pending_signature');
-      setPreviewing(contract);
     } catch (err) {
-      if (err instanceof ApiError) {
-        const mapped = Object.entries(err.details).reduce<FieldErrors>((acc, [key, value]) => {
-          const field = API_FIELD_TO_FORM[key];
-          if (field && Array.isArray(value) && typeof value[0] === 'string') {
-            acc[field] = value[0];
-          }
-          return acc;
-        }, {});
-
-        setFieldErrors(mapped);
-        if (Object.keys(mapped).length === 0) {
-          setError(err.message);
-        }
-      } else {
-        setError('Não foi possível enviar o contrato. Verifique sua conexão.');
-      }
+      applyApiErrors(err, 'Não foi possível gerar o contrato. Verifique sua conexão.');
     } finally {
       setSending(false);
+    }
+  };
+
+  /**
+   * The one step that puts a contract on record. It is created and dispatched together: if the
+   * provider refuses it nothing is kept, so the listing only ever holds agreements the family
+   * actually received. The form stays filled in so the school can fix and try again.
+   */
+  const handleSendDraft = async () => {
+    if (!draft) {
+      return;
+    }
+
+    setDispatchingDraft(true);
+    setError('');
+
+    try {
+      await sendContract(schoolId, draft.payload);
+
+      setDraft(null);
+      setForm({ ...emptyForm, payer_guardian_id: String(guardian.id) });
+      setPrefill(null);
+      setTab('pending_signature');
+      await loadContracts('pending_signature');
+    } catch (err) {
+      // The banner lives on the dialog behind this one, so the preview gives way to it.
+      setDraft(null);
+      applyApiErrors(err, 'Não foi possível enviar o contrato. Verifique sua conexão.');
+    } finally {
+      setDispatchingDraft(false);
     }
   };
 
@@ -530,7 +581,7 @@ const GuardianContractsDialog = ({
 
           <Divider />
 
-          <Stack component="form" onSubmit={handleSend} direction="column" gap={2} noValidate>
+          <Stack component="form" onSubmit={handleGenerate} direction="column" gap={2} noValidate>
             <Typography variant="body2" color="text.secondary">
               Novo contrato — escolha o filho e o restante é preenchido do cadastro
             </Typography>
@@ -650,8 +701,19 @@ const GuardianContractsDialog = ({
         schoolId={schoolId}
         contract={previewing}
         onClose={() => setPreviewing(null)}
-        onSend={handleDispatch}
+        onSend={previewing ? () => handleDispatch(previewing) : undefined}
         sending={dispatchingId !== null}
+      />
+
+      {/* The generated agreement, read before it is anything: closing it discards the draft. */}
+      <ContractPreviewDialog
+        open={draft !== null}
+        schoolId={schoolId}
+        contract={null}
+        draft={draft}
+        onClose={() => setDraft(null)}
+        onSend={handleSendDraft}
+        sending={dispatchingDraft}
       />
     </Dialog>
   );

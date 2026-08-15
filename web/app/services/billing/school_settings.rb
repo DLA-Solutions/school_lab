@@ -11,6 +11,7 @@ module Billing
     attribute :notification_schedule, default: -> { SchoolBillingSettings.default_notification_schedule }
     attribute :interest_rate_percent, :decimal
     attribute :early_payment_discount_percent, :decimal
+    attribute :early_payment_discount_day, :integer
     attribute :fine_type, :string
     attribute :fine_rate_percent, :decimal
     attribute :fine_amount_cents, :integer
@@ -28,6 +29,7 @@ module Billing
           notification_schedule: SchoolBillingSettings.default_notification_schedule,
           interest_rate_percent: nil,
           early_payment_discount_percent: nil,
+          early_payment_discount_day: nil,
           fine_type: nil,
           fine_rate_percent: nil,
           fine_amount_cents: nil,
@@ -51,6 +53,7 @@ module Billing
           notification_schedule: record.notification_schedule.presence || SchoolBillingSettings.default_notification_schedule,
           interest_rate_percent: record.interest_rate_percent,
           early_payment_discount_percent: record.early_payment_discount_percent,
+          early_payment_discount_day: record.early_payment_discount_day,
           fine_type: record.fine_type,
           fine_rate_percent: record.fine_rate_percent,
           fine_amount_cents: record.fine_amount_cents,

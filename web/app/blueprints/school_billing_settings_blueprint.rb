@@ -13,6 +13,12 @@ class SchoolBillingSettingsBlueprint < Blueprinter::Base
     settings.early_payment_discount_percent&.to_f
   end
 
+  # The day a family has to pay by to earn the discount. Not the due date: a contract can fall due
+  # on the 10th and still reward payment made by the 5th.
+  field :early_payment_discount_day do |settings|
+    settings.early_payment_discount_day
+  end
+
   field :fine_rate_percent do |settings|
     settings.fine_rate_percent&.to_f
   end

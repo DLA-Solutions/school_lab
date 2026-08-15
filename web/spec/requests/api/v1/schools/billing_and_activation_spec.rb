@@ -106,6 +106,10 @@ RSpec.describe "Manual activation, contract payer and one-off charges", type: :r
     let(:contracts_path) { "/api/v1/schools/#{school.id}/billing/contracts" }
     let(:plan) { create(:billing_plan, school: school) }
 
+    # Creating a contract dispatches it: it exists once the family has it, so the school's
+    # signature provider has to be configured for the call to get that far.
+    let!(:signature_provider) { create(:school_signature_provider, school: school) }
+
     before do
       link(mother, "mother")
       link(father, "father")

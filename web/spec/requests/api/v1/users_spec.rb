@@ -77,7 +77,7 @@ RSpec.describe "Api::V1::Users", type: :request do
           expect(target_user.disabled_by).to eq(backoffice_user)
           expect(refresh_token.reload.revoked_at).to be_present
 
-          login = Auth::LoginService.call(email: target_user.email, password: "password123")
+          login = Auth::LoginService.call(email: target_user.email, password: "Password123!")
           expect(login.success?).to be(false)
           expect(login.error_code).to eq(:unauthorized)
         end

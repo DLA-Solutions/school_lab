@@ -114,9 +114,6 @@ export const updateSchoolClass = async (
   return response.data;
 };
 
-export const deleteSchoolClass = (schoolId: number, id: number) =>
-  request<null>(`${base(schoolId)}/school_classes/${id}`, { method: 'DELETE' });
-
 /* ---------------------------------------------------------------- teachers */
 
 export interface ListTeachersParams {

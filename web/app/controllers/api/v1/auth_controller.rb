@@ -19,6 +19,25 @@ module Api
         end
       end
 
+      # The token from the e-mail is exchanged for a new password.
+      def reset_password
+        result = Auth::ResetPasswordService.call(
+          token: reset_password_params[:token],
+          password: reset_password_params[:password],
+          password_confirmation: reset_password_params[:password_confirmation]
+        )
+
+        render_service_result(result, success_status: :no_content) do
+          head :no_content
+        end
+      end
+
+      # Deliberately answers the same whether or not the CPF is registered — see the service.
+      def request_access
+        Auth::RequestGuardianAccessService.call(cpf: params[:cpf])
+        head :no_content
+      end
+
       def login
         result = Auth::LoginService.call(
           email: login_params[:email],
@@ -80,12 +99,18 @@ module Api
       private
 
       def public_auth_action?
-        action_name.in?(%w[login refresh invite_accept]) || (action_name == "password" && request.post?)
+        action_name.in?(%w[login refresh invite_accept reset_password request_access]) ||
+          (action_name == "password" && request.post?)
+      end
+
+      def reset_password_params
+        params.permit(:token, :password, :password_confirmation)
       end
 
       def invite_accept_params
         params.permit(:token, :password, :password_confirmation, :name)
       end
+
 
       def login_params
         params.permit(:email, :password, :remember_me, :client)

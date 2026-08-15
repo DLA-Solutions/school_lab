@@ -35,6 +35,7 @@ module Api
               :service_description,
               :interest_rate_percent,
               :early_payment_discount_percent,
+              :early_payment_discount_day,
               :fine_type,
               :fine_rate_percent,
               :fine_amount_cents,

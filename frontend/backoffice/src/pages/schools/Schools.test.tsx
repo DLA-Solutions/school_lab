@@ -149,6 +149,46 @@ describe('Schools page', () => {
     expect(link).toHaveAttribute('href', paths.provisioningWizard(2));
   });
 
+  // A certificate expires, so credentials stay reachable long after provisioning is finished —
+  // on every school, not only the ones still being set up.
+  // The school is a party to its own contracts, and signs under its CNPJ from this address.
+  it('saves the address the school signs contracts from', async () => {
+    let received: { school: Record<string, unknown> } | undefined;
+    server.use(
+      http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))),
+      http.post(apiUrl(SCHOOLS_PATH), async ({ request }) => {
+        received = (await request.json()) as { school: Record<string, unknown> };
+        return HttpResponse.json({ data: sampleSchools[0] }, { status: 201 });
+      }),
+    );
+
+    renderPage();
+
+    const dialog = await openCreateForm();
+    await user.type(within(dialog).getByLabelText(/^nome/i), 'Colégio Exemplo');
+    await user.type(within(dialog).getByLabelText(/e-mail do responsável/i), 'director@example.com');
+    await user.type(
+      within(dialog).getByLabelText(/e-mail de assinatura/i),
+      'colegionsrgo@gmail.com',
+    );
+    await user.click(within(dialog).getByRole('button', { name: /salvar/i }));
+
+    await waitFor(() => expect(received).toBeDefined());
+    expect(received?.school.signature_email).toBe('colegionsrgo@gmail.com');
+  });
+
+  it('links every school to its bank credentials', async () => {
+    server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))));
+
+    renderPage();
+
+    const link = await screen.findByRole('link', {
+      name: /credenciais bancárias de escola gama/i,
+    });
+
+    expect(link).toHaveAttribute('href', paths.bankCredentials(3));
+  });
+
   it('shows pending handoff activation affordance distinct from provisioning action', async () => {
     server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))));
 
@@ -221,6 +261,7 @@ describe('Schools page', () => {
           saas_plan: null,
           onboarding_mode: 'self_serve',
           owner_email: 'director@example.com',
+          signature_email: null,
         },
       }),
     );

@@ -71,6 +71,20 @@ const Button: Components<Omit<Theme, 'components'>>['MuiButton'] = {
         // dark's #FF5A65 at 3.04:1 and near-black on light's #B03C44 at 2.98:1; each scheme needs
         // the other one's end of the scale. This is the confirm control of a destructive action.
         color: palette.common.white, // 5.87:1 on light's #B03C44
+        // The fill does not move. MUI's default hover swaps in `error.dark`, which is derived from
+        // `main` rather than chosen: in dark that is #B23E46, which drops the near-black label to
+        // 3.11:1 and pulls the red towards the dialog's own #0B1739 — the button reads as having
+        // vanished under the cursor. Holding `error.main` through every state keeps the contrast
+        // the comment above measured, and keeps a destructive control looking destructive.
+        backgroundColor: palette.error.main,
+        '&:hover': { backgroundColor: palette.error.main },
+        '&:active': { backgroundColor: palette.error.main },
+        '&.Mui-focusVisible': { backgroundColor: palette.error.main },
+        // Feedback that is not colour, so it cannot cost contrast: the button gains a halo of its
+        // own red rather than changing into a different one.
+        '&:hover, &.Mui-focusVisible': {
+          boxShadow: `0 0 0 4px ${palette.transparent.error}`,
+        },
         ...theme.applyStyles('dark', {
           color: palette.grey[900], // 5.75:1 on dark's #FF5A65
         }),

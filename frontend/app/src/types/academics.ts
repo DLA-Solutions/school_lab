@@ -20,7 +20,10 @@ export interface Subject {
   name: string;
 }
 
-/** Mirrors `SchoolClassBlueprint` — a cohort: one grade, one year, one identifier. */
+/** Mirrors `SchoolClass::SHIFTS` — the time of day a cohort is taught. */
+export type SchoolClassShift = 'matutino' | 'vespertino';
+
+/** Mirrors `SchoolClassBlueprint` — a cohort: one grade, one year, one shift, one identifier. */
 export interface SchoolClass {
   id: number;
   school_id: number;
@@ -28,6 +31,8 @@ export interface SchoolClass {
   name: string;
   /** One of `SchoolClass::GRADE_LEVELS` — see `utils/gradeLevels`. */
   grade_level: string;
+  /** When the cohort is taught. Part of what tells two same-named cohorts apart. */
+  shift: SchoolClassShift;
   year: number;
   student_count: number;
   /** Derived from the cohort's teaching assignments. */
@@ -39,6 +44,7 @@ export interface TeacherClass {
   id: number;
   name: string;
   grade_level: string;
+  shift: SchoolClassShift;
   year: number;
   subjects: { id: number; name: string; assignment_id: number }[];
 }
@@ -75,6 +81,7 @@ export interface TeacherPayload {
 export interface SchoolClassPayload {
   name: string;
   grade_level: string;
+  shift: SchoolClassShift;
   year: number;
 }
 

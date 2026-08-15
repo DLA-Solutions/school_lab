@@ -1,0 +1,13 @@
+[     504ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=1fec7b57:20102
+[     827ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3000/api/v1/auth/refresh:0
+[   16385ms] [WARNING] TypeError: Cannot read properties of undefined (reading 'disconnect')
+    at Object.destroy2 [as destroy] (http://localhost:5173/node_modules/.vite/deps/echarts-for-react_lib_core.js?v=1fec7b57:195:16)
+    at removeSensor2 (http://localhost:5173/node_modules/.vite/deps/echarts-for-react_lib_core.js?v=1fec7b57:273:14)
+    at clear2 (http://localhost:5173/node_modules/.vite/deps/echarts-for-react_lib_core.js?v=1fec7b57:299:36)
+    at EChartsReactCore2.dispose (http://localhost:5173/node_modules/.vite/deps/echarts-for-react_lib_core.js?v=1fec7b57:472:39)
+    at EChartsReactCore2.componentWillUnmount (http://localhost:5173/node_modules/.vite/deps/echarts-for-react_lib_core.js?v=1fec7b57:446:16)
+    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=1fec7b57:18556:22)
+    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=1fec7b57:997:72)
+    at safelyCallComponentWillUnmount (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=1fec7b57:9544:56)
+    at disappearLayoutEffects (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=1fec7b57:10811:68)
+    at recursivelyTraverseDisappearLayoutEffects (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=1fec7b57:10852:11) @ http://localhost:5173/node_modules/.vite/deps/echarts-for-react_lib_core.js?v=1fec7b57:473

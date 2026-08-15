@@ -18,6 +18,7 @@ const fifthA: SchoolClass = {
   school_id: SCHOOL_ID,
   name: 'A',
   grade_level: 'fundamental_i_5',
+  shift: 'matutino',
   year: 2026,
   student_count: 12,
   subjects: [],
@@ -44,6 +45,7 @@ const teacher: Teacher = {
       id: fifthA.id,
       name: 'A',
       grade_level: 'fundamental_i_5',
+      shift: 'matutino',
       year: 2026,
       subjects: [
         { id: maths.id, name: 'Matemática', assignment_id: 100 },
@@ -54,6 +56,7 @@ const teacher: Teacher = {
       id: seventhB.id,
       name: 'B',
       grade_level: 'fundamental_ii_7',
+      shift: 'matutino',
       year: 2026,
       subjects: [{ id: maths.id, name: 'Matemática', assignment_id: 102 }],
     },
@@ -94,8 +97,8 @@ describe('TeacherAssignmentsDialog', () => {
     stubOptions();
     renderDialog();
 
-    expect(screen.getByText('Ensino Fundamental I — 5º ano A — 2026')).toBeInTheDocument();
-    expect(screen.getByText('Ensino Fundamental II — 7º ano B — 2026')).toBeInTheDocument();
+    expect(screen.getByText('Ensino Fundamental I — 5º ano A · Matutino — 2026')).toBeInTheDocument();
+    expect(screen.getByText('Ensino Fundamental II — 7º ano B · Matutino — 2026')).toBeInTheDocument();
 
     // Matemática appears in both classes; Ciências only in the first.
     expect(screen.getAllByText('Matemática')).toHaveLength(2);
@@ -119,6 +122,7 @@ describe('TeacherAssignmentsDialog', () => {
                   id: seventhB.id,
                   name: 'B',
                   grade_level: 'fundamental_ii_7',
+                  shift: 'matutino',
                   year: 2026,
                   subjects: [{ id: science.id, name: 'Ciências', assignment_id: 103 }],
                 },
@@ -133,7 +137,7 @@ describe('TeacherAssignmentsDialog', () => {
     const { onChanged } = renderDialog({ classes: [] });
 
     await user.click(await screen.findByRole('combobox', { name: /turma/i }));
-    await user.click(screen.getByRole('option', { name: 'Ensino Fundamental II — 7º ano B — 2026' }));
+    await user.click(screen.getByRole('option', { name: 'Ensino Fundamental II — 7º ano B · Matutino — 2026' }));
     await user.click(screen.getByRole('combobox', { name: /matéria/i }));
     await user.click(screen.getByRole('option', { name: 'Ciências' }));
     await user.click(screen.getByRole('button', { name: /atribuir/i }));
@@ -148,7 +152,7 @@ describe('TeacherAssignmentsDialog', () => {
 
     // The cohort now heads the assignment list. Its label also sits in the select's own value, so
     // this looks for the occurrence that is not the combobox.
-    const labels = await screen.findAllByText('Ensino Fundamental II — 7º ano B — 2026');
+    const labels = await screen.findAllByText('Ensino Fundamental II — 7º ano B · Matutino — 2026');
     expect(labels.some((element) => element.getAttribute('role') !== 'combobox')).toBe(true);
   });
 
@@ -184,7 +188,7 @@ describe('TeacherAssignmentsDialog', () => {
     renderDialog();
 
     await user.click(await screen.findByRole('combobox', { name: /turma/i }));
-    await user.click(screen.getByRole('option', { name: 'Ensino Fundamental I — 5º ano A — 2026' }));
+    await user.click(screen.getByRole('option', { name: 'Ensino Fundamental I — 5º ano A · Matutino — 2026' }));
     await user.click(screen.getByRole('combobox', { name: /matéria/i }));
     await user.click(screen.getByRole('option', { name: 'Matemática' }));
     await user.click(screen.getByRole('button', { name: /atribuir/i }));
@@ -207,14 +211,14 @@ describe('TeacherAssignmentsDialog', () => {
     const { onChanged } = renderDialog();
 
     // 7º ano B holds a single subject, so removing it removes the class from the list.
-    const seventh = screen.getByText('Ensino Fundamental II — 7º ano B — 2026').closest('div');
+    const seventh = screen.getByText('Ensino Fundamental II — 7º ano B · Matutino — 2026').closest('div');
     await user.click(within(seventh as HTMLElement).getByTestId('CancelIcon'));
 
     await waitFor(() => expect(deletedId).toBe(102));
     await waitFor(() =>
-      expect(screen.queryByText('Ensino Fundamental II — 7º ano B — 2026')).not.toBeInTheDocument(),
+      expect(screen.queryByText('Ensino Fundamental II — 7º ano B · Matutino — 2026')).not.toBeInTheDocument(),
     );
-    expect(screen.getByText('Ensino Fundamental I — 5º ano A — 2026')).toBeInTheDocument();
+    expect(screen.getByText('Ensino Fundamental I — 5º ano A · Matutino — 2026')).toBeInTheDocument();
     expect(onChanged).toHaveBeenCalled();
   });
 

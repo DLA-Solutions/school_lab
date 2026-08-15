@@ -26,6 +26,11 @@ export default {
   contractTemplate: '/contrato',
 
   signin: `/${rootPaths.authRoot}/signin`,
+  // Top-level and public: these are the addresses the invitation and reset e-mails point at, and
+  // `SchoolLab::SchoolSpa` builds the same two on the server.
+  guardianAccess: '/acesso',
+  forgotPassword: '/esqueci-senha',
+  resetPassword: '/redefinir-senha',
 
   inviteAccept: `/${rootPaths.inviteRoot}/accept`,
   ownerOnboarding: `/${rootPaths.onboardingRoot}/owner`,

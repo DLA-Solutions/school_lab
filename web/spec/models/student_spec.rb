@@ -3,13 +3,19 @@
 require "rails_helper"
 
 RSpec.describe Student do
-  %i[name cpf rg birth_date school_class].each do |attribute|
+  %i[name cpf birth_date school_class].each do |attribute|
     it "requires #{attribute}" do
       student = build(:student, attribute => nil)
 
       expect(student).not_to be_valid
       expect(student.errors[attribute]).to be_present
     end
+  end
+
+  it "does not require rg" do
+    student = build(:student, rg: nil)
+
+    expect(student).to be_valid
   end
 
   describe "school_class" do

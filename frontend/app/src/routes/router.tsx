@@ -17,6 +17,9 @@ const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 
 const App = lazy(() => import('App'));
 const Dashboard = lazy(() => import('pages/Dashboard'));
+const GuardianAccess = lazy(() => import('pages/authentication/GuardianAccess'));
+const ForgotPassword = lazy(() => import('pages/authentication/ForgotPassword'));
+const ResetPassword = lazy(() => import('pages/authentication/ResetPassword'));
 const Guardians = lazy(() => import('pages/people/Guardians'));
 const Team = lazy(() => import('pages/people/Team'));
 const Students = lazy(() => import('pages/people/Students'));
@@ -113,6 +116,29 @@ const router = createBrowserRouter(
           {
             path: paths.signin,
             element: <Signin />,
+          },
+        ],
+      },
+      {
+        // Reached from an e-mail by someone who cannot sign in, so no guard: `RequireGuest` would
+        // bounce a signed-in parent trying to reset the password they had just forgotten.
+        element: (
+          <AuthLayout>
+            <Outlet />
+          </AuthLayout>
+        ),
+        children: [
+          {
+            path: paths.guardianAccess,
+            element: <GuardianAccess />,
+          },
+          {
+            path: paths.forgotPassword,
+            element: <ForgotPassword />,
+          },
+          {
+            path: paths.resetPassword,
+            element: <ResetPassword />,
           },
         ],
       },

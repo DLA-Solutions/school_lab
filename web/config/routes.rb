@@ -19,6 +19,10 @@ Rails.application.routes.draw do
         post "password", to: "auth#password"
         put "password", to: "auth#password"
         post "invite/accept", to: "auth#invite_accept"
+        # Completing a reset is necessarily unauthenticated — whoever is doing it cannot sign in.
+        post "password/reset", to: "auth#reset_password"
+        # A guardian asking for their own way in, by the CPF the school registered them under.
+        post "access", to: "auth#request_access"
       end
 
       get "me", to: "me#show"
@@ -46,6 +50,7 @@ Rails.application.routes.draw do
             resources :guardians do
               member do
                 post :activate
+                post :access
               end
             end
             resources :students do
@@ -70,7 +75,8 @@ Rails.application.routes.draw do
               end
             end
             resources :subjects, only: %i[index create update destroy]
-            resources :school_classes, only: %i[index show create update destroy]
+            # No `destroy`: a cohort is never deleted — see `SchoolClassPolicy`.
+            resources :school_classes, only: %i[index show create update]
             resources :teachers, only: %i[index show create update destroy] do
               resources :teaching_assignments, only: :create
             end
@@ -95,6 +101,8 @@ Rails.application.routes.draw do
             resources :contracts do
               collection do
                 get :prefill
+                # Reading a contract that does not exist yet: nothing is recorded until it is sent.
+                post :preview_draft
               end
               member do
                 post :sign

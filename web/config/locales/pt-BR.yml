@@ -17,6 +17,15 @@ pt-BR:
         pay_boleto: "Pagar boleto"
         pix_label: "Pix copia e cola"
         footer: "Se você já pagou, desconsidere este e-mail."
+  auth:
+    mailer:
+      password_reset:
+        subject: "Redefinição de senha — Scholar Premium"
+        greeting: "Olá,"
+        body: "Recebemos um pedido para redefinir a senha da sua conta no Scholar Premium."
+        cta: "Criar uma nova senha"
+        expiry: "Este link é válido por 6 horas e só pode ser usado uma vez."
+        footer: "Se não foi você quem pediu, ignore este e-mail — sua senha atual continua valendo."
   people:
     mailer:
       membership_invite:
@@ -28,6 +37,9 @@ pt-BR:
   api:
     errors:
       unauthorized: "Não autorizado."
+      guardian_without_email: "Este responsável não tem e-mail cadastrado, e o convite é enviado por e-mail."
+      guardian_inactive: "Este responsável está inativo. Reative-o antes de enviar o acesso."
+      invalid_reset_token: "Este link expirou ou já foi usado. Peça um novo."
       invalid_credentials: "E-mail ou senha inválidos."
       invalid_invite_token: "Este convite é inválido ou expirou."
       forbidden: "Acesso negado."
@@ -95,6 +107,12 @@ pt-BR:
     errors:
       messages:
         invalid_cpf: "não é um CPF válido"
+        requires_valid_cnpj: "só pode ser preenchido quando o CNPJ da escola for válido — é o documento sob o qual a escola assina"
+        too_short: "deve ter ao menos 10 caracteres"
+        needs_lowercase: "deve conter uma letra minúscula"
+        needs_uppercase: "deve conter uma letra maiúscula"
+        needs_digit: "deve conter um número"
+        needs_symbol: "deve conter um símbolo (ex.: ! @ # $)"
         must_be_in_the_past: "deve estar no passado"
         must_not_be_in_the_future: "não pode estar no futuro"
       models:
