@@ -87,7 +87,12 @@ RSpec.describe "Api::V1::Schools::SchoolYears", type: :request do
           expect(body["status"]).to eq("draft")
           expect(body["period_template"]).to eq("trimester")
           expect(body["timezone"]).to eq("America/Sao_Paulo")
-          expect(body["academic_periods"].size).to eq(3)
+          periods = body["academic_periods"]
+          expect(periods.size).to eq(3)
+          expect(periods.pluck("name")).to eq(["1º trimestre", "2º trimestre", "3º trimestre"])
+          expect(periods.pluck("sequence")).to eq([1, 2, 3])
+          expect(periods.first["starts_on"]).to eq("2026-02-01")
+          expect(periods.last["ends_on"]).to eq("2026-12-15")
         end
       end
 
@@ -360,6 +365,7 @@ RSpec.describe "Api::V1::Schools::SchoolYears", type: :request do
 
         run_test! do |response|
           expect(JSON.parse(response.body).dig("error", "code")).to eq("period_overlap")
+          expect(school_year.reload.status).to eq("draft")
         end
       end
 
