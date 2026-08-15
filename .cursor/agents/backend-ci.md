@@ -36,7 +36,7 @@ Do not stop at "ready for PR" — finish the pipeline unless blocked.
 3. **Fix** — on failure, read the failing step; fix only issues in scope of the branch. Re-run the **narrowest** check that proves the fix.
 4. **Commit** — stage and commit each fix as a **separate atomic commit** (see below). Never leave CI fixes uncommitted.
 5. **Verify** — after commits, run full `web/bin/backend-ci` again. Repeat steps 3–5 until green.
-6. **Ship** — when stamp matches `git rev-parse HEAD`: push branch (`git push -u origin HEAD`), then `gh pr create` per skill `create-pull-request`.
+6. **Ship** — push branch (`git push -u origin HEAD`), then `gh pr create` per skill `create-pull-request`. Local CI stamp is not required for push or PR.
 
 If a PR already exists for the branch, push updates only — do not create a duplicate PR.
 

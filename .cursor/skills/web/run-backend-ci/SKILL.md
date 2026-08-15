@@ -1,38 +1,33 @@
 ---
 name: run-backend-ci
-description: Runs local CI for web/ or the full monorepo (path filters match GitHub Actions). Use bin/ci before PRs, web/bin/backend-ci for web-only, or when the user asks to run backend CI.
+description: Runs local CI for web/ or the full monorepo (path filters match GitHub Actions). Use manually, before deploy (deploy-kamal skill), or when the user asks to run backend CI — not on commit, push, or PR.
 ---
 
 # Run Local CI
+
+**When to run:** manually, before **deploy** (mandatory per `deploy-kamal` skill), or when the user asks. **Not** on `git commit`, `git push`, or `gh pr create`.
 
 **Preferred entrypoint:** `bin/ci` at the repo root — path filters match `.github/workflows/ci.yml`
 (only runs surfaces changed vs `origin/main`).
 
 `web/bin/backend-ci` remains for **web/** only (lint, security, RSpec, OpenAPI, optional Docker).
 
-## Install git hooks (once per clone)
+## Git hooks
 
 ```bash
 bin/install-git-hooks   # or: make install-hooks
 ```
 
-| Hook | What |
-|------|------|
-| `pre-commit` | Fast lint on staged files (RuboCop / ESLint per surface) |
-| `pre-push` | Fast `bin/ci` for changed surfaces (`CI_FULL=1` for full) |
-
-Bypass: `git commit --no-verify` / `git push --no-verify`.
+Hooks are **no-ops** — they do not run CI or lint. CI runs before deploy only.
 
 ## Quick start
 
 ```bash
-# Monorepo — only changed surfaces (recommended before PR)
+# Monorepo — only changed surfaces
 bin/ci                 # fast path (default)
-bin/ci --full          # full merge gate before merge
-CI_FULL=1 bin/ci
+bin/ci --full          # full gate (use before full-stack deploy)
 
-# Web only
-web/bin/backend-ci     # fast (default)
+# Web only — use before API deploy
 web/bin/backend-ci --full
 web/bin/backend-ci-fast
 web/bin/backend-ci --docker   # force production image build
@@ -47,20 +42,14 @@ Makefile aliases: `make ci`, `make ci-fast`.
 | `web/**` | RuboCop, Brakeman, bundler-audit, RSpec, OpenAPI drift |
 | `frontend/app/**`, `packages/design-tokens/**` | `npm ci`, `test:run`, build (`/app/`) |
 | `frontend/backoffice/**`, `packages/design-tokens/**` | same for backoffice (`/backoffice/`) |
-| `site/**` | noted only (no PR CI job — validate with `make site-build` before deploy) |
-| `.github/workflows/ci.yml`, `bin/ci` | all surfaces |
+| `site/**` | noted only — validate with `make site-build` before deploy |
 
-Docker image build runs only when `web/Dockerfile`, `Gemfile`, or production-related files
+Docker image build runs when `web/Dockerfile`, `Gemfile`, or production-related files
 changed — or with `bin/ci --docker` / `web/bin/backend-ci --docker`.
 
-## Stamps and PR gate
+## Stamps (optional)
 
-On success, `bin/ci` writes `.cursor/ci.stamp` with `surfaces=web,frontend,...`.
-`web/bin/backend-ci` also writes `.cursor/backend-ci.stamp` and `ci.stamp` (`surfaces=web`).
-
-Hook `.cursor/hooks/gate-pr-create.sh` requires `ci.stamp` on `HEAD` covering **product**
-surfaces in the diff vs `origin/main`. Docs, `.cursor/`, and CI tooling paths are ignored —
-a web-only branch with `surfaces=web` is enough. Stale SHA or missing stamp still blocks.
+On success, `bin/ci` may write `.cursor/ci.stamp`. Stamps are **informational** — they do not gate commit, push, or PR.
 
 ## Prerequisites
 
@@ -73,18 +62,15 @@ a web-only branch with `surfaces=web` is enough. Stale SHA or missing stamp stil
 
 | Mode | When to use |
 |------|-------------|
-| `bin/ci` | Default before PR — all changed surfaces |
-| `bin/ci --fast` | Iteration; scoped web lint/specs |
-| `web/bin/backend-ci` | Web-only full gate |
+| `bin/ci --full` | Before full-stack deploy |
+| `web/bin/backend-ci --full` | Before API deploy |
+| `web/bin/backend-ci-fast` | Iteration while fixing failures |
 | `web/bin/backend-ci --skip-docker` | Web full tests without Docker |
 
-Fast mode **falls back to full RSpec** when the diff touches `Gemfile`, migrations, `schema.rb`, or `Dockerfile`. OpenAPI steps run only when API contract files changed.
+Fast mode **falls back to full RSpec** when the diff touches `Gemfile`, migrations, `schema.rb`, or `Dockerfile`.
 
-## Ship when green
+## Ship
 
-```bash
-git push -u origin HEAD
-gh pr create ...
-```
+Push and open PR without local CI. Run CI when fixing failures or before deploy.
 
 Skill `create-pull-request` covers PR format. Delegate web/ fix loops to **backend-ci**.

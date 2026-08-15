@@ -26,17 +26,29 @@ Default to **staging** when the destination is ambiguous. Confirm before **produ
 
 ## Before deploy (always)
 
+0. **Essential CI (mandatory before deploy)** — local CI is **not** run on commit, push, or PR; deploy is the quality gate.
+
+   | Layer | Command (from repo root unless noted) |
+   |-------|----------------------------------------|
+   | **web** (API) | `cd web && bin/backend-ci --full` |
+   | **frontend** (school SPA) | `cd frontend/app && npm test && npm run build` |
+   | **backoffice** | `cd frontend/backoffice && npm test && npm run build` |
+   | **site** | `make site-build` or project build script |
+   | **all** | Run each row for surfaces you are deploying |
+
+   Stop deploy if any command exits non-zero. `bin/ci --full` from repo root is an alternative when deploying the full stack.
+
 1. **Working directory** — run Kamal from the service directory (`cd site`, `cd frontend/app`, `cd frontend/backoffice`, or `cd web`). Use `bin/kamal` in `site/`, `frontend/app/`, and `frontend/backoffice/` if present.
-2. **Registry token** — in the same shell:
+3. **Registry token** — in the same shell:
    ```bash
    export KAMAL_REGISTRY_PASSWORD='...'   # classic PAT: write:packages + read:packages
    ```
-3. **Secrets file** — must exist in that service dir:
+4. **Secrets file** — must exist in that service dir:
    ```bash
    test -f .kamal/secrets-common || cp .kamal/secrets-common.example .kamal/secrets-common
    ```
    For **web** only, also need `.kamal/secrets.staging` or `.kamal/secrets.production` (copy from `.example`).
-4. **Verify Kamal resolves secrets**:
+5. **Verify Kamal resolves secrets**:
    ```bash
    kamal secrets print -d <staging|production>
    ```
