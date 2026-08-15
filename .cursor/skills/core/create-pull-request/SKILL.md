@@ -1,24 +1,13 @@
 ---
 name: create-pull-request
-description: Create a GitHub pull request in DLA-Solutions/school_lab after backend CI passes. Use when the user asks to open a PR, create a pull request, or submit changes for review.
+description: Create a GitHub pull request in DLA-Solutions/school_lab. Use when the user asks to open a PR, create a pull request, or submit changes for review.
 ---
 
 # Create Pull Request
 
-Open PRs in `DLA-Solutions/school_lab` **only after backend CI is green** on the current `HEAD`.
+Open PRs in `DLA-Solutions/school_lab` when the branch is ready for review. **Local CI is not required** before PR creation — essential CI runs at deploy time (skill `deploy-kamal`).
 
-Subagent **backend-ci** runs this full pipeline by default (CI → fix → atomic commits → push → PR). Use this skill directly when CI is already green or when only the PR step is needed.
-
-## Gate (mandatory)
-
-**Do not run `gh pr create` until backend CI passes.**
-
-1. Run `bin/ci` from repo root (or `web/bin/backend-ci` when only `web/` changed). For monorepo
-   changes, `bin/ci` applies the same path filters as GitHub Actions.
-2. Confirm exit code 0 and `.cursor/ci.stamp` contains the same SHA as `git rev-parse HEAD`.
-3. If CI fails: fix issues, commit atomically, re-run until green. **Stop and report** if blocked — never open a PR on red CI.
-
-For branches that only touch `frontend/`, `site/`, or docs, still run backend CI when `web/` files changed; skip only when the diff has **zero** files under `web/`.
+Subagent **backend-ci** can run CI, fix failures, commit atomically, push, and open a PR when the user asks for that full pipeline. Use this skill directly when only the PR step is needed.
 
 ## Workflow
 
@@ -26,12 +15,11 @@ Copy and track:
 
 ```
 - [ ] 1. git status / diff / log (parallel)
-- [ ] 2. Local CI green (`bin/ci` or `web/bin/backend-ci` when web-only)
-- [ ] 3. Commit any CI fixes (atomic, one concern per commit)
-- [ ] 4. Re-run backend CI if commits were made
-- [ ] 5. Push branch if needed (git push -u origin HEAD)
-- [ ] 6. gh pr create
+- [ ] 2. Push branch if needed (git push -u origin HEAD)
+- [ ] 3. gh pr create
 ```
+
+Optional: run `bin/ci` or `web/bin/backend-ci` manually when validating changes before review.
 
 ### 1. Gather context (parallel)
 
@@ -43,27 +31,7 @@ git rev-parse --abbrev-ref HEAD
 git rev-parse @{u} 2>/dev/null || true
 ```
 
-### 2. Backend CI
-
-```bash
-bin/ci
-head -1 .cursor/ci.stamp
-git rev-parse HEAD
-```
-
-Both SHAs must match.
-
-### 3. CI fix commits
-
-When CI failures require code changes, follow rule `git-atomic-commits`:
-
-- One atomic commit per fix type (RuboCop, spec, OpenAPI, security).
-- Imperative commit message focused on **why**.
-- Re-run `web/bin/backend-ci` after commits before push/PR.
-
-Subagent **backend-ci** is authorized to commit CI fixes without a separate user request.
-
-### 4. Push
+### 2. Push
 
 ```bash
 git push -u origin HEAD
@@ -71,7 +39,7 @@ git push -u origin HEAD
 
 Requires `git_write` + network permissions.
 
-### 5. Create PR
+### 3. Create PR
 
 ```bash
 gh pr create --title "..." --body "$(cat <<'EOF'
@@ -95,6 +63,5 @@ Skill `branch-naming` — prefixes: `feature/`, `fix/`, `refactor/`, `chore/`, `
 
 ## Rules
 
-- Never skip backend CI to save time.
 - Never amend/push unless user rules allow.
-- Hook `gate-pr-create.sh` blocks `gh pr create` without a valid stamp — if blocked, run `web/bin/backend-ci` first.
+- CI fixes (when run manually): follow rule `git-atomic-commits`; subagent **backend-ci** is authorized to commit CI fixes without a separate user request.

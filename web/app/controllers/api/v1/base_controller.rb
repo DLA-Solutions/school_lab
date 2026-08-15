@@ -177,7 +177,7 @@ module Api
           :not_found
         when :not_implemented
           :not_implemented
-        when :invalid_state_transition
+        when :invalid_state_transition, :year_in_use, :active_year_exists
           :conflict
         else
           :unprocessable_content

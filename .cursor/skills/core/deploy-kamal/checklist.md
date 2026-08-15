@@ -25,6 +25,7 @@
 
 ## Before each deploy
 
+- [ ] Essential CI passed for this layer (see deploy-kamal skill — e.g. `web/bin/backend-ci --full` for API)
 - [ ] Correct service directory (`site/`, `frontend/app/`, `frontend/backoffice/`, or `web/`)
 - [ ] Correct destination: `-d staging` or `-d production`
 - [ ] `kamal secrets print -d <dest>` shows non-empty registry secrets

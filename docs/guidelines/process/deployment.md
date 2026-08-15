@@ -494,6 +494,6 @@ native gems (`pg`, `bootsnap`) takes several minutes. Uncomment `builder.remote`
   school uploads credentials. See `docs/guidelines/web/gateways.md`.
 - **Local CI; manual CD.** GitHub Actions workflows are disabled — see
   `docs/guidelines/process/local-ci.md`. Run `bin/install-git-hooks` once per clone;
-  `bin/ci` before opening PRs; deploy staging/production manually with Kamal (§ Day-to-day).
+  run essential CI before deploy (skill `deploy-kamal`); deploy staging/production manually with Kamal (§ Day-to-day).
 - **Active Storage** writes to a Kamal volume on the app server. That disk is not
   backed up by the deploy process; migrating to S3 is an open decision.

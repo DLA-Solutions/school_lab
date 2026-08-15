@@ -5,10 +5,19 @@ deploys run **locally** on developer machines.
 
 | Concern | Where |
 |---------|--------|
-| CI (lint, test, build) | `bin/ci`, git hooks |
+| CI (lint, test, build) | `bin/ci`, `web/bin/backend-ci` — manual or **before deploy** |
 | CD (staging / production) | **Manual** — `kamal deploy` by the deploy owner |
 
 Archived GitHub workflows: `.github/workflows/ci.yml.archived`, `openapi.yml.archived`.
+
+## When CI runs
+
+| Action | CI? |
+|--------|-----|
+| `git commit` | No |
+| `git push` | No |
+| `gh pr create` | No |
+| `kamal deploy` / deploy skill | **Yes** — essential CI before deploy |
 
 ## Install git hooks (once per clone)
 
@@ -18,10 +27,10 @@ bin/install-git-hooks
 
 | Hook | When | What |
 |------|------|------|
-| `pre-commit` | `git commit` | Fast lint on **staged** files per surface (RuboCop, ESLint) |
-| `pre-push` | `git push` | Fast `bin/ci` for surfaces in commits being pushed |
+| `pre-commit` | `git commit` | No-op (no CI or lint) |
+| `pre-push` | `git push` | No-op |
 
-Bypass when needed: `git commit --no-verify`, `git push --no-verify`.
+Bypass: not needed (hooks are no-ops).
 
 ## bin/ci — smart per-surface CI
 
@@ -31,7 +40,7 @@ Path filters match the archived GitHub workflow (`ci.yml.archived`).
 bin/ci                 # fast path for surfaces changed vs origin/main (default)
 bin/ci --full          # full web gate: all RuboCop, Brakeman, bundler-audit, full RSpec
 CI_FULL=1 bin/ci       # same as --full
-bin/ci --since REF     # REF..HEAD (pre-push uses remote tip)
+bin/ci --since REF     # REF..HEAD (manual scoped runs)
 bin/ci --web           # force web/ only
 make ci                # Makefile alias (fast)
 ```
@@ -51,11 +60,11 @@ Fast mode skips Brakeman, bundler-audit, and Docker. Docs-only changes skip all 
 
 Docker image build runs only on `--full` when production-related `web/` files changed, or with `bin/ci --docker`.
 
-On success, writes `.cursor/ci.stamp` (used by `gh pr create` hook).
+On success, writes `.cursor/ci.stamp` (optional bookkeeping; not required for PRs).
 
 ## CD — manual deploy
 
-Deploys are **not** automated. See `deployment.md` and skill `deploy-kamal`.
+Deploys are **not** automated. Run essential CI before deploy — see `deployment.md` and skill `deploy-kamal`.
 
 ```bash
 cd web && kamal deploy -d staging          # or production
