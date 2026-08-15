@@ -72,6 +72,9 @@ ci_surfaces_from_changed() {
       frontend/backoffice/*)
         backoffice=1
         ;;
+      mobile/*)
+        web=1
+        ;;
     esac
   done <<EOF
 $changed
@@ -125,7 +128,9 @@ $changed
 EOF
 }
 
-# Product-surface detection for gh pr create — ignores CI infra / docs / .cursor-only diffs.
+# Product-surface detection for gh pr create.
+# Ignores docs/, .cursor/, and CI hook/tooling paths so infra churn on a web branch
+# does not require frontend/backoffice/site stamps. Web-only diffs accept surfaces=web.
 ci_detect_pr_surfaces() {
   local repo_root="$1"
   local base_ref="${2:-origin/main}"

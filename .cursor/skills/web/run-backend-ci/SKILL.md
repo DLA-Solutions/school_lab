@@ -58,8 +58,9 @@ changed — or with `bin/ci --docker` / `web/bin/backend-ci --docker`.
 On success, `bin/ci` writes `.cursor/ci.stamp` with `surfaces=web,frontend,...`.
 `web/bin/backend-ci` also writes `.cursor/backend-ci.stamp` and `ci.stamp` (`surfaces=web`).
 
-Hook `.cursor/hooks/gate-pr-create.sh` requires `ci.stamp` on `HEAD` covering all surfaces in
-the diff vs `origin/main`.
+Hook `.cursor/hooks/gate-pr-create.sh` requires `ci.stamp` on `HEAD` covering **product**
+surfaces in the diff vs `origin/main`. Docs, `.cursor/`, and CI tooling paths are ignored —
+a web-only branch with `surfaces=web` is enough. Stale SHA or missing stamp still blocks.
 
 ## Prerequisites
 

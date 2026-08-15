@@ -44,10 +44,15 @@ git rev-parse --abbrev-ref HEAD
 git rev-parse @{u} 2>/dev/null || true
 ```
 
-### 2. Backend CI
+### 2. Local CI
 
 ```bash
+# Web-only branch (typical API work):
+web/bin/backend-ci --full
+
+# Or when frontend/backoffice/site also changed:
 bin/ci
+
 head -1 .cursor/ci.stamp
 git rev-parse HEAD
 ```
@@ -98,4 +103,4 @@ Skill `branch-naming` — prefixes: `feature/`, `fix/`, `refactor/`, `chore/`, `
 
 - Never skip backend CI to save time.
 - Never amend/push unless user rules allow.
-- Hook `gate-pr-create.sh` blocks `gh pr create` without a valid stamp — if blocked, run `web/bin/backend-ci` first.
+- Hook `gate-pr-create.sh` blocks `gh pr create` without a valid stamp on HEAD — re-run CI if SHA is stale; for web-only diffs, `web/bin/backend-ci` is enough.

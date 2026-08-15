@@ -191,7 +191,7 @@ elif [ "$FORCE_WEB" -eq 1 ] || [ "$FORCE_FRONTEND" -eq 1 ] || [ "$FORCE_BACKOFFI
   RUN_BACKOFFICE=$FORCE_BACKOFFICE
   RUN_SITE=$FORCE_SITE
 else
-  DETECTED="$(ci_detect_surfaces "$REPO_ROOT" "$BASE_REF" "$DIFF_MODE" || true)"
+  DETECTED="$(ci_detect_pr_surfaces "$REPO_ROOT" "$BASE_REF" "$DIFF_MODE" || true)"
   RUN_WEB=0
   RUN_FRONTEND=0
   RUN_BACKOFFICE=0

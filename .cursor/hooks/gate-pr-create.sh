@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Blocks `gh pr create` unless bin/ci passed on the current HEAD for all changed surfaces.
-# Stamp: .cursor/ci.stamp (gitignored; written by bin/ci).
+# Blocks `gh pr create` unless local CI passed on HEAD for product surfaces changed vs base.
+# Uses ci_detect_pr_surfaces (path-aware): docs/, .cursor/, bin/ci, and .githooks/ do not
+# widen required surfaces. Stamp: .cursor/ci.stamp (gitignored; written by bin/ci or web/bin/backend-ci).
 
 set -euo pipefail
 
@@ -67,9 +68,13 @@ $REQUIRED_SURFACES
 EOF
 
 if [ -n "$MISSING" ]; then
+  HINT="bin/ci"
+  if [ "$MISSING" = "web" ]; then
+    HINT="web/bin/backend-ci"
+  fi
   deny \
-    "Local CI missing surface(s): ${MISSING}. Run: bin/ci" \
-    "gh pr create blocked: ci.stamp lacks required surfaces (${MISSING}). Run bin/ci on the current commit."
+    "Local CI missing surface(s): ${MISSING}. Run: ${HINT}" \
+    "gh pr create blocked: ci.stamp lacks required surfaces (${MISSING}). Run ${HINT} on the current commit."
 fi
 
 printf '{"permission":"allow"}\n'
