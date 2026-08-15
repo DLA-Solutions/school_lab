@@ -338,6 +338,31 @@ RSpec.describe "Api::V1::Schools::SchoolYears", type: :request do
         end
       end
 
+      response "422", "period overlap blocks activate" do
+        let!(:school_year) do
+          year = create(:school_year, :custom, school: school, name: "2026")
+          ActiveRecord::Base.connection.execute(
+            "ALTER TABLE academic_periods DROP CONSTRAINT IF EXISTS academic_periods_no_overlap_kept"
+          )
+          create(:academic_period,
+                 school_year: year,
+                 sequence: 1,
+                 starts_on: Date.new(2026, 2, 1),
+                 ends_on: Date.new(2026, 4, 30))
+          create(:academic_period,
+                 school_year: year,
+                 sequence: 2,
+                 starts_on: Date.new(2026, 4, 1),
+                 ends_on: Date.new(2026, 6, 30))
+          year
+        end
+        let(:id) { school_year.id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("period_overlap")
+        end
+      end
+
       response "403", "forbidden without manage_school_settings" do
         let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
         let!(:school_year) { create(:school_year, school: school) }
