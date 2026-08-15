@@ -751,8 +751,14 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "200": {
+            "description": "updates draft year period"
+          },
+          "422": {
+            "description": "closure_status is read-only"
+          },
+          "404": {
+            "description": "cross-school update"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
@@ -774,6 +780,9 @@
                   "ends_on": {
                     "type": "string",
                     "format": "date"
+                  },
+                  "closure_status": {
+                    "type": "string"
                   }
                 }
               }
@@ -4457,8 +4466,11 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "200": {
+            "description": "updates holiday"
+          },
+          "404": {
+            "description": "cross-school update"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
@@ -4507,8 +4519,8 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "204": {
+            "description": "soft deletes holiday"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
@@ -6639,8 +6651,11 @@
           "401": {
             "description": "unauthenticated"
           },
-          "501": {
-            "description": "not implemented"
+          "403": {
+            "description": "forbidden for guardian"
+          },
+          "200": {
+            "description": "paginated list for staff"
           }
         }
       },
@@ -6665,11 +6680,14 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "201": {
+            "description": "creates draft year with trimester periods"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
+          },
+          "422": {
+            "description": "validation error for invalid dates"
           }
         },
         "requestBody": {
@@ -6741,8 +6759,14 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented for active staff"
+          "200": {
+            "description": "returns active year with embedded collections"
+          },
+          "422": {
+            "description": "no active school year"
+          },
+          "403": {
+            "description": "forbidden for guardian"
           }
         }
       }
@@ -6796,8 +6820,11 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "200": {
+            "description": "show year"
+          },
+          "404": {
+            "description": "cross-school access"
           }
         }
       },
@@ -6822,8 +6849,11 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "200": {
+            "description": "updates draft year"
+          },
+          "409": {
+            "description": "invalid state transition on active year"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
@@ -6873,8 +6903,11 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "204": {
+            "description": "soft deletes draft year"
+          },
+          "409": {
+            "description": "year in use"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
@@ -6965,8 +6998,11 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "200": {
+            "description": "activates draft year and archives prior active year"
+          },
+          "409": {
+            "description": "activate without periods"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
@@ -7014,8 +7050,8 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "200": {
+            "description": "archives active year"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
@@ -7066,8 +7102,11 @@
           "401": {
             "description": "unauthenticated"
           },
-          "501": {
-            "description": "not implemented"
+          "403": {
+            "description": "forbidden for guardian"
+          },
+          "200": {
+            "description": "lists periods for year"
           }
         }
       },
@@ -7092,8 +7131,11 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "201": {
+            "description": "creates period on draft year"
+          },
+          "422": {
+            "description": "invalid period range outside year bounds"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
@@ -7175,8 +7217,11 @@
           "401": {
             "description": "unauthenticated"
           },
-          "501": {
-            "description": "not implemented"
+          "403": {
+            "description": "forbidden for guardian"
+          },
+          "200": {
+            "description": "lists holidays"
           }
         }
       },
@@ -7201,8 +7246,11 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "201": {
+            "description": "creates holiday on draft year"
+          },
+          "422": {
+            "description": "archived school year"
           },
           "403": {
             "description": "forbidden without manage_school_settings"
