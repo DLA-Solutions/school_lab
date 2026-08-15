@@ -1,0 +1,245 @@
+# Capabilities by actor — Gestao Financeira (Classapp)
+
+Harvest-derived inventory. **102** capabilities across 1 School Lab domain(s).
+Maturity: documented help-center articles. See [`../../README.md`](../../README.md).
+
+## Domain: Billing
+
+_102 capabilities._
+
+## Guardian
+
+- **Configurar A Troca De Mensagens Entre A Escola E As Famílias No Classapp** (`billing.configure_configurar_a_troca_de_mensagen`) — _configuration_, friction 0.0 — [Como configurar a troca de mensagens entre a escol](https://ajuda.classapp.com.br/hc/pt-br/articles/11776934819611-Como-configurar-a-troca-de-mensagens-entre-a-escola-e-as-fam%C3%ADlias-no-ClassApp)
+  - Configurar A Troca De Mensagens Entre A Escola E As Famílias No Classapp.
+- **Posso Gerar Um Boleto Em Nome Do Responsável?** (`billing.manage_posso_gerar_um_boleto_em_nome_`) — _documented_, friction 3.5 — [Posso gerar um boleto em nome do responsável?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806169149-Posso-gerar-um-boleto-em-nome-do-respons%C3%A1vel)
+  - Posso Gerar Um Boleto Em Nome Do Responsável?. Note: É importante compreender qual dificuldade o responsável está enfrentando. Caso seja o primeiro pagamento no ClassApp, se.
+- **Principais Dúvidas E Melhores Práticas Dos Canais De Atendimento 💬** (`billing.manage_principais_duvidas_e_melhores_`) — _documented_, friction 7.0 — [Principais dúvidas e melhores práticas dos Canais ](https://ajuda.classapp.com.br/hc/pt-br/articles/4404932610843-Principais-d%C3%BAvidas-e-melhores-pr%C3%A1ticas-dos-Canais-de-Atendimento)
+  - Principais Dúvidas E Melhores Práticas Dos Canais De Atendimento 💬. Note: ⚠️ Um canal pode ser criado por funcionários ou administradores já cadastrados no ClassApp..
+
+## Staff
+
+- **10. Como Serão Feitos Os Envios De Mensagens?** (`billing.manage_10_como_serao_feitos_os_envios`) — _documented_, friction 3.5 — [10. Como serão feitos os envios de mensagens?](https://ajuda.classapp.com.br/hc/pt-br/articles/4405993108891-10-Como-ser%C3%A3o-feitos-os-envios-de-mensagens)
+  - 10. Como Serão Feitos Os Envios De Mensagens?. Note: Exemplos de tags: Aluno, responsável financeiro, pai, mãe, importante, urgente, rotina, comunicado, notícias, entre outr.
+- **2. O Que O Time De Integração Faz?** (`billing.manage_2_o_que_o_time_de_integracao_f`) — _documented_, friction 0.0 — [2. O que o time de integração faz?](https://ajuda.classapp.com.br/hc/pt-br/articles/4405984487451-2-O-que-o-time-de-integra%C3%A7%C3%A3o-faz)
+  - 2. O Que O Time De Integração Faz?.
+- **3. Quais Sistemas Já Temos Integrado?** (`billing.manage_3_quais_sistemas_ja_temos_inte`) — _documented_, friction 0.0 — [3. Quais sistemas já temos integrado?](https://ajuda.classapp.com.br/hc/pt-br/articles/4405984548123-3-Quais-sistemas-j%C3%A1-temos-integrado)
+  - 3. Quais Sistemas Já Temos Integrado?.
+- **7. O Que É Integração De Boletos?** (`billing.manage_7_o_que_e_integracao_de_boleto`) — _conceptual_, friction 0.0 — [7. O que é integração de Boletos?](https://ajuda.classapp.com.br/hc/pt-br/articles/4405992422683-7-O-que-%C3%A9-integra%C3%A7%C3%A3o-de-Boletos)
+  - 7. O Que É Integração De Boletos?.
+- **Acessando Múltiplos Perfis No Classapp De Forma Simples E Organizada!** (`billing.manage_acessando_multiplos_perfis_no_`) — _documented_, friction 6.5 — [Acessando múltiplos perfis no ClassApp de forma si](https://ajuda.classapp.com.br/hc/pt-br/articles/236090328-Acessando-m%C3%BAltiplos-perfis-no-ClassApp-de-forma-simples-e-organizada)
+  - Acessando Múltiplos Perfis No Classapp De Forma Simples E Organizada!. Note: ⚠️Caso você tenha recebido convites de novas escolas e ainda não aceitou, confira se há convites pendentes..
+- **Acessar O Portal Logado Pelo Classapp** (`billing.manage_acessar_o_portal_logado_pelo_c`) — _documented_, friction 10.5 — [Como acessar o portal logado pelo ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/7115040314523-Como-acessar-o-portal-logado-pelo-ClassApp)
+  - Acessar O Portal Logado Pelo Classapp. Note: ⚠️Importante: Essa funcionalidade está sendo liberada de forma gradativa entre as escolas. Caso a sua ainda não tenha o .
+- **Acompanhar O Status De Uma Cobrança?** (`billing.view_acompanhar_o_status_de_uma_cob`) — _documented_, friction 10.5 — [Como acompanhar o status de uma cobrança?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806105570-Como-acompanhar-o-status-de-uma-cobran%C3%A7a)
+  - Acompanhar O Status De Uma Cobrança?. Note: ⚠️ Importante: Lembrando que, se a cobrança foi enviada direto pelo ClassPay, após o vencimento da mesma, é necessário c.
+- **Adicionar Alunos Em Uma Campanha De Matrículas?** (`billing.create_adicionar_alunos_em_uma_campan`) — _documented_, friction 5.0 — [Como adicionar alunos em uma campanha de matrícula](https://ajuda.classapp.com.br/hc/pt-br/articles/1260802091830-Como-adicionar-alunos-em-uma-campanha-de-matr%C3%ADculas)
+  - Adicionar Alunos Em Uma Campanha De Matrículas?. Note: ⚠️ Importante: Os grupos criados aqui não interferem nos grupos do ClassApp, sendo exclusivos para o módulo de matrícula.
+- **Adicionar Contratos Em Massa** (`billing.create_adicionar_contratos_em_massa`) — _documented_, friction 2.0 — [Como adicionar contratos em massa](https://ajuda.classapp.com.br/hc/pt-br/articles/4413373961115-Como-adicionar-contratos-em-massa)
+  - Adicionar Contratos Em Massa.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Adicionar E Gerenciar Acessos Externos No Classapp** (`billing.create_adicionar_e_gerenciar_acessos_`) — _documented_, friction 7.5 — [Como adicionar e gerenciar Acessos Externos no Cla](https://ajuda.classapp.com.br/hc/pt-br/articles/1260803817650-Como-adicionar-e-gerenciar-Acessos-Externos-no-ClassApp)
+  - Adicionar E Gerenciar Acessos Externos No Classapp. Note: A funcionalidade de acessos externos no ClassApp permite que a escola adicione links úteis diretamente no aplicativo, fa.
+- **Adicionar Os Dados Cadastrais?** (`billing.create_adicionar_os_dados_cadastrais`) — _documented_, friction 8.5 — [Como adicionar os Dados Cadastrais?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260804729609-Como-adicionar-os-Dados-Cadastrais)
+  - Adicionar Os Dados Cadastrais?. Note: ⚠️ Importante: Esses dados serão usados para a emissão da nota fiscal do sistema, então preste atenção ao escolher entre.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Adicionar Uma Nova Pessoa?** (`billing.create_adicionar_uma_nova_pessoa`) — _documented_, friction 10.5 — [Como adicionar uma nova pessoa?](https://ajuda.classapp.com.br/hc/pt-br/articles/115001015527-Como-adicionar-uma-nova-pessoa)
+  - Adicionar Uma Nova Pessoa?. Note: ⚠️Importante: Se já disponível em seu ambiente os campos de Data de Nascimento e CPF nos perfis de alunos, considerar o .
+- **Adicionar Usuários A Um Canal No Classapp** (`billing.create_adicionar_usuarios_a_um_canal_`) — _documented_, friction 5.5 — [Como adicionar usuários a um canal no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/115001015827-Como-adicionar-usu%C3%A1rios-a-um-canal-no-ClassApp)
+  - Adicionar Usuários A Um Canal No Classapp. Note: IMPORTANTE: Após adicionar o responsável ao canal, é necessário que ele aceite o convite para começar a receber as mensa.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Alterar O Valor Da Antecipação Em Uma Proposta** (`billing.update_alterar_o_valor_da_antecipacao`) — _documented_, friction 1.5 — [Como alterar o valor da antecipação em uma propost](https://ajuda.classapp.com.br/hc/pt-br/articles/40767190831259-Como-alterar-o-valor-da-antecipa%C3%A7%C3%A3o-em-uma-proposta)
+  - Alterar O Valor Da Antecipação Em Uma Proposta.
+- **Alterar Um Contrato Já Enviado** (`billing.update_alterar_um_contrato_ja_enviado`) — _documented_, friction 5.5 — [Como alterar um contrato já enviado](https://ajuda.classapp.com.br/hc/pt-br/articles/40729152431387-Como-alterar-um-contrato-j%C3%A1-enviado)
+  - Alterar Um Contrato Já Enviado. Note: Observação: Esse processo garante que apenas o novo contrato ficará ativo para o aluno. O contrato anterior permanece ca.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Aprovação De Mensagens No Classapp: Como Funciona E Como Configurar?** (`billing.configure_aprovacao_de_mensagens_no_clas`) — _configuration_, friction 9.1 — [Aprovação de Mensagens no ClassApp: Como Funciona ](https://ajuda.classapp.com.br/hc/pt-br/articles/13882366390811-Aprova%C3%A7%C3%A3o-de-Mensagens-no-ClassApp-Como-Funciona-e-Como-Configurar)
+  - Aprovação De Mensagens No Classapp: Como Funciona E Como Configurar?. Note: ⚠️Importante: Ao configurar para que um funcionário possa aprovar e reprovar mensagens, ele poderá realizar essa ação ap.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Atualizar E Verificar Tags De Usuário No Classapp** (`billing.update_atualizar_e_verificar_tags_de_`) — _documented_, friction 8.5 — [Como atualizar e verificar Tags de usuário no Clas](https://ajuda.classapp.com.br/hc/pt-br/articles/4949242345755-Como-atualizar-e-verificar-Tags-de-usu%C3%A1rio-no-ClassApp)
+  - Atualizar E Verificar Tags De Usuário No Classapp. Note: ⚠ Importante: Não é possível alterar as tags de uma mensagem já enviada.
+- **Categorizar As Mensagens Com Etiquetas 🏷️** (`billing.manage_categorizar_as_mensagens_com_e`) — _documented_, friction 10.5 — [Categorizar as mensagens com etiquetas 🏷️](https://ajuda.classapp.com.br/hc/pt-br/articles/360044350613-Categorizar-as-mensagens-com-etiquetas)
+  - Categorizar As Mensagens Com Etiquetas 🏷️. Note: ⚠️ Importante: Apenas as mensagens enviadas pela escola podem ser etiquetadas, e é permitido apenas uma etiqueta por men.
+- **Configurar A Assinatura Da Escola Nos Contratos De Matrículas?** (`billing.configure_configurar_a_assinatura_da_esc`) — _configuration_, friction 10.5 — [Como configurar a assinatura da escola nos contrat](https://ajuda.classapp.com.br/hc/pt-br/articles/17731999593499-Como-configurar-a-assinatura-da-escola-nos-contratos-de-matr%C3%ADculas)
+  - Configurar A Assinatura Da Escola Nos Contratos De Matrículas?. Note: Dúvidas e pontos importantes.
+- **Configurar As Notificações No Classapp 📄** (`billing.configure_configurar_as_notificacoes_no_`) — _configuration_, friction 9.1 — [Como configurar as notificações no ClassApp 📄](https://ajuda.classapp.com.br/hc/pt-br/articles/115001012667-Como-configurar-as-notifica%C3%A7%C3%B5es-no-ClassApp)
+  - Configurar As Notificações No Classapp 📄. Note: Nota: Não é necessário clicar em "Salvar" no app para registrar as mudanças. Você pode ativar ou desativar notificações .
+- **Configurar Horários De Atendimento Para Canais No Classapp** (`billing.configure_configurar_horarios_de_atendim`) — _configuration_, friction 7.0 — [Como configurar horários de atendimento para canai](https://ajuda.classapp.com.br/hc/pt-br/articles/4407625235995-Como-configurar-hor%C3%A1rios-de-atendimento-para-canais-no-ClassApp)
+  - Configurar Horários De Atendimento Para Canais No Classapp. Note: ⚠️Importante: Essa configuração não deixará o canal inativo fora de seu horário, apenas mostrará às famílias o horário d.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Configurar Notificações Dos Funcionários No Classapp** (`billing.configure_configurar_notificacoes_dos_fu`) — _configuration_, friction 6.5 — [Configurar Notificações dos Funcionários no ClassA](https://ajuda.classapp.com.br/hc/pt-br/articles/360013718773-Configurar-Notifica%C3%A7%C3%B5es-dos-Funcion%C3%A1rios-no-ClassApp)
+  - Configurar Notificações Dos Funcionários No Classapp. Note: ⚠️ Importante: Essa configuração afeta apenas os funcionários e administradores da organização. O recebimento de notific.
+- **Configurar O Desconto De Antecipação?** (`billing.configure_configurar_o_desconto_de_antec`) — _configuration_, friction 0.0 — [Como configurar o desconto de antecipação?](https://ajuda.classapp.com.br/hc/pt-br/articles/4402065742107-Como-configurar-o-desconto-de-antecipa%C3%A7%C3%A3o)
+  - Configurar O Desconto De Antecipação?.
+- **Configurar O Fluxo De Comunicados Em Rede?** (`billing.configure_configurar_o_fluxo_de_comunica`) — _configuration_, friction 5.0 — [Como configurar o fluxo de comunicados em rede?](https://ajuda.classapp.com.br/hc/pt-br/articles/33088808549531-Como-configurar-o-fluxo-de-comunicados-em-rede)
+  - Configurar O Fluxo De Comunicados Em Rede?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Configurar O Tipo Dos Canais De Atendimento: Simples E Com Status De Atendimento** (`billing.configure_configurar_o_tipo_dos_canais_d`) — _configuration_, friction 0.0 — [Como configurar o tipo dos Canais de Atendimento: ](https://ajuda.classapp.com.br/hc/pt-br/articles/22123107742107-Como-configurar-o-tipo-dos-Canais-de-Atendimento-Simples-e-Com-status-de-atendimento)
+  - Configurar O Tipo Dos Canais De Atendimento: Simples E Com Status De Atendimento.
+- **Conversas: Como Configurar Mensagens Automáticas** (`billing.configure_conversas_como_configurar_mens`) — _configuration_, friction 6.5 — [Conversas: Como configurar mensagens automáticas](https://ajuda.classapp.com.br/hc/pt-br/articles/31801173868059-Conversas-Como-configurar-mensagens-autom%C3%A1ticas)
+  - Conversas: Como Configurar Mensagens Automáticas. Note: ⚠️ Importante: O horário de atendimento é essencial para garantir que as mensagens automáticas sejam enviadas corretamen.
+- **Conversas: Confirmação De Leitura** (`billing.manage_conversas_confirmacao_de_leitu`) — _documented_, friction 3.0 — [Conversas: confirmação de leitura](https://ajuda.classapp.com.br/hc/pt-br/articles/33671232110747-Conversas-confirma%C3%A7%C3%A3o-de-leitura)
+  - Conversas: Confirmação De Leitura.
+- **Criando Campanhas Para Matrícula E Rematrícula** (`billing.manage_criando_campanhas_para_matricu`) — _documented_, friction 3.5 — [Criando campanhas para matrícula e rematrícula](https://ajuda.classapp.com.br/hc/pt-br/articles/4404541936155-Criando-campanhas-para-matr%C3%ADcula-e-rematr%C3%ADcula)
+  - Criando Campanhas Para Matrícula E Rematrícula.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar E Gerenciar Compromissos?** (`billing.create_criar_e_gerenciar_compromissos`) — _documented_, friction 10.3 — [Como criar e gerenciar Compromissos?](https://ajuda.classapp.com.br/hc/pt-br/articles/360001389553-Como-criar-e-gerenciar-Compromissos)
+  - Criar E Gerenciar Compromissos?. Note: Você pode agendar datas importantes com os pais utilizando a funcionalidade "Compromisso". Essa ferramenta é ideal para .
+- **Criar Um Canal De Atendimento? 🗨️** (`billing.create_criar_um_canal_de_atendimento`) — _documented_, friction 13.7 — [Como criar um canal de atendimento? 🗨️](https://ajuda.classapp.com.br/hc/pt-br/articles/115001015467-Como-criar-um-canal-de-atendimento)
+  - Criar Um Canal De Atendimento? 🗨️. Note: Importante: Essa configuração não impede o envio de mensagens fora do horário de atendimento. Para saber mais, clique ma.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Dar Baixa Manual Na Fatura?** (`billing.manage_dar_baixa_manual_na_fatura`) — _documented_, friction 8.5 — [Como dar baixa manual na fatura?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260803089949-Como-dar-baixa-manual-na-fatura)
+  - Dar Baixa Manual Na Fatura?. Note: Verifique cuidadosamente o valor antes de confirmar a baixa manual. Após a conclusão, não será possível alterar o valor .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Enviar Uma Cobrança Pelo Classapp?** (`billing.send_enviar_uma_cobranca_pelo_class`) — _documented_, friction 5.0 — [Como enviar uma cobrança pelo ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/360052777994-Como-enviar-uma-cobran%C3%A7a-pelo-ClassApp)
+  - Enviar Uma Cobrança Pelo Classapp?. Note: ⚠️ Importante: Para enviar uma cobrança é necessário ter pelo menos um banco cadastrado. Caso ainda não tenha adicionado.
+- **Enviar Uma Mensagem** (`billing.send_enviar_uma_mensagem`) — _documented_, friction 10.5 — [Como enviar uma mensagem](https://ajuda.classapp.com.br/hc/pt-br/articles/360024755893-Como-enviar-uma-mensagem)
+  - Enviar Uma Mensagem. Note: Na hora que você for redigir uma mensagem através do pc você pode contar com as nossas ferramentas de formatação para de.
+- **Estorno De Pagamentos No Classpay** (`billing.manage_estorno_de_pagamentos_no_class`) — _documented_, friction 8.5 — [Estorno de pagamentos no ClassPay](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806168410-Estorno-de-pagamentos-no-ClassPay)
+  - Estorno De Pagamentos No Classpay. Note: ⚠️ Importante: Só é possível estornar o valor completo ao responsável. Então, caso uma cobrança por algum motivo tenha s.
+- **Eu Gerencio Meus Saques?** (`billing.manage_eu_gerencio_meus_saques`) — _documented_, friction 7.0 — [Como eu gerencio meus saques?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806147669-Como-eu-gerencio-meus-saques)
+  - Eu Gerencio Meus Saques?. Note: ⚠️ Importante: A opção de saque manual está disponível, mesmo com a configuração automática ativada..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Existe Alguma Taxa De Utilização Para O Classpay?** (`billing.manage_existe_alguma_taxa_de_utilizac`) — _documented_, friction 3.5 — [Existe alguma taxa de utilização para o ClassPay?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806167949-Existe-alguma-taxa-de-utiliza%C3%A7%C3%A3o-para-o-ClassPay)
+  - Existe Alguma Taxa De Utilização Para O Classpay?. Note: As taxas do ClassPay são aplicadas apenas no momento do pagamento, e é importante conhecê-las para gerenciar melhor suas.
+- **Exportando Informações Da Campanha No Sistema De Matrículas** (`billing.manage_exportando_informacoes_da_camp`) — _documented_, friction 0.0 — [Exportando informações da campanha no sistema de m](https://ajuda.classapp.com.br/hc/pt-br/articles/4411037848219-Exportando-informa%C3%A7%C3%B5es-da-campanha-no-sistema-de-matr%C3%ADculas)
+  - Exportando Informações Da Campanha No Sistema De Matrículas.
+- **Falhas De Acesso Ao Portal Logado - Activesoft** (`billing.resolve_falhas_de_acesso_ao_portal_log`) — _troubleshooting_, friction 11.0 — [Falhas de acesso ao portal logado - Activesoft](https://ajuda.classapp.com.br/hc/pt-br/articles/49117413474459-Falhas-de-acesso-ao-portal-logado-Activesoft)
+  - Falhas De Acesso Ao Portal Logado - Activesoft. Note: ⚠️ Caso haja divergência entre os contatos, atualize-os para que no Activesoft conste exatamente como está no ClassApp e.
+- **Funciona A Confirmação De Pagamentos De Um Boleto?** (`billing.manage_funciona_a_confirmacao_de_paga`) — _documented_, friction 0.0 — [Como funciona a confirmação de pagamentos de um bo](https://ajuda.classapp.com.br/hc/pt-br/articles/1260803112669-Como-funciona-a-confirma%C3%A7%C3%A3o-de-pagamentos-de-um-boleto)
+  - Funciona A Confirmação De Pagamentos De Um Boleto?.
+- **Gerar Um Extrato Para Acompanhar Meus Saques E Pagamentos?** (`billing.view_gerar_um_extrato_para_acompanh`) — _documented_, friction 0.0 — [Como gerar um extrato para acompanhar meus saques ](https://ajuda.classapp.com.br/hc/pt-br/articles/1260803755609-Como-gerar-um-extrato-para-acompanhar-meus-saques-e-pagamentos)
+  - Gerar Um Extrato Para Acompanhar Meus Saques E Pagamentos?.
+- **Gerenciar Meus Recebimentos?** (`billing.manage_gerenciar_meus_recebimentos`) — _documented_, friction 3.5 — [Como gerenciar meus recebimentos?](https://ajuda.classapp.com.br/hc/pt-br/articles/4402032294427-Como-gerenciar-meus-recebimentos)
+  - Gerenciar Meus Recebimentos?. Note: Com o Sistema Financeiro em funcionamento, é importante que a equipe financeira acompanhe de maneira clara e detalhada o.
+- **Gerenciar Minhas Receitas?** (`billing.manage_gerenciar_minhas_receitas`) — _documented_, friction 3.5 — [Como gerenciar minhas receitas?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260804800810-Como-gerenciar-minhas-receitas)
+  - Gerenciar Minhas Receitas?. Note: A aba "Receitas" é uma das mais importantes do nosso Sistema Financeiro. Por meio dela, você pode acompanhar todas as tr.
+- **Gerenciar Os Inadimplentes?** (`billing.manage_gerenciar_os_inadimplentes`) — _documented_, friction 6.0 — [Como gerenciar os inadimplentes?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260804719849-Como-gerenciar-os-inadimplentes)
+  - Gerenciar Os Inadimplentes?. Note: Observação: Os valores exibidos podem variar conforme os filtros aplicados. Utilize as configurações da "Régua de Cobran.
+- **Gerencio Minhas Cobranças?** (`billing.manage_gerencio_minhas_cobrancas`) — _documented_, friction 10.5 — [Como gerencio minhas cobranças?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260804719429-Como-gerencio-minhas-cobran%C3%A7as)
+  - Gerencio Minhas Cobranças?. Note: ⚠️ Importante: O valor recebido não é o valor disponível para saque, pois ainda podem ser descontadas taxas..
+- **Informar O Pagamento Manual Da Antecipação** (`billing.manage_informar_o_pagamento_manual_da`) — _documented_, friction 1.5 — [Como informar o pagamento manual da antecipação](https://ajuda.classapp.com.br/hc/pt-br/articles/40768188525467-Como-informar-o-pagamento-manual-da-antecipa%C3%A7%C3%A3o)
+  - Informar O Pagamento Manual Da Antecipação.
+- **Localizar Canais De Atendimento No Classapp** (`billing.manage_localizar_canais_de_atendiment`) — _documented_, friction 3.5 — [Como localizar canais de atendimento no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360007116114-Como-localizar-canais-de-atendimento-no-ClassApp)
+  - Localizar Canais De Atendimento No Classapp. Note: Importante: somente Administradores e funcionários/canais com permissões administrativas conseguem acessar a aba de Cana.
+- **Melhores Práticas Para Utilizar O Dashboard De Matrículas** (`billing.manage_melhores_praticas_para_utiliza`) — _documented_, friction 1.5 — [Melhores práticas para utilizar o Dashboard de mat](https://ajuda.classapp.com.br/hc/pt-br/articles/4412972880667-Melhores-pr%C3%A1ticas-para-utilizar-o-Dashboard-de-matr%C3%ADculas)
+  - Melhores Práticas Para Utilizar O Dashboard De Matrículas.
+- **Meu Isaac No Classapp** (`billing.manage_meu_isaac_no_classapp`) — _documented_, friction 2.0 — [Meu isaac no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/25734509961243-Meu-isaac-no-ClassApp)
+  - Meu Isaac No Classapp.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **O Classpay É Seguro?** (`billing.manage_o_classpay_e_seguro`) — _documented_, friction 0.0 — [O ClassPay é seguro?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806168189-O-ClassPay-%C3%A9-seguro)
+  - O Classpay É Seguro?.
+- **O Classpay?** (`billing.manage_o_classpay`) — _conceptual_, friction 12.5 — [O que é o ClassPay?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806072809-O-que-%C3%A9-o-ClassPay)
+  - O Classpay?. Note: ⚠️ O prazo varia de acordo com a forma de pagamento escolhida pelo pai/responsável:.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **O Que Acontece Caso O Pagamento Por Cartão De Crédito Precise Ser Cancelado?** (`billing.manage_o_que_acontece_caso_o_pagament`) — _documented_, friction 0.0 — [O que acontece caso o pagamento por cartão de créd](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806194630-O-que-acontece-caso-o-pagamento-por-cart%C3%A3o-de-cr%C3%A9dito-precise-ser-cancelado)
+  - O Que Acontece Caso O Pagamento Por Cartão De Crédito Precise Ser Cancelado?.
+- **Onde Posso Encontrar As Cobranças De Pix, Boleto E Cartão Que Recebi?** (`billing.manage_onde_posso_encontrar_as_cobran`) — _documented_, friction 4.5 — [Onde posso encontrar as cobranças de PIX, boleto e](https://ajuda.classapp.com.br/hc/pt-br/articles/6634383595035-Onde-posso-encontrar-as-cobran%C3%A7as-de-PIX-boleto-e-cart%C3%A3o-que-recebi)
+  - Onde Posso Encontrar As Cobranças De Pix, Boleto E Cartão Que Recebi?.
+- **Pagar A 2ª Via Do Boleto Ou Pix No Classapp?** (`billing.pay_pagar_a_2a_via_do_boleto_ou_pi`) — _documented_, friction 5.0 — [Como pagar a 2ª via do boleto ou PIX no ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260803158829-Como-pagar-a-2%C2%AA-via-do-boleto-ou-PIX-no-ClassApp)
+  - Pagar A 2ª Via Do Boleto Ou Pix No Classapp?. Note: ⚠️Importante: Se o boleto tiver vencido, ele não poderá mais ser pago. Se a escola enviou o boleto pelo comunicado você .
+- **Passo 1: Informações Dos Alunos** (`billing.manage_passo_1_informacoes_dos_alunos`) — _documented_, friction 12.5 — [Passo 1: Informações dos alunos](https://ajuda.classapp.com.br/hc/pt-br/articles/4404541946907-Passo-1-Informa%C3%A7%C3%B5es-dos-alunos)
+  - Passo 1: Informações Dos Alunos. Note: Esse passo é muito importante, porque é com ele que a escola obtém as informações necessárias do responsável para uma as.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Passo 2: Definindo Propostas** (`billing.manage_passo_2_definindo_propostas`) — _documented_, friction 8.5 — [Passo 2: Definindo propostas](https://ajuda.classapp.com.br/hc/pt-br/articles/4404541960603-Passo-2-Definindo-propostas)
+  - Passo 2: Definindo Propostas. Note: ⚠️ Importante: Atenção ao apagar um grupo de propostas, pois esta ação não poderá ser desfeita posteriormente e todas as.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Passo 4: Formas De Pagamento** (`billing.manage_passo_4_formas_de_pagamento`) — _documented_, friction 5.0 — [Passo 4: Formas de pagamento](https://ajuda.classapp.com.br/hc/pt-br/articles/4404549297563-Passo-4-Formas-de-pagamento)
+  - Passo 4: Formas De Pagamento. Note: ⚠️ Importante: Se a escola usa o Sistema de Matrículas apenas para enviar o contrato para assinatura, sem cobranças, ain.
+- **Por Que Os Valores Mudam Na Dashboard De Receitas/Cobranças?** (`billing.resolve_por_que_os_valores_mudam_na_da`) — _troubleshooting_, friction 3.0 — [Por que os valores mudam na dashboard de receitas/](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806159389-Por-que-os-valores-mudam-na-dashboard-de-receitas-cobran%C3%A7as)
+  - Por Que Os Valores Mudam Na Dashboard De Receitas/Cobranças?.
+- **Por Que É Importante Confirmar Os Dados No Classapp?** (`billing.resolve_por_que_e_importante_confirmar`) — _troubleshooting_, friction 3.0 — [Por que é importante confirmar os dados no ClassAp](https://ajuda.classapp.com.br/hc/pt-br/articles/360007537853-Por-que-%C3%A9-importante-confirmar-os-dados-no-ClassApp)
+  - Por Que É Importante Confirmar Os Dados No Classapp?.
+- **Porque O Valor Do Dashboard E O Saldo Para Saque São Diferentes?** (`billing.manage_porque_o_valor_do_dashboard_e_`) — _documented_, friction 0.0 — [Porque o valor do Dashboard e o Saldo para Saque s](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806193830-Porque-o-valor-do-Dashboard-e-o-Saldo-para-Saque-s%C3%A3o-diferentes)
+  - Porque O Valor Do Dashboard E O Saldo Para Saque São Diferentes?.
+- **Primeiros Passos Para Utilizar O Classpay: Cadastrar O Banco Da Instituição** (`billing.create_primeiros_passos_para_utilizar`) — _documented_, friction 10.5 — [Primeiros passos para utilizar o ClassPay: Cadastr](https://ajuda.classapp.com.br/hc/pt-br/articles/26599374651803-Primeiros-passos-para-utilizar-o-ClassPay-Cadastrar-o-banco-da-institui%C3%A7%C3%A3o)
+  - Primeiros Passos Para Utilizar O Classpay: Cadastrar O Banco Da Instituição. Note: Leia com atenção as etapas abaixo para garantir que seu cadastro seja concluído com sucesso:.
+- **Quais Bandeiras De Cartão De Crédito São Aceitas?** (`billing.manage_quais_bandeiras_de_cartao_de_c`) — _documented_, friction 0.0 — [Quais bandeiras de cartão de crédito são aceitas?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806170509-Quais-bandeiras-de-cart%C3%A3o-de-cr%C3%A9dito-s%C3%A3o-aceitas)
+  - Quais Bandeiras De Cartão De Crédito São Aceitas?.
+- **Quais Informações Eu Tenho Acesso No Classpay? 💰** (`billing.manage_quais_informacoes_eu_tenho_ace`) — _documented_, friction 10.5 — [Quais informações eu tenho acesso no ClassPay? 💰](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806152769-Quais-informa%C3%A7%C3%B5es-eu-tenho-acesso-no-ClassPay)
+  - Quais Informações Eu Tenho Acesso No Classpay? 💰. Note: ⚠️ Importante: Nessa tabela, aparecerão todas as cobranças enviadas por todos os sistemas: ClassPay, Financeiro e Matríc.
+- **Quais São As Formas De Pagamentos Disponíveis No Classpay?** (`billing.manage_quais_sao_as_formas_de_pagamen`) — _documented_, friction 0.0 — [Quais são as formas de pagamentos disponíveis no C](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806168049-Quais-s%C3%A3o-as-formas-de-pagamentos-dispon%C3%ADveis-no-ClassPay)
+  - Quais São As Formas De Pagamentos Disponíveis No Classpay?.
+- **Qual O Prazo Para O Valor Sacado No Classpay Cair Na Minha Conta?** (`billing.manage_qual_o_prazo_para_o_valor_saca`) — _documented_, friction 0.0 — [Qual o prazo para o valor sacado no ClassPay cair ](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806194710-Qual-o-prazo-para-o-valor-sacado-no-ClassPay-cair-na-minha-conta)
+  - Qual O Prazo Para O Valor Sacado No Classpay Cair Na Minha Conta?.
+- **Qual O Prazo Para Que Valores Pagos Com Boleto Estejam Disponíveis Para A Escola** (`billing.manage_qual_o_prazo_para_que_valores_`) — _documented_, friction 0.0 — [Qual o prazo para que valores pagos com boleto est](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806169489-Qual-o-prazo-para-que-valores-pagos-com-boleto-estejam-dispon%C3%ADveis-para-a-escola)
+  - Qual O Prazo Para Que Valores Pagos Com Boleto Estejam Disponíveis Para A Escola.
+- **Quando Os Valores Pagos Com Cartão De Crédito Ficam Disponíveis Para A Escola? 💳** (`billing.manage_quando_os_valores_pagos_com_ca`) — _documented_, friction 0.0 — [Quando os valores pagos com cartão de crédito fica](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806170329-Quando-os-valores-pagos-com-cart%C3%A3o-de-cr%C3%A9dito-ficam-dispon%C3%ADveis-para-a-escola)
+  - Quando Os Valores Pagos Com Cartão De Crédito Ficam Disponíveis Para A Escola? 💳.
+- **Quanto Custa O Classpay?** (`billing.manage_quanto_custa_o_classpay`) — _documented_, friction 0.0 — [Quanto custa o ClassPay?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806193070-Quanto-custa-o-ClassPay)
+  - Quanto Custa O Classpay?.
+- **Quanto Tempo Leva Para Os Valores Ficarem Disponíveis Para Saque No Classpay?** (`billing.manage_quanto_tempo_leva_para_os_valo`) — _documented_, friction 3.5 — [Quanto tempo leva para os valores ficarem disponív](https://ajuda.classapp.com.br/hc/pt-br/articles/1260803084710-Quanto-tempo-leva-para-os-valores-ficarem-dispon%C3%ADveis-para-saque-no-ClassPay)
+  - Quanto Tempo Leva Para Os Valores Ficarem Disponíveis Para Saque No Classpay?. Note: Se você utiliza o ClassPay para receber pagamentos, é importante saber quando os valores estarão disponíveis para saque .
+- **Realizar A Atualização De Alunos No Classapp Para Escolas Com Integração Por Vie** (`billing.manage_realizar_a_atualizacao_de_alun`) — _documented_, friction 15.0 — [Como realizar a atualização de alunos no ClassApp ](https://ajuda.classapp.com.br/hc/pt-br/articles/31844874820891-Como-realizar-a-atualiza%C3%A7%C3%A3o-de-alunos-no-ClassApp-para-escolas-com-integra%C3%A7%C3%A3o-por-View)
+  - Realizar A Atualização De Alunos No Classapp Para Escolas Com Integração Por Vie. Note: Se sua escola utiliza integração com um sistema de gestão (ERP) ou banco de dados por view, é importante seguir os passo.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Realizar Um Pagamento Pelo Classapp** (`billing.manage_realizar_um_pagamento_pelo_cla`) — _documented_, friction 3.8 — [Como realizar um pagamento pelo ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360053562453-Como-realizar-um-pagamento-pelo-ClassApp)
+  - Realizar Um Pagamento Pelo Classapp. Note: 🆕 Atenção: a partir do dia 14/07/2025, passou a ser obrigatório informar o endereço de cobrança ao cadastrar um cartão d.
+- **Reenviar Uma Cobrança?** (`billing.send_reenviar_uma_cobranca`) — _documented_, friction 7.5 — [Como reenviar uma cobrança?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806075689-Como-reenviar-uma-cobran%C3%A7a)
+  - Reenviar Uma Cobrança?. Note: Antes de aprender como reenviar uma cobrança no ClassPay, é importante entender quando isso é necessário. Abaixo, explic.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Saldo E Extrato: Acompanhe Seus Recebimentos E O Detalhamento Dos Seus Saques** (`billing.manage_saldo_e_extrato_acompanhe_seus`) — _documented_, friction 10.5 — [Saldo e Extrato: Acompanhe seus recebimentos e o d](https://ajuda.classapp.com.br/hc/pt-br/articles/1260804729689-Saldo-e-Extrato-Acompanhe-seus-recebimentos-e-o-detalhamento-dos-seus-saques)
+  - Saldo E Extrato: Acompanhe Seus Recebimentos E O Detalhamento Dos Seus Saques. Note: O saldo é o somatório dos pagamentos confirmados e disponíveis para saque, independentemente da forma de pagamento (PIX,.
+- **Selos Classapp: Como Os Selos São Definidos E Quais São Os Critérios 💎** (`billing.manage_selos_classapp_como_os_selos_s`) — _documented_, friction 10.5 — [Selos ClassApp: Como os selos são definidos e quai](https://ajuda.classapp.com.br/hc/pt-br/articles/20567086762651-Selos-ClassApp-Como-os-selos-s%C3%A3o-definidos-e-quais-s%C3%A3o-os-crit%C3%A9rios)
+  - Selos Classapp: Como Os Selos São Definidos E Quais São Os Critérios 💎. Note: Porque é importante: A adesão demonstra o quanto as famílias estão dispostas a acompanhar as demandas escolares por meio.
+- **Solicitar A Exclusão De Meus Dados** (`billing.manage_solicitar_a_exclusao_de_meus_d`) — _documented_, friction 6.5 — [Como solicitar a exclusão de meus dados](https://ajuda.classapp.com.br/hc/pt-br/articles/21473627140251-Como-solicitar-a-exclus%C3%A3o-de-meus-dados)
+  - Solicitar A Exclusão De Meus Dados. Note: Considere os pontos importantes antes da solicitação 🗂️.
+- **Usar Etiquetas Para Organizar Campanhas De Matrícula?** (`billing.manage_usar_etiquetas_para_organizar_`) — _documented_, friction 0.0 — [Como usar etiquetas para organizar campanhas de ma](https://ajuda.classapp.com.br/hc/pt-br/articles/4409150642587-Como-usar-etiquetas-para-organizar-campanhas-de-matr%C3%ADcula)
+  - Usar Etiquetas Para Organizar Campanhas De Matrícula?.
+- **Usar Tags Para Direcionar Mensagens No Classapp** (`billing.manage_usar_tags_para_direcionar_mens`) — _documented_, friction 10.5 — [Como usar tags para direcionar mensagens no ClassA](https://ajuda.classapp.com.br/hc/pt-br/articles/360004850454-Como-usar-tags-para-direcionar-mensagens-no-ClassApp)
+  - Usar Tags Para Direcionar Mensagens No Classapp. Note: Essa funcionalidade é muito importante e bem aplicável para direcionar as mensagens aos responsáveis certos. É comum que.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Utilizar As Tags No Classapp Para Enviar Mensagens Personalizadas** (`billing.send_utilizar_as_tags_no_classapp_p`) — _documented_, friction 10.0 — [Como utilizar as Tags no ClassApp para enviar mens](https://ajuda.classapp.com.br/hc/pt-br/articles/360025501473-Como-utilizar-as-Tags-no-ClassApp-para-enviar-mensagens-personalizadas)
+  - Utilizar As Tags No Classapp Para Enviar Mensagens Personalizadas. Note: Caso a sua escola utilize Tags, é necessário que todos os usuários de alunos possuam pelo menos uma delas. Não é possíve.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Vou Receber Os Valores Pagos Pelos Usuários?** (`billing.manage_vou_receber_os_valores_pagos_p`) — _documented_, friction 0.0 — [Como vou receber os valores pagos pelos usuários?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806170789-Como-vou-receber-os-valores-pagos-pelos-usu%C3%A1rios)
+  - Vou Receber Os Valores Pagos Pelos Usuários?.
+- **É Possível Pagar Um Boleto Após O Vencimento?** (`billing.pay_e_possivel_pagar_um_boleto_apo`) — _documented_, friction 0.0 — [É possível pagar um boleto após o vencimento?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806194370-%C3%89-poss%C3%ADvel-pagar-um-boleto-ap%C3%B3s-o-vencimento)
+  - É Possível Pagar Um Boleto Após O Vencimento?.
+- **É Possível Que Os Responsáveis Parcelem Os Pagamentos?** (`billing.manage_e_possivel_que_os_responsaveis`) — _documented_, friction 0.0 — [É possível que os responsáveis parcelem os pagamen](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806194490-%C3%89-poss%C3%ADvel-que-os-respons%C3%A1veis-parcelem-os-pagamentos)
+  - É Possível Que Os Responsáveis Parcelem Os Pagamentos?.
+- **É Possível Realizar O Cancelamento De Uma Cobrança No Classapp?** (`billing.manage_e_possivel_realizar_o_cancelam`) — _documented_, friction 2.0 — [É possível realizar o cancelamento de uma cobrança](https://ajuda.classapp.com.br/hc/pt-br/articles/1260806194090-%C3%89-poss%C3%ADvel-realizar-o-cancelamento-de-uma-cobran%C3%A7a-no-ClassApp)
+  - É Possível Realizar O Cancelamento De Uma Cobrança No Classapp?. Note: Em cobranças enviadas através dos comunicados, não é possível realizar o cancelamento antes do vencimento. Boletos não p.
+- **🚗   Como Configurar O Cheguei No Classapp? Orientação Para Administradores** (`billing.configure_como_configurar_o_cheguei_no_c`) — _configuration_, friction 6.5 — [🚗   Como configurar o Cheguei no ClassApp? Orienta](https://ajuda.classapp.com.br/hc/pt-br/articles/4417315288475--Como-configurar-o-Cheguei-no-ClassApp-Orienta%C3%A7%C3%A3o-para-administradores)
+  - 🚗   Como Configurar O Cheguei No Classapp? Orientação Para Administradores. Note: ⚠️ O histórico não é atualizado em tempo real; os chamados só aparecem quando concluídos pelos funcionários..
+
+## Staff (financial)
+
+- **Adicionar Um Plano/Contrato A Um Aluno No Módulo Financeiro** (`billing.create_adicionar_um_plano_contrato_a_`) `[financial]` — _documented_, friction 2.0 — [Como Adicionar um Plano/Contrato a um Aluno no Mód](https://ajuda.classapp.com.br/hc/pt-br/articles/360058717514-Como-Adicionar-um-Plano-Contrato-a-um-Aluno-no-M%C3%B3dulo-Financeiro)
+  - Adicionar Um Plano/Contrato A Um Aluno No Módulo Financeiro.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Cadastrar Os Planos No Módulo Financeiro?** (`billing.create_cadastrar_os_planos_no_modulo_`) `[financial]` — _documented_, friction 5.0 — [Como cadastrar os planos no Módulo Financeiro?](https://ajuda.classapp.com.br/hc/pt-br/articles/360060133373-Como-cadastrar-os-planos-no-M%C3%B3dulo-Financeiro)
+  - Cadastrar Os Planos No Módulo Financeiro?. Note: ⚠️ importante: As alterações nos planos afetarão os contratos futuros, mas não afetarão os contratos em vigência..
+- **Cadastrar Os Produtos No Módulo Financeiro?** (`billing.create_cadastrar_os_produtos_no_modul`) `[financial]` — _documented_, friction 8.5 — [Como cadastrar os produtos no Módulo Financeiro?](https://ajuda.classapp.com.br/hc/pt-br/articles/360060133233-Como-cadastrar-os-produtos-no-M%C3%B3dulo-Financeiro)
+  - Cadastrar Os Produtos No Módulo Financeiro?. Note: Quando os produtos cadastrados já estiverem em funcionamento junto dos planos, você terá acesso a um painel que facilita.
+- **Configurando Ajustes Do Módulo Financeiro** (`billing.configure_configurando_ajustes_do_modulo`) `[financial]` — _configuration_, friction 2.0 — [Configurando ajustes do Módulo Financeiro](https://ajuda.classapp.com.br/hc/pt-br/articles/1260804665670-Configurando-ajustes-do-M%C3%B3dulo-Financeiro)
+  - Configurando Ajustes Do Módulo Financeiro.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Configurar A Régua De Cobrança No Módulo Financeiro?** (`billing.configure_configurar_a_regua_de_cobranca`) `[financial]` — _configuration_, friction 5.0 — [Como configurar a régua de cobrança no Módulo Fina](https://ajuda.classapp.com.br/hc/pt-br/articles/4402032361627-Como-configurar-a-r%C3%A9gua-de-cobran%C3%A7a-no-M%C3%B3dulo-Financeiro)
+  - Configurar A Régua De Cobrança No Módulo Financeiro?. Note: ⚠️ importante: Pensando sempre no relacionamento escola-família e fazendo com que o desgaste seja evitado, possibilitamo.
+- **Configurar Os Juros E Multas No Módulo Financeiro?** (`billing.configure_configurar_os_juros_e_multas_n`) `[financial]` — _configuration_, friction 5.0 — [Como configurar os juros e multas no Módulo Financ](https://ajuda.classapp.com.br/hc/pt-br/articles/4402024654747-Como-configurar-os-juros-e-multas-no-M%C3%B3dulo-Financeiro)
+  - Configurar Os Juros E Multas No Módulo Financeiro?. Note: ⚠️ Importante: Os juros são calculados diariamente com base na taxa mensal estipulada pela escola..
+- **Contratar O Módulo Financeiro?** (`billing.manage_contratar_o_modulo_financeiro`) `[financial]` — _documented_, friction 8.5 — [Como contratar o Módulo Financeiro?](https://ajuda.classapp.com.br/hc/pt-br/articles/5975797148059-Como-contratar-o-M%C3%B3dulo-Financeiro)
+  - Contratar O Módulo Financeiro?. Note: ⚠️ Atenção: Os dados informados aparecerão na nota fiscal das taxas de boleto, cartão ou Pix..
+- **Editar Uma Cobrança No Módulo Financeiro?** (`billing.update_editar_uma_cobranca_no_modulo_`) `[financial]` — _documented_, friction 0.0 — [Como editar uma cobrança no Módulo Financeiro?](https://ajuda.classapp.com.br/hc/pt-br/articles/360058750994-Como-editar-uma-cobran%C3%A7a-no-M%C3%B3dulo-Financeiro)
+  - Editar Uma Cobrança No Módulo Financeiro?.
+- **Exportando Relatórios De Receitas Pelo Módulo Financeiro** (`billing.manage_exportando_relatorios_de_recei`) `[financial]` — _documented_, friction 3.5 — [Exportando relatórios de Receitas pelo Módulo Fina](https://ajuda.classapp.com.br/hc/pt-br/articles/6308805045915-Exportando-relat%C3%B3rios-de-Receitas-pelo-M%C3%B3dulo-Financeiro)
+  - Exportando Relatórios De Receitas Pelo Módulo Financeiro. Note: ⚠ Caso utilize o filtro dos valores agendados, é possível ter uma previsão dos valores a receber nos meses futuros, send.
+- **O Módulo Financeiro?** (`billing.manage_o_modulo_financeiro`) `[financial]` — _conceptual_, friction 0.0 — [O que é o módulo financeiro?](https://ajuda.classapp.com.br/hc/pt-br/articles/360060132833-O-que-%C3%A9-o-m%C3%B3dulo-financeiro)
+  - O Módulo Financeiro?.
+- **Organizar Sua Caixa De Mensagens No Classapp** (`billing.manage_organizar_sua_caixa_de_mensage`) `[financial]` — _documented_, friction 9.1 — [Como organizar sua caixa de mensagens no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/4404608210587-Como-organizar-sua-caixa-de-mensagens-no-ClassApp)
+  - Organizar Sua Caixa De Mensagens No Classapp. Note: ⚠️ Importante: As mensagens apagadas vão para a lixeira, podendo ser recuperadas posteriormente: Como utilizar a lixeira.
+- **Permitir O Acesso Dos Funcionários Ao Módulo Financeiro?** (`billing.manage_permitir_o_acesso_dos_funciona`) `[financial]` — _documented_, friction 0.0 — [Como permitir o acesso dos funcionários ao Módulo ](https://ajuda.classapp.com.br/hc/pt-br/articles/360060133553-Como-permitir-o-acesso-dos-funcion%C3%A1rios-ao-M%C3%B3dulo-Financeiro)
+  - Permitir O Acesso Dos Funcionários Ao Módulo Financeiro?.
+- **Posso Configurar O Envio No Módulo Financeiro?** (`billing.configure_posso_configurar_o_envio_no_mo`) `[financial]` — _configuration_, friction 1.5 — [Como posso configurar o envio no Módulo Financeiro](https://ajuda.classapp.com.br/hc/pt-br/articles/360060133513-Como-posso-configurar-o-envio-no-M%C3%B3dulo-Financeiro)
+  - Posso Configurar O Envio No Módulo Financeiro?.
+- **Suporte Financeiro Para Parceiros Classapp** (`billing.manage_suporte_financeiro_para_parcei`) `[financial]` — _documented_, friction 5.0 — [Suporte Financeiro para parceiros ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/28543256038939-Suporte-Financeiro-para-parceiros-ClassApp)
+  - Suporte Financeiro Para Parceiros Classapp. Note: ⚠️ Importante: Caso você não esteja recebendo os boletos ou Notas Fiscais pelo seu e-mail, entre em contato conosco pelo.
+- **Verificando Quais Produtos Compõem A Cobrança Do Módulo Financeiro** (`billing.manage_verificando_quais_produtos_com`) `[financial]` — _documented_, friction 5.0 — [Verificando quais produtos compõem a cobrança do M](https://ajuda.classapp.com.br/hc/pt-br/articles/13493481343515-Verificando-quais-produtos-comp%C3%B5em-a-cobran%C3%A7a-do-M%C3%B3dulo-Financeiro)
+  - Verificando Quais Produtos Compõem A Cobrança Do Módulo Financeiro. Note: ⚠️Importante: Porém é de extrema importância ressaltar que os valores do descritivo podem não corresponder ao valor da c.
+
+## Student
+
+- **Editar Os Dados De Um Perfil De Aluno Ou Funcionário?** (`billing.update_editar_os_dados_de_um_perfil_d`) — _documented_, friction 10.5 — [Como editar os dados de um perfil de aluno ou func](https://ajuda.classapp.com.br/hc/pt-br/articles/360007277973-Como-editar-os-dados-de-um-perfil-de-aluno-ou-funcion%C3%A1rio)
+  - Editar Os Dados De Um Perfil De Aluno Ou Funcionário?. Note: ⚠️Importante: Para realizar essas alterações, é necessário ter o perfil de Admin..
+- **Reenviar A Antecipação A Um Aluno** (`billing.send_reenviar_a_antecipacao_a_um_al`) — _documented_, friction 1.5 — [Como reenviar a antecipação a um aluno](https://ajuda.classapp.com.br/hc/pt-br/articles/40768488093979-Como-reenviar-a-antecipa%C3%A7%C3%A3o-a-um-aluno)
+  - Reenviar A Antecipação A Um Aluno.
