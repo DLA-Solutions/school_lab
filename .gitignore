@@ -16,6 +16,7 @@ docker-compose.override.yml
 .cursor/mcp.env
 .cursor/bin/
 .cursor/backend-ci.stamp
+.corpus-raw/
 
 # Client certificates and private keys (Cora / PSP integration)
 *.pem
