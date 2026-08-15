@@ -35,6 +35,25 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
     end
   end
 
+  describe "subjects search" do
+    it "finds a subject by part of its name" do
+      create(:subject, school: school, name: "Matemática")
+      create(:subject, school: school, name: "História")
+
+      get "#{base}/subjects?q=mat", headers: headers
+
+      expect(response.parsed_body["data"].map { |row| row["name"] }).to eq([ "Matemática" ])
+    end
+
+    it "returns everything for a blank term" do
+      create(:subject, school: school, name: "Matemática")
+
+      get "#{base}/subjects?q=", headers: headers
+
+      expect(response.parsed_body["data"].size).to eq(1)
+    end
+  end
+
   describe "school classes" do
     it "creates a cohort" do
       post "#{base}/school_classes",

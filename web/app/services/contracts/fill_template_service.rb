@@ -264,20 +264,36 @@ module Contracts
         @page { size: A4; margin: 18mm; }
         body {
           font-family: Helvetica, Arial, sans-serif;
+          /* Hyphenation needs the language declared, and the document is Brazilian Portuguese. */
+          -webkit-hyphens: auto;
+          hyphens: auto;
           font-size: 11pt;
           line-height: 1.5;
           color: #111;
           margin: 0;
         }
         .contract { padding: 18mm; }
+        /* A contract is set justified — it is what the document looks like on paper, and what
+           the family sees once Autentique converts the file. Hyphenation comes with it: the usual
+           reason to avoid justification is the rivers of white space it opens in a narrow column,
+           and letting words break is what closes them. The document declares `lang="pt-BR"`, which
+           is what `hyphens: auto` needs to break Portuguese correctly. */
+        .contract p,
+        .contract li {
+          text-align: justify;
+          text-justify: inter-word;
+          hyphens: auto;
+        }
         .logo { text-align: center; margin-bottom: 12mm; }
         .logo img { max-height: 28mm; max-width: 70%; width: auto; height: auto; }
+        /* Headings and the signature lines are the exceptions: centring and the ruled lines are
+           what makes them read as headings and as places to sign. */
         h1 { font-size: 16pt; text-align: center; }
         h2 { font-size: 12pt; margin-top: 18px; }
         table { width: 100%; border-collapse: collapse; }
         td, th { padding: 4px 0; text-align: left; vertical-align: top; }
         img { max-width: 100%; }
-        .signature { margin-top: 16mm; line-height: 1.8; }
+        .signature { margin-top: 16mm; line-height: 1.8; text-align: left; }
       CSS
     end
 

@@ -331,6 +331,8 @@ const ptBR = {
   'subjects.empty.title': 'Nenhuma matéria cadastrada',
   'subjects.empty.description':
     'Cadastre as matérias para atribuí-las aos professores em cada turma.',
+  'subjects.searchPlaceholder': 'Buscar matéria',
+  'subjects.searchAria': 'Buscar matérias pelo nome',
   'subjects.new': 'Nova matéria',
   'subjects.edit': 'Editar matéria',
   'subjects.nameRequired': 'Informe o nome da matéria.',

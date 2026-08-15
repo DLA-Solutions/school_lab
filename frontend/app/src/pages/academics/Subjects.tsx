@@ -18,12 +18,15 @@ import {
   EmptyState,
   ErrorBanner,
   PageHeader,
+  SearchField,
   SectionCard,
 } from 'design-system';
+import { useSearchParams } from 'react-router';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { createSubject, deleteSubject, listSubjects, updateSubject } from 'services/academicsApi';
 import { ApiError } from 'services/api';
+import { useDebouncedValue } from 'utils/useDebouncedValue';
 import { Subject } from 'types/academics';
 
 const PAGE_SIZE = 25;
@@ -45,6 +48,11 @@ const Subjects = () => {
   const [nameError, setNameError] = useState('');
   const [saving, setSaving] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Subject | null>(null);
+  // Same shape as the other academic listings: the term lives in the URL, and the API does the
+  // filtering, so it is debounced rather than sent per keystroke.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q') ?? '';
+  const debouncedSearch = useDebouncedValue(search);
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -55,7 +63,7 @@ const Subjects = () => {
     setError('');
 
     try {
-      const response = await listSubjects(schoolId, page + 1);
+      const response = await listSubjects(schoolId, page + 1, debouncedSearch);
       setSubjects(response.data);
       setTotal(response.meta.total);
     } catch (err) {
@@ -65,7 +73,7 @@ const Subjects = () => {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, t]);
+  }, [schoolId, page, debouncedSearch, t]);
 
   useEffect(() => {
     load();
@@ -188,9 +196,32 @@ const Subjects = () => {
       <PageHeader
         title={t('subjects.title')}
         actions={
-          <Button variant="contained" size="small" onClick={() => openForm(null)}>
-            {t('subjects.new')}
-          </Button>
+          <>
+            <SearchField
+              value={search}
+              onChange={(e) => {
+                setSearchParams(
+                  (current) => {
+                    const next = new URLSearchParams(current);
+                    if (e.target.value) {
+                      next.set('q', e.target.value);
+                    } else {
+                      next.delete('q');
+                    }
+                    return next;
+                  },
+                  { replace: true },
+                );
+                setPage(0);
+              }}
+              placeholder={t('subjects.searchPlaceholder')}
+              ariaLabel={t('subjects.searchAria')}
+              sx={{ width: 220 }}
+            />
+            <Button variant="contained" size="small" onClick={() => openForm(null)}>
+              {t('subjects.new')}
+            </Button>
+          </>
         }
       />
 

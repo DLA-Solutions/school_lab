@@ -251,12 +251,15 @@ const Lessons = () => {
                 variant="filled"
                 size="small"
                 select
-                sx={{ width: 220 }}
+                sx={{ width: 120 }}
               >
                 <MenuItem value="">{t('common.all')}</MenuItem>
+                {/* The letter alone: the year is its own filter, and repeating it here made the
+                    same cohort look like several. Duplicated letters across years are told apart
+                    by narrowing the year rather than by a longer label. */}
                 {classes.map((schoolClass) => (
                   <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
-                    {schoolClass.name} — {schoolClass.year}
+                    {schoolClass.name}
                   </MenuItem>
                 ))}
               </TextField>

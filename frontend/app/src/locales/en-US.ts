@@ -330,6 +330,8 @@ const enUS: Messages = {
   'subjects.loadError': 'Could not load subjects. Check your connection.',
   'subjects.empty.title': 'No subjects yet',
   'subjects.empty.description': 'Add subjects so you can assign them to teachers in each class.',
+  'subjects.searchPlaceholder': 'Search subject',
+  'subjects.searchAria': 'Search subjects by name',
   'subjects.new': 'New subject',
   'subjects.edit': 'Edit subject',
   'subjects.nameRequired': 'Enter the subject name.',

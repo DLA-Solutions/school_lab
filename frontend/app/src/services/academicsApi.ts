@@ -57,8 +57,12 @@ export const provisionDefaultJobPositions = async (schoolId: number): Promise<Jo
 
 /* ---------------------------------------------------------------- subjects */
 
-export const listSubjects = (schoolId: number, page = 1) =>
-  request<Paginated<Subject>>(`${base(schoolId)}/subjects?page=${page}`);
+export const listSubjects = (schoolId: number, page = 1, q?: string) => {
+  const query = new URLSearchParams({ page: String(page) });
+  if (q) query.set('q', q);
+
+  return request<Paginated<Subject>>(`${base(schoolId)}/subjects?${query}`);
+};
 
 export const createSubject = async (schoolId: number, name: string): Promise<Subject> => {
   const response = await request<{ data: Subject }>(`${base(schoolId)}/subjects`, {
