@@ -30,7 +30,8 @@ Derived fronts (e.g. `fintech-first`) are **Domain** PRDs with a positioning not
 ## 2. Shared prerequisites (all scopes)
 
 1. Read anchor docs: `vision.md`, `actors-and-surfaces.md`, `product-map.md`, `web-stack.md`.
-2. Read `docs/open-questions.md` — never invent answers; list unresolved items or flag them.
+2. Read `docs/product/traceability.md` for ID conventions (`BR-`, `UC-`, `AC-`, `capability_id`).
+3. Read `docs/open-questions.md` — never invent answers; list unresolved items or flag them.
 3. Write in **English**. Portuguese only for approved glossary exceptions (`docs/glossary.md`); gloss on first use.
 4. API contracts: REST `/api/v1`, JWT, English identifiers (`school_id`, roles: backoffice/school/teacher/guardian).
 5. LGPD: per-school isolation (`school_id`); per-family isolation for communication; mark sensitive data.
@@ -98,15 +99,27 @@ Use for **one business domain** — the main path to implementation.
 
 ### Steps
 
-1. Read `docs/prds/template.md` and mirror its section order exactly.
+1. Read `docs/prds/template.md` and mirror its section order (including Competitive grounding,
+   Actors and surfaces, Segment applicability, NFR hooks when applicable).
 2. Pick the next number from `product-map.md` §5 (or reuse the domain's existing number).
-3. Name file `docs/prds/NNN-<domain>.md` (e.g. `003-communication.md`).
-4. Write all sections: Objective, Context, Business Rules (BR-NNN), Use Cases, API, Errors, Database, Events, Permissions, Acceptance Criteria, Out of Scope.
-5. In **Database**, link to modeling artifacts when they exist — do not duplicate full table definitions:
+3. Name file `docs/prds/NNN-<domain>.md` (e.g. `003-communication.md`) or a folder with `index.md`
+   for multi–bounded-context domains (see `identity-and-onboarding/`).
+4. Write sections: Objective, Context, **Competitive grounding**, **Actors and surfaces**,
+   **Segment applicability**, Business Rules (**BR-NNN**, not RN-), Use Cases (**UC-NNN**), API,
+   Errors, Database (links only), Events, Permissions, **Non-functional requirements**,
+   Acceptance Criteria (**AC-NNN**), Open items, Out of Scope.
+5. **Market-grounded requirements:** set `capability_id` in metadata and/or per BR/UC/AC —
+   canonical `domain.verb_noun` when Phase 1 taxonomy exists; otherwise raw catalog id
+   (`docs/ref/catalogo-funcionalidades.md`) plus `docs/ref/<competitor>/` link. See
+   `docs/product/traceability.md`.
+6. In **Database**, link to modeling artifacts when they exist — do not duplicate full table definitions:
    - Narrative DSL: `docs/modeling/NNN-<domain>.md`
    - Executable schema: `docs/database/database_dml.md`
    - DER: `docs/database/der_NNN.png`
-6. After approval, modeling follows the `data-modeling` skill.
+7. Link NFRs to `docs/product/non-functional-requirements.md` when cross-cutting; document
+   domain NFRs inline until that file exists (placeholder path in template).
+8. After approval, modeling follows the `data-modeling` skill.
+9. Update `docs/prds/index.md` and `docs/product/domain-roadmap.md` status when maturity changes.
 
 ### Section template
 
@@ -135,7 +148,8 @@ PRD scope: [ ] Product  [ ] Layer  [ ] Domain
 - [ ] English + glossary conventions followed
 - [ ] LGPD / school_id isolation considered
 - [ ] Correct output path chosen
-- [ ] Domain PRD: all template sections present
+- [ ] Domain PRD: all template sections present (including grounding, actors, segments, NFR hooks)
+- [ ] Market-grounded BR/UC/AC: `capability_id` + `docs/ref/` link when applicable
 - [ ] Layer PRD: no duplicate business rules from domain PRDs
 - [ ] Product PRD: MVP in/out explicit; domain order aligned with product-map §5
 ```
@@ -145,5 +159,7 @@ PRD scope: [ ] Product  [ ] Layer  [ ] Domain
 ## Additional resources
 
 - Section templates per scope: [templates.md](templates.md)
+- Traceability IDs: `docs/product/traceability.md`
+- PRD index: `docs/prds/index.md`
 - Example domain PRD (extended): `docs/prds/fintech-first.md`
 - Modeling after domain PRD: `data-modeling` skill

@@ -1,10 +1,12 @@
 # PRD — Identity & Onboarding
 
-> Status: draft  
+> Status: validated  
 > Relation to School Lab: core MVP domains #2–3 per [`docs/product-map.md`](../../product-map.md) §5  
-> Domain PRDs: [`permissions.md`](permissions.md) (BC1), [`onboarding.md`](onboarding.md) (BC2)  
+> Capability IDs (MVP): see [Competitive grounding](#competitive-grounding) — **13** canonical `identity.*` rows in [`capability-map.md`](../../product/capability-map.md#identity--onboarding)  
+> Domain PRDs: [`permissions.md`](permissions.md) (BC1), [`onboarding.md`](onboarding.md) (BC2), [`auth.md`](auth.md), [`invites.md`](invites.md), [`profiles.md`](profiles.md), [`consent.md`](consent.md)  
 > Modeling: [`003-identity-permissions.md`](../../modeling/003-identity-permissions.md), [`004-school-onboarding.md`](../../modeling/004-school-onboarding.md)  
-> API: [`docs/api/v1/identity-onboarding.md`](../../api/v1/identity-onboarding.md)
+> API: [`docs/api/v1/identity-onboarding.md`](../../api/v1/identity-onboarding.md)  
+> Traceability: BR-/UC-/AC- IDs per bounded context (`BR-P*`, `UC-P*`, `AC-P*` in permissions; `BR-O*`, `UC-O*`, `AC-O*` in onboarding) — see [`traceability.md`](../../product/traceability.md)
 
 ---
 
@@ -34,6 +36,33 @@ backoffice with formal handoff to the director.
 Ship **granular staff authorization** and **two onboarding modes** (self-serve + white-glove) so
 a school can go from contract to operational tenant with audited provisioning, system role templates,
 and a single owner — without blocking the communication MVP that follows.
+
+---
+
+## Competitive grounding
+
+MVP identity capabilities from [`capability-map.md`](../../product/capability-map.md) and
+[`capability-taxonomy.yaml`](../../product/capability-taxonomy.yaml). Competitor presence:
+[`parity-matrix.md`](../../product/parity-matrix.md#identity--onboarding).
+
+| Capability | `capability_id` | Covered in | Evidence |
+|------------|-----------------|------------|----------|
+| Manage roles and permissions | `identity.manage_roles` | [`permissions.md`](permissions.md) | [`proesc/gestao-academica/funcionalidades-por-ator.md`](../../ref/proesc/gestao-academica/funcionalidades-por-ator.md), [`classapp/gestao-academica/funcionalidades-por-ator.md`](../../ref/classapp/gestao-academica/funcionalidades-por-ator.md), [`parity-matrix.md`](../../product/parity-matrix.md#identity--onboarding) |
+| Manage user accounts | `identity.manage_user_accounts` | [`permissions.md`](permissions.md) | [`proesc/gestao-academica/funcionalidades-por-ator.md`](../../ref/proesc/gestao-academica/funcionalidades-por-ator.md) (activate/deactivate users) |
+| Provision school tenant | `identity.provision_school` | [`onboarding.md`](onboarding.md) | [`DIV-integration-001`](../../ref/divergencias.md) — self-serve + optional white-glove |
+| Onboard staff and guardians | `identity.onboard_team` | [`onboarding.md`](onboarding.md) | [`proesc/gestao-academica/funcionalidades-por-ator.md`](../../ref/proesc/gestao-academica/funcionalidades-por-ator.md) (first access), [`DIV-integration-001`](../../ref/divergencias.md) |
+| Invite user to school | `identity.invite_user` | [`onboarding.md`](onboarding.md) | Proesc, Agenda Edu, ClassApp — [`parity-matrix.md`](../../product/parity-matrix.md#identity--onboarding) |
+| Complete registration from invite | `identity.complete_registration` | [`onboarding.md`](onboarding.md) UC-O04 | [`classapp/gestao-academica/funcionalidades-por-ator.md`](../../ref/classapp/gestao-academica/funcionalidades-por-ator.md) (self-register via invite) |
+| Set password from invite token | `identity.set_password` | [`onboarding.md`](onboarding.md) BR-O07 | `[product decision]` — single-use digest token replaces competitor temp-password patterns |
+| Configure school profile | `identity.configure_school_profile` | [`onboarding.md`](onboarding.md) UC-O03 | `[product decision]` — owner wizard during self-serve handoff |
+| Authenticate user | `identity.authenticate_user` | [`auth.md`](auth.md), [`002-api-auth.md`](../../modeling/002-api-auth.md) | JWT baseline shipped |
+| Reset or change password | `identity.reset_password` | [`auth.md`](auth.md) | [`parity-matrix.md`](../../product/parity-matrix.md#identity--onboarding) |
+| Manage guardian consent (LGPD) | `identity.manage_consent` | [`consent.md`](consent.md) | ClassApp consent pattern |
+| Manage user profile | `identity.manage_user_profile` | [`profiles.md`](profiles.md) | [`DIV-communication-004`](../../ref/divergencias.md) |
+| General identity operations | `identity.manage_identity_operations` | catch-all | `[invented]` per taxonomy |
+
+Requirements without market anchor are marked `[product decision]` or `[invented]` per
+[`traceability.md`](../../product/traceability.md). P2: `identity.configure_multi_factor`.
 
 ---
 
@@ -116,6 +145,27 @@ Schools may create custom templates; invites use `role_template_id`.
 
 Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md) (updated in this initiative).
 
+| Actor | Surfaces | Primary actions in this domain |
+|-------|----------|--------------------------------|
+| backoffice | Web SPA (backoffice) | Create school, white-glove provisioning, `provision_school` during lifecycle |
+| staff (owner, secretary, director) | Web SPA (school) | Role templates, team invites, owner wizard, handoff |
+| teacher | Web SPA + mobile | Invite accept, `role_template_id` assignment |
+| guardian | Mobile (+ web per channel decision) | Invite accept, set password; no permission keys |
+| student | — | No student login in MVP; proxy via guardian/staff |
+
+---
+
+## Segment applicability
+
+| Segment | Applies | Notes |
+|---------|---------|-------|
+| `infantil` | yes | Same staff role templates; guardian onboarding unchanged |
+| `fundamental_medio` | yes | Primary target for system templates (Direção, Secretaria, Coordenação, Professor) |
+| `pj_financeiro` | partial | School `cnpj` at create; guardian CPF deferred to boleto issuance (BR-O10) |
+| `multi_unidade` | partial | Per-school tenant isolation (NFR-003); group roll-ups deferred to platform P2 |
+
+Open segment decisions: [`open-questions.md`](../../open-questions.md) § Identity & Onboarding (D6 segments depth).
+
 ---
 
 ## 7. Integration contract
@@ -187,13 +237,18 @@ Phase 2 signature work starts after W4; it does **not** block login (BR-O11).
 
 ## 10. Non-functional requirements
 
-- **Per-school isolation** unchanged — all tenant data scoped by `school_id`.
-- **LGPD** — provisioning audit trail for backoffice actions on behalf of schools; invite
-  tokens stored as digests only; CPF not required for login (boleto rules unchanged).
-- **Security** — invite tokens single-use, time-limited; passwords never returned by API.
-- **Auditing** — permission changes and provisioning actions audited (`audited` gem).
-- **Compatibility** — fintech-first billing policies migrate to permission checks without
-  behaviour regression for existing partner school (director system template backfill).
+Cross-cutting catalog: [`docs/product/non-functional-requirements.md`](../../product/non-functional-requirements.md).
+
+| NFR | Domain application |
+|-----|-------------------|
+| [NFR-002](../../product/non-functional-requirements.md#nfr-002--lgpd-and-privacy) | Invite tokens as digests only; CPF not required at login (BR-O10); consent slice pending (`identity.manage_consent`) |
+| [NFR-003](../../product/non-functional-requirements.md#nfr-003--multi-tenancy) | All tenant data scoped by `school_id`; backoffice provisioning uses `on_behalf_of: school_id` audit metadata (BR-O04) |
+| [NFR-005](../../product/non-functional-requirements.md#nfr-005--observability-and-audit) | Permission template edits, provisioning handoff, and invite acceptance audited via `audited` gem (BR-P09, BR-O04) |
+
+Domain-specific bullets:
+
+- **Security** — invite tokens single-use, time-limited (BR-O06, BR-O19); passwords never returned by API.
+- **Compatibility** — fintech-first billing policies migrate to `staff_with?` without behaviour regression for existing partner school (director system template backfill, UC-P04).
 
 ---
 
@@ -202,10 +257,10 @@ Phase 2 signature work starts after W4; it does **not** block login (BR-O11).
 See [`docs/open-questions.md`](../../open-questions.md) § Identity & Onboarding:
 
 - [ ] Transactional email provider for invites (Postmark, SES, …).
-- [ ] LGPD consent record location for staff/guardian onboarding.
-- [ ] `segments` MVP depth (full entity vs nullable stub).
-- [ ] Partner workshop to validate system template × permission matrix before `validated` status.
-- [ ] Terms acknowledgment persistence for handoff checklists.
+- [x] LGPD consent record location — [`consent.md`](consent.md); see [`open-questions.md`](../../open-questions.md).
+- [x] `segments` MVP depth — full entity; optional skip at handoff ([`onboarding.md`](onboarding.md) D6).
+- [x] Partner workshop deferred — documentation-phase sign-off Aug 2026 ([`open-questions.md`](../../open-questions.md)).
+- [x] Terms acknowledgment persistence — owner UI acknowledgment MVP; dedicated table deferred P2.
 - [ ] Confirm **Authentic** as enrollment signature vendor (proposed — see onboarding PRD).
 - [ ] Authentic webhook/auth model and signed PDF LGPD retention.
 - [ ] Who triggers enrollment contract send: backoffice vs owner/secretary.
@@ -224,8 +279,11 @@ converge through the waves above without duplicating billing business rules.
 
 - [x] Three PRD files in `docs/prds/identity-and-onboarding/` with complete sections.
 - [x] System template × permission matrix (appendix) and role template model documented.
-- [x] BRs numbered; supersession notes in fintech-first.
+- [x] BR-/UC-/AC- IDs standardized (no `RN-` prefixes); supersession notes in fintech-first.
 - [x] Modeling 003 + 004 + schema.dbml aligned.
 - [x] `open-questions.md` Identity section added.
 - [x] Internal doc-consistency pass complete (2026-08-08); critical diagram/handoff fixes in follow-up PR.
-- [ ] Partner workshop completed or explicitly flagged.
+- [x] Competitive grounding with canonical `capability_id` + `docs/ref/` / parity-matrix links (Phase 3 increment 1).
+- [x] Segment applicability and NFR hooks to `non-functional-requirements.md`.
+- [x] Status promoted to `validated` (2026-08-15).
+- [x] Partner workshop deferred — live stakeholder session is a separate milestone ([`open-questions.md`](../../open-questions.md)).

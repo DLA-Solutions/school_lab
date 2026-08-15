@@ -1,9 +1,13 @@
 # Data Model — Fintech-first (001)
 
+> **Historical baseline.** File name retained for traceability. Records the billing partner
+> slice schema shipped in `web/`. For **new billing modeling** align with
+> [`docs/prds/billing/`](../prds/billing/) and extend this narrative where tables overlap.
+>
 > PRD: [`docs/prds/fintech-first.md`](../prds/fintech-first.md)  
 > Executable schema: [`docs/database/schema.dbml`](../database/schema.dbml) · [`docs/database/der_001.png`](../database/der_001.png)
 
-Narrative DSL for the fintech-first billing MVP. The authoritative schema for migrations is the DBML in `docs/database/`.
+Narrative DSL for the billing partner slice (historical "fintech-first" delivery). The authoritative schema for migrations is the DBML in `docs/database/`.
 
 ## Entity groups
 
@@ -213,10 +217,20 @@ Retention policy for financial and child data beyond the defaults above is **pen
 
 ## Scope boundaries
 
-- **`documents`** — enrollment and KYC in MVP only; full digital archive is a separate domain (see `product-map.md` §5).
+- **`documents`** — enrollment/KYC in MVP; **superseded** by [`documents-and-archive/`](../prds/documents-and-archive/) → `archive_documents` in [`008-documents-archive.md`](008-documents-archive.md).
+- **Billing extensions** — full MVP in [`billing/`](../prds/billing/); régua automation deferred; NFS-e P2; see [`billing.md`](../api/v1/billing.md).
 - **`teachers`** — modeled in DBML for polymorphic consistency but **not migrated**; the teacher role lives on `memberships.role` today. No teacher MVP flows in this PRD.
 - **`school_groups`** — multi-unit network support in schema; product UX deferred until a multi-unit client exists.
-- **`students.status`** — enrollment state (e.g. `active`, `transferred`); distinct from `discarded_at` (removed from active school records).
+- **Students lifecycle superseded by 005** — the fintech-first `students.status` and
+  `students.school_class_id` columns are legacy implementation inputs. The target model in
+  [`005-students-enrollments.md`](005-students-enrollments.md) keeps the person record stable and
+  moves year state/placement to `enrollments` + `class_assignments`.
+- **Guardian-link billing columns superseded by 005** — `financial_percentage`,
+  `primary_guardian`, and `father | mother | other` are replaced by PRD relationship semantics and
+  the `primary_contact`, `financial_responsible`, and `pickup_authorized` flags. Existing partner
+  data requires an explicit migration; the DBML records the target rather than dual models.
+- **Billing contract handoff** — `contracts.student_id` remains for billing compatibility and
+  `contracts.enrollment_id` is an optional 005 link for newly resolved year enrollments.
 
 ## Deferred (outside current schema)
 

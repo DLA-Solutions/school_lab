@@ -1,7 +1,8 @@
 # PRD — Identity: Permissions Engine (BC1)
 
-> Status: draft  
+> Status: validated  
 > Parent PRD: [`index.md`](index.md)  
+> Capability IDs: `identity.manage_roles`, `identity.manage_user_accounts`  
 > Related BC: [`onboarding.md`](onboarding.md)  
 > Modeling: [`docs/modeling/003-identity-permissions.md`](../../modeling/003-identity-permissions.md)  
 > API narrative: [`docs/api/v1/identity-onboarding.md`](../../api/v1/identity-onboarding.md)  
@@ -16,6 +17,30 @@ fixed membership roles, versioned permission keys, **school-managed role templat
 per-membership **overrides**, and optional segment scope — so Direção, Secretaria, Coordenação,
 Professor, and school-specific roles (e.g. receptionist) are enforced consistently across
 billing, people, documents, and future academic domains.
+
+---
+
+## Competitive grounding
+
+| Capability | `capability_id` | Evidence |
+|------------|-----------------|----------|
+| Manage roles and permissions | `identity.manage_roles` | [`proesc/gestao-academica/funcionalidades-por-ator.md`](../../ref/proesc/gestao-academica/funcionalidades-por-ator.md), [`classapp/gestao-academica/funcionalidades-por-ator.md`](../../ref/classapp/gestao-academica/funcionalidades-por-ator.md), [`parity-matrix.md`](../../product/parity-matrix.md#identity--onboarding) |
+| Manage user accounts | `identity.manage_user_accounts` | [`proesc/gestao-academica/funcionalidades-por-ator.md`](../../ref/proesc/gestao-academica/funcionalidades-por-ator.md) (activate/deactivate users) |
+
+School Lab decision: system + custom **role templates** with permission keys and per-membership
+overrides — not competitor menu-only or master-user patterns alone. See parent
+[`index.md`](index.md) § Competitive grounding for capabilities covered in other slices.
+
+---
+
+## Segment applicability
+
+| Segment | Applies | Notes |
+|---------|---------|-------|
+| `infantil` | yes | Same permission catalog; segment scope on `manage_people` when segments enabled (D6) |
+| `fundamental_medio` | yes | System templates map to Direção, Secretaria, Coordenação, Professor |
+| `pj_financeiro` | partial | Billing permission keys on templates; no PJ-specific role enum |
+| `multi_unidade` | partial | Templates provisioned per school; no cross-school template sharing |
 
 ---
 
@@ -93,7 +118,7 @@ by migration, provisioning service, and `GET permission_definitions`.
 
 ## Business Rules
 
-BR-P01
+BR-P01 — `capability_id`: `identity.manage_roles`
 
 `memberships.role` ∈ `backoffice | staff | teacher | guardian`. The value `school` is
 deprecated and migrated to `staff` (D1).
@@ -105,7 +130,7 @@ Initial keys: `manage_school_settings`, `manage_billing`, `manage_people`, `mana
 `manage_documents`, `approve_lesson_plans`, `moderate_messages`, `teach`, `view_billing_summary`.
 Catalog exposed read-only via `GET permission_definitions` (from code registry in MVP).
 
-BR-P03
+BR-P03 — `capability_id`: `identity.manage_roles`
 
 Each school has `school_role_templates` rows. System templates (`is_system: true`,
 `system_key` ∈ `director | secretary | coordination | teacher`) are provisioned per school via
@@ -550,9 +575,20 @@ unchanged (family scope).
 
 ---
 
+## Non-functional requirements
+
+Cross-cutting: [`docs/product/non-functional-requirements.md`](../../product/non-functional-requirements.md).
+
+- [NFR-003](../../product/non-functional-requirements.md#nfr-003--multi-tenancy) — `role_template_id` and overrides scoped to `school_id`; cross-school template access returns `404`.
+- [NFR-005](../../product/non-functional-requirements.md#nfr-005--observability-and-audit) — template and override changes audited (BR-P09); `RoleTemplateUpdated` includes `affected_memberships_count`.
+
+---
+
 ## Acceptance Criteria
 
 ### Wave W1 — Role templates, resolution, and `GET /me`
+
+AC-P001 — System templates provisioned on school create (`identity.manage_roles`)
 
 ```gherkin
 Feature: System templates provisioned on school create
@@ -590,7 +626,7 @@ Feature: GET /me exposes permissions
   And permissions includes manage_billing and manage_people
 ```
 
-### Wave W2 — Overrides and policy migration
+AC-P002 — Owner grants billing override to one secretary (`identity.manage_roles`)
 
 ```gherkin
 Feature: Owner grants billing override to one secretary

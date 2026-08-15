@@ -140,12 +140,19 @@ class LinkGrabber(HTMLParser):
 # ---------------------------------------------------------------- detecção
 
 
+def zendesk_origin(base):
+    """Zendesk API lives at scheme://host, not under /hc/<locale>."""
+    p = urllib.parse.urlparse(base)
+    return f"{p.scheme}://{p.netloc}"
+
+
 def detect(base):
     """Devolve (plataforma, detalhe)."""
     host = urllib.parse.urlparse(base).netloc
+    origin = zendesk_origin(base)
 
     for locale in ("pt-br", "pt", "en-us"):
-        url = f"{base.rstrip('/')}/api/v2/help_center/{locale}/articles.json?per_page=1"
+        url = f"{origin.rstrip('/')}/api/v2/help_center/{locale}/articles.json?per_page=1"
         try:
             d = get_json(url)
             if isinstance(d, dict) and "articles" in d:
@@ -176,10 +183,11 @@ def detect(base):
 
 
 def harvest_zendesk(base, locale, rate, limit):
+    origin = zendesk_origin(base)
     arts, page = [], 1
     while True:
         url = (
-            f"{base.rstrip('/')}/api/v2/help_center/{locale}/articles.json"
+            f"{origin.rstrip('/')}/api/v2/help_center/{locale}/articles.json"
             f"?per_page=100&page={page}"
         )
         d = get_json(url)

@@ -1,10 +1,15 @@
-# PRD — Billing Module ("Fintech-first" Strategy for Schools)
+# PRD — Billing Partner Slice (Historical Implementation Baseline)
 
-> Status: implemented in `web/` (billing domain, Cora integration); open items below remain  
-> Scope: domain bundle (identity, schools, people, billing, documents)  
+> **Historical baseline — not normative for new work.** This document records the billing-first
+> partner slice shipped in `web/`. For **new billing requirements** use
+> [`docs/prds/billing/`](billing/). For **identity** use
+> [`docs/prds/identity-and-onboarding/`](identity-and-onboarding/). Communication and academic
+> scope live in [`docs/prds/communication/`](communication/) and
+> [`docs/prds/academic/`](academic/) (validated Aug 2026).
+>
+> Status: **implemented** in `web/` (billing domain, Cora integration); open items below remain  
+> Scope: domain bundle (identity, schools, people, billing, documents) — partner validation slice  
 > API: [`docs/api/v1/fintech-first.md`](../api/v1/fintech-first.md)  
-> Relation to School Lab: derived front — does not replace the MVP order validated in  
-> `vision.md` (communication → academic → billing). See **Positioning note** at the end.  
 > **Identity & onboarding:** UC-06, UC-08, BR-009, and § Permissions are partially superseded by  
 > [`docs/prds/identity-and-onboarding/`](identity-and-onboarding/) — historical billing implementation remains until W1–W4 convergence.
 
@@ -26,8 +31,12 @@ school management systems. The recurring pain point is **billing** — specifica
 manual reconciliation, no delinquency visibility, and collection that depends on human
 effort instead of an automated process.
 
-This PRD defines a **fintech-like** product focused on recurring school billing first,
-expanding later into academic management and communication.
+This PRD defined the **billing-first partner validation slice** within **School Lab** — a
+full school management platform — focused on recurring tuition billing (boleto issuance,
+reconciliation, delinquency visibility) for the validating partner school. Academic
+management and communication were always planned as separate School Lab domains; their
+PRDs are now validated. This file remains the historical record of what shipped first in
+`web/`, not a standalone product strategy.
 
 **Target audience**
 
@@ -57,7 +66,7 @@ expanding later into academic management and communication.
 
 - **School admin**: responsive web SPA (`frontend/app`) — plans, contracts, charges, dashboard.
 - **Guardian**: responsive web portal in MVP; Wave 2 API is contract-ready for
-  React Native (`mobile/`) when that channel ships. Fintech-first partner validation does
+  React Native (`mobile/`) when that channel ships. The billing-first partner slice does
   not block on a dedicated mobile release.
 
 ---
@@ -168,7 +177,8 @@ blocks all school access. Per-school suspend uses `memberships.status: suspended
 BR-016
 
 Phase 2 routes (`communication`, `academic`) documented in OpenAPI return `501 Not
-Implemented` until their domain PRDs ship.
+Implemented` until their domain **implementations** ship in `web/`. Domain PRDs for
+communication and academic are **validated** (Aug 2026 documentation gate).
 
 BR-017
 
@@ -364,7 +374,7 @@ Standard envelope per `docs/api/README.md`:
 | `404` | `not_found` | Resource missing or cross-tenant/family scope |
 | `409` | `duplicate_email`, `invalid_state_transition` | Unique violation; invalid AASM transition |
 | `422` | `validation_error` | Model validation failed (`details` per field) |
-| `501` | `not_implemented` | Phase 2 routes (communication, academic) |
+| `501` | `not_implemented` | Phase 2 routes (communication, academic) until `web/` ships |
 | `500` | `internal_error` | Unexpected failure |
 
 Invalid charge cancel/reissue on `paid` or `cancelled` charge → `409`
@@ -566,7 +576,7 @@ Then no duplicate payment is created
 
 ```gherkin
 Given communication or academic routes are called
-When the domain PRD does not exist
+When the domain implementation has not shipped in web/
 Then the API returns 501 not_implemented
 ```
 
@@ -593,7 +603,8 @@ Then the API returns 501 not_implemented
 - Livro Ata and digital signature.
 - Receivables anticipation (school receives early; platform assumes risk).
 - Multi-unit school network product UX (`school_groups` schema ready; flow deferred).
-- Phase 2 API domains until PRDs exist: `communication`, `academic` (OpenAPI skeleton only).
+- Phase 2 API domains until implementations ship in `web/`: `communication`, `academic`
+  (OpenAPI skeleton returns `501`; domain PRDs validated).
 - Teacher-facing surfaces in this PRD (schema stub only).
 
 ---
@@ -641,13 +652,30 @@ answers in implementation.
 
 ## Positioning note — relation to School Lab
 
-This PRD proposes an **inverted** build order relative to School Lab's validated MVP
-(communication as priority #1, Jul 2026). That is intentional for the billing-first partner.
+**Classification:** this PRD is a **historical implementation baseline**, not normative
+product strategy. The name "fintech-first" reflected delivery order for the validating
+partner, not a separate product or a permanent architectural label.
 
-The billing domain is now implemented in this monorepo (`web/`), on the schema in
+**Normative sources for new work:**
+
+| Topic | Use |
+|-------|-----|
+| Billing rules and MVP scope | [`docs/prds/billing/`](billing/) |
+| Identity, invites, permissions | [`docs/prds/identity-and-onboarding/`](identity-and-onboarding/) |
+| Communication, academic | [`docs/prds/communication/`](communication/), [`docs/prds/academic/`](academic/) |
+| MVP build order | [`docs/vision.md`](../vision.md) — communication → academic → billing |
+
+The partner slice **inverted** the validated MVP order (communication first, Jul 2026) so
+the director could validate billing before communication and academic engineering waves.
+That inversion applied only to **delivery sequencing for one school**; it does not change
+School Lab's product definition or domain priorities.
+
+The billing domain is **implemented** in this monorepo (`web/`), on the schema in
 `docs/database/schema.dbml` and the narrative in `docs/modeling/001-fintech-first.md`.
 
 **Decided (Aug 2026, discovery #21):** School Lab is a **single product**. The
-billing-first partner slice ships first; communication and academic domains join the same
-`web/` API, shared entities (`School`, `User`, `Membership`, `Student`, `StudentGuardian`),
-and client surfaces — without parallel tables or a separate repository.
+billing-first partner slice was the first live module; communication and academic join the
+same `web/` API, shared entities (`School`, `User`, `Membership`, `Student`,
+`StudentGuardian`), and client surfaces — without parallel tables or a separate repository.
+Future engineering follows [`docs/product/domain-roadmap.md`](../product/domain-roadmap.md)
+(communication-first maturation order).

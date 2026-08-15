@@ -1,0 +1,300 @@
+# Capabilities by actor — Comunicacao (Proesc)
+
+Harvest-derived inventory. **128** capabilities across 1 School Lab domain(s).
+Maturity: documented help-center articles. See [`../../README.md`](../../README.md).
+
+## Domain: Communication
+
+_128 capabilities._
+
+## Guardian
+
+- **Editar O Cadastro Do Aluno/Responsável Na Inscrição Da Matrícula Online?** (`communication.create_editar_o_cadastro_do_aluno_res`) — _documented_, friction 0.0 — [Como editar o cadastro do aluno/responsável na ins](https://suporte.proesc.com/hc/pt-br/articles/4412988035479-Como-editar-o-cadastro-do-aluno-respons%C3%A1vel-na-inscri%C3%A7%C3%A3o-da-Matr%C3%ADcula-Online)
+  - Editar O Cadastro Do Aluno/Responsável Na Inscrição Da Matrícula Online?.
+- **Enviar Mensagens E Avisos De Eventos Do Portal Para Os Pais E Responsáveis** (`communication.send_enviar_mensagens_e_avisos_de_e`) — _documented_, friction 7.0 — [Como enviar mensagens e avisos de eventos do porta](https://suporte.proesc.com/hc/pt-br/articles/360044812594-Como-enviar-mensagens-e-avisos-de-eventos-do-portal-para-os-Pais-e-Respons%C3%A1veis)
+  - Enviar Mensagens E Avisos De Eventos Do Portal Para Os Pais E Responsáveis. Note: Veja como enviar mensagens pelo Proesc.com e cadastrar avisos de eventos ou datas importantes no calendário da unidade..
+
+## Staff
+
+- **Acessar A Central De Ajuda Proesc?** (`communication.manage_acessar_a_central_de_ajuda_pro`) — _documented_, friction 1.5 — [Como acessar a Central de Ajuda Proesc?](https://suporte.proesc.com/hc/pt-br/articles/23781852985879-Como-acessar-a-Central-de-Ajuda-Proesc)
+  - Acessar A Central De Ajuda Proesc?.
+- **Acessar E Copiar A Api Para A Integração Com Outros Sistemas.** (`communication.manage_acessar_e_copiar_a_api_para_a_`) — _documented_, friction 0.0 — [Como acessar e copiar a API para a integração com ](https://suporte.proesc.com/hc/pt-br/articles/4409764388631-Como-acessar-e-copiar-a-API-para-a-integra%C3%A7%C3%A3o-com-outros-sistemas)
+  - Acessar E Copiar A Api Para A Integração Com Outros Sistemas..
+- **Acessar Meu Login** (`communication.manage_acessar_meu_login`) — _documented_, friction 7.0 — [Como acessar meu login](https://suporte.proesc.com/hc/pt-br/articles/4403795554071-Como-acessar-meu-login)
+  - Acessar Meu Login. Note: Atenção! Caso o e-mail não tenha chego pra você, confirme com a instituição se o e-mail está correto. Também é válido le.
+- **Acompanhar A Entrega De Atividades Dos Alunos?** (`communication.view_acompanhar_a_entrega_de_ativid`) — _documented_, friction 3.5 — [Como acompanhar a entrega de atividades dos alunos](https://suporte.proesc.com/hc/pt-br/articles/360046182394-Como-acompanhar-a-entrega-de-atividades-dos-alunos)
+  - Acompanhar A Entrega De Atividades Dos Alunos?. Note: Atenção: Para enviar essa mensagem no WhatsApp do aluno, é preciso estar logado em uma conta do WhatsApp..
+- **Adicionar Assinatura Digitalizada Em Histórico Escolar?** (`communication.create_adicionar_assinatura_digitaliz`) — _documented_, friction 5.5 — [Como adicionar assinatura digitalizada em históric](https://suporte.proesc.com/hc/pt-br/articles/31201671875863-Como-adicionar-assinatura-digitalizada-em-hist%C3%B3rico-escolar)
+  - Adicionar Assinatura Digitalizada Em Histórico Escolar?. Note: Outro requisito importante, após a ativação da funcionalidade e realizar o cadastro das assinaturas em seu sistema acess.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Adicionar Assinaturas Digitalizadas No Sistema?** (`communication.create_adicionar_assinaturas_digitali`) — _documented_, friction 2.5 — [Como adicionar assinaturas digitalizadas no sistem](https://suporte.proesc.com/hc/pt-br/articles/35866004796695-Como-adicionar-assinaturas-digitalizadas-no-sistema)
+  - Adicionar Assinaturas Digitalizadas No Sistema?.
+- **Adicionar Materiais De Apoio (Anexos) Nas Minhas Aulas?** (`communication.create_adicionar_materiais_de_apoio_a`) — _documented_, friction 5.5 — [Como adicionar materiais de apoio (anexos) nas min](https://suporte.proesc.com/hc/pt-br/articles/360007282833-Como-adicionar-materiais-de-apoio-anexos-nas-minhas-aulas)
+  - Adicionar Materiais De Apoio (Anexos) Nas Minhas Aulas?. Note: Importante:O sistema permite anexo de materiais com até 100 MB de tamanho, verifique esse detalhe antes de tentar adicio.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Administrar A Entrega De Material Escolar No Proesc?** (`communication.manage_administrar_a_entrega_de_mater`) — _documented_, friction 0.3 — [Como administrar a entrega de material escolar no ](https://suporte.proesc.com/hc/pt-br/articles/16245826066711-Como-administrar-a-entrega-de-material-escolar-no-proesc)
+  - Administrar A Entrega De Material Escolar No Proesc?.
+- **Agendar Uma Atividade No Ambiente De Crm?** (`communication.manage_agendar_uma_atividade_no_ambie`) — _documented_, friction 0.0 — [Como agendar uma atividade no ambiente de CRM?](https://suporte.proesc.com/hc/pt-br/articles/360051092213-Como-agendar-uma-atividade-no-ambiente-de-CRM)
+  - Agendar Uma Atividade No Ambiente De Crm?.
+- **Agendar Uma Reunião Com Um Consultor Proesc?** (`communication.manage_agendar_uma_reuniao_com_um_con`) — _documented_, friction 1.5 — [Como agendar uma reunião com um consultor Proesc?](https://suporte.proesc.com/hc/pt-br/articles/31154607189783-Como-agendar-uma-reuni%C3%A3o-com-um-consultor-Proesc)
+  - Agendar Uma Reunião Com Um Consultor Proesc?.
+- **Alterar A Logo Da Instituição Pelo Sistema** (`communication.update_alterar_a_logo_da_instituicao_`) — _documented_, friction 0.0 — [Como alterar a logo da instituição pelo sistema](https://suporte.proesc.com/hc/pt-br/articles/4410118326679-Como-alterar-a-logo-da-institui%C3%A7%C3%A3o-pelo-sistema)
+  - Alterar A Logo Da Instituição Pelo Sistema.
+- **Alterar Em Lote A Situação Das Matrículas Dos Alunos** (`communication.update_alterar_em_lote_a_situacao_das`) — _documented_, friction 7.0 — [Como alterar em lote a situação das matrículas dos](https://suporte.proesc.com/hc/pt-br/articles/360037905913-Como-alterar-em-lote-a-situa%C3%A7%C3%A3o-das-matr%C3%ADculas-dos-alunos)
+  - Alterar Em Lote A Situação Das Matrículas Dos Alunos. Note: Um dos procedimentos mais importantes para a finalização do ano letivo é a atualização da situação das matrículas..
+- **Arquivar/Desarquivar Uma Fase De Matrícula?** (`communication.manage_arquivar_desarquivar_uma_fase_`) — _documented_, friction 3.5 — [Como arquivar/desarquivar uma fase de matrícula?](https://suporte.proesc.com/hc/pt-br/articles/4412081395095-Como-arquivar-desarquivar-uma-fase-de-matr%C3%ADcula)
+  - Arquivar/Desarquivar Uma Fase De Matrícula?. Note: Importante! Ao arquivar uma fase, a mesma não ficará mais disponível no portal de matrícula online.
+- **Atualizar O App Proesc Agenda (Android E Ios)** (`communication.update_atualizar_o_app_proesc_agenda_`) — _documented_, friction 2.0 — [Como atualizar o app Proesc Agenda (Android e iOS)](https://suporte.proesc.com/hc/pt-br/articles/32245270021527-Como-atualizar-o-app-Proesc-Agenda-Android-e-iOS)
+  - Atualizar O App Proesc Agenda (Android E Ios).
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Atualização 5.1.5** (`communication.manage_atualizacao_5_1_5`) — _documented_, friction 0.0 — [Atualização 5.1.5](https://suporte.proesc.com/hc/pt-br/articles/4403735944599-Atualiza%C3%A7%C3%A3o-5-1-5)
+  - Atualização 5.1.5.
+- **Atualização 5.1.9** (`communication.manage_atualizacao_5_1_9`) — _documented_, friction 0.0 — [Atualização 5.1.9](https://suporte.proesc.com/hc/pt-br/articles/4407407806871-Atualiza%C3%A7%C3%A3o-5-1-9)
+  - Atualização 5.1.9.
+- **Atualização 5.2.4** (`communication.manage_atualizacao_5_2_4`) — _documented_, friction 0.0 — [Atualização 5.2.4](https://suporte.proesc.com/hc/pt-br/articles/4413848249239-Atualiza%C3%A7%C3%A3o-5-2-4)
+  - Atualização 5.2.4.
+- **Atualização 5.3.0** (`communication.manage_atualizacao_5_3_0`) — _documented_, friction 0.0 — [Atualização 5.3.0](https://suporte.proesc.com/hc/pt-br/articles/4422738170903-Atualiza%C3%A7%C3%A3o-5-3-0)
+  - Atualização 5.3.0.
+- **Atualização 5.3.6** (`communication.manage_atualizacao_5_3_6`) — _documented_, friction 0.0 — [Atualização 5.3.6](https://suporte.proesc.com/hc/pt-br/articles/5957290338967-Atualiza%C3%A7%C3%A3o-5-3-6)
+  - Atualização 5.3.6.
+- **Atualização 5.3.8** (`communication.manage_atualizacao_5_3_8`) — _documented_, friction 0.0 — [Atualização 5.3.8](https://suporte.proesc.com/hc/pt-br/articles/6504898148631-Atualiza%C3%A7%C3%A3o-5-3-8)
+  - Atualização 5.3.8.
+- **Atualização 5.3.9** (`communication.manage_atualizacao_5_3_9`) — _documented_, friction 3.5 — [Atualização 5.3.9](https://suporte.proesc.com/hc/pt-br/articles/6846656552727-Atualiza%C3%A7%C3%A3o-5-3-9)
+  - Atualização 5.3.9. Note: Agora foi adicionados novos campos nesse ambiente para o ensino superior, como cabeçalho personalizado, título do histór.
+- **Atualização 5.4.1** (`communication.manage_atualizacao_5_4_1`) — _documented_, friction 0.0 — [Atualização 5.4.1](https://suporte.proesc.com/hc/pt-br/articles/7859717988631-Atualiza%C3%A7%C3%A3o-5-4-1)
+  - Atualização 5.4.1.
+- **Atualização 5.4.2** (`communication.manage_atualizacao_5_4_2`) — _documented_, friction 0.0 — [Atualização 5.4.2](https://suporte.proesc.com/hc/pt-br/articles/7859741781911-Atualiza%C3%A7%C3%A3o-5-4-2)
+  - Atualização 5.4.2.
+- **Atualização 5.4.3** (`communication.manage_atualizacao_5_4_3`) — _documented_, friction 0.0 — [Atualização 5.4.3](https://suporte.proesc.com/hc/pt-br/articles/8076723378839-Atualiza%C3%A7%C3%A3o-5-4-3)
+  - Atualização 5.4.3.
+- **Atualização 5.4.5** (`communication.manage_atualizacao_5_4_5`) — _documented_, friction 0.0 — [Atualização 5.4.5](https://suporte.proesc.com/hc/pt-br/articles/9165046756759-Atualiza%C3%A7%C3%A3o-5-4-5)
+  - Atualização 5.4.5.
+- **Atualização 5.4.6** (`communication.manage_atualizacao_5_4_6`) — _documented_, friction 0.0 — [Atualização 5.4.6](https://suporte.proesc.com/hc/pt-br/articles/9474247344023-Atualiza%C3%A7%C3%A3o-5-4-6)
+  - Atualização 5.4.6.
+- **Atualização 5.4.8** (`communication.manage_atualizacao_5_4_8`) — _documented_, friction 0.0 — [Atualização 5.4.8](https://suporte.proesc.com/hc/pt-br/articles/10438010606871-Atualiza%C3%A7%C3%A3o-5-4-8)
+  - Atualização 5.4.8.
+- **Atualização 5.4.9** (`communication.manage_atualizacao_5_4_9`) — _documented_, friction 0.0 — [Atualização 5.4.9](https://suporte.proesc.com/hc/pt-br/articles/10799415117335-Atualiza%C3%A7%C3%A3o-5-4-9)
+  - Atualização 5.4.9.
+- **Atualização 5.5.1** (`communication.manage_atualizacao_5_5_1`) — _documented_, friction 0.0 — [Atualização 5.5.1](https://suporte.proesc.com/hc/pt-br/articles/11726050372503-Atualiza%C3%A7%C3%A3o-5-5-1)
+  - Atualização 5.5.1.
+- **Atualização 5.5.3** (`communication.manage_atualizacao_5_5_3`) — _documented_, friction 0.0 — [Atualização 5.5.3](https://suporte.proesc.com/hc/pt-br/articles/12658507146775-Atualiza%C3%A7%C3%A3o-5-5-3)
+  - Atualização 5.5.3.
+- **Atualização De Notas Parciais** (`communication.manage_atualizacao_de_notas_parciais`) — _documented_, friction 3.5 — [Atualização de notas parciais](https://suporte.proesc.com/hc/pt-br/articles/19580813958935-Atualiza%C3%A7%C3%A3o-de-notas-parciais)
+  - Atualização De Notas Parciais. Note: Observação: Esse processo é indicado para momentos em que ainda não é possível entregar o diário da disciplina, após a a.
+- **Avisar A Escola Que Estou A Caminho?** (`communication.manage_avisar_a_escola_que_estou_a_ca`) — _documented_, friction 0.0 — [Como avisar a escola que estou a caminho?](https://suporte.proesc.com/hc/pt-br/articles/30436491797399-Como-avisar-a-escola-que-estou-a-caminho)
+  - Avisar A Escola Que Estou A Caminho?.
+- **Botão De Alerta Escolar - Cadastro De Contatos De Emergência** (`communication.create_botao_de_alerta_escolar_cadast`) — _documented_, friction 5.0 — [Botão de Alerta Escolar - Cadastro de Contatos de ](https://suporte.proesc.com/hc/pt-br/articles/14043576469527-Bot%C3%A3o-de-Alerta-Escolar-Cadastro-de-Contatos-de-Emerg%C3%AAncia)
+  - Botão De Alerta Escolar - Cadastro De Contatos De Emergência. Note: Observação: funcionalidade paga, solicite o orçamento conforme instruções abaixo..
+- **Cadastrar As Mídias No Módulo De Biblioteca?** (`communication.create_cadastrar_as_midias_no_modulo_`) — _documented_, friction 0.0 — [Como cadastrar as mídias no módulo de Biblioteca?](https://suporte.proesc.com/hc/pt-br/articles/360019222233-Como-cadastrar-as-m%C3%ADdias-no-m%C3%B3dulo-de-Biblioteca)
+  - Cadastrar As Mídias No Módulo De Biblioteca?.
+- **Cadastrar Editoras No Módulo De Biblioteca?** (`communication.create_cadastrar_editoras_no_modulo_d`) — _documented_, friction 0.0 — [Como cadastrar Editoras no módulo de Biblioteca?](https://suporte.proesc.com/hc/pt-br/articles/360019222073-Como-cadastrar-Editoras-no-m%C3%B3dulo-de-Biblioteca)
+  - Cadastrar Editoras No Módulo De Biblioteca?.
+- **Cadastrar Eventos No Calendário Da Unidade (Proesc Agenda)** (`communication.create_cadastrar_eventos_no_calendari`) — _documented_, friction 3.5 — [Como cadastrar eventos no Calendário da Unidade (P](https://suporte.proesc.com/hc/pt-br/articles/18513269156375-Como-cadastrar-eventos-no-Calend%C3%A1rio-da-Unidade-Proesc-Agenda)
+  - Cadastrar Eventos No Calendário Da Unidade (Proesc Agenda). Note: Comunicação Eficiente: Facilita a comunicação entre a escola e os responsáveis, garantindo que todos estejam informados .
+- **Cadastrar Os Produtos De Consumo No Estoque?** (`communication.create_cadastrar_os_produtos_de_consu`) — _documented_, friction 6.5 — [Como cadastrar os produtos de consumo no estoque?](https://suporte.proesc.com/hc/pt-br/articles/360058808714-Como-cadastrar-os-produtos-de-consumo-no-estoque)
+  - Cadastrar Os Produtos De Consumo No Estoque?. Note: 23. Note que ativando a emissão de nota o sistema informa que a mensagem "Atenção: Este produto emite nota fiscal!".
+- **Cadastrar Servidores No Ambiente Recursos Humanos?** (`communication.create_cadastrar_servidores_no_ambien`) — _documented_, friction 10.5 — [Como cadastrar servidores no ambiente Recursos Hum](https://suporte.proesc.com/hc/pt-br/articles/360057988833-Como-cadastrar-servidores-no-ambiente-Recursos-Humanos)
+  - Cadastrar Servidores No Ambiente Recursos Humanos?. Note: Observação: para ter acesso a esse ambiente, sua unidade precisa ter o menu "Recursos Humanos" ativado. Acesse aqui para.
+- **Cadastrar Um Autor No Módulo Da Biblioteca?** (`communication.create_cadastrar_um_autor_no_modulo_d`) — _documented_, friction 0.0 — [Como cadastrar um autor no módulo da Biblioteca?](https://suporte.proesc.com/hc/pt-br/articles/360019221853-Como-cadastrar-um-autor-no-m%C3%B3dulo-da-Biblioteca)
+  - Cadastrar Um Autor No Módulo Da Biblioteca?.
+- **Cadastrar Um Simulado No Proesc?** (`communication.create_cadastrar_um_simulado_no_proes`) — _documented_, friction 3.5 — [Como cadastrar um simulado no Proesc?](https://suporte.proesc.com/hc/pt-br/articles/360007215694-Como-cadastrar-um-simulado-no-Proesc)
+  - Cadastrar Um Simulado No Proesc?. Note: Observação: Caso a disciplina tenha um critério personalizado (diferente do critério da turma), deve ser feito o seguint.
+- **Cadastrar Uma Obra No Módulo De Biblioteca?** (`communication.create_cadastrar_uma_obra_no_modulo_d`) — _documented_, friction 0.0 — [Como cadastrar uma obra no módulo de Biblioteca?](https://suporte.proesc.com/hc/pt-br/articles/360019061994-Como-cadastrar-uma-obra-no-m%C3%B3dulo-de-Biblioteca)
+  - Cadastrar Uma Obra No Módulo De Biblioteca?.
+- **Cadastrar Uma Oportunidade Ou Realizar Upload De Leads?** (`communication.create_cadastrar_uma_oportunidade_ou_`) — _documented_, friction 7.3 — [Como cadastrar uma oportunidade ou realizar upload](https://suporte.proesc.com/hc/pt-br/articles/4411343874071-Como-cadastrar-uma-oportunidade-ou-realizar-upload-de-leads)
+  - Cadastrar Uma Oportunidade Ou Realizar Upload De Leads?. Note: Observação: se for um aluno novo, digite o nome no campo Aluno e clique em para abrir o cadastro..
+- **Cadastrar, Editar E Excluir Uma Avaliação?** (`communication.create_cadastrar_editar_e_excluir_uma`) — _documented_, friction 3.5 — [Como cadastrar, editar e excluir uma avaliação?](https://suporte.proesc.com/hc/pt-br/articles/360003893274-Como-cadastrar-editar-e-excluir-uma-avalia%C3%A7%C3%A3o)
+  - Cadastrar, Editar E Excluir Uma Avaliação?. Note: Atenção: os tipos de avaliação disponíveis são os cadastrados na configuração do critério avaliativo da instituição..
+- **Checklist De Fim De Ano** (`communication.manage_checklist_de_fim_de_ano`) — _documented_, friction 12.5 — [Checklist de fim de ano](https://suporte.proesc.com/hc/pt-br/articles/360037904333-Checklist-de-fim-de-ano)
+  - Checklist De Fim De Ano. Note: A princípio, é importante encerrar o exercício atual antes de iniciar um novo. No âmbito pedagógico, é fundamental, para.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Copiar As Disciplinas De Uma Matriz Para Outra?** (`communication.manage_copiar_as_disciplinas_de_uma_m`) — _documented_, friction 0.0 — [Como copiar as disciplinas de uma matriz para outr](https://suporte.proesc.com/hc/pt-br/articles/4994227347479-Como-copiar-as-disciplinas-de-uma-matriz-para-outra)
+  - Copiar As Disciplinas De Uma Matriz Para Outra?.
+- **Copiar As Habilidades De Uma Matriz Para Outra?** (`communication.manage_copiar_as_habilidades_de_uma_m`) — _documented_, friction 0.0 — [Como  copiar as habilidades de uma matriz para out](https://suporte.proesc.com/hc/pt-br/articles/4416166855447-Como-copiar-as-habilidades-de-uma-matriz-para-outra)
+  - Copiar As Habilidades De Uma Matriz Para Outra?.
+- **Criar E Acompanhar Um Ticket?** (`communication.create_criar_e_acompanhar_um_ticket`) — _documented_, friction 3.8 — [Como criar e acompanhar um ticket?](https://suporte.proesc.com/hc/pt-br/articles/4582857813655-Como-criar-e-acompanhar-um-ticket)
+  - Criar E Acompanhar Um Ticket?. Note: Importante: Use o mesmo e-mail com o qual o ticket.
+- **Criar Formulários Online No Crm Do Proesc?** (`communication.create_criar_formularios_online_no_cr`) — _documented_, friction 9.5 — [Como criar Formulários Online no CRM do Proesc?](https://suporte.proesc.com/hc/pt-br/articles/360034129613-Como-criar-Formul%C3%A1rios-Online-no-CRM-do-Proesc)
+  - Criar Formulários Online No Crm Do Proesc?. Note: IMPORTANTE! CRM é um módulo extra. Caso não esteja ativo na sua instituição, entre em contato com o suporte..
+- **Criar Tipos De Documentos Para Serem Entregues Na Matrícula Online?** (`communication.create_criar_tipos_de_documentos_para`) — _documented_, friction 0.0 — [Como criar tipos de documentos para serem entregue](https://suporte.proesc.com/hc/pt-br/articles/4413005889431-Como-criar-tipos-de-documentos-para-serem-entregues-na-matr%C3%ADcula-online)
+  - Criar Tipos De Documentos Para Serem Entregues Na Matrícula Online?.
+- **Criar Um Novo Simulado ?** (`communication.create_criar_um_novo_simulado`) — _documented_, friction 3.5 — [Como criar um novo Simulado ?](https://suporte.proesc.com/hc/pt-br/articles/24316130599959-Como-criar-um-novo-Simulado)
+  - Criar Um Novo Simulado ?. Note: Observação: caso a disciplina tenha um critério personalizado (diferente do critério da turma), marque o checkbox indica.
+- **Criar Um Pdi - Plano De Desenvolvimento Individual De Alunos Do Aee?** (`communication.create_criar_um_pdi_plano_de_desenvol`) — _documented_, friction 6.1 — [Como criar um PDI - Plano de Desenvolvimento Indiv](https://suporte.proesc.com/hc/pt-br/articles/28869009296535-Como-criar-um-PDI-Plano-de-Desenvolvimento-Individual-de-alunos-do-AEE)
+  - Criar Um Pdi - Plano De Desenvolvimento Individual De Alunos Do Aee?. Note: Observação: No ambiente de PDI para Atendimentos, após o PDI ser criado você poderá executar os seguintes comandos:.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Um Recado No Proesc Agenda?** (`communication.create_criar_um_recado_no_proesc_agen`) — _documented_, friction 8.5 — [Como criar um recado no Proesc Agenda?](https://suporte.proesc.com/hc/pt-br/articles/32111862060695-Como-criar-um-recado-no-Proesc-Agenda)
+  - Criar Um Recado No Proesc Agenda?. Note: ATENÇÃO: É preciso que o destinatário esteja cadastrado no sistema.
+- **Criar Uma Atividade?** (`communication.create_criar_uma_atividade`) — _documented_, friction 13.4 — [Como criar uma atividade?](https://suporte.proesc.com/hc/pt-br/articles/360046791853-Como-criar-uma-atividade)
+  - Criar Uma Atividade?. Note: Importante: Se o professor não marcar a opção "Permitir entrega online?" a atividade não poderá ser respondida pelo alun.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Uma Função No Ambiente De Recursos Humanos?** (`communication.create_criar_uma_funcao_no_ambiente_d`) — _documented_, friction 11.5 — [Como criar uma Função no ambiente de Recursos Huma](https://suporte.proesc.com/hc/pt-br/articles/7629424734231-Como-criar-uma-Fun%C3%A7%C3%A3o-no-ambiente-de-Recursos-Humanos)
+  - Criar Uma Função No Ambiente De Recursos Humanos?. Note: Observação: Para utilizar esse recurso, sua unidade precisa ter o menu "Recursos Humanos" ativado no sistema..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Dicas De Liberação De Acesso Ao Proesc** (`communication.manage_dicas_de_liberacao_de_acesso_a`) — _documented_, friction 0.0 — [Dicas de liberação de acesso ao Proesc](https://suporte.proesc.com/hc/pt-br/articles/27028306712599-Dicas-de-libera%C3%A7%C3%A3o-de-acesso-ao-Proesc)
+  - Dicas De Liberação De Acesso Ao Proesc.
+- **Dicas Para Um Bom Acompanhamento Pedagógico** (`communication.manage_dicas_para_um_bom_acompanhamen`) — _documented_, friction 5.0 — [Dicas para um bom acompanhamento pedagógico](https://suporte.proesc.com/hc/pt-br/articles/1500011610342-Dicas-para-um-bom-acompanhamento-pedag%C3%B3gico)
+  - Dicas Para Um Bom Acompanhamento Pedagógico. Note: #### Por que o acompanhamento pedagógico é importante?.
+- **E-Mail Que Está Em Pessoas Não É O Mesmo Do Usuário, Como Resolver?** (`communication.resolve_e_mail_que_esta_em_pessoas_nao`) — _documented_, friction 3.5 — [E-mail que está em pessoas não é o mesmo do usuári](https://suporte.proesc.com/hc/pt-br/articles/360042577194-E-mail-que-est%C3%A1-em-pessoas-n%C3%A3o-%C3%A9-o-mesmo-do-usu%C3%A1rio-como-resolver)
+  - E-Mail Que Está Em Pessoas Não É O Mesmo Do Usuário, Como Resolver?. Note: Atenção para o alerta:.
+- **Editar As Disciplinas De Uma Matrícula?** (`communication.update_editar_as_disciplinas_de_uma_m`) — _documented_, friction 5.5 — [Como editar as disciplinas de uma matrícula?](https://suporte.proesc.com/hc/pt-br/articles/360002674354-Como-editar-as-disciplinas-de-uma-matr%C3%ADcula)
+  - Editar As Disciplinas De Uma Matrícula?. Note: Como incluir uma observação na matrícula?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Editar O Verso Da Carteirinha Estudantil?** (`communication.update_editar_o_verso_da_carteirinha_`) — _documented_, friction 3.0 — [Como editar o verso da carteirinha estudantil?](https://suporte.proesc.com/hc/pt-br/articles/22406224975383-Como-editar-o-verso-da-carteirinha-estudantil)
+  - Editar O Verso Da Carteirinha Estudantil?.
+- **Efetuar A Leitura De Arquivo De Simulado No Proesc?** (`communication.manage_efetuar_a_leitura_de_arquivo_d`) — _documented_, friction 0.0 — [Como efetuar a leitura de arquivo de simulado no P](https://suporte.proesc.com/hc/pt-br/articles/360007216634-Como-efetuar-a-leitura-de-arquivo-de-simulado-no-Proesc)
+  - Efetuar A Leitura De Arquivo De Simulado No Proesc?.
+- **Emitir Certificados Por Turmas?** (`communication.manage_emitir_certificados_por_turmas`) — _documented_, friction 0.0 — [Como emitir certificados por turmas?](https://suporte.proesc.com/hc/pt-br/articles/360055652054-Como-emitir-certificados-por-turmas)
+  - Emitir Certificados Por Turmas?.
+- **Entrar Em Contato Pelo Whatsapp E Mensagens Do Sistema - Busca Ativa** (`communication.manage_entrar_em_contato_pelo_whatsap`) — _documented_, friction 5.0 — [Como entrar em contato pelo WhatsApp e Mensagens d](https://suporte.proesc.com/hc/pt-br/articles/17716716240407-Como-entrar-em-contato-pelo-WhatsApp-e-Mensagens-do-sistema-Busca-Ativa)
+  - Entrar Em Contato Pelo Whatsapp E Mensagens Do Sistema - Busca Ativa. Note: Observação: é importante que os alunos e seus responsáveis tenham login cadastrado para acesso ao Portal do Aluno. Caso .
+- **Entregar As Minhas Atividades?** (`communication.manage_entregar_as_minhas_atividades`) — _documented_, friction 2.0 — [Como entregar as minhas atividades?](https://suporte.proesc.com/hc/pt-br/articles/360046240434-Como-entregar-as-minhas-atividades)
+  - Entregar As Minhas Atividades?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Entregar Diários Em Lote?** (`communication.manage_entregar_diarios_em_lote`) — _documented_, friction 3.5 — [Como entregar diários em lote?](https://suporte.proesc.com/hc/pt-br/articles/360057923894-Como-entregar-di%C3%A1rios-em-lote)
+  - Entregar Diários Em Lote?. Note: Observação: Veja todo o procedimento demonstrado na animação abaixo:.
+- **Entregar O Diário De Classe No Proesc?** (`communication.manage_entregar_o_diario_de_classe_no`) — _documented_, friction 3.5 — [Como entregar o diário de classe no Proesc?](https://suporte.proesc.com/hc/pt-br/articles/360005847713-Como-entregar-o-di%C3%A1rio-de-classe-no-Proesc)
+  - Entregar O Diário De Classe No Proesc?. Note: Importante: Após a entrega, não é possível realizar alterações. Caso tenha enviado o diário por equívoco, solicite a dev.
+- **Excluir Disciplinas De Uma Turma?** (`communication.delete_excluir_disciplinas_de_uma_tur`) — _documented_, friction 3.5 — [Como excluir disciplinas de uma turma?](https://suporte.proesc.com/hc/pt-br/articles/360043506553-Como-excluir-disciplinas-de-uma-turma)
+  - Excluir Disciplinas De Uma Turma?. Note: Observação: Faça a exclusão de disciplinas apenas se tiver certeza da inutilidade da mesma para todos os alunos da turma.
+- **Excluir Uma Matrícula?** (`communication.delete_excluir_uma_matricula`) — _documented_, friction 5.5 — [Como excluir uma matrícula?](https://suporte.proesc.com/hc/pt-br/articles/360042174134-Como-excluir-uma-matr%C3%ADcula)
+  - Excluir Uma Matrícula?. Note: ALERTA: Ao excluir a matrícula, todos os registros do aluno nestas disciplinas (notas e faltas do diário) serão excluído.
+- **Finalizar As Turmas De Um Exercício** (`communication.manage_finalizar_as_turmas_de_um_exer`) — _documented_, friction 7.0 — [Como finalizar as turmas de um exercício](https://suporte.proesc.com/hc/pt-br/articles/360037907053-Como-finalizar-as-turmas-de-um-exerc%C3%ADcio)
+  - Finalizar As Turmas De Um Exercício. Note: Prontinho! Agora, com a turma finalizada, não é possível ser alterada qualquer informação. Faça o mesmo procedimento com.
+- **Funciona O Atendimento Com A Lia?** (`communication.manage_funciona_o_atendimento_com_a_l`) — _documented_, friction 0.0 — [Como funciona o atendimento com a Lia?](https://suporte.proesc.com/hc/pt-br/articles/360001172174-Como-funciona-o-atendimento-com-a-Lia)
+  - Funciona O Atendimento Com A Lia?.
+- **Funciona O Estou A Caminho?** (`communication.manage_funciona_o_estou_a_caminho`) — _documented_, friction 3.5 — [Como funciona o Estou a caminho?](https://suporte.proesc.com/hc/pt-br/articles/30434999109527-Como-funciona-o-Estou-a-caminho)
+  - Funciona O Estou A Caminho?. Note: 🚨 Atenção: Esse é um módulo extra! Caso não esteja disponível, solicite a ativação com seu consultor ou equipe de suport.
+- **Importar Turmas De Um Ano Letivo Para O Outro** (`communication.import_importar_turmas_de_um_ano_leti`) — _documented_, friction 0.0 — [Como importar turmas de um ano letivo para o outro](https://suporte.proesc.com/hc/pt-br/articles/360060611154-Como-importar-turmas-de-um-ano-letivo-para-o-outro)
+  - Importar Turmas De Um Ano Letivo Para O Outro.
+- **Indeferir Uma Inscrição De Matrícula Online?** (`communication.manage_indeferir_uma_inscricao_de_mat`) — _documented_, friction 0.0 — [Como indeferir uma inscrição de Matrícula online?](https://suporte.proesc.com/hc/pt-br/articles/4412063602199-Como-indeferir-uma-inscri%C3%A7%C3%A3o-de-Matr%C3%ADcula-online)
+  - Indeferir Uma Inscrição De Matrícula Online?.
+- **Integração Siscontroller & Proesc** (`communication.manage_integracao_siscontroller_proes`) — _documented_, friction 3.5 — [Integração SisController & Proesc](https://suporte.proesc.com/hc/pt-br/articles/360016882974-Integra%C3%A7%C3%A3o-SisController-Proesc)
+  - Integração Siscontroller & Proesc. Note: Use a tecnologia aliada com a segurança e simplifique a vida de sua equipe, para que eles possam concentrar-se no mais i.
+- **Lançar As Notas Dos Alunos?** (`communication.launch_lancar_as_notas_dos_alunos`) — _documented_, friction 9.0 — [Como lançar as notas dos alunos?](https://suporte.proesc.com/hc/pt-br/articles/360008221133-Como-lan%C3%A7ar-as-notas-dos-alunos)
+  - Lançar As Notas Dos Alunos?. Note: Atenção: se o diário selecionado não tiver nenhuma avaliação cadastrada, o sistema exibe um aviso com o botão Criar aval.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Lançar Aulas Por Período?** (`communication.launch_lancar_aulas_por_periodo`) — _documented_, friction 5.5 — [Como lançar aulas por período?](https://suporte.proesc.com/hc/pt-br/articles/23690269437719-Como-lan%C3%A7ar-aulas-por-per%C3%ADodo)
+  - Lançar Aulas Por Período?. Note: Atenção: neste ambiente é possível lançar aulas para todas as disciplinas em que o professor tem vínculo na turma..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Manual Do Ambiente De Simulados** (`communication.manage_manual_do_ambiente_de_simulado`) — _documented_, friction 7.0 — [Manual do Ambiente de SIMULADOS](https://suporte.proesc.com/hc/pt-br/articles/11145548799767-Manual-do-Ambiente-de-SIMULADOS)
+  - Manual Do Ambiente De Simulados. Note: Observação: está com dúvida de qual perfil escolher para um usuário? Acesse o artigo Estou criando usuários, qual permis.
+- **Matricular Alunos Em Uma Disciplina Incluída Após A Criação Da Turma?** (`communication.enroll_matricular_alunos_em_uma_disci`) — _documented_, friction 3.5 — [Como matricular alunos em uma disciplina incluída ](https://suporte.proesc.com/hc/pt-br/articles/360052612154-Como-matricular-alunos-em-uma-disciplina-inclu%C3%ADda-ap%C3%B3s-a-cria%C3%A7%C3%A3o-da-turma)
+  - Matricular Alunos Em Uma Disciplina Incluída Após A Criação Da Turma?. Note: IMPORTANTE! Ao usar essa opção, todos os alunos da turma são vinculados a todas as disciplinas dessa turma..
+- **Módulo Aee: Gestão De Atendimentos** (`communication.manage_modulo_aee_gestao_de_atendimen`) — _documented_, friction 3.5 — [Módulo AEE: Gestão de atendimentos](https://suporte.proesc.com/hc/pt-br/articles/41310817761431-M%C3%B3dulo-AEE-Gest%C3%A3o-de-atendimentos)
+  - Módulo Aee: Gestão De Atendimentos. Note: Observação: Se ainda não houver nenhum atendimento cadastrado, o sistema sinalizará com a mensagem "Nenhum registro enco.
+- **Módulo Aee: Inclusão De Atendimentos** (`communication.manage_modulo_aee_inclusao_de_atendim`) — _documented_, friction 4.5 — [Módulo AEE: Inclusão de atendimentos](https://suporte.proesc.com/hc/pt-br/articles/41311708033815-M%C3%B3dulo-AEE-Inclus%C3%A3o-de-atendimentos)
+  - Módulo Aee: Inclusão De Atendimentos.
+- **Módulo Aee: Relatórios Gerenciais** (`communication.manage_modulo_aee_relatorios_gerencia`) — _documented_, friction 0.0 — [Módulo AEE: Relatórios Gerenciais](https://suporte.proesc.com/hc/pt-br/articles/41322699333527-M%C3%B3dulo-AEE-Relat%C3%B3rios-Gerenciais)
+  - Módulo Aee: Relatórios Gerenciais.
+- **Personalizar A Rotina Escolar No Proesc Agenda?** (`communication.manage_personalizar_a_rotina_escolar_`) — _documented_, friction 6.0 — [Como personalizar a rotina escolar no Proesc Agend](https://suporte.proesc.com/hc/pt-br/articles/24834782716567-Como-personalizar-a-rotina-escolar-no-Proesc-Agenda)
+  - Personalizar A Rotina Escolar No Proesc Agenda?. Note: IMPORTANTE! Proesc Agenda é um módulo extra. Caso não esteja ativo na sua instituição, entre em contato com o suporte pa.
+- **Personalizar Nomenclaturas De Menus?** (`communication.manage_personalizar_nomenclaturas_de_`) — _documented_, friction 3.5 — [Como personalizar nomenclaturas de menus?](https://suporte.proesc.com/hc/pt-br/articles/24915205653655-Como-personalizar-nomenclaturas-de-menus)
+  - Personalizar Nomenclaturas De Menus?. Note: Observação: para ter acesso a esse ambiente, tenha o perfil Administrador de Unidade no seu usuário..
+- **Quais Menus O Monitor Educacional Tem Acesso?** (`communication.manage_quais_menus_o_monitor_educacio`) — _documented_, friction 0.0 — [Quais menus o Monitor Educacional tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360003516814-Quais-menus-o-Monitor-Educacional-tem-acesso)
+  - Quais Menus O Monitor Educacional Tem Acesso?.
+- **Quais Menus O Perfil Auxiliar De Almoxarifado Tem Acesso?** (`communication.manage_quais_menus_o_perfil_auxiliar_`) — _documented_, friction 0.0 — [Quais menus o perfil auxiliar de almoxarifado tem ](https://suporte.proesc.com/hc/pt-br/articles/29505705315351-Quais-menus-o-perfil-auxiliar-de-almoxarifado-tem-acesso)
+  - Quais Menus O Perfil Auxiliar De Almoxarifado Tem Acesso?.
+- **Quais Menus O Perfil Bibliotecário Tem Acesso?** (`communication.manage_quais_menus_o_perfil_bibliotec`) — _documented_, friction 0.0 — [Quais menus o perfil bibliotecário tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/29436114368535-Quais-menus-o-perfil-bibliotec%C3%A1rio-tem-acesso)
+  - Quais Menus O Perfil Bibliotecário Tem Acesso?.
+- **Quais Menus O Perfil Crm Tem Acesso?** (`communication.manage_quais_menus_o_perfil_crm_tem_a`) — _documented_, friction 0.0 — [Quais menus o perfil CRM tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/29437090134551-Quais-menus-o-perfil-CRM-tem-acesso)
+  - Quais Menus O Perfil Crm Tem Acesso?.
+- **Quais Menus O Perfil Gestor De Almoxarifado Tem Acesso?** (`communication.manage_quais_menus_o_perfil_gestor_de`) — _documented_, friction 0.0 — [Quais menus o perfil gestor de almoxarifado tem ac](https://suporte.proesc.com/hc/pt-br/articles/29505766778519-Quais-menus-o-perfil-gestor-de-almoxarifado-tem-acesso)
+  - Quais Menus O Perfil Gestor De Almoxarifado Tem Acesso?.
+- **Quais Menus O Perfil Operador De Biblioteca Tem Acesso?** (`communication.manage_quais_menus_o_perfil_operador_`) — _documented_, friction 0.0 — [Quais menus o perfil operador de biblioteca tem ac](https://suporte.proesc.com/hc/pt-br/articles/29436742280087-Quais-menus-o-perfil-operador-de-biblioteca-tem-acesso)
+  - Quais Menus O Perfil Operador De Biblioteca Tem Acesso?.
+- **Quais Menus O Perfil Recursos Humanos Tem Acesso?** (`communication.manage_quais_menus_o_perfil_recursos_`) — _documented_, friction 0.0 — [Quais menus o perfil recursos humanos tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/29505929812631-Quais-menus-o-perfil-recursos-humanos-tem-acesso)
+  - Quais Menus O Perfil Recursos Humanos Tem Acesso?.
+- **Quais Menus O Perfil Simulado Tem Acesso?** (`communication.manage_quais_menus_o_perfil_simulado_`) — _documented_, friction 3.5 — [Quais menus o perfil SIMULADO tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360044346353-Quais-menus-o-perfil-SIMULADO-tem-acesso)
+  - Quais Menus O Perfil Simulado Tem Acesso?. Note: Observação: para saber como adicionar um perfil de usuário ao seu login, acesse o artigo Como cadastrar um usuário em um.
+- **Quais Os Recursos Do Proesc Posso Usar Para Aulas Online?** (`communication.manage_quais_os_recursos_do_proesc_po`) — _documented_, friction 5.8 — [Quais os recursos do Proesc posso usar para aulas ](https://suporte.proesc.com/hc/pt-br/articles/360045659433-Quais-os-recursos-do-Proesc-posso-usar-para-aulas-online)
+  - Quais Os Recursos Do Proesc Posso Usar Para Aulas Online?. Note: IMPORTANTE! O sistema permite anexos de até 100MB. Arquivos maiores retornam a mensagem "Arquivo maior que 100MB, envie .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Reabrir Uma Turma Finalizada?** (`communication.manage_reabrir_uma_turma_finalizada`) — _documented_, friction 3.5 — [Como reabrir uma turma finalizada?](https://suporte.proesc.com/hc/pt-br/articles/4418755012247-Como-reabrir-uma-turma-finalizada)
+  - Reabrir Uma Turma Finalizada?. Note: Observação: Este artigo é direcionado aos usuários com perfil Secretaria..
+- **Realizar Login No Proesc Agenda?** (`communication.manage_realizar_login_no_proesc_agend`) — _documented_, friction 1.5 — [Como realizar login no proesc agenda?](https://suporte.proesc.com/hc/pt-br/articles/29784751310359-Como-realizar-login-no-proesc-agenda)
+  - Realizar Login No Proesc Agenda?.
+- **Registrar Uma Aula De Recuperação Paralela?** (`communication.create_registrar_uma_aula_de_recupera`) — _documented_, friction 7.0 — [Como registrar uma aula de recuperação paralela?](https://suporte.proesc.com/hc/pt-br/articles/360041818593-Como-registrar-uma-aula-de-recupera%C3%A7%C3%A3o-paralela)
+  - Registrar Uma Aula De Recuperação Paralela?. Note: Observação: caso essa função não esteja disponível na sua instituição, solicite a ativação pelo nosso canal de suporte..
+- **Registro De Matrícula (Rm)** (`communication.manage_registro_de_matricula_rm`) — _documented_, friction 1.5 — [Registro de Matrícula (RM)](https://suporte.proesc.com/hc/pt-br/articles/1500006776141-Registro-de-Matr%C3%ADcula-RM)
+  - Registro De Matrícula (Rm).
+- **Relatório De Alunos Não Matriculados Do Exercício Anterior** (`communication.manage_relatorio_de_alunos_nao_matric`) — _documented_, friction 0.0 — [Relatório de Alunos não Matriculados do Exercício ](https://suporte.proesc.com/hc/pt-br/articles/32050425296919-Relat%C3%B3rio-de-Alunos-n%C3%A3o-Matriculados-do-Exerc%C3%ADcio-Anterior)
+  - Relatório De Alunos Não Matriculados Do Exercício Anterior.
+- **Resetar/Redefinir Senha  Para A Senha Padrão?** (`communication.manage_resetar_redefinir_senha_para_a`) — _documented_, friction 3.5 — [Como resetar/redefinir senha  para a senha padrão?](https://suporte.proesc.com/hc/pt-br/articles/360050168634-Como-resetar-redefinir-senha-para-a-senha-padr%C3%A3o)
+  - Resetar/Redefinir Senha  Para A Senha Padrão?. Note: Atenção: oriente o usuário a criar uma nova senha após o primeiro acesso, por questões de segurança..
+- **Salvar E Imprimir Documentos E Relatórios?** (`communication.export_salvar_e_imprimir_documentos_e`) — _documented_, friction 0.0 — [Como Salvar e Imprimir Documentos e Relatórios?](https://suporte.proesc.com/hc/pt-br/articles/17586150410775-Como-Salvar-e-Imprimir-Documentos-e-Relat%C3%B3rios)
+  - Salvar E Imprimir Documentos E Relatórios?.
+- **Sincronizar Alunos Nas Disciplinas** (`communication.import_sincronizar_alunos_nas_discipl`) — _documented_, friction 5.5 — [Como sincronizar alunos nas disciplinas](https://suporte.proesc.com/hc/pt-br/articles/22397189163159-Como-sincronizar-alunos-nas-disciplinas)
+  - Sincronizar Alunos Nas Disciplinas. Note: IMPORTANTE: Antes de sincronizar os alunos, verifique se no menu Secretaria submenu Matrículas item Lista de Matrículas .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Tirar Uma Captura (Print) Da Minha Tela?** (`communication.manage_tirar_uma_captura_print_da_min`) — _documented_, friction 0.0 — [Como tirar uma captura (print) da minha tela?](https://suporte.proesc.com/hc/pt-br/articles/360005902854-Como-tirar-uma-captura-print-da-minha-tela)
+  - Tirar Uma Captura (Print) Da Minha Tela?.
+- **Uma Api E Como Posso Utilizar A Documentação Para Entender Seu Funcionamento?** (`communication.manage_uma_api_e_como_posso_utilizar_`) — _conceptual_, friction 3.5 — [O que é uma API e como posso utilizar a documentaç](https://suporte.proesc.com/hc/pt-br/articles/15023522396695-O-que-%C3%A9-uma-API-e-como-posso-utilizar-a-documenta%C3%A7%C3%A3o-para-entender-seu-funcionamento)
+  - Uma Api E Como Posso Utilizar A Documentação Para Entender Seu Funcionamento?. Note: Caso você tenha um time de contabilidade, você pode acessar a API Financeiro, que retornam dados importantes, como Lista.
+- **Utilizar O Ambiente De Acompanhamentos?** (`communication.manage_utilizar_o_ambiente_de_acompan`) — _documented_, friction 4.1 — [Como utilizar o ambiente de acompanhamentos?](https://suporte.proesc.com/hc/pt-br/articles/36386217126935-Como-utilizar-o-ambiente-de-acompanhamentos)
+  - Utilizar O Ambiente De Acompanhamentos?. Note: Observação: a coluna Privado na listagem de acompanhamentos exibe a visibilidade do registro como Sim ou Não..
+- **Utilizar O Ambiente De Canais De Comunicação Do Proesc Agenda?** (`communication.manage_utilizar_o_ambiente_de_canais_`) — _documented_, friction 3.5 — [Como utilizar o ambiente de canais de comunicação ](https://suporte.proesc.com/hc/pt-br/articles/31209820964375-Como-utilizar-o-ambiente-de-canais-de-comunica%C3%A7%C3%A3o-do-Proesc-agenda)
+  - Utilizar O Ambiente De Canais De Comunicação Do Proesc Agenda?. Note: Observação: Painel exclusivo da escola..
+- **Utilizar O Proesc Pra Seu Ensino Híbrido** (`communication.manage_utilizar_o_proesc_pra_seu_ensi`) — _documented_, friction 2.1 — [Como Utilizar o Proesc pra seu Ensino Híbrido ](https://suporte.proesc.com/hc/pt-br/articles/1500011603642-Como-Utilizar-o-Proesc-pra-seu-Ensino-H%C3%ADbrido)
+  - Utilizar O Proesc Pra Seu Ensino Híbrido.
+- **Visualizar As Notas No Proesc Agenda** (`communication.view_visualizar_as_notas_no_proesc_`) — _documented_, friction 0.0 — [Como visualizar as notas no Proesc Agenda](https://suporte.proesc.com/hc/pt-br/articles/23701469499159-Como-visualizar-as-notas-no-Proesc-Agenda)
+  - Visualizar As Notas No Proesc Agenda.
+- **Visualizar Os Relatórios Individuais Dos Alunos?** (`communication.view_visualizar_os_relatorios_indiv`) — _documented_, friction 3.5 — [Como visualizar os relatórios individuais dos alun](https://suporte.proesc.com/hc/pt-br/articles/360006956974-Como-visualizar-os-relat%C3%B3rios-individuais-dos-alunos)
+  - Visualizar Os Relatórios Individuais Dos Alunos?. Note: Observação: para ver os relatórios do diário — que reúnem os lançamentos de todos os alunos —, consulte o artigo sobre r.
+- **Visualizar Relatórios No Módulo Crm?** (`communication.view_visualizar_relatorios_no_modul`) — _documented_, friction 10.7 — [Como visualizar relatórios no Módulo CRM?](https://suporte.proesc.com/hc/pt-br/articles/24915674226967-Como-visualizar-relat%C3%B3rios-no-M%C3%B3dulo-CRM)
+  - Visualizar Relatórios No Módulo Crm?. Note: IMPORTANTE! CRM é um módulo extra. Caso não esteja ativo na sua instituição, entre em contato com o suporte ou acesse a .
+- **Visualizar Tickets Do Zendesk Pelo Sistema Proesc?** (`communication.view_visualizar_tickets_do_zendesk_`) — _documented_, friction 5.5 — [Como visualizar tickets do Zendesk pelo sistema Pr](https://suporte.proesc.com/hc/pt-br/articles/7058673191191-Como-visualizar-tickets-do-Zendesk-pelo-sistema-Proesc)
+  - Visualizar Tickets Do Zendesk Pelo Sistema Proesc?. Note: Atenção: ao clicar no ID do ticket, certifique-se de estar logado na sua conta do Zendesk. Caso contrário, aparecerá uma.
+  - Preconditions: implicit prerequisite mentioned in article body
+
+## Staff (coordinator)
+
+- **Criar E Enviar Uma Enquete No Menu Proesc Agenda Pelo Portal De Comunicados Como** (`communication.create_criar_e_enviar_uma_enquete_no_`) `[coordinator]` — _documented_, friction 6.3 — [Como criar e enviar uma enquete no menu Proesc Age](https://suporte.proesc.com/hc/pt-br/articles/24856889043607-Como-criar-e-enviar-uma-enquete-no-menu-Proesc-Agenda-pelo-portal-de-Comunicados-como-Coordenador)
+  - Criar E Enviar Uma Enquete No Menu Proesc Agenda Pelo Portal De Comunicados Como. Note: IMPORTANTE! Proesc Agenda é um módulo extra. Caso não esteja ativo na sua instituição, entre em contato com o suporte pa.
+- **Quais Menus O Auxiliar De Coordenação Tem Acesso?** (`communication.manage_quais_menus_o_auxiliar_de_coor`) `[coordinator]` — _documented_, friction 0.0 — [Quais menus o auxiliar de coordenação tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/29355656236439-Quais-menus-o-auxiliar-de-coordena%C3%A7%C3%A3o-tem-acesso)
+  - Quais Menus O Auxiliar De Coordenação Tem Acesso?.
+- **Quais Menus O Perfil Coordenador Tem Acesso?** (`communication.manage_quais_menus_o_perfil_coordenad`) `[coordinator]` — _documented_, friction 0.0 — [Quais menus o perfil COORDENADOR tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/29336451094295-Quais-menus-o-perfil-COORDENADOR-tem-acesso)
+  - Quais Menus O Perfil Coordenador Tem Acesso?.
+
+## Staff (secretary)
+
+- **Quais Funcionalidades Secretaria Básica Tem Acesso?** (`communication.manage_quais_funcionalidades_secretar`) `[secretary]` — _documented_, friction 5.0 — [Quais funcionalidades Secretaria básica tem acesso](https://suporte.proesc.com/hc/pt-br/articles/27466982903831-Quais-funcionalidades-Secretaria-b%C3%A1sica-tem-acesso)
+  - Quais Funcionalidades Secretaria Básica Tem Acesso?. Note: ⚠️ Atenção! Ao lançar ou editar notas e faltas por este ambiente, elas irão sobrescrever os lançamentos dos professores .
+- **Quais Menus A Secretaria Tem Acesso?** (`communication.manage_quais_menus_a_secretaria_tem_a`) `[secretary]` — _documented_, friction 7.0 — [Quais menus a Secretaria tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360003510554-Quais-menus-a-Secretaria-tem-acesso)
+  - Quais Menus A Secretaria Tem Acesso?. Note: Observação 2: caso sua instituição tenha contratado módulos adicionais e não está visualizando o menu, como Biblioteca o.
+- **Quais Menus O Auxiliar Secretaria Tem Acesso?** (`communication.manage_quais_menus_o_auxiliar_secreta`) `[secretary]` — _documented_, friction 0.0 — [Quais menus o auxiliar secretaria tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360003541193-Quais-menus-o-auxiliar-secretaria-tem-acesso)
+  - Quais Menus O Auxiliar Secretaria Tem Acesso?.
+- **Quais Menus É Funcionalidades O Perfil Secretaria Visualizador Tem Acesso?** (`communication.manage_quais_menus_e_funcionalidades_`) `[secretary]` — _documented_, friction 0.0 — [Quais menus é funcionalidades o perfil Secretaria ](https://suporte.proesc.com/hc/pt-br/articles/29336102234903-Quais-menus-%C3%A9-funcionalidades-o-perfil-Secretaria-visualizador-tem-acesso)
+  - Quais Menus É Funcionalidades O Perfil Secretaria Visualizador Tem Acesso?.
+
+## Student
+
+- **Alterar O Status Do Aluno Na Busca Ativa** (`communication.update_alterar_o_status_do_aluno_na_b`) — _documented_, friction 0.0 — [Como alterar o status do aluno na Busca Ativa](https://suporte.proesc.com/hc/pt-br/articles/17668113945751-Como-alterar-o-status-do-aluno-na-Busca-Ativa)
+  - Alterar O Status Do Aluno Na Busca Ativa.
+- **Anexar Documentos De Matrícula No Cadastro Do Aluno?** (`communication.create_anexar_documentos_de_matricula`) — _documented_, friction 10.5 — [Como anexar documentos de matrícula no cadastro do](https://suporte.proesc.com/hc/pt-br/articles/360055349193-Como-anexar-documentos-de-matr%C3%ADcula-no-cadastro-do-aluno)
+  - Anexar Documentos De Matrícula No Cadastro Do Aluno?. Note: Atenção! Para poder realizar as etapas deste artigo, todos os tipos de documentos obrigatórios e não obrigatórios devem .
+- **Cadastrar Aluno De Atendimento Educacional Especializado - Aee?** (`communication.create_cadastrar_aluno_de_atendimento`) — _documented_, friction 0.0 — [Como cadastrar aluno de Atendimento Educacional Es](https://suporte.proesc.com/hc/pt-br/articles/24888805142807-Como-cadastrar-aluno-de-Atendimento-Educacional-Especializado-AEE)
+  - Cadastrar Aluno De Atendimento Educacional Especializado - Aee?.
+- **Enviar Mensagens Pelo Aplicativo Proesc Aluno?** (`communication.send_enviar_mensagens_pelo_aplicati`) — _documented_, friction 7.0 — [Como enviar mensagens pelo aplicativo Proesc Aluno](https://suporte.proesc.com/hc/pt-br/articles/360049191274-Como-enviar-mensagens-pelo-aplicativo-Proesc-Aluno)
+  - Enviar Mensagens Pelo Aplicativo Proesc Aluno?. Note: Atenção: Os campos de Conteúdo e Assunto da mensagem devem estar preenchidos para poder efetuar o envio da mensagem..
+- **Fazer Uma Observação Na Matrícula De Um Aluno?** (`communication.manage_fazer_uma_observacao_na_matric`) — _documented_, friction 10.5 — [Como fazer uma observação na matrícula de um aluno](https://suporte.proesc.com/hc/pt-br/articles/4419727737751-Como-fazer-uma-observa%C3%A7%C3%A3o-na-matr%C3%ADcula-de-um-aluno)
+  - Fazer Uma Observação Na Matrícula De Um Aluno?. Note: Neste artigo iremos lhe orientar a fazer uma observação por escrito na matrícula de um aluno, se necessário!.
+- **Visualizar/ Imprimir Os Relatórios Por Aluno?** (`communication.export_visualizar_imprimir_os_relator`) — _documented_, friction 3.5 — [Como visualizar/ imprimir os relatórios por aluno?](https://suporte.proesc.com/hc/pt-br/articles/360006676714-Como-visualizar-imprimir-os-relat%C3%B3rios-por-aluno)
+  - Visualizar/ Imprimir Os Relatórios Por Aluno?. Note: Nota: Se desejar pode favoritar esse documento clicando o ícone estrela ao lado do relatório..
+
+## Teacher
+
+- **Acessar Aula Ao Vivo Pelo Google Meet Como Professor?** (`communication.manage_acessar_aula_ao_vivo_pelo_goog`) — _documented_, friction 10.5 — [Como acessar aula ao vivo pelo Google Meet como pr](https://suporte.proesc.com/hc/pt-br/articles/360048866134-Como-acessar-aula-ao-vivo-pelo-Google-Meet-como-professor)
+  - Acessar Aula Ao Vivo Pelo Google Meet Como Professor?. Note: Observação: se tiver interesse em ativar o módulo adicional do Google Meet na sua instituição, confira o artigo Como con.
+- **Funcionalidades Do Proesc Agenda Para Professores?** (`communication.manage_funcionalidades_do_proesc_agen`) — _documented_, friction 13.7 — [Funcionalidades do Proesc agenda para professores?](https://suporte.proesc.com/hc/pt-br/articles/33687043370775-Funcionalidades-do-Proesc-agenda-para-professores)
+  - Funcionalidades Do Proesc Agenda Para Professores?. Note: Observação: se a escola não permitir a criação de novos comunicados, você receberá o aviso de Permissão Negada. Nesse ca.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Não Consigo Adicionar Professor Em Uma Disciplina. Como Proceder?** (`communication.resolve_nao_consigo_adicionar_professo`) — _troubleshooting_, friction 5.5 — [Não consigo adicionar professor em uma disciplina.](https://suporte.proesc.com/hc/pt-br/articles/19466642550167-N%C3%A3o-consigo-adicionar-professor-em-uma-disciplina-Como-proceder)
+  - Não Consigo Adicionar Professor Em Uma Disciplina. Como Proceder?.
+- **Quais Menus O Professor Tem Acesso?** (`communication.manage_quais_menus_o_professor_tem_ac`) — _documented_, friction 8.5 — [Quais menus o Professor tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360003533393-Quais-menus-o-Professor-tem-acesso)
+  - Quais Menus O Professor Tem Acesso?. Note: Observação: O usuário professor somente tem acesso ao.
+
+## Teacher
+
+- **Check-List De Usabilidade Do Perfil De Professor** (`communication.manage_check_list_de_usabilidade_do_p`) `[secretary]` — _documented_, friction 7.5 — [Check-list de usabilidade do perfil de Professor](https://suporte.proesc.com/hc/pt-br/articles/360062246573-Check-list-de-usabilidade-do-perfil-de-Professor)
+  - Check-List De Usabilidade Do Perfil De Professor. Note: Atenção! Agora você está apto a usar as funcionalidades do sistema e realizar as seguintes tarefas.

@@ -7,7 +7,7 @@ description: Transforma bases de ajuda públicas de concorrentes (help center, c
 
 Uma base de ajuda pública é o backlog de features do concorrente, já ordenado por dor. Cada artigo existe porque alguém abriu chamado. Quinze artigos sobre lançamento de nota significam que lançamento de nota é confuso no produto deles — isso é pesquisa de UX que o concorrente pagou e publicou.
 
-Esta skill converte essa base em quatro artefatos que alimentam o desenvolvimento: **modelo de domínio**, **glossário**, **mapa de atrito** e **divergências**. O alvo é sempre o domínio, nunca o layout.
+Esta skill converte essa base em sete artefatos que alimentam o desenvolvimento: **inventário de capabilities** (funcionalidades por domínio e ator), **catálogo comparativo deduplicado**, **modelo de domínio**, **glossário**, **mapa de atrito** e **divergências**. O alvo é sempre o domínio, nunca o layout.
 
 ## Antes de qualquer coisa: higiene
 
@@ -23,7 +23,7 @@ Se o usuário pedir para raspar algo autenticado, para copiar textos inteiros ou
 
 ## Pipeline
 
-Seis fases. Não pule a 0 nem a 5 — são as que separam corpus útil de pilha de arquivos.
+Nove fases. Não pule a 0, a 3b, a 4b nem a 7 — são as que separam corpus útil de pilha de arquivos e inventário exaustivo de amostra seletiva.
 
 ### Fase 0 — Reconhecimento
 
@@ -39,7 +39,7 @@ Relate ao usuário o que encontrou e confirme o escopo antes de colher. Base gra
 ### Fase 1 — Colheita
 
 ```bash
-python scripts/harvest.py --url <base-url> --out .corpus-raw/<concorrente>/ --rate 1.5
+python3 scripts/harvest.py --url <base-url> --out .corpus-raw/<concorrente>/ --rate 1.5
 ```
 
 O script detecta a plataforma e usa o método certo: API pública do Zendesk quando existe, `sitemap.xml` quando existe, varredura de links do índice como último recurso. Salva um `.md` por artigo com a URL e a data de atualização no cabeçalho, mais um `indice.json`.
@@ -56,7 +56,13 @@ Um artigo pode cair em mais de um domínio. Quando cai, anote — **fluxo que ap
 
 ### Fase 3 — Extração
 
-Aqui é onde o julgamento importa, e por isso é feito lendo, não com script. Leia `references/extracao.md` para o schema completo e os exemplos.
+Comece com heurística automatizada, depois refine com julgamento. Leia `references/extracao.md` para o schema completo.
+
+```bash
+python3 scripts/extract.py .corpus-raw/<concorrente>/indice.json \
+  --out .corpus-raw/<concorrente>/extracao.jsonl \
+  --concorrente <concorrente>
+```
 
 Para cada artigo, produza uma linha em `.corpus-raw/<concorrente>/extracao.jsonl` com: ator, tarefa, contagem de passos, pré-requisitos, entidades, campos, estados, transições, vocabulário, contagem de avisos, armadilhas e formato do recurso.
 
@@ -64,6 +70,28 @@ Duas regras que decidem a qualidade:
 
 - **Extraia o modelo, não o texto.** "Clique em Salvar e depois em Confirmar" vira `passos: 2` e uma nota de que a operação tem confirmação em dois estágios. Não vira citação.
 - **Vocabulário é dado de primeira classe.** Registre o termo exato do concorrente. Uma secretária que vem de outro sistema fala "ocorrência"; se o seu produto chamar de "registro disciplinar", ela erra. Nomenclatura é custo de migração.
+
+**Meta:** 100% dos artigos colhidos com linha em `extracao.jsonl`.
+
+### Fase 3b — Inventário de capabilities
+
+Derive funcionalidades observadas a partir da extração. Leia `references/capabilities.md` para o schema e `references/atores.md` para normalização.
+
+```bash
+python3 scripts/capabilities.py .corpus-raw/<concorrente>/extracao.jsonl \
+  --out .corpus-raw/<concorrente>/capabilities.jsonl \
+  --competitor <concorrente>
+```
+
+Para cada artigo, derive uma ou mais **capabilities** com: `capability_id` canônico (inglês, estável cross-competitor), domínio School Lab, atores normalizados, maturidade (`documented`, `troubleshooting`, `claimed_not_verified`), fontes e score de atrito.
+
+Passada de julgamento obrigatória após o script:
+
+- Mesclar capabilities duplicadas do mesmo concorrente (mesma tarefa, artigos diferentes).
+- Separar capabilities que a heurística fundiu indevidamente.
+- Marcar artigos sem capability no relatório `coverage.json`.
+
+**Meta:** ≥95% dos artigos mapeados a ≥1 capability. O script emite `coverage.json` com a métrica.
 
 ### Fase 4 — Síntese por domínio
 
@@ -75,10 +103,23 @@ Para cada domínio, escreva três arquivos em `docs/ref/<dominio>/`:
 
 **`casos-de-borda.md`** — tudo que o caminho feliz não cobre: aluno que entra no meio do ano, etapa já encerrada, estorno, dado faltando, permissão insuficiente. **Este é o arquivo de maior valor do corpus.** Casos de borda são o que separa demo de produto, e o concorrente já pagou para descobri-los.
 
+### Fase 4b — Funcionalidades por ator
+
+Gere o inventário exaustivo agrupado por ator dentro de cada domínio:
+
+```bash
+python3 scripts/capabilities.py .corpus-raw/<concorrente>/extracao.jsonl \
+  --synthesize --ref-dir docs/ref/<concorrente> --competitor <concorrente>
+```
+
+Produz `docs/ref/<concorrente>/<dominio>/funcionalidades-por-ator.md` — lista completa de capabilities com ator, template staff, maturidade, atrito e URL de origem. **Este arquivo responde "o que o concorrente faz, para quem".**
+
+Revise manualmente os domínios com maior atrito: capabilities `troubleshooting` indicam features que existem mas doem.
+
 ### Fase 5 — Mapa de atrito
 
 ```bash
-python scripts/atrito.py .corpus-raw/<concorrente>/extracao.jsonl --out docs/ref/lacunas.md
+python3 scripts/atrito.py .corpus-raw/<concorrente>/extracao.jsonl --out docs/ref/<concorrente>/lacunas.md
 ```
 
 O script pontua cada fluxo por sinais de dor e devolve um ranking. Leia `references/atrito.md` para o que cada sinal significa e como interpretar o resultado — o número é ordinal, serve para ordenar, não para medir.
@@ -95,18 +136,49 @@ Com dois ou mais concorrentes no corpus, compare os modelos de domínio e escrev
 
 Se houver só um concorrente no corpus, diga ao usuário o que ele está perdendo e sugira o segundo.
 
+### Fase 7 — Catálogo comparativo deduplicado
+
+Com capabilities de dois ou mais concorrentes, gere o catálogo unificado:
+
+```bash
+python3 scripts/capabilities.py .corpus-raw/*/capabilities.jsonl \
+  --catalog --out docs/ref/catalogo-funcionalidades.md
+```
+
+Uma entrada por `capability_id` — sem repetir funcionalidades. Para cada capability:
+
+- Definição completa e pré-condições
+- Atores (normalizados para `actors-and-surfaces.md`)
+- Quais concorrentes possuem (com maturidade)
+- Melhor benchmark observado e atrito médio
+- Decisão School Lab (`adotar` / `adaptar` / `diferenciar` / `fora de escopo`)
+
+Com um único concorrente, o catálogo serve como baseline; preencha a coluna de decisão ao integrar concorrentes seguintes.
+
 ## Estrutura de saída
 
 ```
 docs/ref/
-├── README.md          # escopo, data da colheita, concorrentes, taxonomia de cada um
-├── glossario.md       # termo do concorrente → termo nosso → definição
-├── divergencias.md    # onde os concorrentes discordam + decisão tomada
-├── lacunas.md         # mapa de atrito ordenado + posicionamento
-└── <dominio>/
-    ├── modelo-de-dominio.md
-    ├── fluxos.md
-    └── casos-de-borda.md
+├── README.md                       # escopo, data da colheita, concorrentes, taxonomia
+├── catalogo-funcionalidades.md     # inventário deduplicado cross-competitor
+├── divergencias.md                 # onde os concorrentes discordam + decisão tomada
+└── <concorrente>/
+    ├── README.md                   # metadados da colheita
+    ├── glossario.md                # termo do concorrente → termo nosso
+    ├── lacunas.md                  # mapa de atrito deste concorrente
+    └── <dominio>/
+        ├── modelo-de-dominio.md
+        ├── fluxos.md
+        ├── casos-de-borda.md
+        └── funcionalidades-por-ator.md   # inventário exaustivo por ator
+```
+
+`.corpus-raw/<concorrente>/` (gitignored):
+
+```
+extracao.jsonl       # 1 linha por artigo
+capabilities.jsonl   # 1+ capabilities por artigo (deduplicadas)
+coverage.json        # métricas de completude
 ```
 
 O `README.md` precisa registrar a **data da colheita**. Corpus envelhece: o concorrente lança versão, reescreve a ajuda, e afirmação sem data vira lenda interna. Recolha semestralmente ou quando o concorrente anunciar release grande.
@@ -121,20 +193,30 @@ Tabela com uma coluna por concorrente:
 
 Regra: **prefira o termo que o usuário já conhece**, a menos que ele seja ativamente errado ou ambíguo. Vocabulário novo é imposto de migração cobrado do cliente.
 
-## Ligação com docs/ac/
+## Ligação com feature slices
 
-O corpus só cumpre função se os critérios de aceite se ancorarem nele. Ao escrever `docs/ac/`, cada critério carrega uma âncora:
+O corpus só cumpre função se os critérios de aceite se ancorarem nele. Feature slices em `docs/prds/<domain>/<feature>.md` (skill **`codelet-requirements`**) carregam âncoras por critério:
 
 ```markdown
-- [ ] Matrícula de transferido no meio do ano aceita histórico parcial
-      da escola anterior sem travar o boletim.
-      → docs/ref/matricula/casos-de-borda.md#transferencia-parcial
+1. Given a transfer student enrolling mid-year with partial history from the previous school,
+   when the secretary completes enrollment,
+   then the report card accepts partial history without blocking grade entry.
+   → docs/ref/matricula/casos-de-borda.md#transferencia-parcial
 ```
 
 Critério sem âncora leva a marca `[inventado]`. Não é proibido — parte do produto é original, e deve ser. Mas a proporção de inventados é um indicador: alta demais no começo geralmente significa que a extração foi rasa, e você está projetando suposições em cima de um domínio que já tem resposta documentada.
 
 ## Como relatar ao usuário
 
-Ao terminar, entregue nesta ordem: quantos artigos por concorrente e por domínio, os cinco fluxos mais atritados com o motivo, as divergências encontradas, e o que ficou de fora do escopo. Depois pergunte qual domínio ele quer aprofundar primeiro — o corpus é vivo e a primeira passada é sempre irregular.
+Ao terminar, entregue nesta ordem:
+
+1. **Métricas de completude** — artigos colhidos, % mapeados a capabilities, capabilities únicas por domínio.
+2. **Inventário** — total de capabilities por ator e domínio (`funcionalidades-por-ator.md`).
+3. **Catálogo** — capabilities no `catalogo-funcionalidades.md` (se ≥1 concorrente).
+4. **Atrito** — cinco fluxos mais atritados com o motivo.
+5. **Divergências** — onde concorrentes discordam (se ≥2).
+6. **Escopo excluído** — login-gated, marketing-only, paywall.
+
+Depois pergunte qual domínio aprofundar primeiro — o corpus é vivo e a primeira passada é sempre irregular.
 
 Não apresente o mapa de atrito como veredito. Apresente como hipótese ordenada que ainda precisa de validação com usuário real.

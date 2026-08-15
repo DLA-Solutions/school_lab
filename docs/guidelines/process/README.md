@@ -36,6 +36,8 @@ anchor docs  ──▶  domain PRD  ──▶  data modeling  ──▶  impleme
 - Skill: `data-modeling`. Rules: `rules/docs/modeling`.
 - Mermaid `erDiagram` is fine for simple domains; DBML preferred when the schema grows.
 - Enforce `school_id` isolation; mark LGPD-sensitive fields.
+- Cross-cutting: [`reliability.md`](reliability.md), [`lgpd-implementation.md`](lgpd-implementation.md), [`traceability.md`](traceability.md).
+- Quality: [`docs/quality/test-strategy.md`](../../quality/test-strategy.md), [`acceptance-harness.md`](../../quality/acceptance-harness.md).
 
 ## Language & naming
 

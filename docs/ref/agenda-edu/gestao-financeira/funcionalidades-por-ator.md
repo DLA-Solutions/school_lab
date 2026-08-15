@@ -1,0 +1,313 @@
+# Capabilities by actor — Gestao Financeira (Agenda-Edu)
+
+Harvest-derived inventory. **137** capabilities across 1 School Lab domain(s).
+Maturity: documented help-center articles. See [`../../README.md`](../../README.md).
+
+## Domain: Billing
+
+_137 capabilities._
+
+## Backoffice
+
+- **Configurar O Fuso Horário Da Plataforma?** (`billing.configure_configurar_o_fuso_horario_da_p`) — _configuration_, friction 0.0 — [Como configurar o fuso horário da plataforma?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020467754-Como-configurar-o-fuso-hor%C3%A1rio-da-plataforma)
+  - Configurar O Fuso Horário Da Plataforma?.
+- **Estou Com Minha Plataforma Bloqueada, O Que Fazer?** (`billing.manage_estou_com_minha_plataforma_blo`) — _documented_, friction 3.5 — [Estou com minha plataforma bloqueada, o que fazer?](https://atendimento.agendaedu.com/hc/pt-br/articles/14670373492507-Estou-com-minha-plataforma-bloqueada-o-que-fazer)
+  - Estou Com Minha Plataforma Bloqueada, O Que Fazer?. Note: Para evitar o bloqueio da plataforma, é importante que a instituição mantenha um bom controle financeiro e realize os pa.
+
+## Guardian
+
+- **Faq – Principais Dúvidas Sobre Pagamento Por Pix** (`billing.manage_faq_principais_duvidas_sobre_p`) — _documented_, friction 5.5 — [FAQ – Principais dúvidas sobre pagamento por PIX](https://atendimento.agendaedu.com/hc/pt-br/articles/5328515983003-FAQ-Principais-d%C3%BAvidas-sobre-pagamento-por-PIX)
+  - Faq – Principais Dúvidas Sobre Pagamento Por Pix. Note: Além disso, a oferta de diversos métodos de pagamento é uma estratégia muito importante para reduzir os índices de inadi.
+- **Qual A Diferença Entre Os Canais De Mensagens Privado, Família E Atendimento?** (`billing.manage_qual_a_diferenca_entre_os_cana`) — _documented_, friction 7.0 — [Qual a diferença entre os canais de mensagens priv](https://atendimento.agendaedu.com/hc/pt-br/articles/360028742333-Qual-a-diferen%C3%A7a-entre-os-canais-de-mensagens-privado-fam%C3%ADlia-e-atendimento)
+  - Qual A Diferença Entre Os Canais De Mensagens Privado, Família E Atendimento?. Note: Importante:Mesmo que não visualizem as mensagens trocadas entre os responsáveis e a escola, os alunos podem enviar mensa.
+- **✅ Etapa 5. Divulgar A Agenda Edu E Pagamentos Para As Famílias - Erp** (`billing.manage_etapa_5_divulgar_a_agenda_edu_`) — _documented_, friction 0.0 — [✅ Etapa 5. Divulgar a Agenda Edu e Pagamentos para](https://atendimento.agendaedu.com/hc/pt-br/articles/4412240696091--Etapa-5-Divulgar-a-Agenda-Edu-e-Pagamentos-para-as-Fam%C3%ADlias-ERP)
+  - ✅ Etapa 5. Divulgar A Agenda Edu E Pagamentos Para As Famílias - Erp.
+- **✅ Etapa 6. Cadastrar As Novas Famílias Na Agenda Edu - Manual** (`billing.create_etapa_6_cadastrar_as_novas_fam`) — _documented_, friction 0.0 — [✅ Etapa 6. Cadastrar as novas famílias na Agenda E](https://atendimento.agendaedu.com/hc/pt-br/articles/43698273904795--Etapa-6-Cadastrar-as-novas-fam%C3%ADlias-na-Agenda-Edu-Manual)
+  - ✅ Etapa 6. Cadastrar As Novas Famílias Na Agenda Edu - Manual.
+- **✅ Etapa 7. Divulgar A Agenda Edu E Pagamentos Para As Famílias - Manual** (`billing.manage_etapa_7_divulgar_a_agenda_edu_`) — _documented_, friction 0.0 — [✅ Etapa 7. Divulgar a Agenda Edu e Pagamentos para](https://atendimento.agendaedu.com/hc/pt-br/articles/43698694977947--Etapa-7-Divulgar-a-Agenda-Edu-e-Pagamentos-para-as-Fam%C3%ADlias-Manual)
+  - ✅ Etapa 7. Divulgar A Agenda Edu E Pagamentos Para As Famílias - Manual.
+
+## Staff
+
+- **A Baixa Manual Por "Negociação" Na Recorrência?** (`billing.manage_a_baixa_manual_por_negociacao_`) — _conceptual_, friction 3.5 — [O que é a baixa manual por "Negociação" na Recorrê](https://atendimento.agendaedu.com/hc/pt-br/articles/10618790167067-O-que-%C3%A9-a-baixa-manual-por-Negocia%C3%A7%C3%A3o-na-Recorr%C3%AAncia)
+  - A Baixa Manual Por "Negociação" Na Recorrência?. Note: Importante:A baixa manual por negociação representa apenas uma mudança de status da cobrança. Após a alteração, o respon.
+- **A Cobrança Da Mensalidade Agenda Edu Chega Para A Escola?** (`billing.manage_a_cobranca_da_mensalidade_agen`) — _documented_, friction 0.0 — [Como a cobrança da mensalidade Agenda Edu chega pa](https://atendimento.agendaedu.com/hc/pt-br/articles/14699796441243-Como-a-cobran%C3%A7a-da-mensalidade-Agenda-Edu-chega-para-a-escola)
+  - A Cobrança Da Mensalidade Agenda Edu Chega Para A Escola?.
+- **Acessar A Aba De Configurações Da Escola?** (`billing.configure_acessar_a_aba_de_configuracoes`) — _configuration_, friction 6.5 — [Como acessar a aba de Configurações da Escola?](https://atendimento.agendaedu.com/hc/pt-br/articles/41574161795611-Como-acessar-a-aba-de-Configura%C3%A7%C3%B5es-da-Escola)
+  - Acessar A Aba De Configurações Da Escola?. Note: 💡 Importante: a experiência de uso não mudou. O design e a funcionalidade de cada item continuam exatamente os mesmos. A.
+- **Acessar As Cobranças No Pagamentos** (`billing.manage_acessar_as_cobrancas_no_pagame`) — _documented_, friction 0.0 — [Como acessar as cobranças no Pagamentos](https://atendimento.agendaedu.com/hc/pt-br/articles/4418237315355-Como-acessar-as-cobran%C3%A7as-no-Pagamentos)
+  - Acessar As Cobranças No Pagamentos.
+- **Acessar Meus Boletos Da Agenda Edu?** (`billing.manage_acessar_meus_boletos_da_agenda`) — _documented_, friction 10.5 — [Como acessar meus boletos da Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/10997159679771-Como-acessar-meus-boletos-da-Agenda-Edu)
+  - Acessar Meus Boletos Da Agenda Edu?. Note: Importante! 1. Apenas usuários com perfis Master e Assistente Financeiro podem acessar essa aba..
+- **Acessar O Portal De Boletos Da Agenda Edu?** (`billing.manage_acessar_o_portal_de_boletos_da`) — _documented_, friction 7.0 — [Como acessar o Portal de boletos da Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/26081450774043-Como-acessar-o-Portal-de-boletos-da-Agenda-Edu)
+  - Acessar O Portal De Boletos Da Agenda Edu?. Note: Importante! Apenas usuários com perfis Master e Assistente Financeiro podem acessar essa aba..
+- **Acessar Os Boletos Na Agenda Edu Através Do Activesoft?** (`billing.manage_acessar_os_boletos_na_agenda_e`) — _documented_, friction 0.0 — [Como acessar os boletos na Agenda Edu através do A](https://atendimento.agendaedu.com/hc/pt-br/articles/5103856349595-Como-acessar-os-boletos-na-Agenda-Edu-atrav%C3%A9s-do-ActiveSoft)
+  - Acessar Os Boletos Na Agenda Edu Através Do Activesoft?.
+- **Acompanhar As Cobranças Feitas A Partir De Um Arquivo De Remessa?** (`billing.view_acompanhar_as_cobrancas_feitas`) — _documented_, friction 3.5 — [Como acompanhar as cobranças feitas a partir de um](https://atendimento.agendaedu.com/hc/pt-br/articles/35074585540379-Como-acompanhar-as-cobran%C3%A7as-feitas-a-partir-de-um-arquivo-de-Remessa)
+  - Acompanhar As Cobranças Feitas A Partir De Um Arquivo De Remessa?. Note: O acompanhamento das cobranças geradas via arquivo de Remessa exige atenção para garantir que todos os pagamentos sejam .
+- **Acompanhar Meus Pedidos No Shop?** (`billing.view_acompanhar_meus_pedidos_no_sho`) — _documented_, friction 5.0 — [Como acompanhar meus pedidos no Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/10292092870171-Como-acompanhar-meus-pedidos-no-Shop)
+  - Acompanhar Meus Pedidos No Shop?. Note: ⚠️Importante: A escolha dos itens e o pagamento do pedido são realizados na função Shop do app Agenda Edu. No entanto, a.
+- **Acompanhar O Status Das Assinaturas?** (`billing.view_acompanhar_o_status_das_assina`) — _documented_, friction 0.0 — [Como acompanhar o status das Assinaturas?](https://atendimento.agendaedu.com/hc/pt-br/articles/41244145701531-Como-acompanhar-o-status-das-Assinaturas)
+  - Acompanhar O Status Das Assinaturas?.
+- **Acompanhar Os Pedidos E Pagamentos Do Shop?** (`billing.view_acompanhar_os_pedidos_e_pagame`) — _documented_, friction 0.0 — [Como acompanhar os pedidos e pagamentos do Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/10292028765339-Como-acompanhar-os-pedidos-e-pagamentos-do-Shop)
+  - Acompanhar Os Pedidos E Pagamentos Do Shop?.
+- **Adicionar Confirmação De Presença Na Funcionalidade Calendário?** (`billing.create_adicionar_confirmacao_de_prese`) — _documented_, friction 9.9 — [Como adicionar confirmação de presença na funciona](https://atendimento.agendaedu.com/hc/pt-br/articles/360022394534-Como-adicionar-confirma%C3%A7%C3%A3o-de-presen%C3%A7a-na-funcionalidade-Calend%C3%A1rio)
+  - Adicionar Confirmação De Presença Na Funcionalidade Calendário?. Note: ⚠️Atenção: a data limite de confirmação não pode ser posterior a data do evento..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Ajustar As Permissões Dos Cadastros Da Equipe Escolar?** (`billing.create_ajustar_as_permissoes_dos_cada`) — _documented_, friction 8.5 — [Como ajustar as permissões dos cadastros da equipe](https://atendimento.agendaedu.com/hc/pt-br/articles/25800010862491-Como-ajustar-as-permiss%C3%B5es-dos-cadastros-da-equipe-escolar)
+  - Ajustar As Permissões Dos Cadastros Da Equipe Escolar?. Note: Quando o botão da seção estiver nativo, significa que não é possível configurar as ações associadas a essa seção. Se nun.
+- **Aplicar Descontos Por Pontualidade Nas Minhas Cobranças?** (`billing.manage_aplicar_descontos_por_pontuali`) — _documented_, friction 7.0 — [Como aplicar Descontos por Pontualidade nas minhas](https://atendimento.agendaedu.com/hc/pt-br/articles/1260805179210-Como-aplicar-Descontos-por-Pontualidade-nas-minhas-cobran%C3%A7as)
+  - Aplicar Descontos Por Pontualidade Nas Minhas Cobranças?. Note: Listamos alguns pontos muito importantes sobre esse recurso:.
+- **Aplicar Filtros De Produtos Em Recorrência?** (`billing.manage_aplicar_filtros_de_produtos_em`) — _documented_, friction 2.0 — [Como aplicar Filtros de produtos em Recorrência?](https://atendimento.agendaedu.com/hc/pt-br/articles/19447710133403-Como-aplicar-Filtros-de-produtos-em-Recorr%C3%AAncia)
+  - Aplicar Filtros De Produtos Em Recorrência?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Aplicativo Da Agenda Edu - Responsáveis E Alunos** (`billing.manage_aplicativo_da_agenda_edu_respo`) — _documented_, friction 3.5 — [Aplicativo da Agenda Edu - Responsáveis e Alunos](https://atendimento.agendaedu.com/hc/pt-br/articles/360040966474-Aplicativo-da-Agenda-Edu-Respons%C3%A1veis-e-Alunos)
+  - Aplicativo Da Agenda Edu - Responsáveis E Alunos. Note: 🚨Atenção: A escola define quais funcionalidades irá utilizar e, portanto, quais estarão disponíveis em seu aplicativo..
+- **Assinar Contratos De Matrícula** (`billing.sign_assinar_contratos_de_matricula`) — _documented_, friction 0.3 — [Como assinar contratos de matrícula](https://atendimento.agendaedu.com/hc/pt-br/articles/4410068248731-Como-assinar-contratos-de-matr%C3%ADcula)
+  - Assinar Contratos De Matrícula.
+- **Ativar A Central De Notificações?** (`billing.manage_ativar_a_central_de_notificaco`) — _documented_, friction 0.0 — [Como ativar a Central de Notificações?](https://atendimento.agendaedu.com/hc/pt-br/articles/5331197973275-Como-ativar-a-Central-de-Notifica%C3%A7%C3%B5es)
+  - Ativar A Central De Notificações?.
+- **Ativar O Débito Automático Nos Pagamentos Recorrentes Dentro Do Superapp?** (`billing.manage_ativar_o_debito_automatico_nos`) — _documented_, friction 0.9 — [Como ativar o débito automático nos pagamentos rec](https://atendimento.agendaedu.com/hc/pt-br/articles/49754530519195-Como-ativar-o-d%C3%A9bito-autom%C3%A1tico-nos-pagamentos-recorrentes-dentro-do-SuperApp)
+  - Ativar O Débito Automático Nos Pagamentos Recorrentes Dentro Do Superapp?.
+- **Ativar O Horário De Atendimento Por Canal** (`billing.manage_ativar_o_horario_de_atendiment`) — _documented_, friction 3.5 — [Como ativar o Horário de atendimento por canal](https://atendimento.agendaedu.com/hc/pt-br/articles/26759445040539-Como-ativar-o-Hor%C3%A1rio-de-atendimento-por-canal)
+  - Ativar O Horário De Atendimento Por Canal. Note: Importante: Você pode habilitar o recebimento de mensagens fora do horário de atendimento. Com a opção ativada, o profis.
+- **Ativar O Lembrete De Cobranças Via Whatsapp?** (`billing.manage_ativar_o_lembrete_de_cobrancas`) — _documented_, friction 3.5 — [Como ativar o lembrete de cobranças via WhatsApp?](https://atendimento.agendaedu.com/hc/pt-br/articles/42499753627291-Como-ativar-o-lembrete-de-cobran%C3%A7as-via-WhatsApp)
+  - Ativar O Lembrete De Cobranças Via Whatsapp?. Note: Importante: A escola precisa ter a funcionalidade WhatsApp habilitada e ter pacote de mensagens disponíveis para os disp.
+- **Baixe Os Guias De Boas Práticas De Pagamentos** (`billing.manage_baixe_os_guias_de_boas_pratica`) — _documented_, friction 0.0 — [Baixe os Guias de Boas Práticas de Pagamentos](https://atendimento.agendaedu.com/hc/pt-br/articles/11085846154779-Baixe-os-Guias-de-Boas-Pr%C3%A1ticas-de-Pagamentos)
+  - Baixe Os Guias De Boas Práticas De Pagamentos.
+- **Cadastrando Seu Cartão De Crédito** (`billing.create_cadastrando_seu_cartao_de_cred`) — _documented_, friction 0.0 — [Cadastrando seu cartão de crédito](https://atendimento.agendaedu.com/hc/pt-br/articles/360022851754-Cadastrando-seu-cart%C3%A3o-de-cr%C3%A9dito)
+  - Cadastrando Seu Cartão De Crédito.
+- **Cadastrar A Recorrência No Cartão De Crédito?** (`billing.create_cadastrar_a_recorrencia_no_car`) — _documented_, friction 0.0 — [Como cadastrar a recorrência no cartão de crédito?](https://atendimento.agendaedu.com/hc/pt-br/articles/4403239638939-Como-cadastrar-a-recorr%C3%AAncia-no-cart%C3%A3o-de-cr%C3%A9dito)
+  - Cadastrar A Recorrência No Cartão De Crédito?.
+- **Cadastrar Um Novo Produto Ou Oferta No Shop?** (`billing.create_cadastrar_um_novo_produto_ou_o`) — _documented_, friction 10.5 — [Como cadastrar um novo produto ou oferta no Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/10291950411035-Como-cadastrar-um-novo-produto-ou-oferta-no-Shop)
+  - Cadastrar Um Novo Produto Ou Oferta No Shop?. Note: ⚠️ Importante: após a criação da oferta, não é possível editar os tamanhos e tipos cadastrados. Caso seja necessário alt.
+- **Cancelar Matrícula No Menu Pagamentos?** (`billing.delete_cancelar_matricula_no_menu_pag`) — _documented_, friction 4.1 — [Como cancelar matrícula no menu pagamentos?](https://atendimento.agendaedu.com/hc/pt-br/articles/12711362233499-Como-cancelar-matr%C3%ADcula-no-menu-pagamentos)
+  - Cancelar Matrícula No Menu Pagamentos?. Note: Importante: Só é possível cancelar cobranças que ainda não foram enviadas..
+- **Configurando Os Perfis E Permissões Dos Usuários** (`billing.configure_configurando_os_perfis_e_permi`) — _configuration_, friction 0.0 — [Configurando os perfis e permissões dos usuários](https://atendimento.agendaedu.com/hc/pt-br/articles/360020680053-Configurando-os-perfis-e-permiss%C3%B5es-dos-usu%C3%A1rios)
+  - Configurando Os Perfis E Permissões Dos Usuários.
+- **Configurar A Exibição Da Carteirinha Para Alunos, Responsáveis E Turmas** (`billing.configure_configurar_a_exibicao_da_carte`) — _configuration_, friction 1.5 — [Como configurar a exibição da carteirinha para alu](https://atendimento.agendaedu.com/hc/pt-br/articles/37690635114651-Como-configurar-a-exibi%C3%A7%C3%A3o-da-carteirinha-para-alunos-respons%C3%A1veis-e-turmas)
+  - Configurar A Exibição Da Carteirinha Para Alunos, Responsáveis E Turmas.
+- **Configurar As Funcionalidades?** (`billing.configure_configurar_as_funcionalidades`) — _configuration_, friction 2.0 — [Como configurar as funcionalidades?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020679613-Como-configurar-as-funcionalidades)
+  - Configurar As Funcionalidades?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Configurar Juros E Multa Nas Cobranças Recorrentes?** (`billing.configure_configurar_juros_e_multa_nas_c`) — _configuration_, friction 3.5 — [Como configurar Juros e Multa nas cobranças recorr](https://atendimento.agendaedu.com/hc/pt-br/articles/4405370439579-Como-configurar-Juros-e-Multa-nas-cobran%C3%A7as-recorrentes)
+  - Configurar Juros E Multa Nas Cobranças Recorrentes?. Note: É importante que você se mantenha atualizado sobre os percentuais permitidos no momento de definição das taxas de multa .
+- **Configurar Os Menus Para Os Perfis Da Escola?** (`billing.configure_configurar_os_menus_para_os_pe`) — _configuration_, friction 5.0 — [Como configurar os menus para os perfis da escola?](https://atendimento.agendaedu.com/hc/pt-br/articles/51135574557979-Como-configurar-os-menus-para-os-perfis-da-escola)
+  - Configurar Os Menus Para Os Perfis Da Escola?. Note: ⚠️ Importante: somente o perfil Master da conta tem acesso para realizar essas configurações..
+- **Configurar Permissões E Visibilidade Nos Canais De Mensagens E De Atendimento?** (`billing.configure_configurar_permissoes_e_visibi`) — _configuration_, friction 8.5 — [Como configurar permissões e visibilidade nos Cana](https://atendimento.agendaedu.com/hc/pt-br/articles/49985635862043-Como-configurar-permiss%C3%B5es-e-visibilidade-nos-Canais-de-Mensagens-e-de-Atendimento)
+  - Configurar Permissões E Visibilidade Nos Canais De Mensagens E De Atendimento?. Note: ⚠️ Importante: se esta opção estiver desativada, o canal aparece tanto para responsáveis quanto para alunos vinculados à.
+- **Configurar Permissões Em Mensagens, Cardápio, Saúde E Plano De Aula Por Perfil D** (`billing.configure_configurar_permissoes_em_mensa`) — _configuration_, friction 5.0 — [Como configurar permissões em Mensagens, Cardápio,](https://atendimento.agendaedu.com/hc/pt-br/articles/50316866224411-Como-configurar-permiss%C3%B5es-em-Mensagens-Card%C3%A1pio-Sa%C3%BAde-e-Plano-de-Aula-por-perfil-de-funcion%C3%A1rio)
+  - Configurar Permissões Em Mensagens, Cardápio, Saúde E Plano De Aula Por Perfil D. Note: ⚠️ Importante: as permissões configuradas aqui se aplicam a todos os funcionários com o perfil selecionado. Se você desa.
+- **Configurar Uma Data De Expiração Automática De Cardápio?** (`billing.configure_configurar_uma_data_de_expirac`) — _configuration_, friction 0.0 — [Como configurar uma Data de Expiração Automática d](https://atendimento.agendaedu.com/hc/pt-br/articles/46080988153883-Como-configurar-uma-Data-de-Expira%C3%A7%C3%A3o-Autom%C3%A1tica-de-Card%C3%A1pio)
+  - Configurar Uma Data De Expiração Automática De Cardápio?.
+- **Confirmar Minha Conta?** (`billing.manage_confirmar_minha_conta`) — _documented_, friction 0.0 — [Como confirmar minha conta?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020678573-Como-confirmar-minha-conta)
+  - Confirmar Minha Conta?.
+- **Confirmar Pendências? Posso Confirmar Todas De Uma Vez?** (`billing.manage_confirmar_pendencias_posso_con`) — _documented_, friction 0.0 — [Como confirmar pendências? Posso confirmar todas d](https://atendimento.agendaedu.com/hc/pt-br/articles/360025356513-Como-confirmar-pend%C3%AAncias-Posso-confirmar-todas-de-uma-vez)
+  - Confirmar Pendências? Posso Confirmar Todas De Uma Vez?.
+- **Conhecendo A Aba “Cobranças” De Pagamentos** (`billing.manage_conhecendo_a_aba_cobrancas_de_`) — _documented_, friction 10.5 — [Conhecendo a aba “Cobranças” de Pagamentos](https://atendimento.agendaedu.com/hc/pt-br/articles/9925123414811-Conhecendo-a-aba-Cobran%C3%A7as-de-Pagamentos)
+  - Conhecendo A Aba “Cobranças” De Pagamentos. Note: Observação muito importante: As informações apresentadas nessa página serão exibidas de acordo com a carteira selecionad.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Conhecendo A Aba “Matrícula” Do Menu Pagamentos** (`billing.manage_conhecendo_a_aba_matricula_do_`) — _documented_, friction 8.5 — [Conhecendo a aba “Matrícula” do menu Pagamentos](https://atendimento.agendaedu.com/hc/pt-br/articles/20100569541659-Conhecendo-a-aba-Matr%C3%ADcula-do-menu-Pagamentos)
+  - Conhecendo A Aba “Matrícula” Do Menu Pagamentos. Note: Observação muito importante:.
+- **Conheça Nossas Taxas** (`billing.manage_conheca_nossas_taxas`) — _documented_, friction 10.5 — [Conheça nossas taxas](https://atendimento.agendaedu.com/hc/pt-br/articles/360022222214-Conhe%C3%A7a-nossas-taxas)
+  - Conheça Nossas Taxas. Note: Importante: Nossos valores de PIX e boleto têm taxas fixas, mediante negociação aprovada. Já as de cartão de crédito pod.
+- **Conseguir Segunda Via De Uma Fatura?** (`billing.manage_conseguir_segunda_via_de_uma_f`) — _documented_, friction 0.0 — [Como conseguir segunda via de uma fatura?](https://atendimento.agendaedu.com/hc/pt-br/articles/16788574065691-Como-conseguir-segunda-via-de-uma-fatura)
+  - Conseguir Segunda Via De Uma Fatura?.
+- **Criando Uma Cobrança Recorrente** (`billing.manage_criando_uma_cobranca_recorrent`) — _documented_, friction 13.5 — [Criando uma Cobrança Recorrente](https://atendimento.agendaedu.com/hc/pt-br/articles/360055426893-Criando-uma-Cobran%C3%A7a-Recorrente)
+  - Criando Uma Cobrança Recorrente. Note: ⚠️Atenção: Não é possível repassar ou absorver taxas de serviço em cobranças recorrentes..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Um Novo Comunicado?** (`billing.create_criar_um_novo_comunicado`) — _documented_, friction 7.0 — [Como criar um novo comunicado?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020452614-Como-criar-um-novo-comunicado)
+  - Criar Um Novo Comunicado?. Note: Importante: O botão de “Novo modelo” só ficará disponível para quem possui permissão de criação e edição: Master, Direto.
+- **Criar Uma Cobrança Única?** (`billing.create_criar_uma_cobranca_unica`) — _documented_, friction 14.3 — [Como criar uma Cobrança única?](https://atendimento.agendaedu.com/hc/pt-br/articles/360022214454-Como-criar-uma-Cobran%C3%A7a-%C3%BAnica)
+  - Criar Uma Cobrança Única?. Note: Importante: Se a sua escola tiver Múltiplas Carteiras com contas bancárias e CNPJs diferentes, você deve selecionar uma .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Uma Negociação No Menu Pagamentos?** (`billing.create_criar_uma_negociacao_no_menu_p`) — _documented_, friction 8.8 — [Como criar uma negociação no menu Pagamentos?](https://atendimento.agendaedu.com/hc/pt-br/articles/16961410144667-Como-criar-uma-negocia%C3%A7%C3%A3o-no-menu-Pagamentos)
+  - Criar Uma Negociação No Menu Pagamentos?. Note: Agora, você pode registrar detalhes importantes sobre as cobranças, incluindo a referência original ao resumo da negocia.
+- **Criar Uma Nova Assinatura Em Lote?** (`billing.create_criar_uma_nova_assinatura_em_l`) — _documented_, friction 3.5 — [Como criar uma nova Assinatura em lote?](https://atendimento.agendaedu.com/hc/pt-br/articles/41235482463515-Como-criar-uma-nova-Assinatura-em-lote)
+  - Criar Uma Nova Assinatura Em Lote?. Note: Importante: A cobrança não é obrigatória e pode ser usada conforme sua necessidade..
+- **Criar Uma Nova Matrícula Ou Rematrícula Com O Pagamentos?** (`billing.create_criar_uma_nova_matricula_ou_re`) — _documented_, friction 11.1 — [Como criar uma nova matrícula ou rematrícula com o](https://atendimento.agendaedu.com/hc/pt-br/articles/4409979090075-Como-criar-uma-nova-matr%C3%ADcula-ou-rematr%C3%ADcula-com-o-Pagamentos)
+  - Criar Uma Nova Matrícula Ou Rematrícula Com O Pagamentos?. Note: ⚠️ Importante: O arquivo deverá estar no formato PDF..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Dados Atualizados Para Pagar Via Pix** (`billing.pay_dados_atualizados_para_pagar_v`) — _documented_, friction 12.5 — [Dados atualizados para pagar via Pix](https://atendimento.agendaedu.com/hc/pt-br/articles/5776438669467-Dados-atualizados-para-pagar-via-Pix)
+  - Dados Atualizados Para Pagar Via Pix. Note: Para realizar pagamentos via Pix é super importante que seus dados de e-mail, telefone e CPF estejam atualizados no apli.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Dar Baixa Manual Nas Cobranças Únicas De Pagamentos?** (`billing.manage_dar_baixa_manual_nas_cobrancas`) — _documented_, friction 3.5 — [Como dar baixa manual nas cobranças únicas de Paga](https://atendimento.agendaedu.com/hc/pt-br/articles/12711274706331-Como-dar-baixa-manual-nas-cobran%C3%A7as-%C3%BAnicas-de-Pagamentos)
+  - Dar Baixa Manual Nas Cobranças Únicas De Pagamentos?. Note: Importante: Só é possível cancelar cobranças que ainda não foram enviadas..
+- **Desconto Por Pontualidade** (`billing.manage_desconto_por_pontualidade`) — _documented_, friction 0.0 — [FAQ - Desconto por pontualidade](https://atendimento.agendaedu.com/hc/pt-br/articles/26918909971355-FAQ-Desconto-por-pontualidade)
+  - Desconto Por Pontualidade.
+- **Disponibilize Cobranças Parceladas No Cartão De Crédito E Receba Em Até 2 Dias Ú** (`billing.manage_disponibilize_cobrancas_parcel`) — _documented_, friction 0.0 — [Disponibilize cobranças parceladas no cartão de cr](https://atendimento.agendaedu.com/hc/pt-br/articles/360038025653-Disponibilize-cobran%C3%A7as-parceladas-no-cart%C3%A3o-de-cr%C3%A9dito-e-receba-em-at%C3%A9-2-dias-%C3%BAteis)
+  - Disponibilize Cobranças Parceladas No Cartão De Crédito E Receba Em Até 2 Dias Ú.
+- **Duplicar Uma Cobrança Recorrente?** (`billing.manage_duplicar_uma_cobranca_recorren`) — _documented_, friction 7.4 — [Como duplicar uma cobrança recorrente?](https://atendimento.agendaedu.com/hc/pt-br/articles/16095803727771-Como-duplicar-uma-cobran%C3%A7a-recorrente)
+  - Duplicar Uma Cobrança Recorrente?. Note: ⚠️Atenção: Se houver informações pessoais como o nome de outro aluno, descrito nas informações gerais, lembre-se de muda.
+- **Dúvidas Frequentes Sobre O Shop** (`billing.manage_duvidas_frequentes_sobre_o_sho`) — _documented_, friction 2.6 — [FAQ - Dúvidas frequentes sobre o Shop](https://atendimento.agendaedu.com/hc/pt-br/articles/10292018756507-FAQ-D%C3%BAvidas-frequentes-sobre-o-Shop)
+  - Dúvidas Frequentes Sobre O Shop.
+- **Dúvidas Frequentes Sobre O Uso De Integrações Em Pagamentos** (`billing.manage_duvidas_frequentes_sobre_o_uso`) — _documented_, friction 0.0 — [FAQ - Dúvidas frequentes sobre o uso de integraçõe](https://atendimento.agendaedu.com/hc/pt-br/articles/18756348594075-FAQ-D%C3%BAvidas-frequentes-sobre-o-uso-de-integra%C3%A7%C3%B5es-em-Pagamentos)
+  - Dúvidas Frequentes Sobre O Uso De Integrações Em Pagamentos.
+- **Editar Cobranças Recorrentes Em Massa?** (`billing.update_editar_cobrancas_recorrentes_e`) — _documented_, friction 3.5 — [Como editar cobranças recorrentes em massa?](https://atendimento.agendaedu.com/hc/pt-br/articles/12540154347419-Como-editar-cobran%C3%A7as-recorrentes-em-massa)
+  - Editar Cobranças Recorrentes Em Massa?. Note: Importante: só é possível editar cobranças que ainda não foram enviadas aos seus destinatários..
+- **Editar Uma Oferta No Shop?** (`billing.update_editar_uma_oferta_no_shop`) — _documented_, friction 0.0 — [Como editar uma oferta no Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/12906884371739-Como-editar-uma-oferta-no-Shop)
+  - Editar Uma Oferta No Shop?.
+- **Edição Nº 01 - Novidades - Janeiro/26** (`billing.manage_edicao_no_01_novidades_janeiro`) — _documented_, friction 2.0 — [Edição nº 01 - Novidades - Janeiro/26](https://atendimento.agendaedu.com/hc/pt-br/articles/46069416119451-Edi%C3%A7%C3%A3o-n%C2%BA-01-Novidades-Janeiro-26)
+  - Edição Nº 01 - Novidades - Janeiro/26.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Edição Nº 02 - Novidades - Fevereiro/26** (`billing.manage_edicao_no_02_novidades_feverei`) — _documented_, friction 0.0 — [Edição nº 02 - Novidades - Fevereiro/26](https://atendimento.agendaedu.com/hc/pt-br/articles/47140554111259-Edi%C3%A7%C3%A3o-n%C2%BA-02-Novidades-Fevereiro-26)
+  - Edição Nº 02 - Novidades - Fevereiro/26.
+- **Edição Nº 03 - Novidades - Março/26** (`billing.manage_edicao_no_03_novidades_marco_2`) — _documented_, friction 0.0 — [Edição nº 03 - Novidades - Março/26](https://atendimento.agendaedu.com/hc/pt-br/articles/48482318268187-Edi%C3%A7%C3%A3o-n%C2%BA-03-Novidades-Mar%C3%A7o-26)
+  - Edição Nº 03 - Novidades - Março/26.
+- **Edição Nº 04 - Novidades - Abril/26** (`billing.manage_edicao_no_04_novidades_abril_2`) — _documented_, friction 0.0 — [Edição nº 04 - Novidades - Abril/26](https://atendimento.agendaedu.com/hc/pt-br/articles/49703963858843-Edi%C3%A7%C3%A3o-n%C2%BA-04-Novidades-Abril-26)
+  - Edição Nº 04 - Novidades - Abril/26.
+- **Edição Nº 10 - Novidades - Outubro/2025** (`billing.manage_edicao_no_10_novidades_outubro`) — _documented_, friction 3.5 — [Edição nº 10 - Novidades - Outubro/2025](https://atendimento.agendaedu.com/hc/pt-br/articles/42691606556827-Edi%C3%A7%C3%A3o-n%C2%BA-10-Novidades-Outubro-2025)
+  - Edição Nº 10 - Novidades - Outubro/2025. Note: Assim, a escola consegue trazer destaque para arquivos importantes, como calendário letivo ou regras e normas escolares..
+- **Edição Nº 11 - Novidades - Novembro/2025** (`billing.manage_edicao_no_11_novidades_novembr`) — _documented_, friction 0.0 — [Edição nº 11 - Novidades - Novembro/2025](https://atendimento.agendaedu.com/hc/pt-br/articles/43898930943899-Edi%C3%A7%C3%A3o-n%C2%BA-11-Novidades-Novembro-2025)
+  - Edição Nº 11 - Novidades - Novembro/2025.
+- **Edição Nº1 - Novidades - Janeiro 2025** (`billing.manage_edicao_no1_novidades_janeiro_2`) — _documented_, friction 0.0 — [Edição nº1 - Novidades - Janeiro 2025](https://atendimento.agendaedu.com/hc/pt-br/articles/33097309789339-Edi%C3%A7%C3%A3o-n%C2%BA1-Novidades-Janeiro-2025)
+  - Edição Nº1 - Novidades - Janeiro 2025.
+- **Edição Nº2 - Novidades - Fevereiro 2025** (`billing.manage_edicao_no2_novidades_fevereiro`) — _documented_, friction 0.0 — [Edição nº2 - Novidades - Fevereiro 2025](https://atendimento.agendaedu.com/hc/pt-br/articles/34497482063259-Edi%C3%A7%C3%A3o-n%C2%BA2-Novidades-Fevereiro-2025)
+  - Edição Nº2 - Novidades - Fevereiro 2025.
+- **Edição Nº3 - Novidades - Março 2025** (`billing.manage_edicao_no3_novidades_marco_202`) — _documented_, friction 2.5 — [Edição nº3 - Novidades - Março 2025](https://atendimento.agendaedu.com/hc/pt-br/articles/35506655551387-Edi%C3%A7%C3%A3o-n%C2%BA3-Novidades-Mar%C3%A7o-2025)
+  - Edição Nº3 - Novidades - Março 2025.
+- **Edição Nº5 - Novidades - Maio 2025** (`billing.manage_edicao_no5_novidades_maio_2025`) — _documented_, friction 0.0 — [Edição nº5 - Novidades - Maio 2025](https://atendimento.agendaedu.com/hc/pt-br/articles/37500128988827-Edi%C3%A7%C3%A3o-n%C2%BA5-Novidades-Maio-2025)
+  - Edição Nº5 - Novidades - Maio 2025.
+- **Edição Nº6 - Novidades - Julho/2025** (`billing.manage_edicao_no6_novidades_julho_202`) — _documented_, friction 0.0 — [Edição nº6 - Novidades - Julho/2025](https://atendimento.agendaedu.com/hc/pt-br/articles/39580032260379-Edi%C3%A7%C3%A3o-n%C2%BA6-Novidades-Julho-2025)
+  - Edição Nº6 - Novidades - Julho/2025.
+- **Edição Nº6 - Novidades - Junho2025** (`billing.manage_edicao_no6_novidades_junho2025`) — _documented_, friction 0.0 — [Edição nº6 - Novidades - Junho2025](https://atendimento.agendaedu.com/hc/pt-br/articles/38491918052891-Edi%C3%A7%C3%A3o-n%C2%BA6-Novidades-Junho2025)
+  - Edição Nº6 - Novidades - Junho2025.
+- **Edição Nº8 - Novidades - Agosto/2025** (`billing.manage_edicao_no8_novidades_agosto_20`) — _documented_, friction 0.0 — [Edição nº8 - Novidades - Agosto/2025](https://atendimento.agendaedu.com/hc/pt-br/articles/40643994368795-Edi%C3%A7%C3%A3o-n%C2%BA8-Novidades-Agosto-2025)
+  - Edição Nº8 - Novidades - Agosto/2025.
+- **Entenda Os Índices De Adesão E Engajamento Da Sua Escola** (`billing.manage_entenda_os_indices_de_adesao_e`) — _conceptual_, friction 0.0 — [Entenda os índices de adesão e engajamento da sua ](https://atendimento.agendaedu.com/hc/pt-br/articles/360023358574-Entenda-os-%C3%ADndices-de-ades%C3%A3o-e-engajamento-da-sua-escola)
+  - Entenda Os Índices De Adesão E Engajamento Da Sua Escola.
+- **Entendendo O Status (Situação) Das Cobranças** (`billing.manage_entendendo_o_status_situacao_d`) — _documented_, friction 5.5 — [Entendendo o status (situação) das cobranças](https://atendimento.agendaedu.com/hc/pt-br/articles/360022891214-Entendendo-o-status-situa%C3%A7%C3%A3o-das-cobran%C3%A7as)
+  - Entendendo O Status (Situação) Das Cobranças. Note: A “situação” da cobrança informa o status atual da cobrança. É muito importante entender o que significa cada situação d.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Enviar Cobranças A Partir De Um Arquivo De Remessa?** (`billing.send_enviar_cobrancas_a_partir_de_u`) — _documented_, friction 8.5 — [Como enviar cobranças a partir de um arquivo de Re](https://atendimento.agendaedu.com/hc/pt-br/articles/35074320807835-Como-enviar-cobran%C3%A7as-a-partir-de-um-arquivo-de-Remessa)
+  - Enviar Cobranças A Partir De Um Arquivo De Remessa?. Note: ⚠️Atenção: Caso note algum envio incorreto, agora você encontra na plataforma um um fluxo claro e eficiente para cancela.
+- **Enviar Contrato Em Massa?** (`billing.send_enviar_contrato_em_massa`) — _documented_, friction 10.3 — [Como enviar contrato em massa?](https://atendimento.agendaedu.com/hc/pt-br/articles/18628362213147-Como-enviar-contrato-em-massa)
+  - Enviar Contrato Em Massa?. Note: ⚠️Importante: Para que o modelo de contrato esteja disponível é necessário criá-lo. Você pode aprender a criar um Modelo.
+- **Exportar As Cobranças Do Shop?** (`billing.export_exportar_as_cobrancas_do_shop`) — _documented_, friction 0.0 — [Como exportar as cobranças do Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/26268824232091-Como-exportar-as-cobran%C3%A7as-do-Shop)
+  - Exportar As Cobranças Do Shop?.
+- **Exportar Relatórios Em Pagamentos** (`billing.export_exportar_relatorios_em_pagamen`) — _documented_, friction 7.0 — [Exportar Relatórios em Pagamentos](https://atendimento.agendaedu.com/hc/pt-br/articles/5760901754011-Exportar-Relat%C3%B3rios-em-Pagamentos)
+  - Exportar Relatórios Em Pagamentos. Note: Observação muito importante:.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Exportar Um Arquivo De Retorno?** (`billing.export_exportar_um_arquivo_de_retorno`) — _documented_, friction 0.0 — [Como exportar um arquivo de Retorno?](https://atendimento.agendaedu.com/hc/pt-br/articles/35074820361627-Como-exportar-um-arquivo-de-Retorno)
+  - Exportar Um Arquivo De Retorno?.
+- **Fazer A Importação De Um Arquivo De Remessa?** (`billing.manage_fazer_a_importacao_de_um_arqui`) — _documented_, friction 0.0 — [Como fazer a importação de um arquivo de Remessa?](https://atendimento.agendaedu.com/hc/pt-br/articles/35070100720283-Como-fazer-a-importa%C3%A7%C3%A3o-de-um-arquivo-de-Remessa)
+  - Fazer A Importação De Um Arquivo De Remessa?.
+- **Formas De Pagamento** (`billing.manage_formas_de_pagamento`) — _documented_, friction 0.0 — [Formas de Pagamento](https://atendimento.agendaedu.com/hc/pt-br/articles/360022857434-Formas-de-Pagamento)
+  - Formas De Pagamento.
+- **Funciona O Bolepix Da Agenda Edu?** (`billing.manage_funciona_o_bolepix_da_agenda_e`) — _documented_, friction 0.0 — [Como funciona o BolePix da Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/33746033068955-Como-funciona-o-BolePix-da-Agenda-Edu)
+  - Funciona O Bolepix Da Agenda Edu?.
+- **Funciona O Link De Pagamento Enviado Pelo Whatsapp?** (`billing.manage_funciona_o_link_de_pagamento_e`) — _documented_, friction 5.0 — [Como funciona o Link de Pagamento enviado pelo Wha](https://atendimento.agendaedu.com/hc/pt-br/articles/33465126912795-Como-funciona-o-Link-de-Pagamento-enviado-pelo-WhatsApp)
+  - Funciona O Link De Pagamento Enviado Pelo Whatsapp?. Note: É importante que a escola reforce que essa forma de pagamento é segura e que a mensagem foi enviada pela Agenda Edu..
+- **Gerar Boleto Para Responsáveis Em Pagamentos?** (`billing.manage_gerar_boleto_para_responsaveis`) — _documented_, friction 6.8 — [Como gerar boleto para responsáveis em Pagamentos?](https://atendimento.agendaedu.com/hc/pt-br/articles/18560319804443-Como-gerar-boleto-para-respons%C3%A1veis-em-Pagamentos)
+  - Gerar Boleto Para Responsáveis Em Pagamentos?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Gerar Comprovante De Pagamento** (`billing.manage_gerar_comprovante_de_pagamento`) — _documented_, friction 0.0 — [Como gerar comprovante de pagamento](https://atendimento.agendaedu.com/hc/pt-br/articles/5803506397595-Como-gerar-comprovante-de-pagamento)
+  - Gerar Comprovante De Pagamento.
+- **Gerar O Pix Para Responsáveis No Menu Pagamentos?** (`billing.manage_gerar_o_pix_para_responsaveis_`) — _documented_, friction 3.3 — [Como gerar o PIX para responsáveis no menu Pagamen](https://atendimento.agendaedu.com/hc/pt-br/articles/18486303338651-Como-gerar-o-PIX-para-respons%C3%A1veis-no-menu-Pagamentos)
+  - Gerar O Pix Para Responsáveis No Menu Pagamentos?.
+- **Gerar Um Link De Pagamento?** (`billing.manage_gerar_um_link_de_pagamento`) — _documented_, friction 3.5 — [Como gerar um link de pagamento?](https://atendimento.agendaedu.com/hc/pt-br/articles/33577389860507-Como-gerar-um-link-de-pagamento)
+  - Gerar Um Link De Pagamento?. Note: Observação: as formas de pagamento no Checkout Simplificado são Boleto, Pix e Cartão de Crédito..
+- **Gerenciar Notificações?** (`billing.manage_gerenciar_notificacoes`) — _documented_, friction 8.5 — [Como Gerenciar notificações?](https://atendimento.agendaedu.com/hc/pt-br/articles/360025582614-Como-Gerenciar-notifica%C3%A7%C3%B5es)
+  - Gerenciar Notificações?. Note: 2. Na segunda, você pode habilitar ou desabilitar as notificações para as diferentes categorias de comunicados, por exem.
+- **Guia De Boas Práticas Agenda Edu (Funcionalidades)** (`billing.manage_guia_de_boas_praticas_agenda_e`) — _documented_, friction 3.5 — [Guia de Boas Práticas Agenda Edu (Funcionalidades)](https://atendimento.agendaedu.com/hc/pt-br/articles/360057433633-Guia-de-Boas-Pr%C3%A1ticas-Agenda-Edu-Funcionalidades)
+  - Guia De Boas Práticas Agenda Edu (Funcionalidades). Note: Aproveite também do campo Observação para registrar a presença do aluno..
+- **Integrar O Sistema De Gestão Sophia  A Minha Agenda Edu?** (`billing.import_integrar_o_sistema_de_gestao_s`) — _documented_, friction 3.8 — [Como integrar o sistema de gestão SophiA  a minha ](https://atendimento.agendaedu.com/hc/pt-br/articles/11104410795163-Como-integrar-o-sistema-de-gest%C3%A3o-SophiA-a-minha-Agenda-Edu)
+  - Integrar O Sistema De Gestão Sophia  A Minha Agenda Edu?. Note: Importante: Quando a integração está configurada para execução automática, ela é iniciada diariamente às 18h. Esse proce.
+- **Integrações Acessórias Disponíveis No Superapp Agenda Edu** (`billing.manage_integracoes_acessorias_disponi`) — _documented_, friction 0.0 — [Integrações acessórias disponíveis no SuperApp Age](https://atendimento.agendaedu.com/hc/pt-br/articles/29480641873947-Integra%C3%A7%C3%B5es-acess%C3%B3rias-dispon%C3%ADveis-no-SuperApp-Agenda-Edu)
+  - Integrações Acessórias Disponíveis No Superapp Agenda Edu.
+- **Nossos Canais De Atendimento** (`billing.manage_nossos_canais_de_atendimento`) — _documented_, friction 0.0 — [Nossos Canais de Atendimento](https://atendimento.agendaedu.com/hc/pt-br/articles/360022393913-Nossos-Canais-de-Atendimento)
+  - Nossos Canais De Atendimento.
+- **Novas Experiências Com Os Canais De Mensagens** (`billing.manage_novas_experiencias_com_os_cana`) — _documented_, friction 0.0 — [Novas experiências com os Canais de Mensagens](https://atendimento.agendaedu.com/hc/pt-br/articles/23749966026651-Novas-experi%C3%AAncias-com-os-Canais-de-Mensagens)
+  - Novas Experiências Com Os Canais De Mensagens.
+- **Não Consigo Cadastrar Meu Cartão De Crédito, O Que Fazer?** (`billing.resolve_nao_consigo_cadastrar_meu_cart`) — _troubleshooting_, friction 6.5 — [Não consigo cadastrar meu cartão de crédito, o que](https://atendimento.agendaedu.com/hc/pt-br/articles/6196274097691-N%C3%A3o-consigo-cadastrar-meu-cart%C3%A3o-de-cr%C3%A9dito-o-que-fazer)
+  - Não Consigo Cadastrar Meu Cartão De Crédito, O Que Fazer?. Note: Parece uma dica óbvia, mas é muito importante verificar todos os dados e se eles estão sendo inseridos igual esta no car.
+- **O Novo Checkout Do Superapp?** (`billing.manage_o_novo_checkout_do_superapp`) — _conceptual_, friction 10.2 — [O que é o novo Checkout do SuperApp?](https://atendimento.agendaedu.com/hc/pt-br/articles/48835368206363-O-que-%C3%A9-o-novo-Checkout-do-SuperApp)
+  - O Novo Checkout Do Superapp?. Note: ⚠️Importante: Na opção de Cartão de Crédito, os dados dos cartões registrados ficarão salvos, sem a necessidade de cadas.
+- **O Que Fazer Quando Um Arquivo De Remessa E Retorno Apresenta Erro Na Importação?** (`billing.resolve_o_que_fazer_quando_um_arquivo_`) — _troubleshooting_, friction 8.0 — [O que fazer quando um arquivo de Remessa e Retorno](https://atendimento.agendaedu.com/hc/pt-br/articles/48765442653211-O-que-fazer-quando-um-arquivo-de-Remessa-e-Retorno-apresenta-erro-na-importa%C3%A7%C3%A3o)
+  - O Que Fazer Quando Um Arquivo De Remessa E Retorno Apresenta Erro Na Importação?. Note: ⚠️ Importante: corrija as inconsistências diretamente no ERP da escola e reimporte o arquivo após os ajustes. As cobranç.
+- **O Que Muda Nos Pagamentos Digitais Com A Bemobi?** (`billing.manage_o_que_muda_nos_pagamentos_digi`) — _documented_, friction 3.5 — [O que muda nos Pagamentos Digitais com a Bemobi?](https://atendimento.agendaedu.com/hc/pt-br/articles/25552731064347-O-que-muda-nos-Pagamentos-Digitais-com-a-Bemobi)
+  - O Que Muda Nos Pagamentos Digitais Com A Bemobi?. Note: Importante: Você também pode parcelar cobranças em planos recorrentes, desde que a escola tenha ativado esse método. Iss.
+- **O Que Significa Quando A Cobrança De Pagamentos Foi Rejeitada Pelo Antifraude?** (`billing.manage_o_que_significa_quando_a_cobra`) — _documented_, friction 0.0 — [O que significa quando a cobrança de Pagamentos fo](https://atendimento.agendaedu.com/hc/pt-br/articles/16760615140379-O-que-significa-quando-a-cobran%C3%A7a-de-Pagamentos-foi-rejeitada-pelo-antifraude)
+  - O Que Significa Quando A Cobrança De Pagamentos Foi Rejeitada Pelo Antifraude?.
+- **O Shop?** (`billing.manage_o_shop`) — _conceptual_, friction 0.0 — [O que é o Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/10291869290139-O-que-%C3%A9-o-Shop)
+  - O Shop?.
+- **Os Responsáveis Podem Parcelar O Pagamento Do Boleto No Cartão De Crédito?** (`billing.manage_os_responsaveis_podem_parcelar`) — _documented_, friction 5.0 — [Como os responsáveis podem parcelar o pagamento do](https://atendimento.agendaedu.com/hc/pt-br/articles/21412811120155-Como-os-respons%C3%A1veis-podem-parcelar-o-pagamento-do-boleto-no-cart%C3%A3o-de-cr%C3%A9dito)
+  - Os Responsáveis Podem Parcelar O Pagamento Do Boleto No Cartão De Crédito?. Note: ⚠️ Importante: Clicando no botão Parcelar boleto, o responsável será direcionado para a página externa de parcelamento d.
+- **Pagar Com Cartão De Crédito Usando Link De Pagamento?** (`billing.pay_pagar_com_cartao_de_credito_us`) — _documented_, friction 0.0 — [Como pagar com cartão de crédito usando link de pa](https://atendimento.agendaedu.com/hc/pt-br/articles/31541415769627-Como-pagar-com-cart%C3%A3o-de-cr%C3%A9dito-usando-link-de-pagamento)
+  - Pagar Com Cartão De Crédito Usando Link De Pagamento?.
+- **Pagar Via Boleto** (`billing.pay_pagar_via_boleto`) — _documented_, friction 0.0 — [Como pagar via boleto](https://atendimento.agendaedu.com/hc/pt-br/articles/360023027213-Como-pagar-via-boleto)
+  - Pagar Via Boleto.
+- **Parcelar Um Boleto E Pagar Com Cartão De Crédito?** (`billing.pay_parcelar_um_boleto_e_pagar_com`) — _documented_, friction 5.0 — [Como parcelar um boleto e pagar com cartão de créd](https://atendimento.agendaedu.com/hc/pt-br/articles/21410475046683-Como-parcelar-um-boleto-e-pagar-com-cart%C3%A3o-de-cr%C3%A9dito)
+  - Parcelar Um Boleto E Pagar Com Cartão De Crédito?. Note: ⚠️ Importante: Clicando no botão Parcelar boleto, você será direcionado para a página externa de parcelamento do Quita+..
+- **Personalizar Os Perfis E Permissões De Usuário Em Pagamentos?** (`billing.manage_personalizar_os_perfis_e_permi`) — _documented_, friction 0.0 — [Como personalizar os perfis e permissões de usuári](https://atendimento.agendaedu.com/hc/pt-br/articles/360033187854-Como-personalizar-os-perfis-e-permiss%C3%B5es-de-usu%C3%A1rio-em-Pagamentos)
+  - Personalizar Os Perfis E Permissões De Usuário Em Pagamentos?.
+- **Por Que Baixar A Planilha Modelo Antes De Importar?** (`billing.resolve_por_que_baixar_a_planilha_mode`) — _troubleshooting_, friction 6.5 — [Por que baixar a planilha modelo antes de importar](https://atendimento.agendaedu.com/hc/pt-br/articles/360020469374-Por-que-baixar-a-planilha-modelo-antes-de-importar)
+  - Por Que Baixar A Planilha Modelo Antes De Importar?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Primeiro Acesso: Como Confirmar Sua Conta E Acessar O Aplicativo** (`billing.manage_primeiro_acesso_como_confirmar`) — _documented_, friction 3.0 — [Primeiro acesso: Como confirmar sua conta e acessa](https://atendimento.agendaedu.com/hc/pt-br/articles/48616449379227-Primeiro-acesso-Como-confirmar-sua-conta-e-acessar-o-aplicativo)
+  - Primeiro Acesso: Como Confirmar Sua Conta E Acessar O Aplicativo.
+- **Reajuste Na Cobrança Da Mensalidade Da Agenda Edu.** (`billing.manage_reajuste_na_cobranca_da_mensal`) — _documented_, friction 1.5 — [Reajuste na cobrança da mensalidade da Agenda Edu.](https://atendimento.agendaedu.com/hc/pt-br/articles/14673140887067-Reajuste-na-cobran%C3%A7a-da-mensalidade-da-Agenda-Edu)
+  - Reajuste Na Cobrança Da Mensalidade Da Agenda Edu..
+- **Realizar Pagamentos Via Cartão De Crédito** (`billing.manage_realizar_pagamentos_via_cartao`) — _documented_, friction 0.0 — [Como realizar pagamentos via cartão de crédito](https://atendimento.agendaedu.com/hc/pt-br/articles/4419270091547-Como-realizar-pagamentos-via-cart%C3%A3o-de-cr%C3%A9dito)
+  - Realizar Pagamentos Via Cartão De Crédito.
+- **Realizar Pagamentos Via Pix** (`billing.manage_realizar_pagamentos_via_pix`) — _documented_, friction 4.0 — [Como realizar pagamentos via Pix](https://atendimento.agendaedu.com/hc/pt-br/articles/5329128337307-Como-realizar-pagamentos-via-Pix)
+  - Realizar Pagamentos Via Pix. Note: Vale lembrar que Pagamentos só esta disponível pelo aplicativo da Agenda Edu, então não é possível acessar via WEB. Se v.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Realizar Uma Compra No Shop?** (`billing.manage_realizar_uma_compra_no_shop`) — _documented_, friction 7.3 — [Como realizar uma compra no Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/10292071743003-Como-realizar-uma-compra-no-Shop)
+  - Realizar Uma Compra No Shop?. Note: ⚠️Obs.: Caso você tenha mais de um aluno vinculado no app, clique no ícone ou foto do perfil e, em seguida, selecione o .
+- **Regularizar Pendências Atrasadas** (`billing.manage_regularizar_pendencias_atrasad`) — _documented_, friction 3.5 — [Como regularizar pendências atrasadas](https://atendimento.agendaedu.com/hc/pt-br/articles/4419294105115-Como-regularizar-pend%C3%AAncias-atrasadas)
+  - Regularizar Pendências Atrasadas. Note: Pronto, você poderá realizar o pagamento da cobrança com as novas informações. É importante notar que para regularizar a.
+- **Solicitar A Integração Do Sistema De Gestão Sophia Com A Agenda Edu?** (`billing.manage_solicitar_a_integracao_do_sist`) — _documented_, friction 0.0 — [Como solicitar a integração do sistema de gestão S](https://atendimento.agendaedu.com/hc/pt-br/articles/12935986823067-Como-solicitar-a-integra%C3%A7%C3%A3o-do-sistema-de-gest%C3%A3o-SophiA-com-a-Agenda-Edu)
+  - Solicitar A Integração Do Sistema De Gestão Sophia Com A Agenda Edu?.
+- **São Definidas As  Cobranças Na  Agenda Edu?** (`billing.manage_sao_definidas_as_cobrancas_na_`) — _documented_, friction 7.0 — [Como são definidas as  cobranças na  Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/14699329126683-Como-s%C3%A3o-definidas-as-cobran%C3%A7as-na-Agenda-Edu)
+  - São Definidas As  Cobranças Na  Agenda Edu?. Note: É importante ressaltar que a implantação da Agenda Edu feita de forma eficaz aumenta a eficiência, a comunicação e a col.
+- **Tire Dúvidas Sobre A Bemobi, Novo Provedor De Pagamentos** (`billing.manage_tire_duvidas_sobre_a_bemobi_no`) — _documented_, friction 7.0 — [Tire dúvidas sobre a Bemobi, novo provedor de Paga](https://atendimento.agendaedu.com/hc/pt-br/articles/25551064274331-Tire-d%C3%BAvidas-sobre-a-Bemobi-novo-provedor-de-Pagamentos)
+  - Tire Dúvidas Sobre A Bemobi, Novo Provedor De Pagamentos. Note: Importante: Ao clicar no botão de configuração da Carteira, aparecerá a página para abertura de solicitação. Resolveremo.
+- **Tudo Que Você Precisa Saber Sobre Link De Pagamentos** (`billing.manage_tudo_que_voce_precisa_saber_so`) — _documented_, friction 0.0 — [Tudo que você precisa saber sobre Link de Pagament](https://atendimento.agendaedu.com/hc/pt-br/articles/33998591277723-Tudo-que-voc%C3%AA-precisa-saber-sobre-Link-de-Pagamentos)
+  - Tudo Que Você Precisa Saber Sobre Link De Pagamentos.
+- **Utilize O Whatsapp Como Canal De Cobranças Em Pagamentos** (`billing.manage_utilize_o_whatsapp_como_canal_`) — _documented_, friction 8.5 — [Utilize o WhatsApp como canal de cobranças em Paga](https://atendimento.agendaedu.com/hc/pt-br/articles/46600782357531-Utilize-o-WhatsApp-como-canal-de-cobran%C3%A7as-em-Pagamentos)
+  - Utilize O Whatsapp Como Canal De Cobranças Em Pagamentos. Note: Não é possível utilizar o mesmo número usado para captação ou comunicação geral..
+- **Visualizar Contratos De Matrícula** (`billing.view_visualizar_contratos_de_matric`) — _documented_, friction 5.5 — [Como visualizar contratos de matrícula](https://atendimento.agendaedu.com/hc/pt-br/articles/9891137909147-Como-visualizar-contratos-de-matr%C3%ADcula)
+  - Visualizar Contratos De Matrícula. Note: Neste artigo, vamos te ensinar como visualizar o contrato assinado. Mas antes, alguns pontos importantes:.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Visualizar E Confirmar A Leitura De Comunicados?** (`billing.view_visualizar_e_confirmar_a_leitu`) — _documented_, friction 0.0 — [Como Visualizar e Confirmar a leitura de Comunicad](https://atendimento.agendaedu.com/hc/pt-br/articles/360025199114-Como-Visualizar-e-Confirmar-a-leitura-de-Comunicados)
+  - Visualizar E Confirmar A Leitura De Comunicados?.
+- **Visualizar E Confirmar As Atividades?** (`billing.view_visualizar_e_confirmar_as_ativ`) — _documented_, friction 0.0 — [Como Visualizar e Confirmar as Atividades?](https://atendimento.agendaedu.com/hc/pt-br/articles/360025355933-Como-Visualizar-e-Confirmar-as-Atividades)
+  - Visualizar E Confirmar As Atividades?.
+- **Visualizar E Confirmar Presença Em Um Evento?** (`billing.view_visualizar_e_confirmar_presenc`) — _documented_, friction 0.0 — [Como Visualizar e Confirmar presença em um Evento?](https://atendimento.agendaedu.com/hc/pt-br/articles/360028485953-Como-Visualizar-e-Confirmar-presen%C3%A7a-em-um-Evento)
+  - Visualizar E Confirmar Presença Em Um Evento?.
+- **Visualizar Informações Do Ano Anterior** (`billing.view_visualizar_informacoes_do_ano_`) — _documented_, friction 3.5 — [Como visualizar informações do ano anterior](https://atendimento.agendaedu.com/hc/pt-br/articles/21432615176731-Como-visualizar-informa%C3%A7%C3%B5es-do-ano-anterior)
+  - Visualizar Informações Do Ano Anterior. Note: ⚠️ Importante: Se você entrou no aplicativo e apareceu a mensagem Ops, acesso bloqueado, saiba do que se trata clicando .
+- **Visualizar Minhas Ofertas Cadastradas No Shop?** (`billing.create_visualizar_minhas_ofertas_cada`) — _documented_, friction 5.0 — [Como visualizar minhas ofertas cadastradas no Shop](https://atendimento.agendaedu.com/hc/pt-br/articles/12540734287515-Como-visualizar-minhas-ofertas-cadastradas-no-Shop)
+  - Visualizar Minhas Ofertas Cadastradas No Shop?. Note: ⚠️Importante: Na data final da oferta ela não estará mais para disponível para visualização dos responsáveis..
+- **Visualizar O Detalhe Completo De Uma Cobrança Em Remessa E Retorno?** (`billing.view_visualizar_o_detalhe_completo_`) — _documented_, friction 0.0 — [Como visualizar o detalhe completo de uma cobrança](https://atendimento.agendaedu.com/hc/pt-br/articles/48764384679579-Como-visualizar-o-detalhe-completo-de-uma-cobran%C3%A7a-em-Remessa-e-Retorno)
+  - Visualizar O Detalhe Completo De Uma Cobrança Em Remessa E Retorno?.
+- **Whatsapp Como Canal De Notificações De Pagamentos** (`billing.manage_whatsapp_como_canal_de_notific`) — _documented_, friction 12.5 — [Whatsapp como Canal de Notificações de Pagamentos](https://atendimento.agendaedu.com/hc/pt-br/articles/47815354131227-Whatsapp-como-Canal-de-Notifica%C3%A7%C3%B5es-de-Pagamentos)
+  - Whatsapp Como Canal De Notificações De Pagamentos. Note: ⚠️ Atenção — Mensagem de criação da cobrança.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **✅ Etapa 1. Como Realizar A Progressão De Ano Letivo Via Integração?** (`billing.manage_etapa_1_como_realizar_a_progre`) — _documented_, friction 6.5 — [✅ Etapa 1. Como realizar a progressão de ano letiv](https://atendimento.agendaedu.com/hc/pt-br/articles/43817207765915--Etapa-1-Como-realizar-a-progress%C3%A3o-de-ano-letivo-via-integra%C3%A7%C3%A3o)
+  - ✅ Etapa 1. Como Realizar A Progressão De Ano Letivo Via Integração?. Note: Sabemos que este é um momento muito importante para a escola. É quando se encerra o ano letivo atual para dar início ao .
+- **✅ Etapa 2. Criar Planos De Cobrança No Menu Pagamentos - Erp** (`billing.create_etapa_2_criar_planos_de_cobran`) — _documented_, friction 10.5 — [✅ Etapa 2. Criar planos de cobrança no menu Pagame](https://atendimento.agendaedu.com/hc/pt-br/articles/10802721411355--Etapa-2-Criar-planos-de-cobran%C3%A7a-no-menu-Pagamentos-ERP)
+  - ✅ Etapa 2. Criar Planos De Cobrança No Menu Pagamentos - Erp. Note: 🔔 Atenção: Antes de criar uma cobrança recorrente, é necessário que sua escola tenha a carteira digital configurada e at.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **✅ Etapa 3. Criar Planos De Cobrança No Menu Pagamentos - Manual** (`billing.create_etapa_3_criar_planos_de_cobran`) — _documented_, friction 10.5 — [✅ Etapa 3. Criar planos de cobrança no menu Pagame](https://atendimento.agendaedu.com/hc/pt-br/articles/43691736984475--Etapa-3-Criar-planos-de-cobran%C3%A7a-no-menu-Pagamentos-Manual)
+  - ✅ Etapa 3. Criar Planos De Cobrança No Menu Pagamentos - Manual. Note: 🔔 Atenção: Antes de criar uma cobrança recorrente, é necessário que sua escola tenha a carteira digital configurada e at.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **✅ Etapa 6. Relembre Boas Práticas Da Agenda Edu E Pagamentos - Erp** (`billing.manage_etapa_6_relembre_boas_praticas`) — _documented_, friction 5.0 — [✅ Etapa 6. Relembre boas práticas da Agenda Edu e ](https://atendimento.agendaedu.com/hc/pt-br/articles/4412221123227--Etapa-6-Relembre-boas-pr%C3%A1ticas-da-Agenda-Edu-e-Pagamentos-ERP)
+  - ✅ Etapa 6. Relembre Boas Práticas Da Agenda Edu E Pagamentos - Erp. Note: Depois que toda a parte operacional estiver funcionando, é importante focar nas estratégias para melhorar uso da platafo.
+- **✅ Etapa 8. Relembre Boas Práticas Da Agenda Edu E Pagamentos - Manual** (`billing.manage_etapa_8_relembre_boas_praticas`) — _documented_, friction 3.5 — [✅ Etapa 8. Relembre boas práticas da Agenda Edu e ](https://atendimento.agendaedu.com/hc/pt-br/articles/43698966289307--Etapa-8-Relembre-boas-pr%C3%A1ticas-da-Agenda-Edu-e-Pagamentos-Manual)
+  - ✅ Etapa 8. Relembre Boas Práticas Da Agenda Edu E Pagamentos - Manual. Note: Depois que toda a parte operacional estiver funcionando, é importante focar nas estratégias para melhorar uso da platafo.
+- **🔎 Como Confirmar Minha Conta?** (`billing.manage_como_confirmar_minha_conta`) — _documented_, friction 0.0 — [🔎 Como confirmar minha conta?](https://atendimento.agendaedu.com/hc/pt-br/articles/360025584794--Como-confirmar-minha-conta)
+  - 🔎 Como Confirmar Minha Conta?.
+- **🔎 Não Estou Recebendo Notificações, O Que Fazer?** (`billing.manage_nao_estou_recebendo_notificaco`) — _documented_, friction 3.9 — [🔎 Não estou recebendo notificações, o que fazer?](https://atendimento.agendaedu.com/hc/pt-br/articles/4599151260443--N%C3%A3o-estou-recebendo-notifica%C3%A7%C3%B5es-o-que-fazer)
+  - 🔎 Não Estou Recebendo Notificações, O Que Fazer?.
+
+## Staff (financial)
+
+- **Canais De Atendimento E Prazos Financeiro Agenda Edu** (`billing.manage_canais_de_atendimento_e_prazos`) `[financial]` — _documented_, friction 0.0 — [Canais de atendimento e prazos financeiro Agenda E](https://atendimento.agendaedu.com/hc/pt-br/articles/14699436083995-Canais-de-atendimento-e-prazos-financeiro-Agenda-Edu)
+  - Canais De Atendimento E Prazos Financeiro Agenda Edu.
+- **Definir O Responsável Financeiro Do Aluno?** (`billing.manage_definir_o_responsavel_financei`) `[financial]` — _documented_, friction 0.9 — [Como definir o responsável financeiro do aluno?](https://atendimento.agendaedu.com/hc/pt-br/articles/12540150470683-Como-definir-o-respons%C3%A1vel-financeiro-do-aluno)
+  - Definir O Responsável Financeiro Do Aluno?.
+- **Enviar Cobranças Recorrentes Apenas Para O Responsável Financeiro Do Aluno?** (`billing.send_enviar_cobrancas_recorrentes_a`) `[financial]` — _documented_, friction 3.5 — [Como enviar cobranças recorrentes apenas para o re](https://atendimento.agendaedu.com/hc/pt-br/articles/12540069674139-Como-enviar-cobran%C3%A7as-recorrentes-apenas-para-o-respons%C3%A1vel-financeiro-do-aluno)
+  - Enviar Cobranças Recorrentes Apenas Para O Responsável Financeiro Do Aluno?.
+  - Preconditions: implicit prerequisite mentioned in article body
