@@ -1,7 +1,6 @@
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -29,7 +28,6 @@ import { deleteTeacher, listTeachers } from 'services/academicsApi';
 import { COLLABORATOR_DOCUMENT_TYPES } from 'services/documentsApi';
 import { Teacher } from 'types/academics';
 import { formatCpf } from 'utils/documentNumber';
-import { gradeLevelLabel } from 'utils/gradeLevels';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
 
 const PAGE_SIZE = 25;
@@ -59,35 +57,6 @@ const Collaborators = () => {
   const [documentsFor, setDocumentsFor] = useState<Teacher | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  const renderClasses = ({ row }: GridRenderCellParams<Teacher>) => {
-    if (row.classes.length === 0) {
-      return (
-        <Typography variant="body2" color="text.secondary">
-          {t('common.noClasses')}
-        </Typography>
-      );
-    }
-
-    return (
-      <Stack direction="row" gap={0.75} flexWrap="wrap" alignItems="center" py={1}>
-        {row.classes.map((schoolClass) => (
-          <Tooltip
-            key={schoolClass.id}
-            title={schoolClass.subjects.map((subject) => subject.name).join(', ')}
-          >
-            <Chip
-              size="small"
-              variant="outlined"
-              label={`${gradeLevelLabel(schoolClass.grade_level)} ${schoolClass.name}: ${schoolClass.subjects
-                .map((subject) => subject.name)
-                .join(', ')}`}
-            />
-          </Tooltip>
-        ))}
-      </Stack>
-    );
-  };
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -160,14 +129,6 @@ const Collaborators = () => {
       { field: 'name', headerName: t('common.name'), width: 170 },
       { field: 'job_title', headerName: t('common.position'), width: 160 },
       { field: 'cpf', headerName: 'CPF', width: 140, renderCell: renderCpf },
-      {
-        field: 'classes',
-        headerName: t('collaborators.classesColumn'),
-        flex: 1,
-        minWidth: 280,
-        sortable: false,
-        renderCell: renderClasses,
-      },
       {
         field: 'actions',
         headerName: t('common.actions'),

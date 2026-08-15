@@ -38,6 +38,7 @@ en:
       unauthorized: "Not authorized."
       guardian_without_email: "This guardian has no email on file, and the invitation is sent by email."
       guardian_inactive: "This guardian is inactive. Reactivate them before sending access."
+      school_class_has_students: "This class still has students enrolled. Move them to another class before deleting it."
       invalid_reset_token: "This link has expired or was already used. Request a new one."
       invalid_credentials: "Invalid e-mail or password."
       invalid_invite_token: "This invite link is invalid or has expired."

@@ -6,6 +6,7 @@ import {
   Subject,
   Teacher,
   TeacherPayload,
+  TeachingAssignment,
 } from 'types/academics';
 import { request } from './api';
 
@@ -56,8 +57,12 @@ export const provisionDefaultJobPositions = async (schoolId: number): Promise<Jo
 
 /* ---------------------------------------------------------------- subjects */
 
-export const listSubjects = (schoolId: number, page = 1) =>
-  request<Paginated<Subject>>(`${base(schoolId)}/subjects?page=${page}`);
+export const listSubjects = (schoolId: number, page = 1, q?: string) => {
+  const query = new URLSearchParams({ page: String(page) });
+  if (q) query.set('q', q);
+
+  return request<Paginated<Subject>>(`${base(schoolId)}/subjects?${query}`);
+};
 
 export const createSubject = async (schoolId: number, name: string): Promise<Subject> => {
   const response = await request<{ data: Subject }>(`${base(schoolId)}/subjects`, {
@@ -86,8 +91,36 @@ export const deleteSubject = (schoolId: number, id: number) =>
 
 /* ----------------------------------------------------------- school classes */
 
-export const listSchoolClasses = (schoolId: number, page = 1) =>
-  request<Paginated<SchoolClass>>(`${base(schoolId)}/school_classes?page=${page}`);
+export interface ListSchoolClassesParams {
+  page?: number;
+  /** Matches the cohort's own letter, in whatever case it was typed. */
+  q?: string;
+  grade_level?: string;
+  shift?: string;
+  year?: string;
+}
+
+export const listSchoolClasses = (
+  schoolId: number,
+  { page = 1, q, grade_level, shift, year }: ListSchoolClassesParams = {},
+) => {
+  const query = new URLSearchParams({ page: String(page) });
+  // Only what was actually chosen: an empty parameter would narrow the listing to nothing.
+  if (q) query.set('q', q);
+  if (grade_level) query.set('grade_level', grade_level);
+  if (shift) query.set('shift', shift);
+  if (year) query.set('year', year);
+
+  return request<Paginated<SchoolClass>>(`${base(schoolId)}/school_classes?${query}`);
+};
+
+/**
+ * DELETE .../school_classes/:id — a discard, so teaching assignments and any contract that named
+ * the cohort keep pointing at a row that still exists. The API refuses while students are still
+ * enrolled in it.
+ */
+export const deleteSchoolClass = (schoolId: number, id: number) =>
+  request<null>(`${base(schoolId)}/school_classes/${id}`, { method: 'DELETE' });
 
 export const createSchoolClass = async (
   schoolId: number,
@@ -187,3 +220,28 @@ export const assignTeaching = async (
 
 export const removeTeachingAssignment = (schoolId: number, assignmentId: number) =>
   request<null>(`${base(schoolId)}/teaching_assignments/${assignmentId}`, { method: 'DELETE' });
+
+export interface ListTeachingAssignmentsParams {
+  page?: number;
+  /** One term, matched by the API against the teacher, the subject or the cohort's letter. */
+  q?: string;
+  school_class_id?: string;
+  subject_id?: string;
+  year?: string;
+}
+
+/** GET .../teaching_assignments — every lesson in the school, one row each. */
+export const listTeachingAssignments = (
+  schoolId: number,
+  { page = 1, q, school_class_id, subject_id, year }: ListTeachingAssignmentsParams = {},
+) => {
+  const query = new URLSearchParams({ page: String(page) });
+  if (q) query.set('q', q);
+  if (school_class_id) query.set('school_class_id', school_class_id);
+  if (subject_id) query.set('subject_id', subject_id);
+  if (year) query.set('year', year);
+
+  return request<Paginated<TeachingAssignment>>(
+    `${base(schoolId)}/teaching_assignments?${query}`,
+  );
+};

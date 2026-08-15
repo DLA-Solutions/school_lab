@@ -103,10 +103,21 @@ const Students = () => {
       </Stack>
     );
 
-  const renderStatus = ({ value }: GridRenderCellParams<Student, Student['status']>) => (
+  // A place at the school is held by a signed contract, not by a row in the register — so the
+  // column answers "is the paperwork done" rather than repeating what the row already shows.
+  // A transfer still outranks it: that child has left, whatever their contract says.
+  const renderStatus = ({ row }: GridRenderCellParams<Student>) => (
     <SemanticChip
-      variant={value === 'active' ? 'success' : 'info'}
-      label={value === 'active' ? t('common.activeStatus') : t('common.transferred')}
+      variant={
+        row.status !== 'active' ? 'info' : row.contract_active ? 'success' : 'warning'
+      }
+      label={
+        row.status !== 'active'
+          ? t('common.transferred')
+          : row.contract_active
+            ? t('common.activeStatus')
+            : t('students.withoutSignedContract')
+      }
     />
   );
 
@@ -227,7 +238,6 @@ const Students = () => {
   const columns: GridColDef<Student>[] = [
       { field: 'name', headerName: t('common.name'), flex: 1, minWidth: 180 },
       { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
-      { field: 'rg', headerName: 'RG', width: 140 },
       {
         field: 'birth_date',
         headerName: t('common.birthDate'),

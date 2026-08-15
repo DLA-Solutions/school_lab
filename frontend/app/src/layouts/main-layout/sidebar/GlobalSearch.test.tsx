@@ -113,7 +113,9 @@ describe('GlobalSearch', () => {
 
     await user.click(await screen.findByText('Turmas'));
 
-    expect(screen.getByTestId('location')).toHaveTextContent('/academico/turmas');
+    // Turmas is a tab inside Aulas now, so searching for it lands on that tab rather than on a
+    // menu entry of its own — the page is still reachable by the name people know it by.
+    expect(screen.getByTestId('location')).toHaveTextContent('/academico/aulas');
   });
 
   // The menu labels carry accents; typing without them still has to find the page.

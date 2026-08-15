@@ -10,6 +10,13 @@ class Subject < ApplicationRecord
   has_many :teaching_assignments, dependent: :destroy
   has_many :school_classes, -> { distinct }, through: :teaching_assignments
 
+  # By name. The term is matched loosely: a school looking for "mat" means Matemática.
+  scope :search, lambda { |term|
+    next all if term.blank?
+
+    where("subjects.name ILIKE ?", "%#{sanitize_sql_like(term.to_s.strip)}%")
+  }
+
   validates :name, presence: true
   validates :name, uniqueness: { scope: :school_id, conditions: -> { kept } }, if: :kept?
 end

@@ -8,7 +8,7 @@ module Api
           def index
             authorize Subject
 
-            pagy, records = pagy(policy_scope(Subject).order(:name))
+            pagy, records = pagy(policy_scope(Subject).search(params[:q]).order(:name))
 
             render json: {
               data: SubjectBlueprint.render_as_hash(records),

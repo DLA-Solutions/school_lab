@@ -27,7 +27,6 @@ import {
   listPlanDiscounts,
   previewDraftContract,
   sendContract,
-  signContract,
 } from 'services/contractsApi';
 import { listStudents } from 'services/studentsApi';
 import {
@@ -125,7 +124,6 @@ const GuardianContractsDialog = ({
   });
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [sending, setSending] = useState(false);
-  const [signingId, setSigningId] = useState<number | null>(null);
   const [dispatchingId, setDispatchingId] = useState<number | null>(null);
   const [dispatchingDraft, setDispatchingDraft] = useState(false);
 
@@ -417,22 +415,6 @@ const GuardianContractsDialog = ({
     }
   };
 
-  const handleSign = async (contract: Contract) => {
-    setSigningId(contract.id);
-    setError('');
-
-    try {
-      await signContract(schoolId, contract.id);
-      await loadContracts(tab);
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Não foi possível registrar a assinatura.',
-      );
-    } finally {
-      setSigningId(null);
-    }
-  };
-
   const fieldProps = (field: FormField) => ({
     id: `contract-${field}`,
     name: field,
@@ -490,58 +472,7 @@ const GuardianContractsDialog = ({
                 <ListItem
                   key={contract.id}
                   disableGutters
-                  secondaryAction={
-                    <Stack direction="row" gap={0.5}>
-                      {/* Reading the document is never destructive, and a signed contract is the
-                          one people most often need to reread — so this is offered whatever
-                          state the contract is in. */}
-                      <Button size="small" onClick={() => setPreviewing(contract)}>
-                        Pré-visualizar
-                      </Button>
-
-                      {/* The provider's own file, with the signature page it appends. Not the
-                          same document as the preview, which is our render of what we sent. */}
-                      {contract.signed_document_url && (
-                        <Button
-                          size="small"
-                          component="a"
-                          href={contract.signed_document_url}
-                          target="_blank"
-                          rel="noopener"
-                        >
-                          Contrato assinado (PDF)
-                        </Button>
-                      )}
-
-                      {contract.signature_status === 'pending_signature' && (
-                        <>
-                          {!contract.sent_to_provider && (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => handleDispatch(contract)}
-                              disabled={dispatchingId === contract.id}
-                              startIcon={
-                                dispatchingId === contract.id ? <CircularProgress size={14} /> : null
-                              }
-                            >
-                              Enviar para assinatura
-                            </Button>
-                          )}
-                          <Button
-                            size="small"
-                            onClick={() => handleSign(contract)}
-                            disabled={signingId === contract.id}
-                            startIcon={
-                              signingId === contract.id ? <CircularProgress size={14} /> : null
-                            }
-                          >
-                            Marcar assinado
-                          </Button>
-                        </>
-                      )}
-                    </Stack>
-                  }
+                  sx={{ display: 'block', py: 1.5 }}
                 >
                   <ListItemText
                     primary={
@@ -574,6 +505,47 @@ const GuardianContractsDialog = ({
                       </Typography>
                     }
                   />
+
+                  <Stack direction="row" gap={1} flexWrap="wrap" mt={1}>
+                    {/* Reading the document is never destructive, and a signed contract is the one
+                        people most often need to reread — so this is offered whatever state the
+                        contract is in. Weighted like "Gerar contrato", being the action a school
+                        reaches for most from this list. */}
+                    <Button size="small" variant="contained" onClick={() => setPreviewing(contract)}>
+                      Pré-visualizar
+                    </Button>
+
+                    {/* The provider's own file, with the signature page it appends. Not the same
+                        document as the preview, which is our render of what we sent. */}
+                    {contract.signed_document_url && (
+                      <Button
+                        size="small"
+                        component="a"
+                        href={contract.signed_document_url}
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        Contrato assinado (PDF)
+                      </Button>
+                    )}
+
+                    {/* Marking a contract signed by hand is gone: the provider reports the
+                        signature, and a button that contradicted it left the record saying one
+                        thing and the provider another. */}
+                    {contract.signature_status === 'pending_signature' &&
+                      !contract.sent_to_provider && (
+                        <Button
+                          size="small"
+                          onClick={() => handleDispatch(contract)}
+                          disabled={dispatchingId === contract.id}
+                          startIcon={
+                            dispatchingId === contract.id ? <CircularProgress size={14} /> : null
+                          }
+                        >
+                          Enviar para assinatura
+                        </Button>
+                      )}
+                  </Stack>
                 </ListItem>
               ))}
             </List>

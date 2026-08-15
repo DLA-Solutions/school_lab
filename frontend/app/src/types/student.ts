@@ -12,6 +12,8 @@ export interface Student {
   grade_level: string | null;
   school_class_id: number | null;
   school_class_name: string | null;
+  /** A contract signed and in force for the cohort's year — what "enrolled" means to the school. */
+  contract_active?: boolean;
   guardians: StudentGuardianLink[];
   status: 'active' | 'transferred';
   /** False once removed from the roll — drives the "Ativar" action. */

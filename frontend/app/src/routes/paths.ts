@@ -16,6 +16,7 @@ export default {
   team: `/${rootPaths.peopleRoot}/equipe`,
 
   collaborators: `/${rootPaths.academicsRoot}/colaboradores`,
+  lessons: `/${rootPaths.academicsRoot}/aulas`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,
   subjects: `/${rootPaths.academicsRoot}/materias`,
   jobPositions: `/${rootPaths.academicsRoot}/cargos`,

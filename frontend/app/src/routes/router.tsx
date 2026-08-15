@@ -24,6 +24,7 @@ const Guardians = lazy(() => import('pages/people/Guardians'));
 const Team = lazy(() => import('pages/people/Team'));
 const Students = lazy(() => import('pages/people/Students'));
 const Collaborators = lazy(() => import('pages/academics/Collaborators'));
+const Lessons = lazy(() => import('pages/academics/Lessons'));
 const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
 const Subjects = lazy(() => import('pages/academics/Subjects'));
 const JobPositions = lazy(() => import('pages/academics/JobPositions'));
@@ -74,6 +75,12 @@ const router = createBrowserRouter(
             element: <Collaborators />,
           },
           {
+            path: paths.lessons,
+            element: <Lessons />,
+          },
+          {
+            // Kept at its own address though it left the menu: it is a tab inside Aulas now, and
+            // an existing link to a class listing should still land somewhere.
             path: paths.schoolClasses,
             element: <SchoolClasses />,
           },

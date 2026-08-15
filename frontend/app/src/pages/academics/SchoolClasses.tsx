@@ -17,13 +17,28 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
-import { DataTable, EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
+import {
+  ConfirmDialog,
+  DataTable,
+  EmptyState,
+  ErrorBanner,
+  PageHeader,
+  SearchField,
+  SectionCard,
+} from 'design-system';
+import { useSearchParams } from 'react-router';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
-import { createSchoolClass, listSchoolClasses, updateSchoolClass } from 'services/academicsApi';
+import {
+  createSchoolClass,
+  deleteSchoolClass,
+  listSchoolClasses,
+  updateSchoolClass,
+} from 'services/academicsApi';
 import { ApiError } from 'services/api';
 import { SchoolClass, SchoolClassShift } from 'types/academics';
 import { GRADE_LEVELS, GRADE_SEGMENTS, gradeLevelLabel } from 'utils/gradeLevels';
+import { useDebouncedValue } from 'utils/useDebouncedValue';
 
 const PAGE_SIZE = 25;
 
@@ -32,6 +47,11 @@ type FormField = 'name' | 'grade_level' | 'shift' | 'year';
 type FormState = Record<FormField, string>;
 
 const SHIFTS: SchoolClassShift[] = ['matutino', 'vespertino'];
+
+// Enough to cover a cohort already recorded for next year and the ones just past. Derived from the
+// clock rather than fixed, so the list does not go stale on its own.
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = [CURRENT_YEAR + 1, CURRENT_YEAR, CURRENT_YEAR - 1, CURRENT_YEAR - 2];
 
 // A school that runs one group per grade calls it "A", so the letter starts filled in and the
 // morning is preselected — the two answers most cohorts would give anyway.
@@ -43,7 +63,11 @@ const emptyForm = (): FormState => ({
 });
 
 const renderGrade = ({ value }: GridRenderCellParams<SchoolClass, string>) => (
-  <Typography variant="body2">{gradeLevelLabel(value)}</Typography>
+  // One line, whatever the segment is called. Left to wrap, the longer Fundamental labels made
+  // their rows taller than the Infantil ones and the listing lost its rhythm.
+  <Typography variant="body2" noWrap title={gradeLevelLabel(value)}>
+    {gradeLevelLabel(value)}
+  </Typography>
 );
 
 /** The subjects taught in the cohort — derived from its teaching assignments. */
@@ -55,7 +79,16 @@ const renderSubjects =
         {noneLabel}
       </Typography>
     ) : (
-      <Stack direction="row" gap={0.75} flexWrap="wrap" alignItems="center" py={1}>
+      // One line, like every other cell: chips left to wrap made a class with four subjects twice
+      // the height of one with a single subject. The full list is on the cell's title for anything
+      // that does not fit.
+      <Stack
+        direction="row"
+        gap={0.75}
+        alignItems="center"
+        sx={{ flexWrap: 'nowrap', overflow: 'hidden' }}
+        title={row.subjects.map((subject) => subject.name).join(', ')}
+      >
         {row.subjects.map((subject) => (
           <Chip key={subject.id} size="small" variant="outlined" label={subject.name} />
         ))}
@@ -72,6 +105,16 @@ const SchoolClasses = () => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // The filters live in the URL so a narrowed listing survives a reload and can be linked to.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q') ?? '';
+  const gradeFilter = searchParams.get('grade_level') ?? '';
+  const shiftFilter = searchParams.get('shift') ?? '';
+  const yearFilter = searchParams.get('year') ?? '';
+  // The API does the filtering, so the term is debounced rather than sent per keystroke.
+  const debouncedSearch = useDebouncedValue(search);
+  const [pendingDelete, setPendingDelete] = useState<SchoolClass | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SchoolClass | null>(null);
@@ -89,7 +132,13 @@ const SchoolClasses = () => {
     setError('');
 
     try {
-      const response = await listSchoolClasses(schoolId, page + 1);
+      const response = await listSchoolClasses(schoolId, {
+        page: page + 1,
+        q: debouncedSearch,
+        grade_level: gradeFilter,
+        shift: shiftFilter,
+        year: yearFilter,
+      });
       setClasses(response.data);
       setTotal(response.meta.total);
     } catch (err) {
@@ -99,11 +148,56 @@ const SchoolClasses = () => {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, t]);
+  }, [schoolId, page, debouncedSearch, gradeFilter, shiftFilter, yearFilter, t]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // One writer for every filter, so a change always resets the page along with it: a narrower
+  // result rarely has the page the user was on.
+  const setFilter = (key: string, value: string) => {
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (value) {
+          next.set(key, value);
+        } else {
+          next.delete(key);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+    setPage(0);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!schoolId || !pendingDelete) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await deleteSchoolClass(schoolId, pendingDelete.id);
+      setPendingDelete(null);
+
+      // Stepping back off a page that just lost its only row keeps the grid from showing empty.
+      if (classes.length === 1 && page > 0) {
+        setPage(page - 1);
+      } else {
+        load();
+      }
+    } catch (err) {
+      // The API refuses a cohort that still has students, and says so — show that rather than a
+      // generic failure, since it names what the school has to do first.
+      setError(err instanceof ApiError ? err.message : t('classes.deleteError'));
+      setPendingDelete(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const openForm = (schoolClass: SchoolClass | null) => {
     setEditing(schoolClass);
@@ -217,7 +311,7 @@ const SchoolClasses = () => {
       {
         field: 'actions',
         headerName: t('common.actions'),
-        width: 80,
+        width: 120,
         sortable: false,
         filterable: false,
         align: 'right',
@@ -231,6 +325,15 @@ const SchoolClasses = () => {
                 onClick={() => openForm(row)}
               >
                 <IconifyIcon icon="mingcute:edit-2-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('common.delete')}>
+              <IconButton
+                size="small"
+                aria-label={t('classes.deleteAria', { name: row.name })}
+                onClick={() => setPendingDelete(row)}
+              >
+                <IconifyIcon icon="mingcute:delete-2-line" />
               </IconButton>
             </Tooltip>
           </Stack>
@@ -260,9 +363,72 @@ const SchoolClasses = () => {
       <PageHeader
         title={t('classes.title')}
         actions={
-          <Button variant="contained" size="small" onClick={() => openForm(null)}>
-            {t('classes.new')}
-          </Button>
+          <>
+            <SearchField
+              value={search}
+              onChange={(e) => setFilter('q', e.target.value)}
+              placeholder={t('classes.searchPlaceholder')}
+              ariaLabel={t('classes.searchAria')}
+              sx={{ width: 180 }}
+            />
+            <TextField
+              id="classes-filter-grade"
+              label={t('common.grade')}
+              value={gradeFilter}
+              onChange={(e) => setFilter('grade_level', e.target.value)}
+              variant="filled"
+              size="small"
+              select
+              sx={{ width: 200 }}
+            >
+              <MenuItem value="">{t('common.all')}</MenuItem>
+              {GRADE_SEGMENTS.flatMap((segment) => [
+                <ListSubheader key={segment}>{segment}</ListSubheader>,
+                ...GRADE_LEVELS.filter((grade) => grade.segment === segment).map((grade) => (
+                  <MenuItem key={grade.value} value={grade.value}>
+                    {grade.label}
+                  </MenuItem>
+                )),
+              ])}
+            </TextField>
+            <TextField
+              id="classes-filter-shift"
+              label={t('common.shift')}
+              value={shiftFilter}
+              onChange={(e) => setFilter('shift', e.target.value)}
+              variant="filled"
+              size="small"
+              select
+              sx={{ width: 140 }}
+            >
+              <MenuItem value="">{t('common.all')}</MenuItem>
+              {SHIFTS.map((shift) => (
+                <MenuItem key={shift} value={shift}>
+                  {t(`common.shift.${shift}`)}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="classes-filter-year"
+              label={t('common.year')}
+              value={yearFilter}
+              onChange={(e) => setFilter('year', e.target.value)}
+              variant="filled"
+              size="small"
+              select
+              sx={{ width: 120 }}
+            >
+              <MenuItem value="">{t('common.all')}</MenuItem>
+              {YEAR_OPTIONS.map((year) => (
+                <MenuItem key={year} value={String(year)}>
+                  {year}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Button variant="contained" size="small" onClick={() => openForm(null)}>
+              {t('classes.new')}
+            </Button>
+          </>
         }
       />
 
@@ -286,7 +452,6 @@ const SchoolClasses = () => {
               columns={columns}
               loading={loading}
               disableRowSelectionOnClick
-              getRowHeight={() => 'auto'}
               paginationMode="server"
               rowCount={total}
               pageSizeOptions={[PAGE_SIZE]}
@@ -412,6 +577,20 @@ const SchoolClasses = () => {
           </DialogActions>
         </Stack>
       </Dialog>
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title={t('classes.deleteTitle')}
+        message={t('classes.deleteMessage', {
+          grade: gradeLevelLabel(pendingDelete?.grade_level),
+          name: pendingDelete?.name ?? '',
+        })}
+        confirmLabel={deleting ? t('common.deleting') : t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </Stack>
   );
 };

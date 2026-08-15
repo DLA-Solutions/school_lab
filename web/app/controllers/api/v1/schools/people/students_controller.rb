@@ -9,7 +9,7 @@ module Api
             authorize Student
 
             students = by_activation(policy_scope(Student))
-                       .includes(:school_class, student_guardians: :guardian)
+                       .includes(:school_class, :contracts, student_guardians: :guardian)
                        .search(params[:q])
                        .order(:name)
             students = filter_by_guardian(students)

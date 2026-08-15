@@ -149,6 +149,35 @@ RSpec.describe Contracts::FillTemplateService do
     end
   end
 
+  # The file is uploaded to Autentique as HTML and converted there, so how it is set is decided
+  # here — there is no later chance to lay the document out.
+  describe "how the document is set" do
+    before { link(mother, "mother") }
+
+    it "justifies the body text" do
+      html = render_with("<p>Cláusula primeira.</p>")
+
+      expect(html).to match(/\.contract p,\s*\.contract li \{[^}]*text-align: justify/m)
+    end
+
+    it "hyphenates, so justification does not open rivers of white space" do
+      expect(render_with("<p>x</p>")).to include("hyphens: auto")
+    end
+
+    # Without a language the browser cannot break Portuguese words correctly.
+    it "declares the document language" do
+      expect(render_with("<p>x</p>")).to include('lang="pt-BR"')
+    end
+
+    # Centring is what makes a heading read as a heading, and a signature line as a place to sign.
+    it "leaves headings centred and signature lines ranged left" do
+      html = render_with("<h1>Contrato</h1>{{responsaveis.assinaturas}}")
+
+      expect(html).to match(/h1 \{[^}]*text-align: center/)
+      expect(html).to match(/\.signature \{[^}]*text-align: left/)
+    end
+  end
+
   describe "the built-in template" do
     it "carries a signing line for every party" do
       expect(ContractTemplate.default_body_html).to include("{{responsaveis.assinaturas}}")

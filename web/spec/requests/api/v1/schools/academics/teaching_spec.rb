@@ -35,6 +35,25 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
     end
   end
 
+  describe "subjects search" do
+    it "finds a subject by part of its name" do
+      create(:subject, school: school, name: "Matemática")
+      create(:subject, school: school, name: "História")
+
+      get "#{base}/subjects?q=mat", headers: headers
+
+      expect(response.parsed_body["data"].map { |row| row["name"] }).to eq([ "Matemática" ])
+    end
+
+    it "returns everything for a blank term" do
+      create(:subject, school: school, name: "Matemática")
+
+      get "#{base}/subjects?q=", headers: headers
+
+      expect(response.parsed_body["data"].size).to eq(1)
+    end
+  end
+
   describe "school classes" do
     it "creates a cohort" do
       post "#{base}/school_classes",
@@ -58,15 +77,63 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
       expect(response.parsed_body["data"]).to include("name" => "A", "shift" => "matutino")
     end
 
-    # Students, teaching assignments and signed contracts all point at a cohort, so there is no
-    # endpoint to delete one at all — not a permission that could be granted later.
-    it "offers no way to delete a cohort" do
+    it "discards an empty cohort" do
       school_class = create(:school_class, school: school)
 
       delete "#{base}/school_classes/#{school_class.id}", headers: headers
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:no_content)
+      expect(school_class.reload).to be_discarded
+    end
+
+    # Deleting nullifies `school_class_id` on everyone in it, and a student without one fails
+    # their own validation — the children would be left unattached.
+    it "refuses to delete a cohort that still has students" do
+      school_class = create(:school_class, school: school)
+      create(:student, school: school, school_class: school_class)
+
+      delete "#{base}/school_classes/#{school_class.id}", headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
       expect(school_class.reload).to be_kept
+    end
+
+    describe "narrowing the listing" do
+      before do
+        create(:school_class, school: school, name: "A", grade_level: "fundamental_i_5",
+                              shift: "matutino", year: 2026)
+        create(:school_class, school: school, name: "B", grade_level: "fundamental_i_5",
+                              shift: "vespertino", year: 2026)
+        create(:school_class, school: school, name: "A", grade_level: "fundamental_ii_7",
+                              shift: "matutino", year: 2025)
+      end
+
+      def listed(query)
+        get "#{base}/school_classes?#{query}", headers: headers
+        response.parsed_body["data"].map { |row| [ row["grade_level"], row["shift"], row["name"] ] }
+      end
+
+      it "finds a cohort by its letter, in any case" do
+        expect(listed("q=b")).to eq([ [ "fundamental_i_5", "vespertino", "B" ] ])
+      end
+
+      it "narrows by grade" do
+        expect(listed("grade_level=fundamental_ii_7").map(&:first).uniq)
+          .to eq([ "fundamental_ii_7" ])
+      end
+
+      it "narrows by shift" do
+        expect(listed("shift=vespertino").map { |row| row[1] }.uniq).to eq([ "vespertino" ])
+      end
+
+      it "narrows by year" do
+        expect(listed("year=2025").size).to eq(1)
+      end
+
+      it "combines the filters" do
+        expect(listed("year=2026&shift=matutino&grade_level=fundamental_i_5&q=a"))
+          .to eq([ [ "fundamental_i_5", "matutino", "A" ] ])
+      end
     end
 
     it "rejects a second cohort spelled in another case" do
@@ -243,5 +310,76 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
     get "#{base}/teachers", headers: auth_headers_for(guardian_user)
 
     expect(response).to have_http_status(:forbidden)
+  end
+
+  # "Aulas": every lesson in the school as one row each — a teacher, a subject, and the cohort.
+  describe "listing the lessons" do
+    let!(:fifth_a) do
+      create(:school_class, school: school, name: "A", grade_level: "fundamental_i_5",
+                            shift: "matutino", year: 2026)
+    end
+    let!(:seventh_b) do
+      create(:school_class, school: school, name: "B", grade_level: "fundamental_ii_7",
+                            shift: "vespertino", year: 2025)
+    end
+    let!(:maths) { create(:subject, school: school, name: "Matemática") }
+    let!(:science) { create(:subject, school: school, name: "Ciências") }
+    let!(:carla) { create(:teacher, school: school, name: "Carla Nogueira") }
+    let!(:bruno) { create(:teacher, school: school, name: "Bruno Alves") }
+
+    before do
+      create(:teaching_assignment, school: school, teacher: carla, school_class: fifth_a,
+                                   subject: maths)
+      create(:teaching_assignment, school: school, teacher: carla, school_class: fifth_a,
+                                   subject: science)
+      create(:teaching_assignment, school: school, teacher: bruno, school_class: seventh_b,
+                                   subject: maths)
+    end
+
+    def rows(query = "")
+      get "#{base}/teaching_assignments?#{query}", headers: headers
+      response.parsed_body["data"]
+    end
+
+    it "gives a row per teacher, subject and cohort" do
+      expect(rows.size).to eq(3)
+      expect(rows.first).to include("teacher_name", "subject_name", "school_class")
+    end
+
+    # The letter alone repeats in every grade and both shifts, so the row names the cohort in full.
+    it "names the cohort the way the rest of the product does" do
+      row = rows.find { |r| r["subject_name"] == "Ciências" }
+
+      expect(row.dig("school_class", "label"))
+        .to eq("Ensino Fundamental I — 5º ano A · Matutino — 2026")
+    end
+
+    it "finds every lesson of one teacher by name" do
+      expect(rows("q=carla").map { |r| r["subject_name"] }).to match_array(%w[Matemática Ciências])
+    end
+
+    it "finds a subject by name, across teachers" do
+      expect(rows("q=#{CGI.escape('Matemática')}").map { |r| r["teacher_name"] })
+        .to match_array([ "Carla Nogueira", "Bruno Alves" ])
+    end
+
+    it "narrows to one cohort" do
+      expect(rows("school_class_id=#{seventh_b.id}").map { |r| r["teacher_name"] })
+        .to eq([ "Bruno Alves" ])
+    end
+
+    it "narrows to one subject" do
+      expect(rows("subject_id=#{science.id}").size).to eq(1)
+    end
+
+    it "narrows to one year" do
+      expect(rows("year=2025").map { |r| r["teacher_name"] }).to eq([ "Bruno Alves" ])
+    end
+
+    it "leaves a removed assignment out" do
+      TeachingAssignment.last.discard
+
+      expect(rows.size).to eq(2)
+    end
   end
 end

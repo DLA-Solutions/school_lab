@@ -220,7 +220,7 @@ describe('GuardianContractsDialog', () => {
 
     await user.click(screen.getByRole('tab', { name: /aguardando assinatura/i }));
 
-    expect(await screen.findByRole('button', { name: /marcar assinado/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /pré-visualizar/i })).toBeInTheDocument();
     expect(requested).toContain('pending_signature');
   });
 
@@ -314,7 +314,7 @@ describe('GuardianContractsDialog', () => {
         'true',
       ),
     );
-    expect(await screen.findByRole('button', { name: /marcar assinado/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /pré-visualizar/i })).toBeInTheDocument();
   });
 
   // The amount follows the plan's full price and the band granted, so it is explainable rather
@@ -517,27 +517,6 @@ describe('GuardianContractsDialog', () => {
     await waitFor(() => expect(resent).toBe(true));
   });
 
-  it('records a returned contract as signed', async () => {
-    authenticate();
-    stubFormOptions();
-
-    let signedId: number | null = null;
-    server.use(
-      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([pendingContract]))),
-      http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/sign`), () => {
-        signedId = pendingContract.id;
-        return HttpResponse.json({ data: { ...pendingContract, signature_status: 'signed' } });
-      }),
-    );
-
-    renderDialog();
-
-    await user.click(await screen.findByRole('button', { name: /marcar assinado/i }));
-
-    await waitFor(() => expect(signedId).toBe(pendingContract.id));
-  });
-
-  // Without a linked child there is nothing to contract, and the API would reject student_id.
   it('blocks sending when the guardian has no linked children', async () => {
     authenticate();
     server.use(
