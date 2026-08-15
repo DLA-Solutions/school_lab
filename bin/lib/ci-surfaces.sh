@@ -77,10 +77,10 @@ ci_surfaces_from_changed() {
 $changed
 EOF
 
-  [ "$web" -eq 1 ] && printf 'web\n'
-  [ "$site" -eq 1 ] && printf 'site\n'
-  [ "$frontend" -eq 1 ] && printf 'frontend\n'
-  [ "$backoffice" -eq 1 ] && printf 'backoffice\n'
+  if [ "$web" -eq 1 ]; then printf 'web\n'; fi
+  if [ "$site" -eq 1 ]; then printf 'site\n'; fi
+  if [ "$frontend" -eq 1 ]; then printf 'frontend\n'; fi
+  if [ "$backoffice" -eq 1 ]; then printf 'backoffice\n'; fi
 }
 
 ci_detect_surfaces() {
