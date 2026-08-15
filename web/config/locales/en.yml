@@ -16,6 +16,15 @@ en:
         pay_boleto: "Pay boleto"
         pix_label: "Pix copy and paste"
         footer: "If you already paid, please disregard this e-mail."
+  auth:
+    mailer:
+      password_reset:
+        subject: "Password reset — Scholar Premium"
+        greeting: "Hello,"
+        body: "We received a request to reset the password on your Scholar Premium account."
+        cta: "Choose a new password"
+        expiry: "This link is valid for 6 hours and can only be used once."
+        footer: "If this was not you, ignore this email — your current password still works."
   people:
     mailer:
       membership_invite:
@@ -27,6 +36,9 @@ en:
   api:
     errors:
       unauthorized: "Not authorized."
+      guardian_without_email: "This guardian has no email on file, and the invitation is sent by email."
+      guardian_inactive: "This guardian is inactive. Reactivate them before sending access."
+      invalid_reset_token: "This link has expired or was already used. Request a new one."
       invalid_credentials: "Invalid e-mail or password."
       invalid_invite_token: "This invite link is invalid or has expired."
       forbidden: "Access denied."

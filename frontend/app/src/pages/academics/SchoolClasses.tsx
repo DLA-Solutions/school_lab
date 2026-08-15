@@ -17,13 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
-import {
-  DataTable,
-  EmptyState,
-  ErrorBanner,
-  PageHeader,
-  SectionCard,
-} from 'design-system';
+import { DataTable, EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { createSchoolClass, listSchoolClasses, updateSchoolClass } from 'services/academicsApi';
@@ -304,7 +298,12 @@ const SchoolClasses = () => {
         )}
       </SectionCard>
 
-      <Dialog open={formOpen} onClose={saving ? undefined : () => setFormOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={formOpen}
+        onClose={saving ? undefined : () => setFormOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>{editing ? t('classes.edit') : t('classes.new')}</DialogTitle>
         <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
           <DialogContent>
@@ -413,7 +412,6 @@ const SchoolClasses = () => {
           </DialogActions>
         </Stack>
       </Dialog>
-
     </Stack>
   );
 };

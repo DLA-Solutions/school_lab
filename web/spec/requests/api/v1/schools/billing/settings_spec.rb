@@ -162,6 +162,7 @@ RSpec.describe "Api::V1::Schools::Billing::Settings", type: :request do
           {
             billing_settings: {
               early_payment_discount_percent: 5.0,
+              early_payment_discount_day: 5,
               fine_type: "percent",
               fine_rate_percent: 2.0
             }

@@ -10,6 +10,18 @@ module SchoolLab
       uri.to_s
     end
 
+    # Where the SPA collects a new password. The token travels in the query string because the
+    # link has to survive being clicked from a mail client.
+    def password_reset_url(token:)
+      uri = URI.parse("#{spa_root_url}/redefinir-senha")
+      uri.query = { token: token }.to_query
+      uri.to_s
+    end
+
+    def guardian_access_url
+      "#{spa_root_url}/acesso"
+    end
+
     def spa_root_url
       return ENV["SCHOOL_SPA_URL"].chomp("/") if ENV["SCHOOL_SPA_URL"].present?
 

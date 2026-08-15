@@ -3,6 +3,10 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -247,11 +251,22 @@ const ContractTemplatePage = () => {
       />
 
       {error && <ErrorBanner message={error} />}
-      {saved && !error && (
-        <Typography variant="body2" color="success.main">
-          Modelo salvo. Os próximos contratos enviados usarão esta versão.
-        </Typography>
-      )}
+
+      {/* A line above the editor was easy to miss on a page this long — the save is confirmed
+          where the eye already is, and stays until it is acknowledged. */}
+      <Dialog open={saved && !error} onClose={() => setSaved(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Contrato salvo com sucesso</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Os próximos contratos enviados usarão esta versão.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={() => setSaved(false)} autoFocus>
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Tabs value={tab} onChange={(_, value) => setTab(value)}>
         <Tab value="editor" label="Editor" />

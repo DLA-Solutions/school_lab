@@ -146,6 +146,7 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
     it "maps billing settings for discount and fine into the issue request" do
       billing_settings.update!(
         early_payment_discount_percent: 5.0,
+        early_payment_discount_day: 5,
         fine_type: "percent",
         fine_rate_percent: 2.0
       )

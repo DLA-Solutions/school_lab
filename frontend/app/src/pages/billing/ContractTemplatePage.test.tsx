@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server, staffMembership } from 'test/msw';
@@ -121,6 +121,26 @@ describe('ContractTemplatePage', () => {
     expect(received?.contract_template.body_html).toBe(template.body_html);
     // Where the signature lands is the provider's to decide now; the school no longer says.
     expect(received?.contract_template).not.toHaveProperty('signature_y');
+  });
+
+  // A line above the editor was easy to miss on a page this long, so the save is confirmed where
+  // the eye already is and stays until it is acknowledged.
+  it('confirms the save in a modal the user dismisses', async () => {
+    authenticate();
+    stubTemplate();
+    server.use(http.put(apiUrl(PATH), () => HttpResponse.json({ data: template })));
+
+    renderPage();
+    await waitFor(() => expect(editor()).toHaveValue(template.body_html));
+
+    await user.click(screen.getByRole('button', { name: /salvar modelo/i }));
+
+    const modal = await screen.findByRole('dialog');
+    expect(within(modal).getByText(/contrato salvo com sucesso/i)).toBeInTheDocument();
+
+    await user.click(within(modal).getByRole('button', { name: 'OK' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   // The logo cannot travel in a JSON body, so a save carrying one goes up as multipart.

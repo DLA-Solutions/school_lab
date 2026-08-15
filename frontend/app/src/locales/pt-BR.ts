@@ -378,6 +378,10 @@ const ptBR = {
   'guardians.deleteMessage':
     'Excluir {name}? Ele deixa de aparecer na listagem, mas o histórico de cobranças é preservado.',
   'guardians.deleteError': 'Não foi possível excluir o responsável. Tente novamente.',
+  'guardians.sendAccess': 'Enviar acesso ao sistema',
+  'guardians.sendAccessAria': 'Enviar acesso ao sistema para {name}',
+  'guardians.accessSent': 'Enviamos o link de acesso para {email}. Ele vale por 7 dias.',
+  'guardians.accessError': 'Não foi possível enviar o acesso. Verifique sua conexão.',
   'guardians.activateAria': 'Ativar {name}',
 
   'students.title': 'Estudantes',

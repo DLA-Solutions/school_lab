@@ -5,6 +5,33 @@
     "version": "v1"
   },
   "paths": {
+    "/api/v1/auth/access": {
+      "post": {
+        "summary": "Request access — auth",
+        "tags": [
+          "Schools"
+        ],
+        "operationId": "api_v1_auth_request_access",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "created"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/invite/accept": {
       "post": {
         "summary": "Accept invite token",
@@ -160,6 +187,33 @@
         "responses": {
           "200": {
             "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/password/reset": {
+      "post": {
+        "summary": "Reset password — auth",
+        "tags": [
+          "Schools"
+        ],
+        "operationId": "api_v1_auth_reset_password",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "created"
           },
           "401": {
             "description": "not authenticated"
@@ -2418,6 +2472,43 @@
         "responses": {
           "200": {
             "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/billing/contracts/preview_draft": {
+      "post": {
+        "summary": "Preview draft — contracts",
+        "tags": [
+          "Billing"
+        ],
+        "operationId": "api_v1_schools_billing_contracts_preview_draft",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "created"
           },
           "401": {
             "description": "not authenticated"
@@ -4715,6 +4806,51 @@
         "responses": {
           "204": {
             "description": "deleted"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/people/guardians/{id}/access": {
+      "post": {
+        "summary": "Access — guardians",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_guardians_access",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "created"
           },
           "401": {
             "description": "not authenticated"

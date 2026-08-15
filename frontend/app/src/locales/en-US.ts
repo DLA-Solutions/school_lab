@@ -376,6 +376,10 @@ const enUS: Messages = {
   'guardians.deleteMessage':
     'Delete {name}? They will no longer appear in the list, but charge history is preserved.',
   'guardians.deleteError': 'Could not delete the guardian. Try again.',
+  'guardians.sendAccess': 'Send system access',
+  'guardians.sendAccessAria': 'Send system access to {name}',
+  'guardians.accessSent': 'We sent the access link to {email}. It is valid for 7 days.',
+  'guardians.accessError': 'Could not send access. Check your connection.',
   'guardians.activateAria': 'Activate {name}',
 
   'students.title': 'Students',

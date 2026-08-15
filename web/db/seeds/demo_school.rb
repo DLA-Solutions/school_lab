@@ -6,7 +6,7 @@
 # Enable on staging with SEED_DEMO_DATA=true (see config/deploy.staging.yml).
 # Tune volume with SEED_STUDENT_COUNT (50–100, default 75).
 #
-# Credentials (password for all: password123):
+# Credentials (password for all: Password123!):
 #   Backoffice:  backoffice@demo.schoollab.local
 #   Director:    admin@demo.schoollab.local
 #   Secretary:   secretary@demo.schoollab.local
@@ -22,7 +22,7 @@ module DemoSchool
   BACKOFFICE_EMAIL = "backoffice@demo.schoollab.local"
   COORDINATOR_EMAIL = "coordination@demo.schoollab.local"
   TEACHER_EMAIL = "teacher@demo.schoollab.local"
-  PASSWORD = "password123"
+  PASSWORD = "Password123!"
   DEMO_CHARGE_PERIOD = Date.new(2026, 8, 1)
 
   LOGGED_IN_GUARDIAN_EMAILS = [

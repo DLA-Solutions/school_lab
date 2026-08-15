@@ -19,6 +19,10 @@ Rails.application.routes.draw do
         post "password", to: "auth#password"
         put "password", to: "auth#password"
         post "invite/accept", to: "auth#invite_accept"
+        # Completing a reset is necessarily unauthenticated — whoever is doing it cannot sign in.
+        post "password/reset", to: "auth#reset_password"
+        # A guardian asking for their own way in, by the CPF the school registered them under.
+        post "access", to: "auth#request_access"
       end
 
       get "me", to: "me#show"
@@ -46,6 +50,7 @@ Rails.application.routes.draw do
             resources :guardians do
               member do
                 post :activate
+                post :access
               end
             end
             resources :students do

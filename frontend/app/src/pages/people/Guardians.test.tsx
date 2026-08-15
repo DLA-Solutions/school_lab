@@ -168,3 +168,55 @@ describe('Guardians page search', () => {
     expect(screen.getByText(/nada encontrado para "Ninguém"/i)).toBeInTheDocument();
   });
 });
+
+// Gives the family a way in: an invitation if they have never set a password, a reset if they have.
+// The API answers the same either way, so the screen only promises that a link was sent.
+describe('Guardians page access', () => {
+  it('sends system access to a guardian', async () => {
+    setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
+    recordQueries();
+
+    let called = 0;
+    server.use(
+      http.post(apiUrl(`${GUARDIANS_PATH}/:id/access`), () => {
+        called += 1;
+        return HttpResponse.json({ data: maria });
+      }),
+    );
+
+    renderPage();
+    await screen.findByText('Maria Silva');
+
+    await user.click(
+      screen.getByRole('button', { name: /enviar acesso ao sistema para maria silva/i }),
+    );
+
+    await waitFor(() => expect(called).toBe(1));
+    expect(await screen.findByText(/enviamos o link de acesso/i)).toBeInTheDocument();
+  });
+});
+
+describe('Guardians page row actions', () => {
+  // All five have to be reachable on an active row. They were never removed — the actions column
+  // was still sized for four, so the two on the left were clipped out of the cell.
+  it('offers every action on an active guardian', async () => {
+    setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
+    recordQueries();
+
+    renderPage();
+    await screen.findByText('Maria Silva');
+
+    const actions = [
+      /enviar acesso ao sistema para maria silva/i,
+      /contratos maria silva/i,
+      /documentos pessoais maria silva/i,
+      /editar maria silva/i,
+      /excluir maria silva/i,
+    ];
+
+    actions.forEach((name) => {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    });
+  });
+});
+

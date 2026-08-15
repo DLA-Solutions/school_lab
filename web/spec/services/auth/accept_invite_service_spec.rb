@@ -12,7 +12,7 @@ RSpec.describe Auth::AcceptInviteService do
   end
 
   let(:school) { create(:school) }
-  let(:password) { "new-password-123" }
+  let(:password) { "NovaSenha123!" }
   let(:name) { "Maria Silva" }
   let(:raw_token) { SecureRandom.urlsafe_base64(32) }
   let(:membership) { create(:membership, :invited, school: school) }
@@ -42,7 +42,7 @@ RSpec.describe Auth::AcceptInviteService do
 
   context "when the invitee already has a password" do
     before do
-      membership.user.update!(password: "existing-password-123", password_confirmation: "existing-password-123")
+      membership.user.update!(password: "SenhaAtual123!", password_confirmation: "SenhaAtual123!")
     end
 
     it "accepts without name" do

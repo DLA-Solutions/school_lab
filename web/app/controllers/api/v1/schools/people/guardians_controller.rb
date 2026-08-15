@@ -65,6 +65,19 @@ module Api
             end
           end
 
+          # Provisions whatever the guardian is missing — a user, a membership — and mails them
+          # the link that sets their password. Safe to press twice: someone who already has an
+          # account is sent a reset rather than a second invitation.
+          def access
+            record = Current.school.guardians.find(params[:id])
+            authorize record, :update?
+
+            result = ::People::SendGuardianAccessService.call(guardian: record, actor: Current.user)
+            render_service_result(result) do |data|
+              render json: { data: GuardianBlueprint.render_as_hash(data[:guardian]) }
+            end
+          end
+
           private
 
           # `active` (the default), `inactive` or `all`. Built from the school association rather
