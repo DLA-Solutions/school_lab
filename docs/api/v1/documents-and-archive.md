@@ -3,9 +3,21 @@
 > PRDs: [`docs/prds/documents-and-archive/`](../../prds/documents-and-archive/)  
 > Modeling: [`docs/modeling/008-documents-archive.md`](../../modeling/008-documents-archive.md)  
 > Baseline: [`fintech-first.md`](fintech-first.md) § Documents (superseded)  
+> Platform contract: [`platform-and-admin.md`](platform-and-admin.md) — **frozen W1 (4C.1)**  
 > Conventions: [`docs/api/README.md`](../README.md)
 
 Digital archive — extends fintech-first KYC upload to typed archive, search, audit export.
+
+---
+
+## School year context
+
+Archive search and audit export filter by school year per the frozen Platform contract
+([`platform-and-admin.md`](platform-and-admin.md) § Cross-domain contract):
+
+- `GET /archive/documents?school_year_id=:id` — filter documents linked to a year.
+- `POST /archive/exports/audit_package` — accept `school_year_id` or `student_id` scope.
+- Validate `school_year_id` belongs to route `school_id`; cross-tenant ids return `404`.
 
 ---
 

@@ -3,10 +3,27 @@
 > PRDs: [`docs/prds/billing/`](../../prds/billing/)  
 > Baseline (implemented): [`fintech-first.md`](fintech-first.md)  
 > Modeling: [`docs/modeling/001-fintech-first.md`](../../modeling/001-fintech-first.md)  
+> Platform contract: [`platform-and-admin.md`](platform-and-admin.md) — **frozen W1 (4C.1)**  
 > Conventions: [`docs/api/README.md`](../README.md)
 
 Full MVP billing domain narrative. **All routes below extend** the fintech-first partner slice;
 paths not yet in `web/` return `501` until their wave ships.
+
+---
+
+## School year context
+
+Charge generation and contract scoping align with the active school year per the frozen Platform
+contract ([`platform-and-admin.md`](platform-and-admin.md) § Cross-domain contract):
+
+- New charge generation for a cycle resolves the **active** school year via
+  `Platform::ActiveSchoolYearService` (or explicit `school_year_id` on future batch routes).
+- **Archived** years block new charge generation (`422 archived_school_year`) per BR-SY07.
+- Contracts with `enrollment_id` inherit the enrollment's `school_year_id`; legacy student-only
+  contracts without enrollment linkage remain a migration concern
+  ([`open-questions.md`](../../open-questions.md) § Legacy billing year resolution).
+- Optional `?school_year_id=` on delinquency dashboard and summary filters when multi-year views
+  ship in billing W2+.
 
 ---
 
