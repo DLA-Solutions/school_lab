@@ -14,9 +14,9 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`students-and-enrollments/`](students-and-enrollments/index.md) | Student records, guardian links, classes, enrollments (BC1 + BC2) | validated | **9** MVP `students.*` canonicals | [`005-students-enrollments`](../modeling/005-students-enrollments.md) | [`students-and-enrollments`](../api/v1/students-and-enrollments.md) |
 | [`communication/`](communication/index.md) | Messages, channels, announcements, notifications, media (BC1–BC5) | validated | **37** MVP `communication.*` canonicals (**46** total) | [`006-communication`](../modeling/006-communication.md) | [`communication`](../api/v1/communication.md) |
 | [`academic/`](academic/index.md) | Attendance, grades, report cards, diary, curriculum, periods, incidents, coordination (BC1–BC8) | validated | **22** MVP `academic.*` canonicals (**34** total) | [`007-academic`](../modeling/007-academic.md) | [`academic`](../api/v1/academic.md) |
-| [`billing/`](billing/index.md) | Charges, boletos, payments, dunning, settings, guardian portal, NFS-e scope (BC1–BC7) | validated | **32** MVP `billing.*` canonicals; partner slice **implemented** in `web/` | [`001-fintech-first`](../modeling/001-fintech-first.md) | [`billing`](../api/v1/billing.md) extends [`fintech-first`](../api/v1/fintech-first.md) |
+| [`billing/`](billing/index.md) | Charges, boletos, payments, dunning, settings, guardian portal, NFS-e scope (BC1–BC7) | validated | **32** MVP `billing.*` canonicals; partner slice **implemented** in `web/` | [`001-fintech-first`](../modeling/001-fintech-first.md) *(baseline + PRD delta)* | [`billing`](../api/v1/billing.md) extends [`fintech-first`](../api/v1/fintech-first.md) |
 | [`documents-and-archive/`](documents-and-archive/index.md) | Digital archive, audit export, signatories; retention hooks (BC1 + BC2) | validated | **5** MVP `documents.*` canonicals (**12** total) | [`008-documents-archive`](../modeling/008-documents-archive.md) | [`documents-and-archive`](../api/v1/documents-and-archive.md) |
-| [`platform-and-admin/`](platform-and-admin/index.md) | School year, backoffice ops, calendar, staff users, product access (BC1–BC5) | validated | **6** MVP `platform.*` canonicals (**13** total) | [`009-platform-admin`](../modeling/009-platform-admin.md) | [`platform-and-admin`](../api/v1/platform-and-admin.md) |
+| [`platform-and-admin/`](platform-and-admin/index.md) | School year, backoffice ops, calendar, staff users, product access (BC1–BC5) | validated | **6** MVP `platform.*` canonicals (**13** total) | [`009-platform-admin`](../modeling/009-platform-admin.md) | [`platform-and-admin`](../api/v1/platform-and-admin.md) — **W1 frozen (4C.1)** |
 
 ### Domain folder — identity & onboarding
 
@@ -127,9 +127,47 @@ Historical records and cross-cutting PRDs. **Normative billing scope** is
 
 All **7** MVP domain folders are **`validated`** (documentation-phase sign-off). Modeling
 **`005`** and **`009` Wave 1** have validated DBML/narratives and exported DERs;
-their cross-domain API narratives remain **draft**. Modeling and API narratives for
-**`006`–`008`** also remain **draft**. Layer PRDs remain **draft**; this gate does not
+their cross-domain API narratives remain **draft**. Modeling for **`006`–`008`** was draft at
+this gate; see **Phase 4B.2** below. Layer PRDs remain **draft**; this gate does not
 imply API freeze or engineering implementation.
 
-**Next:** subsequent Phase 4B modeling/API-freeze increments, then engineering waves per
-[`domain-roadmap.md`](../product/domain-roadmap.md).
+**Next:** Phase 4C — see **Phase 4B.3** below for completed modeling increments.
+
+## Phase 4B.2 gate (modeling increment — Aug 2026)
+
+Modeling **`006`** (communication) and **`007`** (academic) have validated DBML/narratives aligned
+with validated domain PRDs. Published dbdocs reflects extended `schema.dbml`. **`AbsenceRecorded`**
+event contract and NFR-001 idempotence hooks documented in 007 + `domain_outbox_events` /
+`notification_deliveries.domain_event_id`. API narratives [`communication.md`](../api/v1/communication.md)
+and [`academic.md`](../api/v1/academic.md) remain **draft**. See **Phase 4B.3** for documents
+and billing DBML delta.
+
+**Next:** **Phase 4C** — API contract freeze (modeling complete through 4B.3).
+
+## Phase 4B.3 gate (modeling increment — Aug 2026)
+
+Modeling **`008`** (documents & archive) has validated DBML/narrative aligned with validated
+domain PRDs — store, search, guardian view, audit export, signatories, retention P2 hooks, and
+cross-domain refs (enrollment contracts, academic attachments). Billing **MVP gap tables** added
+to `schema.dbml` with delta documented in [`001-fintech-first`](../modeling/001-fintech-first.md)
+appendix (`charge_types`, ad-hoc charge columns, notification policy, tiers, remittance, resend
+audit). Platform régua automation and P2 NFS-e tables remain **deferred**. Published dbdocs
+reflects extended schema. DER export: `der_008.png` *(manual dbdiagram)*. API narratives remain
+**draft**.
+
+**Next:** Phase 4C — API contract freeze per domain (`docs/api/v1/`); then engineering W1 waves.
+
+## Phase 4C.1 gate (API freeze — Platform W1 — Aug 2026)
+
+Platform BC1 school year API is **frozen** for engineering:
+
+| Item | Status |
+|------|--------|
+| Narrative | [`platform-and-admin.md`](../api/v1/platform-and-admin.md) — header `frozen (Phase 4C.1)` |
+| Scope | `school_years`, `academic_periods`, `school_holidays` + cross-domain `school_year_id` |
+| Permissions | `manage_school_settings` mutations; active staff reads |
+| Cross-domain patches | enrollments, academic, communication, billing, archive narratives |
+| Deferred | W2–W5 (calendar, backoffice, staff roster, product access) → **Phase 4C.1b** |
+
+**Next:** 4C.1b (Platform W2–W5 freeze) or parallel 4C.x freezes for other domains; then
+engineering W1 waves against frozen contracts.
