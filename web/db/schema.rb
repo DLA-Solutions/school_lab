@@ -10,10 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_15_140000) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
+
+  create_table "academic_periods", force: :cascade do |t|
+    t.string "closure_status", default: "open", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.date "ends_on", null: false
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.bigint "school_year_id", null: false
+    t.integer "sequence", null: false
+    t.date "starts_on", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_academic_periods_on_school_id"
+    t.index ["school_year_id", "sequence"], name: "index_academic_periods_on_year_sequence_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_year_id"], name: "index_academic_periods_on_school_year_id"
+    t.check_constraint "ends_on >= starts_on", name: "academic_periods_dates_valid"
+    t.exclusion_constraint "school_year_id WITH =, daterange(starts_on, ends_on, '[]'::text) WITH &&", where: "discarded_at IS NULL", using: :gist, name: "academic_periods_no_overlap_kept"
+  end
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -149,7 +168,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index ["school_id", "status"], name: "index_charges_on_school_id_and_status"
     t.index ["school_id"], name: "index_charges_on_school_id"
     t.check_constraint "discount_amount_cents >= 0", name: "charges_discount_amount_cents_non_negative"
-    t.check_constraint "kind::text = ANY (ARRAY['tuition'::character varying, 'one_off'::character varying]::text[])", name: "charges_kind_allowed"
+    t.check_constraint "kind::text = ANY (ARRAY['tuition'::character varying::text, 'one_off'::character varying::text])", name: "charges_kind_allowed"
     t.check_constraint "late_fee_amount_cents >= 0", name: "charges_late_fee_amount_cents_non_negative"
     t.check_constraint "original_amount_cents >= 0", name: "charges_original_amount_cents_non_negative"
     t.check_constraint "total_amount_cents >= 0", name: "charges_total_amount_cents_non_negative"
@@ -210,7 +229,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index ["signature_provider", "provider_document_id"], name: "index_contracts_on_provider_document", unique: true, where: "(provider_document_id IS NOT NULL)"
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
-    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying]::text[])", name: "contracts_signature_status_valid"
+    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying::text, 'signed'::character varying::text])", name: "contracts_signature_status_valid"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -421,7 +440,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.check_constraint "early_payment_discount_day IS NULL OR early_payment_discount_day >= 1 AND early_payment_discount_day <= 28", name: "school_billing_settings_early_payment_discount_day_range"
     t.check_constraint "early_payment_discount_percent IS NULL OR early_payment_discount_percent > 0::numeric AND early_payment_discount_percent <= 100::numeric", name: "school_billing_settings_early_payment_discount_percent_range"
     t.check_constraint "fine_type IS NOT NULL OR fine_rate_percent IS NULL AND fine_amount_cents IS NULL", name: "school_billing_settings_fine_off_requires_null_values"
-    t.check_constraint "fine_type IS NULL OR (fine_type::text = ANY (ARRAY['percent'::character varying, 'fixed'::character varying]::text[]))", name: "school_billing_settings_fine_type_allowed"
+    t.check_constraint "fine_type IS NULL OR (fine_type::text = ANY (ARRAY['percent'::character varying::text, 'fixed'::character varying::text]))", name: "school_billing_settings_fine_type_allowed"
     t.check_constraint "fine_type IS NULL OR fine_type::text <> 'fixed'::text OR fine_amount_cents > 0 AND fine_rate_percent IS NULL", name: "school_billing_settings_fine_fixed_shape"
     t.check_constraint "fine_type IS NULL OR fine_type::text <> 'percent'::text OR fine_rate_percent > 0::numeric AND fine_rate_percent <= 100::numeric AND fine_amount_cents IS NULL", name: "school_billing_settings_fine_percent_shape"
     t.check_constraint "interest_rate_percent IS NULL OR interest_rate_percent > 0::numeric AND interest_rate_percent <= 100::numeric", name: "school_billing_settings_interest_rate_percent_range"
@@ -441,7 +460,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index "school_id, year, grade_level, shift, lower((name)::text)", name: "index_school_classes_on_school_year_grade_shift_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["discarded_by_id"], name: "index_school_classes_on_discarded_by_id"
     t.index ["school_id"], name: "index_school_classes_on_school_id"
-    t.check_constraint "shift::text = ANY (ARRAY['matutino'::character varying, 'vespertino'::character varying]::text[])", name: "school_classes_shift_allowed"
+    t.check_constraint "shift::text = ANY (ARRAY['matutino'::character varying::text, 'vespertino'::character varying::text])", name: "school_classes_shift_allowed"
   end
 
   create_table "school_groups", force: :cascade do |t|
@@ -450,6 +469,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.string "headquarters_cnpj"
     t.string "name"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "school_holidays", force: :cascade do |t|
+    t.boolean "applies_to_attendance", default: true, null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.bigint "school_year_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_school_holidays_on_school_id"
+    t.index ["school_year_id", "date"], name: "index_school_holidays_on_year_date_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_year_id"], name: "index_school_holidays_on_school_year_id"
   end
 
   create_table "school_payment_providers", force: :cascade do |t|
@@ -503,7 +536,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index ["school_id"], name: "index_school_signature_providers_on_school_id"
     t.index ["uploaded_by_id"], name: "index_school_signature_providers_on_uploaded_by_id"
     t.index ["webhook_endpoint_token"], name: "index_school_signature_providers_on_webhook_token", unique: true
-    t.check_constraint "provider::text = ANY (ARRAY['autentique'::character varying, 'fake'::character varying]::text[])", name: "school_signature_providers_provider_allowed"
+    t.check_constraint "provider::text = ANY (ARRAY['autentique'::character varying::text, 'fake'::character varying::text])", name: "school_signature_providers_provider_allowed"
   end
 
   create_table "school_transactions", force: :cascade do |t|
@@ -522,7 +555,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index ["school_id", "occurred_on"], name: "index_school_transactions_on_school_id_and_occurred_on"
     t.index ["school_id"], name: "index_school_transactions_on_school_id"
     t.check_constraint "amount_cents >= 0", name: "school_transactions_amount_cents_non_negative"
-    t.check_constraint "kind::text = ANY (ARRAY['income'::character varying, 'expense'::character varying]::text[])", name: "school_transactions_kind_allowed"
+    t.check_constraint "kind::text = ANY (ARRAY['income'::character varying::text, 'expense'::character varying::text])", name: "school_transactions_kind_allowed"
+  end
+
+  create_table "school_years", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.date "ends_on", null: false
+    t.string "name", null: false
+    t.string "period_template", default: "trimester", null: false
+    t.bigint "school_id", null: false
+    t.date "starts_on", null: false
+    t.string "status", default: "draft", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "status"], name: "index_school_years_on_school_id_and_status"
+    t.index ["school_id"], name: "index_school_years_on_school_id"
+    t.index ["school_id"], name: "index_school_years_one_active_per_school_kept", unique: true, where: "(((status)::text = 'active'::text) AND (discarded_at IS NULL))"
+    t.check_constraint "ends_on >= starts_on", name: "school_years_dates_valid"
   end
 
   create_table "schools", force: :cascade do |t|
@@ -718,10 +767,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index ["guardian_id", "student_id"], name: "index_student_guardians_on_guardian_id_and_student_id_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["guardian_id"], name: "index_student_guardians_on_guardian_id"
     t.index ["school_id"], name: "index_student_guardians_on_school_id"
-    t.index ["student_id", "relationship"], name: "index_student_guardians_on_student_and_parent_kept", unique: true, where: "((discarded_at IS NULL) AND ((relationship)::text = ANY ((ARRAY['father'::character varying, 'mother'::character varying])::text[])))"
+    t.index ["student_id", "relationship"], name: "index_student_guardians_on_student_and_parent_kept", unique: true, where: "((discarded_at IS NULL) AND ((relationship)::text = ANY (ARRAY[('father'::character varying)::text, ('mother'::character varying)::text])))"
     t.index ["student_id"], name: "index_student_guardians_on_student_id"
     t.check_constraint "financial_percentage IS NULL OR financial_percentage >= 0::numeric AND financial_percentage <= 100::numeric", name: "student_guardians_financial_percentage_range"
-    t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying, 'mother'::character varying, 'other'::character varying]::text[])", name: "student_guardians_relationship_valid"
+    t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying::text, 'mother'::character varying::text, 'other'::character varying::text])", name: "student_guardians_relationship_valid"
   end
 
   create_table "students", force: :cascade do |t|
@@ -839,6 +888,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index ["school_id"], name: "index_webhook_events_on_school_id"
   end
 
+  add_foreign_key "academic_periods", "school_years"
+  add_foreign_key "academic_periods", "schools"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "applied_discounts", "charges"
@@ -888,6 +939,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
   add_foreign_key "school_billing_settings", "schools"
   add_foreign_key "school_classes", "schools"
   add_foreign_key "school_classes", "users", column: "discarded_by_id"
+  add_foreign_key "school_holidays", "school_years"
+  add_foreign_key "school_holidays", "schools"
   add_foreign_key "school_payment_providers", "schools"
   add_foreign_key "school_payment_providers", "users", column: "uploaded_by_id"
   add_foreign_key "school_role_templates", "schools"
@@ -895,6 +948,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
   add_foreign_key "school_signature_providers", "users", column: "uploaded_by_id"
   add_foreign_key "school_transactions", "schools"
   add_foreign_key "school_transactions", "users", column: "discarded_by_id"
+  add_foreign_key "school_years", "schools"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
   add_foreign_key "segments", "schools"
