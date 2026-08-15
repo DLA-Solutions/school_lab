@@ -13,6 +13,7 @@ import type { MessageKey } from 'locales';
 import { listTeachers } from 'services/academicsApi';
 import { listGuardians } from 'services/guardiansApi';
 import { listStudents } from 'services/studentsApi';
+import { searchableSubPages } from 'routes/sitemap';
 import { visibleSitemap } from 'utils/navigation/visibleSitemap';
 import { formatCpf } from 'utils/documentNumber';
 import { matchesTerm } from 'utils/searchTerm';
@@ -66,7 +67,8 @@ const GlobalSearch = () => {
       return [];
     }
 
-    return visibleSitemap(school)
+    // The nav plus the places that are reachable but no longer have a menu entry of their own.
+    return [...visibleSitemap(school), ...searchableSubPages]
       .filter((item) => item.path && matchesTerm(t(item.subheader as MessageKey), debouncedTerm))
       .map((item) => ({
         key: `page-${item.id}`,

@@ -52,6 +52,14 @@ class Student < ApplicationRecord
     kept? && status == "active"
   end
 
+  # A place at the school is held by a signed contract, not by a row in the register. "In force"
+  # is measured against the cohort's own year rather than today's: a school working ahead on next
+  # year's enrolment is looking at that year's contracts, and the listing follows the class the
+  # child is in.
+  def contract_active?(year = school_class&.year || Date.current.year)
+    contracts.kept.signed.any? { |contract| contract_in_force?(contract, year) }
+  end
+
   # Derived from the cohort — students no longer carry a grade of their own.
   def grade_level
     school_class&.grade_level
@@ -66,6 +74,15 @@ class Student < ApplicationRecord
   end
 
   private
+
+  # A contract covers a year when it started on or before its end and has not been ended before it
+  # began. `ends_on` is absent on an open-ended agreement, which covers everything after its start.
+  def contract_in_force?(contract, year)
+    return false if contract.starts_on.present? && contract.starts_on.year > year
+    return false if contract.status == "ended" && contract.updated_at.year < year
+
+    true
+  end
 
   def normalize_cpf
     self.cpf = Cpf.normalize(cpf)

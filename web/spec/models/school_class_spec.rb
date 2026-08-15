@@ -115,10 +115,40 @@ RSpec.describe SchoolClass do
     end
   end
 
-  # Students, teaching assignments and signed contracts all point at a cohort.
+  # Deleting nullifies `school_class_id` on everyone in the cohort, and a student without one
+  # fails their own validation — the roll would be gone and the children left unattached.
   describe "deletion" do
-    it "is refused by the policy" do
-      expect(SchoolClassPolicy.new(nil, create(:school_class)).destroy?).to be(false)
+    it "allows an empty cohort to go" do
+      expect(create(:school_class)).to be_deletable
+    end
+
+    it "refuses while students are still enrolled" do
+      school_class = create(:school_class)
+      create(:student, school: school_class.school, school_class: school_class)
+
+      expect(school_class).not_to be_deletable
+    end
+
+    it "counts only the students still on the roll" do
+      school_class = create(:school_class)
+      student = create(:student, school: school_class.school, school_class: school_class)
+      student.discard
+
+      expect(school_class.reload).to be_deletable
+    end
+  end
+
+  describe "searching by name" do
+    it "matches whatever case the term was typed in" do
+      school_class = create(:school_class, name: "B")
+
+      expect(described_class.search("b")).to include(school_class)
+    end
+
+    it "returns everything for a blank term" do
+      create(:school_class)
+
+      expect(described_class.search("  ").count).to eq(described_class.count)
     end
   end
 

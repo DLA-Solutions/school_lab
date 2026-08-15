@@ -11,6 +11,7 @@ import { useSearchParams } from 'react-router';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
 import PersonDocumentsDialog from 'components/sections/documents/PersonDocumentsDialog';
+import GuardianChargesDialog from 'components/sections/people/guardians/GuardianChargesDialog';
 import GuardianContractsDialog from 'components/sections/people/guardians/GuardianContractsDialog';
 import GuardianFormDialog from 'components/sections/people/guardians/GuardianFormDialog';
 import {
@@ -83,6 +84,7 @@ const Guardians = () => {
   const [deleting, setDeleting] = useState(false);
   const [documentsFor, setDocumentsFor] = useState<Guardian | null>(null);
   const [contractsFor, setContractsFor] = useState<Guardian | null>(null);
+  const [chargesFor, setChargesFor] = useState<Guardian | null>(null);
   const [sendingAccessTo, setSendingAccessTo] = useState<number | null>(null);
   const [accessSent, setAccessSent] = useState('');
 
@@ -246,9 +248,9 @@ const Guardians = () => {
     {
       field: 'actions',
       headerName: t('common.actions'),
-      // Five buttons on an active row. Sized to fit them all: at 180 the cell clipped the two on
+      // Six buttons on an active row. Sized to fit them all: at 180 the cell clipped the ones on
       // the left, which read as the actions having disappeared.
-      width: 240,
+      width: 280,
       sortable: false,
       filterable: false,
       align: 'right',
@@ -283,6 +285,17 @@ const Guardians = () => {
                     <IconifyIcon icon="mingcute:mail-send-line" />
                   </IconButton>
                 </span>
+              </Tooltip>
+              {/* "Is this family up to date" — the main charges listing answers it badly, being
+                  ordered by date across every family at once. */}
+              <Tooltip title={t('guardians.charges.tooltip')}>
+                <IconButton
+                  size="small"
+                  aria-label={t('guardians.charges.aria', { name: row.name })}
+                  onClick={() => setChargesFor(row)}
+                >
+                  <IconifyIcon icon="mingcute:receive-money-line" />
+                </IconButton>
               </Tooltip>
               <Tooltip title={t('common.contracts')}>
                 <IconButton
@@ -426,6 +439,15 @@ const Guardians = () => {
       />
 
       {/* Mounted only while open so each guardian's dialog fetches its own data on mount. */}
+      {chargesFor && (
+        <GuardianChargesDialog
+          open
+          schoolId={school.school_id}
+          guardian={chargesFor}
+          onClose={() => setChargesFor(null)}
+        />
+      )}
+
       {contractsFor && (
         <GuardianContractsDialog
           open

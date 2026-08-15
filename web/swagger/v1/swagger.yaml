@@ -1152,6 +1152,49 @@
             "bearer_auth": []
           }
         ]
+      },
+      "delete": {
+        "summary": "Delete school classes",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_school_classes_destroy",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "deleted"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
       }
     },
     "/api/v1/schools/{school_id}/academics/subjects": {
@@ -1632,6 +1675,43 @@
         "responses": {
           "201": {
             "description": "created"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/teaching_assignments": {
+      "get": {
+        "summary": "List teaching assignments",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_teaching_assignments_index",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
           },
           "401": {
             "description": "not authenticated"

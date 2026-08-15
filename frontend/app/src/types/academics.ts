@@ -69,6 +69,26 @@ export interface Teacher {
   classes: TeacherClass[];
 }
 
+/** Mirrors `TeachingAssignmentBlueprint` — one lesson: a teacher, a subject and a cohort. */
+export interface TeachingAssignment {
+  id: number;
+  school_id: number;
+  teacher_id: number;
+  school_class_id: number;
+  subject_id: number;
+  teacher_name: string;
+  subject_name: string;
+  school_class: {
+    id: number;
+    name: string;
+    grade_level: string;
+    shift: SchoolClassShift;
+    year: number;
+    /** The cohort named in full, worded by the API so every screen says it the same way. */
+    label: string;
+  };
+}
+
 export interface TeacherPayload {
   name: string;
   cpf: string;

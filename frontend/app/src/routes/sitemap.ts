@@ -56,16 +56,11 @@ const sitemap: MenuItem[] = [
     active: true,
   },
   {
-    id: 'school-classes',
-    subheader: 'nav.classes',
-    path: paths.schoolClasses,
-    icon: 'mingcute:group-2-line',
-    active: true,
-  },
-  {
-    id: 'subjects',
-    subheader: 'nav.subjects',
-    path: paths.subjects,
+    // Turmas and Matérias are tabs inside this page: they are what a lesson is made of, and three
+    // separate menu entries made an obvious sequence read as three unrelated screens.
+    id: 'lessons',
+    subheader: 'nav.lessons',
+    path: paths.lessons,
     icon: 'mingcute:book-5-line',
     active: true,
   },
@@ -107,6 +102,26 @@ const sitemap: MenuItem[] = [
     icon: 'mingcute:document-2-line',
     active: true,
     requiredPermission: 'manage_billing',
+  },
+];
+
+/**
+ * Reachable places that are not menu entries.
+ *
+ * Turmas and Matérias moved inside Aulas as tabs, which took them out of the nav — but someone
+ * typing "Turmas" into the search still means to go there, and a search that stopped finding them
+ * would read as the pages having been removed.
+ */
+export const searchableSubPages: MenuItem[] = [
+  {
+    id: 'school-classes',
+    subheader: 'nav.classes',
+    path: `${paths.lessons}?tab=classes`,
+  },
+  {
+    id: 'subjects',
+    subheader: 'nav.subjects',
+    path: `${paths.lessons}?tab=subjects`,
   },
 ];
 

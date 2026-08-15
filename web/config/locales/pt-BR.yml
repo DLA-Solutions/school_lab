@@ -39,6 +39,7 @@ pt-BR:
       unauthorized: "Não autorizado."
       guardian_without_email: "Este responsável não tem e-mail cadastrado, e o convite é enviado por e-mail."
       guardian_inactive: "Este responsável está inativo. Reative-o antes de enviar o acesso."
+      school_class_has_students: "Esta turma ainda tem estudantes matriculados. Mova-os para outra turma antes de excluí-la."
       invalid_reset_token: "Este link expirou ou já foi usado. Peça um novo."
       invalid_credentials: "E-mail ou senha inválidos."
       invalid_invite_token: "Este convite é inválido ou expirou."

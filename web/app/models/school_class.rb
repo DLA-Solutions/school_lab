@@ -47,6 +47,22 @@ class SchoolClass < ApplicationRecord
 
   scope :for_year, ->(year) { where(year: year) }
   scope :for_shift, ->(shift) { where(shift: shift) }
+  scope :for_grade_level, ->(grade) { where(grade_level: grade) }
+
+  # By the cohort's own letter. Names are folded on the way in, so the term is folded to match —
+  # someone typing "a" is looking for the cohort stored as "A".
+  scope :search, lambda { |term|
+    next all if term.blank?
+
+    where("school_classes.name ILIKE ?", "%#{sanitize_sql_like(term.to_s.strip)}%")
+  }
+
+  # Deleting a cohort nullifies the `school_class_id` of everyone in it, and a student without one
+  # fails their own validation — the roll would be gone and the children left unattached. A cohort
+  # that has emptied out can go; one with students has to be emptied first.
+  def deletable?
+    students.kept.empty?
+  end
 
   ROMAN = %w[I II III IV V].freeze
 
