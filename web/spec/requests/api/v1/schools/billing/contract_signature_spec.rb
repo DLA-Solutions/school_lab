@@ -15,48 +15,92 @@ RSpec.describe "Contract signature lifecycle", type: :request do
   let(:base_path) { "/api/v1/schools/#{school.id}/billing/contracts" }
 
   describe "POST /billing/contracts" do
-    # The send is a separate step now: the contract is saved first so a provider outage leaves
-    # something to retry rather than nothing.
-    it "creates the contract awaiting signature, before anything is dispatched" do
-      post base_path,
-           params: {
-             contract: {
-               student_id: student.id,
-               billing_plan_id: billing_plan.id,
-               negotiated_amount_cents: 85_000,
-               due_day: 10
-             }
-           },
-           headers: headers,
-           as: :json
-
-      expect(response).to have_http_status(:created)
-
-      body = response.parsed_body
-      expect(body.dig("data", "signature_status")).to eq("pending_signature")
-      expect(body.dig("data", "sent_at")).to be_nil
-      expect(body.dig("data", "sent_to_provider")).to be(false)
-      expect(body.dig("data", "signed_at")).to be_nil
-      # Saves the list a lookup per row just to name the child.
-      expect(body.dig("data", "student_name")).to eq(student.name)
+    let(:attributes) do
+      {
+        student_id: student.id,
+        billing_plan_id: billing_plan.id,
+        negotiated_amount_cents: 85_000,
+        due_day: 10
+      }
     end
 
-    # A contract the family has not returned must not be presented as agreed, whatever the
-    # caller sends.
-    it "ignores a signature status supplied by the client" do
-      post base_path,
-           params: {
-             contract: {
-               student_id: student.id,
-               billing_plan_id: billing_plan.id,
-               signature_status: "signed"
-             }
-           },
+    def create_contract(contract: attributes)
+      post base_path, params: { contract: contract }, headers: headers, as: :json
+    end
+
+    context "with the school's signature provider configured" do
+      let!(:config) { create(:school_signature_provider, school: school) }
+
+      # Creating and sending are one step: a contract exists once the family has it.
+      it "records the contract and dispatches it to the family" do
+        create_contract
+
+        expect(response).to have_http_status(:created)
+
+        body = response.parsed_body
+        expect(body.dig("data", "signature_status")).to eq("pending_signature")
+        expect(body.dig("data", "sent_at")).to be_present
+        expect(body.dig("data", "sent_to_provider")).to be(true)
+        expect(body.dig("data", "signed_at")).to be_nil
+        # Saves the list a lookup per row just to name the child.
+        expect(body.dig("data", "student_name")).to eq(student.name)
+      end
+
+      # A contract the family has not returned must not be presented as agreed, whatever the
+      # caller sends.
+      it "ignores a signature status supplied by the client" do
+        create_contract(contract: attributes.merge(signature_status: "signed"))
+
+        expect(response).to have_http_status(:created)
+        expect(response.parsed_body.dig("data", "signature_status")).to eq("pending_signature")
+      end
+    end
+
+    # Nothing reached the family, so nothing goes on the books — otherwise every failed attempt
+    # would sit in the listing as an agreement nobody received.
+    it "keeps no contract when the send fails" do
+      expect { create_contract }.not_to change(Contract, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("error", "details", "base").first)
+        .to include("assinatura")
+    end
+  end
+
+  # Reading what is about to be sent, from a form that was never saved.
+  describe "POST /billing/contracts/preview_draft" do
+    let!(:template) do
+      ContractTemplate.create!(school: school, body_html: "<h1>Contrato de {{ aluno.nome }}</h1>")
+    end
+
+    it "renders the agreement without recording anything" do
+      expect do
+        post "#{base_path}/preview_draft",
+             params: {
+               contract: {
+                 student_id: student.id,
+                 billing_plan_id: billing_plan.id,
+                 negotiated_amount_cents: 85_000,
+                 due_day: 10
+               }
+             },
+             headers: headers,
+             as: :json
+      end.not_to change(Contract, :count)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body.dig("data", "html")).to include(student.name)
+      expect(response.parsed_body.dig("data", "filename")).to include(student.name.parameterize)
+    end
+
+    it "reports what the form is missing instead of rendering" do
+      post "#{base_path}/preview_draft",
+           params: { contract: { student_id: student.id, negotiated_amount_cents: -1 } },
            headers: headers,
            as: :json
 
-      expect(response).to have_http_status(:created)
-      expect(response.parsed_body.dig("data", "signature_status")).to eq("pending_signature")
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("error", "details")).to include("billing_plan")
     end
   end
 

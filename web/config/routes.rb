@@ -96,6 +96,8 @@ Rails.application.routes.draw do
             resources :contracts do
               collection do
                 get :prefill
+                # Reading a contract that does not exist yet: nothing is recorded until it is sent.
+                post :preview_draft
               end
               member do
                 post :sign

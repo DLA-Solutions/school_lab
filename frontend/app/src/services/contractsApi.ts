@@ -39,9 +39,26 @@ export const listContracts = ({
 };
 
 /**
- * POST /api/v1/schools/:school_id/billing/contracts — records the contract. It starts awaiting
- * signature whatever the caller passes; dispatching it is a separate call, so a provider outage
- * leaves a contract to retry rather than nothing.
+ * POST /api/v1/schools/:school_id/billing/contracts/preview_draft — the agreement rendered from a
+ * form that has not been saved. Nothing is recorded and nothing is sent, so the school can read
+ * as many attempts as it likes without any of them landing in the listing.
+ */
+export const previewDraftContract = async (
+  schoolId: number,
+  contract: ContractPayload,
+): Promise<{ html: string; filename: string }> => {
+  const response = await request<{ data: { html: string; filename: string } }>(
+    `${collectionPath(schoolId)}/preview_draft`,
+    { method: 'POST', body: { contract } },
+  );
+
+  return response.data;
+};
+
+/**
+ * POST /api/v1/schools/:school_id/billing/contracts — records the contract *and* sends it for
+ * signature, as one step. A contract exists once the family has it: a send that fails takes the
+ * record with it, so a discarded draft never shows up as an agreement nobody received.
  */
 export const sendContract = async (
   schoolId: number,

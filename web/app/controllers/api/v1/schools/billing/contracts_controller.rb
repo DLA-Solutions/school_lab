@@ -55,21 +55,51 @@ module Api
             end
           end
 
+          # The same document `preview` renders, for a contract that has not been created yet. The
+          # school reads what it is about to send while it is still nothing but a filled form —
+          # generating a draft must leave no trace, or every discarded attempt would pile up in
+          # the listing as a contract nobody meant to keep.
+          def preview_draft
+            authorize Contract, :create?
+
+            contract = build_contract
+            unless contract.valid?
+              return render_error(:validation_error, status: :unprocessable_content,
+                                                     details: contract.errors.to_hash)
+            end
+
+            template = Current.school.contract_template
+            return render_no_template if template.blank?
+
+            result = ::Contracts::FillTemplateService.call(contract: contract, template: template)
+
+            render_service_result(result) do |data|
+              render json: { data: { html: data.fetch(:html), filename: data.fetch(:filename) } }
+            end
+          end
+
+          # A contract exists once it has gone out to the family, and not before: creating and
+          # dispatching are one step here. A send that fails takes the record with it, so the
+          # listing never shows an agreement that nobody ever received — the school generates as
+          # many drafts as it likes and only this call puts one on the books.
           def create
             authorize Contract
 
-            # Creating a contract here means sending it to the family for signature, so it starts
-            # pending — not silently in force. The send itself is a separate step: the contract is
-            # saved first so a provider outage leaves a contract to retry rather than nothing.
-            contract = Current.school.contracts.build(contract_params)
-            contract.signature_status = "pending_signature"
+            contract = build_contract
 
             unless contract.save
               return render_error(:validation_error, status: :unprocessable_content,
                                                      details: contract.errors.to_hash)
             end
 
-            render json: { data: ContractBlueprint.render_as_hash(contract) }, status: :created
+            result = ::Contracts::SendForSignatureService.call(contract: contract, actor: Current.user)
+
+            if result.failure?
+              contract.destroy
+              return render_service_result(result)
+            end
+
+            render json: { data: ContractBlueprint.render_as_hash(contract.reload) }, status: :created
           end
 
           # Renders the agreement and sends it to the guardians through the school's e-signature
@@ -120,6 +150,13 @@ module Api
           end
 
           private
+
+          # Pending is where a contract starts: it is with the family, not silently in force.
+          def build_contract
+            contract = Current.school.contracts.build(contract_params)
+            contract.signature_status = "pending_signature"
+            contract
+          end
 
           def render_no_template
             render_error(

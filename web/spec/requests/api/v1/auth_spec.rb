@@ -23,14 +23,14 @@ RSpec.describe "Api::V1::Auth", type: :request do
       }
 
       response "200", "tokens issued" do
-        let(:payload) { { email: user.email, password: "password123", client: "mobile" } }
+        let(:payload) { { email: user.email, password: "Password123!", client: "mobile" } }
 
         run_test! do |response|
           body = JSON.parse(response.body)
           expect(body["access_token"]).to be_present
           expect(body["refresh_token"]).to be_present
           expect(body.dig("user", "email")).to eq(user.email)
-          expect(body.to_s).not_to include("password123")
+          expect(body.to_s).not_to include("Password123!")
           expect(body.to_s).not_to include("encrypted_password")
         end
       end
@@ -110,7 +110,7 @@ RSpec.describe "Api::V1::Auth", type: :request do
         let(:payload) do
           {
             token: raw_token,
-            password: "invite-password-123",
+            password: "Invite-password-123!",
             name: "Maria Silva"
           }
         end
@@ -123,13 +123,13 @@ RSpec.describe "Api::V1::Auth", type: :request do
           body = JSON.parse(response.body).fetch("data")
           expect(body["user_id"]).to eq(invited_user.id)
           expect(body["membership_id"]).to eq(invited_membership.id)
-          expect(invited_user.reload.valid_password?("invite-password-123")).to be(true)
+          expect(invited_user.reload.valid_password?("Invite-password-123!")).to be(true)
           expect(invite_token.reload.used_at).to be_present
         end
       end
 
       response "401", "invalid invite token" do
-        let(:payload) { { token: "invalid-token", password: "invite-password-123" } }
+        let(:payload) { { token: "invalid-token", password: "Invite-password-123!" } }
 
         run_test! do |response|
           body = JSON.parse(response.body).fetch("error")
@@ -150,7 +150,7 @@ RSpec.describe "Api::V1::Auth", type: :request do
             token_digest: Identity::IssueMembershipInviteTokenService.digest(raw_token)
           )
         end
-        let(:payload) { { token: raw_token, password: "invite-password-123" } }
+        let(:payload) { { token: raw_token, password: "Invite-password-123!" } }
 
         before do
           invited_user.update_columns(encrypted_password: "")

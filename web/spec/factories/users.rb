@@ -24,8 +24,8 @@ FactoryBot.define do
 
   factory :user do
     sequence(:email) { |n| "user#{n}-#{SecureRandom.hex(4)}@example.com" }
-    password { "password123" }
-    password_confirmation { "password123" }
+    password { "Password123!" }
+    password_confirmation { "Password123!" }
     status { "active" }
     confirmed_at { Time.current }
 

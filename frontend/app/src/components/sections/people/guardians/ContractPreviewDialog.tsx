@@ -15,13 +15,21 @@ import { previewContract } from 'services/contractsApi';
 import { Contract } from 'types/contract';
 import { useTranslation } from 'providers/I18nContext';
 
+/** An agreement rendered from a form that was never saved — there is no contract behind it yet. */
+export interface ContractDraft {
+  html: string;
+  studentName: string;
+}
+
 interface ContractPreviewDialogProps {
   open: boolean;
   schoolId: number;
   contract: Contract | null;
+  /** Read instead of `contract` when the agreement has not been created yet. */
+  draft?: ContractDraft | null;
   onClose: () => void;
   /** Offered from the preview itself, so checking and sending are one movement. */
-  onSend?: (contract: Contract) => void;
+  onSend?: () => void;
   sending?: boolean;
 }
 
@@ -39,6 +47,7 @@ const ContractPreviewDialog = ({
   open,
   schoolId,
   contract,
+  draft = null,
   onClose,
   onSend,
   sending = false,
@@ -49,8 +58,18 @@ const ContractPreviewDialog = ({
   const [error, setError] = useState('');
 
   const signed = contract?.signature_status === 'signed';
+  // Nothing has been created yet, so there is nothing left to send only once it has gone out.
+  const canSend = draft !== null || (contract !== null && !contract.sent_to_provider);
 
   const load = useCallback(async () => {
+    // A draft arrives already rendered: it has no id to fetch it by.
+    if (draft) {
+      setHtml(draft.html);
+      setError('');
+      setLoading(false);
+      return;
+    }
+
     if (!contract) {
       return;
     }
@@ -72,7 +91,7 @@ const ContractPreviewDialog = ({
     } finally {
       setLoading(false);
     }
-  }, [schoolId, contract, t]);
+  }, [schoolId, contract, draft, t]);
 
   useEffect(() => {
     if (!open) {
@@ -86,9 +105,11 @@ const ContractPreviewDialog = ({
     <Dialog open={open} onClose={sending ? undefined : onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         {signed ? t('contract.preview.signedTitle') : t('contract.preview.title')}
-        {contract && (
+        {(draft || contract) && (
           <Typography variant="body2" color="text.secondary">
-            {contract.student_name ?? `Estudante #${contract.student_id}`}
+            {draft
+              ? draft.studentName
+              : (contract?.student_name ?? `Estudante #${contract?.student_id}`)}
           </Typography>
         )}
       </DialogTitle>
@@ -150,10 +171,10 @@ const ContractPreviewDialog = ({
         <Button onClick={onClose} color="inherit" disabled={sending}>
           {t('common.close')}
         </Button>
-        {onSend && contract && !contract.sent_to_provider && (
+        {onSend && canSend && (
           <Button
             variant="contained"
-            onClick={() => onSend(contract)}
+            onClick={onSend}
             disabled={sending || loading || Boolean(error)}
             startIcon={sending ? <CircularProgress size={16} color="inherit" /> : null}
           >

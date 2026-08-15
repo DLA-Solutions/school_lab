@@ -58,8 +58,10 @@ module Contracts
       )
     end
 
+    # A draft has no id yet — it is rendered from a form that was never saved — so the student's
+    # name carries the file on its own until there is a contract to number it by.
     def filename
-      "contrato-#{contract.id}-#{contract.student.name.parameterize}.html"
+      [ "contrato", contract.id, contract.student.name.parameterize ].compact_blank.join("-") + ".html"
     end
 
     def substitutions(people)
