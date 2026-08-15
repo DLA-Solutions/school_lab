@@ -161,6 +161,16 @@ RSpec.describe "Api::V1::Schools::SchoolYears", type: :request do
           expect(JSON.parse(response.body).dig("error", "code")).to eq("forbidden")
         end
       end
+
+      response "404", "cross-school access" do
+        let(:school_id) { other_school.id }
+
+        before { create(:school_year, :active, school: other_school, name: "2026") }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("not_found")
+        end
+      end
     end
   end
 
