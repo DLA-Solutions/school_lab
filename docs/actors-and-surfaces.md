@@ -11,6 +11,14 @@
 - **Teacher**: posts grades and academic activities for their class/subject.
 - **Parents / guardians**: follow the academic, financial, and document life of
   their child(ren).
+- **Student**: the enrolled learner — a **person record** managed by staff and linked to
+  guardians and classes. Competitors often give students their own app login (e.g. Proesc
+  Aluno, Agenda Edu student diary); in School Lab MVP the student is primarily a **data
+  subject** accessed via guardian and staff surfaces, not a separate login role. Student-facing
+  portals are **phase 2** pending validation (`docs/open-questions.md`). The competitive
+  corpus documents **~60** student-scoped capabilities across communication, academic, and
+  billing domains — see `docs/ref/*/funcionalidades-por-ator.md` § Student and
+  [`docs/product/traceability.md`](product/traceability.md).
 
 ## 2. Surfaces and channels
 
@@ -37,10 +45,12 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 | Backoffice   | Yes         | No (phase 2)| Operation is primarily desktop       |
 | Staff        | Yes         | Yes         | System role templates: director, secretary, etc. |
 | Teacher      | Yes         | Yes         | Grades and lesson plans on web; messages on app |
-| Parents      | Yes (phase 2)| Yes        | Boleto and documents prioritized on app |
+| Parents      | Yes         | Yes         | App primary for messaging/boleto; web guardian routes in MVP per Aug 2026 decision |
+| Student      | No (phase 2)| No (phase 2)| MVP: no student login; record managed by staff/guardian surfaces |
 
-> Proposal: in the MVP, parents enter first through the app; parents' web comes
-> in phase 2. Confirm in `docs/open-questions.md`.
+> **Decided Aug 2026:** Guardians use **both** web SPA and mobile in MVP
+> ([`docs/product/mvp-scope.md`](product/mvp-scope.md) § Executive summary). Mobile is primary for
+> push-driven flows; web provides parity for billing and documents on desktop.
 
 ## 4. High-level capabilities by role
 
@@ -91,6 +101,34 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 - (Phase 2) Sign minutes digitally (family meetings, events).
 - (Phase 2) Receive mass announcements with read receipts; follow the child's
   structured daily routine. [early childhood education]
+
+### Student
+
+School Lab MVP treats the student as a **record** (enrollment, class, guardian links), not a
+login actor. Capabilities below note competitor parity from `docs/ref/` (~60 student-scoped
+entries) and School Lab intent.
+
+**MVP (via staff / guardian — no student login)**
+
+- Exist as a registrable person linked to guardians, classes, and enrollments (staff).
+- Be the subject of messages, grades, attendance, boletos, and documents that guardians and
+  staff act on (indirect access).
+- Early childhood: daily routine and diary content consumed by **guardians**, not a student app
+  [infantil — aligns with vision §6].
+
+**Out of MVP (competitor parity — phase 2 unless validated earlier)**
+
+- Dedicated student app or portal login (e.g. Proesc Aluno messaging, Agenda Edu student diary).
+- Submit homework or activity attachments as the student.
+- View own grades/report card directly (vs. only through guardian).
+- Student-initiated password change or profile completion on device.
+- Structured daily routine self-logging [infantil — phase 2 structured routine module].
+
+> Canonical capability mapping for student-facing features is complete in Phase 1
+> ([`capability-taxonomy.yaml`](../product/capability-taxonomy.yaml) — **20** students canonicals,
+> **69/69** raw aliases; **1,325/1,325** catalog-wide). Cross-domain enrollment and trilha
+> articles under `communication.*` and `academic.*` alias to `students.*` where noted in
+> [`capability-aliases.jsonl`](../ref/capability-aliases.jsonl).
 
 > Note: in the MVP, early childhood education prioritizes **communication**
 > (messages with images) over a structured daily routine. Capabilities vary by

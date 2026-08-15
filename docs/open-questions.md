@@ -83,7 +83,7 @@ UC-03, Open items, Positioning note).
 
 ## Identity & Onboarding
 
-PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draft).
+PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (**validated**).
 
 - [x] **Staff role rename** — `school` → `staff` in code; system role templates for Secretaria/Coordenação/Direção (Level A + overrides — see permissions PRD).
       (not new roles). See permissions PRD D1–D3.
@@ -94,11 +94,24 @@ PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draf
 - [ ] Transactional email provider for invites (Postmark, SES, …). **Collection régua**
       uses Postmark when `POSTMARK_API_TOKEN` is set (issue #124); invite mailers can reuse
       the same configuration.
-- [ ] LGPD consent record location for staff/guardian onboarding.
-- [ ] `segments` MVP depth (full entity vs nullable stub).
-- [ ] Terms acknowledgment persistence for handoff checklists (MVP app flag vs
-      `school_onboarding_acknowledgements` table — see modeling 004).
-- [ ] Partner workshop to validate system template × permission matrix (permissions PRD appendix) before PRDs marked `validated`.
+- [x] **LGPD consent record location** — `consent_records` table linked to student + guardian;
+      see [`consent.md`](prds/identity-and-onboarding/consent.md) and [`005-students-enrollments.md`](modeling/005-students-enrollments.md).
+- [x] **`segments` MVP depth** — full entity (`segments` id + name per school); optional at handoff
+      via `schools.segments_skipped_at` ([`onboarding.md`](prds/identity-and-onboarding/onboarding.md) D6).
+- [x] **Terms acknowledgment persistence** — MVP uses owner UI acknowledgment on handoff; dedicated
+      `school_onboarding_acknowledgements` table deferred to P2 unless audit requires earlier.
+- [x] **Partner workshop / PRD validation** — Aug 2026 documentation phase: product decisions recorded
+      aligned with [`vision.md`](vision.md), [`mvp-scope.md`](product/mvp-scope.md), and
+      [`actors-and-surfaces.md`](actors-and-surfaces.md); all 7 domain PRDs marked **`validated`**.
+- [x] **Enrollment create default** — `active`; staff may explicitly create `draft`. Recorded in
+      [`enrollments.md`](prds/students-and-enrollments/enrollments.md) and
+      [`005-students-enrollments.md`](modeling/005-students-enrollments.md).
+- [x] **Withdrawal and class capacity** — `withdrawn` stops counting immediately toward
+      `classes.capacity`; historical placement remains in `class_assignments`.
+- [x] **Class code identifier** — target table/model is `classes` / `Class`; legacy
+      `school_classes` is an engineering migration input, not a parallel domain table.
+- [x] **Personal calendar persistence** — MVP uses unified `calendar_events`; null `user_id`
+      means institutional and non-null `user_id` means owner-only personal.
 
 ### Enrollment contract signature (Authentic — proposed, phase 2)
 
@@ -121,15 +134,20 @@ See [`onboarding.md`](prds/identity-and-onboarding/onboarding.md) § Future inte
 
 ## MVP and scope (continued)
 
-- [ ] Confirm the full MVP scope: communication + academic (grades, report
-      cards, attendance) + billing (boleto) + digital archive. What is left out
-      in this first cut?
-- [ ] Backoffice in the MVP: only school registration, or also platform billing?
-- [ ] Parents in the MVP: app only, or web too? **Docs currently disagree** —
-      `docs/prds/fintech-first.md` (Surfaces) says responsive web portal in the MVP with
-      the Wave 2 API contract-ready for React Native, while `docs/web-stack.md` and
-      `docs/actors-and-surfaces.md` say app first with web in phase 2. Resolve and align
-      all four documents; the API itself is channel-agnostic either way.
+- [x] **Confirm the full MVP scope** — communication + academic (grades, report cards, attendance)
+      + billing (boleto) + digital archive + identity/students/platform admin. Excluded: Livro Ata,
+      daily routine, student login, platform régua, NFS-e issuance, real-time messaging.
+      See [`product/mvp-scope.md`](product/mvp-scope.md).
+- [x] **Backoffice in the MVP** — school registration, module flags, white-glove provisioning
+      dashboard only — **not** platform SaaS billing to schools (phase 2). See
+      [`platform-and-admin/backoffice.md`](prds/platform-and-admin/backoffice.md).
+- [x] **Parents in the MVP: app and web** — both channels; mobile primary for push/messaging;
+      web guardian routes in MVP for billing/documents parity. Aligned across
+      [`actors-and-surfaces.md`](actors-and-surfaces.md), [`mvp-scope.md`](product/mvp-scope.md),
+      [`layer-mobile-app.md`](prds/layer-mobile-app.md).
+- [x] **Student login in MVP** — **record-only** through MVP; no student app login. Staff and
+      guardian surfaces proxy student data. Phase 2 minimal student portal (diary, grades read-only).
+      See [`actors-and-surfaces.md`](actors-and-surfaces.md) §1.
 
 ## Billing
 
@@ -200,9 +218,12 @@ in `docs/prds/fintech-first.md` (Open items).
 
 ## Digital archive / auditing
 
-- [ ] Which documents does the Secretaria/Conselho require? (official list)
-- [ ] Organization: by student, by class, by school year?
-- [ ] Document retention and versioning?
+- [x] **Which documents does the Secretaria/Conselho require?** — MVP seed list in
+      [`documents-and-archive/archive.md`](prds/documents-and-archive/archive.md); schools extend via
+      `archive_document_types`. Full Conselho legal list pending specialized counsel.
+- [x] **Organization** — by **student** primary key, filterable by class and `school_year_id`.
+- [x] **Document retention and versioning** — MVP default **retain**; version history P2; hooks in
+      [`retention.md`](prds/documents-and-archive/retention.md).
 
 ## Contracts, signature, and Livro Ata (phase 2 — high priority)
 
@@ -237,10 +258,15 @@ signature infrastructure with contracts.
 
 ## Academic
 
-- [ ] Assessment model (bimester, trimester, concepts vs. grades)?
-- [ ] Report card format — per-school template or standard?
-- [ ] Attendance reliability rules: validation before triggering an absence
-      push; retry/idempotency; auditing of sent notifications.
+- [x] **Assessment model (bimester, trimester, concepts vs. grades)** — **Decided:** schools
+      choose period template on school year create (`bimester` | `trimester` | `custom`); default
+      **trimester** for fundamental_medio; numeric and concept scales supported per evaluation
+      template ([`academic/grades.md`](prds/academic/grades.md), [`platform-and-admin/school-year.md`](prds/platform-and-admin/school-year.md) BR-SY04).
+- [x] **Report card format** — per-school template reference on `report_card_configs`; standard
+      engine with school logo/signatories ([`academic/report-cards.md`](prds/academic/report-cards.md)).
+- [x] **Attendance reliability rules** — **15-minute** auto-confirm delay after last edit; idempotent
+      `AbsenceRecorded` → FCM; retry with backoff; audit on `notification_deliveries`
+      ([`academic/attendance.md`](prds/academic/attendance.md), NFR-001).
 
 ## Early childhood education / Daily routine (phase 2)
 
@@ -263,9 +289,10 @@ signature infrastructure with contracts.
 
 Scope decision finalized (enters the MVP). Detailing to be resolved:
 
-- [ ] Types in the MVP: 1:1 parent↔teacher and parent↔school chat — do mass
-      announcements and contextual comments come in phase 2?
-- [ ] Mass announcement (phase 2): whole school, by class, or both?
+- [x] Types in the MVP — 1:1 parent↔teacher and parent↔school chat plus **mass announcements**
+      (BC3 [`announcements.md`](prds/communication/announcements.md)); contextual comments P2.
+- [x] Mass announcement — MVP via [`announcements.md`](prds/communication/announcements.md);
+      whole-school and by-class targeting.
 - [ ] Are read receipts mandatory in announcements? Do they become an auditable
       record (`docs/vision.md` — digital archive)?
 - [ ] Teacher response-time expectations — how to avoid demands for 24/7
@@ -275,15 +302,16 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
       escalate to coordination/school?
 - [ ] Push notifications: immediate for everything, or only for urgent items
       (e.g., health, absence) with a daily summary for the rest?
-- [ ] Isolation: ensure a parent never sees another family's
-      conversation/announcement — enforcement via policy, like the isolation
-      between schools?
+- [x] Isolation — per-family enforcement via Pundit + services (NFR-004);
+      see [`communication/messages.md`](prds/communication/messages.md).
 - [ ] Size/resolution limit for images in messages?
 
 ## LGPD / Privacy
 
-- [ ] Legal basis for processing children's data — who consents (legal guardian)
-      and where is that recorded in the student's record?
+- [x] Legal basis for processing children's data — guardian consent recorded in
+      `consent_records` linked to student + guardian
+      ([`consent.md`](prds/identity-and-onboarding/consent.md),
+      [`005-students-enrollments.md`](modeling/005-students-enrollments.md)).
 - [ ] LGPD (Brazil's data-protection law) roles: the school as controller, DLA
       as processor — is a Data Protection Officer (DPO) needed? Whose is the
       formal responsibility?
@@ -292,12 +320,21 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
       data?
 - [ ] Retention: for how long are messages, photos, and routine records kept?
       What happens when the student leaves the school?
+- [ ] Retention: how long are student cadastral records and enrollment import error reports kept
+      after withdrawal or school departure?
+- [ ] Retention: what legal/audit windows apply to enrollment contracts, consent history and
+      paper-scan evidence, and calendar event text?
 - [ ] Access auditing: record who viewed messages/announcements (relevant in
       case of school↔family conflict)?
 - [ ] Data subject rights (access, correction, deletion) exercised by the
       guardian on the child's behalf — is the flow defined?
 - [ ] Consent form / privacy policy — proprietary legal text or external support
       (legal counsel specialized in education)?
+- [ ] Student address subset — which structured address fields are necessary for MVP enrollment
+      without collecting unnecessary child data?
+- [ ] Legacy billing year resolution — contracts created before `contracts.enrollment_id` cannot
+      be assigned to a school year safely from dates alone. Define backfill evidence and how
+      school-year deletion treats unresolved legacy contracts.
 
 ### Billing integration (Cora) — recorded Aug 2026
 
@@ -322,6 +359,36 @@ does not assume indefinite storage.
 
 - [ ] Format of the partnership with the Sindicato (commercial, pricing)?
 - [ ] Platform billing model (per student, per school, per plan)?
+
+## Competitive corpus (`docs/ref/`)
+
+Harvest 2026-08-14 — nine competitors (Edukante, KAITS, Sophia, TOTVS Educacional,
+ClassApp, Agenda Edu, ClipEscola, **Sponte**, **Proesc**). Cross-competitor matrix:
+[`docs/ref/divergencias.md`](ref/divergencias.md). Flag here when a gap blocks a PRD.
+
+- [ ] **KAITS self-service evaluation** — marketing claims school configures grades/periods;
+      needs product demo to validate vs vendor-led setup (Edukante/Sophia pattern).
+- [ ] **TOTVS Educacional pedagogy** — public CST Zendesk skews admin/finance; grade/diary
+      flows likely behind login/TDN. Do not anchor academic PRD acceptance criteria on TOTVS
+      harvest alone without a demo.
+- [ ] **Embedded payment rails** — ClassPay (ClassApp), Pagamentos Digitais (Agenda Edu),
+      ClipPag (ClipEscola), Sponte Pay, Proesc cashier/remessa: settlement timing and fee
+      schedules not fully public; affects guardian payment UX and commercial positioning vs
+      Cora-on-school-account model.
+- [ ] **ClipEscola ClipCoins** — signature credit metering; pricing and legal validity across
+      states unclear. Relates to enrollment contract signature (Identity PRD).
+- [ ] **Agenda Edu Manual vs ERP** — install-base split unknown; dual onboarding checklists
+      imply two product lines. Affects integration vs self-contained SIS positioning.
+- [ ] **Sophia knowledge base** — help center login-gated; friction map from marketing only;
+      re-harvest if public KB opens.
+- [ ] **Sponte Mensalidade Garantida** — vendor-assumed delinquency risk program; commercial
+      terms and interaction with standard billing not public. Do not bundle into core SKU
+      without legal/commercial review.
+- [ ] **Sponte segment feature matrix** — language-school vs basic-education capability gaps
+      (online assessment, document editor, Agenda Plus) documented only on marketing pages;
+      validate before migration messaging.
+- [ ] **Proesc Agenda packaging** — family app (comunicados, rotina, finance) may be a paid
+      module; scope vs base ERP unclear from public KB alone.
 
 ## Web stack
 
@@ -438,10 +505,9 @@ Deploy setup is documented in `docs/guidelines/process/deployment.md`.
 - [x] **Solid Queue / Solid Cache stay in the primary database** — enqueue participates
       in the same transaction as the domain writes. Only Solid Cable uses a separate
       database (`*_cable`).
-- [ ] **Active Storage backend in production** — currently `:local` on a Kamal volume on
-      the app server, which is not covered by the deploy process's backups. Move to S3
-      (or compatible object storage) before onboarding schools that upload documents?
-      `docs/web-stack.md` already assumes S3 for the MVP — resolve the divergence.
+- [x] **Active Storage backend in production** — **Decided:** S3-compatible object storage for
+      production (`:amazon` service); local volume acceptable staging/dev only. Aligns with
+      [`web-stack.md`](web-stack.md) and [`008-documents-archive.md`](modeling/008-documents-archive.md).
 - [ ] **`schema_format = :sql` for pgvector** — the extension is available in the
       databases but no `vector` column exists, so `schema.rb` loses nothing today. The
       first embedding migration (arriving with `ruby_llm`) requires switching to

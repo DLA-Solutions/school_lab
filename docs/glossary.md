@@ -20,7 +20,7 @@ When adding a new Portuguese identifier, confirm with the team and update this t
 |---------|------|------------|
 | School (tenant) | `school`, `school_id` | Escola |
 | Student | `student` | Aluno |
-| Class / homeroom | `school_class` | Turma |
+| Class / homeroom | `class` (model), `classes` (table) | Turma |
 | Teacher | `teacher` | Professor |
 | Guardian / parent | `guardian` | Responsável |
 | Attendance (roll call) | `attendance` | Chamada |
@@ -42,6 +42,10 @@ When adding a new Portuguese identifier, confirm with the team and update this t
 
 `signature_status` values (phase 2, enrollment contracts): `pending`, `sent`, `signed`,
 `declined`, `expired` — tracked separately from `onboarding_status`.
+
+**Deprecated mapping:** `school_class` / `school_classes` is the fintech-first live-code name.
+New modeling and APIs use `Class` / `classes`; the 005 engineering migration must reconcile
+existing rows rather than introduce both table names.
 
 ## Roles (authorization)
 

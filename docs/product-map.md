@@ -13,7 +13,7 @@ school_lab/
   mobile/                 # React Native
   packages/design-tokens/ # shared tokens (SPA + mobile)
   site/                   # static landing at /
-  docs/                   # vision, anchors, PRDs, ADRs, API, guidelines
+  docs/                   # README, anchors, product/, ref/, PRDs, modeling, API, guidelines
 ```
 
 Layout: [ADR 001](adr/001-monorepo-surfaces.md) (phases 1–5 landed).
@@ -60,10 +60,14 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 
 ### docs/
 
+- `README.md` — master index (layers A–I) and work sequence anchor → product → PRD → code.
 - `vision.md` — vision and MVP.
 - `actors-and-surfaces.md` — actors × channels.
 - `product-map.md` — this document.
 - `web-stack.md` — web-layer stack (Rails API + React web + React Native).
+- `product/` — product truth: traceability IDs, domain roadmap (capability map and MVP
+  scope planned Phase 1–2). See `product/README.md`.
+- `ref/` — competitive benchmark corpus (catalog, per-competitor docs, divergences).
 - `adr/` — architecture decision records (e.g. monorepo surfaces).
 - `api/` — API conventions (`README.md`) and versioned route narratives (`v1/`).
 - `open-questions.md` — open questions.
@@ -72,8 +76,8 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 - `glossary.md` — approved Portuguese domain exceptions and English code mappings.
 - `database/` — executable schema (DBML + DER PNG) for implementation.
 - `modeling/` — narrative DSL per domain (`NNN-<domain>.md`, e.g. `002-api-auth.md`).
-- `prds/` — domain PRDs + `template.md` (e.g. `fintech-first.md`) and layer PRDs
-  (`layer-web-spa.md`).
+- `prds/` — domain PRDs; `index.md` inventory; `template.md`; layer PRDs (`layer-web-spa.md`).
+- `guidelines/` — implementation and process standards (`guidelines/README.md`).
 
 ## 3. Organization principles
 
@@ -85,41 +89,47 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 
 ## 4. Work sequence
 
-1. Anchor documents updated with stakeholder validation (Jul 2026) — next step:
-   domain PRDs.
-2. Write domain PRDs (one per domain, using the template) — suggested order
-   below.
-3. Data modeling from the PRDs — **in progress** for fintech-first and identity/onboarding
-   (`docs/modeling/003-identity-permissions.md`, `004-school-onboarding.md`, `docs/database/`);
-   hybrid pattern: narrative DSL + DBML/DER for executable schema.
-4. Implementation (`web/` with the stack defined in `web-stack.md`).
+1. Anchor documents validated and maintained as product direction changes.
+2. Domain PRDs — all **7** MVP domain folders are **validated** for documentation-phase
+   sign-off; layer PRDs remain draft.
+3. Data modeling — **005 Students & enrollments** and **009 Platform & admin Wave 1** are
+   validated with published DBML and exported DERs; **006–008** remain draft; identity/onboarding
+   modeling and API narratives are **in progress** (domain PRDs validated).
+4. API contracts — cross-domain narratives remain draft; the billing partner slice is
+   **implemented** in `web/` (historical baseline per [`prds/fintech-first.md`](prds/fintech-first.md)).
+   **Normative billing scope** is [`prds/billing/`](prds/billing/). API freeze is still pending
+   for engineering waves.
+5. Implementation (`web/` with the stack defined in `web-stack.md`) follows the maturation
+   order in [`product/domain-roadmap.md`](product/domain-roadmap.md) (communication-first).
 
-**Billing-first partner slice (Aug 2026):** `fintech-first` billing ships as the first
-live School Lab module in this monorepo (same product, shared schema). Communication and
-academic PRDs follow the validated MVP order once billing surfaces for the partner school
-are stable. See `docs/prds/fintech-first.md` (Positioning note).
+**Billing-first partner slice (historical, Aug 2026):** [`fintech-first`](prds/fintech-first.md)
+records the first live School Lab module shipped in this monorepo (billing + supporting
+identity/people). That delivery inverted the validated MVP build order for the validating
+school only. **Normative billing requirements** are in [`prds/billing/`](prds/billing/);
+**MVP implementation order** remains communication → academic → billing per
+[`vision.md`](vision.md) and [`domain-roadmap.md`](product/domain-roadmap.md).
 
-## 5. Requirement domains (PRD candidates)
+## 5. Requirement domains
 
-Suggested order to mature — from foundational to operational. Priorities
-adjusted after stakeholder validation (Jul 2026 — communication as the MVP
-focus):
+Current numbering and maturity follow [`product/domain-roadmap.md`](product/domain-roadmap.md):
 
-1. Product vision & scope — what is / isn't the MVP.
-2. Multi-tenancy & schools — `school_id`, isolation, school onboarding. **In progress:**
-   [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draft).
+1. Product vision & scope — **validated** anchor defining what is and is not in the MVP.
+2. Multi-tenancy & schools — PRD **validated**; modeling and API **in progress**.
 3. Identity & roles — staff, teacher, guardian, backoffice; presets; registration and
-   login. **In progress:** [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (draft).
-4. Students & enrollments — registration, family–student–class link.
-5. **Communication** — two-way messaging with images, push notifications.
-6. Academic — classes, subjects, grades, report cards, attendance (reliability).
-7. Billing — boletos, charges, payment status in the app.
-8. Documents & digital archive — repository for auditing.
-9. **Livro Ata (official minutes-record book), formal minutes & digital
+   login. PRD **validated**; modeling and API **in progress**. Both #2 and #3 use
+   [`prds/identity-and-onboarding/`](prds/identity-and-onboarding/).
+4. Students & enrollments — PRD and modeling **validated**; API **draft**.
+5. **Communication** — PRD **validated**; modeling and API **draft**.
+6. Academic — PRD **validated**; modeling and API **draft**.
+7. Billing — PRD **validated**; fintech-first modeling/API baseline **implemented**.
+8. Documents & digital archive — PRD **validated**; modeling and API **draft**.
+9. Platform & admin — PRD and **009 Wave 1** modeling **validated**; API **draft**.
+10. **Livro Ata (official minutes-record book), formal minutes & digital
    signature** — generation, signature collection, semantic search (phase 2,
    high priority).
-10. Landing / sales — commercial page (later).
+11. Landing / sales — commercial page (phase 2).
 
-**Note:** `fintech-first` is the **billing-first partner slice** within School Lab (same
-product and monorepo) — it ships before the communication MVP order in §5 below. See
-`docs/prds/fintech-first.md` (Positioning note).
+**Note:** [`fintech-first`](prds/fintech-first.md) is the **historical billing partner slice**
+(same product and monorepo) — already implemented in `web/`. It does not change the
+communication-first MVP order in the domain list above. Normative billing scope:
+[`prds/billing/`](prds/billing/).
