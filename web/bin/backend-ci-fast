@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # Scoped local backend CI — skips Docker and narrows lint/tests to changed web/ files.
-# Security scans still run in full. GitHub Actions runs the full merge gate on PRs.
+# Default backend CI is fast; use web/bin/backend-ci --full or CI_FULL=1 before merge.
 exec "$(cd "$(dirname "$0")" && pwd)/backend-ci" --fast "$@"

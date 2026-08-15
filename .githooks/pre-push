@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-push — full local CI for surfaces changed in commits being pushed.
+# Pre-push — fast local CI for surfaces changed in commits being pushed (CI_FULL=1 or bin/ci --full for full gate).
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -9,7 +9,7 @@ ran=0
 while read -r local_ref local_sha remote_ref remote_sha; do
   [ "$local_sha" = "$ZERO" ] && continue
   ran=1
-  printf '\n\033[1m[pre-push]\033[0m Running bin/ci for %s\n' "$local_ref"
+  printf '\n\033[1m[pre-push]\033[0m Running bin/ci (fast) for %s\n' "$local_ref"
   if [ "$remote_sha" = "$ZERO" ]; then
     "$REPO_ROOT/bin/ci" --base origin/main || exit 1
   else

@@ -10,5 +10,5 @@ git config core.hooksPath .githooks
 
 printf 'Git hooks installed (core.hooksPath=.githooks)\n'
 printf '  pre-commit — quick lint on staged files per surface\n'
-printf '  pre-push     — bin/ci (full checks for changed surfaces)\n'
+printf '  pre-push     — bin/ci fast path for changed surfaces (CI_FULL=1 for full)\n'
 printf '\nBypass once: git commit --no-verify / git push --no-verify\n'
