@@ -1,7 +1,8 @@
 # PRD — Identity: School Onboarding (BC2)
 
-> Status: draft  
+> Status: validated  
 > Parent PRD: [`index.md`](index.md)  
+> Capability IDs: `identity.provision_school`, `identity.onboard_team`, `identity.invite_user`, `identity.complete_registration`, `identity.set_password`, `identity.configure_school_profile`  
 > Related BC: [`permissions.md`](permissions.md)  
 > Modeling: [`docs/modeling/004-school-onboarding.md`](../../modeling/004-school-onboarding.md)  
 > API narrative: [`docs/api/v1/identity-onboarding.md`](../../api/v1/identity-onboarding.md)  
@@ -14,6 +15,33 @@
 Enable schools and users to enter School Lab through **self-serve** (owner-led) or **premium
 white-glove** (backoffice-led) onboarding, with a formal handoff, secure invite acceptance, and
 audited provisioning — without coupling lifecycle state to the permissions engine.
+
+---
+
+## Competitive grounding
+
+| Capability | `capability_id` | Evidence |
+|------------|-----------------|----------|
+| Provision school tenant | `identity.provision_school` | [`DIV-integration-001`](../../ref/divergencias.md), [`parity-matrix.md`](../../product/parity-matrix.md#identity--onboarding) |
+| Onboard staff and guardians | `identity.onboard_team` | [`proesc/gestao-academica/funcionalidades-por-ator.md`](../../ref/proesc/gestao-academica/funcionalidades-por-ator.md) (first access), [`DIV-integration-001`](../../ref/divergencias.md) |
+| Invite user | `identity.invite_user` | Proesc, Agenda Edu, ClassApp — [`parity-matrix.md`](../../product/parity-matrix.md#identity--onboarding) |
+| Complete registration | `identity.complete_registration` | [`classapp/gestao-academica/funcionalidades-por-ator.md`](../../ref/classapp/gestao-academica/funcionalidades-por-ator.md) |
+| Set password from invite | `identity.set_password` | `[product decision]` — digest token + set-password (BR-O07); replaces competitor temp-password flows |
+| Configure school profile | `identity.configure_school_profile` | `[product decision]` — owner wizard (UC-O03) |
+
+Auth capabilities (`identity.authenticate_user`, `identity.reset_password`) remain in
+[`002-api-auth.md`](../../modeling/002-api-auth.md) and future `auth.md` slice — see parent index.
+
+---
+
+## Segment applicability
+
+| Segment | Applies | Notes |
+|---------|---------|-------|
+| `infantil` | yes | Same onboarding modes; CSV import may include guardian/student rows (UC-O06) |
+| `fundamental_medio` | yes | Primary GTM; owner wizard covers billing and team invites |
+| `pj_financeiro` | partial | Optional `cnpj` at school create; billing setup in handoff checklists |
+| `multi_unidade` | partial | One school per tenant in MVP; backoffice creates each tenant separately |
 
 ---
 
@@ -52,7 +80,7 @@ after accepting the invite — owner-led configuration, not DLA provisioning.
 |---|----------|------------|
 | D4 | Backoffice provisioning | `provision_school` while `onboarding_status == provisioning` |
 | D5 | Invite | Single-use opaque token + set password via `POST /auth/invite/accept` |
-| D6 | Segments | `segments` entity — MVP minimum (id + name per school) or stub FK nullable |
+| D6 | Segments | `segments` entity — **full** MVP (id + name per school); optional at handoff via `segments_skipped_at` |
 
 ---
 
@@ -86,12 +114,12 @@ Lifecycle transitions use **two checklists** (see below). `provisioning` → `pe
 be `invited`. `pending_handoff` → `active` requires the **activation checklist**, including
 owner membership `active`. Incomplete checklist returns `422` with `details.checklist`.
 
-BR-O06
+BR-O06 — `capability_id`: `identity.set_password`, `identity.invite_user`
 
 Invite delivery uses an opaque single-use token stored as `token_digest` on
 `membership_invite_tokens`; default expiry **7 days** (configurable per environment).
 
-BR-O07
+BR-O07 — `capability_id`: `identity.set_password`, `identity.complete_registration`
 
 Invite acceptance: `POST /auth/invite/accept` with `token` + `password` (and `name` if new
 user). System must **not** rely on server-generated opaque passwords for invitees.
@@ -132,7 +160,7 @@ BR-O14
 Self-serve: after owner accepts invite, owner wizard covers segments (if enabled), billing
 provider setup or waive, and team invites before handoff.
 
-BR-O15
+BR-O15 — `capability_id`: `identity.provision_school`
 
 `POST /schools` with `onboarding_mode: white_glove` sets `onboarding_status: provisioning`
 and notifies backoffice queue (implementation: job or manual ops — email provider open).
@@ -485,9 +513,21 @@ Onboarding routes map to actors:
 
 ---
 
+## Non-functional requirements
+
+Cross-cutting: [`docs/product/non-functional-requirements.md`](../../product/non-functional-requirements.md).
+
+- [NFR-002](../../product/non-functional-requirements.md#nfr-002--lgpd-and-privacy) — invite tokens stored as digests (BR-O06); guardian CPF not at invite (BR-O10).
+- [NFR-003](../../product/non-functional-requirements.md#nfr-003--multi-tenancy) — lifecycle and provisioning scoped per `school_id`; backoffice loses write access after `active` (BR-O13).
+- [NFR-005](../../product/non-functional-requirements.md#nfr-005--observability-and-audit) — provisioning actions audited with `on_behalf_of: school_id` (BR-O04); CSV import batches on `provisioning_imports`.
+
+---
+
 ## Acceptance Criteria
 
 ### Self-serve mode
+
+AC-O001 — Self-serve school creation (`identity.provision_school`, `identity.onboard_team`)
 
 ```gherkin
 Feature: Self-serve school creation
@@ -507,7 +547,7 @@ Feature: Owner completes self-serve wizard
   And the owner has director system template and is_owner true
 ```
 
-### White-glove mode
+AC-O002 — Premium provisioning (`identity.provision_school`, `identity.onboard_team`)
 
 ```gherkin
 Feature: Premium provisioning
@@ -531,7 +571,7 @@ Feature: Backoffice blocked after active
   Then the response is 403 forbidden
 ```
 
-### Invite token
+AC-O003 — Single-use invite token (`identity.set_password`, `identity.complete_registration`)
 
 ```gherkin
 Feature: Single-use invite token
