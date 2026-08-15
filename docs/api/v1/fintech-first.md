@@ -1,12 +1,14 @@
-# API v1 — Fintech-first (billing MVP)
+# API v1 — Billing partner slice (historical baseline)
 
-> PRD: [`docs/prds/fintech-first.md`](../prds/fintech-first.md)  
+> **Historical baseline — implemented in `web/`.** Normative billing extensions:
+> [`docs/api/v1/billing.md`](billing.md). PRD record:
+> [`docs/prds/fintech-first.md`](../prds/fintech-first.md).  
 > Auth: [`docs/modeling/002-api-auth.md`](../modeling/002-api-auth.md)  
 > Conventions: [`docs/api/README.md`](../README.md)
 
-Routes to implement and document with **rswag** in the first API delivery wave.
-Phase 2 routes (`communication`, `academic`) are listed as **planned** for OpenAPI skeleton —
-return `501` until their PRDs ship.
+Documents routes shipped in the billing-first partner slice and documented with **rswag**.
+Phase 2 routes (`communication`, `academic`) are listed as **planned** in OpenAPI —
+return `501` until **implementation** ships (domain PRDs validated Aug 2026).
 
 ## Delivery order
 

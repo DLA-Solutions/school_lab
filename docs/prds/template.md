@@ -1,162 +1,187 @@
-# PRD-001 - User Registration
+# PRD-NNN — [Domain name]
+
+> Status: [draft | validated | implemented]  
+> **`validated`** = documentation-phase sign-off (anchor alignment + corpus grounding). A live
+> partner workshop is a separate milestone and does not block this status.  
+> Relation to School Lab: [core MVP domain #N per product-map §5 | derived front | layer]  
+> Capability IDs: [canonical `domain.verb_noun` and/or raw catalog refs — see Competitive grounding]  
+> Modeling: [`docs/modeling/NNN-<domain>.md`](../modeling/NNN-<domain>.md) *(when exists)*  
+> API: [`docs/api/v1/<domain>.md`](../api/v1/<domain>.md) *(when exists)*
+
+---
 
 ## Objective
 
-Allow the registration of platform users.
+[Single clear goal.]
 
 ---
 
 ## Context
 
-The system already has JWT authentication.
+[Prerequisites, related domains, existing system state. Link anchor docs and upstream PRDs.]
 
-Every user belongs to exactly one company.
+---
 
-The company always exists before the user.
+## Competitive grounding
+
+When requirements are informed by observed competitor behavior, cite evidence here.
+See [`docs/product/traceability.md`](../product/traceability.md) and [`docs/ref/`](../ref/README.md).
+
+| Capability | ID | Evidence |
+|------------|-----|----------|
+| [Short label] | `domain.verb_noun` *(canonical, Phase 1)* or `raw:<competitor>:<raw_id>` | [`docs/ref/...`](../ref/) |
+
+Requirements with no market anchor: mark acceptance criteria `[product decision]` or `[invented]`.
+
+---
+
+## Actors and surfaces
+
+| Actor | Surfaces | Notes |
+|-------|----------|-------|
+| [staff / teacher / guardian / student / backoffice] | [web SPA / mobile / API] | [Primary actions in this domain] |
+
+Detail: [`docs/actors-and-surfaces.md`](../actors-and-surfaces.md). For multi-doc domains,
+use a stakeholder → role template table (see [`identity-and-onboarding/index.md`](identity-and-onboarding/index.md) §6).
+
+---
+
+## Segment applicability
+
+| Segment | Applies | Notes |
+|---------|---------|-------|
+| `infantil` | [yes / no / partial] | Early childhood |
+| `fundamental_medio` | [yes / no / partial] | Elementary and high school |
+| `pj_financeiro` | [yes / no / partial] | CNPJ as payer |
+| `multi_unidade` | [yes / no / partial] | Multi-campus groups |
+
+Omit rows that do not apply. Flag open segment decisions in [`open-questions.md`](../open-questions.md).
 
 ---
 
 ## Business Rules
 
-RN-001
+Use **`BR-NNN`** (not `RN-NNN`). Reference `capability_id` when grounded in market.
 
-The email must be unique.
+BR-001
 
-RN-002
+[Rule statement.]
 
-The name must be between 3 and 120 characters.
+BR-002
 
-RN-003
-
-The password must be at least 8 characters.
-
-RN-004
-
-The password must never be returned by the API.
-
-RN-005
-
-The user starts active.
+[...]
 
 ---
 
 ## Use Cases
 
-### Create user
+Use **`UC-NNN`**. Optional `capability_id` reference per use case.
+
+### UC-001 — [Use case name]
 
 Input
 
-- name
-- email
-- password
+- [field]
 
 Flow
 
-1. Validate data.
-2. Check for a duplicate email.
-3. Encrypt the password.
-4. Save the user.
-5. Return the created user.
+1. [Step]
 
 ---
 
 ## API
 
-### POST /users
+### [METHOD] /api/v1/[path]
 
 Request
 
-{
-"name": "João",
-"email": "joao@email.com",
-"password": "12345678"
-}
+```json
+{ }
+```
 
-Response 201
+Response [status]
 
-{
-"id": "...",
-"name": "...",
-"email": "...",
-"createdAt": "..."
-}
+```json
+{ }
+```
 
 ---
 
 ## Errors
 
-400
-
-Invalid data.
-
-409
-
-Email already registered.
-
-500
-
-Internal error.
+| Status | Code / condition | Description |
+|--------|------------------|-------------|
+| 400 | | Invalid data |
+| 409 | | Conflict |
 
 ---
 
 ## Database
 
-Table
+Entity groups only — **do not** duplicate full table definitions inline.
 
-users
+| Artifact | Location |
+|----------|----------|
+| Narrative DSL | `docs/modeling/NNN-<domain>.md` |
+| DBML | `docs/database/database_dml.md` |
+| DER | `docs/database/der_NNN.png` |
 
-Fields
-
-id UUID
-
-company_id UUID
-
-name varchar(120)
-
-email varchar(255)
-
-password_hash text
-
-created_at
-
-updated_at
+When modeling does not exist yet, list expected entity groups in prose and link when available.
 
 ---
 
 ## Events
 
-After creating a user:
-
-UserCreated
-
-Payload
-
-{
-id,
-companyId
-}
+[Domain events emitted or consumed.]
 
 ---
 
 ## Permissions
 
-Only ADMIN can create users.
+[Role × action matrix; Pundit policy notes; permission keys when using identity templates.]
+
+---
+
+## Non-functional requirements
+
+Cross-cutting NFR catalog: [`docs/product/non-functional-requirements.md`](../product/non-functional-requirements.md).
+
+Domain-specific NFRs (stability, LGPD, isolation, auditing):
+
+- [Bullet — e.g. per-school `school_id` scoping on all queries]
+- [Bullet — e.g. per-family isolation for guardian routes]
 
 ---
 
 ## Acceptance Criteria
 
-- A duplicate email returns 409.
-- The password is never returned.
-- The password is stored using bcrypt.
-- The user starts active.
+Use **`AC-NNN`**. Optional Gherkin. Cite `docs/ref/` path when corpus-grounded.
+
+AC-001
+
+- [ ] Given … When … Then …
+- Source: [`docs/ref/...`](../ref/) or `[invented]`
+
+---
+
+## Open items / pending decisions
+
+- [ ] [Link to `docs/open-questions.md`](../open-questions.md) § …]
 
 ---
 
 ## Out of Scope
 
-Password reset.
+- [Explicit exclusion with phase hint]
 
-Login.
+---
 
-Email confirmation.
+## Bounded-context variant
+
+For large domains, replace single-file sections with a folder (`docs/prds/<domain>/`):
+
+- `index.md` — objective, scope, waves, integration contract (see identity-and-onboarding).
+- `permissions.md`, `onboarding.md`, … — BC-specific BR/UC/AC with prefixes if needed (`BR-P001`).
+
+Layer PRDs use [`write-prd` templates](../../.cursor/skills/docs/write-prd/templates.md) § Layer PRD.
+Product-wide scope updates prefer anchor docs or `index.md` in a domain folder.

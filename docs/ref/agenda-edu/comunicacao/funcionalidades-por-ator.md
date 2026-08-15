@@ -1,0 +1,445 @@
+# Capabilities by actor — Comunicacao (Agenda-Edu)
+
+Harvest-derived inventory. **199** capabilities across 1 School Lab domain(s).
+Maturity: documented help-center articles. See [`../../README.md`](../../README.md).
+
+## Domain: Communication
+
+_199 capabilities._
+
+## Backoffice
+
+- **O Que Significa Disciplina “Polivalente” Na Plataforma?** (`communication.manage_o_que_significa_disciplina_pol`) — _documented_, friction 0.0 — [O que significa disciplina “polivalente” na plataf](https://atendimento.agendaedu.com/hc/pt-br/articles/360020448334-O-que-significa-disciplina-polivalente-na-plataforma)
+  - O Que Significa Disciplina “Polivalente” Na Plataforma?.
+
+## Guardian
+
+- **Conhecendo O Painel Da Agenda Edu** (`communication.manage_conhecendo_o_painel_da_agenda_`) — _documented_, friction 0.0 — [Conhecendo o Painel da Agenda Edu](https://atendimento.agendaedu.com/hc/pt-br/articles/6198417966363-Conhecendo-o-Painel-da-Agenda-Edu)
+  - Conhecendo O Painel Da Agenda Edu.
+- **Dicas De Como Engajar Famílias Na Comunicação Escolar** (`communication.manage_dicas_de_como_engajar_familias`) — _documented_, friction 1.5 — [Dicas de como engajar famílias na comunicação esco](https://atendimento.agendaedu.com/hc/pt-br/articles/360023364234-Dicas-de-como-engajar-fam%C3%ADlias-na-comunica%C3%A7%C3%A3o-escolar)
+  - Dicas De Como Engajar Famílias Na Comunicação Escolar.
+- **Excluir O Cadastro De Um Responsável/Aluno?** (`communication.create_excluir_o_cadastro_de_um_respo`) — _documented_, friction 4.4 — [Como excluir o cadastro de um Responsável/Aluno?](https://atendimento.agendaedu.com/hc/pt-br/articles/360052713653-Como-excluir-o-cadastro-de-um-Respons%C3%A1vel-Aluno)
+  - Excluir O Cadastro De Um Responsável/Aluno?. Note: ⚠️ Obs.: Caso o responsável seja vinculado apenas ao aluno a ser excluído, ambos perderão o acesso à Agenda..
+- **Faq Responsável - Volta Às Aulas 2026** (`communication.manage_faq_responsavel_volta_as_aulas`) — _documented_, friction 0.0 — [FAQ RESPONSÁVEL - Volta às aulas 2026](https://atendimento.agendaedu.com/hc/pt-br/articles/9929121406747-FAQ-RESPONS%C3%81VEL-Volta-%C3%A0s-aulas-2026)
+  - Faq Responsável - Volta Às Aulas 2026.
+- **Funciona O Painel Principal?** (`communication.manage_funciona_o_painel_principal`) — _documented_, friction 0.0 — [Como funciona o painel principal?](https://atendimento.agendaedu.com/hc/pt-br/articles/360034574914-Como-funciona-o-painel-principal)
+  - Funciona O Painel Principal?.
+- **O Que Significa "Reenviar Convite" No Cadastro Do Responsável** (`communication.create_o_que_significa_reenviar_convi`) — _documented_, friction 0.0 — [O que significa "Reenviar Convite" no cadastro do ](https://atendimento.agendaedu.com/hc/pt-br/articles/13493538513435-O-que-significa-Reenviar-Convite-no-cadastro-do-respons%C3%A1vel)
+  - O Que Significa "Reenviar Convite" No Cadastro Do Responsável.
+- **Realizar Cadastro De Responsável Que Acessa Agenda Edu Em Outra Escola?** (`communication.create_realizar_cadastro_de_responsav`) — _documented_, friction 8.5 — [Como realizar cadastro de responsável que acessa A](https://atendimento.agendaedu.com/hc/pt-br/articles/4733321846811-Como-realizar-cadastro-de-respons%C3%A1vel-que-acessa-Agenda-Edu-em-outra-escola)
+  - Realizar Cadastro De Responsável Que Acessa Agenda Edu Em Outra Escola?. Note: Observação: A unificação de cadastros para que o responsável tenha acesso às duas escolas com o mesmo e-mail é possível .
+- **Recuperar O Cadastro De Um Aluno/Responsável?** (`communication.create_recuperar_o_cadastro_de_um_alu`) — _documented_, friction 6.7 — [Como recuperar o cadastro de um Aluno/Responsável?](https://atendimento.agendaedu.com/hc/pt-br/articles/7653514010267-Como-recuperar-o-cadastro-de-um-Aluno-Respons%C3%A1vel)
+  - Recuperar O Cadastro De Um Aluno/Responsável?. Note: Importante que no momento de recuperar o cadastro de uma família você comece pelo aluno, seguido da recuperação dos resp.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Vincular Um Novo Aluno A Um Responsável Que Já Está Na Plataforma?** (`communication.manage_vincular_um_novo_aluno_a_um_re`) — _documented_, friction 0.3 — [Como vincular um novo aluno a um responsável que j](https://atendimento.agendaedu.com/hc/pt-br/articles/16790201591579-Como-vincular-um-novo-aluno-a-um-respons%C3%A1vel-que-j%C3%A1-est%C3%A1-na-plataforma)
+  - Vincular Um Novo Aluno A Um Responsável Que Já Está Na Plataforma?.
+
+## Staff
+
+- **A Agenda Edu** (`communication.manage_a_agenda_edu`) — _documented_, friction 0.0 — [A Agenda Edu](https://atendimento.agendaedu.com/hc/pt-br/articles/360020654593-A-Agenda-Edu)
+  - A Agenda Edu.
+- **A Agenda Edu É Paga?** (`communication.manage_a_agenda_edu_e_paga`) — _documented_, friction 0.0 — [A Agenda Edu é paga?](https://atendimento.agendaedu.com/hc/pt-br/articles/16768583022235-A-Agenda-Edu-%C3%A9-paga)
+  - A Agenda Edu É Paga?.
+- **A Funcionalidade Diário?** (`communication.manage_a_funcionalidade_diario`) — _conceptual_, friction 0.0 — [O que é a funcionalidade diário?](https://atendimento.agendaedu.com/hc/pt-br/articles/4411463010587-O-que-%C3%A9-a-funcionalidade-di%C3%A1rio)
+  - A Funcionalidade Diário?.
+- **A Função Shop?** (`communication.manage_a_funcao_shop`) — _conceptual_, friction 0.0 — [O que é a função Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/10292030700699-O-que-%C3%A9-a-fun%C3%A7%C3%A3o-Shop)
+  - A Função Shop?.
+- **Abrir Um Ticket De Atendimento Com Anexo?** (`communication.manage_abrir_um_ticket_de_atendimento`) — _documented_, friction 0.0 — [Como abrir um ticket de atendimento com anexo?](https://atendimento.agendaedu.com/hc/pt-br/articles/48330367636379-Como-abrir-um-ticket-de-atendimento-com-anexo)
+  - Abrir Um Ticket De Atendimento Com Anexo?.
+- **Acessar A Agenda Edu?** (`communication.manage_acessar_a_agenda_edu`) — _documented_, friction 6.0 — [Como acessar a Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020466594-Como-acessar-a-Agenda-Edu)
+  - Acessar A Agenda Edu?. Note: ⚠️ Os usuários da escola também conseguem acessar nossa plataforma através do navegador de seus smartphones e tablets..
+- **Acompanhar Conversas E Tickets Em Tempo Real No Menu Mensagens?** (`communication.view_acompanhar_conversas_e_tickets`) — _documented_, friction 0.0 — [Como acompanhar conversas e tickets em tempo real ](https://atendimento.agendaedu.com/hc/pt-br/articles/53766423883803-Como-acompanhar-conversas-e-tickets-em-tempo-real-no-menu-Mensagens)
+  - Acompanhar Conversas E Tickets Em Tempo Real No Menu Mensagens?.
+- **Acompanhar O Engajamento De Um Evento Em Calendário?** (`communication.view_acompanhar_o_engajamento_de_um`) — _documented_, friction 0.0 — [Como acompanhar o engajamento de um evento em Cale](https://atendimento.agendaedu.com/hc/pt-br/articles/38986704020251-Como-acompanhar-o-engajamento-de-um-evento-em-Calend%C3%A1rio)
+  - Acompanhar O Engajamento De Um Evento Em Calendário?.
+- **Adicionar Acesso Rápido Na Agenda Edu?** (`communication.create_adicionar_acesso_rapido_na_age`) — _documented_, friction 5.0 — [Como adicionar acesso rápido na Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/360037702053-Como-adicionar-acesso-r%C3%A1pido-na-Agenda-Edu)
+  - Adicionar Acesso Rápido Na Agenda Edu?. Note: ⚠️ Atenção: Apenas usuários com perfil Master tem permissão para adicionar acessos rápidos..
+- **Adicionar Link Em Um Comunicado?** (`communication.create_adicionar_link_em_um_comunicad`) — _documented_, friction 3.5 — [Como adicionar link em um comunicado?](https://atendimento.agendaedu.com/hc/pt-br/articles/14633639339931-Como-adicionar-link-em-um-comunicado)
+  - Adicionar Link Em Um Comunicado?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Adicionar Link Em Uma Atividade?** (`communication.create_adicionar_link_em_uma_atividad`) — _documented_, friction 7.0 — [Como adicionar link em uma atividade?](https://atendimento.agendaedu.com/hc/pt-br/articles/15408727626395-Como-adicionar-link-em-uma-atividade)
+  - Adicionar Link Em Uma Atividade?. Note: ⚠️OBS: é muito importante que você selecione um texto antes de clicar no ícone de hiperlink. Caso clique no ícone sem se.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Adicionar Um Arquivo Ou Editar Uma Pasta Em Documentos?** (`communication.create_adicionar_um_arquivo_ou_editar`) — _documented_, friction 8.8 — [Como adicionar um arquivo ou editar uma pasta em D](https://atendimento.agendaedu.com/hc/pt-br/articles/38795724667931-Como-adicionar-um-arquivo-ou-editar-uma-pasta-em-Documentos)
+  - Adicionar Um Arquivo Ou Editar Uma Pasta Em Documentos?. Note: Atenção: Insira imagens no formato JPG, PNG e HEIC, vídeos em MP4 e documentos PDF, PPT, DOCx e XML de até 40MB cada..
+- **Adicionar Um Usuário Da Escola Em Um Canal De Mensagem?** (`communication.create_adicionar_um_usuario_da_escola`) — _documented_, friction 8.5 — [Como adicionar um usuário da escola em um Canal de](https://atendimento.agendaedu.com/hc/pt-br/articles/4410671849627-Como-adicionar-um-usu%C3%A1rio-da-escola-em-um-Canal-de-Mensagem)
+  - Adicionar Um Usuário Da Escola Em Um Canal De Mensagem?. Note: ⚠️ Atenção: essa opção é disponível apenas para usuários master..
+- **Adicionar Uma Turma Em Um Canal De Mensagens?** (`communication.create_adicionar_uma_turma_em_um_cana`) — _documented_, friction 8.8 — [Como adicionar uma Turma em um Canal de Mensagens?](https://atendimento.agendaedu.com/hc/pt-br/articles/4410663745435-Como-adicionar-uma-Turma-em-um-Canal-de-Mensagens)
+  - Adicionar Uma Turma Em Um Canal De Mensagens?. Note: Caso o responsável ou o aluno de uma turma não esteja conseguindo enviar mensagens em um canal, é importante verificar s.
+- **Adicionar Vídeo Em Uma Atividade?** (`communication.create_adicionar_video_em_uma_ativida`) — _documented_, friction 7.0 — [Como adicionar vídeo em uma atividade?](https://atendimento.agendaedu.com/hc/pt-br/articles/18804911464859-Como-adicionar-v%C3%ADdeo-em-uma-atividade)
+  - Adicionar Vídeo Em Uma Atividade?. Note: ⚠️Obs.: é muito importante que você selecione um texto antes de clicar no ícone de hiperlink. Caso clique no ícone sem s.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Agendar O Envio Do Diário Automaticamente?** (`communication.manage_agendar_o_envio_do_diario_auto`) — _documented_, friction 0.0 — [Como agendar o envio do Diário automaticamente?](https://atendimento.agendaedu.com/hc/pt-br/articles/46081229356315-Como-agendar-o-envio-do-Di%C3%A1rio-automaticamente)
+  - Agendar O Envio Do Diário Automaticamente?.
+- **Alterar Minha Senha No Aplicativo?** (`communication.update_alterar_minha_senha_no_aplicat`) — _documented_, friction 0.0 — [Como alterar minha senha no aplicativo?](https://atendimento.agendaedu.com/hc/pt-br/articles/4411135282971-Como-alterar-minha-senha-no-aplicativo)
+  - Alterar Minha Senha No Aplicativo?.
+- **Alternar A Agenda De Dois Alunos Da Mesma Escola?** (`communication.manage_alternar_a_agenda_de_dois_alun`) — _documented_, friction 1.0 — [Como alternar a Agenda de dois alunos da mesma esc](https://atendimento.agendaedu.com/hc/pt-br/articles/4412221609371-Como-alternar-a-Agenda-de-dois-alunos-da-mesma-escola)
+  - Alternar A Agenda De Dois Alunos Da Mesma Escola?.
+- **Aplicativo Equipe Escolar Chegou!** (`communication.manage_aplicativo_equipe_escolar_cheg`) — _documented_, friction 0.0 — [Aplicativo Equipe Escolar chegou!](https://atendimento.agendaedu.com/hc/pt-br/articles/1260806272829-Aplicativo-Equipe-Escolar-chegou)
+  - Aplicativo Equipe Escolar Chegou!.
+- **Aprovar Atividades, Comunicados E Eventos?** (`communication.manage_aprovar_atividades_comunicados`) — _documented_, friction 2.6 — [Como aprovar Atividades, Comunicados e Eventos?](https://atendimento.agendaedu.com/hc/pt-br/articles/360025746414-Como-aprovar-Atividades-Comunicados-e-Eventos)
+  - Aprovar Atividades, Comunicados E Eventos?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Aprovar Um Evento Em Calendário?** (`communication.manage_aprovar_um_evento_em_calendari`) — _documented_, friction 0.0 — [Como aprovar um evento em Calendário?](https://atendimento.agendaedu.com/hc/pt-br/articles/38985655580699-Como-aprovar-um-evento-em-Calend%C3%A1rio)
+  - Aprovar Um Evento Em Calendário?.
+- **Assinar Meus Contratos Em Assinaturas?** (`communication.sign_assinar_meus_contratos_em_assi`) — _documented_, friction 3.5 — [Como assinar meus contratos em Assinaturas?](https://atendimento.agendaedu.com/hc/pt-br/articles/42151957820059-Como-assinar-meus-contratos-em-Assinaturas)
+  - Assinar Meus Contratos Em Assinaturas?. Note: Crie Sua Assinatura: Use o dedo para desenhar sua assinatura na tela. Lembre-se, o importante é a validade dos dados inf.
+- **Ativar A Autenticação Com Biometria No Login?** (`communication.manage_ativar_a_autenticacao_com_biom`) — _documented_, friction 0.0 — [Como ativar a autenticação com biometria no login?](https://atendimento.agendaedu.com/hc/pt-br/articles/29171881302555-Como-ativar-a-autentica%C3%A7%C3%A3o-com-biometria-no-login)
+  - Ativar A Autenticação Com Biometria No Login?.
+- **Ativar A Autenticação De Dois Fatores?** (`communication.manage_ativar_a_autenticacao_de_dois_`) — _documented_, friction 0.0 — [Como ativar a autenticação de dois fatores?](https://atendimento.agendaedu.com/hc/pt-br/articles/30161449342363-Como-ativar-a-autentica%C3%A7%C3%A3o-de-dois-fatores)
+  - Ativar A Autenticação De Dois Fatores?.
+- **Ativar A Central De Notificações Via Sistema De Gestão Ischolar?** (`communication.manage_ativar_a_central_de_notificaco`) — _documented_, friction 0.0 — [Como ativar a Central de Notificações via sistema ](https://atendimento.agendaedu.com/hc/pt-br/articles/16577067750555-Como-ativar-a-Central-de-Notifica%C3%A7%C3%B5es-via-sistema-de-gest%C3%A3o-iScholar)
+  - Ativar A Central De Notificações Via Sistema De Gestão Ischolar?.
+- **Atualizamos O Mural De Fotos: Um Novo Jeito De Visualizar E Compartilhar Imagens** (`communication.view_atualizamos_o_mural_de_fotos_u`) — _documented_, friction 5.5 — [Atualizamos o Mural de Fotos: um novo jeito de vis](https://atendimento.agendaedu.com/hc/pt-br/articles/23708284442267-Atualizamos-o-Mural-de-Fotos-um-novo-jeito-de-visualizar-e-compartilhar-imagens)
+  - Atualizamos O Mural De Fotos: Um Novo Jeito De Visualizar E Compartilhar Imagens. Note: Editar informações: Qualquer usuário pode editar um álbum, desde que ele esteja vinculado a todos os destinatários do ál.
+- **Atualizar O Aplicativo?** (`communication.update_atualizar_o_aplicativo`) — _documented_, friction 4.4 — [Como atualizar o aplicativo?](https://atendimento.agendaedu.com/hc/pt-br/articles/18939916408347-Como-atualizar-o-aplicativo)
+  - Atualizar O Aplicativo?. Note: ⚠️Obs.: Caso apareça apenas a opção "abrir" é porque já está atualizado, caso contrário basta seguir com a atualização n.
+- **Baixar As Fotos Do Mural?** (`communication.pay_baixar_as_fotos_do_mural`) — _documented_, friction 3.5 — [Como Baixar as Fotos do Mural?](https://atendimento.agendaedu.com/hc/pt-br/articles/4411262641179-Como-Baixar-as-Fotos-do-Mural)
+  - Baixar As Fotos Do Mural?. Note: 🔺 Importante: Quando o cadastro do aluno é excluído da plataforma Agenda Edu, as famílias perdem o acesso ao mural de fo.
+- **Baixar O Aplicativo Agenda Edu?** (`communication.pay_baixar_o_aplicativo_agenda_edu`) — _documented_, friction 0.0 — [Como baixar o Aplicativo Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/14104717115291-Como-baixar-o-Aplicativo-Agenda-Edu)
+  - Baixar O Aplicativo Agenda Edu?.
+- **Baixar O Aplicativo Equipe Escolar?** (`communication.pay_baixar_o_aplicativo_equipe_esc`) — _documented_, friction 0.0 — [Como baixar o Aplicativo Equipe Escolar?](https://atendimento.agendaedu.com/hc/pt-br/articles/4410743363739-Como-baixar-o-Aplicativo-Equipe-Escolar)
+  - Baixar O Aplicativo Equipe Escolar?.
+- **Baixar Os Aplicativos?** (`communication.pay_baixar_os_aplicativos`) — _documented_, friction 0.0 — [Como baixar os aplicativos?](https://atendimento.agendaedu.com/hc/pt-br/articles/11034179211163-Como-baixar-os-aplicativos)
+  - Baixar Os Aplicativos?.
+- **Cadastrar Alunos?** (`communication.create_cadastrar_alunos`) — _documented_, friction 7.3 — [Como Cadastrar Alunos?](https://atendimento.agendaedu.com/hc/pt-br/articles/16799691356059-Como-Cadastrar-Alunos)
+  - Cadastrar Alunos?. Note: ⚠️Obs.: O campo ‘Legacy ID’ é restrito ao uso de escolas que utilizam importação de dados ou integração. Caso não seja o.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Cadastrar Disciplinas?** (`communication.create_cadastrar_disciplinas`) — _documented_, friction 0.3 — [Como Cadastrar Disciplinas?](https://atendimento.agendaedu.com/hc/pt-br/articles/16797692037531-Como-Cadastrar-Disciplinas)
+  - Cadastrar Disciplinas?.
+- **Cadastrar Equipe Escolar?** (`communication.create_cadastrar_equipe_escolar`) — _documented_, friction 8.8 — [Como Cadastrar Equipe escolar?](https://atendimento.agendaedu.com/hc/pt-br/articles/16798315562395-Como-Cadastrar-Equipe-escolar)
+  - Cadastrar Equipe Escolar?. Note: Para cadastrar a equipe da escola, é importante se atentar que os usuários têm, por padrão, privilégios e permissões. Us.
+- **Cadastrar Responsáveis?** (`communication.create_cadastrar_responsaveis`) — _documented_, friction 3.5 — [Como Cadastrar Responsáveis?](https://atendimento.agendaedu.com/hc/pt-br/articles/16800286161819-Como-Cadastrar-Respons%C3%A1veis)
+  - Cadastrar Responsáveis?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Cadastrar Turmas?** (`communication.create_cadastrar_turmas`) — _documented_, friction 4.1 — [Como Cadastrar Turmas?](https://atendimento.agendaedu.com/hc/pt-br/articles/18006222821147-Como-Cadastrar-Turmas)
+  - Cadastrar Turmas?. Note: ⚠️ OBS.: Sempre que realizar o cadastro de uma turma, não esqueça de ir à opção "Disciplina" e vincular a sua turma cada.
+- **Cadastrar Um Cardápio?** (`communication.create_cadastrar_um_cardapio`) — _documented_, friction 3.8 — [Como cadastrar um cardápio?](https://atendimento.agendaedu.com/hc/pt-br/articles/360035399113-Como-cadastrar-um-card%C3%A1pio)
+  - Cadastrar Um Cardápio?. Note: Algumas observações importantes:.
+- **Cadastrar Um Medicamento?** (`communication.create_cadastrar_um_medicamento`) — _documented_, friction 7.1 — [Como cadastrar um medicamento?](https://atendimento.agendaedu.com/hc/pt-br/articles/360026059494-Como-cadastrar-um-medicamento)
+  - Cadastrar Um Medicamento?. Note: ⚠️ ATENÇÃO: Ao adicionar a hora da medicação deve ser clicado no ícone de adição ao lado do horário, caso contrário não .
+- **Cadastrar Um Modelo De Contrato Para Assinaturas?** (`communication.create_cadastrar_um_modelo_de_contrat`) — _documented_, friction 3.5 — [Como cadastrar um modelo de contrato para assinatu](https://atendimento.agendaedu.com/hc/pt-br/articles/41172240974747-Como-cadastrar-um-modelo-de-contrato-para-assinaturas)
+  - Cadastrar Um Modelo De Contrato Para Assinaturas?. Note: Importante: O documento deve conter variáveis entre duas chaves para serem preenchidas automaticamente com os dados dos .
+- **Cadastrar Unidades?** (`communication.create_cadastrar_unidades`) — _documented_, friction 3.5 — [Como Cadastrar Unidades?](https://atendimento.agendaedu.com/hc/pt-br/articles/16797222874907-Como-Cadastrar-Unidades)
+  - Cadastrar Unidades?. Note: ⚠️OBS.: O campo 'Legacy ID', é restrito para escolas que realizam os cadastros via importação. Não é necessário preenche.
+- **Cancelar Uma Oferta Do Shop?** (`communication.delete_cancelar_uma_oferta_do_shop`) — _documented_, friction 3.5 — [Como cancelar uma oferta do Shop?](https://atendimento.agendaedu.com/hc/pt-br/articles/12751182675867-Como-cancelar-uma-oferta-do-Shop)
+  - Cancelar Uma Oferta Do Shop?. Note: Atenção: após confirmado o cancelamento, a ação não poderá ser desfeita. Nesses casos, é necessário cadastrar uma nova o.
+- **Comentar Nas Atividades Enviadas?** (`communication.manage_comentar_nas_atividades_enviad`) — _documented_, friction 0.0 — [Como comentar nas atividades enviadas?](https://atendimento.agendaedu.com/hc/pt-br/articles/11106687315227-Como-comentar-nas-atividades-enviadas)
+  - Comentar Nas Atividades Enviadas?.
+- **Começando A Usar A Agenda Edu** (`communication.manage_comecando_a_usar_a_agenda_edu`) — _documented_, friction 5.0 — [Começando a usar a Agenda Edu](https://atendimento.agendaedu.com/hc/pt-br/articles/360020654753-Come%C3%A7ando-a-usar-a-Agenda-Edu)
+  - Começando A Usar A Agenda Edu. Note: É importante ter uma conexão estável com a internet e bons equipamentos trarão maior qualidade no uso da nossa Agenda, e.
+- **Comunicados Individuais Na Agenda Edu** (`communication.manage_comunicados_individuais_na_age`) — _documented_, friction 4.1 — [Comunicados Individuais na Agenda Edu](https://atendimento.agendaedu.com/hc/pt-br/articles/19488908861723-Comunicados-Individuais-na-Agenda-Edu)
+  - Comunicados Individuais Na Agenda Edu. Note: Por isso, é importante revisar cada detalhe do seu Comunicado Individual, principalmente, para confirmar se quem vai rec.
+- **Criar Categorias Para Os Comunicados?** (`communication.create_criar_categorias_para_os_comun`) — _documented_, friction 7.0 — [Como criar categorias para os Comunicados?](https://atendimento.agendaedu.com/hc/pt-br/articles/360024501194-Como-criar-categorias-para-os-Comunicados)
+  - Criar Categorias Para Os Comunicados?. Note: ⚠️ Apenas usuários "Master" conseguem Criar, adicionar e editar categorias..
+- **Criar E Personalizar Um Novo Perfil De Usuário?** (`communication.create_criar_e_personalizar_um_novo_p`) — _documented_, friction 0.0 — [Como criar e personalizar um novo perfil de usuári](https://atendimento.agendaedu.com/hc/pt-br/articles/37928021320859-Como-criar-e-personalizar-um-novo-perfil-de-usu%C3%A1rio)
+  - Criar E Personalizar Um Novo Perfil De Usuário?.
+- **Criar Modelo De Mensagem Para O Whatsapp?** (`communication.create_criar_modelo_de_mensagem_para_`) — _documented_, friction 0.0 — [Como criar modelo de mensagem para o WhatsApp?](https://atendimento.agendaedu.com/hc/pt-br/articles/36606872143771-Como-criar-modelo-de-mensagem-para-o-WhatsApp)
+  - Criar Modelo De Mensagem Para O Whatsapp?.
+- **Criar Modelos De Comunicados?** (`communication.create_criar_modelos_de_comunicados`) — _documented_, friction 3.5 — [Como criar modelos de Comunicados?](https://atendimento.agendaedu.com/hc/pt-br/articles/27796448785947-Como-criar-modelos-de-Comunicados)
+  - Criar Modelos De Comunicados?. Note: Importante: O botão de “Novo modelo” só ficará disponível para quem possui permissão de criação e edição: Master, Direto.
+- **Criar Seções Em Diário?** (`communication.create_criar_secoes_em_diario`) — _documented_, friction 0.0 — [Como criar seções em Diário?](https://atendimento.agendaedu.com/hc/pt-br/articles/28113358649243-Como-criar-se%C3%A7%C3%B5es-em-Di%C3%A1rio)
+  - Criar Seções Em Diário?.
+- **Criar Um Canal De Atendimento?** (`communication.create_criar_um_canal_de_atendimento`) — _documented_, friction 9.1 — [Como criar um canal de atendimento?](https://atendimento.agendaedu.com/hc/pt-br/articles/25291591808283-Como-criar-um-canal-de-atendimento)
+  - Criar Um Canal De Atendimento?. Note: ⚠️ Importante: Somente o Perfil Master pode criar Canais de Atendimento..
+- **Criar Um Canal E Enviar Mensagens?** (`communication.create_criar_um_canal_e_enviar_mensag`) — _documented_, friction 14.6 — [Como criar um canal e enviar mensagens?](https://atendimento.agendaedu.com/hc/pt-br/articles/25897833312155-Como-criar-um-canal-e-enviar-mensagens)
+  - Criar Um Canal E Enviar Mensagens?. Note: ⚠️Atenção: Para realizar o upload de ícones por canal você precisa ser usuário Master..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Um Canal Interno E Enviar Mensagens?** (`communication.create_criar_um_canal_interno_e_envia`) — _documented_, friction 0.9 — [Como criar um canal interno e enviar mensagens?](https://atendimento.agendaedu.com/hc/pt-br/articles/45671642544923-Como-criar-um-canal-interno-e-enviar-mensagens)
+  - Criar Um Canal Interno E Enviar Mensagens?.
+- **Criar Um Evento Usando A Funcionalidade Calendário?** (`communication.create_criar_um_evento_usando_a_funci`) — _documented_, friction 5.5 — [Como criar um evento usando a funcionalidade Calen](https://atendimento.agendaedu.com/hc/pt-br/articles/38978705955867-Como-criar-um-evento-usando-a-funcionalidade-Calend%C3%A1rio)
+  - Criar Um Evento Usando A Funcionalidade Calendário?. Note: IMPORTANTE: Após criar o evento, é preciso aprová-lo. Ao aprovar um evento, você escolhe se envia notificações para os d.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Um Grupo De Conversa Para A Equipe?** (`communication.create_criar_um_grupo_de_conversa_par`) — _documented_, friction 10.5 — [Como criar um grupo de conversa para a Equipe?](https://atendimento.agendaedu.com/hc/pt-br/articles/14050964503451-Como-criar-um-grupo-de-conversa-para-a-Equipe)
+  - Criar Um Grupo De Conversa Para A Equipe?. Note: Por enquanto, não é possível enviar mensagens individuais, somente em grupos..
+- **Criar Um Novo Evento?** (`communication.create_criar_um_novo_evento`) — _documented_, friction 9.1 — [Como criar um novo Evento?](https://atendimento.agendaedu.com/hc/pt-br/articles/360024660573-Como-criar-um-novo-Evento)
+  - Criar Um Novo Evento?. Note: ⚠️Fique atento(a) as recomendações da imagem:.
+- **Criar Um Novo Período Letivo De Forma Manual?** (`communication.create_criar_um_novo_periodo_letivo_d`) — _documented_, friction 10.5 — [Como criar um novo período letivo de forma manual?](https://atendimento.agendaedu.com/hc/pt-br/articles/360022212754-Como-criar-um-novo-per%C3%ADodo-letivo-de-forma-manual)
+  - Criar Um Novo Período Letivo De Forma Manual?. Note: Mas antes, atente-se ⚠️:.
+- **Criar Um Plano De Aula** (`communication.create_criar_um_plano_de_aula`) — _documented_, friction 4.1 — [Como criar um Plano de Aula](https://atendimento.agendaedu.com/hc/pt-br/articles/360020451514-Como-criar-um-Plano-de-Aula)
+  - Criar Um Plano De Aula. Note: Importante: Use o status “aguardando” para planos de aula que estão sendo iniciados; “em andamento” para planos de aula .
+- **Criar Um Ticket De Atendimento Para Os Responsáveis?** (`communication.create_criar_um_ticket_de_atendimento`) — _documented_, friction 3.5 — [Como criar um ticket de atendimento para os respon](https://atendimento.agendaedu.com/hc/pt-br/articles/30322284174619-Como-criar-um-ticket-de-atendimento-para-os-respons%C3%A1veis)
+  - Criar Um Ticket De Atendimento Para Os Responsáveis?. Note: Importante: Para abrir um ticket e iniciar a conversa com os responsáveis, é preciso que exista um canal de atendimento..
+- **Criar Um Álbum No Mural De Fotos?** (`communication.create_criar_um_album_no_mural_de_fot`) — _documented_, friction 13.5 — [Como criar um álbum no mural de fotos?](https://atendimento.agendaedu.com/hc/pt-br/articles/360026518074-Como-criar-um-%C3%A1lbum-no-mural-de-fotos)
+  - Criar Um Álbum No Mural De Fotos?. Note: ⚠️ Professores podem adicionar fotos a um álbum, mas não podem aprovar e nem publicar..
+- **Criar Uma Autorização?** (`communication.create_criar_uma_autorizacao`) — _documented_, friction 10.5 — [Como criar uma autorização?](https://atendimento.agendaedu.com/hc/pt-br/articles/25114075047451-Como-criar-uma-autoriza%C3%A7%C3%A3o)
+  - Criar Uma Autorização?. Note: #### 📌 Ponto Importante ao Editar a Data Limite.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Uma Nova Atividade?** (`communication.create_criar_uma_nova_atividade`) — _documented_, friction 0.0 — [Como criar uma nova atividade?](https://atendimento.agendaedu.com/hc/pt-br/articles/216523728-Como-criar-uma-nova-atividade)
+  - Criar Uma Nova Atividade?.
+- **Criar Uma Nova Pasta?** (`communication.create_criar_uma_nova_pasta`) — _documented_, friction 0.0 — [Como criar uma nova pasta?](https://atendimento.agendaedu.com/hc/pt-br/articles/30391071586971-Como-criar-uma-nova-pasta)
+  - Criar Uma Nova Pasta?.
+- **Definir Uma Senha Temporária Para Vários Alunos Ou Responsáveis** (`communication.manage_definir_uma_senha_temporaria_p`) — _documented_, friction 4.4 — [Como definir uma senha temporária para vários alun](https://atendimento.agendaedu.com/hc/pt-br/articles/12938949062555-Como-definir-uma-senha-tempor%C3%A1ria-para-v%C3%A1rios-alunos-ou-respons%C3%A1veis)
+  - Definir Uma Senha Temporária Para Vários Alunos Ou Responsáveis. Note: Algumas informações importantes:.
+- **Desabilitar Notificações De “Recebimento Por E-Mail” No App Agenda Edu** (`communication.manage_desabilitar_notificacoes_de_re`) — _documented_, friction 0.0 — [Como desabilitar notificações de “Recebimento por ](https://atendimento.agendaedu.com/hc/pt-br/articles/31396366036507-Como-desabilitar-notifica%C3%A7%C3%B5es-de-Recebimento-por-e-mail-no-app-Agenda-Edu)
+  - Desabilitar Notificações De “Recebimento Por E-Mail” No App Agenda Edu.
+- **Dicas De Conteúdo Para Uma Comunicação Mais Eficiente Com A Agenda Edu** (`communication.manage_dicas_de_conteudo_para_uma_com`) — _documented_, friction 3.5 — [Dicas de conteúdo para uma comunicação mais eficie](https://atendimento.agendaedu.com/hc/pt-br/articles/360039552373-Dicas-de-conte%C3%BAdo-para-uma-comunica%C3%A7%C3%A3o-mais-eficiente-com-a-Agenda-Edu)
+  - Dicas De Conteúdo Para Uma Comunicação Mais Eficiente Com A Agenda Edu. Note: O visual também faz parte da sua comunicação e, na maioria das vezes, é o que impacta primeiro os alunos e a família. Po.
+- **Duplicar Um Comunicado?** (`communication.manage_duplicar_um_comunicado`) — _documented_, friction 3.5 — [Como duplicar um comunicado?](https://atendimento.agendaedu.com/hc/pt-br/articles/27217133059099-Como-duplicar-um-comunicado)
+  - Duplicar Um Comunicado?. Note: ⚠️OBS: você pode encontrar um comunicado das seguintes maneiras:.
+- **Editar Mensagens Em Grupos?** (`communication.update_editar_mensagens_em_grupos`) — _documented_, friction 0.0 — [Como editar mensagens em Grupos?](https://atendimento.agendaedu.com/hc/pt-br/articles/29097307459227-Como-editar-mensagens-em-Grupos)
+  - Editar Mensagens Em Grupos?.
+- **Editar Ou Excluir Uma Atividade?** (`communication.update_editar_ou_excluir_uma_atividad`) — _documented_, friction 0.6 — [Como Editar ou Excluir uma Atividade?](https://atendimento.agendaedu.com/hc/pt-br/articles/360024938733-Como-Editar-ou-Excluir-uma-Atividade)
+  - Editar Ou Excluir Uma Atividade?.
+- **Editar Ou Excluir Uma Mensagem Pelo Aplicativo** (`communication.update_editar_ou_excluir_uma_mensagem`) — _documented_, friction 0.0 — [Como editar ou excluir uma mensagem pelo aplicativ](https://atendimento.agendaedu.com/hc/pt-br/articles/7869340015259-Como-editar-ou-excluir-uma-mensagem-pelo-aplicativo)
+  - Editar Ou Excluir Uma Mensagem Pelo Aplicativo.
+- **Editar Um Evento Em Calendário?** (`communication.update_editar_um_evento_em_calendario`) — _documented_, friction 3.5 — [Como editar um evento em Calendário?](https://atendimento.agendaedu.com/hc/pt-br/articles/38986702603675-Como-editar-um-evento-em-Calend%C3%A1rio)
+  - Editar Um Evento Em Calendário?. Note: Precisa fazer uma alteração em um evento ou quer enviar um lembrete importante para todos sobre algo que já está no cale.
+- **Edição Nº 06 - Novidades - Junho/26** (`communication.manage_edicao_no_06_novidades_junho_2`) — _documented_, friction 0.0 — [Edição nº 06 - Novidades - Junho/26](https://atendimento.agendaedu.com/hc/pt-br/articles/52478130349083-Edi%C3%A7%C3%A3o-n%C2%BA-06-Novidades-Junho-26)
+  - Edição Nº 06 - Novidades - Junho/26.
+- **Edição Nº 07 - Novidades - Julho/26** (`communication.manage_edicao_no_07_novidades_julho_2`) — _documented_, friction 10.5 — [Edição nº 07 - Novidades - Julho/26](https://atendimento.agendaedu.com/hc/pt-br/articles/53692256307739-Edi%C3%A7%C3%A3o-n%C2%BA-07-Novidades-Julho-26)
+  - Edição Nº 07 - Novidades - Julho/26. Note: Importante: apenas o perfil Master da conta tem acesso a essa configuração. Cada perfil pode ter a sua própria personali.
+- **Edição Nº 12 - Novidades - Dezembro/25** (`communication.manage_edicao_no_12_novidades_dezembr`) — _documented_, friction 0.0 — [Edição nº 12 - Novidades - Dezembro/25](https://atendimento.agendaedu.com/hc/pt-br/articles/44939111651483-Edi%C3%A7%C3%A3o-n%C2%BA-12-Novidades-Dezembro-25)
+  - Edição Nº 12 - Novidades - Dezembro/25.
+- **Edição Nº 9 - Novidades - Setembro/2025** (`communication.manage_edicao_no_9_novidades_setembro`) — _documented_, friction 7.0 — [Edição nº 9 - Novidades - Setembro/2025](https://atendimento.agendaedu.com/hc/pt-br/articles/41656672831387-Edi%C3%A7%C3%A3o-n%C2%BA-9-Novidades-Setembro-2025)
+  - Edição Nº 9 - Novidades - Setembro/2025. Note: O mês de setembro trouxe atualizações importantes para tornar a gestão escolar ainda mais prática e eficiente..
+- **Encontrar Atendimentos Em Canais?** (`communication.manage_encontrar_atendimentos_em_cana`) — _documented_, friction 3.5 — [Como encontrar atendimentos em canais?](https://atendimento.agendaedu.com/hc/pt-br/articles/47966789106843-Como-encontrar-atendimentos-em-canais)
+  - Encontrar Atendimentos Em Canais?. Note: 💡 Importante: a busca filtra apenas os canais que você tem acesso..
+- **Engajamento E Histórico De Funcionalidades** (`communication.manage_engajamento_e_historico_de_fun`) — _documented_, friction 7.0 — [Engajamento e histórico de funcionalidades](https://atendimento.agendaedu.com/hc/pt-br/articles/360025748014-Engajamento-e-hist%C3%B3rico-de-funcionalidades)
+  - Engajamento E Histórico De Funcionalidades. Note: Importante: O botão 'Histórico' pode ser consultado dentro dos detalhes de cada comunicado..
+- **Entrar Na Reunião Meet Em Eventos?** (`communication.manage_entrar_na_reuniao_meet_em_even`) — _documented_, friction 0.0 — [Como entrar na reunião meet em eventos?](https://atendimento.agendaedu.com/hc/pt-br/articles/360045420574-Como-entrar-na-reuni%C3%A3o-meet-em-eventos)
+  - Entrar Na Reunião Meet Em Eventos?.
+- **Enviar Atividades Pela Agenda Edu?** (`communication.send_enviar_atividades_pela_agenda_`) — _documented_, friction 0.0 — [Como enviar atividades pela Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/8797531583387-Como-enviar-atividades-pela-Agenda-Edu)
+  - Enviar Atividades Pela Agenda Edu?.
+- **Enviar Diários Em Lote?** (`communication.send_enviar_diarios_em_lote`) — _documented_, friction 0.3 — [Como enviar Diários em lote?](https://atendimento.agendaedu.com/hc/pt-br/articles/360026612553-Como-enviar-Di%C3%A1rios-em-lote)
+  - Enviar Diários Em Lote?.
+- **Enviar Link De Convite Para Responsáveis?** (`communication.send_enviar_link_de_convite_para_re`) — _documented_, friction 3.5 — [Como enviar link de convite para Responsáveis?](https://atendimento.agendaedu.com/hc/pt-br/articles/19545690671259-Como-enviar-link-de-convite-para-Respons%C3%A1veis)
+  - Enviar Link De Convite Para Responsáveis?. Note: Importante: Os cadastros que foram criados pelos Responsáveis aparecerão em lista dando a opção de serem revisados. É ne.
+- **Enviar Mensagens Para A Escola? 💬** (`communication.send_enviar_mensagens_para_a_escola`) — _documented_, friction 0.0 — [Como enviar mensagens para a escola? 💬](https://atendimento.agendaedu.com/hc/pt-br/articles/4412221465627-Como-enviar-mensagens-para-a-escola)
+  - Enviar Mensagens Para A Escola? 💬.
+- **Enviar Um Comunicado Pelo Aplicativo?** (`communication.send_enviar_um_comunicado_pelo_apli`) — _documented_, friction 0.0 — [Como enviar um comunicado pelo aplicativo?](https://atendimento.agendaedu.com/hc/pt-br/articles/8504090770843-Como-enviar-um-comunicado-pelo-aplicativo)
+  - Enviar Um Comunicado Pelo Aplicativo?.
+- **Enviar Uma Atividade?** (`communication.send_enviar_uma_atividade`) — _documented_, friction 0.0 — [Como enviar uma Atividade?](https://atendimento.agendaedu.com/hc/pt-br/articles/4412543821339-Como-enviar-uma-Atividade)
+  - Enviar Uma Atividade?.
+- **Erro "Ops, Acesso Bloqueado", O Que Fazer?** (`communication.resolve_erro_ops_acesso_bloqueado_o_qu`) — _troubleshooting_, friction 3.0 — [Erro "Ops, acesso bloqueado", o que fazer?](https://atendimento.agendaedu.com/hc/pt-br/articles/360025354693-Erro-Ops-acesso-bloqueado-o-que-fazer)
+  - Erro "Ops, Acesso Bloqueado", O Que Fazer?.
+- **Esqueceu Sua Senha? Saiba O Que Fazer** (`communication.manage_esqueceu_sua_senha_saiba_o_que`) — _documented_, friction 0.0 — [Esqueceu sua senha? Saiba o que fazer](https://atendimento.agendaedu.com/hc/pt-br/articles/4411269508891-Esqueceu-sua-senha-Saiba-o-que-fazer)
+  - Esqueceu Sua Senha? Saiba O Que Fazer.
+- **Esqueci A Senha, O Que Fazer?** (`communication.manage_esqueci_a_senha_o_que_fazer`) — _documented_, friction 3.0 — [Esqueci a senha, o que fazer?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020466954-Esqueci-a-senha-o-que-fazer)
+  - Esqueci A Senha, O Que Fazer?.
+- **Esqueci Minha Senha, O Que Fazer?** (`communication.manage_esqueci_minha_senha_o_que_faze`) — _documented_, friction 8.0 — [Esqueci minha senha, o que fazer?](https://atendimento.agendaedu.com/hc/pt-br/articles/360021120613-Esqueci-minha-senha-o-que-fazer)
+  - Esqueci Minha Senha, O Que Fazer?. Note: ⚠️ Atenção: Qualquer alteração no cadastro, como e-mail ou nome de usuário, deve ser solicitado diretamente para a escol.
+- **Excluir Um Grupo?** (`communication.delete_excluir_um_grupo`) — _documented_, friction 3.5 — [Como excluir um grupo?](https://atendimento.agendaedu.com/hc/pt-br/articles/29097955455387-Como-excluir-um-grupo)
+  - Excluir Um Grupo?. Note: IMPORTANTE: Ao excluir um grupo, você não terá mais acesso a ele e nem será possível recuperá-lo..
+- **Exportar Relatórios De Diários?** (`communication.export_exportar_relatorios_de_diarios`) — _documented_, friction 0.0 — [Como exportar relatórios de Diários?](https://atendimento.agendaedu.com/hc/pt-br/articles/29089847777435-Como-exportar-relat%C3%B3rios-de-Di%C3%A1rios)
+  - Exportar Relatórios De Diários?.
+- **Faq Agenda Edu + Eleva** (`communication.manage_faq_agenda_edu_eleva`) — _documented_, friction 0.0 — [FAQ Agenda Edu + Eleva](https://atendimento.agendaedu.com/hc/pt-br/articles/360058797653-FAQ-Agenda-Edu-Eleva)
+  - Faq Agenda Edu + Eleva.
+- **Faq Clube De Benefícios Agenda Edu** (`communication.manage_faq_clube_de_beneficios_agenda`) — _documented_, friction 7.0 — [FAQ Clube de Benefícios Agenda Edu](https://atendimento.agendaedu.com/hc/pt-br/articles/360037835554-FAQ-Clube-de-Benef%C3%ADcios-Agenda-Edu)
+  - Faq Clube De Benefícios Agenda Edu. Note: Infelizmente não é possível selecionar ofertas específicas. Uma vez participante do Clube de Benefícios, o acesso é comp.
+- **Fazer Agendamento De Atividades?** (`communication.manage_fazer_agendamento_de_atividade`) — _documented_, friction 5.0 — [Como fazer Agendamento de Atividades?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020452214-Como-fazer-Agendamento-de-Atividades)
+  - Fazer Agendamento De Atividades?. Note: Importante: Em seguida, você verá um aviso confirmando as informações desse agendamento..
+- **Fazer Cadastros Manuais Na Agenda Edu?** (`communication.create_fazer_cadastros_manuais_na_age`) — _documented_, friction 15.5 — [Como fazer cadastros manuais na Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/360052623233-Como-fazer-cadastros-manuais-na-Agenda-Edu)
+  - Fazer Cadastros Manuais Na Agenda Edu?. Note: ⚠️Obs.: O campo 'Legacy ID', é restrito para escolas que realizam os cadastros via importação. Não é necessário preenche.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Fazer Captação No Whatsapp Pela Agenda Edu?** (`communication.manage_fazer_captacao_no_whatsapp_pel`) — _documented_, friction 0.0 — [Como fazer captação no WhatsApp pela Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/36606827792155-Como-fazer-capta%C3%A7%C3%A3o-no-WhatsApp-pela-Agenda-Edu)
+  - Fazer Captação No Whatsapp Pela Agenda Edu?.
+- **Fazer Login Com Autenticação De Dois Fatores?** (`communication.manage_fazer_login_com_autenticacao_d`) — _documented_, friction 0.0 — [Como fazer login com autenticação de dois fatores?](https://atendimento.agendaedu.com/hc/pt-br/articles/30162186664347-Como-fazer-login-com-autentica%C3%A7%C3%A3o-de-dois-fatores)
+  - Fazer Login Com Autenticação De Dois Fatores?.
+- **Fazer Um Agendamento De Um Comunicado?** (`communication.manage_fazer_um_agendamento_de_um_com`) — _documented_, friction 1.5 — [Como fazer um agendamento de um Comunicado?](https://atendimento.agendaedu.com/hc/pt-br/articles/4411276703387-Como-fazer-um-agendamento-de-um-Comunicado)
+  - Fazer Um Agendamento De Um Comunicado?.
+- **Fazer Upload De Arquivos Do Google Drive?** (`communication.manage_fazer_upload_de_arquivos_do_go`) — _documented_, friction 8.5 — [Como fazer upload de arquivos do Google Drive?](https://atendimento.agendaedu.com/hc/pt-br/articles/360021680433-Como-fazer-upload-de-arquivos-do-Google-Drive)
+  - Fazer Upload De Arquivos Do Google Drive?. Note: 💡 Importante: o Google solicita login toda vez que você utilizar essa função..
+- **Faço Para Alterar Meu E-Mail Ou Nome De Usuário No Aplicativo?** (`communication.update_faco_para_alterar_meu_e_mail_o`) — _documented_, friction 0.0 — [Como faço para alterar meu e-mail ou nome de usuár](https://atendimento.agendaedu.com/hc/pt-br/articles/4411152804635-Como-fa%C3%A7o-para-alterar-meu-e-mail-ou-nome-de-usu%C3%A1rio-no-aplicativo)
+  - Faço Para Alterar Meu E-Mail Ou Nome De Usuário No Aplicativo?.
+- **Faço Para Excluir Um Comunicado?** (`communication.delete_faco_para_excluir_um_comunicad`) — _documented_, friction 0.3 — [Como faço para excluir um Comunicado?](https://atendimento.agendaedu.com/hc/pt-br/articles/4410663112091-Como-fa%C3%A7o-para-excluir-um-Comunicado)
+  - Faço Para Excluir Um Comunicado?.
+- **Faço Para Excluir Um Álbum Ou Foto?** (`communication.delete_faco_para_excluir_um_album_ou_`) — _documented_, friction 2.0 — [Como faço para excluir um álbum ou foto?](https://atendimento.agendaedu.com/hc/pt-br/articles/4410651933083-Como-fa%C3%A7o-para-excluir-um-%C3%A1lbum-ou-foto)
+  - Faço Para Excluir Um Álbum Ou Foto?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Filtrar Atividades, Comunicados Ou Calendário?** (`communication.manage_filtrar_atividades_comunicados`) — _documented_, friction 10.5 — [Como filtrar Atividades, Comunicados ou Calendário](https://atendimento.agendaedu.com/hc/pt-br/articles/360027368033-Como-filtrar-Atividades-Comunicados-ou-Calend%C3%A1rio)
+  - Filtrar Atividades, Comunicados Ou Calendário?. Note: 💡Importante: Diretores e Coordenadores podem filtrar apenas os profissionais das unidades, segmentos e turmas em que faz.
+- **Fixar Documentos Essenciais Na Funcionalidade Documentos?** (`communication.manage_fixar_documentos_essenciais_na`) — _documented_, friction 10.5 — [Como fixar documentos essenciais na funcionalidade](https://atendimento.agendaedu.com/hc/pt-br/articles/41990049130523-Como-fixar-documentos-essenciais-na-funcionalidade-Documentos)
+  - Fixar Documentos Essenciais Na Funcionalidade Documentos?. Note: A escola pode agora fixar os arquivos mais importantes na área de Documentos, garantindo acesso fácil e imediato para os.
+- **Funciona Atividades No Aplicativo?** (`communication.manage_funciona_atividades_no_aplicat`) — _documented_, friction 0.0 — [Como funciona Atividades no aplicativo?](https://atendimento.agendaedu.com/hc/pt-br/articles/4412542968219-Como-funciona-Atividades-no-aplicativo)
+  - Funciona Atividades No Aplicativo?.
+- **Gerar Credenciais Da Api Na Agenda Edu?** (`communication.manage_gerar_credenciais_da_api_na_ag`) — _documented_, friction 1.5 — [Como gerar credenciais da API na Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/40932056328091-Como-gerar-credenciais-da-API-na-Agenda-Edu)
+  - Gerar Credenciais Da Api Na Agenda Edu?.
+- **Habilitar A Integração Sophia <> Agenda Edu?** (`communication.manage_habilitar_a_integracao_sophia_`) — _documented_, friction 2.4 — [Como habilitar a integração SophiA <> Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/11104377528987-Como-habilitar-a-integra%C3%A7%C3%A3o-SophiA-Agenda-Edu)
+  - Habilitar A Integração Sophia <> Agenda Edu?.
+- **Habilitar/Desabilitar As Seções No Diário?** (`communication.manage_habilitar_desabilitar_as_secoe`) — _documented_, friction 0.0 — [Como Habilitar/Desabilitar as seções no Diário?](https://atendimento.agendaedu.com/hc/pt-br/articles/10589194190875-Como-Habilitar-Desabilitar-as-se%C3%A7%C3%B5es-no-Di%C3%A1rio)
+  - Habilitar/Desabilitar As Seções No Diário?.
+- **Inserir Foto No Meu Cadastro?** (`communication.create_inserir_foto_no_meu_cadastro`) — _documented_, friction 0.0 — [Como inserir foto no meu cadastro?](https://atendimento.agendaedu.com/hc/pt-br/articles/4410977762331-Como-inserir-foto-no-meu-cadastro)
+  - Inserir Foto No Meu Cadastro?.
+- **Integrar O Sistema De Gestão Activesoft A Minha Agenda Edu?** (`communication.import_integrar_o_sistema_de_gestao_a`) — _documented_, friction 0.0 — [Como integrar o sistema de gestão ActiveSoft a min](https://atendimento.agendaedu.com/hc/pt-br/articles/360034774253-Como-integrar-o-sistema-de-gest%C3%A3o-ActiveSoft-a-minha-Agenda-Edu)
+  - Integrar O Sistema De Gestão Activesoft A Minha Agenda Edu?.
+- **Integrar O Sistema De Gestão Gennera A Minha Agenda Edu?** (`communication.import_integrar_o_sistema_de_gestao_g`) — _documented_, friction 3.5 — [Como integrar o sistema de gestão Gennera a minha ](https://atendimento.agendaedu.com/hc/pt-br/articles/11104517110171-Como-integrar-o-sistema-de-gest%C3%A3o-Gennera-a-minha-Agenda-Edu)
+  - Integrar O Sistema De Gestão Gennera A Minha Agenda Edu?. Note: Importante: Quando a integração está configurada para execução automática, ela é iniciada diariamente às 19h30. Esse pro.
+- **Integrar O Sistema De Gestão Ischolar A Minha Agenda Edu?** (`communication.import_integrar_o_sistema_de_gestao_i`) — _documented_, friction 1.5 — [Como integrar o sistema de gestão iScholar a minha](https://atendimento.agendaedu.com/hc/pt-br/articles/11104634050459-Como-integrar-o-sistema-de-gest%C3%A3o-iScholar-a-minha-Agenda-Edu)
+  - Integrar O Sistema De Gestão Ischolar A Minha Agenda Edu?.
+- **Integrar O Sistema De Gestão Proesc À Agenda Edu?** (`communication.import_integrar_o_sistema_de_gestao_p`) — _documented_, friction 3.5 — [Como integrar o sistema de gestão Proesc à Agenda ](https://atendimento.agendaedu.com/hc/pt-br/articles/11104533477915-Como-integrar-o-sistema-de-gest%C3%A3o-Proesc-%C3%A0-Agenda-Edu)
+  - Integrar O Sistema De Gestão Proesc À Agenda Edu?. Note: Importante: Quando a integração está configurada para execução automática, ela é iniciada diariamente às 20h. Esse proce.
+- **Integrar O Sistema De Gestão Sponte A Minha Agenda Edu?** (`communication.import_integrar_o_sistema_de_gestao_s`) — _documented_, friction 3.5 — [Como integrar o sistema de gestão Sponte a minha A](https://atendimento.agendaedu.com/hc/pt-br/articles/11104575484699-Como-integrar-o-sistema-de-gest%C3%A3o-Sponte-a-minha-Agenda-Edu)
+  - Integrar O Sistema De Gestão Sponte A Minha Agenda Edu?. Note: Importante: A integração das ocorrências e o envio dos pushes ocorrem, por padrão, a cada 2 horas, das 7h às 18h, todos .
+- **Integrar O Sistema De Gestão Totvs A Minha Agenda Edu?** (`communication.import_integrar_o_sistema_de_gestao_t`) — _documented_, friction 3.5 — [Como integrar o sistema de gestão TOTVs a minha Ag](https://atendimento.agendaedu.com/hc/pt-br/articles/11104614436379-Como-integrar-o-sistema-de-gest%C3%A3o-TOTVs-a-minha-Agenda-Edu)
+  - Integrar O Sistema De Gestão Totvs A Minha Agenda Edu?. Note: Importante: Além dos dados cadastrais, sua escola também pode utilizar a Central de Notificações para integrar informaçõ.
+- **Interromper Um Medicamento?** (`communication.resolve_interromper_um_medicamento`) — _troubleshooting_, friction 3.0 — [Como interromper um medicamento?](https://atendimento.agendaedu.com/hc/pt-br/articles/4411456728219-Como-interromper-um-medicamento)
+  - Interromper Um Medicamento?.
+- **Lançamento App Equipe Escolar** (`communication.manage_lancamento_app_equipe_escolar`) — _documented_, friction 5.5 — [Lançamento App Equipe Escolar](https://atendimento.agendaedu.com/hc/pt-br/articles/4402115488923-Lan%C3%A7amento-App-Equipe-Escolar)
+  - Lançamento App Equipe Escolar. Note: Na nossa nova versão do App, é possível acessar diretamente com a conta do Google, é isso aí! Ah, é importante lembrar q.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Marcar As Atividades Como Concluídas?** (`communication.manage_marcar_as_atividades_como_conc`) — _documented_, friction 0.0 — [Como marcar as Atividades como Concluídas?](https://atendimento.agendaedu.com/hc/pt-br/articles/4411119992475-Como-marcar-as-Atividades-como-Conclu%C3%ADdas)
+  - Marcar As Atividades Como Concluídas?.
+- **Marcar Uma Atividade Como Favorita?** (`communication.manage_marcar_uma_atividade_como_favo`) — _documented_, friction 0.0 — [Como marcar uma Atividade como Favorita?](https://atendimento.agendaedu.com/hc/pt-br/articles/4471365857819-Como-marcar-uma-Atividade-como-Favorita)
+  - Marcar Uma Atividade Como Favorita?.
+- **Melhore A Adesão E O Engajamento De Alunos E Responsáveis** (`communication.manage_melhore_a_adesao_e_o_engajamen`) — _documented_, friction 3.5 — [Melhore a adesão e o engajamento de alunos e respo](https://atendimento.agendaedu.com/hc/pt-br/articles/360023526793-Melhore-a-ades%C3%A3o-e-o-engajamento-de-alunos-e-respons%C3%A1veis)
+  - Melhore A Adesão E O Engajamento De Alunos E Responsáveis. Note: Para uma a boa adesão e engajamento dos usuários, é essencial a preparação inicial da equipe de profissionais. É muito i.
+- **Mensagens: Como Acessar O Detalhamento De Conversas?** (`communication.manage_mensagens_como_acessar_o_detal`) — _documented_, friction 5.0 — [Mensagens: Como acessar o detalhamento de conversa](https://atendimento.agendaedu.com/hc/pt-br/articles/40451160752411-Mensagens-Como-acessar-o-detalhamento-de-conversas)
+  - Mensagens: Como Acessar O Detalhamento De Conversas?. Note: Observações: É importante lembrar que apenas o acesso Master pode gerar esse relatório detalhado para que assim seja man.
+- **Meu Aplicativo Não Abre, O Que Fazer?** (`communication.manage_meu_aplicativo_nao_abre_o_que_`) — _documented_, friction 1.5 — [Meu aplicativo não abre, o que fazer?](https://atendimento.agendaedu.com/hc/pt-br/articles/16760412248859-Meu-aplicativo-n%C3%A3o-abre-o-que-fazer)
+  - Meu Aplicativo Não Abre, O Que Fazer?.
+- **Minha Agenda Edu Não Abre No Meu Computador, O Que Fazer?** (`communication.manage_minha_agenda_edu_nao_abre_no_m`) — _documented_, friction 3.5 — [Minha Agenda Edu não abre no meu computador, o que](https://atendimento.agendaedu.com/hc/pt-br/articles/17309534007963-Minha-Agenda-Edu-n%C3%A3o-abre-no-meu-computador-o-que-fazer)
+  - Minha Agenda Edu Não Abre No Meu Computador, O Que Fazer?. Note: ⚠️Obs.: a principal característica do cache é ser uma memória temporária, então você não perderá as senhas salvas após a.
+- **Minha Agenda Está Logada Em Outra Escola, O Que Fazer?** (`communication.manage_minha_agenda_esta_logada_em_ou`) — _documented_, friction 0.0 — [Minha agenda está logada em outra escola, o que fa](https://atendimento.agendaedu.com/hc/pt-br/articles/16760726385051-Minha-agenda-est%C3%A1-logada-em-outra-escola-o-que-fazer)
+  - Minha Agenda Está Logada Em Outra Escola, O Que Fazer?.
+- **Nova Funcionalidade - Acompanhamento Emocional** (`communication.manage_nova_funcionalidade_acompanham`) — _documented_, friction 0.0 — [Nova Funcionalidade - Acompanhamento Emocional](https://atendimento.agendaedu.com/hc/pt-br/articles/17428659298203-Nova-Funcionalidade-Acompanhamento-Emocional)
+  - Nova Funcionalidade - Acompanhamento Emocional.
+- **Não Consigo Acessar E Uso Iphone** (`communication.resolve_nao_consigo_acessar_e_uso_ipho`) — _troubleshooting_, friction 3.0 — [Não consigo acessar e uso Iphone](https://atendimento.agendaedu.com/hc/pt-br/articles/360043350573-N%C3%A3o-consigo-acessar-e-uso-Iphone)
+  - Não Consigo Acessar E Uso Iphone.
+- **O Acesso À Agenda Edu É Único Para Todos Os Responsáveis?** (`communication.manage_o_acesso_a_agenda_edu_e_unico_`) — _documented_, friction 0.0 — [O acesso à Agenda Edu é único para todos os respon](https://atendimento.agendaedu.com/hc/pt-br/articles/16787883671323-O-acesso-%C3%A0-Agenda-Edu-%C3%A9-%C3%BAnico-para-todos-os-respons%C3%A1veis)
+  - O Acesso À Agenda Edu É Único Para Todos Os Responsáveis?.
+- **O Que Significa Cada Situação Da Atividade?** (`communication.manage_o_que_significa_cada_situacao_`) — _documented_, friction 3.5 — [O que significa cada situação da atividade?](https://atendimento.agendaedu.com/hc/pt-br/articles/360024785534-O-que-significa-cada-situa%C3%A7%C3%A3o-da-atividade)
+  - O Que Significa Cada Situação Da Atividade?. Note: ⚠️Obs: Professores e auxiliares, mesmo estando configurados para aprovar envio, NÃO PODEM realizar a ação de ‘Não Aprova.
+- **O Que Significam Os Status Das Ofertas?** (`communication.manage_o_que_significam_os_status_das`) — _documented_, friction 3.5 — [O que significam os status das ofertas?](https://atendimento.agendaedu.com/hc/pt-br/articles/12906964547355-O-que-significam-os-status-das-ofertas)
+  - O Que Significam Os Status Das Ofertas?. Note: O status informa a situação atual da oferta. É muito importante entender o que significa cada status pois eles são essen.
+- **Personalizar Minha Conta?** (`communication.manage_personalizar_minha_conta`) — _documented_, friction 0.0 — [Como personalizar minha conta?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020679253-Como-personalizar-minha-conta)
+  - Personalizar Minha Conta?.
+- **Personalizar O Perfil Da Escola?** (`communication.manage_personalizar_o_perfil_da_escol`) — _documented_, friction 3.5 — [Como personalizar o perfil da escola?](https://atendimento.agendaedu.com/hc/pt-br/articles/360020467934-Como-personalizar-o-perfil-da-escola)
+  - Personalizar O Perfil Da Escola?. Note: Atenção: apenas usuário de perfil master pode editar esse campo..
+- **Personalize O Engajamento Com O Envio De Atividades Individuais** (`communication.manage_personalize_o_engajamento_com_`) — _documented_, friction 0.0 — [Personalize o engajamento com o Envio de Atividade](https://atendimento.agendaedu.com/hc/pt-br/articles/19974194394651-Personalize-o-engajamento-com-o-Envio-de-Atividades-Individuais)
+  - Personalize O Engajamento Com O Envio De Atividades Individuais.
+- **Posso Excluir Uma Mensagem Enviada?** (`communication.delete_posso_excluir_uma_mensagem_env`) — _documented_, friction 5.0 — [Como posso excluir uma mensagem enviada?](https://atendimento.agendaedu.com/hc/pt-br/articles/4411195282203-Como-posso-excluir-uma-mensagem-enviada)
+  - Posso Excluir Uma Mensagem Enviada?. Note: ⚠ Importante: Lembrando que só é possível apagar no aplicativo, ok?.
+- **Preencher A Seção De Refeição Do Diário?** (`communication.manage_preencher_a_secao_de_refeicao_`) — _documented_, friction 1.5 — [Como preencher a seção de Refeição do Diário?](https://atendimento.agendaedu.com/hc/pt-br/articles/13530699692315-Como-preencher-a-se%C3%A7%C3%A3o-de-Refei%C3%A7%C3%A3o-do-Di%C3%A1rio)
+  - Preencher A Seção De Refeição Do Diário?.
+- **Reabrir Um Ticket De Atendimento Encerrado?** (`communication.manage_reabrir_um_ticket_de_atendimen`) — _documented_, friction 2.0 — [Como reabrir um ticket de atendimento encerrado?](https://atendimento.agendaedu.com/hc/pt-br/articles/51194567168667-Como-reabrir-um-ticket-de-atendimento-encerrado)
+  - Reabrir Um Ticket De Atendimento Encerrado?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Realizar A Progressão De Alunos Via Import Web?** (`communication.manage_realizar_a_progressao_de_aluno`) — _documented_, friction 5.9 — [Como realizar a progressão de alunos via Import We](https://atendimento.agendaedu.com/hc/pt-br/articles/11038958284059-Como-realizar-a-progress%C3%A3o-de-alunos-via-Import-Web)
+  - Realizar A Progressão De Alunos Via Import Web?. Note: Importante: Para o sistema ler os dados da maneira correta, recomendamos o uso das nossas planilhas modelo. Dessa forma,.
+- **Realizar A Progressão De Ano Letivo Via Integração?** (`communication.manage_realizar_a_progressao_de_ano_l`) — _documented_, friction 7.0 — [Como realizar a progressão de ano letivo via Integ](https://atendimento.agendaedu.com/hc/pt-br/articles/11104895075099-Como-realizar-a-progress%C3%A3o-de-ano-letivo-via-Integra%C3%A7%C3%A3o)
+  - Realizar A Progressão De Ano Letivo Via Integração?. Note: 🔔Atenção: Você só deve desativar o período letivo do ano passado no seu sistema de gestão caso já tiver habilitado o per.
+- **Realizar A Progressão Manual De Alunos?** (`communication.manage_realizar_a_progressao_manual_d`) — _documented_, friction 9.9 — [Como realizar a progressão manual de alunos?](https://atendimento.agendaedu.com/hc/pt-br/articles/360022212854-Como-realizar-a-progress%C3%A3o-manual-de-alunos)
+  - Realizar A Progressão Manual De Alunos?. Note: Importante: Este artigo é para escolas que utilizam o cadastro manual na Agenda Edu. Se a sua escola utiliza a importaçã.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Realizar Cadastro Via Importação De Planilhas?** (`communication.create_realizar_cadastro_via_importac`) — _documented_, friction 8.8 — [Como realizar cadastro via importação de planilhas](https://atendimento.agendaedu.com/hc/pt-br/articles/360051165274-Como-realizar-cadastro-via-importa%C3%A7%C3%A3o-de-planilhas)
+  - Realizar Cadastro Via Importação De Planilhas?. Note: Importante: Corrija as inconsistências antes de confirmar o início da importação, pois, após iniciar o processo, ele não.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Realizar O Login Via Portal Atlas** (`communication.manage_realizar_o_login_via_portal_at`) — _documented_, friction 5.3 — [Como realizar o login via Portal Atlas](https://atendimento.agendaedu.com/hc/pt-br/articles/12625232711067-Como-realizar-o-login-via-Portal-Atlas)
+  - Realizar O Login Via Portal Atlas. Note: ⚠️ Atenção: O seu login no Portal Atlas tem que estar correto e deve ser verificado diretamente com a Escola!.
+- **Receber As Atividades Pela Agenda Edu?** (`communication.manage_receber_as_atividades_pela_age`) — _documented_, friction 3.5 — [Como receber as atividades pela Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/8796716413339-Como-receber-as-atividades-pela-Agenda-Edu)
+  - Receber As Atividades Pela Agenda Edu?. Note: Importante: Se a sua escola marcar "não" na opção "Receber atividade através da Agenda Edu" significa que a atividade de.
+- **Recuperar Um Álbum De Fotos?** (`communication.manage_recuperar_um_album_de_fotos`) — _documented_, friction 0.0 — [Como recuperar um álbum de fotos?](https://atendimento.agendaedu.com/hc/pt-br/articles/31499131227419-Como-recuperar-um-%C3%A1lbum-de-fotos)
+  - Recuperar Um Álbum De Fotos?.
+- **Redirecionar Mensagens Entre Canais?** (`communication.manage_redirecionar_mensagens_entre_c`) — _documented_, friction 8.5 — [Como redirecionar mensagens entre canais?](https://atendimento.agendaedu.com/hc/pt-br/articles/9228983943195-Como-redirecionar-mensagens-entre-canais)
+  - Redirecionar Mensagens Entre Canais?. Note: Observação importante:.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Reenviar Comunicados Em Massa?** (`communication.send_reenviar_comunicados_em_massa`) — _documented_, friction 0.0 — [Como reenviar Comunicados em massa?](https://atendimento.agendaedu.com/hc/pt-br/articles/4786201110683-Como-reenviar-Comunicados-em-massa)
+  - Reenviar Comunicados Em Massa?.
+- **Reenviar Eventos Em Massa?** (`communication.send_reenviar_eventos_em_massa`) — _documented_, friction 0.0 — [Como reenviar Eventos em massa?](https://atendimento.agendaedu.com/hc/pt-br/articles/4790124736411-Como-reenviar-Eventos-em-massa)
+  - Reenviar Eventos Em Massa?.
+- **Reenviar O E-Mail De Boas-Vindas Para Responsáveis E Alunos?** (`communication.send_reenviar_o_e_mail_de_boas_vind`) — _documented_, friction 5.5 — [Como reenviar o e-mail de boas-vindas para respons](https://atendimento.agendaedu.com/hc/pt-br/articles/4784517287835-Como-reenviar-o-e-mail-de-boas-vindas-para-respons%C3%A1veis-e-alunos)
+  - Reenviar O E-Mail De Boas-Vindas Para Responsáveis E Alunos?. Note: ⚠️ OBS.:O e-mail de boas-vindas chegará para todos os que não confirmaram conta..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Reordenar Os Canais De Mensagem?** (`communication.manage_reordenar_os_canais_de_mensage`) — _documented_, friction 2.4 — [Como reordenar os Canais de Mensagem?](https://atendimento.agendaedu.com/hc/pt-br/articles/5939122918043-Como-reordenar-os-Canais-de-Mensagem)
+  - Reordenar Os Canais De Mensagem?.
+- **Responder Uma Enquete?** (`communication.manage_responder_uma_enquete`) — _documented_, friction 3.5 — [Como responder uma enquete?](https://atendimento.agendaedu.com/hc/pt-br/articles/12402476561819-Como-responder-uma-enquete)
+  - Responder Uma Enquete?. Note: Importante: Uma vez enviadas, as respostas da enquete não poderão ser alteradas..
+- **Responder Uma Mensagem Específica?** (`communication.manage_responder_uma_mensagem_especif`) — _documented_, friction 5.5 — [Como responder uma mensagem específica?](https://atendimento.agendaedu.com/hc/pt-br/articles/8795904315547-Como-responder-uma-mensagem-espec%C3%ADfica)
+  - Responder Uma Mensagem Específica?. Note: Importante: os perfis de usuário que necessitam de aprovação para envio de mensagens também poderão utilizar o recurso d.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Silenciar Um Grupo?** (`communication.manage_silenciar_um_grupo`) — _documented_, friction 0.0 — [Como silenciar um grupo?](https://atendimento.agendaedu.com/hc/pt-br/articles/29097843548955-Como-silenciar-um-grupo)
+  - Silenciar Um Grupo?.
+- **Solicitar A Integração Do Sistema De Gestão Totvs Com A Agenda Edu?** (`communication.manage_solicitar_a_integracao_do_sist`) — _documented_, friction 0.0 — [Como solicitar a integração do sistema de gestão T](https://atendimento.agendaedu.com/hc/pt-br/articles/12936328315931-Como-solicitar-a-integra%C3%A7%C3%A3o-do-sistema-de-gest%C3%A3o-TOTVS-com-a-Agenda-Edu)
+  - Solicitar A Integração Do Sistema De Gestão Totvs Com A Agenda Edu?.
+- **Transferir Alunos Entre Turmas?** (`communication.manage_transferir_alunos_entre_turmas`) — _documented_, friction 0.0 — [Como transferir alunos entre turmas?](https://atendimento.agendaedu.com/hc/pt-br/articles/11038801215131-Como-transferir-alunos-entre-turmas)
+  - Transferir Alunos Entre Turmas?.
+- **Transmitir Os Eventos Da Sua Escola Usando O Google Meet?** (`communication.manage_transmitir_os_eventos_da_sua_e`) — _documented_, friction 3.5 — [Como transmitir os Eventos da sua escola usando o ](https://atendimento.agendaedu.com/hc/pt-br/articles/360033189894-Como-transmitir-os-Eventos-da-sua-escola-usando-o-Google-Meet)
+  - Transmitir Os Eventos Da Sua Escola Usando O Google Meet?. Note: ⚠️Fique atento(a) a sua conta do Google. Para fazer a criação do link ela precisa estar ativa e com o funcionamento norm.
+- **Um Usuário Master?** (`communication.manage_um_usuario_master`) — _conceptual_, friction 7.0 — [O que é um usuário Master?](https://atendimento.agendaedu.com/hc/pt-br/articles/360052620913-O-que-%C3%A9-um-usu%C3%A1rio-Master)
+  - Um Usuário Master?. Note: As escolas designam quem serão seu(s) usuário(s) Master(s). Por isso, é preciso atenção na hora de defini-los. Sugerimos.
+- **Usar Ia Em Comunicados?** (`communication.manage_usar_ia_em_comunicados`) — _documented_, friction 0.0 — [Como usar IA em Comunicados?](https://atendimento.agendaedu.com/hc/pt-br/articles/36263962683675-Como-usar-IA-em-Comunicados)
+  - Usar Ia Em Comunicados?.
+- **Utilizar A Central De Notificações?** (`communication.manage_utilizar_a_central_de_notifica`) — _documented_, friction 3.5 — [Como utilizar a Central de Notificações?](https://atendimento.agendaedu.com/hc/pt-br/articles/5325637523099-Como-utilizar-a-Central-de-Notifica%C3%A7%C3%B5es)
+  - Utilizar A Central De Notificações?. Note: ⚠️Obs.: Caso ainda não tenha essa funcionalidade habilitada, entre em contato com nosso Suporte que faremos a ativação. .
+- **Utilizar Filtros Nos Canais De Atendimento?** (`communication.manage_utilizar_filtros_nos_canais_de`) — _documented_, friction 0.0 — [Como utilizar filtros nos Canais de Atendimento?](https://atendimento.agendaedu.com/hc/pt-br/articles/46081896368795-Como-utilizar-filtros-nos-Canais-de-Atendimento)
+  - Utilizar Filtros Nos Canais De Atendimento?.
+- **Utilizar O Import Web V2 (Importação De Dados)?** (`communication.manage_utilizar_o_import_web_v2_impor`) — _documented_, friction 9.0 — [Como utilizar o Import Web V2 (importação de dados](https://atendimento.agendaedu.com/hc/pt-br/articles/14072414741659-Como-utilizar-o-Import-Web-V2-importa%C3%A7%C3%A3o-de-dados)
+  - Utilizar O Import Web V2 (Importação De Dados)?. Note: Mas antes do passo a passo, alguns pontos importantes:.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Utilizar O Módulo Saúde** (`communication.manage_utilizar_o_modulo_saude`) — _documented_, friction 1.5 — [Como utilizar o módulo Saúde](https://atendimento.agendaedu.com/hc/pt-br/articles/360035398613-Como-utilizar-o-m%C3%B3dulo-Sa%C3%BAde)
+  - Utilizar O Módulo Saúde.
+- **Visualizar A Agenda De Dois Ou Mais Alunos Da Mesma Escola?** (`communication.view_visualizar_a_agenda_de_dois_ou`) — _documented_, friction 0.0 — [Como visualizar a agenda de dois ou mais alunos da](https://atendimento.agendaedu.com/hc/pt-br/articles/360024890934-Como-visualizar-a-agenda-de-dois-ou-mais-alunos-da-mesma-escola)
+  - Visualizar A Agenda De Dois Ou Mais Alunos Da Mesma Escola?.
+- **Visualizar A Central De Notificações?** (`communication.view_visualizar_a_central_de_notifi`) — _documented_, friction 0.0 — [Como visualizar a Central de Notificações?](https://atendimento.agendaedu.com/hc/pt-br/articles/5330584338843-Como-visualizar-a-Central-de-Notifica%C3%A7%C3%B5es)
+  - Visualizar A Central De Notificações?.
+- **Visualizar As Respostas De Uma Enquete?** (`communication.view_visualizar_as_respostas_de_uma`) — _documented_, friction 3.5 — [Como visualizar as respostas de uma enquete?](https://atendimento.agendaedu.com/hc/pt-br/articles/23010128159771-Como-visualizar-as-respostas-de-uma-enquete)
+  - Visualizar As Respostas De Uma Enquete?. Note: Importante: Apenas os usuários com perfil Diretor, Coordenador ou Master podem criar e também aprovar uma enquete. Se su.
+- **Visualizar Calendário No Superapp?** (`communication.view_visualizar_calendario_no_super`) — _documented_, friction 3.5 — [Como visualizar Calendário no SuperApp?](https://atendimento.agendaedu.com/hc/pt-br/articles/40772739568283-Como-visualizar-Calend%C3%A1rio-no-SuperApp)
+  - Visualizar Calendário No Superapp?. Note: Essa novidade foi pensada para deixar o seu dia a dia ainda mais organizado, com uma visualização intuitiva de todos os .
+- **Visualizar Mensagens Inativas** (`communication.view_visualizar_mensagens_inativas`) — _documented_, friction 0.0 — [Como visualizar mensagens inativas](https://atendimento.agendaedu.com/hc/pt-br/articles/14620657938587-Como-visualizar-mensagens-inativas)
+  - Visualizar Mensagens Inativas.
+- **Visualizar Os Comentários Nos Atendimentos?** (`communication.view_visualizar_os_comentarios_nos_`) — _documented_, friction 0.0 — [Como visualizar os comentários nos atendimentos?](https://atendimento.agendaedu.com/hc/pt-br/articles/40872293484699-Como-visualizar-os-coment%C3%A1rios-nos-atendimentos)
+  - Visualizar Os Comentários Nos Atendimentos?.
+- **Visualizar Um Ticket Em Aberto Sem Turma E/Ou Vínculo?** (`communication.view_visualizar_um_ticket_em_aberto`) — _documented_, friction 8.5 — [Como visualizar um ticket em aberto sem turma e/ou](https://atendimento.agendaedu.com/hc/pt-br/articles/48924584866203-Como-visualizar-um-ticket-em-aberto-sem-turma-e-ou-v%C3%ADnculo)
+  - Visualizar Um Ticket Em Aberto Sem Turma E/Ou Vínculo?. Note: Importante: quando o aluno é vinculado a uma turma no período letivo ativo, ele deixa de ser considerado como "sem turma.
+- **✅ Etapa 1. Criar O Ano Letivo De 2026 E Desativar O Período Letivo De 2025 - Man** (`communication.create_etapa_1_criar_o_ano_letivo_de_`) — _documented_, friction 12.5 — [✅ Etapa 1. Criar o ano letivo de 2026 e desativar ](https://atendimento.agendaedu.com/hc/pt-br/articles/43691233018395--Etapa-1-Criar-o-ano-letivo-de-2026-e-desativar-o-per%C3%ADodo-letivo-de-2025-Manual)
+  - ✅ Etapa 1. Criar O Ano Letivo De 2026 E Desativar O Período Letivo De 2025 - Man. Note: ⚠️Fique atento(a): Recomendamos que a ativação do novo período letivo seja realizada somente após a finalização do perío.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **✅ Etapa 2: Progressão Dos Alunos Para As Turmas De 2026 - Manual** (`communication.manage_etapa_2_progressao_dos_alunos_`) — _documented_, friction 0.0 — [✅ Etapa 2: Progressão dos alunos para as turmas de](https://atendimento.agendaedu.com/hc/pt-br/articles/43692287960859--Etapa-2-Progress%C3%A3o-dos-alunos-para-as-turmas-de-2026-Manual)
+  - ✅ Etapa 2: Progressão Dos Alunos Para As Turmas De 2026 - Manual.
+- **✅ Etapa 3. Verificar O Acesso Dos Colaboradores À Agenda Edu - Erp** (`communication.manage_etapa_3_verificar_o_acesso_dos`) — _documented_, friction 2.4 — [✅ Etapa 3. Verificar o acesso dos colaboradores à ](https://atendimento.agendaedu.com/hc/pt-br/articles/4412240768795--Etapa-3-Verificar-o-acesso-dos-colaboradores-%C3%A0-Agenda-Edu-ERP)
+  - ✅ Etapa 3. Verificar O Acesso Dos Colaboradores À Agenda Edu - Erp.
+- **✅ Etapa 4. Verificar O Acesso Dos Colaboradores À Agenda Edu - Manual** (`communication.manage_etapa_4_verificar_o_acesso_dos`) — _documented_, friction 5.6 — [✅ Etapa 4. Verificar o acesso dos colaboradores à ](https://atendimento.agendaedu.com/hc/pt-br/articles/43692620810651--Etapa-4-Verificar-o-acesso-dos-colaboradores-%C3%A0-Agenda-Edu-Manual)
+  - ✅ Etapa 4. Verificar O Acesso Dos Colaboradores À Agenda Edu - Manual.
+- **✅ Etapa 5. Verificar O Acesso Dos Responsáveis À Agenda Edu - Manual** (`communication.manage_etapa_5_verificar_o_acesso_dos`) — _documented_, friction 9.7 — [✅ Etapa 5. Verificar o acesso dos responsáveis à A](https://atendimento.agendaedu.com/hc/pt-br/articles/43693970764443--Etapa-5-Verificar-o-acesso-dos-respons%C3%A1veis-%C3%A0-Agenda-Edu-Manual)
+  - ✅ Etapa 5. Verificar O Acesso Dos Responsáveis À Agenda Edu - Manual. Note: Aqui, é importante verificar se:.
+- **✅ Etapa 7. Conheça Todas As Funcionalidades Do Superapp Agenda Edu - Erp** (`communication.manage_etapa_7_conheca_todas_as_funci`) — _documented_, friction 0.0 — [✅ Etapa 7. Conheça todas as funcionalidades do Sup](https://atendimento.agendaedu.com/hc/pt-br/articles/32630818454043--Etapa-7-Conhe%C3%A7a-todas-as-funcionalidades-do-SuperApp-Agenda-Edu-ERP)
+  - ✅ Etapa 7. Conheça Todas As Funcionalidades Do Superapp Agenda Edu - Erp.
+- **✅ Etapa 9. Conheça Todas As Funcionalidades Do Superapp Agenda Edu - Manual** (`communication.manage_etapa_9_conheca_todas_as_funci`) — _documented_, friction 0.0 — [✅ Etapa 9. Conheça todas as funcionalidades do Sup](https://atendimento.agendaedu.com/hc/pt-br/articles/43699100881051--Etapa-9-Conhe%C3%A7a-todas-as-funcionalidades-do-SuperApp-Agenda-Edu-Manual)
+  - ✅ Etapa 9. Conheça Todas As Funcionalidades Do Superapp Agenda Edu - Manual.
+- **🔎 Como Me Cadastro Na Agenda Edu?** (`communication.create_como_me_cadastro_na_agenda_edu`) — _documented_, friction 0.0 — [🔎 Como me cadastro na Agenda Edu?](https://atendimento.agendaedu.com/hc/pt-br/articles/360025042713--Como-me-cadastro-na-Agenda-Edu)
+  - 🔎 Como Me Cadastro Na Agenda Edu?.
+- **🔎 Como Visualizar A Agenda De Dois Alunos Em Escolas Diferentes?** (`communication.view_como_visualizar_a_agenda_de_do`) — _documented_, friction 5.5 — [🔎 Como visualizar a agenda de dois alunos em escol](https://atendimento.agendaedu.com/hc/pt-br/articles/4411194850459--Como-visualizar-a-agenda-de-dois-alunos-em-escolas-diferentes)
+  - 🔎 Como Visualizar A Agenda De Dois Alunos Em Escolas Diferentes?. Note: Atenção: o cadastro é de responsabilidade da escola, então caso você não consiga visualizar a escola, você deve entrar e.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **🔎 Esqueci Meu E-Mail, O Que Fazer?** (`communication.manage_esqueci_meu_e_mail_o_que_fazer`) — _documented_, friction 0.0 — [🔎 Esqueci meu e-mail, o que fazer?](https://atendimento.agendaedu.com/hc/pt-br/articles/4411202900891--Esqueci-meu-e-mail-o-que-fazer)
+  - 🔎 Esqueci Meu E-Mail, O Que Fazer?.
+- **🔎 Esqueci Minha Senha, Como Recuperar?** (`communication.manage_esqueci_minha_senha_como_recup`) — _documented_, friction 1.8 — [🔎 Esqueci minha senha, como recuperar?](https://atendimento.agendaedu.com/hc/pt-br/articles/4412241026587--Esqueci-minha-senha-como-recuperar)
+  - 🔎 Esqueci Minha Senha, Como Recuperar?.
+- **🔎 O Que É O Erro "Ops, Acesso Bloqueado"? 🕵️** (`communication.resolve_o_que_e_o_erro_ops_acesso_bloq`) — _troubleshooting_, friction 8.5 — [🔎 O que é o erro "Ops, acesso bloqueado"? 🕵️](https://atendimento.agendaedu.com/hc/pt-br/articles/4412234334875--O-que-%C3%A9-o-erro-Ops-acesso-bloqueado)
+  - 🔎 O Que É O Erro "Ops, Acesso Bloqueado"? 🕵️. Note: 🔔 Atenção: se ao tentar acessar o aplicativo Agenda Edu você visualizou a mensagem: ''Ops, acesso bloqueado'', sugerimos.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **🔽 [Baixe Aqui] Material De Divulgação Agenda Edu** (`communication.manage_baixe_aqui_material_de_divulga`) — _documented_, friction 0.0 — [🔽 [Baixe Aqui] Material de Divulgação Agenda Edu](https://atendimento.agendaedu.com/hc/pt-br/articles/360020443294--Baixe-Aqui-Material-de-Divulga%C3%A7%C3%A3o-Agenda-Edu)
+  - 🔽 [Baixe Aqui] Material De Divulgação Agenda Edu.
+
+## Student
+
+- **Acompanhar Medicações Do Aluno?** (`communication.view_acompanhar_medicacoes_do_aluno`) — _documented_, friction 0.0 — [Como acompanhar medicações do aluno?](https://atendimento.agendaedu.com/hc/pt-br/articles/360026061074-Como-acompanhar-medica%C3%A7%C3%B5es-do-aluno)
+  - Acompanhar Medicações Do Aluno?.
+- **Alterar A Senha De Um Aluno?** (`communication.update_alterar_a_senha_de_um_aluno`) — _documented_, friction 3.5 — [Como alterar a senha de um aluno?](https://atendimento.agendaedu.com/hc/pt-br/articles/4410672647323-Como-alterar-a-senha-de-um-aluno)
+  - Alterar A Senha De Um Aluno?. Note: Importante: A senha temporária deve ser alterada após o acesso, através do menu "Minha Conta"..
+- **Cadastrar A Ficha Médica Do Aluno?** (`communication.create_cadastrar_a_ficha_medica_do_al`) — _documented_, friction 3.5 — [Como cadastrar a ficha médica do aluno?](https://atendimento.agendaedu.com/hc/pt-br/articles/360026238313-Como-cadastrar-a-ficha-m%C3%A9dica-do-aluno)
+  - Cadastrar A Ficha Médica Do Aluno?. Note: 4 - Preencha a ficha com os dados do aluno como: tipo sanguíneo, plano de saúde, contato de emergência, cuidados especia.
+- **Filtrar Atendimentos Pelo Nome Do Aluno?** (`communication.manage_filtrar_atendimentos_pelo_nome`) — _documented_, friction 0.0 — [Como filtrar atendimentos pelo nome do aluno?](https://atendimento.agendaedu.com/hc/pt-br/articles/46081830502939-Como-filtrar-atendimentos-pelo-nome-do-aluno)
+  - Filtrar Atendimentos Pelo Nome Do Aluno?.
+- **O Mural De Fotos Do Aluno? Como Funciona?** (`communication.manage_o_mural_de_fotos_do_aluno_como`) — _conceptual_, friction 5.0 — [O que é o Mural de fotos do aluno? Como funciona?](https://atendimento.agendaedu.com/hc/pt-br/articles/360028845533-O-que-%C3%A9-o-Mural-de-fotos-do-aluno-Como-funciona)
+  - O Mural De Fotos Do Aluno? Como Funciona?. Note: Importante ⚠️ Quando o cadastro do aluno é excluído da plataforma Agenda Edu, as famílias perdem o acesso ao mural de fo.
+- **Preencher O Diário Do Aluno?** (`communication.manage_preencher_o_diario_do_aluno`) — _documented_, friction 7.1 — [Como preencher o Diário do aluno?](https://atendimento.agendaedu.com/hc/pt-br/articles/360026593113-Como-preencher-o-Di%C3%A1rio-do-aluno)
+  - Preencher O Diário Do Aluno?. Note: 8. Outras informações podem ser inseridas no campo aberto de Observação;.
+- **Registrar Uma Ocorrência Disciplinar De Um Aluno?** (`communication.create_registrar_uma_ocorrencia_disci`) — _documented_, friction 7.7 — [Como registrar uma ocorrência disciplinar de um al](https://atendimento.agendaedu.com/hc/pt-br/articles/11805547084187-Como-registrar-uma-ocorr%C3%AAncia-disciplinar-de-um-aluno)
+  - Registrar Uma Ocorrência Disciplinar De Um Aluno?. Note: ⚠️Importante: A descrição e os anexos só são habilitados quando a categoria está selecionada..
+- **Visualizar Os Anexos Enviados Pelo Aluno Em Uma Atividade?** (`communication.view_visualizar_os_anexos_enviados_`) — _documented_, friction 0.0 — [Como visualizar os anexos enviados pelo aluno em u](https://atendimento.agendaedu.com/hc/pt-br/articles/38874863401115-Como-visualizar-os-anexos-enviados-pelo-aluno-em-uma-Atividade)
+  - Visualizar Os Anexos Enviados Pelo Aluno Em Uma Atividade?.
+- **Visualizar Os Registros Do Diário Do Aluno?** (`communication.view_visualizar_os_registros_do_dia`) — _documented_, friction 4.1 — [Como visualizar os registros do Diário do aluno?](https://atendimento.agendaedu.com/hc/pt-br/articles/12582281602843-Como-visualizar-os-registros-do-Di%C3%A1rio-do-aluno)
+  - Visualizar Os Registros Do Diário Do Aluno?. Note: Importante: Agora, a escola pode editar ou criar Diários referentes a até 7 dias anteriores, considerando a data atual..
+- **🔎 Aluno Saiu Da Escola, Como Faço Para Excluir O Meu Cadastro?** (`communication.create_aluno_saiu_da_escola_como_faco`) — _documented_, friction 0.0 — [🔎 Aluno saiu da escola, como faço para excluir o m](https://atendimento.agendaedu.com/hc/pt-br/articles/16791043153307--Aluno-saiu-da-escola-como-fa%C3%A7o-para-excluir-o-meu-cadastro)
+  - 🔎 Aluno Saiu Da Escola, Como Faço Para Excluir O Meu Cadastro?.
+
+## Teacher
+
+- **Adicionar Uma Turma No Cadastro De Um Professor?** (`communication.create_adicionar_uma_turma_no_cadastr`) — _documented_, friction 1.5 — [Como adicionar uma turma no cadastro de um profess](https://atendimento.agendaedu.com/hc/pt-br/articles/13459840558875-Como-adicionar-uma-turma-no-cadastro-de-um-professor)
+  - Adicionar Uma Turma No Cadastro De Um Professor?.
+- **Cadastrar Professores?** (`communication.create_cadastrar_professores`) — _documented_, friction 6.7 — [Como Cadastrar Professores?](https://atendimento.agendaedu.com/hc/pt-br/articles/16799292547483-Como-Cadastrar-Professores)
+  - Cadastrar Professores?. Note: Atenção: você deve escolher como forma de login e-mail ou nome de usuário. Caso o professor não tenha e-mail, aconselham.
+  - Preconditions: implicit prerequisite mentioned in article body

@@ -43,8 +43,8 @@ Use for whole-product or MVP-scope documents. Prefer updating anchor docs when c
 ## 8. Open items / pending decisions
 [Link to docs/open-questions.md; use checkboxes.]
 
-## 9. Positioning note (if derived front)
-[How this relates to the validated MVP order — see fintech-first.md §10.]
+## 9. Positioning note (if derived / historical)
+[How this relates to the validated MVP order — see `docs/prds/fintech-first.md` positioning note (historical billing baseline).]
 ```
 
 **Anchor doc mapping** (when editing in place instead of a new file):
@@ -123,10 +123,13 @@ Use for `web/`, `frontend/app`, or `mobile/` — technical and surface requireme
 
 ## Domain PRD
 
-Follow `docs/prds/template.md` section order exactly.
+Follow `docs/prds/template.md` section order.
 
 ```markdown
 # PRD-NNN — [Domain name]
+
+> Status: [draft | validated | implemented]
+> Capability IDs: [canonical and/or raw — see Competitive grounding]
 
 ## Objective
 [Single clear goal.]
@@ -134,17 +137,31 @@ Follow `docs/prds/template.md` section order exactly.
 ## Context
 [Prerequisites, related domains, existing system state.]
 
+## Competitive grounding
+| Capability | ID | Evidence |
+|------------|-----|----------|
+| [...] | `domain.verb_noun` or `raw:competitor:id` | `docs/ref/...` |
+
+## Actors and surfaces
+| Actor | Surfaces | Notes |
+|-------|----------|-------|
+
+## Segment applicability
+| Segment | Applies | Notes |
+|---------|---------|-------|
+| `infantil` | | |
+| `fundamental_medio` | | |
+| `pj_financeiro` | | |
+| `multi_unidade` | | |
+
 ## Business Rules
 
 BR-001
 [Rule statement.]
 
-BR-002
-[...]
-
 ## Use Cases
 
-### [Use case name]
+### UC-001 — [Use case name]
 
 Input
 - [field]
@@ -153,23 +170,12 @@ Flow
 1. [Step]
 
 ## API
-
-### [METHOD] /api/v1/[path]
-
-Request
-{ ... }
-
-Response [status]
-{ ... }
+[...]
 
 ## Errors
-
-[status code]
-[Description.]
+[...]
 
 ## Database
-
-[Entity groups only — link to modeling artifacts.]
 
 | Artifact | Location |
 |----------|----------|
@@ -178,20 +184,26 @@ Response [status]
 | DER | `docs/database/der_NNN.png` |
 
 ## Events
-
-[Domain events emitted/consumed.]
+[...]
 
 ## Permissions
+[...]
 
-[Role × action matrix; Pundit policy notes.]
+## Non-functional requirements
+Link: `docs/product/non-functional-requirements.md` (when exists); domain NFRs inline.
 
 ## Acceptance Criteria
 
-- [ ] [Testable criterion]
+AC-001
+- [ ] Given … When … Then …
+
+## Open items / pending decisions
+- [ ] [...]
 
 ## Out of Scope
-
-- [Explicit exclusion]
+- [...]
 ```
 
-**Naming**: `docs/prds/NNN-<domain>.md` where `NNN` matches `product-map.md` §5 order and mirrors `docs/modeling/NNN-<domain>.md`.
+**Naming**: `docs/prds/NNN-<domain>.md` where `NNN` matches `product-map.md` §5 order and mirrors `docs/modeling/NNN-<domain>.md`. Multi-BC domains use a folder + `index.md` (see `identity-and-onboarding/`).
+
+**Traceability**: use `BR-`, `UC-`, `AC-` prefixes; require `capability_id` when grounded in `docs/ref/`. See `docs/product/traceability.md`.

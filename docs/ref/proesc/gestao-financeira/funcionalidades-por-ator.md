@@ -1,0 +1,575 @@
+# Capabilities by actor — Gestao Financeira (Proesc)
+
+Harvest-derived inventory. **246** capabilities across 1 School Lab domain(s).
+Maturity: documented help-center articles. See [`../../README.md`](../../README.md).
+
+## Domain: Billing
+
+_246 capabilities._
+
+## Guardian
+
+- **Acessar O Contrato Aceito Pelo Responsável?** (`billing.manage_acessar_o_contrato_aceito_pelo`) — _documented_, friction 0.0 — [Como acessar o contrato aceito pelo responsável?](https://suporte.proesc.com/hc/pt-br/articles/360059332453-Como-acessar-o-contrato-aceito-pelo-respons%C3%A1vel)
+  - Acessar O Contrato Aceito Pelo Responsável?.
+- **Criar Acesso Do Responsável Ao Sistema.** (`billing.create_criar_acesso_do_responsavel_ao`) — _documented_, friction 2.0 — [Como criar acesso do responsável ao sistema.](https://suporte.proesc.com/hc/pt-br/articles/36019897511703-Como-criar-acesso-do-respons%C3%A1vel-ao-sistema)
+  - Criar Acesso Do Responsável Ao Sistema..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Pagamento Recorrente: Como O Responsável Ativa Pelo Portal Do Aluno** (`billing.manage_pagamento_recorrente_como_o_re`) — _documented_, friction 2.0 — [Pagamento recorrente: como o responsável ativa pel](https://suporte.proesc.com/hc/pt-br/articles/4408217999127-Pagamento-recorrente-como-o-respons%C3%A1vel-ativa-pelo-Portal-do-Aluno)
+  - Pagamento Recorrente: Como O Responsável Ativa Pelo Portal Do Aluno.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Procurar Parcelas Do Aluno Ou Responsável** (`billing.manage_procurar_parcelas_do_aluno_ou_`) — _documented_, friction 3.5 — [Como procurar parcelas do Aluno ou Responsável](https://suporte.proesc.com/hc/pt-br/articles/360060215914-Como-procurar-parcelas-do-Aluno-ou-Respons%C3%A1vel)
+  - Procurar Parcelas Do Aluno Ou Responsável. Note: Observação: esse ambiente fica localizado no menu lateral FINANCEIRO, portanto, certifique-se de ter permissões financei.
+- **Unificar Boletos Por Responsável?** (`billing.manage_unificar_boletos_por_responsav`) — _documented_, friction 9.6 — [Como unificar boletos por responsável?](https://suporte.proesc.com/hc/pt-br/articles/360043505193-Como-unificar-boletos-por-respons%C3%A1vel)
+  - Unificar Boletos Por Responsável?. Note: Atenção! Caso o menu Boletos não esteja disponível, solicite a liberação ao administrador da instituição ou entre em con.
+  - Preconditions: implicit prerequisite mentioned in article body
+
+## Staff
+
+- **5 Passos Para Reduzir A Inadimplência** (`billing.manage_5_passos_para_reduzir_a_inadim`) — _documented_, friction 2.6 — [5 passos para reduzir a inadimplência](https://suporte.proesc.com/hc/pt-br/articles/360037961293-5-passos-para-reduzir-a-inadimpl%C3%AAncia)
+  - 5 Passos Para Reduzir A Inadimplência.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Abrir Os Relatórios De Busca Ativa - Infrequência** (`billing.manage_abrir_os_relatorios_de_busca_a`) — _documented_, friction 1.5 — [Como abrir os relatórios de Busca Ativa - Infrequê](https://suporte.proesc.com/hc/pt-br/articles/17648417879191-Como-abrir-os-relat%C3%B3rios-de-Busca-Ativa-Infrequ%C3%AAncia)
+  - Abrir Os Relatórios De Busca Ativa - Infrequência.
+- **Acionar O Suporte Proesc?** (`billing.manage_acionar_o_suporte_proesc`) — _documented_, friction 0.0 — [Como acionar o suporte Proesc?](https://suporte.proesc.com/hc/pt-br/articles/360041948714-Como-acionar-o-suporte-Proesc)
+  - Acionar O Suporte Proesc?.
+- **Acompanhar Envio De  Lembretes E Cobranças** (`billing.view_acompanhar_envio_de_lembretes_`) — _documented_, friction 3.5 — [Como acompanhar envio de  lembretes e cobranças](https://suporte.proesc.com/hc/pt-br/articles/15165154102679-Como-acompanhar-envio-de-lembretes-e-cobran%C3%A7as)
+  - Acompanhar Envio De  Lembretes E Cobranças. Note: Observação: Apenas usuários com os perfis Financeiro e Operador Financeiro, tem acesso a esse menu..
+- **Acompanhar Os Inadimplentes Pelo Setor De Cobranças?** (`billing.view_acompanhar_os_inadimplentes_pe`) — _documented_, friction 0.0 — [Como acompanhar os inadimplentes pelo Setor de Cob](https://suporte.proesc.com/hc/pt-br/articles/4402057475607-Como-acompanhar-os-inadimplentes-pelo-Setor-de-Cobran%C3%A7as)
+  - Acompanhar Os Inadimplentes Pelo Setor De Cobranças?.
+- **Adicionar Etiqueta De 'Protesto' Em Débitos No Proesc?** (`billing.create_adicionar_etiqueta_de_protesto`) — _documented_, friction 0.0 — [Como adicionar etiqueta de 'Protesto' em débitos n](https://suporte.proesc.com/hc/pt-br/articles/17444075369239-Como-adicionar-etiqueta-de-Protesto-em-d%C3%A9bitos-no-Proesc)
+  - Adicionar Etiqueta De 'Protesto' Em Débitos No Proesc?.
+- **Adicionar Meu Certificado No Proesc?** (`billing.create_adicionar_meu_certificado_no_p`) — _documented_, friction 9.4 — [Como adicionar meu certificado no Proesc?](https://suporte.proesc.com/hc/pt-br/articles/360055510754-Como-adicionar-meu-certificado-no-Proesc)
+  - Adicionar Meu Certificado No Proesc?. Note: 3. Na nova janela vamos notar algumas informações importantes como o nome do curso, largura, altura e o lado do certific.
+- **Ambiente De Configuração Da Ata De Resultados Finais?** (`billing.configure_ambiente_de_configuracao_da_at`) — _configuration_, friction 7.0 — [Ambiente de configuração da Ata de Resultados Fina](https://suporte.proesc.com/hc/pt-br/articles/14647732941463-Ambiente-de-configura%C3%A7%C3%A3o-da-Ata-de-Resultados-Finais)
+  - Ambiente De Configuração Da Ata De Resultados Finais?. Note: Observação: está com dúvida de qual perfil escolher para um usuário? Acesse o artigo Estou criando usuários, qual permis.
+- **Ambiente De Configuração De Histórico** (`billing.configure_ambiente_de_configuracao_de_hi`) — _configuration_, friction 2.0 — [Ambiente de Configuração de Histórico](https://suporte.proesc.com/hc/pt-br/articles/4442642297879-Ambiente-de-Configura%C3%A7%C3%A3o-de-Hist%C3%B3rico)
+  - Ambiente De Configuração De Histórico.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **As Vantagens De Usar Boleto Registrado Na Sua Instituição** (`billing.manage_as_vantagens_de_usar_boleto_re`) — _documented_, friction 3.5 — [As vantagens de usar boleto registrado na sua inst](https://suporte.proesc.com/hc/pt-br/articles/360044589854-As-vantagens-de-usar-boleto-registrado-na-sua-institui%C3%A7%C3%A3o)
+  - As Vantagens De Usar Boleto Registrado Na Sua Instituição. Note: Observação: apenas os usuários com os perfis 'Financeiro' tem acesso aos ambientes citados neste artigo.
+- **Ativar O Desconto Para O Tipo De Débito** (`billing.manage_ativar_o_desconto_para_o_tipo_`) — _documented_, friction 3.5 — [Como ativar o desconto para o tipo de débito](https://suporte.proesc.com/hc/pt-br/articles/1500004354842-Como-ativar-o-desconto-para-o-tipo-de-d%C3%A9bito)
+  - Ativar O Desconto Para O Tipo De Débito. Note: Observação: os descontos configurados no tipo de débito apenas disponibilizam os campos durante a criação da parcela. Os.
+- **Ativar O Pagamento Por Cartão De Crédito** (`billing.manage_ativar_o_pagamento_por_cartao_`) — _documented_, friction 5.5 — [Como ativar o pagamento por cartão de crédito](https://suporte.proesc.com/hc/pt-br/articles/4405783023255-Como-ativar-o-pagamento-por-cart%C3%A3o-de-cr%C3%A9dito)
+  - Ativar O Pagamento Por Cartão De Crédito. Note: Atenção: se o botão não estiver disponível, crie primeiro o débito de matrícula. Veja como em Como criar um débito de ma.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Atualizar Boletos?** (`billing.update_atualizar_boletos`) — _documented_, friction 9.0 — [Como atualizar boletos?](https://suporte.proesc.com/hc/pt-br/articles/360001451494-Como-atualizar-boletos)
+  - Atualizar Boletos?. Note: Atenção: a atualização está disponível apenas para parcelas com status Em Aberto ou Vencida..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Atualizar O Valor De Mensalidade Por Etapa?** (`billing.update_atualizar_o_valor_de_mensalida`) — _documented_, friction 2.0 — [Como atualizar o valor de mensalidade por etapa?](https://suporte.proesc.com/hc/pt-br/articles/27470830823959-Como-atualizar-o-valor-de-mensalidade-por-etapa)
+  - Atualizar O Valor De Mensalidade Por Etapa?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Atualizar O Valor De Uma Despesa?** (`billing.update_atualizar_o_valor_de_uma_despe`) — _documented_, friction 0.0 — [Como atualizar o valor de uma despesa?](https://suporte.proesc.com/hc/pt-br/articles/4410562938775-Como-atualizar-o-valor-de-uma-despesa)
+  - Atualizar O Valor De Uma Despesa?.
+- **Atualizar Todas As Parcelas De Um Débito?** (`billing.update_atualizar_todas_as_parcelas_de`) — _documented_, friction 7.0 — [Como atualizar todas as parcelas de um débito?](https://suporte.proesc.com/hc/pt-br/articles/360001067254-Como-atualizar-todas-as-parcelas-de-um-d%C3%A9bito)
+  - Atualizar Todas As Parcelas De Um Débito?. Note: Observação:Esse artigo é direcionado aos usuários Financeiros. Está com dúvida de qual perfil adicionar no seu acesso?Cl.
+- **Atualização 5.1.3** (`billing.manage_atualizacao_5_1_3`) — _documented_, friction 3.5 — [Atualização 5.1.3](https://suporte.proesc.com/hc/pt-br/articles/4402158868759-Atualiza%C3%A7%C3%A3o-5-1-3)
+  - Atualização 5.1.3. Note: Campo para adicionar observação no diário do professor.
+- **Atualização 5.1.4** (`billing.manage_atualizacao_5_1_4`) — _documented_, friction 0.0 — [Atualização 5.1.4](https://suporte.proesc.com/hc/pt-br/articles/4403013668503-Atualiza%C3%A7%C3%A3o-5-1-4)
+  - Atualização 5.1.4.
+- **Atualização 5.1.6** (`billing.manage_atualizacao_5_1_6`) — _documented_, friction 0.0 — [Atualização 5.1.6](https://suporte.proesc.com/hc/pt-br/articles/4404574532247-Atualiza%C3%A7%C3%A3o-5-1-6)
+  - Atualização 5.1.6.
+- **Atualização 5.1.7** (`billing.manage_atualizacao_5_1_7`) — _documented_, friction 2.5 — [Atualização 5.1.7](https://suporte.proesc.com/hc/pt-br/articles/4405472768151-Atualiza%C3%A7%C3%A3o-5-1-7)
+  - Atualização 5.1.7.
+- **Atualização 5.1.8** (`billing.manage_atualizacao_5_1_8`) — _documented_, friction 0.0 — [Atualização 5.1.8](https://suporte.proesc.com/hc/pt-br/articles/4406490515863-Atualiza%C3%A7%C3%A3o-5-1-8)
+  - Atualização 5.1.8.
+- **Atualização 5.2.0** (`billing.manage_atualizacao_5_2_0`) — _documented_, friction 0.0 — [Atualização 5.2.0](https://suporte.proesc.com/hc/pt-br/articles/4408424907927-Atualiza%C3%A7%C3%A3o-5-2-0)
+  - Atualização 5.2.0.
+- **Atualização 5.2.1** (`billing.manage_atualizacao_5_2_1`) — _documented_, friction 0.0 — [Atualização 5.2.1](https://suporte.proesc.com/hc/pt-br/articles/4409527906199-Atualiza%C3%A7%C3%A3o-5-2-1)
+  - Atualização 5.2.1.
+- **Atualização 5.2.2** (`billing.manage_atualizacao_5_2_2`) — _documented_, friction 0.0 — [Atualização 5.2.2](https://suporte.proesc.com/hc/pt-br/articles/4410617832727-Atualiza%C3%A7%C3%A3o-5-2-2)
+  - Atualização 5.2.2.
+- **Atualização 5.2.3** (`billing.manage_atualizacao_5_2_3`) — _documented_, friction 0.0 — [Atualização 5.2.3](https://suporte.proesc.com/hc/pt-br/articles/4411451195799-Atualiza%C3%A7%C3%A3o-5-2-3)
+  - Atualização 5.2.3.
+- **Atualização 5.2.5** (`billing.manage_atualizacao_5_2_5`) — _documented_, friction 0.0 — [Atualização 5.2.5](https://suporte.proesc.com/hc/pt-br/articles/4413866968983-Atualiza%C3%A7%C3%A3o-5-2-5)
+  - Atualização 5.2.5.
+- **Atualização 5.2.6** (`billing.manage_atualizacao_5_2_6`) — _documented_, friction 0.0 — [Atualização 5.2.6](https://suporte.proesc.com/hc/pt-br/articles/4416783893143-Atualiza%C3%A7%C3%A3o-5-2-6)
+  - Atualização 5.2.6.
+- **Atualização 5.2.7** (`billing.manage_atualizacao_5_2_7`) — _documented_, friction 0.0 — [Atualização 5.2.7](https://suporte.proesc.com/hc/pt-br/articles/4416573406743-Atualiza%C3%A7%C3%A3o-5-2-7)
+  - Atualização 5.2.7.
+- **Atualização 5.2.8** (`billing.manage_atualizacao_5_2_8`) — _documented_, friction 0.0 — [Atualização 5.2.8](https://suporte.proesc.com/hc/pt-br/articles/4418612326807-Atualiza%C3%A7%C3%A3o-5-2-8)
+  - Atualização 5.2.8.
+- **Atualização 5.2.9** (`billing.manage_atualizacao_5_2_9`) — _documented_, friction 0.0 — [Atualização 5.2.9](https://suporte.proesc.com/hc/pt-br/articles/4420143737623-Atualiza%C3%A7%C3%A3o-5-2-9)
+  - Atualização 5.2.9.
+- **Atualização 5.3.1** (`billing.manage_atualizacao_5_3_1`) — _documented_, friction 0.0 — [Atualização 5.3.1](https://suporte.proesc.com/hc/pt-br/articles/4461831562135-Atualiza%C3%A7%C3%A3o-5-3-1)
+  - Atualização 5.3.1.
+- **Atualização 5.3.2** (`billing.manage_atualizacao_5_3_2`) — _documented_, friction 7.0 — [Atualização 5.3.2](https://suporte.proesc.com/hc/pt-br/articles/4644639882007-Atualiza%C3%A7%C3%A3o-5-3-2)
+  - Atualização 5.3.2. Note: Observação: disponível somente para Ensino Superior..
+- **Atualização 5.3.3** (`billing.manage_atualizacao_5_3_3`) — _documented_, friction 3.5 — [Atualização 5.3.3](https://suporte.proesc.com/hc/pt-br/articles/4914258919191-Atualiza%C3%A7%C3%A3o-5-3-3)
+  - Atualização 5.3.3. Note: Observação: essa aba fica disponível quando estiver preenchido a costa do certificado na unidade.
+- **Atualização 5.3.4** (`billing.manage_atualizacao_5_3_4`) — _documented_, friction 0.0 — [Atualização 5.3.4](https://suporte.proesc.com/hc/pt-br/articles/5228153687575-Atualiza%C3%A7%C3%A3o-5-3-4)
+  - Atualização 5.3.4.
+- **Atualização 5.3.5** (`billing.manage_atualizacao_5_3_5`) — _documented_, friction 0.0 — [Atualização 5.3.5](https://suporte.proesc.com/hc/pt-br/articles/5578006608407-Atualiza%C3%A7%C3%A3o-5-3-5)
+  - Atualização 5.3.5.
+- **Atualização 5.3.7** (`billing.manage_atualizacao_5_3_7`) — _documented_, friction 3.5 — [Atualização 5.3.7](https://suporte.proesc.com/hc/pt-br/articles/6216998931607-Atualiza%C3%A7%C3%A3o-5-3-7)
+  - Atualização 5.3.7. Note: Observação de professor na lista de aulas.
+- **Atualização 5.4.0** (`billing.manage_atualizacao_5_4_0`) — _documented_, friction 3.5 — [Atualização 5.4.0](https://suporte.proesc.com/hc/pt-br/articles/7146481649943-Atualiza%C3%A7%C3%A3o-5-4-0)
+  - Atualização 5.4.0. Note: Observação: nesse ambiente não precisar criar as aulas no novo diário..
+- **Atualização 5.4.4** (`billing.manage_atualizacao_5_4_4`) — _documented_, friction 2.0 — [Atualização 5.4.4](https://suporte.proesc.com/hc/pt-br/articles/8418751614871-Atualiza%C3%A7%C3%A3o-5-4-4)
+  - Atualização 5.4.4.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Atualização 5.4.7** (`billing.manage_atualizacao_5_4_7`) — _documented_, friction 0.0 — [Atualização 5.4.7](https://suporte.proesc.com/hc/pt-br/articles/10016499716887-Atualiza%C3%A7%C3%A3o-5-4-7)
+  - Atualização 5.4.7.
+- **Atualização 5.5.0** (`billing.manage_atualizacao_5_5_0`) — _documented_, friction 0.0 — [Atualização 5.5.0](https://suporte.proesc.com/hc/pt-br/articles/11011813338135-Atualiza%C3%A7%C3%A3o-5-5-0)
+  - Atualização 5.5.0.
+- **Atualização 5.5.4** (`billing.manage_atualizacao_5_5_4`) — _documented_, friction 0.0 — [Atualização 5.5.4](https://suporte.proesc.com/hc/pt-br/articles/13526820137495-Atualiza%C3%A7%C3%A3o-5-5-4)
+  - Atualização 5.5.4.
+- **Atualização 5.5.5** (`billing.manage_atualizacao_5_5_5`) — _documented_, friction 3.5 — [Atualização 5.5.5](https://suporte.proesc.com/hc/pt-br/articles/13933864253463-Atualiza%C3%A7%C3%A3o-5-5-5)
+  - Atualização 5.5.5. Note: Foi adicionado os campos "Plano de pagamento", "serviço" e "observação"..
+- **Atualização 5.5.6** (`billing.manage_atualizacao_5_5_6`) — _documented_, friction 0.0 — [Atualização 5.5.6](https://suporte.proesc.com/hc/pt-br/articles/13934752371351-Atualiza%C3%A7%C3%A3o-5-5-6)
+  - Atualização 5.5.6.
+- **Atualização 5.5.7** (`billing.manage_atualizacao_5_5_7`) — _documented_, friction 3.5 — [Atualização 5.5.7](https://suporte.proesc.com/hc/pt-br/articles/14677981945623-Atualiza%C3%A7%C3%A3o-5-5-7)
+  - Atualização 5.5.7. Note: Atenção: esta é uma funcionalidade paga, solicite o orçamento caso tenha interesse..
+- **Atualização 5.5.8** (`billing.manage_atualizacao_5_5_8`) — _documented_, friction 0.0 — [Atualização 5.5.8](https://suporte.proesc.com/hc/pt-br/articles/14678008985879-Atualiza%C3%A7%C3%A3o-5-5-8)
+  - Atualização 5.5.8.
+- **Atualizei Meu Boleto, Mas Ele Saiu Sem Desconto, O Que Ocorreu?** (`billing.manage_atualizei_meu_boleto_mas_ele_s`) — _documented_, friction 0.0 — [Atualizei meu boleto, mas ele saiu sem desconto, o](https://suporte.proesc.com/hc/pt-br/articles/360059339553-Atualizei-meu-boleto-mas-ele-saiu-sem-desconto-o-que-ocorreu)
+  - Atualizei Meu Boleto, Mas Ele Saiu Sem Desconto, O Que Ocorreu?.
+- **Bloquear A Matrícula De Alunos Inadimplentes?** (`billing.manage_bloquear_a_matricula_de_alunos`) — _documented_, friction 5.0 — [Como bloquear a matrícula de alunos inadimplentes?](https://suporte.proesc.com/hc/pt-br/articles/31245493835799-Como-bloquear-a-matr%C3%ADcula-de-alunos-inadimplentes)
+  - Bloquear A Matrícula De Alunos Inadimplentes?. Note: ⚠️ Importante: O sistema bloqueia a matrícula do aluno apenas nos cursos e turmas da unidade configurada. Ou seja, em um.
+- **Boleto Ainda Aparece Como Pendente Após O Pagamento — Como Resolver?** (`billing.resolve_boleto_ainda_aparece_como_pend`) — _documented_, friction 3.5 — [Boleto ainda aparece como pendente após o pagament](https://suporte.proesc.com/hc/pt-br/articles/360059273353-Boleto-ainda-aparece-como-pendente-ap%C3%B3s-o-pagamento-como-resolver)
+  - Boleto Ainda Aparece Como Pendente Após O Pagamento — Como Resolver?. Note: Atenção: realize atualizações de boletos apenas quando necessário (mudança de vencimento ou aplicação de desconto). Após.
+- **Boleto E Pix Proesc** (`billing.manage_boleto_e_pix_proesc`) — _documented_, friction 2.0 — [Boleto e Pix Proesc](https://suporte.proesc.com/hc/pt-br/articles/15537090578583-Boleto-e-Pix-Proesc)
+  - Boleto E Pix Proesc.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Cadastrar Categorias De Despesa Ou Recebimento** (`billing.create_cadastrar_categorias_de_despes`) — _documented_, friction 2.0 — [Como cadastrar categorias de despesa ou recebiment](https://suporte.proesc.com/hc/pt-br/articles/360019220493-Como-cadastrar-categorias-de-despesa-ou-recebimento)
+  - Cadastrar Categorias De Despesa Ou Recebimento.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Cadastrar Um Novo Tipo De Bolsa De Desconto** (`billing.create_cadastrar_um_novo_tipo_de_bols`) — _documented_, friction 0.0 — [Como cadastrar um novo tipo de bolsa de desconto](https://suporte.proesc.com/hc/pt-br/articles/360008146994-Como-cadastrar-um-novo-tipo-de-bolsa-de-desconto)
+  - Cadastrar Um Novo Tipo De Bolsa De Desconto.
+- **Cadastro Ou Troca De Conta Bancária** (`billing.create_cadastro_ou_troca_de_conta_ban`) — _documented_, friction 10.5 — [Cadastro ou troca de conta bancária](https://suporte.proesc.com/hc/pt-br/articles/360041352054-Cadastro-ou-troca-de-conta-banc%C3%A1ria)
+  - Cadastro Ou Troca De Conta Bancária. Note: Este artigo guiará você nos procedimentos para cadastro ou troca de conta bancária no Proesc. É importante ressaltar que.
+- **Cancelar Boletos?** (`billing.delete_cancelar_boletos`) — _documented_, friction 2.0 — [Como cancelar boletos?](https://suporte.proesc.com/hc/pt-br/articles/360061593334-Como-cancelar-boletos)
+  - Cancelar Boletos?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Cancelar Notas Fiscais** (`billing.delete_cancelar_notas_fiscais`) — _documented_, friction 6.0 — [Como cancelar Notas Fiscais](https://suporte.proesc.com/hc/pt-br/articles/360058331974-Como-cancelar-Notas-Fiscais)
+  - Cancelar Notas Fiscais. Note: IMPORTANTE! Nota Fiscal é um módulo adicional precificado. Caso não esteja ativo na sua instituição, entre em contato co.
+- **Cancelar Um Pagamento?** (`billing.delete_cancelar_um_pagamento`) — _documented_, friction 3.5 — [Como cancelar um pagamento?](https://suporte.proesc.com/hc/pt-br/articles/360001049393-Como-cancelar-um-pagamento)
+  - Cancelar Um Pagamento?. Note: Atenção: o cancelamento pode ficar bloqueado em alguns casos, como parcelas negociadas ou boletos que já tiveram a compe.
+- **Check-List De Configurações Do Proesc** (`billing.configure_check_list_de_configuracoes_do`) — _configuration_, friction 8.5 — [Check-list de Configurações do Proesc ](https://suporte.proesc.com/hc/pt-br/articles/360060391914-Check-list-de-Configura%C3%A7%C3%B5es-do-Proesc)
+  - Check-List De Configurações Do Proesc. Note: Atenção! A partir de agora, você está totalmente capacitado para realizar as seguintes tarefas:.
+- **Check-List De Rematrículas E Novas Matrículas** (`billing.manage_check_list_de_rematriculas_e_n`) — _documented_, friction 12.5 — [Check-list de Rematrículas e Novas Matrículas](https://suporte.proesc.com/hc/pt-br/articles/360055846014-Check-list-de-Rematr%C3%ADculas-e-Novas-Matr%C3%ADculas)
+  - Check-List De Rematrículas E Novas Matrículas. Note: IMPORTANTE! Antes de criar as turmas, revise as etapas e a matriz curricular dos cursos. Se houver mudanças de um ano pa.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Checklist Nota Fiscal** (`billing.manage_checklist_nota_fiscal`) — _documented_, friction 7.0 — [Checklist Nota fiscal](https://suporte.proesc.com/hc/pt-br/articles/22082323484823-Checklist-Nota-fiscal)
+  - Checklist Nota Fiscal. Note: Atenção!A partir de agora, você está totalmente capacitado para realizar as seguintes tarefas:.
+- **Configurando O Módulo De Biblioteca** (`billing.configure_configurando_o_modulo_de_bibli`) — _configuration_, friction 3.5 — [Configurando o Módulo de Biblioteca](https://suporte.proesc.com/hc/pt-br/articles/360016586373-Configurando-o-M%C3%B3dulo-de-Biblioteca)
+  - Configurando O Módulo De Biblioteca. Note: Observação:Esse artigo é direcionado aos usuários com permissão de Bibliotecário e Configuração. Está com dúvida de qual.
+- **Configurar A Dre** (`billing.configure_configurar_a_dre`) — _configuration_, friction 4.5 — [Como configurar a DRE](https://suporte.proesc.com/hc/pt-br/articles/4402920603031-Como-configurar-a-DRE)
+  - Configurar A Dre.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Configurar A Fase De Inscrição Da Pré-Matrícula Online** (`billing.configure_configurar_a_fase_de_inscricao`) — _configuration_, friction 3.5 — [Como configurar a fase de inscrição da Pré-matrícu](https://suporte.proesc.com/hc/pt-br/articles/360060478173-Como-configurar-a-fase-de-inscri%C3%A7%C3%A3o-da-Pr%C3%A9-matr%C3%ADcula-Online)
+  - Configurar A Fase De Inscrição Da Pré-Matrícula Online. Note: IMPORTANTE! A Pré-matrícula Online é um módulo adicional e precificado do sistema. Caso não esteja disponível para a sua.
+- **Configurar A Integração Da Layers No Proesc** (`billing.configure_configurar_a_integracao_da_lay`) — _configuration_, friction 7.0 — [Como configurar a integração da Layers no Proesc](https://suporte.proesc.com/hc/pt-br/articles/5768404524311-Como-configurar-a-integra%C3%A7%C3%A3o-da-Layers-no-Proesc)
+  - Configurar A Integração Da Layers No Proesc. Note: Nesse artigo, você irá aprender como configurar o Proesc para integrar os dados no sistema Layers! Esse é um procediment.
+- **Configurar A Quantidade De Boletins A Ser Impresso?** (`billing.configure_configurar_a_quantidade_de_bol`) — _configuration_, friction 0.0 — [Como configurar a quantidade de boletins a ser imp](https://suporte.proesc.com/hc/pt-br/articles/31653788462103-Como-configurar-a-quantidade-de-boletins-a-ser-impresso)
+  - Configurar A Quantidade De Boletins A Ser Impresso?.
+- **Configurar Datas Limites De Fim De Períodos** (`billing.configure_configurar_datas_limites_de_fi`) — _configuration_, friction 3.5 — [Como configurar datas limites de fim de períodos](https://suporte.proesc.com/hc/pt-br/articles/4407586397975-Como-configurar-datas-limites-de-fim-de-per%C3%ADodos)
+  - Configurar Datas Limites De Fim De Períodos. Note: IMPORTANTE! Em ambos os tipos de configuração, existem até quatro datas limite. Se sua instituição trabalha com bimestre.
+- **Configurar E Utilizar O Módulo De Estoque?** (`billing.configure_configurar_e_utilizar_o_modulo`) — _configuration_, friction 0.0 — [Como configurar e utilizar o módulo de Estoque?](https://suporte.proesc.com/hc/pt-br/articles/360046326373-Como-configurar-e-utilizar-o-m%C3%B3dulo-de-Estoque)
+  - Configurar E Utilizar O Módulo De Estoque?.
+- **Configurar E Utilizar O Portal De Pré-Matrícula Online** (`billing.configure_configurar_e_utilizar_o_portal`) — _configuration_, friction 0.0 — [Como configurar e utilizar o Portal de Pré-Matrícu](https://suporte.proesc.com/hc/pt-br/articles/360038376794-Como-configurar-e-utilizar-o-Portal-de-Pr%C3%A9-Matr%C3%ADcula-Online)
+  - Configurar E Utilizar O Portal De Pré-Matrícula Online.
+- **Configurar O Código De Serviço Municipal Para Emissão De Notas Fiscais?** (`billing.configure_configurar_o_codigo_de_servico`) — _configuration_, friction 9.0 — [Como Configurar o código de serviço municipal para](https://suporte.proesc.com/hc/pt-br/articles/29007084882455-Como-Configurar-o-c%C3%B3digo-de-servi%C3%A7o-municipal-para-Emiss%C3%A3o-de-Notas-fiscais)
+  - Configurar O Código De Serviço Municipal Para Emissão De Notas Fiscais?. Note: IMPORTANTE! Para ter acesso a esse ambiente, é necessário que seu usuário tenha o perfil CONFIGURAÇÃO..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Configurar O Gabarito De Um Simulado No Proesc?** (`billing.configure_configurar_o_gabarito_de_um_si`) — _configuration_, friction 0.0 — [Como configurar o gabarito de um simulado no Proes](https://suporte.proesc.com/hc/pt-br/articles/360007377893-Como-configurar-o-gabarito-de-um-simulado-no-Proesc)
+  - Configurar O Gabarito De Um Simulado No Proesc?.
+- **Configurar O Histórico Escolar?** (`billing.configure_configurar_o_historico_escolar`) — _configuration_, friction 10.5 — [Como configurar o histórico escolar?](https://suporte.proesc.com/hc/pt-br/articles/4414137642903-Como-configurar-o-hist%C3%B3rico-escolar)
+  - Configurar O Histórico Escolar?. Note: Atenção!Essas configurações que serão guiadas abaixo são exclusivas para históricos que NÃO são personalizados, ou seja,.
+- **Configurar Os Períodos Do Exercício?** (`billing.configure_configurar_os_periodos_do_exer`) — _configuration_, friction 3.5 — [Como configurar os períodos do exercício?](https://suporte.proesc.com/hc/pt-br/articles/4424614486807-Como-configurar-os-per%C3%ADodos-do-exerc%C3%ADcio)
+  - Configurar Os Períodos Do Exercício?. Note: Observação: essa configuração ficará padrão para todos os cursos..
+- **Configurar Trilha De Matrícula E Rematrícula** (`billing.configure_configurar_trilha_de_matricula`) — _configuration_, friction 10.5 — [Como configurar Trilha de Matrícula e Rematrícula](https://suporte.proesc.com/hc/pt-br/articles/17165116960279-Como-configurar-Trilha-de-Matr%C3%ADcula-e-Rematr%C3%ADcula)
+  - Configurar Trilha De Matrícula E Rematrícula. Note: #### Pontos importantes:.
+- **Configurações Do Diário De Classe.** (`billing.configure_configuracoes_do_diario_de_cla`) — _configuration_, friction 0.0 — [Configurações do Diário de Classe.](https://suporte.proesc.com/hc/pt-br/articles/41262900355223-Configura%C3%A7%C3%B5es-do-Di%C3%A1rio-de-Classe)
+  - Configurações Do Diário De Classe..
+- **Conheça O Ambiente De Lista De Parcelas** (`billing.manage_conheca_o_ambiente_de_lista_de`) — _documented_, friction 10.8 — [Conheça o ambiente de Lista de parcelas](https://suporte.proesc.com/hc/pt-br/articles/13312862311319-Conhe%C3%A7a-o-ambiente-de-Lista-de-parcelas)
+  - Conheça O Ambiente De Lista De Parcelas. Note: Atenção: por padrão, o sistema exibirá apenas os dados da unidade em que o usuário estiver logado. É possível alterar a .
+- **Conheça O Módulo De Nota Fiscal Eletrônica (Nfs-E)** (`billing.manage_conheca_o_modulo_de_nota_fisca`) — _documented_, friction 1.2 — [Conheça o módulo de Nota Fiscal Eletrônica (NFS-e)](https://suporte.proesc.com/hc/pt-br/articles/1500000189922-Conhe%C3%A7a-o-m%C3%B3dulo-de-Nota-Fiscal-Eletr%C3%B4nica-NFS-e)
+  - Conheça O Módulo De Nota Fiscal Eletrônica (Nfs-E).
+- **Conheça O Proesc Analytics** (`billing.manage_conheca_o_proesc_analytics`) — _documented_, friction 0.0 — [Conheça o Proesc Analytics](https://suporte.proesc.com/hc/pt-br/articles/25622840743575-Conhe%C3%A7a-o-Proesc-Analytics)
+  - Conheça O Proesc Analytics.
+- **Consultar Parcelas Excluídas No Sistema?** (`billing.view_consultar_parcelas_excluidas_n`) — _documented_, friction 3.8 — [Como consultar parcelas excluídas no sistema?](https://suporte.proesc.com/hc/pt-br/articles/360009610613-Como-consultar-parcelas-exclu%C3%ADdas-no-sistema)
+  - Consultar Parcelas Excluídas No Sistema?. Note: Observação: esse ambiente fica localizado no menu lateral FINANCEIRO, portanto, certifique-se de ter permissões financei.
+- **Criar Cadastro De Pessoas?** (`billing.create_criar_cadastro_de_pessoas`) — _documented_, friction 3.5 — [Como criar cadastro de pessoas?](https://suporte.proesc.com/hc/pt-br/articles/360059360534-Como-criar-cadastro-de-pessoas)
+  - Criar Cadastro De Pessoas?. Note: Atenção — Responsável Financeiro: para evitar problemas na geração de débitos, preencha obrigatoriamente: CPF, e-mail de.
+- **Criar Despesas Fixas E Variáveis?** (`billing.create_criar_despesas_fixas_e_variave`) — _documented_, friction 0.0 — [Como criar despesas fixas e variáveis?](https://suporte.proesc.com/hc/pt-br/articles/360005846673-Como-criar-despesas-fixas-e-vari%C3%A1veis)
+  - Criar Despesas Fixas E Variáveis?.
+- **Criar Despesas Recorrentes No Ambiente De Dre?** (`billing.create_criar_despesas_recorrentes_no_`) — _documented_, friction 2.6 — [Como criar despesas recorrentes no ambiente de DRE](https://suporte.proesc.com/hc/pt-br/articles/360007265733-Como-criar-despesas-recorrentes-no-ambiente-de-DRE)
+  - Criar Despesas Recorrentes No Ambiente De Dre?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Débitos De Matrículas Em Lote?** (`billing.create_criar_debitos_de_matriculas_em`) — _documented_, friction 7.0 — [Como criar débitos de matrículas em lote?](https://suporte.proesc.com/hc/pt-br/articles/360044773934-Como-criar-d%C3%A9bitos-de-matr%C3%ADculas-em-lote)
+  - Criar Débitos De Matrículas Em Lote?. Note: Observação: esse ambiente fica localizado no menu lateral FINANCEIRO, portanto, certifique-se de ter permissões financei.
+- **Criar Exercícios** (`billing.create_criar_exercicios`) — _documented_, friction 0.0 — [Como criar exercícios](https://suporte.proesc.com/hc/pt-br/articles/360037397114-Como-criar-exerc%C3%ADcios)
+  - Criar Exercícios.
+- **Criar Novas Parcelas Na Matrícula** (`billing.create_criar_novas_parcelas_na_matric`) — _documented_, friction 3.5 — [Como criar novas parcelas na matrícula](https://suporte.proesc.com/hc/pt-br/articles/360059244353-Como-criar-novas-parcelas-na-matr%C3%ADcula)
+  - Criar Novas Parcelas Na Matrícula. Note: Importante: a quantidade informada no campo de parcelas corresponde apenas às novas parcelas que serão adicionadas. Após.
+- **Criar Ou Configurar Tipo De Débito** (`billing.configure_criar_ou_configurar_tipo_de_de`) — _configuration_, friction 3.5 — [Como criar ou configurar tipo de débito](https://suporte.proesc.com/hc/pt-br/articles/1500004221161-Como-criar-ou-configurar-tipo-de-d%C3%A9bito)
+  - Criar Ou Configurar Tipo De Débito. Note: Atenção — possibilidade de vinculação de débito à matrícula.
+- **Criar Ou Editar Etapas?** (`billing.create_criar_ou_editar_etapas`) — _documented_, friction 0.0 — [Como criar ou editar etapas?](https://suporte.proesc.com/hc/pt-br/articles/1500000184282-Como-criar-ou-editar-etapas)
+  - Criar Ou Editar Etapas?.
+- **Criar Tipos De Documentos  (Documentos Que Os Alunos/Responsáveis ​​Devem Entreg** (`billing.create_criar_tipos_de_documentos_docu`) — _documented_, friction 6.5 — [Como criar tipos de documentos  (documentos que os](https://suporte.proesc.com/hc/pt-br/articles/360055248293-Como-criar-tipos-de-documentos-documentos-que-os-alunos-respons%C3%A1veis-devem-entregar-no-ato-da-matr%C3%ADcula)
+  - Criar Tipos De Documentos  (Documentos Que Os Alunos/Responsáveis ​​Devem Entreg. Note: Importante! Esses registros só serão excluídos se nenhum registro for usado. Por exemplo, se você criou CARTÃO DO SUS, m.
+- **Criar Tipos De Documentos Por Etapa?** (`billing.create_criar_tipos_de_documentos_por_`) — _documented_, friction 5.0 — [Como criar tipos de documentos por etapa?](https://suporte.proesc.com/hc/pt-br/articles/18492971233047-Como-criar-tipos-de-documentos-por-etapa)
+  - Criar Tipos De Documentos Por Etapa?. Note: Importante! Esses registros só serão excluídos se nenhum registro for usado. Por exemplo, se você criou CARTÃO DO SUS, m.
+- **Criar Um Comunicado No Proesc Agenda?** (`billing.create_criar_um_comunicado_no_proesc_`) — _documented_, friction 2.0 — [Como criar um comunicado no Proesc Agenda?](https://suporte.proesc.com/hc/pt-br/articles/23164409329687-Como-criar-um-comunicado-no-Proesc-Agenda)
+  - Criar Um Comunicado No Proesc Agenda?. Note: Dica: Não é possível excluir um comentário feito, apenas excluir o Comunicado do Mural.
+- **Criar Um Débito Avulso?** (`billing.create_criar_um_debito_avulso`) — _documented_, friction 5.0 — [Como criar um débito avulso?](https://suporte.proesc.com/hc/pt-br/articles/360001287553-Como-criar-um-d%C3%A9bito-avulso)
+  - Criar Um Débito Avulso?. Note: Observação: esse ambiente fica localizado no menu lateral FINANCEIRO, portanto, certifique-se de ter permissões financei.
+- **Criar Um Débito Com A Isaac?** (`billing.create_criar_um_debito_com_a_isaac`) — _documented_, friction 5.5 — [Como criar um débito com a Isaac?](https://suporte.proesc.com/hc/pt-br/articles/25046347230743-Como-criar-um-d%C3%A9bito-com-a-Isaac)
+  - Criar Um Débito Com A Isaac?. Note: Importante: não é possível criar um débito separado para a taxa de matrícula e outro para a mensalidade. Ambos devem ser.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Um Débito De Matrícula?** (`billing.create_criar_um_debito_de_matricula`) — _documented_, friction 8.0 — [Como criar um débito de matrícula?](https://suporte.proesc.com/hc/pt-br/articles/360001297314-Como-criar-um-d%C3%A9bito-de-matr%C3%ADcula)
+  - Criar Um Débito De Matrícula?. Note: 12. Clique no botão gerar Boleto, caso deseje criar o débito já com os boletos gerados e adicione uma observação caso ne.
+- **Criar Um Plano De Pagamento?** (`billing.create_criar_um_plano_de_pagamento`) — _documented_, friction 5.8 — [Como criar um Plano de Pagamento?](https://suporte.proesc.com/hc/pt-br/articles/360055107514-Como-criar-um-Plano-de-Pagamento)
+  - Criar Um Plano De Pagamento?. Note: Atenção: pelo menos um dos serviços selecionados precisa estar configurado para ativar a matrícula..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Uma Cobrança No Mural De Comunicados (Proesc Agenda)** (`billing.create_criar_uma_cobranca_no_mural_de`) — _documented_, friction 8.0 — [Como criar uma cobrança no mural de comunicados (P](https://suporte.proesc.com/hc/pt-br/articles/25019755910679-Como-criar-uma-cobran%C3%A7a-no-mural-de-comunicados-Proesc-Agenda)
+  - Criar Uma Cobrança No Mural De Comunicados (Proesc Agenda). Note: Atenção: a cobrança criada pelo mural permite apenas uma parcela. Não é possível criar cobranças parceladas..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Dar Baixa De Parcelas Em Lote?** (`billing.manage_dar_baixa_de_parcelas_em_lote`) — _documented_, friction 0.0 — [Como dar baixa de parcelas em lote?](https://suporte.proesc.com/hc/pt-br/articles/360001530093-Como-dar-baixa-de-parcelas-em-lote)
+  - Dar Baixa De Parcelas Em Lote?.
+- **Dar Baixa Em Uma Despesa?** (`billing.manage_dar_baixa_em_uma_despesa`) — _documented_, friction 0.0 — [Como dar baixa em uma despesa?](https://suporte.proesc.com/hc/pt-br/articles/4410499815575-Como-dar-baixa-em-uma-despesa)
+  - Dar Baixa Em Uma Despesa?.
+- **Dar Baixa Em Uma Parcela?** (`billing.manage_dar_baixa_em_uma_parcela`) — _documented_, friction 5.5 — [Como dar baixa em uma parcela?](https://suporte.proesc.com/hc/pt-br/articles/360006978013-Como-dar-baixa-em-uma-parcela)
+  - Dar Baixa Em Uma Parcela?. Note: Atenção: essa funcionalidade precisa estar habilitada na sua unidade..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Desativar E Ativar E-Mails Automatizados?** (`billing.manage_desativar_e_ativar_e_mails_aut`) — _documented_, friction 3.5 — [Como desativar e ativar e-mails automatizados?](https://suporte.proesc.com/hc/pt-br/articles/360050802254-Como-desativar-e-ativar-e-mails-automatizados)
+  - Desativar E Ativar E-Mails Automatizados?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Desfazer A Assinatura Do Termo De Aceite?** (`billing.sign_desfazer_a_assinatura_do_termo`) — _documented_, friction 0.0 — [Como desfazer a assinatura do termo de aceite?](https://suporte.proesc.com/hc/pt-br/articles/360057460754-Como-desfazer-a-assinatura-do-termo-de-aceite)
+  - Desfazer A Assinatura Do Termo De Aceite?.
+- **Desfazer Uma Negociação** (`billing.manage_desfazer_uma_negociacao`) — _documented_, friction 3.8 — [Como desfazer uma negociação](https://suporte.proesc.com/hc/pt-br/articles/360042772314-Como-desfazer-uma-negocia%C3%A7%C3%A3o)
+  - Desfazer Uma Negociação. Note: Observação: esse ambiente está disponíveis para usuários com perfil FINANCEIRO.
+- **Despesas E Recebimentos - Como Utilizar O Rateio De Centro De Custo?** (`billing.manage_despesas_e_recebimentos_como_u`) — _documented_, friction 5.5 — [Despesas e recebimentos - Como utilizar o rateio d](https://suporte.proesc.com/hc/pt-br/articles/33205536115095-Despesas-e-recebimentos-Como-utilizar-o-rateio-de-centro-de-custo)
+  - Despesas E Recebimentos - Como Utilizar O Rateio De Centro De Custo?. Note: 4. Para realizar a distribuição entre os centros de custo, é importante ressaltar que o rateio deve ser feito com base e.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Diminuir Sua Inadimplência Com O Proesc** (`billing.manage_diminuir_sua_inadimplencia_com`) — _documented_, friction 3.0 — [Como diminuir sua inadimplência com o Proesc](https://suporte.proesc.com/hc/pt-br/articles/4403369709079-Como-diminuir-sua-inadimpl%C3%AAncia-com-o-Proesc)
+  - Diminuir Sua Inadimplência Com O Proesc.
+- **Editar / Adicionar Informações No Cadastro De Uma Pessoa?** (`billing.create_editar_adicionar_informacoes_n`) — _documented_, friction 3.5 — [Como editar / adicionar informações no cadastro de](https://suporte.proesc.com/hc/pt-br/articles/360041846374-Como-editar-adicionar-informa%C3%A7%C3%B5es-no-cadastro-de-uma-pessoa)
+  - Editar / Adicionar Informações No Cadastro De Uma Pessoa?. Note: Importante! Os documentos emitidos automaticamente pelo sistema (declarações, boletins, etc ) buscam informações nos cad.
+- **Editar Convênio De Desconto** (`billing.update_editar_convenio_de_desconto`) — _documented_, friction 9.0 — [Como editar convênio de desconto](https://suporte.proesc.com/hc/pt-br/articles/360059172393-Como-editar-conv%C3%AAnio-de-desconto)
+  - Editar Convênio De Desconto. Note: Atenção: caso o convênio ou bolsa de desconto não apareça na lista, verifique se ele foi previamente cadastrado em Confi.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Efetuar A Leitura Do Arquivo De Retorno?** (`billing.manage_efetuar_a_leitura_do_arquivo_d`) — _documented_, friction 5.0 — [Como efetuar a leitura do arquivo de retorno?](https://suporte.proesc.com/hc/pt-br/articles/360052894073-Como-efetuar-a-leitura-do-arquivo-de-retorno)
+  - Efetuar A Leitura Do Arquivo De Retorno?. Note: Observação: esse ambiente fica localizado no menu lateral FINANCEIRO, portanto, certifique-se de ter permissões financei.
+- **Emitir A Declaração Completa De Quitação?** (`billing.manage_emitir_a_declaracao_completa_d`) — _documented_, friction 0.0 — [Como emitir a Declaração Completa de quitação?](https://suporte.proesc.com/hc/pt-br/articles/23440313250327-Como-emitir-a-Declara%C3%A7%C3%A3o-Completa-de-quita%C3%A7%C3%A3o)
+  - Emitir A Declaração Completa De Quitação?.
+- **Emitir Comprovantes E Recibos De Pagamentos** (`billing.manage_emitir_comprovantes_e_recibos_`) — _documented_, friction 2.0 — [Como emitir comprovantes e recibos de pagamentos](https://suporte.proesc.com/hc/pt-br/articles/360060215834-Como-emitir-comprovantes-e-recibos-de-pagamentos)
+  - Emitir Comprovantes E Recibos De Pagamentos.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Emitir Declaração Nada Consta** (`billing.manage_emitir_declaracao_nada_consta`) — _documented_, friction 3.5 — [Como emitir declaração Nada Consta](https://suporte.proesc.com/hc/pt-br/articles/27478858350487-Como-emitir-declara%C3%A7%C3%A3o-Nada-Consta)
+  - Emitir Declaração Nada Consta. Note: Importante! A "Declaração Nada Consta" é um documento emitido por instituições ou empresas para atestar que não há pendê.
+- **Emitir Extrato De Débitos Em Aberto** (`billing.manage_emitir_extrato_de_debitos_em_a`) — _documented_, friction 0.0 — [Como emitir Extrato de débitos em aberto](https://suporte.proesc.com/hc/pt-br/articles/27479107981079-Como-emitir-Extrato-de-d%C3%A9bitos-em-aberto)
+  - Emitir Extrato De Débitos Em Aberto.
+- **Emitir Nfs De Produto** (`billing.manage_emitir_nfs_de_produto`) — _documented_, friction 7.0 — [Como emitir NFs de Produto](https://suporte.proesc.com/hc/pt-br/articles/22316354172439-Como-emitir-NFs-de-Produto)
+  - Emitir Nfs De Produto. Note: Importante!: a utilização desse módulo é precificada. Para mais informações entre em contato com o agente de sucesso do .
+- **Emitir Notas Fiscais?** (`billing.manage_emitir_notas_fiscais`) — _documented_, friction 9.5 — [Como emitir Notas Fiscais?](https://suporte.proesc.com/hc/pt-br/articles/360046270553-Como-emitir-Notas-Fiscais)
+  - Emitir Notas Fiscais?. Note: IMPORTANTE! Nota Fiscal é um módulo adicional precificado. Caso não esteja ativo na sua instituição, entre em contato co.
+- **Emitir O Relatório Relação De Parcelas** (`billing.manage_emitir_o_relatorio_relacao_de_`) — _documented_, friction 9.0 — [Como emitir o relatório Relação de Parcelas](https://suporte.proesc.com/hc/pt-br/articles/8047459245079-Como-emitir-o-relat%C3%B3rio-Rela%C3%A7%C3%A3o-de-Parcelas)
+  - Emitir O Relatório Relação De Parcelas. Note: Atenção: sempre aplique filtros antes de consultar o relatório. Sem filtros, a visualização pode retornar um volume elev.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Emitir Relatórios Por Turma?** (`billing.manage_emitir_relatorios_por_turma`) — _documented_, friction 10.5 — [Como emitir relatórios por turma?](https://suporte.proesc.com/hc/pt-br/articles/360037400374-Como-emitir-relat%C3%B3rios-por-turma)
+  - Emitir Relatórios Por Turma?. Note: Durante e ao final do período letivo, é muito importante separar os relatórios que serão impressos ou arquivados para o .
+- **Encontrar Meus Relatórios Em Um Único Ambiente?** (`billing.manage_encontrar_meus_relatorios_em_u`) — _documented_, friction 3.5 — [Como encontrar meus relatórios em um único ambient](https://suporte.proesc.com/hc/pt-br/articles/360042931713-Como-encontrar-meus-relat%C3%B3rios-em-um-%C3%BAnico-ambiente)
+  - Encontrar Meus Relatórios Em Um Único Ambiente?. Note: Os relatórios são importantes fontes de informações que apresentam um fluxo de comunicação eficiente e facilitam a tomad.
+- **Enviar Boletos Pelo Whatsapp?** (`billing.send_enviar_boletos_pelo_whatsapp`) — _documented_, friction 3.5 — [Como enviar boletos pelo WhatsApp?](https://suporte.proesc.com/hc/pt-br/articles/360042958253-Como-enviar-boletos-pelo-WhatsApp)
+  - Enviar Boletos Pelo Whatsapp?. Note: Atenção: este recurso está disponível apenas para débitos de mensalidades. Outros tipos de débito não permitem envio pel.
+- **Enviar Carnê De Boletos?** (`billing.send_enviar_carne_de_boletos`) — _documented_, friction 0.0 — [Como enviar carnê de boletos?](https://suporte.proesc.com/hc/pt-br/articles/21925432396439-Como-enviar-carn%C3%AA-de-boletos)
+  - Enviar Carnê De Boletos?.
+- **Enviar E-Mail De Cobrança - Setor De Cobrança** (`billing.send_enviar_e_mail_de_cobranca_seto`) — _documented_, friction 2.0 — [Enviar e-mail de cobrança - Setor de Cobrança](https://suporte.proesc.com/hc/pt-br/articles/19464992672663-Enviar-e-mail-de-cobran%C3%A7a-Setor-de-Cobran%C3%A7a)
+  - Enviar E-Mail De Cobrança - Setor De Cobrança. Note: Dica do Suporte: após o envio do e-mail, não é possível cancelar ou recuperar a mensagem enviada, pois o sistema não pos.
+- **Enviar E-Mail De Cobrança?** (`billing.send_enviar_e_mail_de_cobranca`) — _documented_, friction 10.5 — [Como enviar e-mail de cobrança?](https://suporte.proesc.com/hc/pt-br/articles/360042459714-Como-enviar-e-mail-de-cobran%C3%A7a)
+  - Enviar E-Mail De Cobrança?. Note: Observação: o envio de e-mail está disponível apenas para parcelas com status Em Aberto ou Vencida. Parcelas pagas ou ne.
+- **Enviar Mensagens Pelo Proesc?** (`billing.send_enviar_mensagens_pelo_proesc`) — _documented_, friction 10.5 — [Como enviar mensagens pelo Proesc?](https://suporte.proesc.com/hc/pt-br/articles/360045336753-Como-enviar-mensagens-pelo-Proesc)
+  - Enviar Mensagens Pelo Proesc?. Note: Observação: o perfil Aluno possui apenas o submenu Recebidas no menu Mensagem. Os demais perfis têm acesso aos três ambi.
+- **Excluir Rematrícula** (`billing.delete_excluir_rematricula`) — _documented_, friction 3.5 — [Como excluir rematrícula](https://suporte.proesc.com/hc/pt-br/articles/360056435834-Como-excluir-rematr%C3%ADcula)
+  - Excluir Rematrícula. Note: Importante! Serão apagadas todas as rematrículas feitas na turma cujo a nova matrícula estiver na situação AGUARDANDO CO.
+- **Excluir Requerimentos?** (`billing.delete_excluir_requerimentos`) — _documented_, friction 3.5 — [Como excluir requerimentos?](https://suporte.proesc.com/hc/pt-br/articles/17507426645015-Como-excluir-requerimentos)
+  - Excluir Requerimentos?. Note: Observação: os tipos de requerimentos são criados previamente nas configurações acadêmicas. Veja esse artigo para saber .
+- **Excluir Um Débito Inteiro?** (`billing.delete_excluir_um_debito_inteiro`) — _documented_, friction 8.5 — [Como excluir um débito inteiro?](https://suporte.proesc.com/hc/pt-br/articles/360001049433-Como-excluir-um-d%C3%A9bito-inteiro)
+  - Excluir Um Débito Inteiro?. Note: Observação: apenas os usuários com perfil FINANCEIRO tem a permissão para excluir parcelas e débitos financeiros do sist.
+- **Excluir Uma Despesa No Ambiente De Despesas E Recebimentos?** (`billing.delete_excluir_uma_despesa_no_ambient`) — _documented_, friction 0.0 — [Como excluir uma despesa no ambiente de Despesas e](https://suporte.proesc.com/hc/pt-br/articles/4410500302999-Como-excluir-uma-despesa-no-ambiente-de-Despesas-e-Recebimentos)
+  - Excluir Uma Despesa No Ambiente De Despesas E Recebimentos?.
+- **Exibir Informações Específicas Na Ata De Resultados Finais** (`billing.manage_exibir_informacoes_especificas`) — _documented_, friction 2.3 — [Como exibir informações específicas na ata de resu](https://suporte.proesc.com/hc/pt-br/articles/31677550469655-Como-exibir-informa%C3%A7%C3%B5es-espec%C3%ADficas-na-ata-de-resultados-finais)
+  - Exibir Informações Específicas Na Ata De Resultados Finais.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Fazer A Rematrícula Dos Alunos** (`billing.manage_fazer_a_rematricula_dos_alunos`) — _documented_, friction 2.0 — [Como fazer a rematrícula dos alunos](https://suporte.proesc.com/hc/pt-br/articles/360008145974-Como-fazer-a-rematr%C3%ADcula-dos-alunos)
+  - Fazer A Rematrícula Dos Alunos.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Fazer Anotações Nos Débitos** (`billing.manage_fazer_anotacoes_nos_debitos`) — _documented_, friction 7.0 — [Como fazer anotações nos débitos](https://suporte.proesc.com/hc/pt-br/articles/360061996213-Como-fazer-anota%C3%A7%C3%B5es-nos-d%C3%A9bitos)
+  - Fazer Anotações Nos Débitos. Note: Observação: está com dúvida de qual perfil escolher para um usuário? Acesse o artigo Estou criando usuários, qual permis.
+- **Funciona O Centro De Custo** (`billing.manage_funciona_o_centro_de_custo`) — _documented_, friction 4.5 — [Como funciona o centro de custo](https://suporte.proesc.com/hc/pt-br/articles/360057638154-Como-funciona-o-centro-de-custo)
+  - Funciona O Centro De Custo.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Funciona O Menu Infrequência?** (`billing.manage_funciona_o_menu_infrequencia`) — _documented_, friction 10.5 — [Como funciona o menu Infrequência?](https://suporte.proesc.com/hc/pt-br/articles/16080152297751-Como-funciona-o-menu-Infrequ%C3%AAncia)
+  - Funciona O Menu Infrequência?. Note: Informações importantes da tela de resultados:.
+- **Funciona O Módulo De Recursos Humanos** (`billing.manage_funciona_o_modulo_de_recursos_`) — _documented_, friction 0.0 — [Como funciona o módulo de Recursos Humanos](https://suporte.proesc.com/hc/pt-br/articles/17568615862679-Como-funciona-o-m%C3%B3dulo-de-Recursos-Humanos)
+  - Funciona O Módulo De Recursos Humanos.
+- **Funciona O Plano De Contas** (`billing.manage_funciona_o_plano_de_contas`) — _documented_, friction 2.0 — [Como funciona o plano de contas](https://suporte.proesc.com/hc/pt-br/articles/360060326693-Como-funciona-o-plano-de-contas)
+  - Funciona O Plano De Contas.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Funcionam As Cobranças Automáticas Por E-Mail (Remessa E Retorno)** (`billing.manage_funcionam_as_cobrancas_automat`) — _documented_, friction 8.0 — [Como funcionam as cobranças automáticas por e-mail](https://suporte.proesc.com/hc/pt-br/articles/4404655285143-Como-funcionam-as-cobran%C3%A7as-autom%C3%A1ticas-por-e-mail-Remessa-e-Retorno)
+  - Funcionam As Cobranças Automáticas Por E-Mail (Remessa E Retorno). Note: Atenção: lembretes e cobranças via SMS não estão disponíveis para Remessa e Retorno — apenas para integrações com IUGU..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Funcionam As Notificações Automáticas De Lembrete E Cobrança** (`billing.manage_funcionam_as_notificacoes_auto`) — _documented_, friction 3.5 — [Como funcionam as notificações automáticas de lemb](https://suporte.proesc.com/hc/pt-br/articles/360045233713-Como-funcionam-as-notifica%C3%A7%C3%B5es-autom%C3%A1ticas-de-lembrete-e-cobran%C3%A7a)
+  - Funcionam As Notificações Automáticas De Lembrete E Cobrança. Note: Atenção: o QR Code para pagamento via Pix exibido nas notificações.
+- **Garanta Zero Inadimplência Com O Proesc** (`billing.manage_garanta_zero_inadimplencia_com`) — _documented_, friction 0.0 — [Garanta zero inadimplência com o Proesc](https://suporte.proesc.com/hc/pt-br/articles/4420690005655-Garanta-zero-inadimpl%C3%AAncia-com-o-Proesc)
+  - Garanta Zero Inadimplência Com O Proesc.
+- **Gerar Boletos Por Turma Sem Unificação?** (`billing.manage_gerar_boletos_por_turma_sem_un`) — _documented_, friction 2.0 — [Como gerar boletos por turma sem unificação?](https://suporte.proesc.com/hc/pt-br/articles/360043504553-Como-gerar-boletos-por-turma-sem-unifica%C3%A7%C3%A3o)
+  - Gerar Boletos Por Turma Sem Unificação?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Gerar Um Arquivo De Remessa?** (`billing.manage_gerar_um_arquivo_de_remessa`) — _documented_, friction 8.5 — [Como gerar um arquivo de remessa?](https://suporte.proesc.com/hc/pt-br/articles/360052129474-Como-gerar-um-arquivo-de-remessa)
+  - Gerar Um Arquivo De Remessa?. Note: Observação: esse ambiente fica localizado no menu lateral FINANCEIRO, portanto, certifique-se de ter permissões financei.
+- **Gerenciar E Visualizar A Dre Da Minha Instituição** (`billing.view_gerenciar_e_visualizar_a_dre_d`) — _documented_, friction 3.5 — [Como gerenciar e visualizar a DRE da minha institu](https://suporte.proesc.com/hc/pt-br/articles/360005762214-Como-gerenciar-e-visualizar-a-DRE-da-minha-institui%C3%A7%C3%A3o)
+  - Gerenciar E Visualizar A Dre Da Minha Instituição. Note: Observação:Esse artigo é direcionado aos usuários com perfil do Financeiro e Analista Financeiro..
+- **Guia De Uso Isaac** (`billing.manage_guia_de_uso_isaac`) — _documented_, friction 9.0 — [Guia de uso ISAAC](https://suporte.proesc.com/hc/pt-br/articles/25045376365207-Guia-de-uso-ISAAC)
+  - Guia De Uso Isaac. Note: Importante! Para utilizar os serviços da Isaac no Proesc, a instituição precisa possuir cadastro ativo na plataforma Isa.
+- **Imprimir A Declaração De Quitação (Imposto De Renda)?** (`billing.export_imprimir_a_declaracao_de_quita`) — _documented_, friction 13.0 — [Como imprimir a Declaração de Quitação (Imposto de](https://suporte.proesc.com/hc/pt-br/articles/360001312434-Como-imprimir-a-Declara%C3%A7%C3%A3o-de-Quita%C3%A7%C3%A3o-Imposto-de-Renda)
+  - Imprimir A Declaração De Quitação (Imposto De Renda)?. Note: Atenção: Se o nome do aluno não aparecer nos filtros de Relatórios de Matrícula, pode ser que o débito financeiro não es.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Incluir Alunos Estrangeiros No Sistema?** (`billing.create_incluir_alunos_estrangeiros_no`) — _documented_, friction 2.3 — [Como incluir alunos estrangeiros no sistema?](https://suporte.proesc.com/hc/pt-br/articles/27783588934039-Como-incluir-alunos-estrangeiros-no-sistema)
+  - Incluir Alunos Estrangeiros No Sistema?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Inserir/Editar Modelos De Documentos Em Configurações De Documentos (Prodocs)** (`billing.configure_inserir_editar_modelos_de_docu`) — _configuration_, friction 9.0 — [Como inserir/editar modelos de documentos em Confi](https://suporte.proesc.com/hc/pt-br/articles/24950853477783-Como-inserir-editar-modelos-de-documentos-em-Configura%C3%A7%C3%B5es-de-documentos-Prodocs)
+  - Inserir/Editar Modelos De Documentos Em Configurações De Documentos (Prodocs). Note: Observação: o campo Exercício só aparece.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Integração Clipescola + Proesc** (`billing.manage_integracao_clipescola_proesc`) — _documented_, friction 4.0 — [Integração ClipEscola + Proesc](https://suporte.proesc.com/hc/pt-br/articles/360060153454-Integra%C3%A7%C3%A3o-ClipEscola-Proesc)
+  - Integração Clipescola + Proesc.
+- **Integração Proesc By Kedu** (`billing.manage_integracao_proesc_by_kedu`) — _documented_, friction 7.0 — [Integração Proesc by Kedu](https://suporte.proesc.com/hc/pt-br/articles/41317618026775-Integra%C3%A7%C3%A3o-Proesc-by-Kedu)
+  - Integração Proesc By Kedu. Note: Importante: a sincronização é executada apenas uma vez para cada exercício letivo. Ao iniciar um novo ano letivo, será n.
+- **Introdução Ao Critério Avaliativo: Critério Notas, Competências E Habilidades, C** (`billing.manage_introducao_ao_criterio_avaliat`) — _conceptual_, friction 0.0 — [Introdução ao Critério Avaliativo: critério notas,](https://suporte.proesc.com/hc/pt-br/articles/4409527753367-Introdu%C3%A7%C3%A3o-ao-Crit%C3%A9rio-Avaliativo-crit%C3%A9rio-notas-compet%C3%AAncias-e-habilidades-conceitos)
+  - Introdução Ao Critério Avaliativo: Critério Notas, Competências E Habilidades, C.
+- **Lançar Despesas De Fgts?** (`billing.launch_lancar_despesas_de_fgts`) — _documented_, friction 4.1 — [Como lançar despesas de FGTS?](https://suporte.proesc.com/hc/pt-br/articles/24337040922519-Como-lan%C3%A7ar-despesas-de-FGTS)
+  - Lançar Despesas De Fgts?. Note: Observação: caso o pagamento seja recorrente, marque o checkbox correspondente..
+- **Lançar Recebimentos Recorrentes?** (`billing.launch_lancar_recebimentos_recorrente`) — _documented_, friction 0.0 — [Como lançar recebimentos recorrentes? ](https://suporte.proesc.com/hc/pt-br/articles/360050979514-Como-lan%C3%A7ar-recebimentos-recorrentes)
+  - Lançar Recebimentos Recorrentes?.
+- **Ler E Responder Mensagens Nos Canais De Comunicação?** (`billing.manage_ler_e_responder_mensagens_nos_`) — _documented_, friction 0.0 — [Como ler e responder mensagens nos canais de comun](https://suporte.proesc.com/hc/pt-br/articles/34108368477975-Como-ler-e-responder-mensagens-nos-canais-de-comunica%C3%A7%C3%A3o)
+  - Ler E Responder Mensagens Nos Canais De Comunicação?.
+- **Manual De Conciliação Bancária** (`billing.manage_manual_de_conciliacao_bancaria`) — _documented_, friction 2.0 — [Manual de conciliação bancária](https://suporte.proesc.com/hc/pt-br/articles/19461667342487-Manual-de-concilia%C3%A7%C3%A3o-banc%C3%A1ria)
+  - Manual De Conciliação Bancária.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Matrícula Com Geração Automática De Boletos Via Plano De Pagamento** (`billing.manage_matricula_com_geracao_automati`) — _documented_, friction 3.2 — [Matrícula com geração automática de boletos via pl](https://suporte.proesc.com/hc/pt-br/articles/27327437598487-Matr%C3%ADcula-com-gera%C3%A7%C3%A3o-autom%C3%A1tica-de-boletos-via-plano-de-pagamento)
+  - Matrícula Com Geração Automática De Boletos Via Plano De Pagamento.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Matrícula Online - Apresentação** (`billing.manage_matricula_online_apresentacao`) — _documented_, friction 0.0 — [Matrícula Online - Apresentação](https://suporte.proesc.com/hc/pt-br/articles/1500000063082-Matr%C3%ADcula-Online-Apresenta%C3%A7%C3%A3o)
+  - Matrícula Online - Apresentação.
+- **Melhorias Significativas Na Segurança Da Informação Na Proesc** (`billing.manage_melhorias_significativas_na_se`) — _documented_, friction 1.5 — [Melhorias Significativas na Segurança da Informaçã](https://suporte.proesc.com/hc/pt-br/articles/21661798032279-Melhorias-Significativas-na-Seguran%C3%A7a-da-Informa%C3%A7%C3%A3o-na-Proesc)
+  - Melhorias Significativas Na Segurança Da Informação Na Proesc.
+- **Minha Instituição Irá Mudar De Cnpj, O Que Fazer?** (`billing.manage_minha_instituicao_ira_mudar_de`) — _documented_, friction 0.0 — [Minha instituição irá mudar de CNPJ, o que fazer?](https://suporte.proesc.com/hc/pt-br/articles/20007086956183-Minha-institui%C3%A7%C3%A3o-ir%C3%A1-mudar-de-CNPJ-o-que-fazer)
+  - Minha Instituição Irá Mudar De Cnpj, O Que Fazer?.
+- **Mini Apps Disponíveis Na Integração Proesc | Layers** (`billing.manage_mini_apps_disponiveis_na_integ`) — _documented_, friction 0.0 — [Mini apps disponíveis na integração Proesc | Layer](https://suporte.proesc.com/hc/pt-br/articles/5775193234199-Mini-apps-dispon%C3%ADveis-na-integra%C3%A7%C3%A3o-Proesc-Layers)
+  - Mini Apps Disponíveis Na Integração Proesc | Layers.
+- **Negociar Parcelas No Proesc?** (`billing.manage_negociar_parcelas_no_proesc`) — _documented_, friction 0.0 — [Como negociar parcelas no Proesc?](https://suporte.proesc.com/hc/pt-br/articles/360006938934-Como-negociar-parcelas-no-Proesc)
+  - Negociar Parcelas No Proesc?.
+- **Notificações Do Aplicativo Proesc** (`billing.manage_notificacoes_do_aplicativo_pro`) — _documented_, friction 2.0 — [Notificações do aplicativo Proesc](https://suporte.proesc.com/hc/pt-br/articles/360044539633-Notifica%C3%A7%C3%B5es-do-aplicativo-Proesc)
+  - Notificações Do Aplicativo Proesc.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Não Consigo Atualizar E-Mail No Cadastro, O Que Pode Ser?** (`billing.resolve_nao_consigo_atualizar_e_mail_n`) — _troubleshooting_, friction 6.5 — [Não consigo atualizar e-mail no cadastro, o que po](https://suporte.proesc.com/hc/pt-br/articles/29490169977239-N%C3%A3o-consigo-atualizar-e-mail-no-cadastro-o-que-pode-ser)
+  - Não Consigo Atualizar E-Mail No Cadastro, O Que Pode Ser?. Note: Para casos assim, uma sugestão seria sempre digitar as informações com bastante atenção e se atentando as mensagens que .
+- **Não Estou Conseguindo Importar Turmas De Um Ano Letivo Para O Outro, O Que Pode ** (`billing.import_nao_estou_conseguindo_importar`) — _documented_, friction 10.5 — [Não estou conseguindo importar turmas de um ano le](https://suporte.proesc.com/hc/pt-br/articles/19402255645335-N%C3%A3o-estou-conseguindo-importar-turmas-de-um-ano-letivo-para-o-outro-o-que-pode-ser)
+  - Não Estou Conseguindo Importar Turmas De Um Ano Letivo Para O Outro, O Que Pode . Note: Observação: esse artigo é direcionado para os perfis de Secretaria e Configurações..
+- **O Aplicativo Proesc Agenda?** (`billing.manage_o_aplicativo_proesc_agenda`) — _conceptual_, friction 10.5 — [O que é o aplicativo Proesc Agenda?](https://suporte.proesc.com/hc/pt-br/articles/16533531345431-O-que-%C3%A9-o-aplicativo-Proesc-Agenda)
+  - O Aplicativo Proesc Agenda?. Note: Observação: quer saber mais sobre essa novidade? Clique aqui e solicite um atendimento..
+- **O Pagamento De Uma Despesa Recorrente De Um Mês Especifico Foi Alterado, O Que F** (`billing.manage_o_pagamento_de_uma_despesa_rec`) — _documented_, friction 7.0 — [O pagamento de uma despesa recorrente de um mês es](https://suporte.proesc.com/hc/pt-br/articles/10173809576215-O-pagamento-de-uma-despesa-recorrente-de-um-m%C3%AAs-especifico-foi-alterado-o-que-fazer)
+  - O Pagamento De Uma Despesa Recorrente De Um Mês Especifico Foi Alterado, O Que F. Note: Observação:Esse artigo é direcionado aos usuários Financeiros. Está com dúvida de qual perfil adicionar no seu acesso? C.
+- **Pague Sua Mensalidade Do Proesc De Forma Rápida E Sem Burocracia: Descubra Como ** (`billing.manage_pague_sua_mensalidade_do_proes`) — _documented_, friction 0.0 — [Pague Sua Mensalidade do Proesc de Forma Rápida e ](https://suporte.proesc.com/hc/pt-br/articles/31128567923991-Pague-Sua-Mensalidade-do-Proesc-de-Forma-R%C3%A1pida-e-Sem-Burocracia-Descubra-Como-Usar-o-DDA)
+  - Pague Sua Mensalidade Do Proesc De Forma Rápida E Sem Burocracia: Descubra Como .
+- **Posso Reduzir Custos Com Impressão Na Minha Instituição?** (`billing.manage_posso_reduzir_custos_com_impre`) — _documented_, friction 0.0 — [Como posso reduzir custos com impressão na minha i](https://suporte.proesc.com/hc/pt-br/articles/1500011629121-Como-posso-reduzir-custos-com-impress%C3%A3o-na-minha-institui%C3%A7%C3%A3o)
+  - Posso Reduzir Custos Com Impressão Na Minha Instituição?.
+- **Preencher A Trilha De Confirmação De Pré-Matrícula E Rematrícula Online?** (`billing.manage_preencher_a_trilha_de_confirma`) — _documented_, friction 5.0 — [Como preencher a trilha de confirmação de Pré-matr](https://suporte.proesc.com/hc/pt-br/articles/360055340074-Como-preencher-a-trilha-de-confirma%C3%A7%C3%A3o-de-Pr%C3%A9-matr%C3%ADcula-e-rematr%C3%ADcula-online)
+  - Preencher A Trilha De Confirmação De Pré-Matrícula E Rematrícula Online?. Note: Importante! Esse serviço tem efeito legal e cumpre o artigo 10 §2º da Medida Provisória nº 2.200-2/2001. A confirmação d.
+- **Preencher As Informações Gerais Do Histórico Escolar?** (`billing.manage_preencher_as_informacoes_gerai`) — _documented_, friction 6.5 — [Como preencher as informações gerais do Histórico ](https://suporte.proesc.com/hc/pt-br/articles/4413253697559-Como-preencher-as-informa%C3%A7%C3%B5es-gerais-do-Hist%C3%B3rico-Escolar)
+  - Preencher As Informações Gerais Do Histórico Escolar?. Note: Atenção: os campos abaixo só aparecem para instituições de Ensino Superior, Técnico ou Pós-graduação. Para instituições .
+- **Processo De Alteração E Criação De Critério Avaliativo** (`billing.manage_processo_de_alteracao_e_criaca`) — _documented_, friction 3.5 — [Processo de alteração e criação de critério avalia](https://suporte.proesc.com/hc/pt-br/articles/6327173122839-Processo-de-altera%C3%A7%C3%A3o-e-cria%C3%A7%C3%A3o-de-crit%C3%A9rio-avaliativo)
+  - Processo De Alteração E Criação De Critério Avaliativo.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Proesc Bank Na Inteligência De Pagamentos** (`billing.manage_proesc_bank_na_inteligencia_de`) — _documented_, friction 7.0 — [Proesc bank na Inteligência de pagamentos](https://suporte.proesc.com/hc/pt-br/articles/26437332421143-Proesc-bank-na-Intelig%C3%AAncia-de-pagamentos)
+  - Proesc Bank Na Inteligência De Pagamentos. Note: Atenção! É importante lembrar que para uso do Proesc Bank, é necessário que uma conta esteja cadastrada para geração e p.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Proesc Sign** (`billing.manage_proesc_sign`) — _documented_, friction 0.0 — [Proesc Sign](https://suporte.proesc.com/hc/pt-br/articles/41348601700503-Proesc-Sign)
+  - Proesc Sign.
+- **Quais Menus O Administrador Da Entidade Tem Acesso?** (`billing.manage_quais_menus_o_administrador_da`) — _documented_, friction 7.0 — [Quais menus o Administrador da Entidade tem acesso](https://suporte.proesc.com/hc/pt-br/articles/360003532993-Quais-menus-o-Administrador-da-Entidade-tem-acesso)
+  - Quais Menus O Administrador Da Entidade Tem Acesso?. Note: Observação: além dos acessos listados, esse perfil recebe o lembrete de cobrança da fatura do Proesc na tela principal..
+- **Quais Menus O Emissor De Nota Fiscal Tem Acesso?** (`billing.manage_quais_menus_o_emissor_de_nota_`) — _documented_, friction 0.0 — [Quais menus o emissor de nota fiscal tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/29409004724631-Quais-menus-o-emissor-de-nota-fiscal-tem-acesso)
+  - Quais Menus O Emissor De Nota Fiscal Tem Acesso?.
+- **Quais Menus O Gestor De Inadimplência Tem Acesso?** (`billing.manage_quais_menus_o_gestor_de_inadim`) — _documented_, friction 0.0 — [Quais menus o gestor de inadimplência tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360034824333-Quais-menus-o-gestor-de-inadimpl%C3%AAncia-tem-acesso)
+  - Quais Menus O Gestor De Inadimplência Tem Acesso?.
+- **Quais Menus O Perfil Analytics Tem Acesso?** (`billing.manage_quais_menus_o_perfil_analytics`) — _documented_, friction 7.0 — [Quais menus o perfil ANALYTICS tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/29355985527063-Quais-menus-o-perfil-ANALYTICS-tem-acesso)
+  - Quais Menus O Perfil Analytics Tem Acesso?. Note: Observação ¹ : O perfil Analytics deve estar associado aos perfis abaixo para acesso, aos ambientes, informados..
+- **Quais Menus O Perfil Configuração Tem Acesso?** (`billing.configure_quais_menus_o_perfil_configura`) — _configuration_, friction 7.0 — [Quais menus o perfil CONFIGURAÇÃO tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360043866474-Quais-menus-o-perfil-CONFIGURA%C3%87%C3%83O-tem-acesso)
+  - Quais Menus O Perfil Configuração Tem Acesso?. Note: Observação: para acessar este ambiente, você precisa ter os perfis CONFIGURAÇÃO e FINANCEIRO, e a instituição precisa us.
+- **Quais Perfis Adicionar A Um Usuário** (`billing.create_quais_perfis_adicionar_a_um_us`) — _documented_, friction 0.0 — [Quais perfis adicionar a um usuário](https://suporte.proesc.com/hc/pt-br/articles/360003532693-Quais-perfis-adicionar-a-um-usu%C3%A1rio)
+  - Quais Perfis Adicionar A Um Usuário.
+- **Rastrear Boletos Pelo Código De Barras (Linha Digitável)** (`billing.manage_rastrear_boletos_pelo_codigo_d`) — _documented_, friction 2.0 — [Como rastrear boletos pelo código de barras (linha](https://suporte.proesc.com/hc/pt-br/articles/4428941164055-Como-rastrear-boletos-pelo-c%C3%B3digo-de-barras-linha-digit%C3%A1vel)
+  - Rastrear Boletos Pelo Código De Barras (Linha Digitável).
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Rastrear Pagamentos?** (`billing.manage_rastrear_pagamentos`) — _documented_, friction 8.8 — [Como rastrear pagamentos?](https://suporte.proesc.com/hc/pt-br/articles/360042914353-Como-rastrear-pagamentos)
+  - Rastrear Pagamentos?. Note: Observação: Apenas usuários com permissão de Financeiro tem acesso a esse menu..
+- **Realizar Inscrição No Portal Da Matrícula Online?** (`billing.manage_realizar_inscricao_no_portal_d`) — _documented_, friction 0.0 — [Como realizar inscrição no portal da Matrícula Onl](https://suporte.proesc.com/hc/pt-br/articles/4405328903319-Como-realizar-inscri%C3%A7%C3%A3o-no-portal-da-Matr%C3%ADcula-Online)
+  - Realizar Inscrição No Portal Da Matrícula Online?.
+- **Realizar Matrículas?** (`billing.manage_realizar_matriculas`) — _documented_, friction 10.5 — [Como realizar matrículas?](https://suporte.proesc.com/hc/pt-br/articles/360037397474-Como-realizar-matr%C3%ADculas)
+  - Realizar Matrículas?. Note: Importante: Caso o aluno não conste na sua busca, clique no botão Adicionar novo, preencha os dados de cadastro obrigató.
+- **Realizar O Pagamento De Cobrança De Um Comunicado?** (`billing.manage_realizar_o_pagamento_de_cobran`) — _documented_, friction 0.0 — [Como realizar o pagamento de cobrança de um comuni](https://suporte.proesc.com/hc/pt-br/articles/33545084169495-Como-realizar-o-pagamento-de-cobran%C3%A7a-de-um-comunicado)
+  - Realizar O Pagamento De Cobrança De Um Comunicado?.
+- **Receber Pagamentos Via Transferência Pix?** (`billing.manage_receber_pagamentos_via_transfe`) — _documented_, friction 7.0 — [Como receber pagamentos via transferência Pix?](https://suporte.proesc.com/hc/pt-br/articles/1500008541982-Como-receber-pagamentos-via-transfer%C3%AAncia-Pix)
+  - Receber Pagamentos Via Transferência Pix?. Note: Observações importantes:.
+- **Reduzindo A Inadimplência De Sua Instituição.** (`billing.manage_reduzindo_a_inadimplencia_de_s`) — _documented_, friction 0.3 — [Reduzindo a inadimplência de sua instituição.](https://suporte.proesc.com/hc/pt-br/articles/1500005393761-Reduzindo-a-inadimpl%C3%AAncia-de-sua-institui%C3%A7%C3%A3o)
+  - Reduzindo A Inadimplência De Sua Instituição..
+- **Registrar Um Pagamento Parcial?** (`billing.create_registrar_um_pagamento_parcial`) — _documented_, friction 3.5 — [Como registrar um pagamento parcial?](https://suporte.proesc.com/hc/pt-br/articles/17677179896087-Como-registrar-um-pagamento-parcial)
+  - Registrar Um Pagamento Parcial?. Note: Importante: após concluir o processo, o sistema criará automaticamente uma nova parcela com o valor restante, mantendo a.
+- **Relatório Analítico De Parcelas** (`billing.manage_relatorio_analitico_de_parcela`) — _documented_, friction 0.0 — [Relatório analítico de parcelas](https://suporte.proesc.com/hc/pt-br/articles/8058194427543-Relat%C3%B3rio-anal%C3%ADtico-de-parcelas)
+  - Relatório Analítico De Parcelas.
+- **Relatório De Demonstração Do Resultado Do Exercício (Dre)** (`billing.manage_relatorio_de_demonstracao_do_r`) — _documented_, friction 7.0 — [Relatório de Demonstração do Resultado do Exercíci](https://suporte.proesc.com/hc/pt-br/articles/4402912976663-Relat%C3%B3rio-de-Demonstra%C3%A7%C3%A3o-do-Resultado-do-Exerc%C3%ADcio-DRE)
+  - Relatório De Demonstração Do Resultado Do Exercício (Dre). Note: Por que a DRE é importante?.
+- **Relatório De Inadimplentes Completo** (`billing.manage_relatorio_de_inadimplentes_com`) — _documented_, friction 7.0 — [Relatório de Inadimplentes completo](https://suporte.proesc.com/hc/pt-br/articles/1500007627142-Relat%C3%B3rio-de-Inadimplentes-completo)
+  - Relatório De Inadimplentes Completo. Note: Atenção! apenas os usuários com os perfis 'Financeiro','Analista Financeiro' e 'Gestor de inadimplência' tem acesso aos .
+- **Relatório De Nf-E  (Nota Fiscal Eletrônica)** (`billing.manage_relatorio_de_nf_e_nota_fiscal_`) — _documented_, friction 5.5 — [Relatório de NF-e  (Nota Fiscal eletrônica)](https://suporte.proesc.com/hc/pt-br/articles/360057304754-Relat%C3%B3rio-de-NF-e-Nota-Fiscal-eletr%C3%B4nica)
+  - Relatório De Nf-E  (Nota Fiscal Eletrônica). Note: Importante! Dependendo da quantidade de notas fiscais emitidas pela instituição, o carregamento do relatório pode levar .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Relatório De Receita Prevista E Recebida Por Turma** (`billing.manage_relatorio_de_receita_prevista_`) — _documented_, friction 0.0 — [Relatório de Receita Prevista e Recebida por Turma](https://suporte.proesc.com/hc/pt-br/articles/34301784748823-Relat%C3%B3rio-de-Receita-Prevista-e-Recebida-por-Turma)
+  - Relatório De Receita Prevista E Recebida Por Turma.
+- **Relatório Sintético De Parcelas** (`billing.manage_relatorio_sintetico_de_parcela`) — _documented_, friction 0.0 — [Relatório sintético de parcelas](https://suporte.proesc.com/hc/pt-br/articles/8046373378583-Relat%C3%B3rio-sint%C3%A9tico-de-parcelas)
+  - Relatório Sintético De Parcelas.
+- **Relação De Alunos Com Desconto** (`billing.manage_relacao_de_alunos_com_desconto`) — _documented_, friction 3.5 — [Relação de alunos com desconto](https://suporte.proesc.com/hc/pt-br/articles/8053083980055-Rela%C3%A7%C3%A3o-de-alunos-com-desconto)
+  - Relação De Alunos Com Desconto. Note: Atenção! Este relatório exibe apenas descontos do tipo Convênio e Bolsa. Descontos fixos ou descontos até o vencimento n.
+- **Relação De Inadimplência** (`billing.manage_relacao_de_inadimplencia`) — _documented_, friction 0.0 — [Relação de inadimplência](https://suporte.proesc.com/hc/pt-br/articles/8086096272023-Rela%C3%A7%C3%A3o-de-inadimpl%C3%AAncia)
+  - Relação De Inadimplência.
+- **Rematricular Um Alunos Utilizando O Plano De Pagamentos?** (`billing.enroll_rematricular_um_alunos_utiliza`) — _documented_, friction 9.0 — [Como rematricular um alunos utilizando o plano de ](https://suporte.proesc.com/hc/pt-br/articles/10154509532823-Como-rematricular-um-alunos-utilizando-o-plano-de-pagamentos)
+  - Rematricular Um Alunos Utilizando O Plano De Pagamentos?. Note: Importante: ao criar um exercício, configure corretamente o próximo exercício letivo para garantir o funcionamento da re.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Rematrícula Online - Apresentação** (`billing.manage_rematricula_online_apresentaca`) — _documented_, friction 2.1 — [Rematrícula online - Apresentação](https://suporte.proesc.com/hc/pt-br/articles/1500000159382-Rematr%C3%ADcula-online-Apresenta%C3%A7%C3%A3o)
+  - Rematrícula Online - Apresentação.
+- **Rematrícula Online Utilizando Plano De Pagamento ( Instituições De Remessa E Ret** (`billing.manage_rematricula_online_utilizando_`) — _documented_, friction 6.1 — [Rematrícula online utilizando plano de pagamento (](https://suporte.proesc.com/hc/pt-br/articles/4406599166231-Rematr%C3%ADcula-online-utilizando-plano-de-pagamento-Institui%C3%A7%C3%B5es-de-Remessa-e-Retorno)
+  - Rematrícula Online Utilizando Plano De Pagamento ( Instituições De Remessa E Ret. Note: Importante: se nenhum plano de pagamento estiver disponível para seleção, verifique se ele foi configurado para a etapa .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Remessa E Retorno** (`billing.manage_remessa_e_retorno`) — _documented_, friction 3.4 — [FAQ - Remessa e retorno](https://suporte.proesc.com/hc/pt-br/articles/7577523240855-FAQ-Remessa-e-retorno)
+  - Remessa E Retorno.
+- **Resolver Erro Ao Criar Um Débito** (`billing.resolve_resolver_erro_ao_criar_um_debi`) — _troubleshooting_, friction 3.0 — [Como resolver erro ao criar um débito](https://suporte.proesc.com/hc/pt-br/articles/360005845653-Como-resolver-erro-ao-criar-um-d%C3%A9bito)
+  - Resolver Erro Ao Criar Um Débito.
+- **Sincronizar Informações Da Matriz Para A Lista De Disciplinas?** (`billing.import_sincronizar_informacoes_da_mat`) — _documented_, friction 3.5 — [Como sincronizar informações da matriz para a list](https://suporte.proesc.com/hc/pt-br/articles/21716384509079-Como-sincronizar-informa%C3%A7%C3%B5es-da-matriz-para-a-lista-de-disciplinas)
+  - Sincronizar Informações Da Matriz Para A Lista De Disciplinas?. Note: Observação: esse artigo é direcionado aos usuários com perfis de SECRETARIA.Está com dúvida de qual perfil adicionar no .
+- **Uma Matriz E Como Configurar?** (`billing.configure_uma_matriz_e_como_configurar`) — _conceptual_, friction 9.0 — [O que é uma Matriz e como configurar?](https://suporte.proesc.com/hc/pt-br/articles/4591343581847-O-que-%C3%A9-uma-Matriz-e-como-configurar)
+  - Uma Matriz E Como Configurar?. Note: Observação: o curso e a etapa precisam estar criados antes dessa configuração. Veja como no artigo Como criar um curso c.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Usar O Dda** (`billing.manage_usar_o_dda`) — _documented_, friction 3.5 — [Como usar o DDA](https://suporte.proesc.com/hc/pt-br/articles/27919527595543-Como-usar-o-DDA)
+  - Usar O Dda. Note: Atenção: se houve alteração no CPF ou CNPJ cadastrado, solicite a atualização dos dados junto ao Proesc para evitar dive.
+- **Utilizar A Nova Funcionalidade De Data De Competência?** (`billing.manage_utilizar_a_nova_funcionalidade`) — _documented_, friction 5.5 — [Como utilizar a nova funcionalidade de Data de Com](https://suporte.proesc.com/hc/pt-br/articles/25142694594711-Como-utilizar-a-nova-funcionalidade-de-Data-de-Compet%C3%AAncia)
+  - Utilizar A Nova Funcionalidade De Data De Competência?. Note: Observação: na criação ou edição do débito, também é possível editar a competência manualmente no detalhamento de parcel.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Utilizar O Menu De Atualização De Dados.** (`billing.manage_utilizar_o_menu_de_atualizacao`) — _documented_, friction 0.0 — [Como utilizar o menu de atualização de dados.](https://suporte.proesc.com/hc/pt-br/articles/1500006544502-Como-utilizar-o-menu-de-atualiza%C3%A7%C3%A3o-de-dados)
+  - Utilizar O Menu De Atualização De Dados..
+- **Utilizar O Módulo Proesc Agenda No Proesc?** (`billing.manage_utilizar_o_modulo_proesc_agend`) — _documented_, friction 12.3 — [Como utilizar o módulo Proesc Agenda no Proesc?](https://suporte.proesc.com/hc/pt-br/articles/18086838634135-Como-utilizar-o-m%C3%B3dulo-Proesc-Agenda-no-Proesc)
+  - Utilizar O Módulo Proesc Agenda No Proesc?. Note: Importante: o aplicativo Proesc Agenda é exclusivo para alunos e responsáveis. Os funcionários da instituição acessam as.
+- **Utilizar O Proesc Analytics?** (`billing.manage_utilizar_o_proesc_analytics`) — _documented_, friction 0.0 — [Como utilizar o Proesc Analytics?](https://suporte.proesc.com/hc/pt-br/articles/25680584023319-Como-utilizar-o-Proesc-Analytics)
+  - Utilizar O Proesc Analytics?.
+- **Utilizar O Termo De Aceite (Contrato Digital)?** (`billing.manage_utilizar_o_termo_de_aceite_con`) — _documented_, friction 9.0 — [Como utilizar o termo de aceite (contrato digital)](https://suporte.proesc.com/hc/pt-br/articles/360051301254-Como-utilizar-o-termo-de-aceite-contrato-digital)
+  - Utilizar O Termo De Aceite (Contrato Digital)?. Note: Importante: o aceite do contrato possui validade jurídica e atende ao artigo 10, §2º da Medida Provisória nº 2.200-2/200.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Ver Quem Já Recebeu E Respondeu Ao Termo De Aceite?** (`billing.manage_ver_quem_ja_recebeu_e_responde`) — _documented_, friction 0.0 — [Como ver quem já recebeu e respondeu ao Termo de A](https://suporte.proesc.com/hc/pt-br/articles/1500008558322-Como-ver-quem-j%C3%A1-recebeu-e-respondeu-ao-Termo-de-Aceite)
+  - Ver Quem Já Recebeu E Respondeu Ao Termo De Aceite?.
+- **Verificar Boletos Não Baixados Automaticamente - Iugu** (`billing.manage_verificar_boletos_nao_baixados`) — _documented_, friction 6.6 — [Como verificar boletos não baixados automaticament](https://suporte.proesc.com/hc/pt-br/articles/36536734338711-Como-verificar-boletos-n%C3%A3o-baixados-automaticamente-IUGU)
+  - Verificar Boletos Não Baixados Automaticamente - Iugu.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Verificar O Log/Histórico De Um Registro?** (`billing.manage_verificar_o_log_historico_de_u`) — _documented_, friction 0.0 — [Como verificar o log/histórico de um registro?](https://suporte.proesc.com/hc/pt-br/articles/4411554029591-Como-verificar-o-log-hist%C3%B3rico-de-um-registro)
+  - Verificar O Log/Histórico De Um Registro?.
+- **Vincular Os Responsáveis Com Autorização De Saída?** (`billing.manage_vincular_os_responsaveis_com_a`) — _documented_, friction 10.5 — [Como vincular os responsáveis com autorização de s](https://suporte.proesc.com/hc/pt-br/articles/360057483694-Como-vincular-os-respons%C3%A1veis-com-autoriza%C3%A7%C3%A3o-de-sa%C3%ADda)
+  - Vincular Os Responsáveis Com Autorização De Saída?. Note: IMPORTANTE! Por padrão, essa opção não vem ativa. Se o ambiente de Autorização de saída não estiver disponível, entre em.
+- **Visualizar A Fatura Da Minha Assinatura Com O Proesc** (`billing.view_visualizar_a_fatura_da_minha_a`) — _documented_, friction 3.5 — [Como visualizar a fatura da minha assinatura com o](https://suporte.proesc.com/hc/pt-br/articles/360040108454-Como-visualizar-a-fatura-da-minha-assinatura-com-o-Proesc)
+  - Visualizar A Fatura Da Minha Assinatura Com O Proesc. Note: Informações importantes: A fatura é gerada 10 dias antes do vencimento e também enviada por e-mail. Em caso de atraso, v.
+- **Visualizar O Status De Uma Nfs (Nota Fiscal Eletrônica)** (`billing.view_visualizar_o_status_de_uma_nfs`) — _documented_, friction 0.0 — [Como visualizar o status de uma NFs (nota fiscal e](https://suporte.proesc.com/hc/pt-br/articles/360048821873-Como-visualizar-o-status-de-uma-NFs-nota-fiscal-eletr%C3%B4nica)
+  - Visualizar O Status De Uma Nfs (Nota Fiscal Eletrônica).
+- **Visualizar Os Logs De Alteração De Parcelas** (`billing.view_visualizar_os_logs_de_alteraca`) — _documented_, friction 0.3 — [Como visualizar os Logs de alteração de parcelas](https://suporte.proesc.com/hc/pt-br/articles/4451404048151-Como-visualizar-os-Logs-de-altera%C3%A7%C3%A3o-de-parcelas)
+  - Visualizar Os Logs De Alteração De Parcelas.
+
+## Staff (financial)
+
+- **Acessar E Emitir Boletos Financeiros Pelo Portal Do Aluno** (`billing.manage_acessar_e_emitir_boletos_finan`) `[financial]` — _documented_, friction 5.5 — [Como acessar e emitir boletos financeiros pelo por](https://suporte.proesc.com/hc/pt-br/articles/360057299954-Como-acessar-e-emitir-boletos-financeiros-pelo-portal-do-aluno)
+  - Acessar E Emitir Boletos Financeiros Pelo Portal Do Aluno. Note: Atenção: parcelas vencidas podem ter aplicação de juros e multa conforme configuração da instituição..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Cadastrar Cartão E Ativar Pagamento Recorrente (Financeiro)** (`billing.create_cadastrar_cartao_e_ativar_paga`) `[financial]` — _documented_, friction 8.0 — [Como cadastrar cartão e ativar pagamento recorrent](https://suporte.proesc.com/hc/pt-br/articles/4403169091479-Como-cadastrar-cart%C3%A3o-e-ativar-pagamento-recorrente-Financeiro)
+  - Cadastrar Cartão E Ativar Pagamento Recorrente (Financeiro). Note: Importante: a opção de pagamento por cartão de crédito está disponível apenas para débitos de Mensalidade vinculados à m.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Cadastrar Pessoa Jurídica Como Responsável Financeiro?** (`billing.create_cadastrar_pessoa_juridica_como`) `[financial]` — _documented_, friction 5.3 — [Como cadastrar pessoa jurídica como responsável fi](https://suporte.proesc.com/hc/pt-br/articles/37951699614615-Como-cadastrar-pessoa-jur%C3%ADdica-como-respons%C3%A1vel-financeiro)
+  - Cadastrar Pessoa Jurídica Como Responsável Financeiro?. Note: Atenção! Após criar um cadastro como Pessoa Física, não é possível alterá-lo para Pessoa Jurídica. Certifique-se de sele.
+- **Conheça Nosso Novo Financeiro** (`billing.manage_conheca_nosso_novo_financeiro`) `[financial]` — _documented_, friction 3.5 — [Conheça nosso Novo Financeiro](https://suporte.proesc.com/hc/pt-br/articles/37850125680151-Conhe%C3%A7a-nosso-Novo-Financeiro)
+  - Conheça Nosso Novo Financeiro. Note: Atenção! As telas de Contas a Pagar, Contas a Receber e Relatórios permitem exportação para planilhas, possuem cabeçalho.
+- **Criar Um Serviço Financeiro?** (`billing.create_criar_um_servico_financeiro`) `[financial]` — _documented_, friction 7.0 — [Como criar um Serviço Financeiro?](https://suporte.proesc.com/hc/pt-br/articles/360057058473-Como-criar-um-Servi%C3%A7o-Financeiro)
+  - Criar Um Serviço Financeiro?. Note: Observação: a opção Geração dos boletos seguintes aparece apenas em unidades que usam gateway de pagamento. Em unidades .
+- **Emitir E Interpretar O Relatório De Fluxo De Caixa** (`billing.manage_emitir_e_interpretar_o_relator`) `[financial]` — _documented_, friction 5.5 — [Como emitir e interpretar o Relatório de Fluxo de ](https://suporte.proesc.com/hc/pt-br/articles/1500008367642-Como-emitir-e-interpretar-o-Relat%C3%B3rio-de-Fluxo-de-Caixa)
+  - Emitir E Interpretar O Relatório De Fluxo De Caixa. Note: Atenção: não compare relatórios entre si diretamente — cada relatório tem finalidades e critérios diferentes..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Emitir Extrato Financeiro Do Aluno** (`billing.manage_emitir_extrato_financeiro_do_a`) `[financial]` — _documented_, friction 0.0 — [Como emitir Extrato Financeiro do aluno](https://suporte.proesc.com/hc/pt-br/articles/27479758754839-Como-emitir-Extrato-Financeiro-do-aluno)
+  - Emitir Extrato Financeiro Do Aluno.
+- **Excluir Parcelas Financeiras Em Lote?** (`billing.delete_excluir_parcelas_financeiras_e`) `[financial]` — _documented_, friction 3.5 — [Como excluir parcelas financeiras em lote?](https://suporte.proesc.com/hc/pt-br/articles/360043299813-Como-excluir-parcelas-financeiras-em-lote)
+  - Excluir Parcelas Financeiras Em Lote?. Note: Importante: somente parcelas com status Em Aberto ou Vencida podem ser excluídas. Parcelas pagas por boleto não podem se.
+- **Excluir Uma Parcela Financeira Do Sistema?** (`billing.delete_excluir_uma_parcela_financeira`) `[financial]` — _documented_, friction 5.5 — [Como excluir uma parcela financeira do sistema?](https://suporte.proesc.com/hc/pt-br/articles/360001396574-Como-excluir-uma-parcela-financeira-do-sistema)
+  - Excluir Uma Parcela Financeira Do Sistema?. Note: Atenção: não é possível excluir uma parcela paga. Se a baixa foi manual, cancele o pagamento e exclua a parcela normalme.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Gestão Financeira Proesc - Iugu E Remessa E Retorno** (`billing.manage_gestao_financeira_proesc_iugu_`) `[financial]` — _documented_, friction 9.0 — [Gestão Financeira Proesc - IUGU e Remessa e retorn](https://suporte.proesc.com/hc/pt-br/articles/17537077437847-Gest%C3%A3o-Financeira-Proesc-IUGU-e-Remessa-e-retorno)
+  - Gestão Financeira Proesc - Iugu E Remessa E Retorno. Note: Observação¹: antes de iniciar o uso do modelo de remessa, a escola deve encaminhar ao Proesc todos os dados necessários .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **O Financeiro Do Aluno Não Aparece Nos Relatórios. O Que Fazer?** (`billing.resolve_o_financeiro_do_aluno_nao_apar`) `[financial]` — _troubleshooting_, friction 6.5 — [O financeiro do aluno não aparece nos relatórios. ](https://suporte.proesc.com/hc/pt-br/articles/27479608729495-O-financeiro-do-aluno-n%C3%A3o-aparece-nos-relat%C3%B3rios-O-que-fazer)
+  - O Financeiro Do Aluno Não Aparece Nos Relatórios. O Que Fazer?. Note: Importante! Atualmente nossos relatórios financeiros trazem somente informações vinculadas à matriculas..
+- **Ocultar Financeiro De Responsáveis Sem Vínculo** (`billing.manage_ocultar_financeiro_de_responsa`) `[financial]` — _documented_, friction 10.5 — [Ocultar financeiro de responsáveis sem vínculo](https://suporte.proesc.com/hc/pt-br/articles/34180283252503-Ocultar-financeiro-de-respons%C3%A1veis-sem-v%C3%ADnculo)
+  - Ocultar Financeiro De Responsáveis Sem Vínculo. Note: IMPORTANTE! Cessar ou privar qualquer responsável legal de acessar as informações de seus dependentes não é recomendado .
+- **Quais Menus O Analista Financeiro Tem Acesso?** (`billing.manage_quais_menus_o_analista_finance`) `[financial]` — _documented_, friction 0.0 — [Quais menus o analista financeiro tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/29408463630615-Quais-menus-o-analista-financeiro-tem-acesso)
+  - Quais Menus O Analista Financeiro Tem Acesso?.
+- **Quais Menus O Auxiliar Financeiro Tem Acesso?** (`billing.manage_quais_menus_o_auxiliar_finance`) `[financial]` — _documented_, friction 0.0 — [Quais menus o auxiliar financeiro tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360003517434-Quais-menus-o-auxiliar-financeiro-tem-acesso)
+  - Quais Menus O Auxiliar Financeiro Tem Acesso?.
+- **Quais Menus O Operador Financeiro Tem Acesso?** (`billing.manage_quais_menus_o_operador_finance`) `[financial]` — _documented_, friction 8.0 — [Quais menus o operador financeiro tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360003517354-Quais-menus-o-operador-financeiro-tem-acesso)
+  - Quais Menus O Operador Financeiro Tem Acesso?. Note: Observação: caso os menus Despesas e Recebimentos, Conciliação Bancária, Nota Fiscal ou Requerimentos não estejam dispon.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Quais Menus O Perfil Financeiro Tem Acesso?** (`billing.manage_quais_menus_o_perfil_financeir`) `[financial]` — _documented_, friction 0.0 — [Quais menus o perfil Financeiro tem acesso?](https://suporte.proesc.com/hc/pt-br/articles/360003540533-Quais-menus-o-perfil-Financeiro-tem-acesso)
+  - Quais Menus O Perfil Financeiro Tem Acesso?.
+- **Registrar Uma Saída Do Caixa** (`billing.create_registrar_uma_saida_do_caixa`) `[financial]` — _documented_, friction 5.5 — [Como registrar uma saída do caixa](https://suporte.proesc.com/hc/pt-br/articles/360061996173-Como-registrar-uma-sa%C3%ADda-do-caixa)
+  - Registrar Uma Saída Do Caixa. Note: Importante: os ambientes Meu Caixa e Despesas e Recebimentos possuem funcionalidades distintas e não compartilham inform.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Relatório De Extrato Financeiro** (`billing.manage_relatorio_de_extrato_financeir`) `[financial]` — _documented_, friction 7.0 — [Relatório de Extrato Financeiro](https://suporte.proesc.com/hc/pt-br/articles/4595724382999-Relat%C3%B3rio-de-Extrato-Financeiro)
+  - Relatório De Extrato Financeiro. Note: Observação¹: Esse artigo é direcionado aos usuários com perfil do FINANCEIRO e ANALISTA FINANCEIRO.
+- **Relatório De Fechamento De Caixa** (`billing.manage_relatorio_de_fechamento_de_cai`) `[financial]` — _documented_, friction 0.0 — [Relatório de Fechamento de Caixa](https://suporte.proesc.com/hc/pt-br/articles/360007182994-Relat%C3%B3rio-de-Fechamento-de-Caixa)
+  - Relatório De Fechamento De Caixa.
+- **Relatórios De Matrícula Vinculados Com O Financeiro** (`billing.manage_relatorios_de_matricula_vincul`) `[financial]` — _documented_, friction 9.0 — [Relatórios de matrícula vinculados com o financeir](https://suporte.proesc.com/hc/pt-br/articles/360062463694-Relat%C3%B3rios-de-matr%C3%ADcula-vinculados-com-o-financeiro)
+  - Relatórios De Matrícula Vinculados Com O Financeiro. Note: Observação: os valores são atualizados conforme a data de emissão do documento..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Relatórios Financeiros Do Proesc** (`billing.manage_relatorios_financeiros_do_proe`) `[financial]` — _documented_, friction 0.0 — [Relatórios financeiros do Proesc](https://suporte.proesc.com/hc/pt-br/articles/360057070833-Relat%C3%B3rios-financeiros-do-Proesc)
+  - Relatórios Financeiros Do Proesc.
+- **Tudo Sobre O Meu Caixa** (`billing.manage_tudo_sobre_o_meu_caixa`) `[financial]` — _documented_, friction 5.5 — [Tudo sobre o Meu Caixa](https://suporte.proesc.com/hc/pt-br/articles/4406029768727-Tudo-sobre-o-Meu-Caixa)
+  - Tudo Sobre O Meu Caixa. Note: Observação: essa aba só aparece para o perfil FINANCEIRO — mesmo os outros perfis com acesso ao Meu Caixa (Operador Fina.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Utilizar O Ambiente De Boletim E Débitos Financeiros?** (`billing.manage_utilizar_o_ambiente_de_boletim`) `[financial]` — _documented_, friction 5.5 — [Como utilizar o ambiente de boletim e débitos fina](https://suporte.proesc.com/hc/pt-br/articles/1500011146301-Como-utilizar-o-ambiente-de-boletim-e-d%C3%A9bitos-financeiros)
+  - Utilizar O Ambiente De Boletim E Débitos Financeiros?. Note: Atenção: se aparecer o desafio de imagens do reCAPTCHA, conclua a validação até o check verde aparecer..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Vincular Responsável Financeiro No Cadastro Do Aluno** (`billing.create_vincular_responsavel_financeir`) `[financial]` — _documented_, friction 9.0 — [Como vincular responsável financeiro no cadastro d](https://suporte.proesc.com/hc/pt-br/articles/25985145513495-Como-vincular-respons%C3%A1vel-financeiro-no-cadastro-do-aluno)
+  - Vincular Responsável Financeiro No Cadastro Do Aluno. Note: Importante! Para criar financeiro para o aluno no sistema é preciso existir esse vínculo..
+  - Preconditions: implicit prerequisite mentioned in article body
+
+## Student
+
+- **Cancelar/Alterar A Situação Da Matricula Do Aluno** (`billing.update_cancelar_alterar_a_situacao_da`) — _documented_, friction 8.5 — [Como cancelar/alterar a situação da matricula do a](https://suporte.proesc.com/hc/pt-br/articles/360001342833-Como-cancelar-alterar-a-situa%C3%A7%C3%A3o-da-matricula-do-aluno)
+  - Cancelar/Alterar A Situação Da Matricula Do Aluno. Note: 3. No campo "Situação atual" você deverá alterar a situação dele para qualquer uma das opções disponíveis, informe a dat.
+- **Imprimir O Carnê Do Aluno?** (`billing.export_imprimir_o_carne_do_aluno`) — _documented_, friction 3.5 — [Como imprimir o carnê do aluno?](https://suporte.proesc.com/hc/pt-br/articles/360001312234-Como-imprimir-o-carn%C3%AA-do-aluno)
+  - Imprimir O Carnê Do Aluno?. Note: Obs¹: É importante que o débito de mensalidades do aluno esteja criado. Não sabe como? Clique AQUI.
+- **Imprimir O Contrato De Serviços Do Aluno?** (`billing.export_imprimir_o_contrato_de_servico`) — _documented_, friction 5.5 — [Como imprimir o contrato de serviços do aluno?](https://suporte.proesc.com/hc/pt-br/articles/360001312314-Como-imprimir-o-contrato-de-servi%C3%A7os-do-aluno)
+  - Imprimir O Contrato De Serviços Do Aluno?. Note: Antes de tudo, é muito importante que o débito de mensalidades do aluno tenha sido criado de acordo com os passos descri.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Imprimir Relatórios De Débitos Em Aberto Do Aluno?** (`billing.export_imprimir_relatorios_de_debitos`) — _documented_, friction 7.0 — [Como imprimir relatórios de débitos em aberto do a](https://suporte.proesc.com/hc/pt-br/articles/360001301653-Como-imprimir-relat%C3%B3rios-de-d%C3%A9bitos-em-aberto-do-aluno)
+  - Imprimir Relatórios De Débitos Em Aberto Do Aluno?. Note: Traz todos os débitos em abertos do aluno referentes a MENSALIDADE do exercício selecionado, contendo informações import.
+- **Inserir Foto Do Aluno** (`billing.launch_inserir_foto_do_aluno`) — _documented_, friction 0.0 — [Como Inserir Foto do Aluno](https://suporte.proesc.com/hc/pt-br/articles/4496333046167-Como-Inserir-Foto-do-Aluno)
+  - Inserir Foto Do Aluno.
+- **Liberar Acesso Ao Portal Do Aluno** (`billing.manage_liberar_acesso_ao_portal_do_al`) — _documented_, friction 6.4 — [Como liberar acesso ao Portal do Aluno](https://suporte.proesc.com/hc/pt-br/articles/360043660573-Como-liberar-acesso-ao-Portal-do-Aluno)
+  - Liberar Acesso Ao Portal Do Aluno. Note: Atenção! Se a coluna Status exibir , o cadastro está incompleto. Clique no ícone para completar os dados antes de criar .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Mover Um Aluno Para Uma Nova Turma?** (`billing.manage_mover_um_aluno_para_uma_nova_t`) — _documented_, friction 5.0 — [Como mover um aluno para uma nova turma?](https://suporte.proesc.com/hc/pt-br/articles/360017065913-Como-mover-um-aluno-para-uma-nova-turma)
+  - Mover Um Aluno Para Uma Nova Turma?. Note: Importante: esse procedimento apaga todas as informações pedagógicas do aluno (referentes à matrícula em questão).
+- **Qual A Diferença Entre Remanejar, Mover, Reclassificar E Transferir Um Aluno?** (`billing.manage_qual_a_diferenca_entre_remanej`) — _documented_, friction 9.0 — [Qual a diferença entre Remanejar, Mover, Reclassif](https://suporte.proesc.com/hc/pt-br/articles/1500008583781-Qual-a-diferen%C3%A7a-entre-Remanejar-Mover-Reclassificar-e-Transferir-um-aluno)
+  - Qual A Diferença Entre Remanejar, Mover, Reclassificar E Transferir Um Aluno?. Note: Antes de realizar qualquer alteração, é fundamental entender qual processo se adequa à necessidade do aluno para não per.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Reclassificar Um Aluno De Turma Para Outra?** (`billing.manage_reclassificar_um_aluno_de_turm`) — _documented_, friction 7.0 — [Como reclassificar um aluno de turma para outra?](https://suporte.proesc.com/hc/pt-br/articles/1500008555462-Como-reclassificar-um-aluno-de-turma-para-outra)
+  - Reclassificar Um Aluno De Turma Para Outra?. Note: Atenção!RECLASSIFICAR deve ser usado quando quer mudar o aluno para outra turma. Esta movimentação LEVA o financeiro e N.
+- **Solicitar Requerimentos Pelo Portal Do Aluno?** (`billing.manage_solicitar_requerimentos_pelo_p`) — _documented_, friction 3.5 — [Como solicitar Requerimentos pelo Portal do Aluno?](https://suporte.proesc.com/hc/pt-br/articles/15238669600663-Como-solicitar-Requerimentos-pelo-Portal-do-Aluno)
+  - Solicitar Requerimentos Pelo Portal Do Aluno?. Note: Na tela seguinte, haverá um botão "Criar Requerimento" no canto superior direito da tela. Ao clicar nele, uma nova aba a.
+- **Unificar Boletos Por Aluno No Proesc?** (`billing.manage_unificar_boletos_por_aluno_no_`) — _documented_, friction 5.5 — [Como unificar boletos por aluno no Proesc?](https://suporte.proesc.com/hc/pt-br/articles/360042921113-Como-unificar-boletos-por-aluno-no-Proesc)
+  - Unificar Boletos Por Aluno No Proesc?. Note: Atenção: se o menu Financeiro > Boletos não aparecer para você, solicite ao administrador da unidade que entre em contat.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Usar O Portal Do Aluno** (`billing.manage_usar_o_portal_do_aluno`) — _documented_, friction 2.0 — [Como usar o Portal do Aluno](https://suporte.proesc.com/hc/pt-br/articles/360042084613-Como-usar-o-Portal-do-Aluno)
+  - Usar O Portal Do Aluno.
+  - Preconditions: implicit prerequisite mentioned in article body

@@ -4,6 +4,15 @@
 > players in the school-management market, to support MVP prioritization and the
 > following phases. Complements `docs/vision.md` and `docs/open-questions.md`.
 
+For structured, source-anchored competitor behavior (domain models, flows, edge
+cases, terminology, friction maps, capability inventory, and cross-competitor
+divergences), use [`docs/ref/`](ref/README.md) — the competitive reference corpus
+built with the `corpus-concorrente` skill. The deduplicated capability catalog
+([`docs/ref/catalogo-funcionalidades.md`](ref/catalogo-funcionalidades.md), 1,325
+entries across 9 competitors) is the primary inventory for PRD anchoring. **Anchor
+PRD acceptance criteria to `docs/ref/` when grounded in observed behavior;** use
+this document for high-level market context only.
+
 ## 1. Market overview
 
 The Brazilian "school-management systems" market (also called educational ERP)
@@ -12,7 +21,7 @@ different pain points:
 
 | Profile | Main focus | Examples |
 |--------|-----------------|----------|
-| **Complete school ERP** | Academic + financial + registrar, all integrated | Sponte, TOTVS Educacional, Gennera |
+| **Complete school ERP** | Academic + financial + registrar, all integrated | Sponte, Proesc, TOTVS Educacional, Gennera |
 | **School↔family communication app** | Digital agenda, announcements, chat, routine — usually integrates with an ERP via API | Agenda Edu, ClassApp, Olá Pais, Kix |
 | **Daycare / early childhood niche** | Daily routine (baby/nursery) as the main product | Lápis 360 Baby; international reference: Brightwheel, HiMama |
 

@@ -1,0 +1,3517 @@
+[
+  {
+    "domain": "academic",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Editar A Frequência No Histórico Escolar?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "academic.update_editar_a_frequencia_no_histori",
+        "label": "Editar A Frequência No Histórico Escolar?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "academic.update_editar_carga_horaria_do_histor",
+        "label": "Editar Carga Horária Do Histórico Escolar?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "academic",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Módulo Aee: Registros",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "academic.manage_modulo_aee_registros",
+        "label": "Módulo Aee: Registros",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "academic.manage_modulo_aee_relatorios",
+        "label": "Módulo Aee: Relatórios",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "academic.manage_modulo_aee_relatorios_e_regist",
+        "label": "Módulo Aee: Relatórios E Registros",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "academic",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Desvincular Professor Da Disciplina",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "academic.manage_desvincular_professor_da_disci",
+        "label": "Desvincular Professor Da Disciplina",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "academic.manage_vincular_professor_a_disciplin",
+        "label": "Vincular Professor À Disciplina?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "academic",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Acessar As Aulas Pelo Proesc Aluno?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "academic.manage_acessar_as_aulas_pelo_proesc_a",
+        "label": "Acessar As Aulas Pelo Proesc Aluno?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "academic.manage_acessar_o_conteudo_e_anexos_da",
+        "label": "Acessar O Conteúdo E Anexos Da Aula Pelo Proesc Aluno",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "academic",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Avaliar As Habilidades De Um Aluno?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "academic.manage_avaliar_as_habilidades_de_um_a",
+        "label": "Avaliar As Habilidades De Um Aluno?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "academic.manage_avaliar_atividades_de_um_so_al",
+        "label": "Avaliar Atividades De Um Só Aluno?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "academic",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Visualizar A Ficha De Habilidades Por Aluno Ou Por Turma?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "academic.view_visualizar_a_ficha_de_habilida",
+        "label": "Visualizar A Ficha De Habilidades Por Aluno Ou Por Turma?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "academic.view_visualizar_o_boletim_por_aluno",
+        "label": "Visualizar O Boletim Por Aluno Ou Por Turma?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Acessar Meus Boletos Da Agenda Edu?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_acessar_meus_boletos_da_agenda",
+        "label": "Acessar Meus Boletos Da Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_acessar_o_portal_de_boletos_da",
+        "label": "Acessar O Portal De Boletos Da Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Acompanhar As Cobranças Feitas A Partir De Um Arquivo De Remessa?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.view_acompanhar_as_cobrancas_feitas",
+        "label": "Acompanhar As Cobranças Feitas A Partir De Um Arquivo De Remessa?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.send_enviar_cobrancas_a_partir_de_u",
+        "label": "Enviar Cobranças A Partir De Um Arquivo De Remessa?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Acompanhar Meus Pedidos No Shop?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.view_acompanhar_meus_pedidos_no_sho",
+        "label": "Acompanhar Meus Pedidos No Shop?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.view_acompanhar_os_pedidos_e_pagame",
+        "label": "Acompanhar Os Pedidos E Pagamentos Do Shop?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Adicionar Contratos Em Massa",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "billing.create_adicionar_contratos_em_massa",
+        "label": "Adicionar Contratos Em Massa",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.sign_assinar_contratos_de_matricula",
+        "label": "Assinar Contratos De Matrícula",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.send_enviar_contrato_em_massa",
+        "label": "Enviar Contrato Em Massa?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Ativar O Pagamento Por Cartão De Crédito",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_ativar_o_pagamento_por_cartao_",
+        "label": "Ativar O Pagamento Por Cartão De Crédito",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_realizar_pagamentos_via_cartao",
+        "label": "Realizar Pagamentos Via Cartão De Crédito",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Atualizar Boletos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.update_atualizar_boletos",
+        "label": "Atualizar Boletos?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.delete_cancelar_boletos",
+        "label": "Cancelar Boletos?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Atualização 5.1.3",
+    "member_count": 29,
+    "members": [
+      {
+        "raw_id": "billing.manage_atualizacao_5_1_3",
+        "label": "Atualização 5.1.3",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_1_4",
+        "label": "Atualização 5.1.4",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_1_6",
+        "label": "Atualização 5.1.6",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_1_7",
+        "label": "Atualização 5.1.7",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_1_8",
+        "label": "Atualização 5.1.8",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_0",
+        "label": "Atualização 5.2.0",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_1",
+        "label": "Atualização 5.2.1",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_2",
+        "label": "Atualização 5.2.2",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_3",
+        "label": "Atualização 5.2.3",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_5",
+        "label": "Atualização 5.2.5",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_6",
+        "label": "Atualização 5.2.6",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_7",
+        "label": "Atualização 5.2.7",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_8",
+        "label": "Atualização 5.2.8",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_2_9",
+        "label": "Atualização 5.2.9",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_atualizacao_5_3_1",
+        "label": "Atualização 5.3.1",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrando Seu Cartão De Crédito",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.create_cadastrando_seu_cartao_de_cred",
+        "label": "Cadastrando Seu Cartão De Crédito",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.create_cadastrar_a_recorrencia_no_car",
+        "label": "Cadastrar A Recorrência No Cartão De Crédito?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar Os Planos No Módulo Financeiro?",
+    "member_count": 4,
+    "members": [
+      {
+        "raw_id": "billing.create_cadastrar_os_planos_no_modulo_",
+        "label": "Cadastrar Os Planos No Módulo Financeiro?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.create_cadastrar_os_produtos_no_modul",
+        "label": "Cadastrar Os Produtos No Módulo Financeiro?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_contratar_o_modulo_financeiro",
+        "label": "Contratar O Módulo Financeiro?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.update_editar_uma_cobranca_no_modulo_",
+        "label": "Editar Uma Cobrança No Módulo Financeiro?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cancelar Matrícula No Menu Pagamentos?",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "billing.delete_cancelar_matricula_no_menu_pag",
+        "label": "Cancelar Matrícula No Menu Pagamentos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_conhecendo_a_aba_matricula_do_",
+        "label": "Conhecendo A Aba “Matrícula” Do Menu Pagamentos",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.create_criar_uma_negociacao_no_menu_p",
+        "label": "Criar Uma Negociação No Menu Pagamentos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cancelar Notas Fiscais",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.delete_cancelar_notas_fiscais",
+        "label": "Cancelar Notas Fiscais",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_emitir_notas_fiscais",
+        "label": "Emitir Notas Fiscais?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Configurando Ajustes Do Módulo Financeiro",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "billing.configure_configurando_ajustes_do_modulo",
+        "label": "Configurando Ajustes Do Módulo Financeiro",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.configure_configurar_os_juros_e_multas_n",
+        "label": "Configurar Os Juros E Multas No Módulo Financeiro?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.configure_posso_configurar_o_envio_no_mo",
+        "label": "Posso Configurar O Envio No Módulo Financeiro?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Configurar As Notificações No Classapp 📄",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.configure_configurar_as_notificacoes_no_",
+        "label": "Configurar As Notificações No Classapp 📄",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.configure_configurar_notificacoes_dos_fu",
+        "label": "Configurar Notificações Dos Funcionários No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Confirmar Minha Conta?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_confirmar_minha_conta",
+        "label": "Confirmar Minha Conta?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_como_confirmar_minha_conta",
+        "label": "🔎 Como Confirmar Minha Conta?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Conheça O Proesc Analytics",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_conheca_o_proesc_analytics",
+        "label": "Conheça O Proesc Analytics",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_utilizar_o_proesc_analytics",
+        "label": "Utilizar O Proesc Analytics?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criando Uma Cobrança Recorrente",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_criando_uma_cobranca_recorrent",
+        "label": "Criando Uma Cobrança Recorrente",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_duplicar_uma_cobranca_recorren",
+        "label": "Duplicar Uma Cobrança Recorrente?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Débitos De Matrículas Em Lote?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.create_criar_debitos_de_matriculas_em",
+        "label": "Criar Débitos De Matrículas Em Lote?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.create_criar_um_debito_de_matricula",
+        "label": "Criar Um Débito De Matrícula?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Um Canal De Atendimento? 🗨️",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.create_criar_um_canal_de_atendimento",
+        "label": "Criar Um Canal De Atendimento? 🗨️",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.create_criar_um_plano_de_pagamento",
+        "label": "Criar Um Plano De Pagamento?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Um Débito Avulso?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.create_criar_um_debito_avulso",
+        "label": "Criar Um Débito Avulso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.create_criar_um_debito_com_a_isaac",
+        "label": "Criar Um Débito Com A Isaac?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Uma Cobrança Única?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.create_criar_uma_cobranca_unica",
+        "label": "Criar Uma Cobrança Única?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.send_reenviar_uma_cobranca",
+        "label": "Reenviar Uma Cobrança?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cst - Contrvend – Como Efetuar O Processo De Comprovação De Métrica, A Clientes",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_cst_contrvend_como_efetuar_o_p",
+        "label": "Cst - Contrvend – Como Efetuar O Processo De Comprovação De Métrica, A Clientes",
+        "competitors": [
+          "totvs"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_cst_contrvend_qual_prazo_para_",
+        "label": "Cst - Contrvend – Qual Prazo Para Efetuar O Processo De Informe De Métrica A Cli",
+        "competitors": [
+          "totvs"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cst – Fin - Comprovação De Pagamento",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_cst_fin_comprovacao_de_pagamen",
+        "label": "Cst – Fin - Comprovação De Pagamento",
+        "competitors": [
+          "totvs"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_cst_fin_forma_de_pagamento",
+        "label": "Cst – Fin - Forma De Pagamento",
+        "competitors": [
+          "totvs"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Dar Baixa Em Uma Despesa?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_dar_baixa_em_uma_despesa",
+        "label": "Dar Baixa Em Uma Despesa?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_dar_baixa_em_uma_parcela",
+        "label": "Dar Baixa Em Uma Parcela?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Definir O Responsável Financeiro Do Aluno?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_definir_o_responsavel_financei",
+        "label": "Definir O Responsável Financeiro Do Aluno?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.create_vincular_responsavel_financeir",
+        "label": "Vincular Responsável Financeiro No Cadastro Do Aluno",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Diminuir Sua Inadimplência Com O Proesc",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_diminuir_sua_inadimplencia_com",
+        "label": "Diminuir Sua Inadimplência Com O Proesc",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_garanta_zero_inadimplencia_com",
+        "label": "Garanta Zero Inadimplência Com O Proesc",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Editar Uma Oferta No Shop?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.update_editar_uma_oferta_no_shop",
+        "label": "Editar Uma Oferta No Shop?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_realizar_uma_compra_no_shop",
+        "label": "Realizar Uma Compra No Shop?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Edição Nº 01 - Novidades - Janeiro/26",
+    "member_count": 13,
+    "members": [
+      {
+        "raw_id": "billing.manage_edicao_no_01_novidades_janeiro",
+        "label": "Edição Nº 01 - Novidades - Janeiro/26",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no_02_novidades_feverei",
+        "label": "Edição Nº 02 - Novidades - Fevereiro/26",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no_03_novidades_marco_2",
+        "label": "Edição Nº 03 - Novidades - Março/26",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no_04_novidades_abril_2",
+        "label": "Edição Nº 04 - Novidades - Abril/26",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no_10_novidades_outubro",
+        "label": "Edição Nº 10 - Novidades - Outubro/2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no_11_novidades_novembr",
+        "label": "Edição Nº 11 - Novidades - Novembro/2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no1_novidades_janeiro_2",
+        "label": "Edição Nº1 - Novidades - Janeiro 2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no2_novidades_fevereiro",
+        "label": "Edição Nº2 - Novidades - Fevereiro 2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no3_novidades_marco_202",
+        "label": "Edição Nº3 - Novidades - Março 2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no5_novidades_maio_2025",
+        "label": "Edição Nº5 - Novidades - Maio 2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no6_novidades_julho_202",
+        "label": "Edição Nº6 - Novidades - Julho/2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no6_novidades_junho2025",
+        "label": "Edição Nº6 - Novidades - Junho2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_edicao_no8_novidades_agosto_20",
+        "label": "Edição Nº8 - Novidades - Agosto/2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Efetuar A Leitura Do Arquivo De Retorno?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_efetuar_a_leitura_do_arquivo_d",
+        "label": "Efetuar A Leitura Do Arquivo De Retorno?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.export_exportar_um_arquivo_de_retorno",
+        "label": "Exportar Um Arquivo De Retorno?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Emitir Comprovantes E Recibos De Pagamentos",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_emitir_comprovantes_e_recibos_",
+        "label": "Emitir Comprovantes E Recibos De Pagamentos",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_gerar_comprovante_de_pagamento",
+        "label": "Gerar Comprovante De Pagamento",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Emitir O Relatório Relação De Parcelas",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "billing.manage_emitir_o_relatorio_relacao_de_",
+        "label": "Emitir O Relatório Relação De Parcelas",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_relatorio_analitico_de_parcela",
+        "label": "Relatório Analítico De Parcelas",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_relatorio_sintetico_de_parcela",
+        "label": "Relatório Sintético De Parcelas",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Enviar E-Mail De Cobrança - Setor De Cobrança",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.send_enviar_e_mail_de_cobranca_seto",
+        "label": "Enviar E-Mail De Cobrança - Setor De Cobrança",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.send_enviar_e_mail_de_cobranca",
+        "label": "Enviar E-Mail De Cobrança?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Excluir Parcelas Financeiras Em Lote?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.delete_excluir_parcelas_financeiras_e",
+        "label": "Excluir Parcelas Financeiras Em Lote?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.delete_excluir_uma_parcela_financeira",
+        "label": "Excluir Uma Parcela Financeira Do Sistema?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Excluir Rematrícula",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.delete_excluir_rematricula",
+        "label": "Excluir Rematrícula",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_realizar_matriculas",
+        "label": "Realizar Matrículas?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Fazer A Importação De Um Arquivo De Remessa?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_fazer_a_importacao_de_um_arqui",
+        "label": "Fazer A Importação De Um Arquivo De Remessa?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_gerar_um_arquivo_de_remessa",
+        "label": "Gerar Um Arquivo De Remessa?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Formas De Pagamento",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "billing.manage_formas_de_pagamento",
+        "label": "Formas De Pagamento",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_passo_4_formas_de_pagamento",
+        "label": "Passo 4: Formas De Pagamento",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_rastrear_pagamentos",
+        "label": "Rastrear Pagamentos?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Funciona O Centro De Custo",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_funciona_o_centro_de_custo",
+        "label": "Funciona O Centro De Custo",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_funciona_o_plano_de_contas",
+        "label": "Funciona O Plano De Contas",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Gerar Boleto Para Responsáveis Em Pagamentos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_gerar_boleto_para_responsaveis",
+        "label": "Gerar Boleto Para Responsáveis Em Pagamentos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_gerar_o_pix_para_responsaveis_",
+        "label": "Gerar O Pix Para Responsáveis No Menu Pagamentos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Gerenciar Meus Recebimentos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_gerenciar_meus_recebimentos",
+        "label": "Gerenciar Meus Recebimentos?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_gerenciar_minhas_receitas",
+        "label": "Gerenciar Minhas Receitas?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Integrar O Sistema De Gestão Sophia  A Minha Agenda Edu?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.import_integrar_o_sistema_de_gestao_s",
+        "label": "Integrar O Sistema De Gestão Sophia  A Minha Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_solicitar_a_integracao_do_sist",
+        "label": "Solicitar A Integração Do Sistema De Gestão Sophia Com A Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Kaits | Sistema De Gestão Escolar",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_kaits_sistema_de_gestao_escola",
+        "label": "Kaits | Sistema De Gestão Escolar",
+        "competitors": [
+          "kaits"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_sistema_de_gestao_escolar",
+        "label": "Sistema De Gestão Escolar",
+        "competitors": [
+          "edukante"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Matrícula Online - Apresentação",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_matricula_online_apresentacao",
+        "label": "Matrícula Online - Apresentação",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_rematricula_online_apresentaca",
+        "label": "Rematrícula Online - Apresentação",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Portal Do Cliente- Administrativo E Financeiro",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_portal_do_cliente_administrati",
+        "label": "Portal Do Cliente- Administrativo E Financeiro",
+        "competitors": [
+          "totvs"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_portal_do_cliente_liberar_bloq",
+        "label": "Portal Do Cliente- Liberar Bloqueio No Administrativo E Financeiro",
+        "competitors": [
+          "totvs"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Quais Menus O Administrador Da Entidade Tem Acesso?",
+    "member_count": 5,
+    "members": [
+      {
+        "raw_id": "billing.manage_quais_menus_o_administrador_da",
+        "label": "Quais Menus O Administrador Da Entidade Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_quais_menus_o_analista_finance",
+        "label": "Quais Menus O Analista Financeiro Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_quais_menus_o_emissor_de_nota_",
+        "label": "Quais Menus O Emissor De Nota Fiscal Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_quais_menus_o_gestor_de_inadim",
+        "label": "Quais Menus O Gestor De Inadimplência Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_quais_menus_o_operador_finance",
+        "label": "Quais Menus O Operador Financeiro Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Quais Menus O Auxiliar Financeiro Tem Acesso?",
+    "member_count": 4,
+    "members": [
+      {
+        "raw_id": "billing.manage_quais_menus_o_auxiliar_finance",
+        "label": "Quais Menus O Auxiliar Financeiro Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_quais_menus_o_perfil_analytics",
+        "label": "Quais Menus O Perfil Analytics Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.configure_quais_menus_o_perfil_configura",
+        "label": "Quais Menus O Perfil Configuração Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_quais_menus_o_perfil_financeir",
+        "label": "Quais Menus O Perfil Financeiro Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Qual O Prazo Para Que Valores Pagos Com Boleto Estejam Disponíveis Para A Escola",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_qual_o_prazo_para_que_valores_",
+        "label": "Qual O Prazo Para Que Valores Pagos Com Boleto Estejam Disponíveis Para A Escola",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_quando_os_valores_pagos_com_ca",
+        "label": "Quando Os Valores Pagos Com Cartão De Crédito Ficam Disponíveis Para A Escola? 💳",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Sistema De Gestão Para Escola De Idiomas | Kaits",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_sistema_de_gestao_para_escola_",
+        "label": "Sistema De Gestão Para Escola De Idiomas | Kaits",
+        "competitors": [
+          "kaits"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_sponte_sistema_de_gestao_para_",
+        "label": "Sponte | Sistema De Gestão Para Escolas De Idiomas",
+        "competitors": [
+          "sponte"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Software De Gestão Acadêmica E Financeira Para Escolas, Cursos E Faculdades",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "billing.manage_software_de_gestao_academica_e",
+        "label": "Software De Gestão Acadêmica E Financeira Para Escolas, Cursos E Faculdades",
+        "competitors": [
+          "edukante"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_software_de_gestao_academica_p",
+        "label": "Software De Gestão Acadêmica Para Escolas, Cursos E Faculdades | Edukante",
+        "competitors": [
+          "edukante"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_software_de_gestao_financeira_",
+        "label": "Software De Gestão Financeira Para Escolas, Cursos E Faculdades - Edukante",
+        "competitors": [
+          "edukante"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Sponte | Sistema De Gestão Escolar Online E Seguro",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_sponte_sistema_de_gestao_escol",
+        "label": "Sponte | Sistema De Gestão Escolar Online E Seguro",
+        "competitors": [
+          "sponte"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_sponte_software_de_gestao_esco",
+        "label": "Sponte | Software De Gestão Escolar Online",
+        "competitors": [
+          "sponte"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Utilize O Whatsapp Como Canal De Cobranças Em Pagamentos",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_utilize_o_whatsapp_como_canal_",
+        "label": "Utilize O Whatsapp Como Canal De Cobranças Em Pagamentos",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_whatsapp_como_canal_de_notific",
+        "label": "Whatsapp Como Canal De Notificações De Pagamentos",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Visualizar E Confirmar A Leitura De Comunicados?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.view_visualizar_e_confirmar_a_leitu",
+        "label": "Visualizar E Confirmar A Leitura De Comunicados?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.view_visualizar_e_confirmar_as_ativ",
+        "label": "Visualizar E Confirmar As Atividades?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "✅ Etapa 2. Criar Planos De Cobrança No Menu Pagamentos - Erp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.create_etapa_2_criar_planos_de_cobran",
+        "label": "✅ Etapa 2. Criar Planos De Cobrança No Menu Pagamentos - Erp",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.create_etapa_3_criar_planos_de_cobran",
+        "label": "✅ Etapa 3. Criar Planos De Cobrança No Menu Pagamentos - Manual",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "✅ Etapa 6. Relembre Boas Práticas Da Agenda Edu E Pagamentos - Erp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_etapa_6_relembre_boas_praticas",
+        "label": "✅ Etapa 6. Relembre Boas Práticas Da Agenda Edu E Pagamentos - Erp",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_etapa_8_relembre_boas_praticas",
+        "label": "✅ Etapa 8. Relembre Boas Práticas Da Agenda Edu E Pagamentos - Manual",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "✅ Etapa 5. Divulgar A Agenda Edu E Pagamentos Para As Famílias - Erp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_etapa_5_divulgar_a_agenda_edu_",
+        "label": "✅ Etapa 5. Divulgar A Agenda Edu E Pagamentos Para As Famílias - Erp",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_etapa_7_divulgar_a_agenda_edu_",
+        "label": "✅ Etapa 7. Divulgar A Agenda Edu E Pagamentos Para As Famílias - Manual",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "billing",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Liberar Acesso Ao Portal Do Aluno",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "billing.manage_liberar_acesso_ao_portal_do_al",
+        "label": "Liberar Acesso Ao Portal Do Aluno",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "billing.manage_usar_o_portal_do_aluno",
+        "label": "Usar O Portal Do Aluno",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "1. O Que É Integração?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_1_o_que_e_integracao",
+        "label": "1. O Que É Integração?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_9_o_que_e_integracao_de_boleti",
+        "label": "9. O Que É Integração De Boletins?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "A Agenda Edu",
+    "member_count": 4,
+    "members": [
+      {
+        "raw_id": "communication.manage_a_agenda_edu",
+        "label": "A Agenda Edu",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_a_agenda_edu_e_paga",
+        "label": "A Agenda Edu É Paga?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_acessar_a_agenda_edu",
+        "label": "Acessar A Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_faq_agenda_edu_eleva",
+        "label": "Faq Agenda Edu + Eleva",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Abrir Um Ticket De Atendimento Com Anexo?",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.manage_abrir_um_ticket_de_atendimento",
+        "label": "Abrir Um Ticket De Atendimento Com Anexo?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.create_criar_um_ticket_de_atendimento",
+        "label": "Criar Um Ticket De Atendimento Para Os Responsáveis?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_reabrir_um_ticket_de_atendimen",
+        "label": "Reabrir Um Ticket De Atendimento Encerrado?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Adicionar Assinatura Digitalizada Em Histórico Escolar?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_adicionar_assinatura_digitaliz",
+        "label": "Adicionar Assinatura Digitalizada Em Histórico Escolar?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.create_adicionar_assinaturas_digitali",
+        "label": "Adicionar Assinaturas Digitalizadas No Sistema?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Adicionar Link Em Um Comunicado?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_adicionar_link_em_um_comunicad",
+        "label": "Adicionar Link Em Um Comunicado?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.create_adicionar_link_em_uma_atividad",
+        "label": "Adicionar Link Em Uma Atividade?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Adicionar Um Usuário Da Escola Em Um Canal De Mensagem?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_adicionar_um_usuario_da_escola",
+        "label": "Adicionar Um Usuário Da Escola Em Um Canal De Mensagem?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.create_adicionar_uma_turma_em_um_cana",
+        "label": "Adicionar Uma Turma Em Um Canal De Mensagens?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Administradores E Funcionários: Como Entrar Em Contato Com O Suporte Da Classapp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_administradores_e_funcionarios",
+        "label": "Administradores E Funcionários: Como Entrar Em Contato Com O Suporte Da Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_familias_e_responsaveis_como_e",
+        "label": "Famílias E Responsáveis: Como Entrar Em Contato Com O Suporte Da Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Agendar O Envio De Mensagens No Classapp",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.manage_agendar_o_envio_de_mensagens_n",
+        "label": "Agendar O Envio De Mensagens No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.pay_apagar_mensagens_no_classapp",
+        "label": "Apagar Mensagens No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_encaminhar_mensagens_no_classa",
+        "label": "Encaminhar Mensagens No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Alternar A Agenda De Dois Alunos Da Mesma Escola?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_alternar_a_agenda_de_dois_alun",
+        "label": "Alternar A Agenda De Dois Alunos Da Mesma Escola?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.view_visualizar_a_agenda_de_dois_ou",
+        "label": "Visualizar A Agenda De Dois Ou Mais Alunos Da Mesma Escola?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Anexar Múltiplos Arquivos Em Mensagens No Classapp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_anexar_multiplos_arquivos_em_m",
+        "label": "Anexar Múltiplos Arquivos Em Mensagens No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_desativar_respostas_em_mensage",
+        "label": "Desativar Respostas Em Mensagens No Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Aplicativo Equipe Escolar Chegou!",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_aplicativo_equipe_escolar_cheg",
+        "label": "Aplicativo Equipe Escolar Chegou!",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.pay_baixar_o_aplicativo_equipe_esc",
+        "label": "Baixar O Aplicativo Equipe Escolar?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Aprovar Atividades, Comunicados E Eventos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_aprovar_atividades_comunicados",
+        "label": "Aprovar Atividades, Comunicados E Eventos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_filtrar_atividades_comunicados",
+        "label": "Filtrar Atividades, Comunicados Ou Calendário?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Aprovar Um Evento Em Calendário?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_aprovar_um_evento_em_calendari",
+        "label": "Aprovar Um Evento Em Calendário?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.update_editar_um_evento_em_calendario",
+        "label": "Editar Um Evento Em Calendário?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Arquivar Mensagens Em Massa? 📦",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_arquivar_mensagens_em_massa",
+        "label": "Arquivar Mensagens Em Massa? 📦",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_arquivar_mensagens",
+        "label": "Arquivar Mensagens? 📦",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Ativar A Autenticação De Dois Fatores?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_ativar_a_autenticacao_de_dois_",
+        "label": "Ativar A Autenticação De Dois Fatores?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_fazer_login_com_autenticacao_d",
+        "label": "Fazer Login Com Autenticação De Dois Fatores?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Atualizar O Aplicativo?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.update_atualizar_o_aplicativo",
+        "label": "Atualizar O Aplicativo?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.pay_baixar_os_aplicativos",
+        "label": "Baixar Os Aplicativos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Atualização 5.1.5",
+    "member_count": 16,
+    "members": [
+      {
+        "raw_id": "communication.manage_atualizacao_5_1_5",
+        "label": "Atualização 5.1.5",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_1_9",
+        "label": "Atualização 5.1.9",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_2_4",
+        "label": "Atualização 5.2.4",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_3_0",
+        "label": "Atualização 5.3.0",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_3_6",
+        "label": "Atualização 5.3.6",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_3_8",
+        "label": "Atualização 5.3.8",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_3_9",
+        "label": "Atualização 5.3.9",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_4_1",
+        "label": "Atualização 5.4.1",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_4_2",
+        "label": "Atualização 5.4.2",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_4_3",
+        "label": "Atualização 5.4.3",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_4_5",
+        "label": "Atualização 5.4.5",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_4_6",
+        "label": "Atualização 5.4.6",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_4_8",
+        "label": "Atualização 5.4.8",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_4_9",
+        "label": "Atualização 5.4.9",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_atualizacao_5_5_1",
+        "label": "Atualização 5.5.1",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Atualização Cadastral No Classapp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_atualizacao_cadastral_no_class",
+        "label": "Atualização Cadastral No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.create_atualizacao_cadastral_obrigato",
+        "label": "Atualização Cadastral Obrigatória No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Baixar Imagens No Classapp Pelo Celular Ou Computador!",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.pay_baixar_imagens_no_classapp_pel",
+        "label": "Baixar Imagens No Classapp Pelo Celular Ou Computador!",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.pay_baixar_videos_no_classapp_pelo",
+        "label": "Baixar Vídeos No Classapp Pelo Celular Ou Computador!",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Baixar O Aplicativo Agenda Edu?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.pay_baixar_o_aplicativo_agenda_edu",
+        "label": "Baixar O Aplicativo Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.pay_baixar_o_aplicativo_do_classap",
+        "label": "Baixar O Aplicativo Do Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Buscar Mensagens No Classapp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_buscar_mensagens_no_classapp",
+        "label": "Buscar Mensagens No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_recuperar_mensagens_excluidas_",
+        "label": "Recuperar Mensagens Excluídas No Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar Alunos?",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.create_cadastrar_alunos",
+        "label": "Cadastrar Alunos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.create_cadastrar_turmas",
+        "label": "Cadastrar Turmas?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.create_cadastrar_unidades",
+        "label": "Cadastrar Unidades?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar As Mídias No Módulo De Biblioteca?",
+    "member_count": 4,
+    "members": [
+      {
+        "raw_id": "communication.create_cadastrar_as_midias_no_modulo_",
+        "label": "Cadastrar As Mídias No Módulo De Biblioteca?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.create_cadastrar_editoras_no_modulo_d",
+        "label": "Cadastrar Editoras No Módulo De Biblioteca?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.create_cadastrar_um_autor_no_modulo_d",
+        "label": "Cadastrar Um Autor No Módulo Da Biblioteca?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.create_cadastrar_uma_obra_no_modulo_d",
+        "label": "Cadastrar Uma Obra No Módulo De Biblioteca?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar Servidores No Ambiente Recursos Humanos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_cadastrar_servidores_no_ambien",
+        "label": "Cadastrar Servidores No Ambiente Recursos Humanos?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.create_criar_uma_funcao_no_ambiente_d",
+        "label": "Criar Uma Função No Ambiente De Recursos Humanos?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar Um Medicamento?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_cadastrar_um_medicamento",
+        "label": "Cadastrar Um Medicamento?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.resolve_interromper_um_medicamento",
+        "label": "Interromper Um Medicamento?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar Uma Senha No Classapp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_cadastrar_uma_senha_no_classap",
+        "label": "Cadastrar Uma Senha No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_recuperar_sua_senha_no_classap",
+        "label": "Recuperar Sua Senha No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Conversas: Atendimentos Estruturados",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_conversas_atendimentos_estrutu",
+        "label": "Conversas: Atendimentos Estruturados",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_conversas_atendimentos_simples",
+        "label": "Conversas: Atendimentos Simples 📄",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Conversas: Como Acompanhar Meus Atendimentos No Site?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.view_conversas_como_acompanhar_meus",
+        "label": "Conversas: Como Acompanhar Meus Atendimentos No Site?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_conversas_como_encaminhar_o_at",
+        "label": "Conversas: Como Encaminhar O Atendimento?📄",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Conversas: Como Apagar Mensagens",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.pay_conversas_como_apagar_mensagen",
+        "label": "Conversas: Como Apagar Mensagens",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.update_conversas_como_editar_mensagen",
+        "label": "Conversas: Como Editar Mensagens",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Conversas: O Que Mudou Nos Atendimentos Dos Canais?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_conversas_o_que_mudou_nos_aten",
+        "label": "Conversas: O Que Mudou Nos Atendimentos Dos Canais?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_status_organizando_os_atendime",
+        "label": "Status: Organizando Os Atendimentos Dos Canais",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Copiar As Disciplinas De Uma Matriz Para Outra?",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.manage_copiar_as_disciplinas_de_uma_m",
+        "label": "Copiar As Disciplinas De Uma Matriz Para Outra?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_copiar_as_habilidades_de_uma_m",
+        "label": "Copiar As Habilidades De Uma Matriz Para Outra?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.update_editar_as_disciplinas_de_uma_m",
+        "label": "Editar As Disciplinas De Uma Matrícula?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar E Gerenciar Canais De Atendimento No Classapp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_criar_e_gerenciar_canais_de_at",
+        "label": "Criar E Gerenciar Canais De Atendimento No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.create_criar_e_gerenciar_enquetes_no_",
+        "label": "Criar E Gerenciar Enquetes No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Eventos 📆",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_criar_eventos",
+        "label": "Criar Eventos 📆",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.create_criar_um_novo_evento",
+        "label": "Criar Um Novo Evento?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Um Canal De Atendimento?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_criar_um_canal_de_atendimento",
+        "label": "Criar Um Canal De Atendimento?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.create_criar_um_canal_e_enviar_mensag",
+        "label": "Criar Um Canal E Enviar Mensagens?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Um Recado No Proesc Agenda?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_criar_um_recado_no_proesc_agen",
+        "label": "Criar Um Recado No Proesc Agenda?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_realizar_login_no_proesc_agend",
+        "label": "Realizar Login No Proesc Agenda?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Um Álbum No Mural De Fotos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_criar_um_album_no_mural_de_fot",
+        "label": "Criar Um Álbum No Mural De Fotos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_recuperar_um_album_de_fotos",
+        "label": "Recuperar Um Álbum De Fotos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Uma Atividade?",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.create_criar_uma_atividade",
+        "label": "Criar Uma Atividade?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.create_criar_uma_nova_atividade",
+        "label": "Criar Uma Nova Atividade?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.send_enviar_uma_atividade",
+        "label": "Enviar Uma Atividade?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Desabilitar Notificações De “Recebimento Por E-Mail” No App Agenda Edu",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_desabilitar_notificacoes_de_re",
+        "label": "Desabilitar Notificações De “Recebimento Por E-Mail” No App Agenda Edu",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_desabilitar_notificacoes_por_e",
+        "label": "Desabilitar Notificações Por E-Mail No Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Duplicar Um Comunicado?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_duplicar_um_comunicado",
+        "label": "Duplicar Um Comunicado?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_usar_ia_em_comunicados",
+        "label": "Usar Ia Em Comunicados?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Editar Mensagens Em Grupos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.update_editar_mensagens_em_grupos",
+        "label": "Editar Mensagens Em Grupos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.update_editar_mensagens_comunicados",
+        "label": "Editar Mensagens/Comunicados ✏️",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Edição Nº 06 - Novidades - Junho/26",
+    "member_count": 4,
+    "members": [
+      {
+        "raw_id": "communication.manage_edicao_no_06_novidades_junho_2",
+        "label": "Edição Nº 06 - Novidades - Junho/26",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_edicao_no_07_novidades_julho_2",
+        "label": "Edição Nº 07 - Novidades - Julho/26",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_edicao_no_12_novidades_dezembr",
+        "label": "Edição Nº 12 - Novidades - Dezembro/25",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_edicao_no_9_novidades_setembro",
+        "label": "Edição Nº 9 - Novidades - Setembro/2025",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Entregar Diários Em Lote?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_entregar_diarios_em_lote",
+        "label": "Entregar Diários Em Lote?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.send_enviar_diarios_em_lote",
+        "label": "Enviar Diários Em Lote?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Enviar Anexos No Classapp?",
+    "member_count": 5,
+    "members": [
+      {
+        "raw_id": "communication.send_enviar_anexos_no_classapp",
+        "label": "Enviar Anexos No Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.send_enviar_formularios_pelo_classa",
+        "label": "Enviar Formulários Pelo Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.send_enviar_imagens_pelo_classapp",
+        "label": "Enviar Imagens Pelo Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.send_enviar_videos_pelo_classapp",
+        "label": "Enviar Vídeos Pelo Classapp 📽️",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_renomear_grupos_no_classapp",
+        "label": "Renomear Grupos No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Enviar Atividades Pela Agenda Edu?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.send_enviar_atividades_pela_agenda_",
+        "label": "Enviar Atividades Pela Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_receber_as_atividades_pela_age",
+        "label": "Receber As Atividades Pela Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Enviar Um Comunicado Em Rede?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.send_enviar_um_comunicado_em_rede",
+        "label": "Enviar Um Comunicado Em Rede?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.send_reenviar_comunicados_em_massa",
+        "label": "Reenviar Comunicados Em Massa?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Esqueceu Sua Senha? Saiba O Que Fazer",
+    "member_count": 4,
+    "members": [
+      {
+        "raw_id": "communication.manage_esqueceu_sua_senha_saiba_o_que",
+        "label": "Esqueceu Sua Senha? Saiba O Que Fazer",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_esqueci_a_senha_o_que_fazer",
+        "label": "Esqueci A Senha, O Que Fazer?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_esqueci_minha_senha_o_que_faze",
+        "label": "Esqueci Minha Senha, O Que Fazer?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_esqueci_meu_e_mail_o_que_fazer",
+        "label": "🔎 Esqueci Meu E-Mail, O Que Fazer?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Excluir Um Grupo?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.delete_excluir_um_grupo",
+        "label": "Excluir Um Grupo?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_silenciar_um_grupo",
+        "label": "Silenciar Um Grupo?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Exportar Contratos Assinados No Módulo De Matrículas?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.export_exportar_contratos_assinados_n",
+        "label": "Exportar Contratos Assinados No Módulo De Matrículas?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.export_exportar_formularios_no_modulo",
+        "label": "Exportar Formulários No Módulo De Matrículas?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Faço Para Excluir Um Comunicado?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.delete_faco_para_excluir_um_comunicad",
+        "label": "Faço Para Excluir Um Comunicado?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.delete_faco_para_excluir_um_album_ou_",
+        "label": "Faço Para Excluir Um Álbum Ou Foto?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Integrar O Sistema De Gestão Activesoft A Minha Agenda Edu?",
+    "member_count": 6,
+    "members": [
+      {
+        "raw_id": "communication.import_integrar_o_sistema_de_gestao_a",
+        "label": "Integrar O Sistema De Gestão Activesoft A Minha Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.import_integrar_o_sistema_de_gestao_g",
+        "label": "Integrar O Sistema De Gestão Gennera A Minha Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.import_integrar_o_sistema_de_gestao_i",
+        "label": "Integrar O Sistema De Gestão Ischolar A Minha Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.import_integrar_o_sistema_de_gestao_p",
+        "label": "Integrar O Sistema De Gestão Proesc À Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.import_integrar_o_sistema_de_gestao_s",
+        "label": "Integrar O Sistema De Gestão Sponte A Minha Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.import_integrar_o_sistema_de_gestao_t",
+        "label": "Integrar O Sistema De Gestão Totvs A Minha Agenda Edu?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Marcar As Atividades Como Concluídas?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_marcar_as_atividades_como_conc",
+        "label": "Marcar As Atividades Como Concluídas?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_marcar_uma_atividade_como_favo",
+        "label": "Marcar Uma Atividade Como Favorita?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Marcar As Mensagens Como Lidas No Classapp?",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.manage_marcar_as_mensagens_como_lidas",
+        "label": "Marcar As Mensagens Como Lidas No Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_marcar_uma_mensagem_como_impor",
+        "label": "Marcar Uma Mensagem Como Importante No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_verificar_mensagens_arquivadas",
+        "label": "Verificar Mensagens Arquivadas No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Módulo Aee: Gestão De Atendimentos",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_modulo_aee_gestao_de_atendimen",
+        "label": "Módulo Aee: Gestão De Atendimentos",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_modulo_aee_inclusao_de_atendim",
+        "label": "Módulo Aee: Inclusão De Atendimentos",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Personalizar A Rotina Escolar No Proesc Agenda?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_personalizar_a_rotina_escolar_",
+        "label": "Personalizar A Rotina Escolar No Proesc Agenda?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.view_visualizar_as_notas_no_proesc_",
+        "label": "Visualizar As Notas No Proesc Agenda",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Quais Funcionalidades Secretaria Básica Tem Acesso?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_quais_funcionalidades_secretar",
+        "label": "Quais Funcionalidades Secretaria Básica Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_e_funcionalidades_",
+        "label": "Quais Menus É Funcionalidades O Perfil Secretaria Visualizador Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Quais Menus A Secretaria Tem Acesso?",
+    "member_count": 5,
+    "members": [
+      {
+        "raw_id": "communication.manage_quais_menus_a_secretaria_tem_a",
+        "label": "Quais Menus A Secretaria Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_auxiliar_secreta",
+        "label": "Quais Menus O Auxiliar Secretaria Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_perfil_bibliotec",
+        "label": "Quais Menus O Perfil Bibliotecário Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_perfil_crm_tem_a",
+        "label": "Quais Menus O Perfil Crm Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_professor_tem_ac",
+        "label": "Quais Menus O Professor Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Quais Menus O Auxiliar De Coordenação Tem Acesso?",
+    "member_count": 4,
+    "members": [
+      {
+        "raw_id": "communication.manage_quais_menus_o_auxiliar_de_coor",
+        "label": "Quais Menus O Auxiliar De Coordenação Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_perfil_auxiliar_",
+        "label": "Quais Menus O Perfil Auxiliar De Almoxarifado Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_perfil_coordenad",
+        "label": "Quais Menus O Perfil Coordenador Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_perfil_operador_",
+        "label": "Quais Menus O Perfil Operador De Biblioteca Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Quais Menus O Perfil Gestor De Almoxarifado Tem Acesso?",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.manage_quais_menus_o_perfil_gestor_de",
+        "label": "Quais Menus O Perfil Gestor De Almoxarifado Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_perfil_recursos_",
+        "label": "Quais Menus O Perfil Recursos Humanos Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_quais_menus_o_perfil_simulado_",
+        "label": "Quais Menus O Perfil Simulado Tem Acesso?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Realizar A Progressão De Alunos Via Import Web?",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.manage_realizar_a_progressao_de_aluno",
+        "label": "Realizar A Progressão De Alunos Via Import Web?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_realizar_a_progressao_de_ano_l",
+        "label": "Realizar A Progressão De Ano Letivo Via Integração?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_realizar_a_progressao_manual_d",
+        "label": "Realizar A Progressão Manual De Alunos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Reenviar Eventos Em Massa?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.send_reenviar_eventos_em_massa",
+        "label": "Reenviar Eventos Em Massa?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.send_reenviar_propostas_pendentes_e",
+        "label": "Reenviar Propostas Pendentes Em Massa",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Utilizar A Central De Notificações?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_utilizar_a_central_de_notifica",
+        "label": "Utilizar A Central De Notificações?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.view_visualizar_a_central_de_notifi",
+        "label": "Visualizar A Central De Notificações?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Utilizar A Função De Rascunho No Classapp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_utilizar_a_funcao_de_rascunho_",
+        "label": "Utilizar A Função De Rascunho No Classapp",
+        "competitors": [
+          "classapp"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_utilizar_as_opcoes_de_formatac",
+        "label": "Utilizar As Opções De Formatação No Classapp?",
+        "competitors": [
+          "classapp"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "✅ Etapa 3. Verificar O Acesso Dos Colaboradores À Agenda Edu - Erp",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "communication.manage_etapa_3_verificar_o_acesso_dos",
+        "label": "✅ Etapa 3. Verificar O Acesso Dos Colaboradores À Agenda Edu - Erp",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_etapa_4_verificar_o_acesso_dos",
+        "label": "✅ Etapa 4. Verificar O Acesso Dos Colaboradores À Agenda Edu - Manual",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_etapa_5_verificar_o_acesso_dos",
+        "label": "✅ Etapa 5. Verificar O Acesso Dos Responsáveis À Agenda Edu - Manual",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "✅ Etapa 7. Conheça Todas As Funcionalidades Do Superapp Agenda Edu - Erp",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.manage_etapa_7_conheca_todas_as_funci",
+        "label": "✅ Etapa 7. Conheça Todas As Funcionalidades Do Superapp Agenda Edu - Erp",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.manage_etapa_9_conheca_todas_as_funci",
+        "label": "✅ Etapa 9. Conheça Todas As Funcionalidades Do Superapp Agenda Edu - Manual",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "communication",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Excluir O Cadastro De Um Responsável/Aluno?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "communication.create_excluir_o_cadastro_de_um_respo",
+        "label": "Excluir O Cadastro De Um Responsável/Aluno?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "communication.create_recuperar_o_cadastro_de_um_alu",
+        "label": "Recuperar O Cadastro De Um Aluno/Responsável?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "identity",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Adicionar Nova Situação De Lotação No Ambiente De Recursos Humanos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "identity-and-onboarding.create_adicionar_nova_situacao_de_lot",
+        "label": "Adicionar Nova Situação De Lotação No Ambiente De Recursos Humanos?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "identity-and-onboarding.create_cadastrar_tipos_de_licencas_no",
+        "label": "Cadastrar Tipos De Licenças No Ambiente De Recursos Humanos?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "identity",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar Empréstimos Na Biblioteca",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "identity-and-onboarding.create_cadastrar_emprestimos_na_bibli",
+        "label": "Cadastrar Empréstimos Na Biblioteca",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "identity-and-onboarding.create_cadastrar_exemplares_das_obras",
+        "label": "Cadastrar Exemplares Das Obras Bibliotecárias",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "identity",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar Feriados No Proesc?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "identity-and-onboarding.create_cadastrar_feriados_no_proesc",
+        "label": "Cadastrar Feriados No Proesc?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "identity-and-onboarding.create_cadastrar_um_novo_usuario_no_p",
+        "label": "Cadastrar Um Novo Usuário No Proesc",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "platform",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Eventos Totvs Responde Julho/2019 (Ecf / Esocial)",
+    "member_count": 3,
+    "members": [
+      {
+        "raw_id": "platform-and-admin.manage_eventos_totvs_responde_julho_2",
+        "label": "Eventos Totvs Responde Julho/2019 (Ecf / Esocial)",
+        "competitors": [
+          "totvs"
+        ]
+      },
+      {
+        "raw_id": "platform-and-admin.manage_eventos_totvs_responde_junho_2",
+        "label": "Eventos Totvs Responde Junho/2019 (Ecf / Esocial)",
+        "competitors": [
+          "totvs"
+        ]
+      },
+      {
+        "raw_id": "platform-and-admin.manage_eventos_totvs_responde_maio_20",
+        "label": "Eventos Totvs Responde Maio/2019 (Ecd / Esocial)",
+        "competitors": [
+          "totvs"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "students",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Cadastrar, Editar Ou Excluir Alimentos?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "students-and-enrollments.create_cadastrar_editar_ou_excluir_al",
+        "label": "Cadastrar, Editar Ou Excluir Alimentos?",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "students-and-enrollments.create_criar_editar_ou_excluir_um_car",
+        "label": "Criar, Editar Ou Excluir Um Cardápio",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "students",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Criar Turmas",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "students-and-enrollments.create_criar_turmas",
+        "label": "Criar Turmas",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "students-and-enrollments.update_editar_turmas",
+        "label": "Editar Turmas?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "students",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Enviar Link De Convite Para A Equipe Escolar?",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "students-and-enrollments.send_enviar_link_de_convite_para_a_",
+        "label": "Enviar Link De Convite Para A Equipe Escolar?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      },
+      {
+        "raw_id": "students-and-enrollments.send_enviar_link_de_convite_para_al",
+        "label": "Enviar Link De Convite Para Alunos?",
+        "competitors": [
+          "agenda-edu"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "students",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Funciona O Módulo Alimentação Escolar",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "students-and-enrollments.manage_funciona_o_modulo_alimentacao_",
+        "label": "Funciona O Módulo Alimentação Escolar",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "students-and-enrollments.manage_gerenciar_pratos_no_modulo_ali",
+        "label": "Gerenciar Pratos No Módulo Alimentação Escolar",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  },
+  {
+    "domain": "students",
+    "similarity_basis": "normalized_pt_label",
+    "suggested_canonical_label": "Utilizar O Módulo De Fórum",
+    "member_count": 2,
+    "members": [
+      {
+        "raw_id": "students-and-enrollments.manage_utilizar_o_modulo_de_forum",
+        "label": "Utilizar O Módulo De Fórum",
+        "competitors": [
+          "proesc"
+        ]
+      },
+      {
+        "raw_id": "students-and-enrollments.manage_utilizar_o_modulo_de_transport",
+        "label": "Utilizar O Módulo De Transporte?",
+        "competitors": [
+          "proesc"
+        ]
+      }
+    ]
+  }
+]

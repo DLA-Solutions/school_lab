@@ -14,15 +14,15 @@ The SPA stays a thin client: it owns presentation, navigation and session handli
 
 ## Context
 
-`frontend/app` is the React 19 + Vite 7 SPA described in `docs/web-stack.md` §3. It serves the
-backoffice, school and teacher web surfaces today; the guardian web surface is subject to an open
-question (`docs/open-questions.md` — MVP and scope: "Parents in the MVP: app only, or web too?"),
-which this PRD does not resolve.
+`frontend/app` is the React 19 + Vite 7 SPA described in `docs/web-stack.md` §3. It serves
+backoffice, school staff, teacher, and **guardian** web surfaces at `/app/*`.
+
+Guardian web is **in MVP** (Aug 2026) — responsive routes for billing and documents; mobile remains
+primary for push-driven messaging ([`layer-mobile-app.md`](layer-mobile-app.md)).
 
 The SPA was generated from the DashdarkX template, kept frozen as `frontend/base` (MIT,
 ThemeWagon). The visual essence — dark admin shell, purple gradient primary (`#CB3CFF`), Mona Sans
-/ Work Sans typography, MUI-on-Emotion overrides — is a product decision recorded in
-`docs/web-stack.md` §14 and must be preserved. There is no migration to another UI kit.
+/ Work Sans typography, MUI-on-Emotion overrides — is preserved per `docs/web-stack.md` §14.
 
 The design system has three layers today:
 
@@ -79,7 +79,7 @@ work is theme coverage, documentation and governance, never reimplementation.
 | `docs/guidelines/web-ui/` | Existing human-facing standards to absorb and keep in sync, not duplicate |
 | `docs/api/README.md` + `docs/api/v1/` | Auth flow, error envelope, pagination contract |
 | `web/` API (`/api/v1`) | Every data read and write |
-| Domain PRDs (e.g. `docs/prds/fintech-first.md`) | Which surfaces and screens the design system must serve |
+| Domain PRDs (e.g. `docs/prds/communication/`, `docs/prds/billing/`) | Which surfaces and screens the design system must serve |
 
 ## Technical constraints
 
@@ -216,6 +216,23 @@ reachable from nav.
       *(`CHANGELOG.md` from the `1.0.0` baseline; `1.1.0` records the light-scheme status colours
       and `1.2.0` the `light.secondary.darker` move, each with the measurements behind it. Standing
       invariant, like the override table: a token change without an entry is incomplete.)*
+
+## MVP product menus (Phase 4)
+
+Role-based navigation targets for `frontend/app` once domain screens ship. Menu visibility follows
+permission keys from [`identity-and-onboarding/permissions.md`](identity-and-onboarding/permissions.md).
+
+| Role | Primary menu groups | Surfaces |
+|------|-------------------|----------|
+| **Staff (Secretaria)** | Alunos, Matrículas, Turmas, Comunicação (moderação), Financeiro, Documentos, Configurações | Web |
+| **Staff (Coordenação)** | Acadêmico (notas, fechamento), Comunicação, Turmas | Web |
+| **Staff (Direção)** | Dashboard, Financeiro (inadimplência), Acadêmico, Equipe, Ano letivo | Web |
+| **Teacher** | Turmas, Chamada, Mensagens, Diário (web), Notas (web) | Web + mobile (chamada/mensagens) |
+| **Guardian** | Filhos, Mensagens, Comunicados, Boletos, Documentos | Mobile primary + web parity |
+| **Backoffice** | Escolas, Provisionamento, Módulos | `/backoffice` SPA only |
+
+Implementation pattern: `src/routes/` role guards + `GET /me` permission payload; no business rules
+in menu logic.
 
 ## Roadmap
 
@@ -411,4 +428,26 @@ Already decided (see `docs/open-questions.md` → Web stack):
 - Redesigning the DashdarkX visual identity.
 - The mobile design system (`mobile/`), which shares tokens but not components.
 - Business rules, API contracts and data modeling — Domain PRDs, `docs/api/` and `docs/modeling/`.
-- Resolving whether guardians get a web surface in the MVP — tracked in `docs/open-questions.md`.
+- Resolving whether guardians get a web surface in the MVP — **decided:** yes, both web and mobile
+  ([`open-questions.md`](../open-questions.md), [`actors-and-surfaces.md`](../actors-and-surfaces.md)).
+
+## Domain PRD dependencies
+
+Business rules stay in API services. This layer PRD consumes validated domain PRDs:
+
+| Domain | PRD folder | MVP surfaces in SPA |
+|--------|------------|------------------------|
+| Identity & onboarding | [`identity-and-onboarding/`](identity-and-onboarding/index.md) | Auth, invites, profiles, consent |
+| Students & enrollments | [`students-and-enrollments/`](students-and-enrollments/index.md) | Records, enrollments, classes |
+| Communication | [`communication/`](communication/index.md) | Messages, channels, announcements |
+| Academic | [`academic/`](academic/index.md) | Attendance, grades, report cards, diary |
+| Billing | [`billing/`](billing/index.md) | Charges, boletos, guardian portal |
+| Documents & archive | [`documents-and-archive/`](documents-and-archive/index.md) | Guardian document read |
+| Platform & admin | [`platform-and-admin/`](platform-and-admin/index.md) | School year, calendar, staff users |
+
+## Review-ready checklist (stakeholder)
+
+- [ ] Role × menu matrix matches [`actors-and-surfaces.md`](../actors-and-surfaces.md)
+- [ ] Design system catalog covers MVP patterns per domain row above
+- [ ] Guardian web routes scoped for billing + documents (mobile primary for push/messaging)
+- [ ] No business rules duplicated in SPA — all via `/api/v1`

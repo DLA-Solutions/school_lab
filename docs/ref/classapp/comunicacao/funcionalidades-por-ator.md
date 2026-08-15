@@ -1,0 +1,337 @@
+# Capabilities by actor — Comunicacao (Classapp)
+
+Harvest-derived inventory. **148** capabilities across 1 School Lab domain(s).
+Maturity: documented help-center articles. See [`../../README.md`](../../README.md).
+
+## Domain: Communication
+
+_148 capabilities._
+
+## Guardian
+
+- **Experiência Para As Famílias: Pesquisa De Satisfação Do Conversas 📄** (`communication.manage_experiencia_para_as_familias_p`) — _documented_, friction 0.0 — [Experiência para as Famílias: Pesquisa de Satisfaç](https://ajuda.classapp.com.br/hc/pt-br/articles/23012322760603-Experi%C3%AAncia-para-as-Fam%C3%ADlias-Pesquisa-de-Satisfa%C3%A7%C3%A3o-do-Conversas)
+  - Experiência Para As Famílias: Pesquisa De Satisfação Do Conversas 📄.
+- **Famílias E Responsáveis: Como Entrar Em Contato Com O Suporte Da Classapp?** (`communication.manage_familias_e_responsaveis_como_e`) — _documented_, friction 5.0 — [Famílias e responsáveis: Como entrar em contato co](https://ajuda.classapp.com.br/hc/pt-br/articles/19689488202395-Fam%C3%ADlias-e-respons%C3%A1veis-Como-entrar-em-contato-com-o-Suporte-da-ClassApp)
+  - Famílias E Responsáveis: Como Entrar Em Contato Com O Suporte Da Classapp?. Note: Caso prefira utilizar o e-mail, é só escrever sua dúvida e enviar para suporte@classapp.com.br ! É super importante deta.
+- **Funcionário E Responsável Por Aluno(S): Como Funcionam As Contas E Perfis No Cla** (`communication.manage_funcionario_e_responsavel_por_`) — _documented_, friction 0.0 — [Funcionário e Responsável por Aluno(s): Como funci](https://ajuda.classapp.com.br/hc/pt-br/articles/115011444648-Funcion%C3%A1rio-e-Respons%C3%A1vel-por-Aluno-s-Como-funcionam-as-contas-e-perfis-no-ClassApp)
+  - Funcionário E Responsável Por Aluno(S): Como Funcionam As Contas E Perfis No Cla.
+- **Habilitar A Comunicação De Pais E Alunos Com A Escola No Classapp** (`communication.manage_habilitar_a_comunicacao_de_pai`) — _documented_, friction 7.0 — [Como habilitar a comunicação de pais e alunos com ](https://ajuda.classapp.com.br/hc/pt-br/articles/360009561433-Como-habilitar-a-comunica%C3%A7%C3%A3o-de-pais-e-alunos-com-a-escola-no-ClassApp)
+  - Habilitar A Comunicação De Pais E Alunos Com A Escola No Classapp. Note: ⚠ Atenção: Ao transformar um funcionário em canal, todos os alunos dos grupos aos quais ele pertence poderão enviar mens.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **O Que Fazer Quando Uma Família Não Encontra A Equipe Escolar Para Enviar Uma Nov** (`communication.send_o_que_fazer_quando_uma_familia`) — _documented_, friction 6.0 — [O que fazer quando uma família não encontra a equi](https://ajuda.classapp.com.br/hc/pt-br/articles/11509048820123-O-que-fazer-quando-uma-fam%C3%ADlia-n%C3%A3o-encontra-a-equipe-escolar-para-enviar-uma-nova-mensagem)
+  - O Que Fazer Quando Uma Família Não Encontra A Equipe Escolar Para Enviar Uma Nov. Note: Observação: Caso tenha alguma dúvida, entre em contato conosco pelo chat ou envie um e-mail para suporte@classapp.com.br.
+- **Os Pais Podem Preencher Formulários No Classapp** (`communication.manage_os_pais_podem_preencher_formul`) — _documented_, friction 11.4 — [Como os pais podem preencher formulários no ClassA](https://ajuda.classapp.com.br/hc/pt-br/articles/360057829373-Como-os-pais-podem-preencher-formul%C3%A1rios-no-ClassApp)
+  - Os Pais Podem Preencher Formulários No Classapp. Note: Após receber um formulário, os pais podem facilmente preenchê-lo diretamente pelo aplicativo ou computador. A funcionali.
+- **Ver A Proposta Aceita Pelo Responsável No Contrato?** (`communication.manage_ver_a_proposta_aceita_pelo_res`) — _documented_, friction 3.5 — [Como ver a proposta aceita pelo responsável no con](https://ajuda.classapp.com.br/hc/pt-br/articles/30679644508059-Como-ver-a-proposta-aceita-pelo-respons%C3%A1vel-no-contrato)
+  - Ver A Proposta Aceita Pelo Responsável No Contrato?. Note: Além disso, para asinstituiçõesque irão utilizar o contrato padrão, será ainda mais importante, pois todas as informaçõe.
+
+## Staff
+
+- **1. O Que É Integração?** (`communication.manage_1_o_que_e_integracao`) — _conceptual_, friction 0.0 — [1. O que é integração?](https://ajuda.classapp.com.br/hc/pt-br/articles/4405870493851-1-O-que-%C3%A9-integra%C3%A7%C3%A3o)
+  - 1. O Que É Integração?.
+- **11. Quanto Tempo Leva Para A Integração Ficar Pronta?** (`communication.manage_11_quanto_tempo_leva_para_a_in`) — _documented_, friction 0.0 — [11. Quanto tempo leva para a integração ficar pron](https://ajuda.classapp.com.br/hc/pt-br/articles/4405993161499-11-Quanto-tempo-leva-para-a-integra%C3%A7%C3%A3o-ficar-pronta)
+  - 11. Quanto Tempo Leva Para A Integração Ficar Pronta?.
+- **2Fa No Login: O Login Do Classapp Vai Mudar** (`communication.manage_2fa_no_login_o_login_do_classa`) — _documented_, friction 5.5 — [2FA no login: O login do ClassApp vai mudar](https://ajuda.classapp.com.br/hc/pt-br/articles/50334056805019-2FA-no-login-O-login-do-ClassApp-vai-mudar)
+  - 2Fa No Login: O Login Do Classapp Vai Mudar. Note: ⚠️Essa etapa não poderá ser pulada.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **6. O Que É Integração De Cadastro De Alunos?** (`communication.create_6_o_que_e_integracao_de_cadast`) — _conceptual_, friction 0.0 — [6. O que é integração de Cadastro de Alunos?](https://ajuda.classapp.com.br/hc/pt-br/articles/4405992357531-6-O-que-%C3%A9-integra%C3%A7%C3%A3o-de-Cadastro-de-Alunos)
+  - 6. O Que É Integração De Cadastro De Alunos?.
+- **8. O Que É Integração De Ocorrências?** (`communication.manage_8_o_que_e_integracao_de_ocorre`) — _conceptual_, friction 0.0 — [8. O que é integração de Ocorrências?](https://ajuda.classapp.com.br/hc/pt-br/articles/4405992500763-8-O-que-%C3%A9-integra%C3%A7%C3%A3o-de-Ocorr%C3%AAncias)
+  - 8. O Que É Integração De Ocorrências?.
+- **9. O Que É Integração De Boletins?** (`communication.manage_9_o_que_e_integracao_de_boleti`) — _conceptual_, friction 5.0 — [9. O que é integração de Boletins?](https://ajuda.classapp.com.br/hc/pt-br/articles/4405992531483-9-O-que-%C3%A9-integra%C3%A7%C3%A3o-de-Boletins)
+  - 9. O Que É Integração De Boletins?. Note: ⚠️Importante: A data de envio deve ser combinada com uma semana de antecedência..
+- **Acessar Links De Videochamadas Pelos Compromissos E Eventos No Classapp? ✨** (`communication.manage_acessar_links_de_videochamadas`) — _documented_, friction 0.0 — [Como acessar links de videochamadas pelos compromi](https://ajuda.classapp.com.br/hc/pt-br/articles/1260805881109-Como-acessar-links-de-videochamadas-pelos-compromissos-e-eventos-no-ClassApp)
+  - Acessar Links De Videochamadas Pelos Compromissos E Eventos No Classapp? ✨.
+- **Adicionando Vídeo Chamadas Em Compromissos E Eventos** (`communication.manage_adicionando_video_chamadas_em_`) — _documented_, friction 6.5 — [Adicionando vídeo chamadas em compromissos e event](https://ajuda.classapp.com.br/hc/pt-br/articles/1260805880429-Adicionando-v%C3%ADdeo-chamadas-em-compromissos-e-eventos)
+  - Adicionando Vídeo Chamadas Em Compromissos E Eventos. Note: ⚠️importante: não é possível editar um evento que já passou, então você só poderá editar as informações até o horário qu.
+- **Adicionar Meu Cpf No Classapp** (`communication.create_adicionar_meu_cpf_no_classapp`) — _documented_, friction 0.0 — [Adicionar meu CPF no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/26251746290331-Adicionar-meu-CPF-no-ClassApp)
+  - Adicionar Meu Cpf No Classapp.
+- **Adicionar Perfis Às Turmas E Grupos No Classapp** (`communication.create_adicionar_perfis_as_turmas_e_g`) — _documented_, friction 6.0 — [Como adicionar perfis às turmas e grupos no ClassA](https://ajuda.classapp.com.br/hc/pt-br/articles/360004055614-Como-adicionar-perfis-%C3%A0s-turmas-e-grupos-no-ClassApp)
+  - Adicionar Perfis Às Turmas E Grupos No Classapp. Note: Importante: ao final da importação, o sistema solicitará uma decisão: "Manter os dados antigos" ou "Substituir dados ant.
+- **Administradores E Funcionários: Como Entrar Em Contato Com O Suporte Da Classapp** (`communication.manage_administradores_e_funcionarios`) — _documented_, friction 7.0 — [Administradores e Funcionários: Como entrar em con](https://ajuda.classapp.com.br/hc/pt-br/articles/19673522008475-Administradores-e-Funcion%C3%A1rios-Como-entrar-em-contato-com-o-Suporte-da-ClassApp)
+  - Administradores E Funcionários: Como Entrar Em Contato Com O Suporte Da Classapp. Note: Vale lembrar que é super importante detalhar o seu chamado, para podermos agir de forma mais assertiva e rápida..
+- **Administradores: Como Utilizar O Menu Arquivos** (`communication.manage_administradores_como_utilizar_`) — _documented_, friction 12.5 — [Administradores: Como utilizar o menu Arquivos](https://ajuda.classapp.com.br/hc/pt-br/articles/21385047671067-Administradores-Como-utilizar-o-menu-Arquivos)
+  - Administradores: Como Utilizar O Menu Arquivos. Note: Atenção: Ao selecionar perfis (e não o grupo completo), o perfil terá acesso à pasta independente dos grupos que estiver.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Agendar O Envio De Mensagens No Classapp** (`communication.manage_agendar_o_envio_de_mensagens_n`) — _documented_, friction 8.5 — [Como agendar o envio de mensagens no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360000676453-Como-agendar-o-envio-de-mensagens-no-ClassApp)
+  - Agendar O Envio De Mensagens No Classapp. Note: ⚠️ Atenção: Se a edição for feita muito próxima do horário agendado, a mensagem pode ser enviada antes das alterações..
+- **Alterar O Nome De Uma Campanha No Módulo De Matrículas?** (`communication.update_alterar_o_nome_de_uma_campanha`) — _documented_, friction 0.0 — [Como alterar o nome de uma campanha no módulo de m](https://ajuda.classapp.com.br/hc/pt-br/articles/4409150351771-Como-alterar-o-nome-de-uma-campanha-no-m%C3%B3dulo-de-matr%C3%ADculas)
+  - Alterar O Nome De Uma Campanha No Módulo De Matrículas?.
+- **Alterar Sua Senha?** (`communication.update_alterar_sua_senha`) — _documented_, friction 9.4 — [Como alterar sua senha?](https://ajuda.classapp.com.br/hc/pt-br/articles/360050566833-Como-alterar-sua-senha)
+  - Alterar Sua Senha?. Note: ⚠️ Importante: A opção “Alterar Senha” só aparecerá se você já tiver uma senha cadastrada. Para cadastrar a primeira sen.
+- **Alternar Entre Diferentes Perfis No Classapp** (`communication.manage_alternar_entre_diferentes_perf`) — _documented_, friction 5.0 — [Como alternar entre diferentes perfis no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360050637873-Como-alternar-entre-diferentes-perfis-no-ClassApp)
+  - Alternar Entre Diferentes Perfis No Classapp. Note: ⚠️ Importante: Após realizar a troca, verifique no canto superior esquerdo com qual perfil você está lendo ou enviando m.
+- **Anexar Múltiplos Arquivos Em Mensagens No Classapp** (`communication.manage_anexar_multiplos_arquivos_em_m`) — _documented_, friction 5.0 — [Como anexar múltiplos arquivos em mensagens no Cla](https://ajuda.classapp.com.br/hc/pt-br/articles/360002699994-Como-anexar-m%C3%BAltiplos-arquivos-em-mensagens-no-ClassApp)
+  - Anexar Múltiplos Arquivos Em Mensagens No Classapp. Note: ⚠️ Importante: Você pode enviar até 20 arquivos de uma vez, respeitando o limite de 25MB por arquivo individual..
+- **Apagar Mensagens No Classapp** (`communication.pay_apagar_mensagens_no_classapp`) — _documented_, friction 7.5 — [Como apagar mensagens no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360039725333-Como-apagar-mensagens-no-ClassApp)
+  - Apagar Mensagens No Classapp. Note: ⚠️ Importante: A opção de apagar para todos está disponível por 72 horas após o envio. Somente o remetente da mensagem o.
+- **Apagar/Limpar As Notificações? 🔔** (`communication.pay_apagar_limpar_as_notificacoes`) — _documented_, friction 6.5 — [Como apagar/limpar as notificações? 🔔](https://ajuda.classapp.com.br/hc/pt-br/articles/360004848334-Como-apagar-limpar-as-notifica%C3%A7%C3%B5es)
+  - Apagar/Limpar As Notificações? 🔔. Note: ⚠️ IMPORTANTE: Após apagar as notificações, não será possível restaurá-las. No entanto, as mensagens associadas às notif.
+- **Arquivar Mensagens Em Massa? 📦** (`communication.manage_arquivar_mensagens_em_massa`) — _documented_, friction 3.0 — [Como arquivar mensagens em massa? 📦](https://ajuda.classapp.com.br/hc/pt-br/articles/360004050614-Como-arquivar-mensagens-em-massa)
+  - Arquivar Mensagens Em Massa? 📦.
+- **Arquivar Mensagens? 📦** (`communication.manage_arquivar_mensagens`) — _documented_, friction 5.0 — [Como arquivar mensagens? 📦](https://ajuda.classapp.com.br/hc/pt-br/articles/115001048548-Como-arquivar-mensagens)
+  - Arquivar Mensagens? 📦. Note: ⚠️ Atenção:Ao arquivar uma mensagem, ela será arquivada também para os outros usuários do perfil em questão..
+- **Arquivar Uma Campanha De Matrículas?** (`communication.manage_arquivar_uma_campanha_de_matri`) — _documented_, friction 1.5 — [Como arquivar uma Campanha de Matrículas?](https://ajuda.classapp.com.br/hc/pt-br/articles/4408591207067-Como-arquivar-uma-Campanha-de-Matr%C3%ADculas)
+  - Arquivar Uma Campanha De Matrículas?.
+- **Assinar O Contrato De Matrícula Escolar?** (`communication.sign_assinar_o_contrato_de_matricul`) — _documented_, friction 7.0 — [Como assinar o contrato de matrícula escolar?](https://ajuda.classapp.com.br/hc/pt-br/articles/9815998150427-Como-assinar-o-contrato-de-matr%C3%ADcula-escolar)
+  - Assinar O Contrato De Matrícula Escolar?. Note: ⚠️Importante:A instituição pode exigir a assinatura de até 3 responsáveis pelo aluno. A assinatura será confirmada somen.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Ativar / Habilitar Um Perfil Desabilitado?** (`communication.manage_ativar_habilitar_um_perfil_des`) — _documented_, friction 0.0 — [Como ativar / habilitar um perfil desabilitado?](https://ajuda.classapp.com.br/hc/pt-br/articles/115003431653-Como-ativar-habilitar-um-perfil-desabilitado)
+  - Ativar / Habilitar Um Perfil Desabilitado?.
+- **Atualizar O Classapp Manualmente** (`communication.update_atualizar_o_classapp_manualmen`) — _documented_, friction 0.0 — [Como atualizar o ClassApp manualmente](https://ajuda.classapp.com.br/hc/pt-br/articles/360004089373-Como-atualizar-o-ClassApp-manualmente)
+  - Atualizar O Classapp Manualmente.
+- **Atualização Cadastral No Classapp** (`communication.create_atualizacao_cadastral_no_class`) — _documented_, friction 9.0 — [Atualização cadastral no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/51015386909083-Atualiza%C3%A7%C3%A3o-cadastral-no-ClassApp)
+  - Atualização Cadastral No Classapp. Note: ⚠️ Alterações de e-mail ou telefone realizadas nesse fluxo não modificam as configurações de usuário ou os dados atualme.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Atualização Cadastral Obrigatória No Classapp** (`communication.create_atualizacao_cadastral_obrigato`) — _documented_, friction 7.0 — [FAQ — Atualização Cadastral Obrigatória no ClassAp](https://ajuda.classapp.com.br/hc/pt-br/articles/51021209058075-FAQ-Atualiza%C3%A7%C3%A3o-Cadastral-Obrigat%C3%B3ria-no-ClassApp)
+  - Atualização Cadastral Obrigatória No Classapp. Note: ⚠️ Alterações de e-mail ou telefone realizadas nesse fluxo não modificam as configurações de usuário ou os dados atualme.
+- **Baixar Imagens No Classapp Pelo Celular Ou Computador!** (`communication.pay_baixar_imagens_no_classapp_pel`) — _documented_, friction 0.0 — [Como baixar imagens no ClassApp pelo celular ou co](https://ajuda.classapp.com.br/hc/pt-br/articles/360054497274-Como-baixar-imagens-no-ClassApp-pelo-celular-ou-computador)
+  - Baixar Imagens No Classapp Pelo Celular Ou Computador!.
+- **Baixar O Aplicativo Do Classapp?** (`communication.pay_baixar_o_aplicativo_do_classap`) — _documented_, friction 10.5 — [Como baixar o aplicativo do ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/236100707-Como-baixar-o-aplicativo-do-ClassApp)
+  - Baixar O Aplicativo Do Classapp?. Note: ⚠️Aplicativo disponível apenas a partir da versão 7.0 do Android..
+- **Baixar Vídeos No Classapp Pelo Celular Ou Computador!** (`communication.pay_baixar_videos_no_classapp_pelo`) — _documented_, friction 7.0 — [Como baixar vídeos no ClassApp pelo celular ou com](https://ajuda.classapp.com.br/hc/pt-br/articles/360048277894-Como-baixar-v%C3%ADdeos-no-ClassApp-pelo-celular-ou-computador)
+  - Baixar Vídeos No Classapp Pelo Celular Ou Computador!. Note: 🔔 Importante: Lembre-se que os vídeos também podem estar nas respostas. Para baixá-los, siga os mesmos passos..
+- **Buscar Mensagens No Classapp** (`communication.manage_buscar_mensagens_no_classapp`) — _documented_, friction 8.5 — [Como buscar mensagens no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360001951314-Como-buscar-mensagens-no-ClassApp)
+  - Buscar Mensagens No Classapp. Note: Importante: As mensagens arquivadas e excluídas não aparecem neste filtro..
+- **Cadastrar Uma Senha No Classapp** (`communication.create_cadastrar_uma_senha_no_classap`) — _documented_, friction 5.9 — [Como cadastrar uma senha no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360050567033-Como-cadastrar-uma-senha-no-ClassApp)
+  - Cadastrar Uma Senha No Classapp. Note: ⚠️ Atenção: O primeiro cadastro deve ser feito com os dados de e-mail e/ou telefone que a escola cadastrou. Após o prime.
+- **Cancelar E Reenviar Uma Proposta Já Aceita?** (`communication.delete_cancelar_e_reenviar_uma_propos`) — _documented_, friction 0.0 — [Como cancelar e reenviar uma proposta já aceita?](https://ajuda.classapp.com.br/hc/pt-br/articles/360057231114-Como-cancelar-e-reenviar-uma-proposta-j%C3%A1-aceita)
+  - Cancelar E Reenviar Uma Proposta Já Aceita?.
+- **Conceder Permissões Administrativas No Classapp** (`communication.manage_conceder_permissoes_administra`) — _documented_, friction 15.0 — [Como conceder permissões administrativas no ClassA](https://ajuda.classapp.com.br/hc/pt-br/articles/360043110434-Como-conceder-permiss%C3%B5es-administrativas-no-ClassApp)
+  - Conceder Permissões Administrativas No Classapp. Note: ⚠️ Importante: Caso o funcionário esteja listado como um canal de atendimento, será necessário transformá-lo em pessoa a.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Conversas: Atendimentos Estruturados** (`communication.manage_conversas_atendimentos_estrutu`) — _documented_, friction 0.0 — [Conversas: Atendimentos Estruturados](https://ajuda.classapp.com.br/hc/pt-br/articles/22123519335195-Conversas-Atendimentos-Estruturados)
+  - Conversas: Atendimentos Estruturados.
+- **Conversas: Atendimentos Simples 📄** (`communication.manage_conversas_atendimentos_simples`) — _documented_, friction 0.0 — [Conversas: Atendimentos Simples 📄](https://ajuda.classapp.com.br/hc/pt-br/articles/22123346805787-Conversas-Atendimentos-Simples)
+  - Conversas: Atendimentos Simples 📄.
+- **Conversas: Como Acompanhar Meus Atendimentos No Site?** (`communication.view_conversas_como_acompanhar_meus`) — _documented_, friction 3.0 — [Conversas: Como acompanhar meus atendimentos no si](https://ajuda.classapp.com.br/hc/pt-br/articles/23010105418779-Conversas-Como-acompanhar-meus-atendimentos-no-site)
+  - Conversas: Como Acompanhar Meus Atendimentos No Site?.
+- **Conversas: Como Apagar Mensagens** (`communication.pay_conversas_como_apagar_mensagen`) — _documented_, friction 5.0 — [Conversas: Como apagar mensagens](https://ajuda.classapp.com.br/hc/pt-br/articles/30351256264475-Conversas-Como-apagar-mensagens)
+  - Conversas: Como Apagar Mensagens. Note: ⚠️ Importante: Somente o remetente ou os administradores do sistema podem apagar a mensagem para todos os destinatários..
+- **Conversas: Como Editar Mensagens** (`communication.update_conversas_como_editar_mensagen`) — _documented_, friction 8.5 — [Conversas: Como editar mensagens](https://ajuda.classapp.com.br/hc/pt-br/articles/27406127018011-Conversas-Como-editar-mensagens)
+  - Conversas: Como Editar Mensagens. Note: ⚠️:Importante: Não será possível realizar a edição de anexos já enviados..
+- **Conversas: Como Encaminhar O Atendimento?📄** (`communication.manage_conversas_como_encaminhar_o_at`) — _documented_, friction 9.1 — [Conversas: Como Encaminhar o Atendimento?📄](https://ajuda.classapp.com.br/hc/pt-br/articles/23010800740379-Conversas-Como-Encaminhar-o-Atendimento)
+  - Conversas: Como Encaminhar O Atendimento?📄. Note: ⚠️ Importante: Não é possível encaminhar anexos diretamente. Se necessário, salve o anexo na aba de Conversas e adicione.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Conversas: Como Funcionam As Notificações De Mensagens Recebidas?** (`communication.manage_conversas_como_funcionam_as_no`) — _documented_, friction 12.5 — [Conversas: Como funcionam as notificações de mensa](https://ajuda.classapp.com.br/hc/pt-br/articles/23017362369179-Conversas-Como-funcionam-as-notifica%C3%A7%C3%B5es-de-mensagens-recebidas)
+  - Conversas: Como Funcionam As Notificações De Mensagens Recebidas?. Note: ⚠️ Observação: As notificações levam o usuário para a listagem de Conversas, não diretamente para a conversa específica..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Conversas: Como Marcar Uma Mensagem Como Não Lida** (`communication.manage_conversas_como_marcar_uma_mens`) — _documented_, friction 8.5 — [Conversas: Como marcar uma mensagem como não lida](https://ajuda.classapp.com.br/hc/pt-br/articles/30540648663323-Conversas-Como-marcar-uma-mensagem-como-n%C3%A3o-lida)
+  - Conversas: Como Marcar Uma Mensagem Como Não Lida. Note: A nova funcionalidade de marcar mensagens como não lidas no Conversas do ClassApp permite que você organize melhor suas .
+- **Conversas: Como O Admin Visualiza Todas As Conversas Da Escola?** (`communication.manage_conversas_como_o_admin_visuali`) — _documented_, friction 10.5 — [Conversas: Como o Admin visualiza todas as convers](https://ajuda.classapp.com.br/hc/pt-br/articles/24431600644379-Conversas-Como-o-Admin-visualiza-todas-as-conversas-da-escola)
+  - Conversas: Como O Admin Visualiza Todas As Conversas Da Escola?. Note: ⚠️ Importante:Se necessário, o admin da Escola pode também interagir com as conversas, além de visualizá-las na íntegra..
+- **Conversas: Como Visualizar O Histórico De Edição Da Mensagem?** (`communication.view_conversas_como_visualizar_o_hi`) — _documented_, friction 5.9 — [Conversas: Como Visualizar o Histórico de Edição d](https://ajuda.classapp.com.br/hc/pt-br/articles/29203140703771-Conversas-Como-Visualizar-o-Hist%C3%B3rico-de-Edi%C3%A7%C3%A3o-da-Mensagem)
+  - Conversas: Como Visualizar O Histórico De Edição Da Mensagem?. Note: ⚠️ Importante: Se a mensagem tiver sido enviada há menos de 48 horas, além da opção de visualizar o histórico, você aind.
+- **Conversas: Finalizando Um Atendimento 📄** (`communication.manage_conversas_finalizando_um_atend`) — _documented_, friction 0.0 — [Conversas: finalizando um atendimento 📄](https://ajuda.classapp.com.br/hc/pt-br/articles/23010780600347-Conversas-finalizando-um-atendimento)
+  - Conversas: Finalizando Um Atendimento 📄.
+- **Conversas: O Que Mudou Nos Atendimentos Dos Canais?** (`communication.manage_conversas_o_que_mudou_nos_aten`) — _documented_, friction 3.5 — [Conversas: o que mudou nos atendimentos dos Canais](https://ajuda.classapp.com.br/hc/pt-br/articles/22122886159515-Conversas-o-que-mudou-nos-atendimentos-dos-Canais)
+  - Conversas: O Que Mudou Nos Atendimentos Dos Canais?. Note: Com a atualização realizada em 2024 no ClassApp, os canais de comunicação tiveram algumas mudanças importantes para o fu.
+- **Criando E Preenchendo Relatórios No Classapp** (`communication.manage_criando_e_preenchendo_relatori`) — _documented_, friction 7.0 — [Criando e Preenchendo Relatórios no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360001151353-Criando-e-Preenchendo-Relat%C3%B3rios-no-ClassApp)
+  - Criando E Preenchendo Relatórios No Classapp. Note: ⚠️ A opção de editar relatórios específicos por pessoa está temporariamente indisponível..
+- **Criar E Gerenciar Canais De Atendimento No Classapp** (`communication.create_criar_e_gerenciar_canais_de_at`) — _documented_, friction 3.5 — [Como criar e gerenciar canais de atendimento no Cl](https://ajuda.classapp.com.br/hc/pt-br/articles/5066432312987-Como-criar-e-gerenciar-canais-de-atendimento-no-ClassApp)
+  - Criar E Gerenciar Canais De Atendimento No Classapp.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar E Gerenciar Enquetes No Classapp** (`communication.create_criar_e_gerenciar_enquetes_no_`) — _documented_, friction 0.0 — [Como criar e gerenciar enquetes no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/115003431633-Como-criar-e-gerenciar-enquetes-no-ClassApp)
+  - Criar E Gerenciar Enquetes No Classapp.
+- **Criar Eventos 📆** (`communication.create_criar_eventos`) — _documented_, friction 13.7 — [Como criar eventos 📆](https://ajuda.classapp.com.br/hc/pt-br/articles/360011302494-Como-criar-eventos)
+  - Criar Eventos 📆. Note: Agora você pode criar compromissos para a instituição sem precisar enviar um comunicado! Com a funcionalidade de eventos.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Criar Grupos Específicos Para Funcionários No Classapp 👥** (`communication.create_criar_grupos_especificos_para_`) — _documented_, friction 0.0 — [Como criar grupos específicos para funcionários no](https://ajuda.classapp.com.br/hc/pt-br/articles/115002144573-Como-criar-grupos-espec%C3%ADficos-para-funcion%C3%A1rios-no-ClassApp)
+  - Criar Grupos Específicos Para Funcionários No Classapp 👥.
+- **Criar Grupos No Classapp Para Facilitar A Comunicação** (`communication.create_criar_grupos_no_classapp_para_`) — _documented_, friction 8.5 — [Como criar grupos no ClassApp para facilitar a com](https://ajuda.classapp.com.br/hc/pt-br/articles/360049250133-Como-criar-grupos-no-ClassApp-para-facilitar-a-comunica%C3%A7%C3%A3o)
+  - Criar Grupos No Classapp Para Facilitar A Comunicação. Note: ⚠️ Importante: Um grupo no ClassApp não é o mesmo que um Canal de Comunicação..
+- **Desabilitar Notificações Por E-Mail No Classapp?** (`communication.manage_desabilitar_notificacoes_por_e`) — _documented_, friction 0.0 — [Como desabilitar notificações por e-mail no ClassA](https://ajuda.classapp.com.br/hc/pt-br/articles/360002975854-Como-desabilitar-notifica%C3%A7%C3%B5es-por-e-mail-no-ClassApp)
+  - Desabilitar Notificações Por E-Mail No Classapp?.
+- **Desabilitar Um Usuário Do Classapp?** (`communication.manage_desabilitar_um_usuario_do_clas`) — _documented_, friction 0.0 — [Como desabilitar um usuário do ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/360001644433-Como-desabilitar-um-usu%C3%A1rio-do-ClassApp)
+  - Desabilitar Um Usuário Do Classapp?.
+- **Desativar Respostas Em Mensagens No Classapp?** (`communication.manage_desativar_respostas_em_mensage`) — _documented_, friction 1.5 — [Como Desativar Respostas em Mensagens no ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/9888395324699-Como-Desativar-Respostas-em-Mensagens-no-ClassApp)
+  - Desativar Respostas Em Mensagens No Classapp?.
+- **Desvincular Um Usuário De Um Perfil?** (`communication.manage_desvincular_um_usuario_de_um_p`) — _documented_, friction 3.5 — [Como desvincular um usuário de um perfil?](https://ajuda.classapp.com.br/hc/pt-br/articles/4403256623131-Como-desvincular-um-usu%C3%A1rio-de-um-perfil)
+  - Desvincular Um Usuário De Um Perfil?. Note: É importante ressaltar que essa funcionalidade é apenas para remover o acesso daquele usuário a esse perfil..
+- **Dicas Para Garantir O Recebimento De Notificações No Classapp** (`communication.manage_dicas_para_garantir_o_recebime`) — _documented_, friction 5.0 — [Dicas para garantir o recebimento de notificações ](https://ajuda.classapp.com.br/hc/pt-br/articles/360006093374-Dicas-para-garantir-o-recebimento-de-notifica%C3%A7%C3%B5es-no-ClassApp)
+  - Dicas Para Garantir O Recebimento De Notificações No Classapp. Note: ⚠️IMPORTANTE: Após o sistema enviar as mensagens, é responsabilidade do sistema operacional do celular (iOS/Android) sin.
+- **Duplicar Relatórios No Classapp** (`communication.manage_duplicar_relatorios_no_classap`) — _documented_, friction 0.0 — [Como duplicar relatórios no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360006005174-Como-duplicar-relat%C3%B3rios-no-ClassApp)
+  - Duplicar Relatórios No Classapp.
+- **Dúvidas Frequentes: Meu Arco** (`communication.manage_duvidas_frequentes_meu_arco`) — _documented_, friction 0.6 — [Dúvidas frequentes: Meu Arco](https://ajuda.classapp.com.br/hc/pt-br/articles/45995498589595-D%C3%BAvidas-frequentes-Meu-Arco)
+  - Dúvidas Frequentes: Meu Arco.
+- **Dúvidas Sobre Convites Pendentes** (`communication.manage_duvidas_sobre_convites_pendent`) — _documented_, friction 2.0 — [Dúvidas sobre Convites Pendentes](https://ajuda.classapp.com.br/hc/pt-br/articles/360007512693-D%C3%BAvidas-sobre-Convites-Pendentes)
+  - Dúvidas Sobre Convites Pendentes.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Editar A Mensagem De Divulgação Da Campanha De Matrícula?** (`communication.update_editar_a_mensagem_de_divulgaca`) — _documented_, friction 5.0 — [Como editar a mensagem de divulgação da campanha d](https://ajuda.classapp.com.br/hc/pt-br/articles/4406168162075-Como-editar-a-mensagem-de-divulga%C3%A7%C3%A3o-da-campanha-de-matr%C3%ADcula)
+  - Editar A Mensagem De Divulgação Da Campanha De Matrícula?. Note: ⚠️ Importante: As alterações feitas na divulgação não irão modificar as mensagens que já foram enviadas. Apenas as próxi.
+- **Editar Mensagens/Comunicados ✏️** (`communication.update_editar_mensagens_comunicados`) — _documented_, friction 13.5 — [Como editar Mensagens/Comunicados ✏️](https://ajuda.classapp.com.br/hc/pt-br/articles/360039751194-Como-editar-Mensagens-Comunicados)
+  - Editar Mensagens/Comunicados ✏️. Note: ⚠️ Dica: Pelo site, você pode desativar o recebimento de respostas na mensagem. Para saber mais, consulte o artigo: Como.
+- **Editar O Formulário Da Campanha?** (`communication.update_editar_o_formulario_da_campanh`) — _documented_, friction 5.0 — [Como editar o formulário da Campanha?](https://ajuda.classapp.com.br/hc/pt-br/articles/30894533894043-Como-editar-o-formul%C3%A1rio-da-Campanha)
+  - Editar O Formulário Da Campanha?. Note: ⚠️ Importante: Apenas responsáveis que ainda não aceitaram a proposta serão afetados.
+- **Editar Os Meus Dados? 📄** (`communication.update_editar_os_meus_dados`) — _documented_, friction 5.0 — [Como editar os meus dados? 📄](https://ajuda.classapp.com.br/hc/pt-br/articles/115001012267-Como-editar-os-meus-dados)
+  - Editar Os Meus Dados? 📄. Note: ⚠️ Importante: Esse procedimento deve ser realizado apenas pelo próprio usuário que tem acesso à conta..
+- **Editar Ou Apagar Enquetes No Classapp** (`communication.update_editar_ou_apagar_enquetes_no_c`) — _documented_, friction 8.5 — [Como editar ou apagar enquetes no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360000685434-Como-editar-ou-apagar-enquetes-no-ClassApp)
+  - Editar Ou Apagar Enquetes No Classapp. Note: Importante: Os destinatários serão notificados de quaisquer alterações feitas nas enquetes..
+- **Editar Relatórios Após O Envio** (`communication.update_editar_relatorios_apos_o_envio`) — _documented_, friction 0.0 — [Como editar relatórios após o envio](https://ajuda.classapp.com.br/hc/pt-br/articles/43889018149275-Como-editar-relat%C3%B3rios-ap%C3%B3s-o-envio)
+  - Editar Relatórios Após O Envio.
+- **Edição E Exclusão De Compromissos No Classapp** (`communication.manage_edicao_e_exclusao_de_compromis`) — _documented_, friction 10.5 — [Edição e Exclusão de Compromissos no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360000679573-Edi%C3%A7%C3%A3o-e-Exclus%C3%A3o-de-Compromissos-no-ClassApp)
+  - Edição E Exclusão De Compromissos No Classapp. Note: ⚠️ Importante: Todos os destinatários serão notificados sobre qualquer alteração nos compromissos..
+- **Encaminhar Mensagens No Classapp** (`communication.manage_encaminhar_mensagens_no_classa`) — _documented_, friction 5.0 — [Como encaminhar mensagens no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360045695193-Como-encaminhar-mensagens-no-ClassApp)
+  - Encaminhar Mensagens No Classapp. Note: ⚠️ Importante: Apenas quem enviou a mensagem original pode encaminhá-la. Além disso, as respostas da mensagem original n.
+- **Enviar Anexos No Classapp?** (`communication.send_enviar_anexos_no_classapp`) — _documented_, friction 6.5 — [Como enviar anexos no ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/7271711982491-Como-enviar-anexos-no-ClassApp)
+  - Enviar Anexos No Classapp?. Note: ⚠️ Importante: É possível adicionar no máximo 20 arquivos de até 25Mb cada, e você pode variar os tipos de arquivos dent.
+- **Enviar Arquivos Maiores Que 25Mb?** (`communication.send_enviar_arquivos_maiores_que_25`) — _documented_, friction 0.0 — [Como enviar arquivos maiores que 25MB?](https://ajuda.classapp.com.br/hc/pt-br/articles/360048817334-Como-enviar-arquivos-maiores-que-25MB)
+  - Enviar Arquivos Maiores Que 25Mb?.
+- **Enviar Convites Para Todos Os Alunos Pendentes?** (`communication.send_enviar_convites_para_todos_os_`) — _documented_, friction 5.0 — [Como enviar convites para todos os alunos pendente](https://ajuda.classapp.com.br/hc/pt-br/articles/360001124153-Como-enviar-convites-para-todos-os-alunos-pendentes)
+  - Enviar Convites Para Todos Os Alunos Pendentes?. Note: ⚠️ importante: Ao enviar os convites, é possível enviar somente para o email ou para o celular, então se você gostaria d.
+- **Enviar Formulários Pelo Classapp** (`communication.send_enviar_formularios_pelo_classa`) — _documented_, friction 1.8 — [Como Enviar Formulários pelo ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360057826633-Como-Enviar-Formul%C3%A1rios-pelo-ClassApp)
+  - Enviar Formulários Pelo Classapp.
+- **Enviar Imagens Pelo Classapp?** (`communication.send_enviar_imagens_pelo_classapp`) — _documented_, friction 0.0 — [Como enviar imagens pelo ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/115001049408-Como-enviar-imagens-pelo-ClassApp)
+  - Enviar Imagens Pelo Classapp?.
+- **Enviar Um Comunicado Em Rede?** (`communication.send_enviar_um_comunicado_em_rede`) — _documented_, friction 8.5 — [Como enviar um comunicado em rede?](https://ajuda.classapp.com.br/hc/pt-br/articles/33088662373019-Como-enviar-um-comunicado-em-rede)
+  - Enviar Um Comunicado Em Rede?. Note: #### ⚠️Regras importantes para envio de comunicados em rede.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Enviar Um Novo Convite Aos Responsáveis, Alunos E Funcionários Da Instituição? 📄** (`communication.send_enviar_um_novo_convite_aos_res`) — _documented_, friction 1.5 — [Como enviar um novo convite aos responsáveis, alun](https://ajuda.classapp.com.br/hc/pt-br/articles/360000296973-Como-enviar-um-novo-convite-aos-respons%C3%A1veis-alunos-e-funcion%C3%A1rios-da-institui%C3%A7%C3%A3o)
+  - Enviar Um Novo Convite Aos Responsáveis, Alunos E Funcionários Da Instituição? 📄.
+- **Enviar Um Pdf Em Uma Mensagem/Comunicado?** (`communication.send_enviar_um_pdf_em_uma_mensagem_`) — _documented_, friction 2.0 — [Como enviar um pdf em uma mensagem/comunicado?](https://ajuda.classapp.com.br/hc/pt-br/articles/360034689853-Como-enviar-um-pdf-em-uma-mensagem-comunicado)
+  - Enviar Um Pdf Em Uma Mensagem/Comunicado?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Enviar Uma Resposta Na Mensagem?** (`communication.send_enviar_uma_resposta_na_mensage`) — _documented_, friction 0.0 — [Como enviar uma resposta na mensagem?](https://ajuda.classapp.com.br/hc/pt-br/articles/11776854385563-Como-enviar-uma-resposta-na-mensagem)
+  - Enviar Uma Resposta Na Mensagem?.
+- **Enviar Vídeos Pelo Classapp 📽️** (`communication.send_enviar_videos_pelo_classapp`) — _documented_, friction 4.6 — [Como enviar vídeos pelo ClassApp 📽️](https://ajuda.classapp.com.br/hc/pt-br/articles/360013611614-Como-enviar-v%C3%ADdeos-pelo-ClassApp)
+  - Enviar Vídeos Pelo Classapp 📽️.
+- **Enviar Áudios? 🎙️** (`communication.send_enviar_audios`) — _documented_, friction 8.5 — [Como enviar áudios? 🎙️](https://ajuda.classapp.com.br/hc/pt-br/articles/360053174813-Como-enviar-%C3%A1udios)
+  - Enviar Áudios? 🎙️. Note: ##### ⚠️ Importante: A gravação de áudios está disponível apenas a partir da versão 4.18 do ClassApp. Se necessário, atu.
+- **Exportar Contratos Assinados No Módulo De Matrículas?** (`communication.export_exportar_contratos_assinados_n`) — _documented_, friction 5.0 — [Como exportar contratos assinados no módulo de mat](https://ajuda.classapp.com.br/hc/pt-br/articles/4411037735835-Como-exportar-contratos-assinados-no-m%C3%B3dulo-de-matr%C3%ADculas)
+  - Exportar Contratos Assinados No Módulo De Matrículas?. Note: ⚠️ importante: O arquivo recebido será compactado em formato ZIP, facilitando o armazenamento e transferência. Dentro do.
+- **Exportar Dados De Pessoas No Classapp** (`communication.export_exportar_dados_de_pessoas_no_c`) — _documented_, friction 0.0 — [Como exportar dados de pessoas no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/115003978433-Como-exportar-dados-de-pessoas-no-ClassApp)
+  - Exportar Dados De Pessoas No Classapp.
+- **Exportar Formulários No Módulo De Matrículas?** (`communication.export_exportar_formularios_no_modulo`) — _documented_, friction 0.0 — [Como exportar formulários no módulo de matrículas?](https://ajuda.classapp.com.br/hc/pt-br/articles/4411055069339-Como-exportar-formul%C3%A1rios-no-m%C3%B3dulo-de-matr%C3%ADculas)
+  - Exportar Formulários No Módulo De Matrículas?.
+- **Filtros: Organizando Os Atendimentos Do Meu Canal 📄** (`communication.manage_filtros_organizando_os_atendim`) — _documented_, friction 3.5 — [Filtros: organizando os atendimentos do meu Canal ](https://ajuda.classapp.com.br/hc/pt-br/articles/22124443168155-Filtros-organizando-os-atendimentos-do-meu-Canal)
+  - Filtros: Organizando Os Atendimentos Do Meu Canal 📄. Note: Observação: Estes filtros só aparecerão para canais que possuem status de atendimento. Canais de atendimento simples não.
+- **Formatar Textos Na Composição De Mensagens?** (`communication.manage_formatar_textos_na_composicao_`) — _documented_, friction 3.5 — [Como formatar textos na composição de mensagens?](https://ajuda.classapp.com.br/hc/pt-br/articles/360002721613-Como-formatar-textos-na-composi%C3%A7%C3%A3o-de-mensagens)
+  - Formatar Textos Na Composição De Mensagens?. Note: Quer dar ênfase a um aviso importante? Use o preenchimento de cor!.
+- **Funciona A Avaliação Csat Nos Canais De Atendimento?** (`communication.manage_funciona_a_avaliacao_csat_nos_`) — _documented_, friction 10.5 — [Como Funciona a Avaliação CSAT nos Canais de Atend](https://ajuda.classapp.com.br/hc/pt-br/articles/23071855894683-Como-Funciona-a-Avalia%C3%A7%C3%A3o-CSAT-nos-Canais-de-Atendimento)
+  - Funciona A Avaliação Csat Nos Canais De Atendimento?. Note: Acompanhar a qualidade e a eficiência dos atendimentos é essencial para melhorar a comunicação com as famílias. O CSAT (.
+- **Guia De Orientações Para Uso De Contratos Padrão** (`communication.manage_guia_de_orientacoes_para_uso_d`) — _documented_, friction 8.5 — [Guia de Orientações para uso de Contratos Padrão](https://ajuda.classapp.com.br/hc/pt-br/articles/17086038698779-Guia-de-Orienta%C3%A7%C3%B5es-para-uso-de-Contratos-Padr%C3%A3o)
+  - Guia De Orientações Para Uso De Contratos Padrão. Note: 💡DICA: É recomendado que, entre os dados solicitados no Formulário de Propostas, as escolas incluam o endereço do Contra.
+- **Habilitar A Comunicação Entre Funcionários No Classapp** (`communication.manage_habilitar_a_comunicacao_entre_`) — _documented_, friction 5.0 — [Como habilitar a comunicação entre funcionários no](https://ajuda.classapp.com.br/hc/pt-br/articles/360004905893-Como-habilitar-a-comunica%C3%A7%C3%A3o-entre-funcion%C3%A1rios-no-ClassApp)
+  - Habilitar A Comunicação Entre Funcionários No Classapp. Note: ⚠ Importante: Essa opção não permite que alunos se comuniquem entre si, apenas habilita a troca de mensagens entre os fu.
+- **Histórico De Comunicados E Mídias No Classapp** (`communication.manage_historico_de_comunicados_e_mid`) — _documented_, friction 6.5 — [Histórico de comunicados e mídias no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/40974406445083-Hist%C3%B3rico-de-comunicados-e-m%C3%ADdias-no-ClassApp)
+  - Histórico De Comunicados E Mídias No Classapp. Note: Ao entrar em contato com o suporte, é importante informar com clareza qual tipo de histórico você deseja:.
+- **Iniciar Uma Conversa Com A Escola No Classapp?📄** (`communication.manage_iniciar_uma_conversa_com_a_esc`) — _documented_, friction 0.0 — [Como iniciar uma conversa com a escola no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/22122298021019-Como-iniciar-uma-conversa-com-a-escola-no-ClassApp)
+  - Iniciar Uma Conversa Com A Escola No Classapp?📄.
+- **Interpretando Os Dados Na Aba Conversas Do Dashboard** (`communication.manage_interpretando_os_dados_na_aba_`) — _documented_, friction 6.5 — [Interpretando os dados na aba Conversas do Dashboa](https://ajuda.classapp.com.br/hc/pt-br/articles/22133076863259-Interpretando-os-dados-na-aba-Conversas-do-Dashboard)
+  - Interpretando Os Dados Na Aba Conversas Do Dashboard. Note: ⚠️ Importante: Os dados ficam disponíveis apenas para os canais configurados com status de atendimento. No caso de canai.
+- **Lei Geral De Proteção De Dados (Lgpd) No Classapp: Medidas E Esclarecimentos** (`communication.manage_lei_geral_de_protecao_de_dados`) — _documented_, friction 3.0 — [Lei Geral de Proteção de Dados (LGPD) no ClassApp:](https://ajuda.classapp.com.br/hc/pt-br/articles/4405490464411-Lei-Geral-de-Prote%C3%A7%C3%A3o-de-Dados-LGPD-no-ClassApp-Medidas-e-Esclarecimentos)
+  - Lei Geral De Proteção De Dados (Lgpd) No Classapp: Medidas E Esclarecimentos.
+- **Marcar As Mensagens Como Lidas No Classapp?** (`communication.manage_marcar_as_mensagens_como_lidas`) — _documented_, friction 5.0 — [Como marcar as mensagens como lidas no ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/360008628254-Como-marcar-as-mensagens-como-lidas-no-ClassApp)
+  - Marcar As Mensagens Como Lidas No Classapp?. Note: ⚠️ Importante: Ao selecionar todas as mensagens, apenas as da primeira página serão incluídas. Para marcar outras página.
+- **Marcar Uma Mensagem Como Importante No Classapp** (`communication.manage_marcar_uma_mensagem_como_impor`) — _documented_, friction 10.5 — [Como marcar uma mensagem como importante no ClassA](https://ajuda.classapp.com.br/hc/pt-br/articles/360004085993-Como-marcar-uma-mensagem-como-importante-no-ClassApp)
+  - Marcar Uma Mensagem Como Importante No Classapp. Note: Ao compor uma mensagem no ClassApp, é possível sinalizá-la como importante. Assim, os destinatários verão uma estrelinha.
+- **Mudar Os Alunos De Turma No Classapp?** (`communication.manage_mudar_os_alunos_de_turma_no_cl`) — _documented_, friction 7.0 — [Como mudar os alunos de turma no ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/115003707453-Como-mudar-os-alunos-de-turma-no-ClassApp)
+  - Mudar Os Alunos De Turma No Classapp?. Note: ⚠️ Importante: Existem duas opções:.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Notificar Responsáveis Sobre Ações Pendentes Em Uma Campanha De Matrícula?** (`communication.send_notificar_responsaveis_sobre_a`) — _documented_, friction 0.0 — [Como notificar responsáveis sobre ações pendentes ](https://ajuda.classapp.com.br/hc/pt-br/articles/360059095993-Como-notificar-respons%C3%A1veis-sobre-a%C3%A7%C3%B5es-pendentes-em-uma-campanha-de-matr%C3%ADcula)
+  - Notificar Responsáveis Sobre Ações Pendentes Em Uma Campanha De Matrícula?.
+- **Não Recebi O Convite Para Cadastro No Classapp** (`communication.resolve_nao_recebi_o_convite_para_cada`) — _troubleshooting_, friction 5.5 — [Não recebi o convite para cadastro no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/236034248-N%C3%A3o-recebi-o-convite-para-cadastro-no-ClassApp)
+  - Não Recebi O Convite Para Cadastro No Classapp.
+- **O Que Fazer Se Alguém Não Recebeu Uma Mensagem?** (`communication.manage_o_que_fazer_se_alguem_nao_rece`) — _documented_, friction 0.0 — [O que fazer se alguém não recebeu uma mensagem?](https://ajuda.classapp.com.br/hc/pt-br/articles/360004904653-O-que-fazer-se-algu%C3%A9m-n%C3%A3o-recebeu-uma-mensagem)
+  - O Que Fazer Se Alguém Não Recebeu Uma Mensagem?.
+- **O Que São Comunicados Em Rede E Como Funcionam?** (`communication.manage_o_que_sao_comunicados_em_rede_`) — _documented_, friction 0.0 — [O que são Comunicados em Rede e como funcionam?](https://ajuda.classapp.com.br/hc/pt-br/articles/33088464857115-O-que-s%C3%A3o-Comunicados-em-Rede-e-como-funcionam)
+  - O Que São Comunicados Em Rede E Como Funcionam?.
+- **Passo 3: Divulgando Sua Campanha** (`communication.manage_passo_3_divulgando_sua_campanh`) — _documented_, friction 2.0 — [Passo 3: Divulgando sua campanha](https://ajuda.classapp.com.br/hc/pt-br/articles/4404549295259-Passo-3-Divulgando-sua-campanha)
+  - Passo 3: Divulgando Sua Campanha. Note: Além disso, você tem a possibilidade de anexar até 10 arquivos na mensagem, tanto PDF's, como outros tipos de arquivo (W.
+- **Posso Denunciar Um Conteúdo Impróprio?** (`communication.manage_posso_denunciar_um_conteudo_im`) — _documented_, friction 0.3 — [Como posso denunciar um conteúdo impróprio?](https://ajuda.classapp.com.br/hc/pt-br/articles/5221976107675-Como-posso-denunciar-um-conte%C3%BAdo-impr%C3%B3prio)
+  - Posso Denunciar Um Conteúdo Impróprio?.
+- **Privacidade E Proteção De Dados** (`communication.manage_privacidade_e_protecao_de_dado`) — _documented_, friction 8.5 — [FAQ - PRIVACIDADE E PROTEÇÃO DE DADOS](https://ajuda.classapp.com.br/hc/pt-br/articles/41992114516507-FAQ-PRIVACIDADE-E-PROTE%C3%87%C3%83O-DE-DADOS)
+  - Privacidade E Proteção De Dados. Note: Tem alguns dados que falam sobre partes mais sensíveis da sua vida, e esses merecem uma atenção especial! ⚠️.
+- **Procurar Minhas Conversas?** (`communication.manage_procurar_minhas_conversas`) — _documented_, friction 5.0 — [Como procurar minhas Conversas?](https://ajuda.classapp.com.br/hc/pt-br/articles/22122714075803-Como-procurar-minhas-Conversas)
+  - Procurar Minhas Conversas?. Note: ⚠️ Importante: O histórico da conversa individual entre um único responsável e o canal de atendimento fica separada de c.
+- **Qual A Diferença Entre Os Menus Comunicados E Conversas No Classapp? 📄** (`communication.manage_qual_a_diferenca_entre_os_menu`) — _documented_, friction 0.0 — [Qual a diferença entre os menus Comunicados e Conv](https://ajuda.classapp.com.br/hc/pt-br/articles/22122530658459-Qual-a-diferen%C3%A7a-entre-os-menus-Comunicados-e-Conversas-no-ClassApp)
+  - Qual A Diferença Entre Os Menus Comunicados E Conversas No Classapp? 📄.
+- **Qual É A Diferença Entre Grupo, Pessoas E Canal?** (`communication.manage_qual_e_a_diferenca_entre_grupo`) — _documented_, friction 0.0 — [Qual é a diferença entre Grupo, Pessoas e Canal?](https://ajuda.classapp.com.br/hc/pt-br/articles/360002542513-Qual-%C3%A9-a-diferen%C3%A7a-entre-Grupo-Pessoas-e-Canal)
+  - Qual É A Diferença Entre Grupo, Pessoas E Canal?.
+- **Quanto Espaço O Classapp Ocupa?** (`communication.manage_quanto_espaco_o_classapp_ocupa`) — _documented_, friction 3.5 — [Quanto espaço o ClassApp ocupa?](https://ajuda.classapp.com.br/hc/pt-br/articles/236085668-Quanto-espa%C3%A7o-o-ClassApp-ocupa)
+  - Quanto Espaço O Classapp Ocupa?. Note: Observação: Verifique regularmente o armazenamento do seu dispositivo para garantir que há espaço suficiente para novas .
+- **Realizar A Atualização De Alunos No Classapp Para Escolas Com Integração Gennera** (`communication.manage_realizar_a_atualizacao_de_alun`) — _documented_, friction 12.2 — [Como realizar a atualização de alunos no ClassApp ](https://ajuda.classapp.com.br/hc/pt-br/articles/31764673466779-Como-realizar-a-atualiza%C3%A7%C3%A3o-de-alunos-no-ClassApp-para-escolas-com-integra%C3%A7%C3%A3o-Gennera)
+  - Realizar A Atualização De Alunos No Classapp Para Escolas Com Integração Gennera. Note: ⚠️ Avisos importantes:.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Recuperar Mensagens Excluídas No Classapp?** (`communication.manage_recuperar_mensagens_excluidas_`) — _documented_, friction 3.5 — [Como recuperar mensagens excluídas no ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/4410488275995-Como-recuperar-mensagens-exclu%C3%ADdas-no-ClassApp)
+  - Recuperar Mensagens Excluídas No Classapp?.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Recuperar Sua Senha No Classapp** (`communication.manage_recuperar_sua_senha_no_classap`) — _documented_, friction 0.0 — [Como recuperar sua senha no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/115001065687-Como-recuperar-sua-senha-no-ClassApp)
+  - Recuperar Sua Senha No Classapp.
+- **Reenviar Propostas Pendentes Em Massa** (`communication.send_reenviar_propostas_pendentes_e`) — _documented_, friction 10.5 — [Reenviar propostas pendentes em massa](https://ajuda.classapp.com.br/hc/pt-br/articles/9758977689371-Reenviar-propostas-pendentes-em-massa)
+  - Reenviar Propostas Pendentes Em Massa. Note: Feito isso, preencha os campos com as novas informações de proposta, revise com cuidado para verificar se todas as infor.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Remover O Acesso De Um Funcionário A Um Canal De Atendimento No Classapp** (`communication.delete_remover_o_acesso_de_um_funcion`) — _documented_, friction 7.5 — [Como remover o acesso de um funcionário a um canal](https://ajuda.classapp.com.br/hc/pt-br/articles/11509868756635-Como-remover-o-acesso-de-um-funcion%C3%A1rio-a-um-canal-de-atendimento-no-ClassApp)
+  - Remover O Acesso De Um Funcionário A Um Canal De Atendimento No Classapp. Note: ⚠️ Esse passo é crucial para garantir que o funcionário não tenha mais acesso ao canal!.
+- **Remover Perfis Antigos No Classapp** (`communication.delete_remover_perfis_antigos_no_clas`) — _documented_, friction 7.0 — [Como remover perfis antigos no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/5783530055579-Como-remover-perfis-antigos-no-ClassApp)
+  - Remover Perfis Antigos No Classapp. Note: ⚠️ Importante: Ao remover um perfil, você não terá mais acesso ao histórico de mensagens trocadas. Certifique-se de que .
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Renomear Grupos No Classapp** (`communication.manage_renomear_grupos_no_classapp`) — _documented_, friction 3.5 — [Como renomear grupos no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/115003980474-Como-renomear-grupos-no-ClassApp)
+  - Renomear Grupos No Classapp. Note: Observação: Evite usar nomes duplicados. Para diferenciar grupos antigos de novos, sugerimos adicionar o ano ao nome, co.
+- **Resolver Duplicidade De Cadastros No Classapp** (`communication.create_resolver_duplicidade_de_cadast`) — _documented_, friction 2.0 — [Como resolver duplicidade de cadastros no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360007840434-Como-resolver-duplicidade-de-cadastros-no-ClassApp)
+  - Resolver Duplicidade De Cadastros No Classapp. Note: ✨ Como no ClassApp não é possível ter dois cadastros exatamente com os mesmos nomes, o sistema notifica com essa mensage.
+- **Saber Quem Ainda Não Se Cadastrou No Classapp?** (`communication.create_saber_quem_ainda_nao_se_cadast`) — _documented_, friction 0.0 — [Como saber quem ainda não se cadastrou no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360004898733-Como-saber-quem-ainda-n%C3%A3o-se-cadastrou-no-ClassApp)
+  - Saber Quem Ainda Não Se Cadastrou No Classapp?.
+- **Saber Se O Colégio Recebeu Minha Mensagem?** (`communication.manage_saber_se_o_colegio_recebeu_min`) — _documented_, friction 3.5 — [Como saber se o colégio recebeu minha mensagem?](https://ajuda.classapp.com.br/hc/pt-br/articles/115001012467-Como-saber-se-o-col%C3%A9gio-recebeu-minha-mensagem)
+  - Saber Se O Colégio Recebeu Minha Mensagem?. Note: Observação: Certifique-se de que você está acessando a mensagem correta e verificando as informações no momento certo pa.
+- **Status: Organizando Os Atendimentos Dos Canais** (`communication.manage_status_organizando_os_atendime`) — _documented_, friction 0.0 — [Status: organizando os atendimentos dos canais](https://ajuda.classapp.com.br/hc/pt-br/articles/22124192314779-Status-organizando-os-atendimentos-dos-canais)
+  - Status: Organizando Os Atendimentos Dos Canais.
+- **Transformar Um Canal De Atendimento Em Perfil De Pessoa No Classapp** (`communication.manage_transformar_um_canal_de_atendi`) — _documented_, friction 0.0 — [Como transformar um canal de atendimento em perfil](https://ajuda.classapp.com.br/hc/pt-br/articles/5066512499483-Como-transformar-um-canal-de-atendimento-em-perfil-de-pessoa-no-ClassApp)
+  - Transformar Um Canal De Atendimento Em Perfil De Pessoa No Classapp.
+- **Transformar Um Funcionário Em Administrador?** (`communication.manage_transformar_um_funcionario_em_`) — _documented_, friction 5.0 — [Como transformar um funcionário em Administrador?](https://ajuda.classapp.com.br/hc/pt-br/articles/115003431593-Como-transformar-um-funcion%C3%A1rio-em-Administrador)
+  - Transformar Um Funcionário Em Administrador?. Note: ⚠️ Importante: Caso o perfil do funcionário esteja na aba "Canais", é necessário transformá-lo em "Pessoa" primeiro para.
+- **Trocar O Logo E A Capa Do Colégio?** (`communication.manage_trocar_o_logo_e_a_capa_do_cole`) — _documented_, friction 0.3 — [Como trocar o logo e a capa do colégio?](https://ajuda.classapp.com.br/hc/pt-br/articles/360001414374-Como-trocar-o-logo-e-a-capa-do-col%C3%A9gio)
+  - Trocar O Logo E A Capa Do Colégio?.
+- **Utilizar A Funcionalidade "Momentos"?** (`communication.manage_utilizar_a_funcionalidade_mome`) — _documented_, friction 10.5 — [Como utilizar a funcionalidade "Momentos"?](https://ajuda.classapp.com.br/hc/pt-br/articles/360002724693-Como-utilizar-a-funcionalidade-Momentos)
+  - Utilizar A Funcionalidade "Momentos"?. Note: (Importante: Todos os usuários são automaticamente selecionados como destinatários. Caso queira remover alguém, clique n.
+- **Utilizar A Função De Rascunho No Classapp** (`communication.manage_utilizar_a_funcao_de_rascunho_`) — _documented_, friction 5.5 — [Como utilizar a função de rascunho no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360000682154-Como-utilizar-a-fun%C3%A7%C3%A3o-de-rascunho-no-ClassApp)
+  - Utilizar A Função De Rascunho No Classapp. Note: Importante: uma vez que a mensagem é enviada, não é possível editá-la, apenas enquanto estiver como rascunho..
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Utilizar Acessos Externos No Classapp Para Compartilhar Arquivos** (`communication.manage_utilizar_acessos_externos_no_c`) — _documented_, friction 9.7 — [Como utilizar acessos externos no ClassApp para co](https://ajuda.classapp.com.br/hc/pt-br/articles/14480946425243-Como-utilizar-acessos-externos-no-ClassApp-para-compartilhar-arquivos)
+  - Utilizar Acessos Externos No Classapp Para Compartilhar Arquivos. Note: Desse modo, no tutorial a seguir você encontrará como utilizar o Google Drive para compartilhar anexos, planilhas e docu.
+- **Utilizar As Opções De Formatação No Classapp?** (`communication.manage_utilizar_as_opcoes_de_formatac`) — _documented_, friction 10.5 — [Como utilizar as opções de formatação no ClassApp?](https://ajuda.classapp.com.br/hc/pt-br/articles/360033772733-Como-utilizar-as-op%C3%A7%C3%B5es-de-formata%C3%A7%C3%A3o-no-ClassApp)
+  - Utilizar As Opções De Formatação No Classapp?. Note: Ao compor uma mensagem no ClassApp (disponível apenas na versão web pelo link classapp.com.br/auth), você tem à disposiç.
+- **Utilizar O Novo Recurso De Arquivos No Classapp** (`communication.manage_utilizar_o_novo_recurso_de_arq`) — _documented_, friction 7.0 — [Como utilizar o novo recurso de Arquivos no ClassA](https://ajuda.classapp.com.br/hc/pt-br/articles/25171164448155-Como-utilizar-o-novo-recurso-de-Arquivos-no-ClassApp)
+  - Utilizar O Novo Recurso De Arquivos No Classapp. Note: O novo recurso de Arquivos da ClassApp foi desenvolvido para facilitar ainda mais a troca de informações importantes ent.
+- **Utilizar Os Tempos De Resposta Nos Canais Do Classapp** (`communication.manage_utilizar_os_tempos_de_resposta`) — _documented_, friction 5.0 — [Como utilizar os Tempos de Resposta nos canais do ](https://ajuda.classapp.com.br/hc/pt-br/articles/4410652144539-Como-utilizar-os-Tempos-de-Resposta-nos-canais-do-ClassApp)
+  - Utilizar Os Tempos De Resposta Nos Canais Do Classapp. Note: ⚠️ Importante: Lembre-se de ajustar o filtro de data para os últimos 7 dias para garantir a visualização correta dos tem.
+- **Validade Jurídica E Segurança Digital No Classapp** (`communication.manage_validade_juridica_e_seguranca_`) — _documented_, friction 2.0 — [Validade jurídica e segurança digital no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/115002372074-Validade-jur%C3%ADdica-e-seguran%C3%A7a-digital-no-ClassApp)
+  - Validade Jurídica E Segurança Digital No Classapp.
+  - Preconditions: implicit prerequisite mentioned in article body
+- **Verificar A Versão Do Classapp No Seu Celular** (`communication.manage_verificar_a_versao_do_classapp`) — _documented_, friction 7.0 — [Como verificar a versão do ClassApp no seu celular](https://ajuda.classapp.com.br/hc/pt-br/articles/115003833614-Como-verificar-a-vers%C3%A3o-do-ClassApp-no-seu-celular)
+  - Verificar A Versão Do Classapp No Seu Celular. Note: Para garantir que você esteja utilizando a versão mais recente do ClassApp, é importante saber como verificar a versão d.
+- **Verificar E Recuperar Mensagens Apagadas No Classapp?** (`communication.manage_verificar_e_recuperar_mensagen`) — _documented_, friction 8.5 — [Como verificar e recuperar mensagens apagadas no C](https://ajuda.classapp.com.br/hc/pt-br/articles/29595147180827-Como-verificar-e-recuperar-mensagens-apagadas-no-ClassApp)
+  - Verificar E Recuperar Mensagens Apagadas No Classapp?. Note: ⚠️ Atenção: Não é possível acessar respostas apagadas..
+- **Verificar Mensagens Arquivadas No Classapp** (`communication.manage_verificar_mensagens_arquivadas`) — _documented_, friction 0.0 — [Como verificar mensagens arquivadas no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/360004083853-Como-verificar-mensagens-arquivadas-no-ClassApp)
+  - Verificar Mensagens Arquivadas No Classapp.
+- **Verificar Meus Comunicados Não Lidos?** (`communication.manage_verificar_meus_comunicados_nao`) — _documented_, friction 3.8 — [Como verificar meus comunicados não lidos?](https://ajuda.classapp.com.br/hc/pt-br/articles/115005094954-Como-verificar-meus-comunicados-n%C3%A3o-lidos)
+  - Verificar Meus Comunicados Não Lidos?. Note: Observação: Para mais informações e dicas sobre o uso dos filtros e verificação de comunicados, acesse nosso artigo: Dic.
+- **Verificar Os Acessos Externos?** (`communication.manage_verificar_os_acessos_externos`) — _documented_, friction 3.0 — [Como verificar os acessos externos?](https://ajuda.classapp.com.br/hc/pt-br/articles/1260803817990-Como-verificar-os-acessos-externos)
+  - Verificar Os Acessos Externos?.
+- **Verificar Os Dados E Usuários Cadastrados Em Um Perfil?** (`communication.create_verificar_os_dados_e_usuarios_`) — _documented_, friction 3.5 — [Como verificar os dados e usuários cadastrados em ](https://ajuda.classapp.com.br/hc/pt-br/articles/360000546714-Como-verificar-os-dados-e-usu%C3%A1rios-cadastrados-em-um-perfil)
+  - Verificar Os Dados E Usuários Cadastrados Em Um Perfil?. Note: Quando as famílias e funcionários trouxerem essa dificuldade de login, é importante verificar quais contatos estão cadas.
+- **Virada De Ano 2026: Importador/Manual - Como Atualizar Os Dados Do Classapp Na V** (`communication.update_virada_de_ano_2026_importador_`) — _documented_, friction 8.5 — [Virada de ano 2026: Importador/Manual - Como atual](https://ajuda.classapp.com.br/hc/pt-br/articles/360041384154-Virada-de-ano-2026-Importador-Manual-Como-atualizar-os-dados-do-ClassApp-na-virada-do-ano-letivo)
+  - Virada De Ano 2026: Importador/Manual - Como Atualizar Os Dados Do Classapp Na V. Note: ⚠️ATENÇÃO: Se a sua escola possui integração com um sistema de gestão, não siga o processo abaixo..
+- **Visualizar O Status De Leitura De Mensagens No Classapp** (`communication.view_visualizar_o_status_de_leitura`) — _documented_, friction 10.5 — [Como visualizar o status de leitura de mensagens n](https://ajuda.classapp.com.br/hc/pt-br/articles/7624332620315-Como-visualizar-o-status-de-leitura-de-mensagens-no-ClassApp)
+  - Visualizar O Status De Leitura De Mensagens No Classapp. Note: Quando você envia uma mensagem, pode ser importante visualizar informações sobre o recebimento e leitura pelos destinatá.
+- **Visualizar Os Termos De Uso E Privacidade Do Classapp?** (`communication.view_visualizar_os_termos_de_uso_e_`) — _documented_, friction 0.0 — [Como visualizar os Termos de Uso e Privacidade do ](https://ajuda.classapp.com.br/hc/pt-br/articles/12772872546587-Como-visualizar-os-Termos-de-Uso-e-Privacidade-do-ClassApp)
+  - Visualizar Os Termos De Uso E Privacidade Do Classapp?.
+
+## Student
+
+- **Alterar A Turma De Um Aluno No Classapp** (`communication.update_alterar_a_turma_de_um_aluno_no`) — _documented_, friction 0.0 — [Como alterar a turma de um aluno no ClassApp](https://ajuda.classapp.com.br/hc/pt-br/articles/115001051288-Como-alterar-a-turma-de-um-aluno-no-ClassApp)
+  - Alterar A Turma De Um Aluno No Classapp.
+- **Completar Os Dados Cadastrais Do Aluno Pelo Aplicativo** (`communication.create_completar_os_dados_cadastrais_`) — _documented_, friction 10.5 — [Completar os dados cadastrais do aluno pelo aplica](https://ajuda.classapp.com.br/hc/pt-br/articles/32904436694299-Completar-os-dados-cadastrais-do-aluno-pelo-aplicativo)
+  - Completar Os Dados Cadastrais Do Aluno Pelo Aplicativo. Note: Essas informações são importantes para melhorar ainda mais sua experiência com o aplicativo, uma vez que garantem um cad.
+- **Desabilitar O Perfil De Um Aluno Ou Funcionário Em Massa No Classapp** (`communication.manage_desabilitar_o_perfil_de_um_alu`) — _documented_, friction 3.5 — [Como desabilitar o perfil de um aluno ou funcionár](https://ajuda.classapp.com.br/hc/pt-br/articles/115001625047-Como-desabilitar-o-perfil-de-um-aluno-ou-funcion%C3%A1rio-em-massa-no-ClassApp)
+  - Desabilitar O Perfil De Um Aluno Ou Funcionário Em Massa No Classapp. Note: Se um aluno ou funcionário deixar a escola, é importante desabilitar o perfil para que ele não envie ou receba novas men.
+- **Enviar Um Contrato De Matrícula Personalizado Para Cada Aluno?** (`communication.send_enviar_um_contrato_de_matricul`) — _documented_, friction 5.0 — [Como enviar um contrato de matrícula personalizado](https://ajuda.classapp.com.br/hc/pt-br/articles/8152092730011-Como-enviar-um-contrato-de-matr%C3%ADcula-personalizado-para-cada-aluno)
+  - Enviar Um Contrato De Matrícula Personalizado Para Cada Aluno?. Note: ⚠️Importante: Se o contrato estiver aceito e a antecipação paga também, não é mais possível reenviar o contrato, caso ha.
+- **📌 Visualização De Comunicados Por Diferentes Responsáveis De Um Mesmo Aluno Ou C** (`communication.manage_visualizacao_de_comunicados_po`) — _documented_, friction 1.5 — [📌 Visualização de comunicados por diferentes respo](https://ajuda.classapp.com.br/hc/pt-br/articles/37962587362971--Visualiza%C3%A7%C3%A3o-de-comunicados-por-diferentes-respons%C3%A1veis-de-um-mesmo-aluno-ou-canal)
+  - 📌 Visualização De Comunicados Por Diferentes Responsáveis De Um Mesmo Aluno Ou C.
+
+## Teacher
+
+- **Ativar A "Comunicação Interna" Para Professores No Classapp** (`communication.manage_ativar_a_comunicacao_interna_p`) — _documented_, friction 2.0 — [Como ativar a "comunicação interna" para professor](https://ajuda.classapp.com.br/hc/pt-br/articles/115002479114-Como-ativar-a-comunica%C3%A7%C3%A3o-interna-para-professores-no-ClassApp)
+  - Ativar A "Comunicação Interna" Para Professores No Classapp.
+  - Preconditions: implicit prerequisite mentioned in article body

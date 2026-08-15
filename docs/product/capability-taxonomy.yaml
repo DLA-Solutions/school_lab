@@ -1,0 +1,1846 @@
+# Canonical capability taxonomy — edit this file, not capability-taxonomy.md.
+#
+# Regenerate MD:
+#   python3 .cursor/skills/docs/corpus-concorrente/scripts/capabilities.py \
+#     --generate-taxonomy-md --taxonomy docs/product/capability-taxonomy.yaml
+# Sync billing aliases:
+#   python3 .cursor/skills/docs/corpus-concorrente/scripts/capabilities.py \
+#     --sync-billing-aliases --taxonomy docs/product/capability-taxonomy.yaml \
+#     --aliases docs/ref/capability-aliases.jsonl
+# Sync domain aliases (billing | communication | academic | students | identity | platform):
+#   python3 .cursor/skills/docs/corpus-concorrente/scripts/capabilities.py \
+#     --sync-aliases --domain identity --taxonomy docs/product/capability-taxonomy.yaml \
+#     --aliases docs/ref/capability-aliases.jsonl
+version: 1
+capabilities:
+  - id: billing.issue_charge
+    label: "Issue charge to guardian"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Core enrollment receivables (débito + parcelas); extensions per segment PRD."
+    divergence_ref: DIV-financial-001
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.manage_payment_plan
+    label: "Configure payment plans and installment schedules"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Plans drive parcel generation; tie to enrollment contracts."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.manage_charge_types
+    label: "Configure charge types and categories"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Typed debits with chart-of-accounts mapping."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.issue_boleto
+    label: "Generate boleto for charge"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Automated boleto generation and tracking in app."
+    prd_target: prds/billing/boletos.md
+    aliases: []
+  - id: billing.integrate_boleto_bank
+    label: "Configure boleto bank remittance integration"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Abstract bank integration; guided onboarding."
+    divergence_ref: DIV-financial-002
+    prd_target: prds/billing/boletos.md
+    aliases: []
+  - id: billing.resend_boleto
+    label: "Resend boleto to guardian"
+    domain: billing
+    actors: [staff, guardian]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Staff-triggered resend; WhatsApp as adapter."
+    prd_target: prds/billing/boletos.md
+    aliases: []
+  - id: billing.track_boleto_status
+    label: "Track boleto registration and settlement"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Never lose billing state; webhook + manual reconciliation."
+    prd_target: prds/billing/boletos.md
+    aliases: []
+  - id: billing.send_boleto_remittance
+    label: "Send boleto remittance file to bank"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "CNAB/remessa batch export."
+    prd_target: prds/billing/boletos.md
+    aliases: []
+  - id: billing.accept_pix_payment
+    label: "Accept Pix payment"
+    domain: billing
+    actors: [staff, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Pix QR and copy-paste via payment gateway."
+    divergence_ref: DIV-financial-002
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.accept_card_payment
+    label: "Accept card payment"
+    domain: billing
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Checkout for guardians; gateway abstracted."
+    divergence_ref: DIV-financial-002
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.manage_recurring_card
+    label: "Manage recurring card billing"
+    domain: billing
+    actors: [staff, guardian]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Opt-in recurring card with clear consent."
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.record_manual_payment
+    label: "Record manual payment receipt"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Cash, negotiation, or external transfer with audit."
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.manage_cash_register
+    label: "Treasury and cash register operations"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Meu caixa pattern: receipts, expenses, cost centers."
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.process_batch_payment
+    label: "Process batch payments"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Batch settlement and bulk status updates."
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.onboard_payment_gateway
+    label: "Onboard payment gateway (KYC)"
+    domain: billing
+    actors: [staff, backoffice]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Guided gateway onboarding; abstract provider."
+    divergence_ref: DIV-financial-002
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.configure_payment_gateway
+    label: "Configure payment gateway settings"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Fees, settlement accounts, enabled methods."
+    divergence_ref: DIV-financial-002
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.view_delinquency_dashboard
+    label: "View delinquency dashboard"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Visual overdue portfolio; no surprise automation."
+    divergence_ref: DIV-financial-006
+    prd_target: prds/billing/dunning.md
+    aliases: []
+  - id: billing.build_dunning_workflow
+    label: "Build visual dunning workflow"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Configurable régua with audit trail."
+    divergence_ref: DIV-financial-006
+    prd_target: prds/billing/dunning.md
+    aliases: []
+  - id: billing.send_payment_reminder
+    label: "Send payment reminders"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Email/push/WhatsApp adapters; rules in API."
+    divergence_ref: DIV-financial-006
+    prd_target: prds/billing/dunning.md
+    aliases: []
+  - id: billing.manage_protest
+    label: "Manage boleto protest workflow"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "No protest default; softer dunning first."
+    divergence_ref: DIV-financial-003
+    prd_target: prds/billing/dunning.md
+    aliases: []
+  - id: billing.configure_early_payment_discount
+    label: "Configure tiered early-payment discounts"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Discount by payment day before due date."
+    divergence_ref: DIV-financial-004
+    prd_target: prds/billing/settings.md
+    aliases: []
+  - id: billing.issue_service_invoice
+    label: "Issue NFS-e for tuition services"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Service NF in billing PRD; product NF later."
+    divergence_ref: DIV-financial-005
+    prd_target: prds/billing/invoices.md
+    aliases: []
+  - id: billing.configure_nf_settings
+    label: "Configure service invoice (NF) settings"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Per-city NFS-e parameters when required."
+    divergence_ref: DIV-financial-005
+    prd_target: prds/billing/invoices.md
+    aliases: []
+  - id: billing.meter_digital_signatures
+    label: "Meter digital signatures on contracts"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Transparent metering or plan inclusion."
+    divergence_ref: DIV-financial-007
+    prd_target: prds/billing/invoices.md
+    aliases: []
+  - id: billing.sign_enrollment_contract
+    label: "Collect digital signature on enrollment contract"
+    domain: billing
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Shares signature infra with documents phase 2."
+    divergence_ref: DIV-financial-007
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: billing.manage_guaranteed_revenue
+    label: "Guaranteed revenue (vendor-assumed risk)"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: N/A
+    school_lab_decision: "Out of core; document fintech partner pattern only."
+    divergence_ref: DIV-financial-008
+    aliases: []
+  - id: billing.manage_corporate_payer
+    label: "Manage corporate (PJ) financial payer"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Scoped access + audit for empresa conveniada."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.export_financial_report
+    label: "Export financial reports"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Receivables, cash flow, delinquency exports."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.view_student_receivables
+    label: "View and search student receivables"
+    domain: billing
+    actors: [staff, guardian]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Parcel search by student or guardian."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.import_erp_charges
+    label: "Import charges from external ERP"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Open API for adjunct ERPs."
+    prd_target: prds/billing/settings.md
+    aliases: []
+  - id: billing.sync_erp_financial
+    label: "Sync financial data with ERP"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Bi-directional sync for hybrid stack."
+    prd_target: prds/billing/settings.md
+    aliases: []
+  - id: billing.view_guardian_charges
+    label: "Guardian view open charges"
+    domain: billing
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Parent billing view in app and web."
+    prd_target: prds/billing/guardian-portal.md
+    aliases: []
+  - id: billing.pay_online
+    label: "Guardian pay charges online"
+    domain: billing
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Checkout for boleto, Pix, card."
+    divergence_ref: DIV-financial-002
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.view_payment_history
+    label: "View payment history"
+    domain: billing
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Settled and pending history per family."
+    prd_target: prds/billing/guardian-portal.md
+    aliases: []
+  - id: billing.select_plan_on_enrollment
+    label: "Select payment plan during enrollment"
+    domain: billing
+    actors: [guardian, staff]
+    staff_templates: [secretary]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Trilha step: data → contract → plan → pay."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: billing.pay_enrollment_online
+    label: "Pay during online enrollment"
+    domain: billing
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Payment as enrollment trilha final step."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: billing.configure_billing_notifications
+    label: "Configure billing notification channels"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Explicit per-channel policy for finance pushes."
+    prd_target: prds/billing/dunning.md
+    aliases: []
+  - id: billing.manage_payment_links
+    label: "Manage payment links"
+    domain: billing
+    actors: [staff, guardian]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Shareable links for overdue or ad-hoc pay."
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.negotiate_receivable
+    label: "Mark receivable under negotiation"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Manual negotiation status with audit."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.adjust_charge
+    label: "Adjust charge amount or apply scholarship"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Bolsa, isenção, adjustments with audit."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.cancel_charge
+    label: "Cancel or reverse charge"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Estorno and cancellation with reason code."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.reconcile_bank_statement
+    label: "Reconcile bank statement"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Match settlements to open receivables."
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.view_classpay_dashboard
+    label: "Embedded payment product dashboard"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "ClassPay/ClipPag-like embedded pay reference."
+    divergence_ref: DIV-financial-002
+    prd_target: prds/billing/payments.md
+    aliases: []
+  - id: billing.manage_multi_unit_billing
+    label: "Multi-unit billing reports"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Per-school isolation with group roll-ups."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.manage_financial_operations
+    label: "General financial module operations"
+    domain: billing
+    actors: [staff]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Catch-all for ERP finance tasks pending finer split."
+    prd_target: prds/billing/charges.md
+    aliases: []
+  - id: billing.quality_signal_support
+    label: "Billing help troubleshooting (quality signal)"
+    domain: billing
+    actors: [staff, guardian]
+    surfaces: [web, mobile]
+    phase: N/A
+    school_lab_decision: "Support articles and FAQs — friction signal, not parity target."
+    quality_signal: true
+    aliases: []
+  - id: communication.send_direct_message
+    label: "Send direct message"
+    domain: communication
+    actors: [teacher, guardian, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Official audited channels; MVP priority."
+    divergence_ref: DIV-communication-001
+    prd_target: prds/communication/messages.md
+    aliases: []
+  - id: communication.manage_service_channel
+    label: "Manage service channel with SLA"
+    domain: communication
+    actors: [staff, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Ticket channels with CSAT; family isolation."
+    divergence_ref: DIV-communication-002
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.send_whatsapp_notification
+    label: "Send WhatsApp notification via adapter"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "WhatsApp as adapter; rules in API."
+    divergence_ref: DIV-communication-003
+    prd_target: prds/communication/notifications.md
+    aliases: []
+  - id: communication.update_guardian_profile
+    label: "Guardian progressive profile update"
+    domain: communication
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Progressive profiling; LGPD basis shown."
+    divergence_ref: DIV-communication-004
+    prd_target: prds/identity-and-onboarding/profiles.md
+    aliases: []
+  - id: communication.share_photo_update
+    label: "Share photo update to families"
+    domain: communication
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Photos with retention policy; no vanity feed."
+    divergence_ref: DIV-communication-005
+    prd_target: prds/communication/media.md
+    aliases: []
+  - id: communication.configure_push_policy
+    label: "Configure push notification policy"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Explicit per-channel notification policy."
+    divergence_ref: DIV-communication-007
+    prd_target: prds/communication/notifications.md
+    aliases: []
+  - id: communication.escalate_to_human_support
+    label: "Escalate to human support"
+    domain: communication
+    actors: [staff, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Defer AI; human escalation first."
+    divergence_ref: DIV-communication-006
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.send_mass_announcement
+    label: "Send mass announcement"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Post-MVP mass comms."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.send_group_message
+    label: "Send group or class message"
+    domain: communication
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Group threads with school-scoped recipients; family isolation enforced."
+    divergence_ref: DIV-communication-001
+    prd_target: prds/communication/messages.md
+    aliases: []
+  - id: communication.manage_message_inbox
+    label: "Manage message inbox (read, archive, delete)"
+    domain: communication
+    actors: [teacher, staff, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Audited inbox; bulk archive; read-state per user."
+    prd_target: prds/communication/messages.md
+    aliases: []
+  - id: communication.schedule_message_delivery
+    label: "Schedule message delivery"
+    domain: communication
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Deferred send with timezone-aware delivery window."
+    prd_target: prds/communication/messages.md
+    aliases: []
+  - id: communication.attach_files_to_message
+    label: "Attach files to messages"
+    domain: communication
+    actors: [teacher, staff, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Multi-attachment messages with size/type policy."
+    prd_target: prds/communication/media.md
+    aliases: []
+  - id: communication.manage_message_templates
+    label: "Manage message and WhatsApp templates"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Reusable templates; WhatsApp adapter uses approved templates."
+    divergence_ref: DIV-communication-003
+    prd_target: prds/communication/notifications.md
+    aliases: []
+  - id: communication.edit_message_content
+    label: "Edit sent message with audit trail"
+    domain: communication
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Edit history visible to recipients; no silent edits."
+    prd_target: prds/communication/messages.md
+    aliases: []
+  - id: communication.open_support_ticket
+    label: "Open support ticket with attachments"
+    domain: communication
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Ticket channel distinct from direct chat; family-scoped."
+    divergence_ref: DIV-communication-002
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.track_service_inbox
+    label: "Track conversations and tickets in real time"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Staff inbox for channels and tickets; SLA indicators."
+    divergence_ref: DIV-communication-002
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.collect_channel_csat
+    label: "Collect CSAT on service channels"
+    domain: communication
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Post-resolution CSAT; aggregate per channel."
+    divergence_ref: DIV-communication-002
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.send_individual_announcement
+    label: "Send individual targeted announcement"
+    domain: communication
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Per-family or per-student comunicados; not mass blast."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.manage_announcement_categories
+    label: "Manage announcement categories"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Typed comunicados for filtering and retention."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.approve_pending_communication
+    label: "Approve pending communications and events"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Moderation queue for teacher-submitted content."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.manage_announcement_templates
+    label: "Manage announcement templates and duplication"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Model comunicados; duplicate with audit."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.send_poll_survey
+    label: "Send poll or survey in announcement"
+    domain: communication
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Polls as structured announcement type."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.send_email_notification
+    label: "Send email notification"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Email adapter alongside push; opt-in policy."
+    divergence_ref: DIV-communication-007
+    prd_target: prds/communication/notifications.md
+    aliases: []
+  - id: communication.manage_notification_inbox
+    label: "Manage notification inbox (clear, dismiss)"
+    domain: communication
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "User-controlled notification list; not push policy."
+    prd_target: prds/communication/notifications.md
+    aliases: []
+  - id: communication.manage_photo_album
+    label: "Manage photo albums and mural"
+    domain: communication
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Album-based photos; download with retention policy."
+    divergence_ref: DIV-communication-005
+    prd_target: prds/communication/media.md
+    aliases: []
+  - id: communication.share_video_content
+    label: "Share video in messages or activities"
+    domain: communication
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Video attachments with bandwidth and retention limits."
+    prd_target: prds/communication/media.md
+    aliases: []
+  - id: communication.distribute_learning_materials
+    label: "Distribute learning materials and attachments"
+    domain: communication
+    actors: [teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Class materials via comms; not LMS replacement."
+    prd_target: prds/communication/media.md
+    aliases: []
+  - id: communication.collect_guardian_cpf
+    label: "Collect guardian CPF (progressive profiling)"
+    domain: communication
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Campaign-style CPF collection with LGPD basis shown."
+    divergence_ref: DIV-communication-004
+    prd_target: prds/identity-and-onboarding/profiles.md
+    aliases: []
+  - id: communication.manage_emergency_contacts
+    label: "Manage emergency contact alert list"
+    domain: communication
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Emergency contacts for school alert button."
+    prd_target: prds/communication/notifications.md
+    aliases: []
+  - id: communication.switch_active_child
+    label: "Switch active child context (multi-child guardian)"
+    domain: communication
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Guardian switches child without cross-family leak."
+    prd_target: prds/identity-and-onboarding/profiles.md
+    aliases: []
+  - id: communication.manage_user_profiles
+    label: "Manage user profiles and multi-profile switching"
+    domain: communication
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Multi-profile app UX; staff assigns profiles to groups."
+    prd_target: prds/identity-and-onboarding/profiles.md
+    aliases: []
+  - id: communication.publish_calendar_event
+    label: "Publish calendar event or activity"
+    domain: communication
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Events as comms objects; academic calendar sync later."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.track_event_engagement
+    label: "Track calendar event engagement"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Engagement metrics on events; no vanity feed ranking."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.embed_video_call
+    label: "Embed video call link in event or message"
+    domain: communication
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Meet/Zoom links as adapter; not native video infra."
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.manage_communication_groups
+    label: "Manage communication groups (group vs channel vs DM)"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Explicit group/channel/DM model; family isolation."
+    divergence_ref: DIV-communication-001
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.assign_recipients_to_channel
+    label: "Assign users or classes to message channel"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Channel membership by class, staff role, or individual."
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.manage_channel_permissions
+    label: "Manage channel access permissions"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Revoke staff channel access with audit."
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.view_communication_engagement
+    label: "View communication engagement reports"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Delivery and read metrics; not public leaderboards."
+    prd_target: prds/communication/index.md
+    aliases: []
+  - id: communication.track_delivery_status
+    label: "Track message and activity delivery status"
+    domain: communication
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Delivery receipts for activities and announcements."
+    prd_target: prds/communication/index.md
+    aliases: []
+  - id: communication.configure_communication_module
+    label: "Configure communication module settings"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Branding, defaults, module enablement per school."
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.onboard_communication_users
+    label: "Onboard users to communication module"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Staff verification checklist; guardian invite flow."
+    prd_target: prds/communication/index.md
+    aliases: []
+  - id: communication.defer_ai_assistant
+    label: "AI virtual assistant (deferred)"
+    domain: communication
+    actors: [staff, guardian]
+    surfaces: [web, mobile]
+    phase: N/A
+    school_lab_decision: "Defer Lia/Duda-style AI; document competitor pattern only."
+    divergence_ref: DIV-communication-006
+    aliases: []
+  - id: communication.manage_social_reactions
+    label: "Manage likes and comments on announcements"
+    domain: communication
+    actors: [guardian, teacher]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Optional reactions; off by default to avoid vanity feed."
+    divergence_ref: DIV-communication-005
+    prd_target: prds/communication/announcements.md
+    aliases: []
+  - id: communication.manage_network_broadcast
+    label: "Multi-school network broadcast"
+    domain: communication
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Network-level comms with per-school isolation on read."
+    prd_target: prds/communication/channels.md
+    aliases: []
+  - id: communication.manage_communication_operations
+    label: "General communication module operations"
+    domain: communication
+    actors: [staff, teacher, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Catch-all for miscatalogued or edge comms tasks pending finer split."
+    prd_target: prds/communication/messages.md
+    aliases: []
+  - id: communication.quality_signal_support
+    label: "Communication help troubleshooting (quality signal)"
+    domain: communication
+    actors: [staff, guardian]
+    surfaces: [web, mobile]
+    phase: N/A
+    school_lab_decision: "Support articles, release notes, FAQs — friction signal, not parity target."
+    quality_signal: true
+    aliases: []
+  - id: academic.configure_evaluation_template
+    label: "Configure evaluation templates"
+    domain: academic
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Self-service templates; ERP mode when integrated."
+    divergence_ref: DIV-academic-001
+    prd_target: prds/academic/grades.md
+    aliases: []
+  - id: academic.record_attendance
+    label: "Record attendance"
+    domain: academic
+    actors: [teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Reliable attendance; legal impact if wrong."
+    divergence_ref: DIV-academic-002
+    prd_target: prds/academic/attendance.md
+    aliases: []
+  - id: academic.manage_attendance_policy
+    label: "Manage attendance counting policy"
+    domain: academic
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "School-level policy with per-period override."
+    divergence_ref: DIV-academic-002
+    prd_target: prds/academic/attendance.md
+    aliases: []
+  - id: academic.process_reenrollment
+    label: "Process online re-enrollment"
+    domain: academic
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Online re-enrollment first-class."
+    divergence_ref: DIV-academic-003
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: academic.log_daily_routine
+    label: "Log early childhood daily routine"
+    domain: academic
+    actors: [teacher]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Routine module MVP-relevant for infantil."
+    divergence_ref: DIV-academic-004
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.schedule_lesson
+    label: "Schedule lessons"
+    domain: academic
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Model lesson lifecycle explicitly."
+    divergence_ref: DIV-academic-005
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.manage_lesson_lifecycle
+    label: "Manage lesson lifecycle (cancel/makeup)"
+    domain: academic
+    actors: [teacher]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Cancel and makeup rules explicit."
+    divergence_ref: DIV-academic-005
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.view_corporate_guardian_students
+    label: "Corporate partner view linked students"
+    domain: academic
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "corporate_partner scoped access + audit."
+    divergence_ref: DIV-academic-007
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: academic.configure_multi_school
+    label: "Configure multi-school tenancy views"
+    domain: academic
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Multi-school tenancy; per-school isolation."
+    divergence_ref: DIV-academic-008
+    prd_target: prds/platform-and-admin/backoffice.md
+    aliases: []
+  - id: academic.search_help_center
+    label: "Search product help center"
+    domain: academic
+    actors: [staff, teacher, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Ship searchable help for own product."
+    divergence_ref: DIV-academic-009
+    aliases: []
+  - id: academic.manage_grade_scale
+    label: "Configure grading criteria and formulas"
+    domain: academic
+    actors: [staff]
+    staff_templates: [coordinator]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Self-service grade scales; ERP mode when integrated."
+    divergence_ref: DIV-academic-001
+    prd_target: prds/academic/grades.md
+    aliases: []
+  - id: academic.enter_grades
+    label: "Enter grades in diary and activities"
+    domain: academic
+    actors: [teacher, staff]
+    staff_templates: [secretary]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Teacher diary grade entry; secretary override with audit."
+    prd_target: prds/academic/grades.md
+    aliases: []
+  - id: academic.manage_recovery_grades
+    label: "Manage recovery and reassessment grades"
+    domain: academic
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Parallel recovery and dependency flows explicit."
+    prd_target: prds/academic/grades.md
+    aliases: []
+  - id: academic.publish_report_card
+    label: "Publish report cards (boletim)"
+    domain: academic
+    actors: [staff]
+    staff_templates: [coordinator]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Scheduled boletim release with guardian notification."
+    prd_target: prds/academic/report-cards.md
+    aliases: []
+  - id: academic.view_report_card
+    label: "View report card and grades"
+    domain: academic
+    actors: [guardian, student, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Family-scoped grade view; student portal when enabled."
+    prd_target: prds/academic/report-cards.md
+    aliases: []
+  - id: academic.configure_report_card
+    label: "Configure report card display rules"
+    domain: academic
+    actors: [staff]
+    staff_templates: [coordinator]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Hide disciplines or final grades per policy."
+    prd_target: prds/academic/report-cards.md
+    aliases: []
+  - id: academic.justify_absence
+    label: "Justify student absences"
+    domain: academic
+    actors: [teacher, staff, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Documented justification with audit trail."
+    divergence_ref: DIV-academic-002
+    prd_target: prds/academic/attendance.md
+    aliases: []
+  - id: academic.export_attendance
+    label: "Export and print attendance records"
+    domain: academic
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Blank frequency sheets and period exports."
+    prd_target: prds/academic/attendance.md
+    aliases: []
+  - id: academic.manage_teacher_diary
+    label: "Manage teacher diary workflow"
+    domain: academic
+    actors: [staff, teacher]
+    staff_templates: [coordinator]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Submit, return, and monitor diary delivery."
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.log_lesson_content
+    label: "Log lesson content in diary"
+    domain: academic
+    actors: [teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Per-lesson content with copy-from-prior term."
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.manage_curriculum_matrix
+    label: "Manage curriculum matrix and disciplines"
+    domain: academic
+    actors: [staff]
+    staff_templates: [coordinator]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Disciplines, subdisciplines, skills matrix self-service."
+    divergence_ref: DIV-academic-001
+    prd_target: prds/academic/curriculum.md
+    aliases: []
+  - id: academic.assign_teacher_to_subject
+    label: "Assign teachers to subjects and diaries"
+    domain: academic
+    actors: [staff]
+    staff_templates: [coordinator]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Bulk and individual teacher–discipline links."
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.manage_class_diary
+    label: "Manage class diary lessons and activities"
+    domain: academic
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Individual and batch lessons tied to evaluation."
+    divergence_ref: DIV-academic-005
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.record_incidents
+    label: "Record disciplinary and pastoral incidents"
+    domain: academic
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Typed occurrences with family visibility policy."
+    prd_target: prds/academic/incidents.md
+    aliases: []
+  - id: academic.manage_period_closure
+    label: "Close academic period and year"
+    domain: academic
+    actors: [staff]
+    staff_templates: [coordinator]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Checklist-driven period close; blocks incomplete diaries."
+    prd_target: prds/academic/periods.md
+    aliases: []
+  - id: academic.issue_transcript
+    label: "Issue school transcript (histórico escolar)"
+    domain: academic
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Official transcript generation with audit."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: academic.manage_transcript_record
+    label: "Maintain transcript discipline records"
+    domain: academic
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Edit workload and frequency on historical records."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: academic.view_academic_dashboard
+    label: "View academic coordination dashboard"
+    domain: academic
+    actors: [staff]
+    staff_templates: [coordinator]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Diary status, grades, and activity monitoring."
+    prd_target: prds/academic/coordination.md
+    aliases: []
+  - id: academic.sync_academic_with_erp
+    label: "Sync academic data with external ERP"
+    domain: academic
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "API-first SIS; adjunct ERP sync when hybrid."
+    divergence_ref: DIV-academic-006
+    prd_target: prds/integrations/erp.md
+    aliases: []
+  - id: academic.deliver_diary_to_families
+    label: "Deliver daily diary to guardians"
+    domain: academic
+    actors: [teacher]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Push diary entries to families; infantil priority."
+    divergence_ref: DIV-academic-004
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.manage_live_lesson
+    label: "Manage live online lessons"
+    domain: academic
+    actors: [teacher, staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Meet/adapter links; recordings attached to lesson."
+    divergence_ref: DIV-academic-005
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.manage_special_education
+    label: "Manage special education (AEE) records"
+    domain: academic
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "AEE module deferred; document competitor pattern."
+    prd_target: prds/academic/special-education.md
+    aliases: []
+  - id: academic.manage_academic_operations
+    label: "General academic module operations"
+    domain: academic
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Catch-all for miscatalogued academic tasks pending finer split."
+    prd_target: prds/academic/diary.md
+    aliases: []
+  - id: academic.quality_signal_support
+    label: "Academic help troubleshooting (quality signal)"
+    domain: academic
+    actors: [staff, teacher, guardian]
+    surfaces: [web, mobile]
+    phase: N/A
+    school_lab_decision: "Support articles, CST tickets, ERP miscatalog — friction signal, not parity target."
+    quality_signal: true
+    aliases: []
+  - id: students.enroll_student
+    label: "Enroll student"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Core enrollment; links student, class, and guardians."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.import_students_bulk
+    label: "Import students in bulk"
+    domain: students
+    actors: [staff]
+    surfaces: [web]
+    phase: MVP
+    school_lab_decision: "Spreadsheet import with validation; no duplicate CPF per school."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.manage_class_structure
+    label: "Manage class structure"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Classes, shifts, capacity, multigrade parent/child turmas."
+    prd_target: prds/students-and-enrollments/records.md
+    aliases: []
+  - id: students.assign_class
+    label: "Assign student to class"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Enrollment-to-class assignment; respects capacity."
+    prd_target: prds/students-and-enrollments/records.md
+    aliases: []
+  - id: students.manage_enrollment_slots
+    label: "Manage enrollment slots"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Vacancy availability for online enrollment trilha."
+    divergence_ref: DIV-academic-003
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.cancel_enrollment
+    label: "Cancel enrollment or pre-enrollment"
+    domain: students
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Guardian self-cancel before institution processing."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.manage_enrollment_contract
+    label: "Manage enrollment contract"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Contract templates and enrollment binding; signature in phase 2."
+    divergence_ref: DIV-financial-007
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.sign_enrollment_contract
+    label: "Sign enrollment contract electronically"
+    domain: students
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "E-signature step on trilha; shares documents infra."
+    divergence_ref: DIV-financial-007
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.capture_prospect
+    label: "Capture enrollment prospect"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "CRM lead/opportunity before formal enrollment."
+    prd_target: prds/students-and-enrollments/records.md
+    aliases: []
+  - id: students.manage_enrollment_campaign
+    label: "Manage enrollment campaign"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Matrícula campaigns and CRM funnel; not comms mass send."
+    prd_target: prds/students-and-enrollments/records.md
+    aliases: []
+  - id: students.run_online_enrollment_trail
+    label: "Run online enrollment trail"
+    domain: students
+    actors: [guardian]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Trilha: data → contract → plan → pay; includes re-enrollment."
+    divergence_ref: DIV-academic-003
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.update_student_record
+    label: "Update student record"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Cadastral data, RA, and identifiers; LGPD minimization."
+    prd_target: prds/students-and-enrollments/records.md
+    aliases: []
+  - id: students.unify_person_records
+    label: "Unify duplicate person records"
+    domain: students
+    actors: [staff]
+    surfaces: [web]
+    phase: P2
+    school_lab_decision: "Merge homonyms with audit trail; irreversible ops guarded."
+    prd_target: prds/students-and-enrollments/records.md
+    aliases: []
+  - id: students.manage_guardian_link
+    label: "Manage guardian–student link"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Family isolation boundary; multiple guardians per student."
+    prd_target: prds/students-and-enrollments/records.md
+    aliases: []
+  - id: students.transfer_enrollment
+    label: "Transfer enrollment between classes"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Class transfer and manual progression between turmas."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.invite_student_access
+    label: "Invite student to self-register"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Student login deferred to phase 2; invite + staff review queue."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.view_student_portal
+    label: "Access student portal features"
+    domain: students
+    actors: [student]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Student login surface; MVP uses guardian/staff proxy."
+    prd_target: prds/students-and-enrollments/records.md
+    aliases: []
+  - id: students.export_enrollment_reports
+    label: "Export enrollment reports"
+    domain: students
+    actors: [staff]
+    surfaces: [web]
+    phase: MVP
+    school_lab_decision: "Carteirinha, CRM opportunity reports, enrollment lists."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.manage_enrollment_operations
+    label: "General enrollment module operations"
+    domain: students
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Catch-all for miscatalogued enrollment tasks pending finer split."
+    prd_target: prds/students-and-enrollments/enrollments.md
+    aliases: []
+  - id: students.quality_signal_support
+    label: "Students help troubleshooting (quality signal)"
+    domain: students
+    actors: [staff, guardian, student]
+    surfaces: [web, mobile]
+    phase: N/A
+    school_lab_decision: "ERP module FAQs, CST tickets, transport/food miscatalog — friction signal."
+    quality_signal: true
+    aliases: []
+  - id: identity.authenticate_user
+    label: "Authenticate user"
+    domain: identity
+    actors: [staff, teacher, guardian, student]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "JWT login; OTP/code login where competitors use it; MFA phase 2."
+    prd_target: prds/identity-and-onboarding/auth.md
+    aliases: []
+  - id: identity.reset_password
+    label: "Reset or change password"
+    domain: identity
+    actors: [staff, teacher, guardian, student]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Forgot-password link + in-app change; passwords never returned by API."
+    prd_target: prds/identity-and-onboarding/auth.md
+    aliases: []
+  - id: identity.set_password
+    label: "Set password from invite token"
+    domain: identity
+    actors: [staff, teacher, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Single-use invite token + set-password; replaces random temp passwords."
+    prd_target: prds/identity-and-onboarding/auth.md
+    aliases: []
+  - id: identity.invite_user
+    label: "Invite user to school"
+    domain: identity
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Staff/guardian invites with role_template_id; digest-stored tokens."
+    prd_target: prds/identity-and-onboarding/invites.md
+    aliases: []
+  - id: identity.complete_registration
+    label: "Complete registration from invite"
+    domain: identity
+    actors: [guardian, staff, teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Guardian/staff self-register via invite link or SMS code."
+    prd_target: prds/identity-and-onboarding/invites.md
+    aliases: []
+  - id: identity.manage_user_profile
+    label: "Manage user profile and contact data"
+    domain: identity
+    actors: [staff, teacher, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Email and cadastral updates with audit; progressive profiling hooks."
+    divergence_ref: DIV-communication-004
+    prd_target: prds/identity-and-onboarding/profiles.md
+    aliases: []
+  - id: identity.manage_user_accounts
+    label: "Manage user accounts (activate, deactivate, delete)"
+    domain: identity
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Account tab pattern; deactivate preferred over hard delete."
+    prd_target: prds/identity-and-onboarding/permissions.md
+    aliases: []
+  - id: identity.manage_roles
+    label: "Manage roles and permissions"
+    domain: identity
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "System + custom role templates; permission keys + overrides."
+    prd_target: prds/identity-and-onboarding/permissions.md
+    aliases: []
+  - id: identity.manage_consent
+    label: "Manage guardian consent (LGPD)"
+    domain: identity
+    actors: [guardian, staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "LGPD consent record for staff/guardian onboarding; basis shown in UI."
+    prd_target: prds/identity-and-onboarding/consent.md
+    aliases: []
+  - id: identity.configure_school_profile
+    label: "Configure school profile"
+    domain: identity
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "School name, branding, and tenant profile during onboarding."
+    prd_target: prds/identity-and-onboarding/onboarding.md
+    aliases: []
+  - id: identity.provision_school
+    label: "Provision school tenant (white-glove and lifecycle)"
+    domain: identity
+    actors: [backoffice, staff]
+    surfaces: [web]
+    phase: MVP
+    school_lab_decision: "provisioning → pending_handoff → active; self-serve + optional white-glove."
+    divergence_ref: DIV-integration-001
+    prd_target: prds/identity-and-onboarding/onboarding.md
+    aliases: []
+  - id: identity.onboard_team
+    label: "Onboard staff and guardians to school"
+    domain: identity
+    actors: [staff, backoffice, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Owner wizard + team invites; first-login checklists per onboarding mode."
+    divergence_ref: DIV-integration-001
+    prd_target: prds/identity-and-onboarding/onboarding.md
+    aliases: []
+  - id: identity.configure_multi_factor
+    label: "Configure multi-factor authentication"
+    domain: identity
+    actors: [staff, teacher, guardian, student]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "2FA and biometric login phase 2; document competitor patterns."
+    prd_target: prds/identity-and-onboarding/auth.md
+    aliases: []
+  - id: identity.manage_identity_operations
+    label: "General identity module operations"
+    domain: identity
+    actors: [staff, backoffice, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Catch-all for miscatalogued identity tasks pending finer split."
+    prd_target: prds/identity-and-onboarding/auth.md
+    aliases: []
+  - id: identity.quality_signal_support
+    label: "Identity help troubleshooting (quality signal)"
+    domain: identity
+    actors: [staff, teacher, guardian, student]
+    surfaces: [web, mobile]
+    phase: N/A
+    school_lab_decision: "Support articles, cache clears, ERP miscatalog — friction signal, not parity target."
+    quality_signal: true
+    aliases: []
+  - id: documents.store_student_document
+    label: "Store document in digital archive"
+    domain: documents
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Audit-ready repository per student/school."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: documents.search_archive
+    label: "Search digital archive"
+    domain: documents
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Basic search MVP; semantic search phase 2."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: documents.generate_official_minutes
+    label: "Generate official minutes (Livro Ata)"
+    domain: documents
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Phase 2 high priority per vision."
+    prd_target: prds/documents-and-archive/index.md
+    aliases: []
+  - id: documents.collect_minutes_signatures
+    label: "Collect digital signatures on minutes"
+    domain: documents
+    actors: [staff, guardian]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Valid digital signature for Conselho audits."
+    prd_target: prds/documents-and-archive/index.md
+    aliases: []
+  - id: documents.issue_transcript
+    label: "Issue school transcript certificate"
+    domain: documents
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Under-represented in competitor catalog."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: documents.manage_retention_policy
+    label: "Manage document retention policy"
+    domain: documents
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "LGPD retention for archive and photos."
+    prd_target: prds/documents-and-archive/retention.md
+    aliases: []
+  - id: documents.configure_document_signatories
+    label: "Configure secretary and director on official documents"
+    domain: documents
+    actors: [staff]
+    staff_templates: [secretary]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Letterhead/signatory block on generated certificates and declarations."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: documents.issue_official_declaration
+    label: "Issue official declarations and certificates"
+    domain: documents
+    actors: [staff]
+    staff_templates: [secretary]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Enrollment, quitacao, and other formal declarations beyond transcript."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: documents.collect_contract_signatures
+    label: "Collect digital signatures on contracts"
+    domain: documents
+    actors: [staff, guardian]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Paperless contracts; shares signature infra with Livro Ata."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: documents.export_audit_package
+    label: "Export audit-ready document package"
+    domain: documents
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Conselho de Educacao audit readiness per vision."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: documents.view_student_documents
+    label: "View student documents in archive"
+    domain: documents
+    actors: [guardian, student]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Per-family isolation; guardian sees own children's documents only."
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: documents.search_archive_semantic
+    label: "Semantic search across document archive"
+    domain: documents
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Phase 2 Livro Ata search per vision; basic search remains MVP."
+    prd_target: prds/documents-and-archive/index.md
+    aliases: []
+  - id: platform.configure_school_year
+    label: "Configure school year and calendar periods"
+    domain: platform
+    actors: [staff]
+    staff_templates: [secretary]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Ano letivo, feriados, and period boundaries drive academic and billing cycles."
+    prd_target: prds/platform-and-admin/school-year.md
+    aliases: []
+  - id: platform.manage_multi_unit
+    label: "Configure multi-unit school group"
+    domain: platform
+    actors: [staff, backoffice]
+    surfaces: [web]
+    phase: P2
+    school_lab_decision: "Per-school isolation with group roll-ups; distinct from academic tenancy views."
+    divergence_ref: DIV-academic-008
+    prd_target: prds/platform-and-admin/backoffice.md
+    aliases: []
+  - id: platform.manage_staff_users
+    label: "Manage staff users and role menus"
+    domain: platform
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Staff roster and menu visibility; identity owns auth and permission keys."
+    prd_target: prds/platform-and-admin/staff-users.md
+    aliases: []
+  - id: platform.manage_school_calendar
+    label: "Manage school calendar and personal events"
+    domain: platform
+    actors: [staff, teacher]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Institutional calendar plus staff personal events; comms events sync later."
+    prd_target: prds/platform-and-admin/calendar.md
+    aliases: []
+  - id: platform.view_analytics_dashboard
+    label: "View analytics and operational reports"
+    domain: platform
+    actors: [staff]
+    staff_templates: [director, coordinator]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Cross-module dashboards; domain-specific exports stay in billing/academic PRDs."
+    prd_target: prds/platform-and-admin/index.md
+    aliases: []
+  - id: platform.export_operational_reports
+    label: "Export operational and cross-module reports"
+    domain: platform
+    actors: [staff]
+    surfaces: [web]
+    phase: P2
+    school_lab_decision: "Favorited reports and year-scoped roll-ups; not domain ledger exports."
+    prd_target: prds/platform-and-admin/index.md
+    aliases: []
+  - id: platform.configure_help_taxonomy
+    label: "Configure help center taxonomy"
+    domain: platform
+    actors: [backoffice]
+    surfaces: [web]
+    phase: P2
+    school_lab_decision: "Module docs for School Lab product; persona quick-starts per actor."
+    divergence_ref: DIV-integration-003
+    prd_target: prds/platform-and-admin/index.md
+    aliases: []
+  - id: platform.self_serve_onboarding
+    label: "Self-serve school onboarding and product access"
+    domain: platform
+    actors: [staff, backoffice, guardian]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Self-serve with optional white-glove tier; app access FAQs map here not identity."
+    divergence_ref: DIV-integration-001
+    prd_target: prds/platform-and-admin/onboarding.md
+    aliases: []
+  - id: platform.manage_backoffice_ops
+    label: "Backoffice tenant and module operations"
+    domain: platform
+    actors: [backoffice]
+    surfaces: [web]
+    phase: MVP
+    school_lab_decision: "Platform SPA ops: tenant lifecycle, module enablement, upsell — not school staff tasks."
+    prd_target: prds/platform-and-admin/backoffice.md
+    aliases: []
+  - id: platform.meter_digital_signatures
+    label: "Meter digital signature consumption"
+    domain: platform
+    actors: [staff, backoffice]
+    staff_templates: [financial]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Transparent metering for e-sign; shares infra with billing and documents."
+    divergence_ref: DIV-financial-007
+    prd_target: prds/documents-and-archive/archive.md
+    aliases: []
+  - id: platform.manage_transport_module
+    label: "Manage transport module (deferred)"
+    domain: platform
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Transport routes deferred; catalog miscatalog captured as quality signal until PRD."
+    prd_target: prds/platform-and-admin/index.md
+    aliases: []
+  - id: platform.manage_platform_operations
+    label: "General platform module operations"
+    domain: platform
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: MVP
+    school_lab_decision: "Catch-all for miscatalogued platform tasks pending finer split."
+    prd_target: prds/platform-and-admin/staff-users.md
+    aliases: []
+  - id: platform.quality_signal_support
+    label: "Platform help troubleshooting (quality signal)"
+    domain: platform
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: N/A
+    school_lab_decision: "CST/GSen license FAQs, ERP vendor articles, transport/RH miscatalog — friction signal."
+    quality_signal: true
+    aliases: []
+  - id: integrations.connect_erp
+    label: "Connect external ERP"
+    domain: integrations
+    actors: [staff, backoffice]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "Own core domains; open API for adjuncts."
+    divergence_ref: DIV-integration-002
+    prd_target: prds/integrations/erp.md
+    aliases: []
+  - id: integrations.import_academic_data
+    label: "Import academic data from ERP"
+    domain: integrations
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    prd_target: prds/integrations/erp.md
+    aliases: []
+  - id: integrations.export_financial_data
+    label: "Export financial data to ERP"
+    domain: integrations
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    prd_target: prds/integrations/erp.md
+    aliases: []
+  - id: integrations.manage_webhooks
+    label: "Manage outbound webhooks"
+    domain: integrations
+    actors: [backoffice]
+    surfaces: [web, mobile]
+    phase: P2
+    prd_target: prds/integrations/webhooks.md
+    aliases: []
+  - id: integrations.sync_communication_overlay
+    label: "Sync comms overlay with ERP SIS"
+    domain: integrations
+    actors: [staff]
+    surfaces: [web, mobile]
+    phase: P2
+    school_lab_decision: "API-first SIS; comms native."
+    divergence_ref: DIV-academic-006
+    prd_target: prds/integrations/comms-sync.md
+    aliases: []

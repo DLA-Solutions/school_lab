@@ -1,6 +1,8 @@
 // School Lab — executable schema (DBML)
 // Auth: Devise (web session) + refresh_tokens (API JWT)
-// Narrative DSL: docs/modeling/001-fintech-first.md, 003-identity-permissions.md, 004-school-onboarding.md
+// Narrative DSL: docs/modeling/001-fintech-first.md, 002-api-auth.md, 003-identity-permissions.md,
+//   004-school-onboarding.md, 005-students-enrollments.md, 006-communication.md, 007-academic.md,
+//   008-documents-archive.md, 009-platform-admin.md
 //
 // Soft delete: Discard gem — default column discarded_at (nullable timestamp).
 //   kept: discarded_at IS NULL — visible in app queries (Model.kept / default_scope).
@@ -30,6 +32,7 @@ Table schools {
   name varchar [note: 'E.g. Example School — Downtown Unit']
   cnpj varchar
   address varchar
+  timezone varchar [not null, default: 'America/Sao_Paulo', note: 'IANA timezone used for school-local dates and calendar display']
   saas_plan varchar
   onboarding_status varchar [not null, default: 'pending_handoff', note: 'provisioning | pending_handoff | active — see 004-school-onboarding.md']
   onboarding_mode varchar [not null, note: 'self_serve | white_glove — set at create; immutable after active']
@@ -207,6 +210,13 @@ Table guardians {
   cpf varchar [note: 'LGPD: sensitive personal data']
   email varchar [note: 'LGPD: contact email; may match users.email after signup']
   phone varchar [note: 'LGPD: personal data']
+  street varchar [note: 'LGPD: personal address']
+  number varchar [note: 'LGPD: personal address']
+  complement varchar [note: 'LGPD: personal address']
+  neighborhood varchar [note: 'LGPD: personal address']
+  city varchar [note: 'LGPD: personal address']
+  state varchar(2) [note: 'Two-letter Brazilian state code']
+  zip_code varchar(8) [note: 'Digits only']
   discarded_at timestamp [note: 'Discard gem — null = kept']
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
@@ -216,16 +226,22 @@ Table guardians {
 Table students {
   id integer [primary key, increment]
   school_id integer [not null]
-  name varchar
-  birth_date date [note: 'LGPD: child data — guardian consent required']
-  status varchar [not null, default: 'active', note: 'Enrollment state — e.g. active | transferred; distinct from discarded_at']
+  name varchar [not null, note: 'Persisted full name from PRD full_name concept']
+  birth_date date [not null, note: 'LGPD: child data — guardian consent required']
+  cpf varchar(11) [note: 'LGPD: child identifier; digits only; optional']
+  ra varchar [note: 'School registration identifier; validation format remains school-defined']
+  gender varchar [note: 'Optional cadastral value; controlled vocabulary remains a PRD/API decision']
+  nationality varchar [note: 'Optional cadastral value; collect only when required']
+  segment_id integer [note: 'Nullable — partial staff scopes and class alignment']
+  external_code varchar [note: 'Nullable identifier from a legacy SIS or import']
   discarded_at timestamp [note: 'Discard gem — removed from active school records']
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
   created_at timestamp
   updated_at timestamp
 
   indexes {
-    (school_id, status)
+    (school_id, cpf) [unique, note: 'DB migration: UNIQUE WHERE cpf IS NOT NULL AND discarded_at IS NULL']
+    (school_id, segment_id)
   }
 }
 
@@ -246,14 +262,17 @@ Table student_guardians {
   guardian_id integer [not null]
   student_id integer [not null]
   school_id integer [not null]
-  financial_percentage decimal(5,2) [note: 'Check constraint: NULL or between 0 and 100']
-  primary_guardian boolean
+  relationship varchar [not null, default: 'other', note: 'parent | guardian | other']
+  primary_contact boolean [not null, default: false]
+  financial_responsible boolean [not null, default: false, note: 'Exactly one expected when billing is enabled; issuance also validates at application boundary']
+  pickup_authorized boolean [not null, default: false]
   discarded_at timestamp [note: 'Discard gem — unlink guardian↔student']
   created_at timestamp
   updated_at timestamp
 
   indexes {
     (guardian_id, student_id) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+    (student_id, financial_responsible) [unique, note: 'DB migration intent: UNIQUE WHERE financial_responsible = true AND discarded_at IS NULL']
   }
 }
 
@@ -314,6 +333,7 @@ Table contracts {
   student_id integer [not null]
   school_id integer [not null]
   billing_plan_id integer [not null]
+  enrollment_id integer [note: 'Nullable handoff to students domain; when present, enrollment must match school_id and student_id; legacy contracts remain student-scoped']
   negotiated_amount_cents integer [note: 'Monetary amounts stored as integer cents. Check constraint: negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0.']
   due_day integer [note: '1–28']
   starts_on date
@@ -325,6 +345,7 @@ Table contracts {
 
   indexes {
     (school_id, status)
+    enrollment_id
   }
 }
 
@@ -528,6 +549,397 @@ Table provisioning_imports {
   }
 }
 
+// --- Platform & admin (009) ---
+
+Table school_years {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null, note: 'E.g. 2026']
+  starts_on date [not null]
+  ends_on date [not null, note: 'Check constraint intent: ends_on >= starts_on']
+  period_template varchar [not null, default: 'trimester', note: 'bimester | trimester | custom']
+  status varchar [not null, default: 'draft', note: 'draft | active | archived']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, status) [unique, note: 'DB migration: UNIQUE WHERE status = active AND discarded_at IS NULL — one active year per school']
+  }
+}
+
+Table academic_periods {
+  id integer [primary key, increment]
+  school_year_id integer [not null]
+  school_id integer [not null, note: 'Denormalized for tenant scopes']
+  name varchar [not null]
+  sequence integer [not null]
+  starts_on date [not null, note: 'Must fall within school year bounds']
+  ends_on date [not null, note: 'Check constraint intent: ends_on >= starts_on; periods in a year must not overlap']
+  closure_status varchar [not null, default: 'open', note: 'open | closing | closed — academic BC6']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_year_id, sequence) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table school_holidays {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  school_year_id integer [not null]
+  date date [not null]
+  name varchar [not null]
+  applies_to_attendance boolean [not null, default: true]
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_year_id, date) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table calendar_events {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  school_year_id integer [note: 'Nullable — events outside the active year remain queryable by date range']
+  user_id integer [note: 'Nullable — institutional event when null; present for owner-only personal event']
+  title varchar [not null, note: 'LGPD: may contain personal data']
+  description text [note: 'LGPD: may contain personal data']
+  starts_at timestamp [not null]
+  ends_at timestamp [note: 'Check constraint intent: NULL or ends_at >= starts_at']
+  all_day boolean [not null, default: false]
+  visibility varchar [not null, default: 'school', note: 'school | staff_only; personal rows remain owner-only regardless of value']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, starts_at)
+    (school_id, school_year_id, starts_at)
+    (user_id, starts_at)
+  }
+}
+
+// --- Students & enrollments (005) ---
+
+Table classes {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  school_year_id integer [not null]
+  segment_id integer
+  name varchar [not null]
+  grade_level varchar [note: 'School-defined grade/series label']
+  shift varchar [note: 'morning | afternoon | night | full']
+  capacity integer [note: 'Check constraint: NULL OR capacity > 0']
+  parent_class_id integer [note: 'Multigrade parent turma — self FK']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, school_year_id, name) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+  }
+}
+
+Table class_assignments {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  class_id integer [not null]
+  student_id integer [not null]
+  school_year_id integer [not null]
+  assigned_on date
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (student_id, school_year_id) [unique, note: 'One active class per student per year WHERE discarded_at IS NULL']
+  }
+}
+
+Table enrollments {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null, note: 'Must belong to school_id']
+  school_year_id integer [not null, note: 'Must belong to school_id']
+  status varchar [not null, default: 'active', note: 'draft | active | completed | withdrawn']
+  enrollment_kind varchar [not null, default: 'new', note: 'new | returning — reporting only']
+  enrolled_on date
+  class_assignment_id integer [note: 'When present, assignment must match school_id, student_id, and school_year_id']
+  withdrawal_reason text [note: 'Required by application on transition to withdrawn; audited']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (student_id, school_year_id, status) [unique, note: 'DB migration: UNIQUE WHERE status = active AND discarded_at IS NULL']
+    (school_id, status)
+  }
+}
+
+Table enrollment_contract_templates {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null]
+  body_html text [not null, note: 'Merge template source; generated PDF is stored through documents handoff']
+  version integer [not null, default: 1, note: 'Immutable template revision number']
+  discarded_at timestamp [note: 'Discard gem — prevents new bindings while preserving existing contracts']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, name, version) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+  }
+}
+
+Table enrollment_contracts {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  enrollment_id integer [not null, note: 'Enrollment must match school_id']
+  template_id integer [not null, note: 'Template must match school_id']
+  template_version integer [not null, note: 'Snapshot of bound template revision']
+  document_id integer [note: 'Nullable generated PDF in archive_documents; archive document must match enrollment school_id and student_id']
+  signature_status varchar [not null, default: 'pending', note: 'pending | sent | signed | declined | expired — phase 2 signature provider']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table consent_records {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  guardian_id integer [not null]
+  consent_type varchar [not null, note: 'data_processing | communication | photo_use']
+  policy_version varchar [not null]
+  granted_at timestamp [not null]
+  revoked_at timestamp
+  channel varchar [not null, note: 'web | app | paper_scan']
+  archive_document_id integer [note: 'Required when channel = paper_scan; evidence must match school_id and student_id']
+  recorded_by_id integer [note: 'users.id — staff recorder when not self-service']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (student_id, guardian_id, consent_type) [unique, note: 'DB migration: UNIQUE WHERE revoked_at IS NULL; re-consent atomically revokes the prior policy version before insert']
+  }
+}
+
+Table enrollment_imports {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  uploaded_by_id integer [not null, note: 'users.id — staff actor with manage_enrollment']
+  original_filename varchar
+  status varchar [not null, default: 'previewed', note: 'previewed | committed | failed; commit is all-or-nothing per batch']
+  row_count integer
+  error_report jsonb [note: 'Row-level validation results — LGPD: may contain student/guardian PII']
+  committed_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, created_at)
+  }
+}
+
+// --- Communication (006) ---
+
+Table conversations {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  conversation_type varchar [not null, note: 'direct | class | group']
+  subject_type varchar [note: 'Polymorphic — Class, Student, etc.']
+  subject_id integer
+  last_message_at timestamp
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, last_message_at)
+  }
+}
+
+Table conversation_participants {
+  id integer [primary key, increment]
+  conversation_id integer [not null]
+  school_id integer [not null]
+  participant_type varchar [not null, note: 'Membership | Guardian']
+  participant_id integer [not null]
+  last_read_at timestamp
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (conversation_id, participant_type, participant_id) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table messages {
+  id integer [primary key, increment]
+  conversation_id integer [not null]
+  school_id integer [not null]
+  sender_membership_id integer [note: 'Nullable for system messages']
+  body text [not null, note: 'LGPD: message content']
+  sent_at timestamp [not null]
+  edited_at timestamp
+  scheduled_for timestamp
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (conversation_id, sent_at)
+  }
+}
+
+Table announcements {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  author_membership_id integer [not null]
+  title varchar [not null]
+  body text [not null]
+  target_scope varchar [not null, note: 'school | class | segment']
+  target_id integer [note: 'class_id or segment_id when scoped']
+  published_at timestamp
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table notification_deliveries {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  source_type varchar [not null, note: 'Message | AbsenceRecorded | Announcement']
+  source_id integer [not null]
+  device_token_id integer
+  channel varchar [not null, note: 'fcm | email']
+  status varchar [not null, default: 'pending', note: 'pending | sent | failed']
+  sent_at timestamp
+  error_code varchar
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (source_type, source_id, device_token_id) [unique, note: 'Idempotent push delivery']
+  }
+}
+
+// --- Academic (007) ---
+
+Table attendance_sessions {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  class_id integer [not null]
+  school_year_id integer [not null]
+  academic_period_id integer
+  session_date date [not null]
+  recorded_by_membership_id integer
+  confirmed_at timestamp [note: 'After 15-minute auto-confirm delay']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (class_id, session_date) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table attendance_records {
+  id integer [primary key, increment]
+  attendance_session_id integer [not null]
+  school_id integer [not null]
+  student_id integer [not null]
+  status varchar [not null, note: 'present | absent | late | justified']
+  absence_notified_at timestamp
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (attendance_session_id, student_id) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table grade_entries {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  class_discipline_id integer [not null]
+  academic_period_id integer [not null]
+  value varchar [note: 'Numeric or concept — LGPD: academic record']
+  entered_by_membership_id integer
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table incidents {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  reported_by_membership_id integer
+  description text [note: 'LGPD: may contain health/sensitive data']
+  visible_to_guardian boolean [not null, default: false]
+  occurred_on date
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+// --- Documents & archive (008) ---
+
+Table archive_document_types {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null]
+  requires_review boolean [not null, default: false]
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, name) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table archive_documents {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  school_year_id integer
+  archive_document_type_id integer [not null]
+  visibility varchar [not null, default: 'staff_only', note: 'staff_only | guardian']
+  review_status varchar [not null, default: 'approved', note: 'pending | approved | rejected']
+  uploaded_by_id integer
+  legacy_fintech_kyc boolean [not null, default: false]
+  discarded_at timestamp
+  discarded_by_id integer
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, student_id)
+    (school_id, review_status)
+  }
+}
+
+Table document_signatories {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  role_label varchar [not null, note: 'E.g. Secretaria, Direção']
+  name varchar [not null]
+  title varchar
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
 // --- Relationships ---
 
 Ref: schools.school_group_id > school_groups.id
@@ -553,6 +965,75 @@ Ref: membership_invite_tokens.school_id > schools.id
 Ref: membership_invite_tokens.created_by_id > users.id
 Ref: provisioning_imports.school_id > schools.id
 Ref: provisioning_imports.uploaded_by_id > users.id
+
+Ref: school_years.school_id > schools.id
+Ref: academic_periods.school_year_id > school_years.id
+Ref: academic_periods.school_id > schools.id
+Ref: school_holidays.school_id > schools.id
+Ref: school_holidays.school_year_id > school_years.id
+Ref: calendar_events.school_id > schools.id
+Ref: calendar_events.school_year_id > school_years.id
+Ref: calendar_events.user_id > users.id
+
+Ref: classes.school_id > schools.id
+Ref: classes.school_year_id > school_years.id
+Ref: classes.segment_id > segments.id
+Ref: classes.parent_class_id > classes.id
+Ref: class_assignments.school_id > schools.id
+Ref: class_assignments.class_id > classes.id
+Ref: class_assignments.student_id > students.id
+Ref: class_assignments.school_year_id > school_years.id
+Ref: enrollments.school_id > schools.id
+Ref: enrollments.student_id > students.id
+Ref: enrollments.school_year_id > school_years.id
+Ref: enrollments.class_assignment_id > class_assignments.id
+Ref: enrollment_contract_templates.school_id > schools.id
+Ref: enrollment_contracts.school_id > schools.id
+Ref: enrollment_contracts.enrollment_id > enrollments.id
+Ref: enrollment_contracts.template_id > enrollment_contract_templates.id
+Ref: enrollment_contracts.document_id > archive_documents.id
+Ref: consent_records.school_id > schools.id
+Ref: consent_records.student_id > students.id
+Ref: consent_records.guardian_id > guardians.id
+Ref: consent_records.archive_document_id > archive_documents.id
+Ref: consent_records.recorded_by_id > users.id
+Ref: enrollment_imports.school_id > schools.id
+Ref: enrollment_imports.uploaded_by_id > users.id
+
+Ref: conversations.school_id > schools.id
+Ref: conversation_participants.conversation_id > conversations.id
+Ref: conversation_participants.school_id > schools.id
+Ref: messages.conversation_id > conversations.id
+Ref: messages.school_id > schools.id
+Ref: messages.sender_membership_id > memberships.id
+Ref: announcements.school_id > schools.id
+Ref: announcements.author_membership_id > memberships.id
+Ref: notification_deliveries.school_id > schools.id
+Ref: notification_deliveries.device_token_id > device_tokens.id
+
+Ref: attendance_sessions.school_id > schools.id
+Ref: attendance_sessions.class_id > classes.id
+Ref: attendance_sessions.school_year_id > school_years.id
+Ref: attendance_sessions.academic_period_id > academic_periods.id
+Ref: attendance_sessions.recorded_by_membership_id > memberships.id
+Ref: attendance_records.attendance_session_id > attendance_sessions.id
+Ref: attendance_records.school_id > schools.id
+Ref: attendance_records.student_id > students.id
+Ref: grade_entries.school_id > schools.id
+Ref: grade_entries.student_id > students.id
+Ref: incidents.school_id > schools.id
+Ref: incidents.student_id > students.id
+Ref: incidents.reported_by_membership_id > memberships.id
+
+Ref: archive_document_types.school_id > schools.id
+Ref: archive_documents.school_id > schools.id
+Ref: archive_documents.student_id > students.id
+Ref: archive_documents.school_year_id > school_years.id
+Ref: archive_documents.archive_document_type_id > archive_document_types.id
+Ref: archive_documents.uploaded_by_id > users.id
+Ref: archive_documents.discarded_by_id > users.id
+Ref: document_signatories.school_id > schools.id
+
 Ref: refresh_tokens.user_id > users.id
 Ref: device_tokens.user_id > users.id
 Ref: users.disabled_by_id > users.id
@@ -561,6 +1042,7 @@ Ref: guardians.school_id > schools.id
 Ref: guardians.user_id > users.id
 Ref: guardians.discarded_by_id > users.id
 Ref: students.school_id > schools.id
+Ref: students.segment_id > segments.id
 Ref: students.discarded_by_id > users.id
 Ref: teachers.school_id > schools.id
 Ref: teachers.user_id > users.id
@@ -576,6 +1058,7 @@ Ref: student_guardians.school_id > schools.id
 Ref: contracts.student_id > students.id
 Ref: contracts.billing_plan_id > billing_plans.id
 Ref: contracts.school_id > schools.id
+Ref: contracts.enrollment_id > enrollments.id
 
 Ref: charges.contract_id > contracts.id
 Ref: charges.guardian_id > guardians.id
@@ -662,8 +1145,8 @@ Records guardians(id, school_id, user_id, name, cpf) {
   0, 0, 1, 'Maria Silva', '000.000.000-00'
 }
 
-Records students(id, school_id, name, status, discarded_at) {
-  0, 0, 'Pedro Silva', 'active', null
-  1, 1, 'Ana Silva', 'active', null
-  2, 0, 'Former Student', 'transferred', '2026-01-15 10:00:00'
+Records students(id, school_id, name, discarded_at) {
+  0, 0, 'Pedro Silva', null
+  1, 1, 'Ana Silva', null
+  2, 0, 'Former Student', '2026-01-15 10:00:00'
 }
