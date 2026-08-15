@@ -51,7 +51,11 @@ module Contracts
         birth_date: student.birth_date,
         school_class_name: student.school_class&.name,
         grade_level: student.school_class&.grade_level,
-        year: student.school_class&.year
+        shift: student.school_class&.shift,
+        year: student.school_class&.year,
+        # The whole cohort in one string, formatted once here so the screen and the contract it
+        # is about to produce cannot word it differently.
+        school_class_label: student.school_class&.full_name
       }
     end
 

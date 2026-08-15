@@ -5,7 +5,11 @@ class SchoolClassPolicy < ApplicationPolicy
   def show? = staff_with?(:manage_enrollment) && record.school_id == school_id
   def create? = staff_with?(:manage_enrollment)
   def update? = staff_with?(:manage_enrollment) && record.school_id == school_id
-  def destroy? = update?
+
+  # A cohort is never deleted. Students, teaching assignments and signed contracts all point at
+  # it, so a roll that disappears takes with it the record of who was in it. A cohort that has
+  # been superseded is left in place and told apart by its year.
+  def destroy? = false
 
   class Scope < Scope
     def resolve

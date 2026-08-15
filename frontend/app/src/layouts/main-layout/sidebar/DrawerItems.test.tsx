@@ -68,7 +68,15 @@ describe('DrawerItems permission gating', () => {
 
     expect(screen.getByRole('link', { name: 'Responsáveis' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Estudantes' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Equipe' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Colaboradores' })).toBeInTheDocument();
+  });
+
+  // "Equipe" is off the menu — it read as a second Colaboradores. The page still exists at its
+  // path, since it is the only place a membership's permissions can be edited.
+  it('does not offer Equipe in the sidebar', () => {
+    renderDrawer(staffMembership);
+
+    expect(screen.queryByRole('link', { name: 'Equipe' })).not.toBeInTheDocument();
   });
 
   it('hides people routes from a teacher without manage_people', () => {
@@ -76,7 +84,6 @@ describe('DrawerItems permission gating', () => {
 
     expect(screen.queryByRole('link', { name: 'Responsáveis' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Estudantes' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Equipe' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Colaboradores' })).toBeInTheDocument();
   });
 

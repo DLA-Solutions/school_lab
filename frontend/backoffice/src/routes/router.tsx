@@ -15,6 +15,7 @@ const Schools = lazy(() => import('pages/schools/Schools'));
 const Users = lazy(() => import('pages/users/Users'));
 const ProvisioningWizard = lazy(() => import('pages/schools/ProvisioningWizard'));
 const SchoolActivation = lazy(() => import('pages/schools/SchoolActivation'));
+const BankCredentials = lazy(() => import('pages/schools/BankCredentials'));
 
 const router = createBrowserRouter(
   [
@@ -60,6 +61,10 @@ const router = createBrowserRouter(
             {
               path: 'schools/:schoolId/activation',
               element: <SchoolActivation />,
+            },
+            {
+              path: 'schools/:schoolId/bank-credentials',
+              element: <BankCredentials />,
             },
           ],
         },

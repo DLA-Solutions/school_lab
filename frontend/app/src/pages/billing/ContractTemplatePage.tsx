@@ -449,7 +449,11 @@ const ContractTemplatePage = () => {
                   border: 1,
                   borderColor: 'divider',
                   borderRadius: 1,
-                  background: 'common.white',
+                  // `bgcolor`, not `background`: only the former resolves a palette path, so the
+                  // shorthand emitted the literal string, was dropped as invalid CSS, and left the
+                  // frame transparent — the dark page showing through a contract that is a printed
+                  // white page. The preview HTML sets no background of its own.
+                  bgcolor: 'common.white',
                 }}
               />
             )}

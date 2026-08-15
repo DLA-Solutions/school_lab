@@ -70,7 +70,8 @@ Rails.application.routes.draw do
               end
             end
             resources :subjects, only: %i[index create update destroy]
-            resources :school_classes, only: %i[index show create update destroy]
+            # No `destroy`: a cohort is never deleted — see `SchoolClassPolicy`.
+            resources :school_classes, only: %i[index show create update]
             resources :teachers, only: %i[index show create update destroy] do
               resources :teaching_assignments, only: :create
             end

@@ -112,6 +112,7 @@ FactoryBot.define do
     school
     sequence(:name) { |n| ("A".."Z").to_a[n % 26] }
     grade_level { "fundamental_i_1" }
+    shift { "matutino" }
     year { 2026 }
   end
 

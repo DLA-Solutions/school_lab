@@ -1,0 +1,23 @@
+{
+  // The aliases Vite and Vitest resolve, and nothing else.
+  //
+  // `vite-tsconfig-paths` forwards every mapping it reads straight to the bundler, so this file is
+  // deliberately narrower than `tsconfig.app.json`: that one also maps `@mui/*` and `@iconify/react`
+  // at the filesystem level, which TypeScript needs to type-check the linked design-system package
+  // but which resolves past those packages' `exports` maps when a bundler follows it — loading the
+  // CJS build and forcing the whole MUI tree through CJS→ESM interop.
+  //
+  // Keep the runtime aliases here and the type-only ones in `tsconfig.app.json`.
+  // `vite-tsconfig-paths` only rewrites imports in files a project actually covers, so this has to
+  // match `tsconfig.app.json`'s `include`. It is never passed to `tsc` — `tsconfig.json` references
+  // only the app and node projects — so it emits nothing and type-checks nothing.
+  "include": ["src"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "*": ["./src/*"],
+      "@school-lab/design-system-ui": ["../../packages/design-system-ui/index.ts"],
+      "@school-lab/design-system-ui/*": ["../../packages/design-system-ui/*"]
+    }
+  }
+}

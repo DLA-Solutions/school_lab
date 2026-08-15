@@ -18,6 +18,7 @@ const schoolClass = {
   school_id: SCHOOL_ID,
   name: 'A',
   grade_level: 'fundamental_i_5',
+  shift: 'matutino',
   year: 2026,
   student_count: 0,
   subjects: [],
@@ -93,7 +94,7 @@ const fillRequiredFields = () => {
 
 const selectClass = async () => {
   await user.click(await screen.findByRole('combobox', { name: /turma/i }));
-  await user.click(screen.getByRole('option', { name: /5º ano A — 2026/ }));
+  await user.click(screen.getByRole('option', { name: /5º ano A · Matutino — 2026/ }));
 };
 
 const authenticate = () => setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
@@ -132,6 +133,30 @@ describe('StudentFormDialog', () => {
     });
   });
 
+  // Not every family has an RG to hand at enrolment, and the school identifies a student by CPF.
+  it('enrols a student with no RG', async () => {
+    authenticate();
+    stubClasses();
+
+    let received: { student: Record<string, unknown> } | undefined;
+    server.use(
+      http.post(apiUrl(STUDENTS_PATH), async ({ request }) => {
+        received = (await request.json()) as { student: Record<string, unknown> };
+        return HttpResponse.json({ data: student }, { status: 201 });
+      }),
+    );
+
+    const { onSaved } = renderDialog();
+
+    fillRequiredFields();
+    setField('rg', '');
+    await selectClass();
+    await user.click(screen.getByRole('button', { name: /salvar/i }));
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1));
+    expect(received?.student.rg).toBe('');
+  });
+
   it('sends both parents when both CPFs are given', async () => {
     authenticate();
     stubClasses();
@@ -156,15 +181,16 @@ describe('StudentFormDialog', () => {
     expect(received?.student.mother_cpf).toBe('12345678909');
   });
 
-  // The cohort carries the grade, so the option must name both — "A" alone says nothing.
-  it('offers the cohorts with their grade and year', async () => {
+  // "A" alone says nothing: the grade, the shift and the year all narrow it down, and the shift
+  // in particular because the morning and afternoon "5º ano A" are different groups.
+  it('offers the cohorts with their grade, shift and year', async () => {
     stubClasses();
     renderDialog();
 
     await user.click(await screen.findByRole('combobox', { name: /turma/i }));
 
     expect(
-      screen.getByRole('option', { name: 'Ensino Fundamental I — 5º ano A — 2026' }),
+      screen.getByRole('option', { name: 'Ensino Fundamental I — 5º ano A · Matutino — 2026' }),
     ).toBeInTheDocument();
   });
 
@@ -172,7 +198,6 @@ describe('StudentFormDialog', () => {
     it.each([
       [/informe o nome/i],
       [/^informe o cpf\.$/i],
-      [/informe o rg/i],
       [/informe a data de nascimento/i],
       [/selecione a turma/i],
     ])('reports %s when the form is empty', async (message) => {

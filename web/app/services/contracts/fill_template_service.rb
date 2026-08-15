@@ -76,15 +76,23 @@ module Contracts
         "aluno.nascimento" => escape(format_date(student.birth_date)),
         "aluno.turma" => escape(cohort_label(student)),
         "contrato.valor" => escape(formatted_amount),
+        # The table price the school publishes, before anything agreed for this family. The
+        # punctuality figures are all measured against it.
+        "contrato.valor.tabela" => escape(money(table_amount_cents)),
+        "contrato.pontualidade.percentual" => escape(punctuality_percent_label),
+        "contrato.pontualidade.dia" => escape(punctuality_day),
+        "contrato.pontualidade.desconto" => escape(money(punctuality_discount_cents)),
+        "contrato.pontualidade.valor" => escape(money(punctuality_amount_cents)),
         "contrato.vencimento" => escape(contract.due_day),
         "contrato.inicio" => escape(format_date(contract.starts_on)),
         "data.hoje" => escape(format_date(Date.current)),
         "contrato.responsavel" => escape(contract.payer&.name),
         "contrato.responsavel.cpf" => escape(Cpf.format(contract.payer&.cpf)),
         "responsaveis.nomes" => escape(portuguese_sentence(people.map(&:name))),
-        # The only substitution that is markup rather than text, and it is built here rather than
-        # taken from input.
-        "responsaveis" => guardians_block(people)
+        # The only substitutions that are markup rather than text, and both are built here rather
+        # than taken from input.
+        "responsaveis" => guardians_block(people),
+        "responsaveis.assinaturas" => signature_block(people)
       }
     end
 
@@ -108,6 +116,21 @@ module Contracts
       rows.join("\n")
     end
 
+    # One signing line per contracting party, at the foot of the agreement. The provider places
+    # its own seal wherever it converts the file, but the document still has to say on its face
+    # who is bound by it — with both parents named when both are on file, not just whoever pays.
+    def signature_block(people)
+      lines = people.map do |guardian|
+        label = RELATIONSHIP_LABELS.fetch(relationship_of(guardian), "Responsável")
+
+        "<p class=\"signature\">___________________________________________<br />" \
+          "#{escape(guardian.name)} — CPF #{escape(Cpf.format(guardian.cpf))} " \
+          "(#{escape(label)})</p>"
+      end
+
+      lines.join("\n")
+    end
+
     def phone_fragment(guardian)
       return "" if guardian.phone.blank?
 
@@ -128,18 +151,59 @@ module Contracts
       contract.student.student_guardians.kept.find_by(guardian_id: guardian.id)&.relationship
     end
 
+    # The whole cohort, not just its letter: "A — 2026" named no grade and no shift, which in a
+    # contract is the difference between identifying the class and not.
     def cohort_label(student)
-      school_class = student.school_class
-      return "" if school_class.blank?
-
-      "#{school_class.name} — #{school_class.year}"
+      student.school_class&.full_name.to_s
     end
 
+    # What this family agreed to pay, which is the table price unless something else was negotiated.
     def formatted_amount
-      cents = contract.negotiated_amount_cents || contract.billing_plan&.base_amount_cents || 0
+      money(contract.negotiated_amount_cents || table_amount_cents)
+    end
 
+    # The school's published price for the plan, before anything agreed for this family.
+    def table_amount_cents
+      contract.billing_plan&.base_amount_cents || 0
+    end
+
+    def billing_settings
+      @billing_settings ||= contract.school.school_billing_settings
+    end
+
+    def punctuality_percent
+      billing_settings&.early_payment_discount_percent
+    end
+
+    # "10%" rather than "10.0%": the percentage is stored with two decimals, and a contract reads
+    # the round number as a round number.
+    def punctuality_percent_label
+      return "" if punctuality_percent.blank?
+
+      formatted = punctuality_percent.to_d.frac.zero? ? punctuality_percent.to_i : punctuality_percent
+      "#{formatted}%".tr(".", ",")
+    end
+
+    def punctuality_day
+      billing_settings&.early_payment_discount_day
+    end
+
+    # Rounded to the cent the family actually pays, so the two figures in the contract add up.
+    def punctuality_discount_cents
+      return 0 if punctuality_percent.blank?
+
+      (table_amount_cents * punctuality_percent.to_d / 100).round
+    end
+
+    def punctuality_amount_cents
+      table_amount_cents - punctuality_discount_cents
+    end
+
+    def money(cents)
+      # `%u %n` rather than the default `%u%n`: "R$ 1.249,15" is how the amount is written in a
+      # Brazilian contract, and "R$1.249,15" reads as a typo in a document a family signs.
       ActiveSupport::NumberHelper.number_to_currency(
-        cents / 100.0, unit: "R$", separator: ",", delimiter: "."
+        cents.to_i / 100.0, unit: "R$", separator: ",", delimiter: ".", format: "%u %n"
       )
     end
 
@@ -211,6 +275,7 @@ module Contracts
         table { width: 100%; border-collapse: collapse; }
         td, th { padding: 4px 0; text-align: left; vertical-align: top; }
         img { max-width: 100%; }
+        .signature { margin-top: 16mm; line-height: 1.8; }
       CSS
     end
 

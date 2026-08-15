@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 module Contracts
-  # Renders the agreement and hands it to the e-signature provider, addressed to the student's
-  # guardians — both, or the single one on file.
+  # Renders the agreement and hands it to the e-signature provider, addressed to every party: the
+  # student's guardians — both, or the single one on file — and the school itself, which signs as
+  # a legal entity under its CNPJ once it has an address to sign from.
   #
   # The contract is only recorded as sent once the provider has accepted it: a row claiming to be
   # awaiting signature when nothing left the building is worse than an error.
@@ -70,7 +71,23 @@ module Contracts
       failure(:validation_error, e.message)
     end
 
+    # The school is a party to its own contracts, not a bystander copied on them. It signs under
+    # the CNPJ it is registered with, from the address on its record; a school with neither
+    # configured is left out, and the contract goes out as it did before.
+    def school_signer
+      school = contract.school
+      return nil unless school.signs_contracts?
+
+      Gateways::Signature::ValueObjects::Signer.new(
+        name: school.name,
+        email: school.signature_email,
+        cnpj: Cnpj.normalize(school.cnpj)
+      )
+    end
+
     def build_request(rendered, signers)
+      parties = guardian_signers(rendered, signers) + [ school_signer ].compact
+
       Gateways::Signature::ValueObjects::SignatureRequest.new(
         name: "Contrato #{contract.student.name} — #{contract.school.name}",
         # Either the filled HTML or the built-in PDF; the adapter uploads whichever it is given.
@@ -78,24 +95,29 @@ module Contracts
         content_type: rendered[:html] ? "text/html" : "application/pdf",
         filename: rendered.fetch(:filename),
         message: I18n.t("signature.contract_message", student: contract.student.name),
-        # The school's own copy of every agreement that leaves. Configured on the contract
-        # template, and applied whichever renderer produced the document.
-        copy_emails: contract.school.contract_template&.copy_emails.to_a,
-        signers: signers.map do |guardian|
-          # The built-in PDF draws each guardian's line, so it knows where their signature goes.
-          # An HTML agreement carries no such mark: the page is laid out by the provider when it
-          # converts the file, and coordinates measured against our own render would land
-          # somewhere arbitrary on theirs. Sending none lets Autentique place it.
-          position = rendered[:signature_positions]&.fetch(guardian.id, nil)
-
-          Gateways::Signature::ValueObjects::Signer.new(
-            name: guardian.name,
-            email: guardian.email,
-            cpf: guardian.cpf,
-            positions: position ? [ position ] : []
-          )
-        end
+        # The school's own copy of every agreement that leaves, configured on the contract
+        # template. Anyone already signing is a party and does not need copying as well — the
+        # school's address sits on both lists, and it would otherwise receive the document twice.
+        copy_emails: contract.school.contract_template&.copy_emails.to_a - parties.map(&:email),
+        signers: parties
       )
+    end
+
+    def guardian_signers(rendered, signers)
+      signers.map do |guardian|
+        # The built-in PDF draws each guardian's line, so it knows where their signature goes.
+        # An HTML agreement carries no such mark: the page is laid out by the provider when it
+        # converts the file, and coordinates measured against our own render would land
+        # somewhere arbitrary on theirs. Sending none lets Autentique place it.
+        position = rendered[:signature_positions]&.fetch(guardian.id, nil)
+
+        Gateways::Signature::ValueObjects::Signer.new(
+          name: guardian.name,
+          email: guardian.email,
+          cpf: guardian.cpf,
+          positions: position ? [ position ] : []
+        )
+      end
     end
 
     def already_sent

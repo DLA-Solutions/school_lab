@@ -45,14 +45,9 @@ const sitemap: MenuItem[] = [
     active: true,
     requiredPermission: 'manage_people',
   },
-  {
-    id: 'team',
-    subheader: 'nav.team',
-    path: paths.team,
-    icon: 'mingcute:group-line',
-    active: true,
-    requiredPermission: 'manage_people',
-  },
+  // "Equipe" is off the menu: the register of who works at the school is Colaboradores, and the
+  // two read as the same thing to anyone scanning the sidebar. The page itself is kept — it is
+  // the only place a membership's permissions can be edited — and stays reachable at its path.
   {
     id: 'collaborators',
     subheader: 'nav.collaborators',

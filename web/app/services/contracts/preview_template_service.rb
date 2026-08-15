@@ -13,8 +13,13 @@ module Contracts
       "aluno.cpf" => "529.982.247-25",
       "aluno.rg" => "MG-14.235.789",
       "aluno.nascimento" => "10/03/2015",
-      "aluno.turma" => "5º ano A — 2026",
+      "aluno.turma" => "Ensino Fundamental I — 5º ano A · Matutino — 2026",
       "contrato.valor" => "R$ 1.250,50",
+      "contrato.valor.tabela" => "R$ 1.249,15",
+      "contrato.pontualidade.percentual" => "10%",
+      "contrato.pontualidade.dia" => "5",
+      "contrato.pontualidade.desconto" => "R$ 124,92",
+      "contrato.pontualidade.valor" => "R$ 1.124,23",
       "contrato.vencimento" => "10",
       "contrato.inicio" => "01/02/2026",
       "responsaveis.nomes" => "Maria Silva e João Silva",
@@ -22,7 +27,12 @@ module Contracts
       "contrato.responsavel.cpf" => "123.456.789-09",
       "responsaveis" =>
         "<p><strong>Mãe:</strong> Maria Silva — CPF 123.456.789-09 — maria@exemplo.com</p>\n" \
-        "<p><strong>Pai:</strong> João Silva — CPF 529.982.247-25 — joao@exemplo.com</p>"
+        "<p><strong>Pai:</strong> João Silva — CPF 529.982.247-25 — joao@exemplo.com</p>",
+      "responsaveis.assinaturas" =>
+        "<p class=\"signature\">___________________________________________<br />" \
+        "Maria Silva — CPF 123.456.789-09 (Mãe)</p>\n" \
+        "<p class=\"signature\">___________________________________________<br />" \
+        "João Silva — CPF 529.982.247-25 (Pai)</p>"
     }.freeze
 
     def initialize(template:)

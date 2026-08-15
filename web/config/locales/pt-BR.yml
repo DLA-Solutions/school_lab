@@ -95,6 +95,12 @@ pt-BR:
     errors:
       messages:
         invalid_cpf: "não é um CPF válido"
+        requires_valid_cnpj: "só pode ser preenchido quando o CNPJ da escola for válido — é o documento sob o qual a escola assina"
+        too_short: "deve ter ao menos 10 caracteres"
+        needs_lowercase: "deve conter uma letra minúscula"
+        needs_uppercase: "deve conter uma letra maiúscula"
+        needs_digit: "deve conter um número"
+        needs_symbol: "deve conter um símbolo (ex.: ! @ # $)"
         must_be_in_the_past: "deve estar no passado"
         must_not_be_in_the_future: "não pode estar no futuro"
       models:

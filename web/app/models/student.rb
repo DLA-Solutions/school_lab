@@ -23,7 +23,9 @@ class Student < ApplicationRecord
   validates :name, presence: true
   validates :status, inclusion: { in: STATUSES }
   validates :birth_date, presence: true
-  validates :rg, presence: true
+  # RG is optional: not every family has one to hand at enrolment, and the document a school
+  # actually identifies a student by is the CPF. Contracts that interpolate `{{aluno.rg}}` render
+  # it blank when it is missing.
 
   # A student is enrolled into a cohort; the grade comes from it. `optional: true` on the
   # association keeps a legacy row loadable, but no new student can be saved without one.

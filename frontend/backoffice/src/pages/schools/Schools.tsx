@@ -35,13 +35,21 @@ import { CreateSchoolMeta, School } from 'types/school';
 
 const PAGE_SIZE = 25;
 
-type FormField = 'name' | 'cnpj' | 'address' | 'saas_plan' | 'onboarding_mode' | 'owner_email';
+type FormField =
+  | 'name'
+  | 'cnpj'
+  | 'address'
+  | 'saas_plan'
+  | 'onboarding_mode'
+  | 'owner_email'
+  | 'signature_email';
 
 type FormState = Record<FormField, string>;
 
 const emptyForm: FormState = {
   name: '',
   cnpj: '',
+  signature_email: '',
   address: '',
   saas_plan: '',
   onboarding_mode: 'self_serve',
@@ -232,6 +240,7 @@ const Schools = () => {
         ? {
             name: school.name ?? '',
             cnpj: school.cnpj ?? '',
+            signature_email: school.signature_email ?? '',
             address: school.address ?? '',
             saas_plan: school.saas_plan ?? '',
             onboarding_mode: 'self_serve',
@@ -275,6 +284,7 @@ const Schools = () => {
     const payload = {
       name: form.name.trim(),
       cnpj: form.cnpj.trim() || null,
+      signature_email: form.signature_email.trim() || null,
       address: form.address.trim() || null,
       saas_plan: form.saas_plan.trim() || null,
       ...(backoffice && !editing
@@ -407,7 +417,7 @@ const Schools = () => {
     {
       field: 'actions',
       headerName: 'Ações',
-      width: 170,
+      width: 205,
       sortable: false,
       filterable: false,
       align: 'right',
@@ -439,6 +449,17 @@ const Schools = () => {
               </IconButton>
             </Tooltip>
           )}
+          {/* A certificate expires, so this stays reachable long after provisioning is done. */}
+          <Tooltip title="Credenciais bancárias">
+            <IconButton
+              size="small"
+              aria-label={`Credenciais bancárias de ${row.name}`}
+              component={RouterLink}
+              to={paths.bankCredentials(row.id)}
+            >
+              <IconifyIcon icon="mingcute:bank-card-line" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Editar">
             <IconButton
               size="small"
@@ -695,6 +716,26 @@ const Schools = () => {
                       onChange={handleChange}
                       error={Boolean(fieldErrors.cnpj)}
                       helperText={fieldErrors.cnpj}
+                      disabled={saving}
+                      variant="filled"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    {/* The school is a party to its own contracts: this is the address the
+                        signature request goes to, and it signs under the CNPJ above. Leaving it
+                        empty means only the guardians are asked to sign. */}
+                    <TextField
+                      id="school-signature-email"
+                      name="signature_email"
+                      label="E-mail de assinatura do contrato"
+                      helperText={
+                        fieldErrors.signature_email ??
+                        'A escola assina sob o CNPJ acima. Em branco, só os responsáveis assinam.'
+                      }
+                      value={form.signature_email}
+                      onChange={handleChange}
+                      error={Boolean(fieldErrors.signature_email)}
                       disabled={saving}
                       variant="filled"
                       fullWidth

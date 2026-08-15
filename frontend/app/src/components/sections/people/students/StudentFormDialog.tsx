@@ -12,13 +12,14 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { ErrorBanner } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { listSchoolClasses } from 'services/academicsApi';
 import { ApiError } from 'services/api';
 import { createStudent, updateStudent } from 'services/studentsApi';
 import { SchoolClass } from 'types/academics';
 import { Student, StudentPayload } from 'types/student';
 import { formatCpf, isValidCpf, normalizeCpf } from 'utils/documentNumber';
-import { gradeLevelLabel } from 'utils/gradeLevels';
+import { schoolClassLabel } from 'utils/schoolClassLabel';
 
 export interface StudentFormDialogProps {
   open: boolean;
@@ -107,9 +108,7 @@ const validate = (form: FormState): FieldErrors => {
     errors.cpf = 'CPF inválido — confira os dígitos.';
   }
 
-  if (!form.rg.trim()) {
-    errors.rg = 'Informe o RG.';
-  }
+  // RG is optional — see the matching note on the Student model.
 
   if (!form.birth_date) {
     errors.birth_date = 'Informe a data de nascimento.';
@@ -153,6 +152,8 @@ const StudentFormDialog = ({
   onClose,
   onSaved,
 }: StudentFormDialogProps) => {
+  // Only the cohort labels are translated here — the rest of this dialog is pt-BR copy.
+  const { t } = useTranslation();
   // Seeded once per mount; the caller remounts on open (see the `key` at the call site).
   const [form, setForm] = useState<FormState>(() => toFormState(student));
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -260,7 +261,7 @@ const StudentFormDialog = ({
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...fieldProps('rg')} label="RG" />
+              <TextField {...fieldProps('rg')} label="RG (opcional)" />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
@@ -271,11 +272,12 @@ const StudentFormDialog = ({
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              {/* A cohort, not a bare grade: "5º ano A / 2026". The grade comes with it. */}
+              {/* A cohort, not a bare grade: the grade, letter, shift and year come with it —
+                  the shift because the same letter is used in the morning and the afternoon. */}
               <TextField {...fieldProps('school_class_id')} label="Turma" select>
                 {classes.map((schoolClass) => (
                   <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
-                    {`${gradeLevelLabel(schoolClass.grade_level)} ${schoolClass.name} — ${schoolClass.year}`}
+                    {schoolClassLabel(schoolClass, t)}
                   </MenuItem>
                 ))}
               </TextField>

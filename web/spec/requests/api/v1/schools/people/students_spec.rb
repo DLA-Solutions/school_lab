@@ -31,14 +31,14 @@ RSpec.describe "Api::V1::Schools::People::Students", type: :request do
             properties: {
               name: { type: :string },
               cpf: { type: :string, description: "Accepted formatted or bare; stored as 11 digits and unique per school" },
-              rg: { type: :string },
+              rg: { type: :string, description: "Optional" },
               birth_date: { type: :string, format: :date },
               school_class_id: { type: :integer },
               father_cpf: { type: :string, description: "CPF of an already registered guardian" },
               mother_cpf: { type: :string, description: "CPF of an already registered guardian" },
               status: { type: :string }
             },
-            required: %w[name cpf rg birth_date school_class_id]
+            required: %w[name cpf birth_date school_class_id]
           }
         },
         required: %w[student]

@@ -1,3 +1,5 @@
+import { SchoolClassShift } from 'types/academics';
+
 /** Mirrors `ContractBlueprint` (web/app/blueprints/contract_blueprint.rb). */
 export interface Contract {
   id: number;
@@ -72,7 +74,10 @@ export interface ContractPrefill {
     birth_date: string | null;
     school_class_name: string | null;
     grade_level: string | null;
+    shift: SchoolClassShift | null;
     year: number | null;
+    /** The whole cohort, worded by the API so this screen and the contract cannot disagree. */
+    school_class_label: string | null;
   };
   guardians: PrefillGuardian[];
   suggested: {

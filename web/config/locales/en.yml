@@ -94,6 +94,12 @@ en:
     errors:
       messages:
         invalid_cpf: "is not a valid CPF"
+        requires_valid_cnpj: "can only be set once the school's CNPJ is valid — it is the document the school signs under"
+        too_short: "must be at least 10 characters"
+        needs_lowercase: "must contain a lowercase letter"
+        needs_uppercase: "must contain an uppercase letter"
+        needs_digit: "must contain a digit"
+        needs_symbol: "must contain a symbol (e.g. ! @ # $)"
         must_be_in_the_past: "must be in the past"
         must_not_be_in_the_future: "must not be in the future"
       models:

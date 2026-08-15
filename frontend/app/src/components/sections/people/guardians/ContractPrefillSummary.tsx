@@ -5,7 +5,6 @@ import Typography from '@mui/material/Typography';
 import { SemanticChip } from 'design-system';
 import { ContractPrefill } from 'types/contract';
 import { formatCpf } from 'utils/documentNumber';
-import { gradeLevelLabel } from 'utils/gradeLevels';
 import { useTranslation } from 'providers/I18nContext';
 import type { MessageKey } from 'locales';
 
@@ -68,13 +67,9 @@ const ContractPrefillSummary = ({ prefill }: ContractPrefillSummaryProps) => {
           <Field label={t('contract.prefill.birthDate')} value={formatDate(student.birth_date)} />
           <Field
             label={t('contract.prefill.class')}
-            value={
-              student.school_class_name
-                ? `${gradeLevelLabel(student.grade_level)} ${student.school_class_name}${
-                    student.year ? ` — ${student.year}` : ''
-                  }`
-                : ''
-            }
+            // Worded by the API, so this reads exactly as the contract about to be generated
+            // from it — grade, letter, shift and year, not the letter on its own.
+            value={student.school_class_label ?? ''}
           />
         </Stack>
 

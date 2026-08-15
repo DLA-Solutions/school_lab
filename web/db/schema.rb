@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_11_183000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "vector"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -404,6 +405,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_183000) do
 
   create_table "school_billing_settings", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "early_payment_discount_day"
     t.decimal "early_payment_discount_percent", precision: 5, scale: 2
     t.integer "fine_amount_cents"
     t.decimal "fine_rate_percent", precision: 5, scale: 2
@@ -415,6 +417,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_183000) do
     t.string "service_description", limit: 100
     t.datetime "updated_at", null: false
     t.index ["school_id"], name: "index_school_billing_settings_on_school_id", unique: true
+    t.check_constraint "(early_payment_discount_percent IS NULL) = (early_payment_discount_day IS NULL)", name: "school_billing_settings_early_payment_discount_pair"
+    t.check_constraint "early_payment_discount_day IS NULL OR early_payment_discount_day >= 1 AND early_payment_discount_day <= 28", name: "school_billing_settings_early_payment_discount_day_range"
     t.check_constraint "early_payment_discount_percent IS NULL OR early_payment_discount_percent > 0::numeric AND early_payment_discount_percent <= 100::numeric", name: "school_billing_settings_early_payment_discount_percent_range"
     t.check_constraint "fine_type IS NOT NULL OR fine_rate_percent IS NULL AND fine_amount_cents IS NULL", name: "school_billing_settings_fine_off_requires_null_values"
     t.check_constraint "fine_type IS NULL OR (fine_type::text = ANY (ARRAY['percent'::character varying, 'fixed'::character varying]::text[]))", name: "school_billing_settings_fine_type_allowed"
@@ -429,13 +433,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_183000) do
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
     t.string "grade_level", null: false
-    t.string "name", null: false
+    t.string "name", default: "A", null: false
     t.bigint "school_id", null: false
+    t.string "shift", default: "matutino", null: false
     t.datetime "updated_at", null: false
     t.integer "year", null: false
+    t.index "school_id, year, grade_level, shift, lower((name)::text)", name: "index_school_classes_on_school_year_grade_shift_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["discarded_by_id"], name: "index_school_classes_on_discarded_by_id"
-    t.index ["school_id", "year", "grade_level", "name"], name: "index_school_classes_on_school_year_grade_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_id"], name: "index_school_classes_on_school_id"
+    t.check_constraint "shift::text = ANY (ARRAY['matutino'::character varying, 'vespertino'::character varying]::text[])", name: "school_classes_shift_allowed"
   end
 
   create_table "school_groups", force: :cascade do |t|
@@ -532,6 +538,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_183000) do
     t.string "saas_plan"
     t.bigint "school_group_id"
     t.datetime "segments_skipped_at"
+    t.string "signature_email"
     t.datetime "updated_at", null: false
     t.index ["discarded_by_id"], name: "index_schools_on_discarded_by_id"
     t.index ["school_group_id"], name: "index_schools_on_school_group_id"

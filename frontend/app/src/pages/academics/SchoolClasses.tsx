@@ -18,7 +18,6 @@ import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
 import {
-  ConfirmDialog,
   DataTable,
   EmptyState,
   ErrorBanner,
@@ -27,20 +26,25 @@ import {
 } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
-import { createSchoolClass, deleteSchoolClass, listSchoolClasses, updateSchoolClass } from 'services/academicsApi';
+import { createSchoolClass, listSchoolClasses, updateSchoolClass } from 'services/academicsApi';
 import { ApiError } from 'services/api';
-import { SchoolClass } from 'types/academics';
+import { SchoolClass, SchoolClassShift } from 'types/academics';
 import { GRADE_LEVELS, GRADE_SEGMENTS, gradeLevelLabel } from 'utils/gradeLevels';
 
 const PAGE_SIZE = 25;
 
-type FormField = 'name' | 'grade_level' | 'year';
+type FormField = 'name' | 'grade_level' | 'shift' | 'year';
 
 type FormState = Record<FormField, string>;
 
+const SHIFTS: SchoolClassShift[] = ['matutino', 'vespertino'];
+
+// A school that runs one group per grade calls it "A", so the letter starts filled in and the
+// morning is preselected — the two answers most cohorts would give anyway.
 const emptyForm = (): FormState => ({
-  name: '',
+  name: 'A',
   grade_level: '',
+  shift: 'matutino',
   year: String(new Date().getFullYear()),
 });
 
@@ -81,7 +85,6 @@ const SchoolClasses = () => {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FormField, string>>>({});
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
-  const [pendingDelete, setPendingDelete] = useState<SchoolClass | null>(null);
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -115,6 +118,7 @@ const SchoolClasses = () => {
         ? {
             name: schoolClass.name,
             grade_level: schoolClass.grade_level,
+            shift: schoolClass.shift,
             year: String(schoolClass.year),
           }
         : emptyForm(),
@@ -144,6 +148,9 @@ const SchoolClasses = () => {
     if (!form.grade_level) {
       errors.grade_level = t('classes.gradeRequired');
     }
+    if (!form.shift) {
+      errors.shift = t('classes.shiftRequired');
+    }
     if (!form.year || Number.isNaN(Number(form.year))) {
       errors.year = t('classes.yearRequired');
     }
@@ -159,6 +166,7 @@ const SchoolClasses = () => {
     const payload = {
       name: form.name.trim(),
       grade_level: form.grade_level,
+      shift: form.shift as SchoolClassShift,
       year: Number(form.year),
     };
 
@@ -192,25 +200,16 @@ const SchoolClasses = () => {
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (!schoolId || !pendingDelete) {
-      return;
-    }
-
-    try {
-      await deleteSchoolClass(schoolId, pendingDelete.id);
-      setPendingDelete(null);
-      load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('classes.deleteError'));
-      setPendingDelete(null);
-    }
-  };
-
   const columns: GridColDef<SchoolClass>[] = useMemo(
     () => [
-      { field: 'grade_level', headerName: t('common.grade'), width: 210, renderCell: renderGrade },
+      { field: 'grade_level', headerName: t('common.grade'), width: 290, renderCell: renderGrade },
       { field: 'name', headerName: t('common.class'), width: 100 },
+      {
+        field: 'shift',
+        headerName: t('common.shift'),
+        width: 120,
+        valueGetter: (value: SchoolClassShift) => t(`common.shift.${value}`),
+      },
       { field: 'year', headerName: t('common.year'), width: 90 },
       { field: 'student_count', headerName: t('common.students'), width: 90 },
       {
@@ -224,7 +223,7 @@ const SchoolClasses = () => {
       {
         field: 'actions',
         headerName: t('common.actions'),
-        width: 110,
+        width: 80,
         sortable: false,
         filterable: false,
         align: 'right',
@@ -238,15 +237,6 @@ const SchoolClasses = () => {
                 onClick={() => openForm(row)}
               >
                 <IconifyIcon icon="mingcute:edit-2-line" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title={t('common.delete')}>
-              <IconButton
-                size="small"
-                aria-label={t('classes.deleteAria', { name: row.name })}
-                onClick={() => setPendingDelete(row)}
-              >
-                <IconifyIcon icon="mingcute:delete-2-line" />
               </IconButton>
             </Tooltip>
           </Stack>
@@ -345,7 +335,31 @@ const SchoolClasses = () => {
                   ])}
                 </TextField>
               </Grid>
-              <Grid size={{ xs: 6, sm: 3 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                {/* Part of what identifies the cohort: the morning and the afternoon "5º ano A"
+                    are two different groups, so the same letter is free in each shift. */}
+                <TextField
+                  id="class-shift"
+                  name="shift"
+                  label={t('common.shift')}
+                  value={form.shift}
+                  onChange={handleChange}
+                  error={Boolean(fieldErrors.shift)}
+                  helperText={fieldErrors.shift}
+                  disabled={saving}
+                  variant="filled"
+                  fullWidth
+                  required
+                  select
+                >
+                  {SHIFTS.map((shift) => (
+                    <MenuItem key={shift} value={shift}>
+                      {t(`common.shift.${shift}`)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 6 }}>
                 <TextField
                   id="class-name"
                   name="name"
@@ -361,7 +375,7 @@ const SchoolClasses = () => {
                   required
                 />
               </Grid>
-              <Grid size={{ xs: 6, sm: 3 }}>
+              <Grid size={{ xs: 6, sm: 6 }}>
                 <TextField
                   id="class-year"
                   name="year"
@@ -400,19 +414,6 @@ const SchoolClasses = () => {
         </Stack>
       </Dialog>
 
-      <ConfirmDialog
-        open={Boolean(pendingDelete)}
-        title={t('classes.deleteTitle')}
-        message={t('classes.deleteMessage', {
-          grade: gradeLevelLabel(pendingDelete?.grade_level),
-          name: pendingDelete?.name ?? '',
-        })}
-        confirmLabel={t('common.delete')}
-        cancelLabel={t('common.cancel')}
-        destructive
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setPendingDelete(null)}
-      />
     </Stack>
   );
 };

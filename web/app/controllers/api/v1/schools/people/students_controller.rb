@@ -46,7 +46,12 @@ module Api
             authorize student
 
             result = ::People::UpdateStudentService.call(
-              student: student, params: student_params, actor: Current.user
+              student: student,
+              params: student_params,
+              # Only when the caller actually sent the fields: a partial update that says nothing
+              # about the parents must not be read as an instruction to unlink them.
+              guardian_cpfs: editing_guardians? ? guardian_cpf_params : nil,
+              actor: Current.user
             )
             render_service_result(result) do |updated|
               render json: { data: StudentBlueprint.render_as_hash(updated) }
@@ -111,6 +116,14 @@ module Api
               father: params.dig(:student, :father_cpf),
               mother: params.dig(:student, :mother_cpf)
             }
+          end
+
+          # Distinguishes "cleared this parent" from "said nothing about the parents". The form
+          # sends both keys every time — null for an empty field — so their presence is the signal.
+          def editing_guardians?
+            student = params[:student]
+
+            student.respond_to?(:key?) && (student.key?(:father_cpf) || student.key?(:mother_cpf))
           end
         end
       end

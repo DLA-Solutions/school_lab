@@ -78,7 +78,8 @@ module Api
 
       def school_params
         params.require(:school).permit(
-          :name, :cnpj, :address, :saas_plan, :school_group_id, :onboarding_mode
+          :name, :cnpj, :address, :saas_plan, :school_group_id, :onboarding_mode,
+          :signature_email
         )
       end
 

@@ -194,6 +194,14 @@ describe('ContractTemplatePage', () => {
       expect(frame).toHaveAttribute('srcdoc', expect.stringContaining('Pedro Silva'));
       // Nothing inside the preview may run, whatever the HTML contains.
       expect(frame).toHaveAttribute('sandbox', '');
+      // A contract is a printed white page, and the preview HTML sets no background of its own —
+      // so the frame has to paint one, or the dark page shows straight through it.
+      // A contract is a printed white page, and the preview HTML sets no background of its own, so
+      // the frame has to paint one or the dark page shows straight through it. Asserting the
+      // resolved colour rather than "not transparent": `background: 'common.white'` — the CSS
+      // shorthand, which `sx` does not resolve against the palette — silently left it at
+      // rgba(0, 0, 0, 0), which is exactly the bug this guards.
+      expect(getComputedStyle(frame).backgroundColor).toBe('var(--mui-palette-common-white)');
     });
 
     it('says when it is showing stand-in data', async () => {

@@ -22,6 +22,7 @@ class TeacherBlueprint < Blueprinter::Base
           id: school_class.id,
           name: school_class.name,
           grade_level: school_class.grade_level,
+          shift: school_class.shift,
           year: school_class.year,
           subjects: assignments.map do |assignment|
             { id: assignment.subject.id, name: assignment.subject.name, assignment_id: assignment.id }
