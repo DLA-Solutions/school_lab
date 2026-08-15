@@ -95,7 +95,15 @@ const renderSubjects =
       </Stack>
     );
 
-const SchoolClasses = () => {
+export interface SchoolClassesProps {
+  /**
+   * Rendered as a tab inside the Aulas page rather than on its own route. The page above
+   * already names itself and carries the tabs, so the heading is dropped and the toolbar is
+   * laid out the way the sibling tabs lay theirs out.
+   */
+  embedded?: boolean;
+}
+const SchoolClasses = ({ embedded = false }: SchoolClassesProps) => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
@@ -360,77 +368,149 @@ const SchoolClasses = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader
-        title={t('classes.title')}
-        actions={
-          <>
-            <SearchField
-              value={search}
-              onChange={(e) => setFilter('q', e.target.value)}
-              placeholder={t('classes.searchPlaceholder')}
-              ariaLabel={t('classes.searchAria')}
-              sx={{ width: 180 }}
-            />
-            <TextField
-              id="classes-filter-grade"
-              label={t('common.grade')}
-              value={gradeFilter}
-              onChange={(e) => setFilter('grade_level', e.target.value)}
-              variant="filled"
-              size="small"
-              select
-              sx={{ width: 200 }}
-            >
-              <MenuItem value="">{t('common.all')}</MenuItem>
-              {GRADE_SEGMENTS.flatMap((segment) => [
-                <ListSubheader key={segment}>{segment}</ListSubheader>,
-                ...GRADE_LEVELS.filter((grade) => grade.segment === segment).map((grade) => (
-                  <MenuItem key={grade.value} value={grade.value}>
-                    {grade.label}
+      {embedded ? (
+        // Same toolbar the Aulas tab lays out for itself, so the three tabs read as one
+        // screen: ranged left rather than pushed right by `PageHeader`'s `space-between`,
+        // and bottom-aligned because a labelled select is taller than a bare search box.
+        <Stack direction="row" gap={1.5} flexWrap="wrap" alignItems="flex-end">
+          <SearchField
+            value={search}
+            onChange={(e) => setFilter('q', e.target.value)}
+            placeholder={t('classes.searchPlaceholder')}
+            ariaLabel={t('classes.searchAria')}
+            sx={{ width: 180 }}
+          />
+          <TextField
+            id="classes-filter-grade"
+            label={t('common.grade')}
+            value={gradeFilter}
+            onChange={(e) => setFilter('grade_level', e.target.value)}
+            variant="filled"
+            size="small"
+            select
+            sx={{ width: 200 }}
+          >
+            <MenuItem value="">{t('common.all')}</MenuItem>
+            {GRADE_SEGMENTS.flatMap((segment) => [
+              <ListSubheader key={segment}>{segment}</ListSubheader>,
+              ...GRADE_LEVELS.filter((grade) => grade.segment === segment).map((grade) => (
+                <MenuItem key={grade.value} value={grade.value}>
+                  {grade.label}
+                </MenuItem>
+              )),
+            ])}
+          </TextField>
+          <TextField
+            id="classes-filter-shift"
+            label={t('common.shift')}
+            value={shiftFilter}
+            onChange={(e) => setFilter('shift', e.target.value)}
+            variant="filled"
+            size="small"
+            select
+            sx={{ width: 140 }}
+          >
+            <MenuItem value="">{t('common.all')}</MenuItem>
+            {SHIFTS.map((shift) => (
+              <MenuItem key={shift} value={shift}>
+                {t(`common.shift.${shift}`)}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            id="classes-filter-year"
+            label={t('common.year')}
+            value={yearFilter}
+            onChange={(e) => setFilter('year', e.target.value)}
+            variant="filled"
+            size="small"
+            select
+            sx={{ width: 120 }}
+          >
+            <MenuItem value="">{t('common.all')}</MenuItem>
+            {YEAR_OPTIONS.map((year) => (
+              <MenuItem key={year} value={String(year)}>
+                {year}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button variant="contained" size="small" onClick={() => openForm(null)}>
+            {t('classes.new')}
+          </Button>
+        </Stack>
+      ) : (
+        <PageHeader
+          title={t('classes.title')}
+          actions={
+            <>
+              <SearchField
+                value={search}
+                onChange={(e) => setFilter('q', e.target.value)}
+                placeholder={t('classes.searchPlaceholder')}
+                ariaLabel={t('classes.searchAria')}
+                sx={{ width: 180 }}
+              />
+              <TextField
+                id="classes-filter-grade"
+                label={t('common.grade')}
+                value={gradeFilter}
+                onChange={(e) => setFilter('grade_level', e.target.value)}
+                variant="filled"
+                size="small"
+                select
+                sx={{ width: 200 }}
+              >
+                <MenuItem value="">{t('common.all')}</MenuItem>
+                {GRADE_SEGMENTS.flatMap((segment) => [
+                  <ListSubheader key={segment}>{segment}</ListSubheader>,
+                  ...GRADE_LEVELS.filter((grade) => grade.segment === segment).map((grade) => (
+                    <MenuItem key={grade.value} value={grade.value}>
+                      {grade.label}
+                    </MenuItem>
+                  )),
+                ])}
+              </TextField>
+              <TextField
+                id="classes-filter-shift"
+                label={t('common.shift')}
+                value={shiftFilter}
+                onChange={(e) => setFilter('shift', e.target.value)}
+                variant="filled"
+                size="small"
+                select
+                sx={{ width: 140 }}
+              >
+                <MenuItem value="">{t('common.all')}</MenuItem>
+                {SHIFTS.map((shift) => (
+                  <MenuItem key={shift} value={shift}>
+                    {t(`common.shift.${shift}`)}
                   </MenuItem>
-                )),
-              ])}
-            </TextField>
-            <TextField
-              id="classes-filter-shift"
-              label={t('common.shift')}
-              value={shiftFilter}
-              onChange={(e) => setFilter('shift', e.target.value)}
-              variant="filled"
-              size="small"
-              select
-              sx={{ width: 140 }}
-            >
-              <MenuItem value="">{t('common.all')}</MenuItem>
-              {SHIFTS.map((shift) => (
-                <MenuItem key={shift} value={shift}>
-                  {t(`common.shift.${shift}`)}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              id="classes-filter-year"
-              label={t('common.year')}
-              value={yearFilter}
-              onChange={(e) => setFilter('year', e.target.value)}
-              variant="filled"
-              size="small"
-              select
-              sx={{ width: 120 }}
-            >
-              <MenuItem value="">{t('common.all')}</MenuItem>
-              {YEAR_OPTIONS.map((year) => (
-                <MenuItem key={year} value={String(year)}>
-                  {year}
-                </MenuItem>
-              ))}
-            </TextField>
-            <Button variant="contained" size="small" onClick={() => openForm(null)}>
-              {t('classes.new')}
-            </Button>
-          </>
-        }
-      />
+                ))}
+              </TextField>
+              <TextField
+                id="classes-filter-year"
+                label={t('common.year')}
+                value={yearFilter}
+                onChange={(e) => setFilter('year', e.target.value)}
+                variant="filled"
+                size="small"
+                select
+                sx={{ width: 120 }}
+              >
+                <MenuItem value="">{t('common.all')}</MenuItem>
+                {YEAR_OPTIONS.map((year) => (
+                  <MenuItem key={year} value={String(year)}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Button variant="contained" size="small" onClick={() => openForm(null)}>
+                {t('classes.new')}
+              </Button>
+            </>
+          }
+        />
+      )}
 
       {error && <ErrorBanner message={error} />}
 

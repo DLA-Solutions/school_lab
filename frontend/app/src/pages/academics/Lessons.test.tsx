@@ -159,6 +159,21 @@ describe('Lessons page', () => {
 
   // Turmas and Matérias are what a lesson is made of, so they are reached from here.
   describe('the other tabs', () => {
+    // The page above already names itself and carries the tabs, so a second heading inside the
+    // tab said the same thing twice — and `PageHeader` pushed its toolbar to the right, which put
+    // the same controls in a different place on each tab.
+    it('drops the heading inside a tab but keeps the toolbar', async () => {
+      stub();
+      renderPage();
+      await screen.findByText('Carla Nogueira');
+
+      await user.click(screen.getByRole('tab', { name: /turmas/i }));
+
+      expect(await screen.findByRole('textbox', { name: /buscar turmas/i })).toBeInTheDocument();
+      // The tab label stays; the page heading it used to duplicate does not.
+      expect(screen.getAllByText('Turmas').length).toBe(1);
+    });
+
     it('carries Turmas and Matérias, each with its own search', async () => {
       stub();
       renderPage();
