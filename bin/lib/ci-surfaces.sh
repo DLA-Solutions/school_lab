@@ -81,6 +81,7 @@ EOF
   [ "$site" -eq 1 ] && printf 'site\n'
   [ "$frontend" -eq 1 ] && printf 'frontend\n'
   [ "$backoffice" -eq 1 ] && printf 'backoffice\n'
+  return 0
 }
 
 ci_detect_surfaces() {

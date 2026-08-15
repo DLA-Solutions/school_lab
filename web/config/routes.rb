@@ -87,6 +87,20 @@ Rails.application.routes.draw do
             resources :conversations, only: :index
           end
 
+          resources :school_years, only: %i[index show create update destroy] do
+            collection do
+              get :active
+            end
+            member do
+              post :activate
+              post :archive
+            end
+            resources :academic_periods, only: %i[index create]
+            resources :holidays, only: %i[index create]
+          end
+          resources :academic_periods, only: :update
+          resources :holidays, only: %i[update destroy]
+
           namespace :billing do
             resource :settings, only: %i[show update]
             resource :contract_template, only: %i[show update], controller: "contract_template" do
