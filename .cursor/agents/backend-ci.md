@@ -24,8 +24,8 @@ Mirror these GitHub Actions jobs (backend only — not frontend, backoffice, or 
 
 **Canonical entrypoints:**
 
-- `web/bin/backend-ci` — full gate (default before ship when Docker is available).
-- `web/bin/backend-ci-fast` — scoped lint/tests; skips Docker; still runs Brakeman + bundler-audit. Prefer for small `web/` diffs and when Docker is not running locally. Writes the same `.cursor/backend-ci.stamp` (GitHub Actions runs full CI on the PR).
+- `web/bin/backend-ci` — full gate (use before API deploy when Docker is available).
+- `web/bin/backend-ci-fast` — scoped lint/tests; skips Docker; still runs Brakeman + bundler-audit. Prefer for small `web/` diffs and when Docker is not running locally.
 
 ## End-to-end loop
 
@@ -71,7 +71,7 @@ Rules:
 
 Follow skill `create-pull-request`:
 
-- Stamp must match HEAD before `gh pr create` (hook `gate-pr-create.sh` enforces this).
+- Local CI is not required before `gh pr create`.
 - Title and body summarize the branch work **including any CI fix commits** you added.
 - Return the PR URL in the final report.
 
@@ -81,7 +81,7 @@ Lead with outcome. On success:
 
 ```
 Backend CI: PASSED
-Stamp: .cursor/backend-ci.stamp (HEAD <sha>)
+Stamp: .cursor/backend-ci.stamp (HEAD <sha>, optional)
 Commits: <count and one-line summary of CI fix commits, or "none">
 PR: <url>
 ```

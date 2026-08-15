@@ -48,7 +48,7 @@ Usage: bin/ci [OPTIONS]
   --site         Note site changes (no automated PR checks; optional docker hint).
   --docker       Build web production image when web surface runs.
   --base REF     Merge base for change detection (default: origin/main).
-  --since REF    Diff REF..HEAD (commits being pushed; used by pre-push hook).
+  --since REF    Diff REF..HEAD (manual scoped runs).
   --no-stamp     Do not write .cursor/ci.stamp on success.
   -h, --help     Show this help.
 

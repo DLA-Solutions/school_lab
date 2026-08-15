@@ -13,9 +13,7 @@
 #   web/bin/backend-ci --docker     # force production image build
 #   web/bin/backend-ci-fast         # same as --fast
 #
-# On success, writes .cursor/backend-ci.stamp with the current HEAD SHA so PR creation
-# hooks can verify CI ran on the commit being opened. GitHub Actions still runs the full
-# merge gate on the PR.
+# On success, writes .cursor/backend-ci.stamp and .cursor/ci.stamp (optional bookkeeping).
 #
 # Default fast mode skips Docker and security scans; narrows lint/tests vs --base.
 # Falls back to full RSpec when Gemfile, migrations, schema, or Dockerfile change.

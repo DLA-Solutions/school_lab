@@ -39,16 +39,16 @@ Default to **staging** when the destination is ambiguous. Confirm before **produ
    Stop deploy if any command exits non-zero. `bin/ci --full` from repo root is an alternative when deploying the full stack.
 
 1. **Working directory** — run Kamal from the service directory (`cd site`, `cd frontend/app`, `cd frontend/backoffice`, or `cd web`). Use `bin/kamal` in `site/`, `frontend/app/`, and `frontend/backoffice/` if present.
-3. **Registry token** — in the same shell:
+2. **Registry token** — in the same shell:
    ```bash
    export KAMAL_REGISTRY_PASSWORD='...'   # classic PAT: write:packages + read:packages
    ```
-4. **Secrets file** — must exist in that service dir:
+3. **Secrets file** — must exist in that service dir:
    ```bash
    test -f .kamal/secrets-common || cp .kamal/secrets-common.example .kamal/secrets-common
    ```
    For **web** only, also need `.kamal/secrets.staging` or `.kamal/secrets.production` (copy from `.example`).
-5. **Verify Kamal resolves secrets**:
+4. **Verify Kamal resolves secrets**:
    ```bash
    kamal secrets print -d <staging|production>
    ```

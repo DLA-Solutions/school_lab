@@ -1,5 +1,5 @@
 # Shared path filters for local CI — mirrors archived .github/workflows/ci.yml.archived.
-# Source from bin/ci, git hooks, and .cursor/hooks/gate-pr-create.sh.
+# Source from bin/ci and git hooks.
 
 ci_resolve_base_ref() {
   local repo_root="$1"
@@ -97,7 +97,7 @@ ci_detect_surfaces() {
   ci_surfaces_from_changed "$changed"
 }
 
-# Paths that must not widen PR gate to all surfaces (CI/tooling/docs churn on feature branches).
+# Paths that must not widen surface detection to all surfaces (CI/tooling/docs churn on feature branches).
 ci_pr_gate_excluded_path() {
   local file="$1"
 
@@ -128,9 +128,8 @@ $changed
 EOF
 }
 
-# Product-surface detection for gh pr create.
-# Ignores docs/, .cursor/, and CI hook/tooling paths so infra churn on a web branch
-# does not require frontend/backoffice/site stamps. Web-only diffs accept surfaces=web.
+# Product-surface detection for bin/ci — ignores docs/, .cursor/, and CI hook/tooling paths
+# so infra churn on a web branch does not require frontend/backoffice/site checks.
 ci_detect_pr_surfaces() {
   local repo_root="$1"
   local base_ref="${2:-origin/main}"
