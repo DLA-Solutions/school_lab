@@ -11,14 +11,15 @@ Subagent **backend-ci** runs this full pipeline by default (CI → fix → atomi
 
 ## Gate (mandatory)
 
-**Do not run `gh pr create` until backend CI passes.**
+**Do not run `gh pr create` until CI passes for the surfaces your branch actually changed.**
 
-1. Run `bin/ci` from repo root (or `web/bin/backend-ci` when only `web/` changed). For monorepo
-   changes, `bin/ci` applies the same path filters as GitHub Actions.
+1. Run the narrowest green gate:
+   - **`web/` only** (plus docs/`.cursor` churn): `web/bin/backend-ci --full`
+   - **Multiple product surfaces** (`frontend/`, `site/`, etc.): `bin/ci` from repo root
 2. Confirm exit code 0 and `.cursor/ci.stamp` contains the same SHA as `git rev-parse HEAD`.
 3. If CI fails: fix issues, commit atomically, re-run until green. **Stop and report** if blocked — never open a PR on red CI.
 
-For branches that only touch `frontend/`, `site/`, or docs, still run backend CI when `web/` files changed; skip only when the diff has **zero** files under `web/`.
+The PR hook (`.cursor/hooks/gate-pr-create.sh`) uses **path-aware** checks vs `origin/main`: only product paths count. Changes confined to `bin/ci`, `.cursor/`, or `docs/` do **not** force frontend/site/backoffice CI on a web-only feature branch.
 
 ## Workflow
 

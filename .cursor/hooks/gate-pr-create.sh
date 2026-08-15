@@ -47,7 +47,7 @@ while IFS= read -r line; do
   esac
 done < "$STAMP_FILE"
 
-REQUIRED_SURFACES="$(ci_detect_surfaces "$REPO_ROOT" "origin/main" || true)"
+REQUIRED_SURFACES="$(ci_detect_pr_surfaces "$REPO_ROOT" "origin/main" || true)"
 
 if [ -z "$REQUIRED_SURFACES" ]; then
   if [ "$STAMP_SURFACES" = "none" ] || [ -n "$STAMP_SURFACES" ]; then

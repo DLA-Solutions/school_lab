@@ -94,6 +94,49 @@ ci_detect_surfaces() {
   ci_surfaces_from_changed "$changed"
 }
 
+# Paths that must not widen PR gate to all surfaces (CI/tooling/docs churn on feature branches).
+ci_pr_gate_excluded_path() {
+  local file="$1"
+
+  case "$file" in
+    .github/workflows/* | bin/ci | bin/ci-fast | bin/lib/ci-surfaces.sh | bin/install-git-hooks | .githooks/*)
+      return 0
+      ;;
+    .cursor/* | docs/*)
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+ci_filter_paths_for_pr_gate() {
+  local changed="$1"
+  local file
+
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    if ci_pr_gate_excluded_path "$file"; then
+      continue
+    fi
+    printf '%s\n' "$file"
+  done <<EOF
+$changed
+EOF
+}
+
+# Product-surface detection for gh pr create — ignores CI infra / docs / .cursor-only diffs.
+ci_detect_pr_surfaces() {
+  local repo_root="$1"
+  local base_ref="${2:-origin/main}"
+  local diff_mode="${3:-three_dot}"
+  local changed filtered
+
+  changed="$(ci_changed_files "$repo_root" "$base_ref" "$diff_mode")"
+  filtered="$(ci_filter_paths_for_pr_gate "$changed")"
+  ci_surfaces_from_changed "$filtered"
+}
+
 ci_surface_csv_contains() {
   local csv="$1"
   local surface="$2"
