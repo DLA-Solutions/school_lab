@@ -106,6 +106,23 @@ const enUS: Messages = {
   'nav.schools': 'Schools',
   'nav.language': 'Language',
 
+  'bankCredentials.title': 'Bank credentials',
+  'bankCredentials.cora': 'Cora integration (boleto)',
+  'bankCredentials.active': 'Active',
+  'bankCredentials.notConfigured': 'Not configured',
+  'bankCredentials.fingerprint': 'Certificate fingerprint',
+  'bankCredentials.validUntil': 'Certificate valid until',
+  'bankCredentials.none':
+    'This school has no Cora credentials yet. Without them no boleto can be issued.',
+  'bankCredentials.help':
+    'The certificate and private key are uploaded as .pem or .cert files, stored encrypted and never returned by the API. An expired certificate, or a key that does not match it, is refused here.',
+  'bankCredentials.certificate': 'Certificate (.pem, .cert)',
+  'bankCredentials.privateKey': 'Private key (.pem, .key)',
+  'bankCredentials.noFile': 'No file selected',
+  'bankCredentials.send': 'Upload credentials',
+  'bankCredentials.sending': 'Uploading...',
+  'bankCredentials.uploaded': 'Credentials uploaded and validated.',
+  'bankCredentials.connectionError': 'Could not upload the credentials. Check your connection.',
   'charges.title': 'Boletos',
   'charges.noAccess.title': 'No access to this area',
   'charges.noAccess.description':

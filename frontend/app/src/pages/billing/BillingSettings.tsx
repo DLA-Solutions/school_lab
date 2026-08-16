@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { ErrorBanner, PageHeader, SectionCard } from 'design-system';
+import BankCredentialsCard from 'components/sections/billing/BankCredentialsCard';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
@@ -266,6 +267,9 @@ const BillingSettingsPage = () => {
           {saving ? <CircularProgress size={24} color="inherit" /> : t('common.save')}
         </Button>
       </Box>
+
+      {/* Saved on its own — the certificate is uploaded as files, not as part of this form. */}
+      {schoolId && <BankCredentialsCard schoolId={schoolId} />}
     </Stack>
   );
 };
