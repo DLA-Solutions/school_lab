@@ -29,6 +29,7 @@ import {
   SectionCard,
   SemanticChip,
 } from 'design-system';
+import BoletoPreviewDialog from 'components/sections/billing/charges/BoletoPreviewDialog';
 import ChargeBatchDialog from 'components/sections/billing/charges/ChargeBatchDialog';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
@@ -113,6 +114,7 @@ const Charges = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [batchOpen, setBatchOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  const [previewing, setPreviewing] = useState<Charge | null>(null);
   const [cancelling, setCancelling] = useState<Charge | null>(null);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
 
@@ -400,9 +402,15 @@ const Charges = () => {
       sortable: false,
       renderCell: ({ value, row }: GridRenderCellParams<Charge, string | null>) =>
         value && row.status !== 'cancelled' ? (
-          // `component="a"` opts out of the theme's default, which routes every MuiLink through
-          // react-router; this points at the bank, not at an in-app route.
-          <Link component="a" href={value} target="_blank" rel="noopener" variant="body2">
+          // Opens the boleto in a dialog rather than a tab: it is read to be checked or handed
+          // over, and both are quicker without losing the listing behind it.
+          <Link
+            component="button"
+            type="button"
+            variant="body2"
+            aria-label={t('charges.boleto.openAction', { name: row.guardian.name })}
+            onClick={() => setPreviewing(row)}
+          >
             {t('charges.open')}
           </Link>
         ) : (
@@ -685,6 +693,12 @@ const Charges = () => {
         cancelLabel={t('charges.cancelKeep')}
         onConfirm={handleCancel}
         onCancel={() => setCancelling(null)}
+      />
+
+      <BoletoPreviewDialog
+        open={previewing !== null}
+        charge={previewing}
+        onClose={() => setPreviewing(null)}
       />
 
       {schoolId && (

@@ -242,6 +242,12 @@ const enUS: Messages = {
   'charges.kind.oneOff': 'One-off',
   'charges.kind.tuition': 'Tuition',
   'charges.open': 'Open',
+  'charges.boleto.title': 'Boleto',
+  'charges.boleto.frame': 'Boleto preview',
+  'charges.boleto.download': 'Download PDF',
+  'charges.boleto.openInTab': 'Open in browser',
+  'charges.boleto.error': 'The boleto could not be loaded.',
+  'charges.boleto.openAction': "Open {name}'s boleto",
   'charges.cancelAction': 'Cancel boleto for {name}',
   'charges.cancelTitle': 'Cancel this boleto?',
   'charges.cancelMessage':

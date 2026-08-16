@@ -225,6 +225,44 @@ describe('Charges', () => {
     expect(await screen.findByText(/permanece na lista/i)).toBeInTheDocument();
   });
 
+  // Reading a boleto is checking it or handing it over, and both are quicker without losing the
+  // listing behind them — so it opens in place rather than in a tab.
+  it('opens the boleto without leaving the listing', async () => {
+    const boletoUrl = 'https://bank.example/boleto.pdf';
+    const issued = { ...standaloneCharge, boleto_url: boletoUrl };
+
+    server.use(
+      ...listingHandlers([issued]),
+      // The bank's own host, not the API — the file is fetched straight from it.
+      http.get(boletoUrl, () =>
+        HttpResponse.arrayBuffer(new TextEncoder().encode('%PDF-1.4').buffer, {
+          headers: { 'Content-Type': 'application/pdf' },
+        }),
+      ),
+    );
+    // jsdom has no object URLs, and the frame is pointed at one.
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock/1');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }));
+
+    expect(await screen.findByTitle('Pré-visualização do boleto')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Baixar PDF' })).toBeInTheDocument();
+    // The listing is still behind the dialog, not navigated away from.
+    expect(screen.getByText('Aluguel da quadra')).toBeInTheDocument();
+  });
+
+  it('offers nothing to open on a charge with no boleto yet', async () => {
+    server.use(...listingHandlers([standaloneCharge]));
+
+    renderPage();
+    await screen.findByText('Aluguel da quadra');
+
+    expect(screen.queryByRole('button', { name: /Abrir boleto de/ })).not.toBeInTheDocument();
+  });
+
   // Nothing to withdraw on a boleto that was already paid.
   it('offers no cancel action on a paid boleto', async () => {
     server.use(...listingHandlers([{ ...standaloneCharge, status: 'paid' }]));

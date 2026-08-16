@@ -243,6 +243,12 @@ const ptBR = {
   'charges.kind.oneOff': 'Avulso',
   'charges.kind.tuition': 'Mensalidade',
   'charges.open': 'Abrir',
+  'charges.boleto.title': 'Boleto',
+  'charges.boleto.frame': 'Pré-visualização do boleto',
+  'charges.boleto.download': 'Baixar PDF',
+  'charges.boleto.openInTab': 'Abrir no navegador',
+  'charges.boleto.error': 'Não foi possível carregar o boleto.',
+  'charges.boleto.openAction': 'Abrir boleto de {name}',
   'charges.cancelAction': 'Cancelar boleto de {name}',
   'charges.cancelTitle': 'Cancelar este boleto?',
   'charges.cancelMessage':
