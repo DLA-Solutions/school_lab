@@ -10,6 +10,11 @@ class AcademicPeriod < ApplicationRecord
   belongs_to :school
 
   has_many :grades, dependent: :destroy
+  has_many :evaluation_templates, dependent: :destroy
+  has_many :grade_entries, dependent: :destroy
+  has_many :grade_overrides, dependent: :destroy
+  has_many :grade_launches, dependent: :destroy
+  has_many :attendance_sessions, dependent: :destroy
 
   validates :name, presence: true
   validates :sequence, presence: true, numericality: { only_integer: true, greater_than: 0 }
