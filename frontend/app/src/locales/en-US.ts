@@ -242,6 +242,10 @@ const enUS: Messages = {
   'charges.kind.oneOff': 'One-off',
   'charges.kind.tuition': 'Tuition',
   'charges.open': 'Open',
+  'charges.boleto.generating': 'Charge created. Generating the boleto at the bank…',
+  'charges.boleto.ready': 'Boleto generated.',
+  'charges.boleto.stillGenerating':
+    'The charge was created, but the boleto is not ready yet. Refresh the page in a moment.',
   'charges.boleto.title': 'Boleto',
   'charges.boleto.frame': 'Boleto preview',
   'charges.boleto.download': 'Download PDF',

@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -46,6 +46,11 @@ import { useTranslation } from 'providers/I18nContext';
 import type { MessageKey } from 'locales';
 
 const PAGE_SIZE = 25;
+
+// The bank answers in a second or two; this leaves room for a slow one without waiting on an
+// issuance that already failed.
+const BOLETO_POLL_INTERVAL_MS = 2_000;
+const BOLETO_POLL_ATTEMPTS = 8;
 
 const STATUS_KEYS: Record<Charge['status'], MessageKey> = {
   pending: 'charges.status.pending',
@@ -114,6 +119,11 @@ const Charges = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [batchOpen, setBatchOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  // The bank is asked for the boleto in a background job, so a charge is created before it has
+  // one. Without waiting for it the row lands with an empty Boleto column and stays that way
+  // until someone reloads, which reads as the boleto never having been generated.
+  const [awaitingBoleto, setAwaitingBoleto] = useState<number | null>(null);
+  const boletoAttempts = useRef(0);
   const [previewing, setPreviewing] = useState<Charge | null>(null);
   const [cancelling, setCancelling] = useState<Charge | null>(null);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
@@ -134,35 +144,72 @@ const Charges = () => {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const load = useCallback(async () => {
-    if (!schoolId) {
-      return;
-    }
+  // `silent` refetches without the spinner: the poll waiting on a boleto runs every couple of
+  // seconds, and flashing the grid each time reads as the page breaking.
+  const load = useCallback(
+    async (silent = false) => {
+      if (!schoolId) {
+        return;
+      }
 
-    setLoading(true);
-    setError('');
+      if (!silent) {
+        setLoading(true);
+      }
+      setError('');
 
-    try {
-      const response = await listCharges({
-        schoolId,
-        page: page + 1,
-        status: STATUS_FILTERS.find((option) => option.value === statusFilter)?.statuses,
-        q: debouncedSearch || undefined,
-      });
-      setCharges(response.data);
-      setTotal(response.meta.total);
-    } catch (err) {
-      setCharges([]);
-      setTotal(0);
-      setError(err instanceof ApiError ? err.message : t('charges.loadError'));
-    } finally {
-      setLoading(false);
-    }
-  }, [schoolId, page, statusFilter, debouncedSearch, t]);
+      try {
+        const response = await listCharges({
+          schoolId,
+          page: page + 1,
+          status: STATUS_FILTERS.find((option) => option.value === statusFilter)?.statuses,
+          q: debouncedSearch || undefined,
+        });
+        setCharges(response.data);
+        setTotal(response.meta.total);
+      } catch (err) {
+        setCharges([]);
+        setTotal(0);
+        setError(err instanceof ApiError ? err.message : t('charges.loadError'));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [schoolId, page, statusFilter, debouncedSearch, t],
+  );
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // Waits for the boleto the background job is fetching from the bank, then stops. Bounded on
+  // purpose: an issuance that fails never produces a URL, and a page that polls forever would
+  // hide that rather than let the operator see the charge sitting without one.
+  useEffect(() => {
+    if (awaitingBoleto === null) {
+      return;
+    }
+
+    const arrived = charges.find((charge) => charge.id === awaitingBoleto)?.boleto_url;
+
+    if (arrived) {
+      setAwaitingBoleto(null);
+      setNotice(t('charges.boleto.ready'));
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (boletoAttempts.current >= BOLETO_POLL_ATTEMPTS) {
+        setAwaitingBoleto(null);
+        setNotice(t('charges.boleto.stillGenerating'));
+        return;
+      }
+
+      boletoAttempts.current += 1;
+      load(true);
+    }, BOLETO_POLL_INTERVAL_MS);
+
+    return () => clearTimeout(timer);
+  }, [awaitingBoleto, charges, load, t]);
 
   // A different filter or term is a different list; staying on page 4 of it makes no sense.
   useEffect(() => {
@@ -258,7 +305,7 @@ const Charges = () => {
     setFormError('');
 
     try {
-      await createOneOffCharge(schoolId, {
+      const created = await createOneOffCharge(schoolId, {
         guardian_id: payer.id,
         contract_id: contractId ? Number(contractId) : null,
         total_amount_cents: cents,
@@ -267,6 +314,10 @@ const Charges = () => {
       });
 
       setFormOpen(false);
+      // The charge exists; its boleto is still being fetched from the bank.
+      boletoAttempts.current = 0;
+      setAwaitingBoleto(created.id);
+      setNotice(t('charges.boleto.generating'));
       load();
     } catch (err) {
       if (err instanceof ApiError) {

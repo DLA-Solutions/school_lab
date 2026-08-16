@@ -243,6 +243,10 @@ const ptBR = {
   'charges.kind.oneOff': 'Avulso',
   'charges.kind.tuition': 'Mensalidade',
   'charges.open': 'Abrir',
+  'charges.boleto.generating': 'Cobrança criada. Gerando o boleto no banco…',
+  'charges.boleto.ready': 'Boleto gerado.',
+  'charges.boleto.stillGenerating':
+    'A cobrança foi criada, mas o boleto ainda não ficou pronto. Atualize a página em instantes.',
   'charges.boleto.title': 'Boleto',
   'charges.boleto.frame': 'Pré-visualização do boleto',
   'charges.boleto.download': 'Baixar PDF',

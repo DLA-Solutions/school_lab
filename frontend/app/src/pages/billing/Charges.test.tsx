@@ -254,6 +254,62 @@ describe('Charges', () => {
     expect(screen.getByText('Aluguel da quadra')).toBeInTheDocument();
   });
 
+  // The bank is asked for the boleto in a background job, so the charge exists a moment before
+  // its boleto does. Loading once leaves the column empty for good, which reads as the boleto
+  // never having been generated — which is exactly what it looked like.
+  it('waits for the boleto the bank is still generating', async () => {
+    const boletoUrl = 'https://bank.example/boleto.pdf';
+    let created = false;
+    let listingsAfterCreate = 0;
+
+    server.use(
+      http.get(apiUrl(CHARGES_PATH), () => {
+        // The job answers while the page is already listing: the first refetch after creating
+        // still has no boleto, a later one does.
+        if (created) {
+          listingsAfterCreate += 1;
+        }
+        const issued = created && listingsAfterCreate > 1;
+
+        return HttpResponse.json({
+          data: [issued ? { ...standaloneCharge, boleto_url: boletoUrl } : standaloneCharge],
+          meta: { page: 1, per_page: 25, total: 1 },
+        });
+      }),
+      http.get(apiUrl(GUARDIANS_PATH), () =>
+        HttpResponse.json({ data: [maria], meta: { page: 1, per_page: 25, total: 1 } }),
+      ),
+      http.get(apiUrl(CONTRACTS_PATH), () =>
+        HttpResponse.json({ data: [], meta: { page: 1, per_page: 25, total: 0 } }),
+      ),
+      // Answers without a boleto, as the API does before the job has run.
+      http.post(apiUrl(CHARGES_PATH), () => {
+        created = true;
+
+        return HttpResponse.json({ data: standaloneCharge }, { status: 201 });
+      }),
+    );
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Novo boleto avulso' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.type(
+      within(dialog).getByRole('combobox', { name: /Responsável que receberá o boleto/ }),
+      'Maria',
+    );
+    await user.click(await screen.findByRole('option', { name: /Maria Silva/ }));
+    await user.type(dialog.querySelector('#charge-amount')!, '7500');
+    await user.type(dialog.querySelector('#charge-due-date')!, '2026-09-15');
+    await user.click(within(dialog).getByRole('button', { name: 'Gerar boleto' }));
+
+    // The boleto arrives on a later refetch, with nobody reloading the page.
+    expect(
+      await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }, { timeout: 8000 }),
+    ).toBeInTheDocument();
+    expect(listingsAfterCreate).toBeGreaterThan(1);
+  });
+
   it('offers nothing to open on a charge with no boleto yet', async () => {
     server.use(...listingHandlers([standaloneCharge]));
 
