@@ -216,9 +216,9 @@ const GuardianContractsDialog = ({
         setPrefill(data);
         setForm((state) => ({
           ...state,
-          payer_guardian_id: state.payer_guardian_id || String(data.suggested.payer_guardian_id ?? ''),
-          billing_plan_id:
-            state.billing_plan_id || String(data.suggested.billing_plan_id ?? ''),
+          payer_guardian_id:
+            state.payer_guardian_id || String(data.suggested.payer_guardian_id ?? ''),
+          billing_plan_id: state.billing_plan_id || String(data.suggested.billing_plan_id ?? ''),
           due_day: String(data.suggested.due_day),
           amount:
             state.amount ||
@@ -349,8 +349,7 @@ const GuardianContractsDialog = ({
       setDraft({
         payload,
         html: preview.html,
-        studentName:
-          students.find((student) => String(student.id) === form.student_id)?.name ?? '',
+        studentName: students.find((student) => String(student.id) === form.student_id)?.name ?? '',
       });
     } catch (err) {
       applyApiErrors(err, 'Não foi possível gerar o contrato. Verifique sua conexão.');
@@ -457,9 +456,7 @@ const GuardianContractsDialog = ({
             </Stack>
           ) : contracts.length === 0 ? (
             <EmptyState
-              title={
-                tab === 'signed' ? 'Nenhum contrato assinado' : 'Nenhum contrato aguardando'
-              }
+              title={tab === 'signed' ? 'Nenhum contrato assinado' : 'Nenhum contrato aguardando'}
               description={
                 tab === 'signed'
                   ? 'Os contratos devolvidos assinados pela família aparecem aqui.'
@@ -469,11 +466,7 @@ const GuardianContractsDialog = ({
           ) : (
             <List disablePadding>
               {contracts.map((contract) => (
-                <ListItem
-                  key={contract.id}
-                  disableGutters
-                  sx={{ display: 'block', py: 1.5 }}
-                >
+                <ListItem key={contract.id} disableGutters sx={{ display: 'block', py: 1.5 }}>
                   <ListItemText
                     primary={
                       <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
@@ -511,23 +504,18 @@ const GuardianContractsDialog = ({
                         people most often need to reread — so this is offered whatever state the
                         contract is in. Weighted like "Gerar contrato", being the action a school
                         reaches for most from this list. */}
-                    <Button size="small" variant="contained" onClick={() => setPreviewing(contract)}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => setPreviewing(contract)}
+                    >
                       Pré-visualizar
                     </Button>
 
-                    {/* The provider's own file, with the signature page it appends. Not the same
-                        document as the preview, which is our render of what we sent. */}
-                    {contract.signed_document_url && (
-                      <Button
-                        size="small"
-                        component="a"
-                        href={contract.signed_document_url}
-                        target="_blank"
-                        rel="noopener"
-                      >
-                        Contrato assinado (PDF)
-                      </Button>
-                    )}
+                    {/* The provider's own file used to be linked from here. That link answered
+                        403: the URL is only served against the school's API token, which the
+                        browser does not hold. The preview above fetches it through the API and
+                        shows it, so a signed contract is read and downloaded in one place. */}
 
                     {/* Marking a contract signed by hand is gone: the provider reports the
                         signature, and a button that contradicted it left the record saying one

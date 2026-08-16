@@ -10,8 +10,10 @@ import Stack from '@mui/material/Stack';
 import { SuccessBanner } from 'design-system';
 import Typography from '@mui/material/Typography';
 import { ErrorBanner } from 'design-system';
+import IconifyIcon from 'components/base/IconifyIcon';
 import { ApiError } from 'services/api';
-import { previewContract } from 'services/contractsApi';
+import { fetchSignedContract, previewContract } from 'services/contractsApi';
+import downloadBlob from 'utils/downloadBlob';
 import { Contract } from 'types/contract';
 import { useTranslation } from 'providers/I18nContext';
 
@@ -56,6 +58,9 @@ const ContractPreviewDialog = ({
   const [html, setHtml] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [signedFile, setSignedFile] = useState<Blob | null>(null);
+  const [signedUrl, setSignedUrl] = useState('');
+  const [signedError, setSignedError] = useState(false);
 
   const signed = contract?.signature_status === 'signed';
   // Nothing has been created yet, so there is nothing left to send only once it has gone out.
@@ -77,6 +82,21 @@ const ContractPreviewDialog = ({
     setLoading(true);
     setError('');
     setHtml('');
+
+    // Once it is signed, the provider's file is the document: it carries the signature page and
+    // it is the copy that proves anything. Our own render is what the family was sent, and is
+    // still worth falling back to when the provider's file cannot be fetched.
+    if (contract.signature_status === 'signed' && contract.signed_document_url) {
+      try {
+        const file = await fetchSignedContract(schoolId, contract.id);
+        setSignedFile(file);
+        setSignedUrl(URL.createObjectURL(file));
+        setLoading(false);
+        return;
+      } catch {
+        setSignedError(true);
+      }
+    }
 
     try {
       const preview = await previewContract(schoolId, contract.id);
@@ -101,6 +121,19 @@ const ContractPreviewDialog = ({
     load();
   }, [open, load]);
 
+  // The object URL holds the whole file in memory until it is revoked, and these run to hundreds
+  // of kilobytes. Releasing it as the dialog closes keeps that to one document at a time.
+  useEffect(() => {
+    if (open || !signedUrl) {
+      return;
+    }
+
+    URL.revokeObjectURL(signedUrl);
+    setSignedUrl('');
+    setSignedFile(null);
+    setSignedError(false);
+  }, [open, signedUrl]);
+
   return (
     <Dialog open={open} onClose={sending ? undefined : onClose} maxWidth="md" fullWidth>
       <DialogTitle>
@@ -122,24 +155,13 @@ const ContractPreviewDialog = ({
         {signed && (
           <SuccessBanner
             message={
-              contract?.signed_document_url
-                ? t('contract.preview.signedWithFile')
-                : t('contract.preview.signedWithoutFile')
+              signedError
+                ? t('contract.preview.signedFileUnavailable')
+                : signedUrl
+                  ? t('contract.preview.showingSignedFile')
+                  : t('contract.preview.signedWithoutFile')
             }
             sx={{ mb: 2 }}
-            action={
-              contract?.signed_document_url ? (
-                <Button
-                  size="small"
-                  component="a"
-                  href={contract.signed_document_url}
-                  target="_blank"
-                  rel="noopener"
-                >
-                  {t('contract.preview.openSigned')}
-                </Button>
-              ) : null
-            }
           />
         )}
 
@@ -147,6 +169,19 @@ const ContractPreviewDialog = ({
           <Stack alignItems="center" py={6}>
             <CircularProgress size={28} />
           </Stack>
+        ) : signedUrl ? (
+          <Box
+            component="iframe"
+            title={t('contract.preview.signedFrame')}
+            src={signedUrl}
+            sx={{
+              width: 1,
+              height: 520,
+              border: 0,
+              bgcolor: 'common.white',
+              borderRadius: 1,
+            }}
+          />
         ) : (
           html && (
             <Box
@@ -171,6 +206,22 @@ const ContractPreviewDialog = ({
         <Button onClick={onClose} color="inherit" disabled={sending}>
           {t('common.close')}
         </Button>
+        {signedFile && (
+          <Button
+            variant="contained"
+            startIcon={<IconifyIcon icon="mingcute:download-2-line" />}
+            onClick={() =>
+              downloadBlob(
+                signedFile,
+                `contrato-assinado-${(contract?.student_name ?? 'contrato')
+                  .toLowerCase()
+                  .replace(/\s+/g, '-')}.pdf`,
+              )
+            }
+          >
+            {t('contract.preview.downloadSigned')}
+          </Button>
+        )}
         {onSend && canSend && (
           <Button
             variant="contained"

@@ -343,9 +343,13 @@ const enUS: Messages = {
   'contract.preview.signedTitle': 'Contract',
   'contract.preview.frame': 'Contract',
   'contract.preview.error': 'Could not render the contract preview.',
-  'contract.preview.openSigned': 'Open signed PDF',
-  'contract.preview.signedWithFile':
-    'Signed. Below is the text that was sent; the signed PDF comes from Autentique.',
+
+  'contract.preview.signedFrame': 'Signed contract',
+  'contract.preview.downloadSigned': 'Download signed PDF',
+  'contract.preview.showingSignedFile':
+    'Signed. Below is the Autentique PDF, with its signature page.',
+  'contract.preview.signedFileUnavailable':
+    'Signed, but the Autentique PDF could not be fetched right now. Below is the text that was sent.',
   'contract.preview.signedWithoutFile':
     'Signed. The Autentique PDF has not been located yet — the daily reconciliation fetches it.',
   'contract.preview.send': 'Send for signature',

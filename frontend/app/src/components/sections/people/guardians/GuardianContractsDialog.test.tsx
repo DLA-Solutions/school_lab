@@ -86,7 +86,13 @@ const students = page([
 ]);
 
 const plans = page([
-  { id: 3, school_id: SCHOOL_ID, name: 'Mensalidade Integral', plan_type: 'tuition', base_amount_cents: 90_000 },
+  {
+    id: 3,
+    school_id: SCHOOL_ID,
+    name: 'Mensalidade Integral',
+    plan_type: 'tuition',
+    base_amount_cents: 90_000,
+  },
 ]);
 
 const discounts = page([
@@ -258,7 +264,9 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
     await user.click(screen.getByRole('combobox', { name: /plano/i }));
     await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
-    fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), {
+      target: { value: '85000' },
+    });
 
     await sendFromPreview();
 
@@ -298,7 +306,9 @@ describe('GuardianContractsDialog', () => {
     await user.click(screen.getByRole('option', { name: 'Pedro Silva' }));
     await user.click(screen.getByRole('combobox', { name: /plano/i }));
     await user.click(screen.getByRole('option', { name: PLAN_OPTION }));
-    fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), { target: { value: '85000' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /mensalidade/i }), {
+      target: { value: '85000' },
+    });
 
     await user.click(submitButton());
 
@@ -617,30 +627,43 @@ describe('GuardianContractsDialog', () => {
 
   // Two different documents: our render of what was sent, and the provider's file with the
   // signature page appended. The second is the one that proves anything.
-  it('links the signed PDF from Autentique on a signed contract', async () => {
+  // The provider's URL is served only against the school's API token, so a link straight to it
+  // answers 403 in a browser. It used to be offered here, and it never worked.
+  it('never links straight to the provider URL, which answers 403', async () => {
     authenticate();
     stubFormOptions();
     server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([signedContract]))));
 
     renderDialog();
+    await screen.findByRole('button', { name: /pré-visualizar/i });
 
-    const link = await screen.findByRole('link', { name: /contrato assinado \(pdf\)/i });
-    expect(link).toHaveAttribute('href', signedContract.signed_document_url);
-    expect(link).toHaveAttribute('target', '_blank');
+    const toProvider = screen
+      .queryAllByRole('link')
+      .filter((link) => link.getAttribute('href') === signedContract.signed_document_url);
+    expect(toProvider).toHaveLength(0);
   });
 
-  it('offers the signed PDF from inside the preview too', async () => {
+  it('reads and downloads the signed file from inside the preview', async () => {
     authenticate();
     stubFormOptions();
-    server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([signedContract]))));
+    server.use(
+      http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([signedContract]))),
+      http.get(apiUrl(`${CONTRACTS_PATH}/${signedContract.id}/signed_document`), () =>
+        HttpResponse.arrayBuffer(new TextEncoder().encode('%PDF-1.4').buffer, {
+          headers: { 'Content-Type': 'application/pdf' },
+        }),
+      ),
+    );
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock/1');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
 
     renderDialog();
     await user.click(await screen.findByRole('button', { name: /pré-visualizar/i }));
 
-    expect(await screen.findByRole('link', { name: /abrir pdf assinado/i })).toHaveAttribute(
-      'href',
-      signedContract.signed_document_url,
-    );
+    expect(await screen.findByTitle('Contrato assinado')).toHaveAttribute('src', 'blob:mock/1');
+    expect(screen.getByRole('button', { name: 'Baixar PDF assinado' })).toBeInTheDocument();
+
+    vi.restoreAllMocks();
   });
 
   // Nothing to sign a second time, and nothing left to send.
@@ -652,7 +675,9 @@ describe('GuardianContractsDialog', () => {
     renderDialog();
     await screen.findByRole('button', { name: /pré-visualizar/i });
 
-    expect(screen.queryByRole('button', { name: 'Enviar para assinatura' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Enviar para assinatura' }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /marcar assinado/i })).not.toBeInTheDocument();
   });
 });

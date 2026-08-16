@@ -346,9 +346,13 @@ const ptBR = {
   'contract.preview.signedTitle': 'Contrato',
   'contract.preview.frame': 'Contrato',
   'contract.preview.error': 'Não foi possível gerar a pré-visualização do contrato.',
-  'contract.preview.openSigned': 'Abrir PDF assinado',
-  'contract.preview.signedWithFile':
-    'Assinado. Abaixo está o texto enviado; o PDF assinado vem da Autentique.',
+
+  'contract.preview.signedFrame': 'Contrato assinado',
+  'contract.preview.downloadSigned': 'Baixar PDF assinado',
+  'contract.preview.showingSignedFile':
+    'Assinado. Abaixo está o PDF da Autentique, com a página de assinaturas.',
+  'contract.preview.signedFileUnavailable':
+    'Assinado, mas não foi possível obter o PDF da Autentique agora. Abaixo está o texto que foi enviado.',
   'contract.preview.signedWithoutFile':
     'Assinado. O PDF da Autentique ainda não foi localizado — a conciliação diária o busca.',
   'contract.preview.send': 'Enviar para assinatura',
