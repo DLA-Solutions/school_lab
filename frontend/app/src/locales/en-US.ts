@@ -103,7 +103,8 @@ const enUS: Messages = {
   'grades.choose.description': 'Grades are entered per class and subject, one term per column.',
   'grades.empty.title': 'No students in this class',
   'grades.empty.description': 'Enrol students in the class to enter grades.',
-  'grades.autosaveHint': 'Each grade saves itself shortly after it is typed. Leave a cell blank for a grade not given yet.',
+  'grades.autosaveHint':
+    'Each grade saves itself shortly after it is typed. Leave a cell blank for a grade not given yet.',
   'grades.closed': 'Closed',
   'grades.cellAria': 'Grade for {student} in {period}',
   'nav.preceptorship': 'Preceptorship',
@@ -119,7 +120,8 @@ const enUS: Messages = {
   'preceptorship.status.published': 'Published',
   'preceptorship.form.newTitle': 'Write about a student',
   'preceptorship.form.editTitle': 'Carry on with the draft',
-  'preceptorship.form.description': 'Write in your own words how the student is getting on. Saved as a draft; the family reads it only once it is published.',
+  'preceptorship.form.description':
+    'Write in your own words how the student is getting on. Saved as a draft; the family reads it only once it is published.',
   'preceptorship.form.body': 'Report',
   'preceptorship.form.bodyHelp': 'Free text. Nothing here becomes a grade.',
   'preceptorship.form.save': 'Save draft',
@@ -131,14 +133,16 @@ const enUS: Messages = {
   'preceptorship.action.discard': 'Discard',
   'preceptorship.action.pdf': 'Download PDF',
   'preceptorship.confirmPublish.title': 'Publish to the family?',
-  'preceptorship.confirmPublish.description': "{student}'s family will be able to read this report. Once published it cannot be edited or withdrawn.",
+  'preceptorship.confirmPublish.description':
+    "{student}'s family will be able to read this report. Once published it cannot be edited or withdrawn.",
   'preceptorship.noAccess.description': 'You do not have access to this school’s preceptorship.',
   'myPreceptorship.loadError': 'Could not load the reports.',
   'myPreceptorship.pdfError': 'Could not download the PDF.',
   'myPreceptorship.by': 'by {teacher}',
   'myPreceptorship.download': 'Download PDF',
   'myPreceptorship.empty.title': 'No reports yet',
-  'myPreceptorship.empty.description': 'When the school publishes a preceptorship report, it appears here.',
+  'myPreceptorship.empty.description':
+    'When the school publishes a preceptorship report, it appears here.',
   'myPreceptorship.noAccess.description': 'You do not have access to this school’s preceptorship.',
   'nav.reportCards': 'Report cards',
   'nav.myReportCards': 'Report cards',
@@ -254,7 +258,8 @@ const enUS: Messages = {
   'nav.requests': 'Requests',
   'nav.myRequests': 'My requests',
   'nav.myCharges': 'My boletos',
-  'requests.intro': 'What families have asked the school for: declarations and second sittings. The screen opens on what is still outstanding.',
+  'requests.intro':
+    'What families have asked the school for: declarations and second sittings. The screen opens on what is still outstanding.',
   'requests.loadError': 'Could not load the requests.',
   'requests.actionError': 'Could not update the request.',
   'requests.open': 'Open',
@@ -287,13 +292,15 @@ const enUS: Messages = {
   'requests.empty.description': 'Nothing asked for by families in this state.',
   'requests.noAccess.description': 'You do not have access to this school’s requests.',
   'myRequests.new.title': 'Ask for something',
-  'myRequests.new.description': 'Ask for a declaration, or for a second sitting of a test. The school answers here.',
+  'myRequests.new.description':
+    'Ask for a declaration, or for a second sitting of a test. The school answers here.',
   'myRequests.list.title': 'My requests',
   'myRequests.send': 'Send request',
   'myRequests.sent': 'Request sent. The school will answer here.',
   'myRequests.sendError': 'Could not send the request.',
   'myRequests.loadError': 'Could not load your requests.',
-  'myRequests.details.declarationHelp': 'Say what the declaration is for and what it needs to state.',
+  'myRequests.details.declarationHelp':
+    'Say what the declaration is for and what it needs to state.',
   'myRequests.details.secondCallHelp': 'Say which test the student missed, and why.',
   'myRequests.empty.title': 'No requests yet',
   'myRequests.empty.description': "Requests you send appear here, with the school's answer.",
@@ -364,8 +371,7 @@ const enUS: Messages = {
   'charges.newOneOff': 'New one-off boleto',
   'charges.loadError': 'Could not load the boletos.',
   'charges.empty.title': 'No boletos yet',
-  'charges.empty.description':
-    'Tuition boletos show up here, together with any one-off you raise.',
+  'charges.empty.description': 'Tuition boletos show up here, together with any one-off you raise.',
   'charges.emptySearch.title': 'Nothing found',
   'charges.emptySearch.description': 'No boleto matches this search and filter.',
   'charges.filter.all': 'All',
@@ -461,7 +467,8 @@ const enUS: Messages = {
   'billingSettings.overdueGraceDaysHelp':
     'Calendar days after the due date before marking the charge overdue (0–30).',
   'billingSettings.serviceDescription': 'Boleto service description',
-  'billingSettings.serviceDescriptionHelp': 'Text guardians see on the boleto line (up to 100 characters).',
+  'billingSettings.serviceDescriptionHelp':
+    'Text guardians see on the boleto line (up to 100 characters).',
   'billingSettings.interestRatePercent': 'Monthly mora interest rate',
   'billingSettings.interestRatePercentHelp':
     'Required to issue boletos. Sent to the bank as late-payment interest.',
@@ -478,9 +485,13 @@ const enUS: Messages = {
   'contract.preview.signedTitle': 'Contract',
   'contract.preview.frame': 'Contract',
   'contract.preview.error': 'Could not render the contract preview.',
-  'contract.preview.openSigned': 'Open signed PDF',
-  'contract.preview.signedWithFile':
-    'Signed. Below is the text that was sent; the signed PDF comes from Autentique.',
+
+  'contract.preview.signedFrame': 'Signed contract',
+  'contract.preview.downloadSigned': 'Download signed PDF',
+  'contract.preview.showingSignedFile':
+    'Signed. Below is the Autentique PDF, with its signature page.',
+  'contract.preview.signedFileUnavailable':
+    'Signed, but the Autentique PDF could not be fetched right now. Below is the text that was sent.',
   'contract.preview.signedWithoutFile':
     'Signed. The Autentique PDF has not been located yet — the daily reconciliation fetches it.',
   'contract.preview.send': 'Send for signature',
@@ -649,8 +660,7 @@ const enUS: Messages = {
   'jobPositions.namePlaceholder': 'Teacher, Secretary, Principal...',
   'jobPositions.provisionError': 'Could not create the default positions.',
   'jobPositions.deleteTitle': 'Delete position',
-  'jobPositions.deleteMessage':
-    'Delete {name}? It will no longer appear in collaborator records.',
+  'jobPositions.deleteMessage': 'Delete {name}? It will no longer appear in collaborator records.',
   'jobPositions.deleteError': 'Could not delete the position.',
   'jobPositions.inUseTooltip': 'Position in use — reassign collaborators first',
   'jobPositions.editAria': 'Edit {name}',
@@ -681,11 +691,13 @@ const enUS: Messages = {
   'guardians.charges.aria': 'View boletos for {name}',
   'guardians.charges.tooltip': 'Boletos for the year',
   'guardians.report.title': 'Generate PDF report',
-  'guardians.report.description': 'Choose the report columns. It follows the listing search and status filter.',
+  'guardians.report.description':
+    'Choose the report columns. It follows the listing search and status filter.',
   'guardians.report.cpf': 'CPF',
   'guardians.report.studentName': "Enrolled child's name",
   'guardians.report.studentClass': "Child's class",
-  'guardians.report.perChildHint': 'A guardian with more than one enrolled child appears on one row per child.',
+  'guardians.report.perChildHint':
+    'A guardian with more than one enrolled child appears on one row per child.',
   'guardians.report.generate': 'Generate PDF',
   'guardians.report.generating': 'Generating...',
   'guardians.report.error': 'Could not generate the report. Check your connection.',
@@ -696,6 +708,10 @@ const enUS: Messages = {
   'guardians.details.zipCode': 'Postcode',
   'guardians.details.street': 'Street',
   'guardians.details.neighborhood': 'Neighbourhood',
+  'guardians.details.children': 'Children',
+  'guardians.details.noChildren': 'No student is linked to this guardian.',
+  'guardians.details.childrenError': 'The children could not be loaded.',
+  'guardians.details.noClass': 'No class',
   'guardians.details.systemAccess': 'System access',
   'guardians.details.hasAccount': 'Account created',
   'guardians.details.noAccount': 'No account yet',
@@ -751,8 +767,7 @@ const enUS: Messages = {
   'collaborators.empty.description':
     'Register a collaborator to assign them to classes and subjects.',
   'collaborators.empty.searchTitle': 'No results',
-  'collaborators.empty.searchDescription':
-    'Nothing found for "{query}". Check the name or CPF.',
+  'collaborators.empty.searchDescription': 'Nothing found for "{query}". Check the name or CPF.',
   'collaborators.new': 'New collaborator',
   'collaborators.searchPlaceholder': 'Search by name or CPF',
   'collaborators.searchAria': 'Search collaborators',
@@ -768,8 +783,7 @@ const enUS: Messages = {
     'Delete {name}? They will no longer appear in the list and lose their class assignments.',
   'collaborators.deleteError': 'Could not delete the collaborator.',
 
-  'documents.empty.guardian':
-    'Upload CPF, ID or proof of residence for this guardian.',
+  'documents.empty.guardian': 'Upload CPF, ID or proof of residence for this guardian.',
   'documents.empty.collaborator':
     'Upload ID, CPF, employment contract or diploma for this collaborator.',
   'documents.empty.default': 'Upload CPF, ID or proof of residence for this person.',
@@ -782,8 +796,7 @@ const enUS: Messages = {
   'plans.plansSection': 'Plans',
   'plans.discountsSection': 'Discounts',
   'plans.empty.plan.title': 'No plans yet',
-  'plans.empty.plan.description':
-    'Register the full tuition amount to issue contracts.',
+  'plans.empty.plan.description': 'Register the full tuition amount to issue contracts.',
   'plans.empty.discount.title': 'No discounts yet',
   'plans.empty.discount.description':
     'Start with the default bands (10%, 20%, 30%, 40% and full scholarship) or create your own.',
@@ -804,8 +817,7 @@ const enUS: Messages = {
   'plans.deletePlanTitle': 'Delete plan',
   'plans.deletePlanMessage': 'Delete {name}? It will no longer appear when issuing contracts.',
   'plans.deleteDiscountTitle': 'Delete discount',
-  'plans.deleteDiscountMessage':
-    'Delete {name}? It will no longer appear when issuing contracts.',
+  'plans.deleteDiscountMessage': 'Delete {name}? It will no longer appear when issuing contracts.',
   'plans.inUseDiscountTooltip': 'Applied on contracts — cannot be removed',
   'plans.editPlanAria': 'Edit plan {name}',
   'plans.deletePlanAria': 'Delete plan {name}',

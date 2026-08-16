@@ -175,6 +175,9 @@ Rails.application.routes.draw do
                 post :sign
                 post :send_for_signature
                 get :preview
+                # The provider's own file, with the signature page. Served through here because
+                # its URL answers only to the school's API token, which no browser may hold.
+                get :signed_document
               end
             end
             resources :charge_generations, only: :create

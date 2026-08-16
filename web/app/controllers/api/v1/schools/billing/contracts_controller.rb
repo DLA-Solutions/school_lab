@@ -55,6 +55,27 @@ module Api
             end
           end
 
+          # The provider's signed file — the agreement plus the signature page, which is the copy
+          # that proves anything. Streamed through here rather than linked to: the provider's URL
+          # answers only to the school's API token, and that token can sign documents, so it never
+          # leaves the server. Served inline so the browser can draw it without downloading first.
+          def signed_document
+            contract = policy_scope(Contract).find(params[:id])
+            authorize contract, :show?
+
+            result = ::Contracts::FetchSignedDocumentService.call(contract: contract)
+
+            if result.failure?
+              status = result.error_code == :not_found ? :not_found : :unprocessable_content
+              return render_error(result.error_code, status: status, details: result.details)
+            end
+
+            send_data result.data.fetch(:pdf),
+                      filename: result.data.fetch(:filename),
+                      type: "application/pdf",
+                      disposition: "inline"
+          end
+
           # The same document `preview` renders, for a contract that has not been created yet. The
           # school reads what it is about to send while it is still nothing but a filled form —
           # generating a draft must leave no trace, or every discarded attempt would pile up in

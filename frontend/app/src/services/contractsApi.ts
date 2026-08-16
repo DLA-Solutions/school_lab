@@ -8,7 +8,7 @@ import {
   ContractResponse,
 } from 'types/contract';
 import { BillingPlan } from 'types/contract';
-import { request } from './api';
+import { request, requestBlob } from './api';
 
 const collectionPath = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/contracts`;
 
@@ -119,6 +119,17 @@ export const previewContract = async (
 };
 
 /**
+ * GET /api/v1/schools/:school_id/billing/contracts/:id/signed_document — the provider's own file,
+ * the one carrying the signature page.
+ *
+ * Fetched rather than linked: the provider's URL answers only to the school's API token, so the
+ * API holds the token and streams the bytes back. The blob then serves both the preview and the
+ * download without fetching twice.
+ */
+export const fetchSignedContract = (schoolId: number, id: number): Promise<Blob> =>
+  requestBlob(`${collectionPath(schoolId)}/${id}/signed_document`);
+
+/**
  * POST /api/v1/schools/:school_id/billing/contracts/:id/sign — records a signature by hand, for a
  * contract returned outside the provider (a scanned copy, a school not yet integrated).
  */
@@ -132,8 +143,7 @@ export const signContract = async (schoolId: number, id: number): Promise<Contra
 
 /* ------------------------------------------------------------- plan discounts */
 
-const discountsPath = (schoolId: number) =>
-  `/api/v1/schools/${schoolId}/billing/plan_discounts`;
+const discountsPath = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/plan_discounts`;
 
 export const listPlanDiscounts = (schoolId: number) =>
   request<{ data: PlanDiscount[]; meta: { page: number; per_page: number; total: number } }>(
