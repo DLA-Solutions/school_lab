@@ -4,7 +4,7 @@ import {
   GuardianPayload,
   GuardianResponse,
 } from 'types/guardian';
-import { request } from './api';
+import { request, requestBlob } from './api';
 
 /**
  * Guardians are always scoped to a school: the API resolves `Current.school` from the
@@ -72,6 +72,31 @@ export const activateGuardian = async (schoolId: number, id: number): Promise<Gu
   });
 
   return response.data;
+};
+
+export interface GuardiansReportParams {
+  /** Column keys the API offers; anything else is dropped server-side. */
+  columns: string[];
+  /** The listing's own filters, so the report matches the screen it was asked for from. */
+  q?: string;
+  status?: string;
+}
+
+/**
+ * GET .../guardians/report — the register as a PDF.
+ *
+ * Fetched rather than linked: the endpoint needs the bearer token, which an `<a href>` cannot
+ * carry. The bytes come back as a blob and are handed to the browser as a download.
+ */
+export const fetchGuardiansReport = async (
+  schoolId: number,
+  { columns, q, status }: GuardiansReportParams,
+): Promise<Blob> => {
+  const query = new URLSearchParams({ columns: columns.join(',') });
+  if (q) query.set('q', q);
+  if (status && status !== 'active') query.set('status', status);
+
+  return requestBlob(`${collectionPath(schoolId)}/report?${query}`);
 };
 
 /**

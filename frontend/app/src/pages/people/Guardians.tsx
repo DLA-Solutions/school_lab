@@ -14,6 +14,7 @@ import PersonDocumentsDialog from 'components/sections/documents/PersonDocuments
 import GuardianChargesDialog from 'components/sections/people/guardians/GuardianChargesDialog';
 import GuardianContractsDialog from 'components/sections/people/guardians/GuardianContractsDialog';
 import GuardianDetailsDialog from 'components/sections/people/guardians/GuardianDetailsDialog';
+import GuardiansReportDialog from 'components/sections/people/guardians/GuardiansReportDialog';
 import GuardianFormDialog from 'components/sections/people/guardians/GuardianFormDialog';
 import {
   ConfirmDialog,
@@ -75,6 +76,7 @@ const Guardians = () => {
   const [contractsFor, setContractsFor] = useState<Guardian | null>(null);
   const [chargesFor, setChargesFor] = useState<Guardian | null>(null);
   const [detailsFor, setDetailsFor] = useState<Guardian | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const [sendingAccessTo, setSendingAccessTo] = useState<number | null>(null);
   const [accessSent, setAccessSent] = useState('');
 
@@ -378,6 +380,16 @@ const Guardians = () => {
             <Button variant="contained" size="small" onClick={handleCreate}>
               {t('guardians.new')}
             </Button>
+            {/* Weighted below "Novo responsável": printing the register is a routine errand, not
+                the action the screen is mainly for. */}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setReportOpen(true)}
+              startIcon={<IconifyIcon icon="mingcute:file-export-line" />}
+            >
+              {t('guardians.report.action')}
+            </Button>
           </>
         }
       />
@@ -430,6 +442,15 @@ const Guardians = () => {
       />
 
       {/* Mounted only while open so each guardian's dialog fetches its own data on mount. */}
+      <GuardiansReportDialog
+        key={String(reportOpen)}
+        open={reportOpen}
+        schoolId={school.school_id}
+        search={debouncedSearch}
+        status={activation}
+        onClose={() => setReportOpen(false)}
+      />
+
       {detailsFor && (
         <GuardianDetailsDialog
           open

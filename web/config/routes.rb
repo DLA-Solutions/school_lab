@@ -49,6 +49,9 @@ Rails.application.routes.draw do
           resources :bank_credentials, only: %i[index create]
           namespace :people do
             resources :guardians do
+              collection do
+                get :report
+              end
               member do
                 post :activate
                 post :access

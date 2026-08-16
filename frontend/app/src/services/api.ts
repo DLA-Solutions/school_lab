@@ -156,3 +156,34 @@ export const request = async <T>(path: string, options: RequestOptions = {}): Pr
 
   return body as T;
 };
+
+/**
+ * A request whose answer is a file rather than JSON.
+ *
+ * Shares `send`, so it carries the bearer token and the same 401-and-refresh retry as everything
+ * else — which is exactly why a download cannot simply be an `<a href>` to the endpoint.
+ */
+export const requestBlob = async (path: string, options: RequestOptions = {}): Promise<Blob> => {
+  const { retryOnUnauthorized = true, ...rest } = options;
+  let response = await send(path, rest);
+
+  if (response.status === 401 && retryOnUnauthorized && rest.auth !== false) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      response = await send(path, rest);
+    }
+  }
+
+  if (!response.ok) {
+    // A refusal still comes back as JSON, so it is read as one and thrown like any other.
+    let body: unknown = null;
+    try {
+      body = JSON.parse(await response.text());
+    } catch {
+      body = null;
+    }
+    throw toApiError(response, body);
+  }
+
+  return response.blob();
+};
