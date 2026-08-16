@@ -29,7 +29,8 @@ module Gateways
             customer: customer_payload(issue_request.customer),
             services: [ service_payload(issue_request) ],
             payment_terms: payment_terms,
-            payment_forms: %w[BANK_SLIP PIX]
+            payment_forms: %w[BANK_SLIP PIX],
+            notification: notification_payload(issue_request.customer)
           }
 
           payload.compact
@@ -58,11 +59,25 @@ module Gateways
               type: "CPF"
             }
           }
-          data[:telephone] = customer.phone if customer.phone.present?
           data[:address] = address_payload(customer.address) if customer.address
           data
         end
         private_class_method :customer_payload
+
+        # Cora carries the payer's contact details in `notification`, not on the customer: a
+        # channel is an address to reach plus the rules saying when to use it. `rules` is not
+        # optional — a channel without it is rejected with an empty 400, which says nothing.
+        NOTIFICATION_RULES = %w[NOTIFY_TWO_DAYS_BEFORE_DUE_DATE NOTIFY_ON_DUE_DATE].freeze
+
+        def notification_payload(customer)
+          channels = []
+          channels << { channel: "EMAIL", contact: customer.email, rules: NOTIFICATION_RULES } if customer.email.present?
+          channels << { channel: "SMS", contact: customer.phone, rules: NOTIFICATION_RULES } if customer.phone.present?
+          return if channels.empty?
+
+          { name: customer.name, channels: channels }
+        end
+        private_class_method :notification_payload
 
         def address_payload(address)
           {

@@ -45,7 +45,7 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
         neighborhood: "Centro",
         city: "Sao Paulo",
         state: "SP",
-        postal_code: "01310-100"
+        zip_code: "01310-100"
       )
 
       request = described_class.from_charge(charge)
@@ -96,7 +96,7 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
         neighborhood: "Centro",
         city: "Sao Paulo",
         state: "SP",
-        postal_code: nil
+        zip_code: nil
       )
 
       request = described_class.from_charge(charge)

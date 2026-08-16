@@ -3,7 +3,7 @@
 module Gateways
   module BankSlip
     module GuardianAddress
-      ADDRESS_FIELDS = %i[street number neighborhood city state postal_code].freeze
+      ADDRESS_FIELDS = %i[street number neighborhood city state zip_code].freeze
 
       module_function
 
@@ -14,11 +14,11 @@ module Gateways
         ValueObjects::Address.new(
           street: values.fetch(:street),
           number: values.fetch(:number),
-          complement: guardian.try(:address_complement),
+          complement: guardian.try(:complement),
           neighborhood: values.fetch(:neighborhood),
           city: values.fetch(:city),
           state: values.fetch(:state),
-          postal_code: values.fetch(:postal_code)
+          postal_code: values.fetch(:zip_code)
         )
       end
     end
