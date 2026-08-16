@@ -9,6 +9,7 @@ import {
   visibleSitemap,
 } from 'utils/navigation/visibleSitemap';
 import paths from 'routes/paths';
+import { SchoolModuleKey } from 'types/auth';
 
 describe('visibleSitemap module filtering', () => {
   const billingStaff = {
@@ -31,7 +32,7 @@ describe('visibleSitemap module filtering', () => {
   it('hides billing menu items when billing module is disabled', () => {
     const membership = {
       ...billingStaff,
-      enabled_modules: ['communication', 'academic', 'documents'] as const,
+      enabled_modules: ['communication', 'academic', 'documents'] as SchoolModuleKey[],
     };
 
     const ids = visibleSitemap(membership).map((item) => item.id);
@@ -47,7 +48,7 @@ describe('visibleSitemap module filtering', () => {
   it('hides academic menu items when academic module is disabled', () => {
     const membership = {
       ...billingStaff,
-      enabled_modules: ['communication', 'billing', 'documents'] as const,
+      enabled_modules: ['communication', 'billing', 'documents'] as SchoolModuleKey[],
     };
 
     const ids = visibleSitemap(membership).map((item) => item.id);
@@ -61,7 +62,7 @@ describe('visibleSitemap module filtering', () => {
   it('filters searchable sub-pages by module', () => {
     const membership = {
       ...billingStaff,
-      enabled_modules: ['communication', 'billing', 'documents'] as const,
+      enabled_modules: ['communication', 'billing', 'documents'] as SchoolModuleKey[],
     };
 
     const ids = visibleMenuItems(membership, searchableSubPages).map((item) => item.id);
@@ -71,7 +72,10 @@ describe('visibleSitemap module filtering', () => {
   });
 
   it('keeps module-gated items visible when enabled_modules is absent', () => {
-    const { enabled_modules: _enabledModules, ...membership } = billingStaff;
+    // Built by removing the key rather than by destructuring it away: the lint rule here counts
+    // the discarded binding as an unused variable.
+    const membership = { ...billingStaff };
+    delete membership.enabled_modules;
 
     expect(isModuleEnabledForMembership(membership, 'billing')).toBe(true);
     expect(visibleSitemap(membership).map((item) => item.id)).toContain('charges');
@@ -81,7 +85,7 @@ describe('visibleSitemap module filtering', () => {
     const membership = {
       ...staffMembership,
       permissions: ['manage_people'],
-      enabled_modules: ['communication', 'academic', 'billing', 'documents'] as const,
+      enabled_modules: ['communication', 'academic', 'billing', 'documents'] as SchoolModuleKey[],
     };
 
     const ids = visibleSitemap(membership).map((item) => item.id);

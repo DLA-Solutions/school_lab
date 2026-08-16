@@ -56,6 +56,13 @@ const sitemap: MenuItem[] = [
     active: true,
   },
   {
+    id: 'grades',
+    subheader: 'nav.grades',
+    path: paths.grades,
+    icon: 'mingcute:edit-4-line',
+    active: true,
+  },
+  {
     // Turmas and Matérias are tabs inside this page: they are what a lesson is made of, and three
     // separate menu entries made an obvious sequence read as three unrelated screens.
     id: 'lessons',

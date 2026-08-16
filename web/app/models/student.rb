@@ -17,6 +17,7 @@ class Student < ApplicationRecord
   has_many :guardians, through: :student_guardians
   has_many :contracts, dependent: :destroy
   has_many :documents, as: :documentable, dependent: :destroy
+  has_many :grades, dependent: :destroy
 
   before_validation :normalize_cpf
 

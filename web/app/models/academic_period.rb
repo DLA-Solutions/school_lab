@@ -9,6 +9,8 @@ class AcademicPeriod < ApplicationRecord
   belongs_to :school_year
   belongs_to :school
 
+  has_many :grades, dependent: :destroy
+
   validates :name, presence: true
   validates :sequence, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :starts_on, :ends_on, presence: true

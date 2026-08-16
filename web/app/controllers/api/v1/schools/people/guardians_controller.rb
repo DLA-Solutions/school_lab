@@ -68,6 +68,35 @@ module Api
           # Provisions whatever the guardian is missing — a user, a membership — and mails them
           # the link that sets their password. Safe to press twice: someone who already has an
           # account is sent a reset rather than a second invitation.
+          # The register as a printable table, narrowed by whatever the listing was narrowed by:
+          # a report that ignored the search term would disagree with the screen it was asked for
+          # from. Not paginated — the point is the whole set the filters describe.
+          def report
+            authorize Guardian, :index?
+
+            guardians = by_activation(policy_scope(Guardian))
+                        .search(params[:q])
+                        .includes(students: :school_class)
+                        .order(:name)
+
+            result = ::People::RenderGuardiansReportService.call(
+              school: Current.school,
+              guardians: guardians,
+              columns: params[:columns].to_s.split(",")
+            )
+
+            # A name Prawn's built-in fonts cannot draw comes back as a refusal, not a 500.
+            if result.failure?
+              return render_error(:validation_error, status: :unprocessable_content,
+                                                     details: result.details)
+            end
+
+            send_data result.data.fetch(:pdf),
+                      filename: result.data.fetch(:filename),
+                      type: "application/pdf",
+                      disposition: "attachment"
+          end
+
           def access
             record = Current.school.guardians.find(params[:id])
             authorize record, :update?
