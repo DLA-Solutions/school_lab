@@ -92,8 +92,11 @@ A school is either registered correctly for the integration or it is not — the
 sandbox credentials, in its own database. Which Cora hosts the deploy talks to is selected
 by two environment variables and nothing else:
 
-- `CORA_API_BASE_URL` — REST API base (e.g. `https://api.stage.cora.com.br` for sandbox,
-  `https://api.cora.com.br` for live).
+- `CORA_API_BASE_URL` — REST API base (e.g. `https://matls-clients.api.stage.cora.com.br` for
+  sandbox, `https://matls-clients.api.cora.com.br` for live). It has to be the `matls-clients`
+  host: the plain `api.cora.com.br` gateway does not terminate the client certificate and
+  answers every call with `401 {"error": "access_denied"}`, even though the token endpoint
+  issued a valid token.
 - `CORA_TOKEN_URL` — mTLS token endpoint (e.g.
   `https://matls-clients.api.stage.cora.com.br/token` for sandbox).
 
