@@ -22,6 +22,14 @@ export default {
   subjects: `/${rootPaths.academicsRoot}/materias`,
   jobPositions: `/${rootPaths.academicsRoot}/cargos`,
 
+  preceptorship: `/${rootPaths.academicsRoot}/preceptoria`,
+  myPreceptorship: '/preceptoria',
+
+  requests: '/solicitacoes',
+  // The guardian's own side of the same queue, on its own address: the two are different jobs
+  // and sharing a path would mean one screen deciding which it is on every render.
+  myRequests: '/meus-pedidos',
+
   charges: '/boletos',
   plans: '/planos',
   billingSettings: '/financeiro/configuracoes',

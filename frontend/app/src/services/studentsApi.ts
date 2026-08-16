@@ -33,6 +33,15 @@ export const listStudents = ({ schoolId, page = 1, guardianId, q, status }: List
   return request<StudentListResponse>(`${collectionPath(schoolId)}?${query}`);
 };
 
+/**
+ * GET /api/v1/schools/:school_id/me/students — the children in this guardian's care.
+ *
+ * A narrower payload than the register's: the blueprint's `guardian` view carries the name and
+ * nothing else, which is all a guardian needs to say which child a form is about.
+ */
+export const listMyStudents = (schoolId: number) =>
+  request<StudentListResponse>(`/api/v1/schools/${schoolId}/me/students`);
+
 /** POST /api/v1/schools/:school_id/people/students */
 export const createStudent = async (
   schoolId: number,

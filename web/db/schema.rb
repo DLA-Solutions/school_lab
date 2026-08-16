@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_16_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -286,6 +286,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_030000) do
     t.check_constraint "score IS NULL OR score >= 0::numeric AND score <= 10::numeric", name: "grades_score_range"
   end
 
+  create_table "guardian_requests", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "details"
+    t.datetime "discarded_at"
+    t.bigint "guardian_id", null: false
+    t.string "kind", null: false
+    t.date "reference_date"
+    t.bigint "requested_by_id"
+    t.text "resolution_note"
+    t.datetime "resolved_at"
+    t.bigint "resolved_by_id"
+    t.bigint "school_id", null: false
+    t.string "status", default: "pending", null: false
+    t.bigint "student_id", null: false
+    t.bigint "subject_id"
+    t.datetime "updated_at", null: false
+    t.index ["guardian_id", "created_at"], name: "index_guardian_requests_on_guardian_id_and_created_at"
+    t.index ["guardian_id"], name: "index_guardian_requests_on_guardian_id"
+    t.index ["requested_by_id"], name: "index_guardian_requests_on_requested_by_id"
+    t.index ["resolved_by_id"], name: "index_guardian_requests_on_resolved_by_id"
+    t.index ["school_id", "status", "created_at"], name: "index_guardian_requests_on_school_id_and_status_and_created_at"
+    t.index ["school_id"], name: "index_guardian_requests_on_school_id"
+    t.index ["student_id"], name: "index_guardian_requests_on_student_id"
+    t.index ["subject_id"], name: "index_guardian_requests_on_subject_id"
+    t.check_constraint "kind::text = ANY (ARRAY['declaration'::character varying, 'second_call'::character varying]::text[])", name: "guardian_requests_kind"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'in_progress'::character varying, 'fulfilled'::character varying, 'rejected'::character varying]::text[])", name: "guardian_requests_status"
+  end
+
   create_table "guardians", force: :cascade do |t|
     t.string "city"
     t.string "complement"
@@ -404,6 +432,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_030000) do
     t.index ["school_id", "name"], name: "index_plan_discounts_on_school_id_and_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_id"], name: "index_plan_discounts_on_school_id"
     t.check_constraint "percent >= 0::numeric AND percent <= 100::numeric", name: "plan_discounts_percent_range"
+  end
+
+  create_table "preceptorship_reports", force: :cascade do |t|
+    t.bigint "academic_period_id"
+    t.bigint "author_id"
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.datetime "published_at"
+    t.bigint "school_id", null: false
+    t.string "status", default: "draft", null: false
+    t.bigint "student_id", null: false
+    t.bigint "teacher_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["academic_period_id"], name: "index_preceptorship_reports_on_academic_period_id"
+    t.index ["author_id"], name: "index_preceptorship_reports_on_author_id"
+    t.index ["school_id", "status"], name: "index_preceptorship_reports_on_school_id_and_status"
+    t.index ["school_id", "student_id", "created_at"], name: "idx_on_school_id_student_id_created_at_f6ae2f9c6a"
+    t.index ["school_id"], name: "index_preceptorship_reports_on_school_id"
+    t.index ["student_id"], name: "index_preceptorship_reports_on_student_id"
+    t.index ["teacher_id"], name: "index_preceptorship_reports_on_teacher_id"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'published'::character varying]::text[])", name: "preceptorship_reports_status"
   end
 
   create_table "provisioning_imports", force: :cascade do |t|
@@ -952,6 +1002,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_030000) do
   add_foreign_key "grades", "students"
   add_foreign_key "grades", "subjects"
   add_foreign_key "grades", "users", column: "recorded_by_id"
+  add_foreign_key "guardian_requests", "guardians"
+  add_foreign_key "guardian_requests", "schools"
+  add_foreign_key "guardian_requests", "students"
+  add_foreign_key "guardian_requests", "subjects"
+  add_foreign_key "guardian_requests", "users", column: "requested_by_id"
+  add_foreign_key "guardian_requests", "users", column: "resolved_by_id"
   add_foreign_key "guardians", "schools"
   add_foreign_key "guardians", "users"
   add_foreign_key "guardians", "users", column: "discarded_by_id"
@@ -969,6 +1025,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_030000) do
   add_foreign_key "payments", "schools"
   add_foreign_key "plan_discounts", "schools"
   add_foreign_key "plan_discounts", "users", column: "discarded_by_id"
+  add_foreign_key "preceptorship_reports", "academic_periods"
+  add_foreign_key "preceptorship_reports", "schools"
+  add_foreign_key "preceptorship_reports", "students"
+  add_foreign_key "preceptorship_reports", "teachers"
+  add_foreign_key "preceptorship_reports", "users", column: "author_id"
   add_foreign_key "provisioning_imports", "schools"
   add_foreign_key "provisioning_imports", "users", column: "uploaded_by_id"
   add_foreign_key "refresh_tokens", "users"

@@ -94,6 +94,19 @@ Rails.application.routes.draw do
             resources :grades, only: :index do
               put :cell, on: :collection
             end
+
+            # Preceptoria: a teacher's account of a student, in prose. Written as a draft and
+            # published deliberately, so the guardian-facing state change is a member rather
+            # than a status field anyone can write.
+            resources :preceptorship_reports, except: %i[new edit] do
+              # The roll a teacher may write about — the register's own student list is gated on
+              # a permission teachers do not hold.
+              get :roll, on: :collection
+              member do
+                post :publish
+                get :pdf
+              end
+            end
           end
 
           namespace :communication do
@@ -158,6 +171,17 @@ Rails.application.routes.draw do
             end
           end
 
+          # Solicitações: what guardians have asked the school for. Worked as one queue, so the
+          # state changes are members rather than a status field anyone can write.
+          resources :requests, only: %i[index show create destroy] do
+            member do
+              post :start
+              post :release
+              post :fulfill
+              post :reject
+            end
+          end
+
           get :permission_definitions, to: "permission_definitions#index"
 
           resources :role_templates, only: %i[index create update destroy] do
@@ -178,6 +202,10 @@ Rails.application.routes.draw do
             resources :payments, only: :index
             resources :students, only: :index
             resources :documents, only: :index
+            resources :requests, only: %i[index show create]
+            resources :preceptorship_reports, only: %i[index show] do
+              get :pdf, on: :member
+            end
           end
         end
       end

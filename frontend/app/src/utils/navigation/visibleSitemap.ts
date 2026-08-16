@@ -57,6 +57,10 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
       return false;
     }
 
+    if (item.requiredRole && membership?.role !== item.requiredRole) {
+      return false;
+    }
+
     if (!item.requiredPermission) {
       return true;
     }

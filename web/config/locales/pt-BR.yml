@@ -39,6 +39,12 @@ pt-BR:
     empty: "Nenhum registro para os filtros escolhidos."
     row_count: "%{count} registro(s)"
     without_cohort: "Sem turma"
+    preceptorship:
+      title: "Relatório de preceptoria"
+      student: "Estudante"
+      teacher: "Professor(a)"
+      cohort: "Turma"
+      period: "Período"
     guardians:
       title: "Relação de responsáveis"
     students:
@@ -53,6 +59,7 @@ pt-BR:
       guardian_inactive: "Este responsável está inativo. Reative-o antes de enviar o acesso."
       school_class_has_students: "Esta turma ainda tem estudantes matriculados. Mova-os para outra turma antes de excluí-la."
       not_your_lesson: "Você não leciona esta matéria nesta turma."
+      not_your_student: "Você não leciona para a turma deste estudante."
       report_unsupported_characters: "O relatório traz caracteres que a fonte do PDF não desenha. Verifique os nomes cadastrados."
       invalid_reset_token: "Este link expirou ou já foi usado. Peça um novo."
       invalid_credentials: "E-mail ou senha inválidos."

@@ -17,6 +17,7 @@ class Guardian < ApplicationRecord
   has_many :students, through: :student_guardians
   has_many :charges, dependent: :destroy
   has_many :documents, as: :documentable, dependent: :destroy
+  has_many :guardian_requests, dependent: :destroy
 
   # Normalisation runs before validation so uniqueness compares the canonical form, and so a
   # guardian saved through the console or a seed is stored exactly like one saved through the API.

@@ -29,6 +29,10 @@ const Lessons = lazy(() => import('pages/academics/Lessons'));
 const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
 const Subjects = lazy(() => import('pages/academics/Subjects'));
 const JobPositions = lazy(() => import('pages/academics/JobPositions'));
+const Preceptorship = lazy(() => import('pages/preceptorship/Preceptorship'));
+const MyPreceptorship = lazy(() => import('pages/preceptorship/MyPreceptorship'));
+const Requests = lazy(() => import('pages/requests/Requests'));
+const MyRequests = lazy(() => import('pages/requests/MyRequests'));
 const Charges = lazy(() => import('pages/billing/Charges'));
 const Plans = lazy(() => import('pages/billing/Plans'));
 const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
@@ -98,6 +102,22 @@ const router = createBrowserRouter(
           {
             path: paths.jobPositions,
             element: <JobPositions />,
+          },
+          {
+            path: paths.preceptorship,
+            element: <Preceptorship />,
+          },
+          {
+            path: paths.myPreceptorship,
+            element: <MyPreceptorship />,
+          },
+          {
+            path: paths.requests,
+            element: <Requests />,
+          },
+          {
+            path: paths.myRequests,
+            element: <MyRequests />,
           },
           {
             path: paths.charges,
