@@ -35,6 +35,17 @@ class MembershipBlueprint < Blueprinter::Base
     staff_profile&.kept? ? staff_profile.display_title : nil
   end
 
+  field :enabled_modules do |membership|
+    school = membership.school
+    next SchoolLab::SchoolModuleKeys.keys if school.nil?
+
+    by_key = school.school_modules.index_by(&:module_key)
+    SchoolLab::SchoolModuleKeys.keys.select do |module_key|
+      record = by_key[module_key]
+      record ? record.enabled : true
+    end
+  end
+
   field :permissions do |membership, options|
     MembershipBlueprint.send(:effective_resolution, membership, options)[:keys]
   end

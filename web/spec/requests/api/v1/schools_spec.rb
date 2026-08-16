@@ -2,6 +2,51 @@
 
 require "swagger_helper"
 
+# Mirrors SchoolBlueprint#create payload plus meta when backoffice supplies owner_email.
+SCHOOL_CREATE_RESPONSE_SCHEMA = {
+  type: :object,
+  required: %w[data],
+  properties: {
+    data: {
+      type: :object,
+      description: "Created school (SchoolBlueprint). Server seeds MVP modules (communication, academic, " \
+                   "billing, documents); all enabled by default unless request modules overrides individual flags.",
+      required: %w[id onboarding_status onboarding_mode name],
+      properties: {
+        id: { type: :integer, description: "School tenant identifier" },
+        name: { type: :string },
+        cnpj: { type: :string, nullable: true },
+        address: { type: :string, nullable: true },
+        saas_plan: { type: :string, nullable: true },
+        school_group_id: { type: :integer, nullable: true },
+        onboarding_status: {
+          type: :string,
+          enum: School::ONBOARDING_STATUSES,
+          description: "provisioning when onboarding_mode is white_glove; pending_handoff for backoffice self_serve"
+        },
+        onboarding_mode: { type: :string, enum: School::ONBOARDING_MODES },
+        example: {
+          id: 42,
+          name: "White Glove Modules School",
+          onboarding_status: "provisioning",
+          onboarding_mode: "white_glove"
+        },
+        billing_waived_at: { type: :string, format: "date-time", nullable: true },
+        segments_skipped_at: { type: :string, format: "date-time", nullable: true },
+        signature_email: { type: :string, nullable: true },
+        signs_contracts: { type: :boolean }
+      }
+    },
+    meta: {
+      type: :object,
+      description: "Present when owner_email was supplied for backoffice provisioning",
+      properties: {
+        owner_invite_email_status: { type: :string, enum: %w[queued not_configured] }
+      }
+    }
+  }
+}.freeze
+
 RSpec.describe "Api::V1::Schools", type: :request do
   let(:backoffice_user) { create(:user) }
   let!(:backoffice_membership) { create(:membership, :with_provision_school, user: backoffice_user) }
@@ -66,6 +111,14 @@ RSpec.describe "Api::V1::Schools", type: :request do
 
     post "Create school" do
       tags "Backoffice"
+      description <<~DESC.squish
+        Creates a school tenant. Backoffice actors must include school.owner_email; school staff may omit it
+        when opening their own school. Set onboarding_mode to self_serve (default) for backoffice self-serve
+        provisioning — response data.onboarding_status is pending_handoff. Set onboarding_mode to white_glove
+        for assisted onboarding — response data.onboarding_status is provisioning while platform staff configure
+        the tenant. All four MVP modules (communication, academic, billing, documents) are seeded enabled
+        by default; pass optional modules to override individual flags.
+      DESC
       consumes "application/json"
       produces "application/json"
       security [ bearer_auth: [] ]
@@ -80,15 +133,61 @@ RSpec.describe "Api::V1::Schools", type: :request do
               cnpj: { type: :string },
               address: { type: :string },
               saas_plan: { type: :string },
-              school_group_id: { type: :integer }
+              school_group_id: { type: :integer },
+              onboarding_mode: { type: :string, enum: %w[self_serve white_glove] },
+              owner_email: {
+                type: :string,
+                format: :email,
+                description: "Required for backoffice provisioning; omit when a school admin opens their own school."
+              }
             },
-            required: %w[name]
+            required: %w[name],
+            example: {
+              name: "White Glove Modules School",
+              cnpj: "98.765.432/0001-11",
+              onboarding_mode: "white_glove",
+              owner_email: "owner@whiteglove.example"
+            }
+          },
+          modules: {
+            type: :object,
+            description: "Optional partial overrides for MVP module flags; omitted keys keep defaults (all enabled).",
+            properties: {
+              communication: { type: :boolean },
+              academic: { type: :boolean },
+              billing: { type: :boolean },
+              documents: { type: :boolean }
+            },
+            example: { billing: false, communication: true }
           }
         },
-        required: %w[school]
+        required: %w[school],
+        example: {
+          school: {
+            name: "White Glove Modules School",
+            onboarding_mode: "white_glove",
+            owner_email: "owner@whiteglove.example"
+          }
+        }
       }
 
-      response "201", "school created" do
+      response "201", "school admin opens a school without owner_email and becomes its administrator" do
+        let(:Authorization) { auth_headers_for(school_admin_user)["Authorization"] }
+        let(:payload) { { school: { name: "Second Campus" } } }
+
+        run_test! do |response|
+          created = School.kept.find_by(name: "Second Campus")
+          expect(created).to be_present
+
+          # Without the founding membership the creator could not see what they just created:
+          # SchoolPolicy scopes the register by membership.
+          expect(
+            school_admin_user.memberships.kept.exists?(school: created, role: "staff")
+          ).to be(true)
+        end
+      end
+
+      response "201", "backoffice self-serve school created with onboarding_status pending_handoff" do
         let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
         let(:payload) do
           {
@@ -118,22 +217,71 @@ RSpec.describe "Api::V1::Schools", type: :request do
 
           billing_permission = director.role_template_permissions.kept.find_by(permission_key: "manage_billing")
           expect(billing_permission).to have_attributes(scope_kind: "full")
+
+          expect(school.school_modules.pluck(:module_key, :enabled)).to contain_exactly(
+            [ "communication", true ],
+            [ "academic", true ],
+            [ "billing", true ],
+            [ "documents", true ]
+          )
         end
       end
 
-      response "201", "school admin opens a school and becomes its administrator" do
-        let(:Authorization) { auth_headers_for(school_admin_user)["Authorization"] }
-        let(:payload) { { school: { name: "Second Campus" } } }
+      response "201", "white-glove school accepts module overrides" do
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:payload) do
+          {
+            school: {
+              name: "White Glove Partial Modules School",
+              onboarding_mode: "white_glove",
+              owner_email: "owner@partial.example"
+            },
+            modules: {
+              billing: false,
+              communication: true
+            }
+          }
+        end
 
         run_test! do |response|
-          created = School.kept.find_by(name: "Second Campus")
-          expect(created).to be_present
+          body = JSON.parse(response.body)
+          expect(body.dig("data", "onboarding_status")).to eq("provisioning")
 
-          # Without the founding membership the creator could not see what they just created:
-          # SchoolPolicy scopes the register by membership.
-          expect(
-            school_admin_user.memberships.kept.exists?(school: created, role: "staff")
-          ).to be(true)
+          school = School.kept.find_by(name: "White Glove Partial Modules School")
+          by_key = school.school_modules.index_by(&:module_key)
+          expect(by_key.fetch("billing").enabled).to be(false)
+          expect(by_key.fetch("communication").enabled).to be(true)
+          expect(by_key.fetch("academic").enabled).to be(true)
+          expect(by_key.fetch("documents").enabled).to be(true)
+        end
+      end
+
+      response "201", "backoffice white-glove school created with onboarding_status provisioning" do
+        schema SCHOOL_CREATE_RESPONSE_SCHEMA
+
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:payload) do
+          {
+            school: {
+              name: "White Glove Modules School",
+              cnpj: "98.765.432/0001-11",
+              onboarding_mode: "white_glove",
+              owner_email: "owner@whiteglove.example"
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("data", "onboarding_status")).to eq("provisioning")
+
+          school = School.kept.find_by(name: "White Glove Modules School")
+          expect(school.school_modules.pluck(:module_key, :enabled)).to contain_exactly(
+            [ "communication", true ],
+            [ "academic", true ],
+            [ "billing", true ],
+            [ "documents", true ]
+          )
         end
       end
     end

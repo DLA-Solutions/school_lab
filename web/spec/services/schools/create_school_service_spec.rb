@@ -24,6 +24,13 @@ RSpec.describe Schools::CreateSchoolService do
     expect(templates.map(&:system_key)).to contain_exactly(
       "director", "secretary", "coordination", "teacher"
     )
+
+    expect(school.school_modules.pluck(:module_key, :enabled)).to contain_exactly(
+      [ "communication", true ],
+      [ "academic", true ],
+      [ "billing", true ],
+      [ "documents", true ]
+    )
   end
 
   context "when backoffice creates with owner invite" do
@@ -60,6 +67,59 @@ RSpec.describe Schools::CreateSchoolService do
       it "starts in provisioning status" do
         expect(result).to be_success
         expect(result.data.onboarding_status).to eq("provisioning")
+
+        modules = result.data.school_modules.order(:module_key)
+        expect(modules.pluck(:module_key)).to eq(SchoolLab::SchoolModuleKeys.keys.sort)
+        expect(modules).to all(have_attributes(enabled: true))
+      end
+    end
+
+    context "with module overrides" do
+      let(:params) { super().merge(onboarding_mode: "white_glove") }
+      let(:modules) { { billing: false, communication: true } }
+
+      subject(:result) do
+        described_class.call(params: params, actor: actor, owner_email: owner_email, modules: modules)
+      end
+
+      it "seeds defaults with partial overrides applied" do
+        expect(result).to be_success
+
+        by_key = result.data.school_modules.index_by(&:module_key)
+        expect(by_key.fetch("billing").enabled).to be(false)
+        expect(by_key.fetch("communication").enabled).to be(true)
+        expect(by_key.fetch("academic").enabled).to be(true)
+        expect(by_key.fetch("documents").enabled).to be(true)
+      end
+    end
+
+    context "with unknown module keys" do
+      let(:modules) { { unknown_module: true } }
+
+      subject(:result) do
+        described_class.call(params: params, actor: actor, owner_email: owner_email, modules: modules)
+      end
+
+      it "does not create the school" do
+        expect { result }.not_to change(School, :count)
+        expect { result }.not_to change(SchoolModule, :count)
+        expect(result).to be_failure
+        expect(result.error_code).to eq(:validation_error)
+        expect(result.details[:modules]).to include("unknown_module is not a valid module key")
+      end
+    end
+
+    context "when module seeding is retried idempotently" do
+      let(:school) { create(:school) }
+
+      it "does not duplicate rows" do
+        first = Schools::SeedSchoolModulesService.call(school: school)
+        second = Schools::SeedSchoolModulesService.call(school: school, overrides: { billing: false })
+
+        expect(first).to be_success
+        expect(second).to be_success
+        expect(school.school_modules.count).to eq(4)
+        expect(school.school_modules.find_by(module_key: "billing").enabled).to be(false)
       end
     end
 

@@ -44,6 +44,19 @@ Table schools {
   updated_at timestamp
 }
 
+Table school_modules {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  module_key varchar [not null, note: 'communication | academic | billing | documents — see SchoolLab::SchoolModuleKeys']
+  enabled boolean [not null, default: true, note: 'Operator toggle; default all enabled on school create (BR-BO05)']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, module_key) [unique]
+  }
+}
+
 // --- Identity (Devise) ---
 
 Table users {
@@ -1050,6 +1063,7 @@ Ref: billing_plans.school_id > schools.id
 Ref: school_payment_providers.school_id > schools.id
 Ref: school_payment_providers.uploaded_by_id > users.id
 Ref: school_billing_settings.school_id > schools.id
+Ref: school_modules.school_id > schools.id
 
 Ref: student_guardians.guardian_id > guardians.id
 Ref: student_guardians.student_id > students.id

@@ -51,6 +51,11 @@ FactoryBot.define do
       platform_permissions { [ "provision_school" ] }
     end
 
+    trait :with_manage_backoffice_ops do
+      backoffice
+      platform_permissions { [ "manage_backoffice_ops" ] }
+    end
+
     trait :school_admin do
       role { "staff" }
 

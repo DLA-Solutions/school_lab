@@ -69,6 +69,41 @@ RSpec.describe "Api::V1::Me", type: :request do
         end
       end
 
+      response "200", "membership includes enabled_modules for school" do
+        let(:modular_school) { create(:school, name: "Modular School") }
+        let(:modular_user) { create(:user) }
+        let!(:modular_membership) { create(:membership, :staff, user: modular_user, school: modular_school) }
+        let(:Authorization) { auth_headers_for(modular_user)["Authorization"] }
+
+        before do
+          create(:school_module, school: modular_school, module_key: "communication", enabled: false)
+          create(:school_module, school: modular_school, module_key: "billing", enabled: false)
+          create(:school_module, school: modular_school, module_key: "academic", enabled: true)
+          create(:school_module, school: modular_school, module_key: "documents", enabled: true)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          membership = body.dig("data", "memberships").find { |m| m["school_id"] == modular_school.id }
+
+          expect(membership["enabled_modules"]).to contain_exactly("academic", "documents")
+        end
+      end
+
+      response "200", "membership defaults missing module rows to enabled" do
+        let(:legacy_school) { create(:school, name: "Legacy School") }
+        let(:legacy_user) { create(:user) }
+        let!(:legacy_membership) { create(:membership, :staff, user: legacy_user, school: legacy_school) }
+        let(:Authorization) { auth_headers_for(legacy_user)["Authorization"] }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          membership = body.dig("data", "memberships").find { |m| m["school_id"] == legacy_school.id }
+
+          expect(membership["enabled_modules"]).to match_array(SchoolLab::SchoolModuleKeys.keys)
+        end
+      end
+
       response "200", "secretary with grant override exposes grant source" do
         let(:secretary_school) { create(:school, name: "Secretary School") }
         let(:secretary_user) { create(:user) }

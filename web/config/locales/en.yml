@@ -43,6 +43,8 @@ en:
       invalid_credentials: "Invalid e-mail or password."
       invalid_invite_token: "This invite link is invalid or has expired."
       forbidden: "Access denied."
+      module_disabled: "This module is disabled for this school."
+      backoffice_only: "This action is restricted to backoffice operators."
       not_found: "Not found."
       not_implemented: "Not implemented yet."
       validation_error: "Invalid data."
