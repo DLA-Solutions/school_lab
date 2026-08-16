@@ -1,5 +1,5 @@
 import { Student, StudentListResponse, StudentPayload, StudentResponse } from 'types/student';
-import { request } from './api';
+import { request, requestBlob } from './api';
 
 const collectionPath = (schoolId: number) => `/api/v1/schools/${schoolId}/people/students`;
 
@@ -72,3 +72,26 @@ export const activateStudent = async (schoolId: number, id: number): Promise<Stu
 /** DELETE /api/v1/schools/:school_id/people/students/:id — a soft delete. */
 export const deleteStudent = (schoolId: number, id: number) =>
   request<null>(memberPath(schoolId, id), { method: 'DELETE' });
+
+export interface StudentsReportParams {
+  columns: string[];
+  q?: string;
+  status?: string;
+}
+
+/**
+ * GET .../students/report — the roll as a PDF, grouped by cohort, one class per page.
+ *
+ * Fetched rather than linked: the endpoint needs the bearer token, which an `<a href>` cannot
+ * carry.
+ */
+export const fetchStudentsReport = async (
+  schoolId: number,
+  { columns, q, status }: StudentsReportParams,
+): Promise<Blob> => {
+  const query = new URLSearchParams({ columns: columns.join(',') });
+  if (q) query.set('q', q);
+  if (status && status !== 'active') query.set('status', status);
+
+  return requestBlob(`/api/v1/schools/${schoolId}/people/students/report?${query}`);
+};

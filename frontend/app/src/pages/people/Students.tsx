@@ -24,7 +24,14 @@ import {
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
-import { activateStudent, deleteStudent, listStudents } from 'services/studentsApi';
+import {
+  activateStudent,
+  deleteStudent,
+  fetchStudentsReport,
+  listStudents,
+} from 'services/studentsApi';
+import RegisterReportDialog from 'components/sections/people/RegisterReportDialog';
+import { STUDENT_REPORT_COLUMNS, STUDENT_REPORT_DEFAULTS } from 'pages/people/studentsReport';
 import { Student } from 'types/student';
 import { formatCpf } from 'utils/documentNumber';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
@@ -73,6 +80,7 @@ const Students = () => {
   const activation = (searchParams.get('status') ?? 'active') as 'active' | 'inactive' | 'all';
 
   const [formOpen, setFormOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -359,6 +367,16 @@ const Students = () => {
             <Button variant="contained" size="small" onClick={handleCreate}>
               {t('students.new')}
             </Button>
+            {/* Weighted below "Novo estudante": printing the roll is a routine errand, not the
+                action the screen is mainly for. */}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setReportOpen(true)}
+              startIcon={<IconifyIcon icon="mingcute:file-export-line" />}
+            >
+              {t('students.report.action')}
+            </Button>
           </>
         }
       />
@@ -419,6 +437,19 @@ const Students = () => {
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+
+      <RegisterReportDialog
+        key={String(reportOpen)}
+        open={reportOpen}
+        schoolId={school.school_id}
+        search={debouncedSearch}
+        status={activation}
+        columns={STUDENT_REPORT_COLUMNS}
+        defaultColumns={STUDENT_REPORT_DEFAULTS}
+        fetchReport={fetchStudentsReport}
+        filename="estudantes.pdf"
+        onClose={() => setReportOpen(false)}
       />
     </Stack>
   );

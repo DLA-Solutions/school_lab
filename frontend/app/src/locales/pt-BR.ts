@@ -467,6 +467,9 @@ const ptBR = {
   'guardians.charges.empty.description': 'Nada foi cobrado desta pessoa em {year}.',
   'guardians.activateAria': 'Ativar {name}',
 
+  'students.report.rg': 'RG',
+  'students.report.guardianPhones': 'Telefones dos responsáveis',
+  'students.report.action': 'Gerar relatório em PDF',
   'students.withoutSignedContract': 'Sem contrato assinado',
   'students.title': 'Estudantes',
   'students.noAccess.description':

@@ -34,6 +34,18 @@ pt-BR:
         body: "Você foi convidado(a) para acessar %{school} no Scholar Premium. Defina sua senha para ativar o acesso."
         cta: "Ativar acesso"
         footer: "Este link é válido por 7 dias. Se você não esperava este convite, ignore este e-mail."
+  reports:
+    issued_on: "Emitido em"
+    empty: "Nenhum registro para os filtros escolhidos."
+    row_count: "%{count} registro(s)"
+    without_cohort: "Sem turma"
+    guardians:
+      title: "Relação de responsáveis"
+    students:
+      title: "Relação de estudantes"
+      status:
+        active: "Ativo"
+        transferred: "Transferido"
   api:
     errors:
       unauthorized: "Não autorizado."

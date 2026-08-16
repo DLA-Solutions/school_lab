@@ -21,6 +21,37 @@ module Api
             }
           end
 
+          # The roll as a printable table, grouped by cohort in teaching order, one class per page.
+          # Narrowed by whatever the listing was narrowed by: a report that ignored the search
+          # would disagree with the screen it was asked for from. Not paginated — the point is the
+          # whole set the filters describe.
+          def report
+            authorize Student, :index?
+
+            students = by_activation(policy_scope(Student))
+                       .search(params[:q])
+                       .includes(:school_class, student_guardians: :guardian)
+                       .order(:name)
+            students = filter_by_guardian(students)
+
+            result = ::People::RenderStudentsReportService.call(
+              school: Current.school,
+              students: students,
+              columns: params[:columns].to_s.split(",")
+            )
+
+            # A name Prawn's built-in fonts cannot draw comes back as a refusal, not a 500.
+            if result.failure?
+              return render_error(:validation_error, status: :unprocessable_content,
+                                                     details: result.details)
+            end
+
+            send_data result.data.fetch(:pdf),
+                      filename: result.data.fetch(:filename),
+                      type: "application/pdf",
+                      disposition: "attachment"
+          end
+
           def show
             student = policy_scope(Student).find(params[:id])
             authorize student

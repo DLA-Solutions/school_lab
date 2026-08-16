@@ -464,6 +464,9 @@ const enUS: Messages = {
   'guardians.charges.empty.description': 'Nothing was billed to this person in {year}.',
   'guardians.activateAria': 'Activate {name}',
 
+  'students.report.rg': 'RG',
+  'students.report.guardianPhones': "Guardians' phones",
+  'students.report.action': 'Generate PDF report',
   'students.withoutSignedContract': 'No signed contract',
   'students.title': 'Students',
   'students.noAccess.description':

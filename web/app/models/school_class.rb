@@ -89,6 +89,14 @@ class SchoolClass < ApplicationRecord
     SHIFT_LABELS.fetch(shift, shift.to_s)
   end
 
+  # Where the cohort sits in the curriculum, for anything that has to read in teaching order:
+  # Infantil I through V, then Fundamental I, then Fundamental II. A grade key that predates the
+  # list sorts last rather than first, so an unrecognised cohort is visible at the end of a report
+  # instead of silently heading it.
+  def curricular_position
+    GRADE_LEVELS.index(grade_level) || GRADE_LEVELS.size
+  end
+
   # Everything that names the cohort: "Ensino Fundamental I — 5º ano A · Matutino — 2026".
   #
   # The letter alone identifies nothing — it repeats in every grade, and now in both shifts — so

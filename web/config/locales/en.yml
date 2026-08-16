@@ -33,6 +33,18 @@ en:
         body: "You were invited to access %{school} on Scholar Premium. Set your password to activate your account."
         cta: "Activate access"
         footer: "This link is valid for 7 days. If you were not expecting this invitation, please ignore this e-mail."
+  reports:
+    issued_on: "Issued on"
+    empty: "No records for the chosen filters."
+    row_count: "%{count} record(s)"
+    without_cohort: "No class"
+    guardians:
+      title: "Guardians register"
+    students:
+      title: "Students register"
+      status:
+        active: "Active"
+        transferred: "Transferred"
   api:
     errors:
       unauthorized: "Not authorized."
