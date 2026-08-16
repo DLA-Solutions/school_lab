@@ -89,8 +89,8 @@ RSpec.describe "Api::V1::Schools::SchoolYears", type: :request do
           expect(body["timezone"]).to eq("America/Sao_Paulo")
           periods = body["academic_periods"]
           expect(periods.size).to eq(3)
-          expect(periods.pluck("name")).to eq(["1º trimestre", "2º trimestre", "3º trimestre"])
-          expect(periods.pluck("sequence")).to eq([1, 2, 3])
+          expect(periods.pluck("name")).to eq([ "1º trimestre", "2º trimestre", "3º trimestre" ])
+          expect(periods.pluck("sequence")).to eq([ 1, 2, 3 ])
           expect(periods.first["starts_on"]).to eq("2026-02-01")
           expect(periods.last["ends_on"]).to eq("2026-12-15")
         end
