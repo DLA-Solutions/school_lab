@@ -14,7 +14,7 @@ Full orchestrator docs: `.cursor/agents/rails-implementer.md`, `.cursor/agents/f
 | Paths / work | Orchestrator | Subagents (via orchestrator only) |
 |--------------|--------------|-----------------------------------|
 | `web/**` (API, migrations, services, policies, jobs, lib, swagger, Kamal for API) | **rails-implementer** | migration-agent, policy-agent, service-agent, api-controller-agent |
-| `web/` CI, ship, PR gate | **backend-ci** | — (uses skills `run-backend-ci`, `create-pull-request`) |
+| `web/` CI fixes and ship | **backend-ci** | — (uses skills `run-backend-ci`, `create-pull-request`) |
 | `frontend/app/**`, `frontend/backoffice/**`, `packages/design-tokens/**`, `frontend/design-system-docs/**`, `mobile/**` | **frontend-implementer** | review skills only (`review-web-ui`, `review-mobile`) |
 | `docs/**` (PRDs, modeling, DBML) | **prd-reviewer** / **doc-consistency-checker** | — |
 | `site/**` | Parent or general-purpose | No dedicated orchestrator |

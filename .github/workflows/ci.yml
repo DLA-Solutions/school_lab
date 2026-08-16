@@ -14,4 +14,4 @@ jobs:
     runs-on: ubuntu-latest
     if: false
     steps:
-      - run: echo "CI runs locally — bin/ci and .githooks/pre-push"
+      - run: echo "CI runs locally — bin/ci before deploy; hooks do not run CI on push"

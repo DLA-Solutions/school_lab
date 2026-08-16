@@ -2,9 +2,20 @@
 
 > PRDs: [`docs/prds/communication/`](../../prds/communication/)  
 > Modeling: [`docs/modeling/006-communication.md`](../../modeling/006-communication.md)  
+> Platform contract: [`platform-and-admin.md`](platform-and-admin.md) — **frozen W1 (4C.1)**  
 > Conventions: [`docs/api/README.md`](../README.md)
 
 Messaging, announcements, notifications, and media for MVP communication pillar.
+
+---
+
+## School year context
+
+Where communication features filter by academic cycle (e.g. class-scoped announcements tied to
+enrollments), pass `school_year_id` per the frozen Platform contract
+([`platform-and-admin.md`](platform-and-admin.md) § Cross-domain contract). Default to
+`GET /schools/:school_id/school_years/active` when no year is selected. The header
+`X-School-Year-Id` is accepted on the same routes that document query-param year scoping.
 
 ---
 

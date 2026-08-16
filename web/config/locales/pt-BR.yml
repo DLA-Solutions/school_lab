@@ -44,6 +44,8 @@ pt-BR:
       invalid_credentials: "E-mail ou senha inválidos."
       invalid_invite_token: "Este convite é inválido ou expirou."
       forbidden: "Acesso negado."
+      module_disabled: "Este módulo está desativado para esta escola."
+      backoffice_only: "Esta ação é restrita a operadores do backoffice."
       not_found: "Não encontrado."
       not_implemented: "Recurso ainda não implementado."
       validation_error: "Dados inválidos."
@@ -86,6 +88,12 @@ pt-BR:
       provisioning_import_duplicate_cpf_in_file: "O mesmo CPF aparece mais de uma vez neste arquivo."
       provisioning_import_duplicate_email_in_file: "O mesmo e-mail de responsável aparece mais de uma vez neste arquivo."
       provisioning_import_commit_failed: "Não foi possível concluir a importação."
+      year_in_use: "Ano letivo possui matrículas ou cobranças vinculadas."
+      active_year_exists: "Já existe um ano letivo ativo."
+      period_overlap: "Os períodos letivos não podem se sobrepor no mesmo ano."
+      invalid_period_range: "O período deve estar dentro das datas do ano letivo."
+      archived_school_year: "Alterações não são permitidas em ano letivo arquivado."
+      no_active_school_year: "Nenhum ano letivo ativo."
     # Não impedem o envio — o contrato sai com uma lacuna que alguém terá de preencher depois.
     warnings:
       student_without_cpf: "Este aluno não tem CPF cadastrado; o contrato sairá com esse campo em branco."

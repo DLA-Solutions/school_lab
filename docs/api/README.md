@@ -139,7 +139,11 @@ Workflow:
 3. Commit generated YAML; optional copy to `docs/api/` for review without running Rails.
 
 OpenAPI **tags** currently emitted in `swagger/v1/swagger.yaml`: `Auth`, `Backoffice`,
-`Billing`, `Communication`, `Documents`, `Guardian Me`, `Me`, `People`.
+`Billing`, `Communication`, `Documents`, `Guardian Me`, `Me`, `People`, `Role Templates`.
+
+**Frozen narrative tags (Phase 4C.1 — Platform W1):** `Platform`, `School Years`,
+`Academic Periods`, `Holidays` — see [`v1/platform-and-admin.md`](v1/platform-and-admin.md).
+W2+ Platform tags (`Calendar`, `Backoffice`) pending Phase 4C.1b.
 
 Optional client codegen: `openapi-typescript` or `orval` in `frontend/app` and `mobile/`.
 
@@ -178,7 +182,8 @@ Do not "restore" HMAC verification here assuming it was left out by mistake.
 |-----------|-----------|-----|
 | `auth`, `me` | Fintech-first / identity | [`v1/fintech-first.md`](v1/fintech-first.md), [`v1/identity-onboarding.md`](v1/identity-onboarding.md) |
 | `schools` (onboarding, handoff, invites) | Identity & onboarding | [`v1/identity-onboarding.md`](v1/identity-onboarding.md) |
-| `schools/:id/school_years/*`, calendar, backoffice | Platform & admin | [`v1/platform-and-admin.md`](v1/platform-and-admin.md) |
+| `schools/:id/school_years/*` (W1 **frozen** 4C.1) | Platform & admin | [`v1/platform-and-admin.md`](v1/platform-and-admin.md) |
+| `schools/:id/calendar_events`, backoffice (W2–W5) | Platform & admin — **deferred 4C.1b** | [`v1/platform-and-admin.md`](v1/platform-and-admin.md) |
 | `schools/:id/people/*`, enrollments, classes | Students & enrollments | [`v1/students-and-enrollments.md`](v1/students-and-enrollments.md) |
 | `schools/:id/billing/*` | Billing (baseline shipped) | [`v1/billing.md`](v1/billing.md) extends [`v1/fintech-first.md`](v1/fintech-first.md) |
 | `schools/:id/archive/*`, documents | Documents & archive | [`v1/documents-and-archive.md`](v1/documents-and-archive.md) |

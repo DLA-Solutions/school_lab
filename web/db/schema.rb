@@ -10,10 +10,28 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_15_231853) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "vector"
+
+  create_table "academic_periods", force: :cascade do |t|
+    t.string "closure_status", default: "open", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.date "ends_on", null: false
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.bigint "school_year_id", null: false
+    t.integer "sequence", null: false
+    t.date "starts_on", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_academic_periods_on_school_id"
+    t.index ["school_year_id", "sequence"], name: "index_academic_periods_on_year_sequence_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_year_id"], name: "index_academic_periods_on_school_year_id"
+    t.check_constraint "ends_on >= starts_on", name: "academic_periods_dates_valid"
+    t.exclusion_constraint "school_year_id WITH =, daterange(starts_on, ends_on, '[]'::text) WITH &&", where: "discarded_at IS NULL", using: :gist, name: "academic_periods_no_overlap_kept"
+  end
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -452,6 +470,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "school_holidays", force: :cascade do |t|
+    t.boolean "applies_to_attendance", default: true, null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.bigint "school_year_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_school_holidays_on_school_id"
+    t.index ["school_year_id", "date"], name: "index_school_holidays_on_year_date_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_year_id"], name: "index_school_holidays_on_school_year_id"
+  end
+
+  create_table "school_modules", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false
+    t.string "module_key", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "module_key"], name: "index_school_modules_on_school_id_and_module_key", unique: true
+    t.index ["school_id"], name: "index_school_modules_on_school_id"
+  end
+
   create_table "school_payment_providers", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "certificate_expires_at"
@@ -523,6 +565,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index ["school_id"], name: "index_school_transactions_on_school_id"
     t.check_constraint "amount_cents >= 0", name: "school_transactions_amount_cents_non_negative"
     t.check_constraint "kind::text = ANY (ARRAY['income'::character varying, 'expense'::character varying]::text[])", name: "school_transactions_kind_allowed"
+  end
+
+  create_table "school_years", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.date "ends_on", null: false
+    t.string "name", null: false
+    t.string "period_template", default: "trimester", null: false
+    t.bigint "school_id", null: false
+    t.date "starts_on", null: false
+    t.string "status", default: "draft", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "status"], name: "index_school_years_on_school_id_and_status"
+    t.index ["school_id"], name: "index_school_years_on_school_id"
+    t.index ["school_id"], name: "index_school_years_one_active_per_school_kept", unique: true, where: "(((status)::text = 'active'::text) AND (discarded_at IS NULL))"
+    t.check_constraint "ends_on >= starts_on", name: "school_years_dates_valid"
   end
 
   create_table "schools", force: :cascade do |t|
@@ -839,6 +897,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
     t.index ["school_id"], name: "index_webhook_events_on_school_id"
   end
 
+  add_foreign_key "academic_periods", "school_years"
+  add_foreign_key "academic_periods", "schools"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "applied_discounts", "charges"
@@ -888,6 +948,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
   add_foreign_key "school_billing_settings", "schools"
   add_foreign_key "school_classes", "schools"
   add_foreign_key "school_classes", "users", column: "discarded_by_id"
+  add_foreign_key "school_holidays", "school_years"
+  add_foreign_key "school_holidays", "schools"
+  add_foreign_key "school_modules", "schools"
   add_foreign_key "school_payment_providers", "schools"
   add_foreign_key "school_payment_providers", "users", column: "uploaded_by_id"
   add_foreign_key "school_role_templates", "schools"
@@ -895,6 +958,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_000000) do
   add_foreign_key "school_signature_providers", "users", column: "uploaded_by_id"
   add_foreign_key "school_transactions", "schools"
   add_foreign_key "school_transactions", "users", column: "discarded_by_id"
+  add_foreign_key "school_years", "schools"
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
   add_foreign_key "segments", "schools"

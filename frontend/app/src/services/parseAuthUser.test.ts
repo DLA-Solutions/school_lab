@@ -21,6 +21,7 @@ describe('parseMembership', () => {
       display_title: 'Diretor',
       permissions: ['manage_billing', 'manage_people'],
       permission_sources: { manage_billing: 'template' },
+      enabled_modules: ['billing', 'academic'],
       school_onboarding_status: 'pending_handoff',
     });
 
@@ -32,6 +33,7 @@ describe('parseMembership', () => {
     });
     expect(membership.permissions).toEqual(['manage_billing', 'manage_people']);
     expect(membership.is_owner).toBe(true);
+    expect(membership.enabled_modules).toEqual(['billing', 'academic']);
     expect(membership.school_onboarding_status).toBe('pending_handoff');
   });
 

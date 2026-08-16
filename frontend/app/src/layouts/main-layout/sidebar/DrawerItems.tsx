@@ -4,18 +4,14 @@ import { Link as RouterLink } from 'react-router';
 import paths from 'routes/paths';
 import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import ButtonBase from '@mui/material/ButtonBase';
-import IconifyIcon from 'components/base/IconifyIcon';
 import { BrandLogo } from 'design-system';
-import { useAuth } from 'providers/AuthContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { visibleSitemap } from 'utils/navigation/visibleSitemap';
 import GlobalSearch from './GlobalSearch';
 import ListItem from './list-items/ListItem';
 
 const DrawerItems = () => {
-  const { logout } = useAuth();
   const school = useCurrentSchool();
   const navItems = useMemo(() => visibleSitemap(school), [school]);
 
@@ -58,24 +54,11 @@ const DrawerItems = () => {
         <GlobalSearch />
       </Box>
 
-      <List component="nav" sx={{ px: 2.5 }}>
+      <List component="nav" sx={{ px: 2.5, pb: 3 }}>
         {navItems.map((route) => {
           return <ListItem key={route.id} {...route} />;
         })}
       </List>
-
-      <Box px={3.5} pt={6} pb={12} width={1}>
-        <Button
-          variant="contained"
-          color="secondary"
-          size="large"
-          onClick={() => void logout()}
-          startIcon={<IconifyIcon icon="material-symbols:logout" />}
-          sx={{ width: 1 }}
-        >
-          Logout
-        </Button>
-      </Box>
     </>
   );
 };

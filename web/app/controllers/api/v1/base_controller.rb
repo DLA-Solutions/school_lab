@@ -171,13 +171,13 @@ module Api
         case code.to_sym
         when :unauthorized, :invalid_credentials, :invalid_invite_token
           :unauthorized
-        when :forbidden
+        when :forbidden, :module_disabled
           :forbidden
         when :not_found
           :not_found
         when :not_implemented
           :not_implemented
-        when :invalid_state_transition
+        when :invalid_state_transition, :year_in_use, :active_year_exists
           :conflict
         else
           :unprocessable_content

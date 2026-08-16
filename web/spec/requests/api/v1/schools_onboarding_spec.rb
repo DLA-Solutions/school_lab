@@ -12,6 +12,7 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
   path "/api/v1/schools" do
     post "Create school with onboarding" do
       tags "Backoffice"
+      description "Backoffice actors must include school.owner_email; school staff may omit it when opening their own school."
       consumes "application/json"
       produces "application/json"
       security [ bearer_auth: [] ]
@@ -23,10 +24,28 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
             type: :object,
             properties: {
               name: { type: :string },
+              cnpj: { type: :string },
+              address: { type: :string },
+              saas_plan: { type: :string },
+              school_group_id: { type: :integer },
               onboarding_mode: { type: :string, enum: %w[self_serve white_glove] },
-              owner_email: { type: :string, format: :email }
+              owner_email: {
+                type: :string,
+                format: :email,
+                description: "Required for backoffice provisioning; omit when a school admin opens their own school."
+              }
             },
-            required: %w[name owner_email]
+            required: %w[name]
+          },
+          modules: {
+            type: :object,
+            description: "Optional partial overrides for MVP module flags; omitted keys keep defaults (all enabled).",
+            properties: {
+              communication: { type: :boolean },
+              academic: { type: :boolean },
+              billing: { type: :boolean },
+              documents: { type: :boolean }
+            }
           }
         },
         required: %w[school]
@@ -66,7 +85,7 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
         end
       end
 
-      response "201", "white-glove school created in provisioning" do
+      response "201", "backoffice white-glove school created with onboarding_status provisioning (owner_email required)" do
         let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
         let(:payload) do
           {

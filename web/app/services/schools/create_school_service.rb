@@ -4,10 +4,11 @@ module Schools
   class CreateSchoolService < ApplicationService
     ONBOARDING_MODES = School::ONBOARDING_MODES
 
-    def initialize(params:, actor: nil, owner_email: nil)
+    def initialize(params:, actor: nil, owner_email: nil, modules: nil)
       @params = params.to_h.symbolize_keys
       @actor = actor
       @owner_email = owner_email.to_s.strip.downcase.presence
+      @modules = modules
     end
 
     def call
@@ -15,6 +16,7 @@ module Schools
 
       school = build_school
       provision_result = nil
+      modules_result = nil
       owner_result = nil
 
       ActiveRecord::Base.transaction do
@@ -27,6 +29,11 @@ module Schools
           raise ActiveRecord::Rollback
         end
 
+        modules_result = SeedSchoolModulesService.call(school: school, overrides: modules)
+        unless modules_result.success?
+          raise ActiveRecord::Rollback
+        end
+
         if owner_email.present?
           owner_result = create_owner_membership!(school)
           raise ActiveRecord::Rollback unless owner_result.success?
@@ -35,9 +42,10 @@ module Schools
         end
       end
 
-      return ResponseService.failure(code: :validation_error, details: school.errors.to_hash) unless school.persisted?
       return provision_result if provision_result&.failure?
+      return modules_result if modules_result&.failure?
       return owner_result if owner_result&.failure?
+      return ResponseService.failure(code: :validation_error, details: school.errors.to_hash) unless school.persisted?
 
       school.reload
       Onboarding::EventEmitter.school_provisioned(school: school) if owner_email.present?
@@ -46,7 +54,7 @@ module Schools
 
     private
 
-    attr_reader :params, :actor, :owner_email
+    attr_reader :params, :actor, :owner_email, :modules
 
     def backoffice_create?
       actor.present? && actor.backoffice?

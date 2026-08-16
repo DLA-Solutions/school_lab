@@ -92,13 +92,13 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 1. Anchor documents validated and maintained as product direction changes.
 2. Domain PRDs — all **7** MVP domain folders are **validated** for documentation-phase
    sign-off; layer PRDs remain draft.
-3. Data modeling — **005 Students & enrollments** and **009 Platform & admin Wave 1** are
-   validated with published DBML and exported DERs; **006–008** remain draft; identity/onboarding
-   modeling and API narratives are **in progress** (domain PRDs validated).
-4. API contracts — cross-domain narratives remain draft; the billing partner slice is
-   **implemented** in `web/` (historical baseline per [`prds/fintech-first.md`](prds/fintech-first.md)).
-   **Normative billing scope** is [`prds/billing/`](prds/billing/). API freeze is still pending
-   for engineering waves.
+3. Data modeling — **005–008** and **009 Platform Wave 1** are validated with published DBML;
+   identity/onboarding modeling and API narratives are **in progress** (domain PRDs validated).
+4. API contracts — **Platform W1 frozen** (Phase 4C.1 — school years, periods, holidays +
+   `school_year_id` cross-domain contract; see [`api/v1/platform-and-admin.md`](api/v1/platform-and-admin.md)).
+   Other domain narratives remain draft. The billing partner slice is **implemented** in `web/`
+   (historical baseline per [`prds/fintech-first.md`](prds/fintech-first.md)). **Normative billing
+   scope** is [`prds/billing/`](prds/billing/).
 5. Implementation (`web/` with the stack defined in `web-stack.md`) follows the maturation
    order in [`product/domain-roadmap.md`](product/domain-roadmap.md) (communication-first).
 
@@ -119,11 +119,12 @@ Current numbering and maturity follow [`product/domain-roadmap.md`](product/doma
    login. PRD **validated**; modeling and API **in progress**. Both #2 and #3 use
    [`prds/identity-and-onboarding/`](prds/identity-and-onboarding/).
 4. Students & enrollments — PRD and modeling **validated**; API **draft**.
-5. **Communication** — PRD **validated**; modeling and API **draft**.
-6. Academic — PRD **validated**; modeling and API **draft**.
+5. **Communication** — PRD and modeling **validated**; API **draft** (cross-domain `school_year_id` patched in 4C.1).
+6. Academic — PRD and modeling **validated**; API **draft** (cross-domain `school_year_id` patched in 4C.1).
 7. Billing — PRD **validated**; fintech-first modeling/API baseline **implemented**.
-8. Documents & digital archive — PRD **validated**; modeling and API **draft**.
-9. Platform & admin — PRD and **009 Wave 1** modeling **validated**; API **draft**.
+8. Documents & digital archive — PRD and modeling **validated**; API **draft** (cross-domain `school_year_id` patched in 4C.1).
+9. Platform & admin — PRD and **009 Wave 1** modeling **validated**; API **W1 frozen (4C.1)**;
+   W2–W5 deferred to 4C.1b.
 10. **Livro Ata (official minutes-record book), formal minutes & digital
    signature** — generation, signature collection, semantic search (phase 2,
    high priority).

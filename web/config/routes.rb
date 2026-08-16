@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       resources :schools, only: %i[index show create update destroy] do
         member do
           post :handoff
+          patch :modules, to: "schools/modules#update"
         end
         scope module: :schools do
           namespace :provisioning do
@@ -85,6 +86,20 @@ Rails.application.routes.draw do
           namespace :communication do
             resources :conversations, only: :index
           end
+
+          resources :school_years, only: %i[index show create update destroy] do
+            collection do
+              get :active
+            end
+            member do
+              post :activate
+              post :archive
+            end
+            resources :academic_periods, only: %i[index create]
+            resources :holidays, only: %i[index create]
+          end
+          resources :academic_periods, only: :update
+          resources :holidays, only: %i[update destroy]
 
           namespace :billing do
             resource :settings, only: %i[show update]

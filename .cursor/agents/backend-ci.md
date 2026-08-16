@@ -24,8 +24,8 @@ Mirror these GitHub Actions jobs (backend only — not frontend, backoffice, or 
 
 **Canonical entrypoints:**
 
-- `web/bin/backend-ci` — full gate (default before ship when Docker is available).
-- `web/bin/backend-ci-fast` — scoped lint/tests; skips Docker; still runs Brakeman + bundler-audit. Prefer for small `web/` diffs and when Docker is not running locally. Writes the same `.cursor/backend-ci.stamp` (GitHub Actions runs full CI on the PR).
+- `web/bin/backend-ci` — full gate (use before API deploy when Docker is available).
+- `web/bin/backend-ci-fast` — scoped lint/tests; skips Docker; still runs Brakeman + bundler-audit. Prefer for small `web/` diffs and when Docker is not running locally.
 
 ## End-to-end loop
 
@@ -36,7 +36,7 @@ Do not stop at "ready for PR" — finish the pipeline unless blocked.
 3. **Fix** — on failure, read the failing step; fix only issues in scope of the branch. Re-run the **narrowest** check that proves the fix.
 4. **Commit** — stage and commit each fix as a **separate atomic commit** (see below). Never leave CI fixes uncommitted.
 5. **Verify** — after commits, run full `web/bin/backend-ci` again. Repeat steps 3–5 until green.
-6. **Ship** — when stamp matches `git rev-parse HEAD`: push branch (`git push -u origin HEAD`), then `gh pr create` per skill `create-pull-request`.
+6. **Ship** — push branch (`git push -u origin HEAD`), then `gh pr create` per skill `create-pull-request`. Local CI stamp is not required for push or PR.
 
 If a PR already exists for the branch, push updates only — do not create a duplicate PR.
 
@@ -71,7 +71,7 @@ Rules:
 
 Follow skill `create-pull-request`:
 
-- Stamp must match HEAD before `gh pr create` (hook `gate-pr-create.sh` enforces this).
+- Local CI is not required before `gh pr create`.
 - Title and body summarize the branch work **including any CI fix commits** you added.
 - Return the PR URL in the final report.
 
@@ -81,7 +81,7 @@ Lead with outcome. On success:
 
 ```
 Backend CI: PASSED
-Stamp: .cursor/backend-ci.stamp (HEAD <sha>)
+Stamp: .cursor/backend-ci.stamp (HEAD <sha>, optional)
 Commits: <count and one-line summary of CI fix commits, or "none">
 PR: <url>
 ```

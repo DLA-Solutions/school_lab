@@ -2,8 +2,9 @@
 #
 # Monorepo local CI — path filters match .github/workflows/ci.yml.
 #
-#   bin/ci                 # run only surfaces changed vs origin/main
-#   bin/ci --fast          # scoped web checks; skip Docker unless production files changed
+#   bin/ci                 # default: fast path for changed surfaces vs origin/main
+#   bin/ci --full          # full web lint/security/tests; CI_FULL=1 same
+#   bin/ci --fast          # explicit fast (default)
 #   bin/ci --all           # every surface (web, frontend, backoffice)
 #   bin/ci --web           # force web surface only
 #   bin/ci --docker        # include production Docker build when web runs
@@ -20,7 +21,9 @@ source "$REPO_ROOT/bin/lib/ci-surfaces.sh"
 STAMP_FILE="$REPO_ROOT/.cursor/ci.stamp"
 BACKEND_STAMP_FILE="$REPO_ROOT/.cursor/backend-ci.stamp"
 
-FAST_MODE=0
+FAST_MODE=1
+FULL_EXPLICIT=0
+FAST_EXPLICIT=0
 RUN_ALL=0
 FORCE_DOCKER=0
 BASE_REF="origin/main"
@@ -36,7 +39,8 @@ usage() {
 Usage: bin/ci [OPTIONS]
 
   (no flags)     Run CI for surfaces changed vs --base (default: origin/main).
-  --fast         Scoped web lint/tests; skip Docker unless production files changed.
+  --fast         Fast path (default): scoped web lint/tests; skip security scans and Docker.
+  --full         Full backend gate: all RuboCop, Brakeman, bundler-audit, full RSpec. CI_FULL=1 same.
   --all          Run web + frontend + backoffice (not site — no PR job in GitHub).
   --web          Force web/ backend CI.
   --frontend     Force school SPA checks.
@@ -44,7 +48,7 @@ Usage: bin/ci [OPTIONS]
   --site         Note site changes (no automated PR checks; optional docker hint).
   --docker       Build web production image when web surface runs.
   --base REF     Merge base for change detection (default: origin/main).
-  --since REF    Diff REF..HEAD (commits being pushed; used by pre-push hook).
+  --since REF    Diff REF..HEAD (manual scoped runs).
   --no-stamp     Do not write .cursor/ci.stamp on success.
   -h, --help     Show this help.
 
@@ -53,9 +57,18 @@ Surfaces mirror .github/workflows/ci.yml path filters. Docker builds match PR be
 EOF
 }
 
+if [ "${CI_FULL:-0}" = "1" ]; then
+  FAST_MODE=0
+fi
+
 while [ $# -gt 0 ]; do
   case "$1" in
+    --full)
+      FULL_EXPLICIT=1
+      FAST_MODE=0
+      ;;
     --fast)
+      FAST_EXPLICIT=1
       FAST_MODE=1
       ;;
     --all)
@@ -101,6 +114,14 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+
+if [ "$FAST_EXPLICIT" -eq 1 ]; then
+  FAST_MODE=1
+elif [ "$FULL_EXPLICIT" -eq 1 ]; then
+  FAST_MODE=0
+elif [ "${CI_FULL:-0}" = "1" ]; then
+  FAST_MODE=0
+fi
 failures=0
 step_num=0
 RAN_SURFACES=""
@@ -170,7 +191,7 @@ elif [ "$FORCE_WEB" -eq 1 ] || [ "$FORCE_FRONTEND" -eq 1 ] || [ "$FORCE_BACKOFFI
   RUN_BACKOFFICE=$FORCE_BACKOFFICE
   RUN_SITE=$FORCE_SITE
 else
-  DETECTED="$(ci_detect_surfaces "$REPO_ROOT" "$BASE_REF" "$DIFF_MODE" || true)"
+  DETECTED="$(ci_detect_pr_surfaces "$REPO_ROOT" "$BASE_REF" "$DIFF_MODE" || true)"
   RUN_WEB=0
   RUN_FRONTEND=0
   RUN_BACKOFFICE=0

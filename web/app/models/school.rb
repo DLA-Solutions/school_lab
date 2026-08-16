@@ -36,6 +36,10 @@ class School < ApplicationRecord
   has_many :membership_permissions, dependent: :destroy
   has_many :membership_invite_tokens, dependent: :destroy
   has_many :provisioning_imports, dependent: :destroy
+  has_many :school_years, dependent: :destroy
+  has_many :school_modules, dependent: :destroy
+
+  DEFAULT_TIMEZONE = "America/Sao_Paulo"
 
   # Loose on purpose, like the template's copy addresses: a hint that someone mistyped, not an
   # attempt to decide what the RFC allows.
@@ -88,6 +92,10 @@ class School < ApplicationRecord
 
   def system_role_template(system_key)
     school_role_templates.kept.find_by(system_key: system_key.to_s)
+  end
+
+  def timezone
+    DEFAULT_TIMEZONE
   end
 
   private
