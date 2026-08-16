@@ -102,7 +102,8 @@ const ptBR = {
   'grades.choose.description': 'As notas são lançadas por turma e matéria, um bimestre por coluna.',
   'grades.empty.title': 'Nenhum estudante nesta turma',
   'grades.empty.description': 'Matricule estudantes na turma para lançar notas.',
-  'grades.autosaveHint': 'Cada nota é salva sozinha, logo depois de digitada. Deixe em branco para uma nota ainda não dada.',
+  'grades.autosaveHint':
+    'Cada nota é salva sozinha, logo depois de digitada. Deixe em branco para uma nota ainda não dada.',
   'grades.closed': 'Fechado',
   'grades.cellAria': 'Nota de {student} no {period}',
   'nav.preceptorship': 'Preceptoria',
@@ -118,7 +119,8 @@ const ptBR = {
   'preceptorship.status.published': 'Publicado',
   'preceptorship.form.newTitle': 'Escrever sobre um estudante',
   'preceptorship.form.editTitle': 'Continuar o rascunho',
-  'preceptorship.form.description': 'Escreva com suas palavras como o estudante está indo. Salva como rascunho; a família só lê depois de publicado.',
+  'preceptorship.form.description':
+    'Escreva com suas palavras como o estudante está indo. Salva como rascunho; a família só lê depois de publicado.',
   'preceptorship.form.body': 'Relatório',
   'preceptorship.form.bodyHelp': 'Texto livre. Nada aqui vira nota.',
   'preceptorship.form.save': 'Salvar rascunho',
@@ -130,18 +132,21 @@ const ptBR = {
   'preceptorship.action.discard': 'Descartar',
   'preceptorship.action.pdf': 'Baixar PDF',
   'preceptorship.confirmPublish.title': 'Publicar para a família?',
-  'preceptorship.confirmPublish.description': 'A família de {student} vai poder ler este relatório. Depois de publicado, ele não pode ser editado nem retirado.',
+  'preceptorship.confirmPublish.description':
+    'A família de {student} vai poder ler este relatório. Depois de publicado, ele não pode ser editado nem retirado.',
   'preceptorship.noAccess.description': 'Você não tem acesso à preceptoria desta escola.',
   'myPreceptorship.loadError': 'Não foi possível carregar os relatórios.',
   'myPreceptorship.pdfError': 'Não foi possível baixar o PDF.',
   'myPreceptorship.by': 'por {teacher}',
   'myPreceptorship.download': 'Baixar PDF',
   'myPreceptorship.empty.title': 'Nenhum relatório ainda',
-  'myPreceptorship.empty.description': 'Quando a escola publicar um relatório de preceptoria, ele aparece aqui.',
+  'myPreceptorship.empty.description':
+    'Quando a escola publicar um relatório de preceptoria, ele aparece aqui.',
   'myPreceptorship.noAccess.description': 'Você não tem acesso à preceptoria desta escola.',
   'nav.requests': 'Solicitações',
   'nav.myRequests': 'Meus pedidos',
-  'requests.intro': 'O que as famílias pediram à escola: declarações e segunda chamada. A tela abre no que ainda está em aberto.',
+  'requests.intro':
+    'O que as famílias pediram à escola: declarações e segunda chamada. A tela abre no que ainda está em aberto.',
   'requests.loadError': 'Não foi possível carregar as solicitações.',
   'requests.actionError': 'Não foi possível atualizar a solicitação.',
   'requests.open': 'Abrir',
@@ -174,16 +179,19 @@ const ptBR = {
   'requests.empty.description': 'Nada pedido pelas famílias nesta situação.',
   'requests.noAccess.description': 'Você não tem acesso às solicitações desta escola.',
   'myRequests.new.title': 'Fazer um pedido',
-  'myRequests.new.description': 'Peça uma declaração ou a segunda chamada de uma prova. A escola responde por aqui.',
+  'myRequests.new.description':
+    'Peça uma declaração ou a segunda chamada de uma prova. A escola responde por aqui.',
   'myRequests.list.title': 'Meus pedidos',
   'myRequests.send': 'Enviar pedido',
   'myRequests.sent': 'Pedido enviado. A escola vai responder por aqui.',
   'myRequests.sendError': 'Não foi possível enviar o pedido.',
   'myRequests.loadError': 'Não foi possível carregar os seus pedidos.',
-  'myRequests.details.declarationHelp': 'Diga para que serve a declaração e o que ela precisa informar.',
+  'myRequests.details.declarationHelp':
+    'Diga para que serve a declaração e o que ela precisa informar.',
   'myRequests.details.secondCallHelp': 'Diga qual prova o estudante perdeu e por quê.',
   'myRequests.empty.title': 'Nenhum pedido ainda',
-  'myRequests.empty.description': 'Os pedidos que você fizer aparecem aqui, com a resposta da escola.',
+  'myRequests.empty.description':
+    'Os pedidos que você fizer aparecem aqui, com a resposta da escola.',
   'myRequests.noAccess.description': 'Você não tem acesso aos pedidos desta escola.',
   'nav.classes': 'Turmas',
   'nav.subjects': 'Matérias',
@@ -320,7 +328,8 @@ const ptBR = {
   'billingSettings.overdueGraceDaysHelp':
     'Quantos dias corridos após o vencimento antes de marcar a cobrança como em atraso (0–30).',
   'billingSettings.serviceDescription': 'Descrição do serviço no boleto',
-  'billingSettings.serviceDescriptionHelp': 'Texto que o responsável vê na linha do boleto (até 100 caracteres).',
+  'billingSettings.serviceDescriptionHelp':
+    'Texto que o responsável vê na linha do boleto (até 100 caracteres).',
   'billingSettings.interestRatePercent': 'Taxa de mora mensal',
   'billingSettings.interestRatePercentHelp':
     'Obrigatória para emitir boletos. Enviada ao banco como juros de mora.',
@@ -511,8 +520,7 @@ const ptBR = {
   'guardians.empty.description':
     'Cadastre o primeiro responsável para vinculá-lo a alunos e cobranças.',
   'guardians.empty.searchTitle': 'Nenhum resultado',
-  'guardians.empty.searchDescription':
-    'Nada encontrado para "{query}". Verifique o nome ou o CPF.',
+  'guardians.empty.searchDescription': 'Nada encontrado para "{query}". Verifique o nome ou o CPF.',
   'guardians.new': 'Novo responsável',
   'guardians.searchPlaceholder': 'Buscar por nome ou CPF',
   'guardians.searchAria': 'Buscar responsáveis',
@@ -529,11 +537,13 @@ const ptBR = {
   'guardians.charges.aria': 'Ver boletos de {name}',
   'guardians.charges.tooltip': 'Boletos do ano',
   'guardians.report.title': 'Gerar relatório em PDF',
-  'guardians.report.description': 'Escolha as colunas do relatório. Ele segue a busca e o filtro de situação da listagem.',
+  'guardians.report.description':
+    'Escolha as colunas do relatório. Ele segue a busca e o filtro de situação da listagem.',
   'guardians.report.cpf': 'CPF',
   'guardians.report.studentName': 'Nome do filho matriculado',
   'guardians.report.studentClass': 'Turma do filho',
-  'guardians.report.perChildHint': 'Um responsável com mais de um filho matriculado aparece em uma linha por filho.',
+  'guardians.report.perChildHint':
+    'Um responsável com mais de um filho matriculado aparece em uma linha por filho.',
   'guardians.report.generate': 'Gerar PDF',
   'guardians.report.generating': 'Gerando...',
   'guardians.report.error': 'Não foi possível gerar o relatório. Verifique sua conexão.',
@@ -544,6 +554,10 @@ const ptBR = {
   'guardians.details.zipCode': 'CEP',
   'guardians.details.street': 'Logradouro',
   'guardians.details.neighborhood': 'Bairro',
+  'guardians.details.children': 'Filhos',
+  'guardians.details.noChildren': 'Nenhum aluno vinculado a este responsável.',
+  'guardians.details.childrenError': 'Não foi possível carregar os filhos.',
+  'guardians.details.noClass': 'Sem turma',
   'guardians.details.systemAccess': 'Acesso ao sistema',
   'guardians.details.hasAccount': 'Conta criada',
   'guardians.details.noAccount': 'Ainda sem conta',
@@ -569,8 +583,7 @@ const ptBR = {
   'students.empty.description':
     'Cadastre o primeiro estudante para matriculá-lo em uma turma e gerar contratos.',
   'students.empty.searchTitle': 'Nenhum resultado',
-  'students.empty.searchDescription':
-    'Nada encontrado para "{query}". Verifique o nome ou o CPF.',
+  'students.empty.searchDescription': 'Nada encontrado para "{query}". Verifique o nome ou o CPF.',
   'students.new': 'Novo estudante',
   'students.searchPlaceholder': 'Buscar por nome ou CPF',
   'students.searchAria': 'Buscar estudantes',
@@ -595,8 +608,7 @@ const ptBR = {
   'collaborators.title': 'Colaboradores',
   'collaborators.noAccess.description':
     'O cadastro de colaboradores está disponível apenas para usuários com vínculo ativo de escola.',
-  'collaborators.loadError':
-    'Não foi possível carregar os colaboradores. Verifique sua conexão.',
+  'collaborators.loadError': 'Não foi possível carregar os colaboradores. Verifique sua conexão.',
   'collaborators.empty.title': 'Nenhum colaborador cadastrado',
   'collaborators.empty.description':
     'Cadastre um colaborador para depois atribuí-lo às turmas e matérias.',
@@ -618,12 +630,10 @@ const ptBR = {
     'Excluir {name}? Ele deixa de aparecer na listagem e perde suas turmas.',
   'collaborators.deleteError': 'Não foi possível excluir o colaborador.',
 
-  'documents.empty.guardian':
-    'Envie CPF, RG ou comprovante de residência deste responsável.',
+  'documents.empty.guardian': 'Envie CPF, RG ou comprovante de residência deste responsável.',
   'documents.empty.collaborator':
     'Envie RG, CPF, contrato de trabalho ou diploma deste colaborador.',
-  'documents.empty.default':
-    'Envie CPF, RG ou comprovante de residência desta pessoa.',
+  'documents.empty.default': 'Envie CPF, RG ou comprovante de residência desta pessoa.',
   'documents.empty.title': 'Nenhum documento enviado',
 
   'plans.title': 'Planos',
@@ -653,11 +663,9 @@ const ptBR = {
   'plans.provisionError': 'Não foi possível criar os descontos padrão.',
   'plans.deleteError': 'Não foi possível excluir.',
   'plans.deletePlanTitle': 'Excluir plano',
-  'plans.deletePlanMessage':
-    'Excluir {name}? Ele deixa de aparecer ao emitir contratos.',
+  'plans.deletePlanMessage': 'Excluir {name}? Ele deixa de aparecer ao emitir contratos.',
   'plans.deleteDiscountTitle': 'Excluir desconto',
-  'plans.deleteDiscountMessage':
-    'Excluir {name}? Ele deixa de aparecer ao emitir contratos.',
+  'plans.deleteDiscountMessage': 'Excluir {name}? Ele deixa de aparecer ao emitir contratos.',
   'plans.inUseDiscountTooltip': 'Aplicado em contratos — não pode ser removido',
   'plans.editPlanAria': 'Editar plano {name}',
   'plans.deletePlanAria': 'Excluir plano {name}',
@@ -671,8 +679,7 @@ const ptBR = {
   'plans.fullPercent': '100% (integral)',
 
   'error404.title': 'Página não encontrada',
-  'error404.description':
-    'A página que você está buscando não existe ou foi movida.',
+  'error404.description': 'A página que você está buscando não existe ou foi movida.',
   'error404.home': 'Voltar ao início',
 } as const;
 

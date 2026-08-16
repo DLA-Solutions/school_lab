@@ -1,4 +1,6 @@
+import { useCallback, useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -9,7 +11,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { SemanticChip } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
+import { listStudents } from 'services/studentsApi';
 import { Guardian } from 'types/guardian';
+import { Student } from 'types/student';
 import { formatCpf } from 'utils/documentNumber';
 
 export interface GuardianDetailsDialogProps {
@@ -39,10 +43,43 @@ const Field = ({ label, value }: { label: string; value: string | null }) => (
 const GuardianDetailsDialog = ({ open, guardian, onClose }: GuardianDetailsDialogProps) => {
   const { t } = useTranslation();
 
-  const street = [guardian.street, guardian.number, guardian.complement]
-    .filter(Boolean)
-    .join(', ');
+  const [children, setChildren] = useState<Student[]>([]);
+  const [childrenLoading, setChildrenLoading] = useState(false);
+  const [childrenError, setChildrenError] = useState(false);
+
+  const street = [guardian.street, guardian.number, guardian.complement].filter(Boolean).join(', ');
   const city = [guardian.city, guardian.state].filter(Boolean).join('/');
+
+  // The children are not on the guardian record — the link lives on the student — so they are
+  // fetched when the dialog opens rather than carried by every row of the listing behind it.
+  // `all`, because a child taken off the roll is still who this person answers for, and a
+  // details view that quietly dropped them would read as the link having been lost.
+  const loadChildren = useCallback(async () => {
+    setChildrenLoading(true);
+    setChildrenError(false);
+
+    try {
+      const response = await listStudents({
+        schoolId: guardian.school_id,
+        guardianId: guardian.id,
+        status: 'all',
+      });
+      setChildren(response.data);
+    } catch {
+      setChildren([]);
+      setChildrenError(true);
+    } finally {
+      setChildrenLoading(false);
+    }
+  }, [guardian.school_id, guardian.id]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    loadChildren();
+  }, [open, loadChildren]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -78,6 +115,49 @@ const GuardianDetailsDialog = ({ open, guardian, onClose }: GuardianDetailsDialo
           <Field label={t('guardians.details.street')} value={street || null} />
           <Field label={t('guardians.details.neighborhood')} value={guardian.neighborhood} />
           <Field label={t('common.city')} value={city || null} />
+
+          <Grid size={12}>
+            <Divider />
+          </Grid>
+
+          <Grid size={12}>
+            <Typography variant="caption" color="text.secondary" component="div">
+              {t('guardians.details.children')}
+            </Typography>
+          </Grid>
+
+          <Grid size={12}>
+            {childrenLoading ? (
+              <CircularProgress size={20} />
+            ) : childrenError ? (
+              <Typography variant="body2" color="text.secondary">
+                {t('guardians.details.childrenError')}
+              </Typography>
+            ) : children.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                {t('guardians.details.noChildren')}
+              </Typography>
+            ) : (
+              <Stack direction="column" gap={1}>
+                {children.map((child) => (
+                  <Stack
+                    key={child.id}
+                    direction="row"
+                    gap={1.5}
+                    alignItems="center"
+                    flexWrap="wrap"
+                  >
+                    <Typography variant="body2">{child.name}</Typography>
+                    {/* Which class they are in is how a secretary tells two children apart. */}
+                    <Typography variant="body2" color="text.secondary">
+                      {child.school_class_name ?? t('guardians.details.noClass')}
+                    </Typography>
+                    {!child.active && <SemanticChip variant="info" label={t('common.inactives')} />}
+                  </Stack>
+                ))}
+              </Stack>
+            )}
+          </Grid>
 
           <Grid size={12}>
             <Divider />
