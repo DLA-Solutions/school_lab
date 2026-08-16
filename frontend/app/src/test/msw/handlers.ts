@@ -290,31 +290,181 @@ export const sampleSchools = [
   },
 ];
 
-/** Three rows so a `per_page` below the total actually slices. */
-export const charges = [
+/** Guardian open charges — mirrors `ChargeBlueprint` `:guardian` view. */
+export const myOpenCharges = [
   {
     id: 101,
     billing_period: '2026-08',
-    total_amount: '850.00',
+    total_amount_cents: 85_000,
     due_date: '2026-08-10',
     status: 'pending',
+    kind: 'tuition',
+    description: null,
+    contract_id: 1,
     student: { id: 1, name: 'Pedro Silva' },
+    interest_rate_percent: 1.0,
+    payment_methods: {
+      boleto_url: 'https://provider.example/boleto/101.pdf',
+      pix_copy_paste: '00020126580014br.gov.bcb.pix101',
+    },
   },
   {
     id: 102,
     billing_period: '2026-07',
-    total_amount: '850.00',
+    total_amount_cents: 85_000,
     due_date: '2026-07-10',
     status: 'overdue',
+    kind: 'tuition',
+    description: null,
+    contract_id: 1,
     student: { id: 1, name: 'Pedro Silva' },
+    interest_rate_percent: 1.0,
+    payment_methods: {
+      boleto_url: 'https://provider.example/boleto/102.pdf',
+      pix_copy_paste: '00020126580014br.gov.bcb.pix102',
+    },
   },
   {
-    id: 103,
-    billing_period: '2026-06',
-    total_amount: '900.00',
-    due_date: '2026-06-10',
-    status: 'paid',
+    id: 104,
+    billing_period: '2026-08',
+    total_amount_cents: 90_000,
+    due_date: '2026-08-12',
+    status: 'pending',
+    kind: 'tuition',
+    description: null,
+    contract_id: 2,
     student: { id: 2, name: 'Ana Silva' },
+    interest_rate_percent: 1.0,
+    payment_methods: {
+      boleto_url: 'https://provider.example/boleto/104.pdf',
+      pix_copy_paste: '00020126580014br.gov.bcb.pix104',
+    },
+  },
+];
+
+/** Guardian paid history — mirrors `ChargeBlueprint` `:guardian_history` view. */
+export const myChargeHistory = [
+  {
+    id: 88,
+    billing_period: '2025-12',
+    total_amount_cents: 80_000,
+    status: 'paid',
+    kind: 'tuition',
+    description: null,
+    contract_id: 1,
+    student: { id: 1, name: 'Pedro Silva' },
+    paid_at: '2025-12-08T14:30:00Z',
+    source: 'platform',
+    interest_rate_percent: 1.0,
+  },
+];
+
+/** Default open-charges list used by `api.test.ts`. */
+export const charges = myOpenCharges;
+
+export const reportCardConfig = {
+  id: 1,
+  version: 1,
+  template_key: 'standard_v1',
+  display_config: { hide_discipline_ids: [] },
+  header_text: 'Boletim escolar',
+  footer_text: 'Documento sem valor legal',
+  document_signatory_id: 7,
+  signatory: {
+    id: 7,
+    role_label: 'Secretaria',
+    name: 'Maria Silva',
+    title: 'Secretária Escolar',
+  },
+  created_at: '2026-08-01T10:00:00Z',
+  updated_at: '2026-08-01T10:00:00Z',
+};
+
+export const myReportCards = [
+  {
+    publication_id: 801,
+    student_id: 1,
+    academic_period_id: 44,
+    snapshot_id: 901,
+    version: 1,
+    released_at: '2026-08-17T11:00:00Z',
+    pdf_url: `/api/v1/schools/${SCHOOL_ID}/me/report_cards/801/snapshots/901/pdf`,
+  },
+  {
+    publication_id: 802,
+    student_id: 2,
+    academic_period_id: 44,
+    snapshot_id: 902,
+    version: 1,
+    released_at: '2026-08-17T11:00:00Z',
+    pdf_url: `/api/v1/schools/${SCHOOL_ID}/me/report_cards/802/snapshots/902/pdf`,
+  },
+];
+
+export const myReportCardPublication = {
+  id: 801,
+  student_id: 1,
+  academic_period_id: 44,
+  active_snapshot_id: 901,
+  active_snapshot: {
+    id: 901,
+    version: 1,
+    released_at: '2026-08-17T11:00:00Z',
+    correction_reason: null,
+    grade_launch_digest: 'abc123',
+    supersedes_id: null,
+    snapshot: {
+      disciplines: [{ name: 'Matemática', grade: '8.5' }],
+      attendance: { percentage: '95.00' },
+    },
+    config_version: 1,
+    pdf_url: `/api/v1/schools/${SCHOOL_ID}/me/report_cards/801/snapshots/901/pdf`,
+  },
+  created_at: '2026-08-17T11:00:00Z',
+  updated_at: '2026-08-17T11:00:00Z',
+};
+
+export const myTaxDeclarations = [
+  {
+    tax_declaration_id: 81,
+    calendar_year: 2025,
+    active_version_id: 94,
+    version: {
+      id: 94,
+      number: 2,
+      lifecycle: 'active' as const,
+      supersedes_version_id: 88,
+      total_declared_principal_amount_cents: 2_450_000,
+      issued_at: '2026-01-08T14:00:00Z',
+      students: [
+        {
+          student_id: 1,
+          student_name: 'Pedro Silva',
+          declared_principal_amount_cents: 1_200_000,
+        },
+        {
+          student_id: 2,
+          student_name: 'Ana Silva',
+          declared_principal_amount_cents: 1_250_000,
+        },
+      ],
+      pdf_url: `/api/v1/schools/${SCHOOL_ID}/me/tax_declarations/81/versions/94/pdf`,
+    },
+  },
+];
+
+export const myTaxDeclarationVersion = myTaxDeclarations[0].version;
+
+export const schoolClassesFixture = [
+  {
+    id: 310,
+    school_id: SCHOOL_ID,
+    name: 'A',
+    grade_level: '6º ano',
+    shift: 'matutino',
+    year: 2026,
+    student_count: 2,
+    subjects: [{ id: 1, school_id: SCHOOL_ID, name: 'Matemática' }],
   },
 ];
 
@@ -724,6 +874,443 @@ export const handlers = [
       return jsonError(404, 'not_found', 'Recurso não encontrado.');
     }
 
-    return paginated(charges, new URL(request.url));
+    const url = new URL(request.url);
+    const studentId = url.searchParams.get('student_id');
+    let rows = myOpenCharges;
+
+    if (studentId) {
+      const linkedStudentIds = new Set(
+        [...myOpenCharges, ...myChargeHistory].map((row) => row.student?.id).filter(Boolean),
+      );
+      // The API 404s when the filter names a child this guardian is not linked to.
+      if (!linkedStudentIds.has(Number(studentId))) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      rows = rows.filter((row) => row.student?.id === Number(studentId));
+    }
+
+    return paginated(rows, url);
   }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/charges/history'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const url = new URL(request.url);
+    const studentId = url.searchParams.get('student_id');
+    let rows = myChargeHistory;
+
+    if (studentId) {
+      rows = rows.filter((row) => row.student?.id === Number(studentId));
+    }
+
+    return paginated(rows, url);
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/charges/:id'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const charge = myOpenCharges.find((row) => row.id === Number(params.id));
+    if (!charge) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: charge });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/me/charges/:id/reissue'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const charge = myOpenCharges.find((row) => row.id === Number(params.id));
+    if (!charge) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const updated = {
+      ...charge,
+      payment_methods: {
+        boleto_url: `${charge.payment_methods.boleto_url}?reissued=1`,
+        pix_copy_paste: `${charge.payment_methods.pix_copy_paste}-reissued`,
+      },
+    };
+
+    return HttpResponse.json({ data: updated });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/students'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const students = [
+      { id: 1, name: 'Pedro Silva' },
+      { id: 2, name: 'Ana Silva' },
+    ];
+
+    return paginated(students, new URL(request.url));
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/report_cards'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const url = new URL(request.url);
+    const studentId = url.searchParams.get('student_id');
+    let rows = myReportCards;
+
+    if (studentId) {
+      const linkedStudentIds = new Set(myReportCards.map((row) => row.student_id));
+      if (!linkedStudentIds.has(Number(studentId))) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      rows = rows.filter((row) => row.student_id === Number(studentId));
+    }
+
+    return paginated(rows, url);
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/report_cards/:publicationId'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    if (params.publicationId !== '801') {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: myReportCardPublication });
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/me/report_cards/:publicationId/snapshots/:snapshotId/pdf'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID) || params.publicationId !== '801') {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return new HttpResponse('%PDF-1.4 test', {
+        headers: { 'Content-Type': 'application/pdf' },
+      });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/tax_declarations'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return paginated(myTaxDeclarations, new URL(request.url));
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/me/tax_declarations'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as {
+      tax_declaration?: { calendar_year?: number };
+    };
+    const calendarYear = body.tax_declaration?.calendar_year;
+
+    if (calendarYear === 2024) {
+      return jsonError(
+        422,
+        'no_eligible_payments',
+        'Não há pagamentos elegíveis para este ano.',
+      );
+    }
+
+    if (calendarYear === 2023) {
+      return jsonError(
+        422,
+        'tax_declaration_configuration_incomplete',
+        'A configuração da declaração ainda não está completa.',
+      );
+    }
+
+    if (calendarYear === 2026) {
+      return jsonError(422, 'calendar_year_not_closed', 'O ano-calendário ainda não encerrou.');
+    }
+
+    const existing = myTaxDeclarations.find((row) => row.calendar_year === calendarYear);
+    const payload = existing ?? myTaxDeclarations[0];
+
+    return HttpResponse.json(
+      {
+        data: {
+          tax_declaration_id: payload.tax_declaration_id,
+          calendar_year: calendarYear ?? payload.calendar_year,
+          active_version_id: payload.active_version_id,
+          version: payload.version,
+        },
+      },
+      { status: existing ? 200 : 201 },
+    );
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/me/tax_declarations/:taxDeclarationId'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const row = myTaxDeclarations.find(
+        (item) => item.tax_declaration_id === Number(params.taxDeclarationId),
+      );
+
+      if (!row) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return HttpResponse.json({ data: row });
+    },
+  ),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/me/tax_declarations/:taxDeclarationId/versions/:versionId'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID) || params.taxDeclarationId !== '81') {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      if (params.versionId !== '94') {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return HttpResponse.json({ data: myTaxDeclarationVersion });
+    },
+  ),
+
+  http.get(
+    apiUrl(
+      '/api/v1/schools/:schoolId/me/tax_declarations/:taxDeclarationId/versions/:versionId/pdf',
+    ),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID) || params.taxDeclarationId !== '81') {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return new HttpResponse('%PDF-1.4 tax-declaration', {
+        headers: { 'Content-Type': 'application/pdf' },
+      });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/academics/report_card_config'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: reportCardConfig });
+  }),
+
+  http.patch(apiUrl('/api/v1/schools/:schoolId/academics/report_card_config'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as { report_card_config?: Partial<typeof reportCardConfig> };
+    const next = {
+      ...reportCardConfig,
+      ...body.report_card_config,
+      version: reportCardConfig.version + 1,
+    };
+
+    return HttpResponse.json({ data: next });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/academics/school_classes'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return paginated(schoolClassesFixture, new URL(request.url));
+  }),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/academics/report_card_publication_batches/validate'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const body = (await request.json()) as {
+        report_card_publication_batch?: { class_id?: number; academic_period_id?: number };
+      };
+      const classId = body.report_card_publication_batch?.class_id;
+      const periodId = body.report_card_publication_batch?.academic_period_id;
+
+      if (classId === 310 && periodId === 44) {
+        return HttpResponse.json({
+          data: {
+            class_id: classId,
+            academic_period_id: periodId,
+            ready: true,
+            blockers: [],
+          },
+        });
+      }
+
+      return jsonError(422, 'report_card_not_ready', 'Boletim ainda não está pronto.', {
+        blockers: [{ student_id: 1, code: 'grade_launch_missing', details: {} }],
+      });
+    },
+  ),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/academics/report_card_publication_batches'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const body = (await request.json()) as {
+        report_card_publication_batch?: { class_id?: number; academic_period_id?: number };
+      };
+      const classId = body.report_card_publication_batch?.class_id;
+      const periodId = body.report_card_publication_batch?.academic_period_id;
+
+      if (classId !== 310 || periodId !== 44) {
+        return jsonError(422, 'report_card_not_ready', 'Boletim ainda não está pronto.', {
+          blockers: [{ student_id: 1, code: 'grade_launch_missing', details: {} }],
+        });
+      }
+
+      return HttpResponse.json(
+        {
+          data: {
+            batch_id: 501,
+            schedule_id: null,
+            status: 'completed',
+            atomic: true,
+            class_id: classId,
+            academic_period_id: periodId,
+            scheduled_for: null,
+            counts: { requested: 2, released: 2, failed: 0 },
+            results: myReportCards.map((row) => ({
+              student_id: row.student_id,
+              publication_id: row.publication_id,
+              snapshot_id: row.snapshot_id,
+              version: row.version,
+              released_at: row.released_at,
+              pdf_url: row.pdf_url,
+            })),
+            blockers: [],
+          },
+        },
+        { status: 201 },
+      );
+    },
+  ),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/academics/report_card_publications/:publicationId/republish'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const body = (await request.json()) as {
+        report_card_publication?: { correction_reason?: string };
+      };
+
+      if (!body.report_card_publication?.correction_reason?.trim()) {
+        return jsonError(422, 'republish_reason_required', 'Informe o motivo da correção.');
+      }
+
+      return HttpResponse.json(
+        {
+          data: {
+            publication_id: Number(params.publicationId),
+            snapshot_id: 903,
+            version: 2,
+            released_at: '2026-08-18T11:00:00Z',
+            pdf_url: `/api/v1/schools/${SCHOOL_ID}/me/report_cards/${params.publicationId}/snapshots/903/pdf`,
+          },
+        },
+        { status: 201 },
+      );
+    },
+  ),
 ];
