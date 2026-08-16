@@ -6,14 +6,14 @@ import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
 import ButtonBase from '@mui/material/ButtonBase';
 import { BrandLogo } from 'design-system';
-import { useCurrentSchool } from 'providers/useCurrentSchool';
+import { useActiveMembership } from 'providers/ActiveMembershipContext';
 import { visibleSitemap } from 'utils/navigation/visibleSitemap';
 import GlobalSearch from './GlobalSearch';
 import ListItem from './list-items/ListItem';
 
 const DrawerItems = () => {
-  const school = useCurrentSchool();
-  const navItems = useMemo(() => visibleSitemap(school), [school]);
+  const activeMembership = useActiveMembership();
+  const navItems = useMemo(() => visibleSitemap(activeMembership), [activeMembership]);
 
   return (
     <>

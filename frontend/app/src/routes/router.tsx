@@ -9,7 +9,13 @@ import Signin from 'pages/authentication/Signin';
 import InviteAccept from 'pages/onboarding/InviteAccept';
 import OwnerOnboarding from 'pages/onboarding/OwnerOnboarding';
 import Error404 from 'pages/Error404';
-import { RequireAuth, RequireGuest, RequireOwnerOnboardingComplete, RequireRouteModule } from './guards';
+import {
+  RequireAuth,
+  RequireGuest,
+  RequireOwnerOnboardingComplete,
+  RequireRouteAudience,
+  RequireRouteModule,
+} from './guards';
 
 // Vite `base` uses a trailing slash (/app/); React Router `basename` must not — otherwise
 // visiting /app (no slash) fails to match and the router renders nothing.
@@ -31,12 +37,16 @@ const Subjects = lazy(() => import('pages/academics/Subjects'));
 const JobPositions = lazy(() => import('pages/academics/JobPositions'));
 const Preceptorship = lazy(() => import('pages/preceptorship/Preceptorship'));
 const MyPreceptorship = lazy(() => import('pages/preceptorship/MyPreceptorship'));
+const ReportCards = lazy(() => import('pages/report-cards/ReportCards'));
+const MyReportCards = lazy(() => import('pages/report-cards/MyReportCards'));
 const Requests = lazy(() => import('pages/requests/Requests'));
 const MyRequests = lazy(() => import('pages/requests/MyRequests'));
 const Charges = lazy(() => import('pages/billing/Charges'));
 const Plans = lazy(() => import('pages/billing/Plans'));
 const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
+const MyTaxDeclarations = lazy(() => import('pages/billing/MyTaxDeclarations'));
+const MyCharges = lazy(() => import('pages/billing/MyCharges'));
 
 const router = createBrowserRouter(
   [
@@ -51,13 +61,15 @@ const router = createBrowserRouter(
         path: rootPaths.root,
         element: (
           <RequireAuth>
-            <RequireRouteModule>
-              <MainLayout>
+            <RequireRouteAudience>
+              <RequireRouteModule>
+                <MainLayout>
                 <Suspense fallback={<PageLoader />}>
                   <Outlet />
                 </Suspense>
-              </MainLayout>
-            </RequireRouteModule>
+                </MainLayout>
+              </RequireRouteModule>
+            </RequireRouteAudience>
           </RequireAuth>
         ),
         children: [
@@ -108,8 +120,16 @@ const router = createBrowserRouter(
             element: <Preceptorship />,
           },
           {
+            path: paths.reportCards,
+            element: <ReportCards />,
+          },
+          {
             path: paths.myPreceptorship,
             element: <MyPreceptorship />,
+          },
+          {
+            path: paths.myReportCards,
+            element: <MyReportCards />,
           },
           {
             path: paths.requests,
@@ -134,6 +154,14 @@ const router = createBrowserRouter(
           {
             path: paths.contractTemplate,
             element: <ContractTemplatePage />,
+          },
+          {
+            path: paths.myTaxDeclarations,
+            element: <MyTaxDeclarations />,
+          },
+          {
+            path: paths.myCharges,
+            element: <MyCharges />,
           },
         ],
       },

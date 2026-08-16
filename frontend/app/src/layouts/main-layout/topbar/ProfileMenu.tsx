@@ -8,17 +8,21 @@ import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import IconifyIcon from 'components/base/IconifyIcon';
 import AvatarImage from 'assets/images/avatar.png';
 import { listClasses } from '@mui/material';
 import { useAuth } from 'providers/AuthContext';
+import { useActiveMembershipContext } from 'providers/ActiveMembershipContext';
 import { useTranslation } from 'providers/I18nContext';
+import { membershipDisplayRole } from 'utils/membership/audience';
 
 const ProfileMenu = () => {
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const { user, logout } = useAuth();
+  const { activeMembership, eligibleMemberships, selectMembership } = useActiveMembershipContext();
 
   const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -29,7 +33,9 @@ const ProfileMenu = () => {
   };
 
   const userName = user?.email.split('@')[0] ?? 'User';
-  const membership = user?.memberships?.[0];
+  const activeRoleLabel = activeMembership
+    ? membershipDisplayRole(activeMembership, t)
+    : null;
 
   return (
     <>
@@ -65,7 +71,7 @@ const ProfileMenu = () => {
         sx={{
           mt: 1.5,
           [`& .${listClasses.root}`]: {
-            width: 240,
+            width: 280,
             [`& .${avatarClasses.root}`]: {
               width: 36,
               height: 36,
@@ -90,13 +96,52 @@ const ProfileMenu = () => {
             <Typography variant="caption" fontWeight={400} color="text.secondary">
               {user?.email}
             </Typography>
-            {membership && (
+            {activeMembership && activeRoleLabel && (
               <Typography variant="caption" fontWeight={400} color="text.secondary">
-                {[membership.role, membership.school_name].filter(Boolean).join(' · ')}
+                {[activeRoleLabel, activeMembership.school_name].filter(Boolean).join(' · ')}
               </Typography>
             )}
           </Stack>
         </MenuItem>
+
+        {eligibleMemberships.length > 1 && (
+          <>
+            <Divider />
+            <MenuItem disabled sx={{ opacity: 1, py: 0.75 }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                {t('membership.switchContext')}
+              </Typography>
+            </MenuItem>
+            {eligibleMemberships.map((membership) => {
+              const roleLabel = membershipDisplayRole(membership, t);
+              const isActive = membership.id === activeMembership?.id;
+
+              return (
+                <MenuItem
+                  key={membership.id}
+                  selected={isActive}
+                  onClick={() => {
+                    if (!isActive) {
+                      selectMembership(membership);
+                    }
+                  }}
+                >
+                  <ListItemText
+                    primary={roleLabel}
+                    secondary={membership.school_name ?? undefined}
+                    primaryTypographyProps={{ variant: 'body2' }}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                  {isActive && (
+                    <ListItemIcon sx={{ minWidth: 28, justifyContent: 'flex-end' }}>
+                      <IconifyIcon icon="mingcute:check-line" />
+                    </ListItemIcon>
+                  )}
+                </MenuItem>
+              );
+            })}
+          </>
+        )}
 
         <Divider />
 
@@ -105,7 +150,7 @@ const ProfileMenu = () => {
             <IconifyIcon icon="material-symbols:logout" />
           </ListItemIcon>
           <Typography variant="body2" color="text.secondary">
-            Logout
+            {t('common.logout')}
           </Typography>
         </MenuItem>
       </Menu>

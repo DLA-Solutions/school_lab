@@ -1,12 +1,15 @@
 import { PropsWithChildren } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { useAuth } from 'providers/AuthContext';
+import { useActiveMembership } from 'providers/ActiveMembershipContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import Splash from 'components/loader/Splash';
 import { onboardingRedirectPath } from 'utils/onboarding/access';
 import { postLoginDestination } from 'utils/auth/postLogin';
+import { membershipAudience } from 'utils/membership/audience';
 import {
   isModuleEnabledForMembership,
+  routeAudienceForPath,
   routeModuleKeyForPath,
 } from 'utils/navigation/visibleSitemap';
 import paths from './paths';
@@ -31,7 +34,7 @@ export const RequireSchoolOwner = ({ children }: PropsWithChildren) => {
 /** Redirects deep-links to module-gated routes when the school module is disabled. */
 export const RequireRouteModule = ({ children }: PropsWithChildren) => {
   const { status } = useAuth();
-  const membership = useCurrentSchool();
+  const membership = useActiveMembership();
   const location = useLocation();
 
   if (status === 'loading') {
@@ -41,6 +44,29 @@ export const RequireRouteModule = ({ children }: PropsWithChildren) => {
   const moduleKey = routeModuleKeyForPath(location.pathname);
   if (moduleKey && !isModuleEnabledForMembership(membership, moduleKey)) {
     return <Navigate to={paths.dashboard} replace />;
+  }
+
+  return children;
+};
+
+/** Redirects deep-links to routes that belong to another active profile context. */
+export const RequireRouteAudience = ({ children }: PropsWithChildren) => {
+  const { status } = useAuth();
+  const membership = useActiveMembership();
+  const location = useLocation();
+
+  if (status === 'loading') {
+    return <Splash />;
+  }
+
+  const routeAudience = routeAudienceForPath(location.pathname);
+
+  if (routeAudience && routeAudience !== 'shared' && membership) {
+    const activeAudience = membershipAudience(membership);
+
+    if (routeAudience !== activeAudience) {
+      return <Navigate to={paths.dashboard} replace />;
+    }
   }
 
   return children;

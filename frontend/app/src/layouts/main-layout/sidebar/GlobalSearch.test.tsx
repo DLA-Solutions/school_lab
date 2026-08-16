@@ -12,7 +12,9 @@ import {
   staffMembership,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
+import { activeMembershipValueFor } from 'test/activeMembership';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
+import { ActiveMembershipContext } from 'providers/ActiveMembershipContext';
 import { setAccessToken } from 'services/tokenStore';
 import { AuthUser } from 'types/auth';
 import GlobalSearch from './GlobalSearch';
@@ -59,24 +61,30 @@ const authValueFor = (role: string): AuthContextValue => ({
   refreshUser: vi.fn(),
 });
 
-/** Prints wherever the router currently is, so a spec can assert the navigation. */
 const LocationProbe = () => {
   const location = useLocation();
 
   return <div data-testid="location">{`${location.pathname}${location.search}`}</div>;
 };
 
-const renderSearch = (role = 'staff') =>
-  renderWithTheme(
+const renderSearch = (role = 'staff') => {
+  const membership = membershipFor(role);
+
+  return renderWithTheme(
     <MemoryRouter initialEntries={['/']}>
       <AuthContext.Provider value={authValueFor(role)}>
-        <GlobalSearch />
-        <Routes>
-          <Route path="*" element={<LocationProbe />} />
-        </Routes>
+        <ActiveMembershipContext.Provider
+          value={activeMembershipValueFor([membership], membership.id)}
+        >
+          <GlobalSearch />
+          <Routes>
+            <Route path="*" element={<LocationProbe />} />
+          </Routes>
+        </ActiveMembershipContext.Provider>
       </AuthContext.Provider>
     </MemoryRouter>,
   );
+};
 
 const stubPeople = () => {
   const seen: string[] = [];
@@ -113,14 +121,9 @@ describe('GlobalSearch', () => {
 
     await user.click(await screen.findByText('Turmas'));
 
-    // Turmas is a tab inside Aulas now, so searching for it lands on that tab rather than on a
-    // menu entry of its own — the page is still reachable by the name people know it by.
     expect(screen.getByTestId('location')).toHaveTextContent('/academico/aulas');
   });
 
-  // The menu labels carry accents; typing without them still has to find the page.
-  // The menu is in English now, but the people in it are not: Brazilian names carry accents a
-  // secretary does not stop to type.
   it('matches a name without its accents', async () => {
     authenticate();
     stubPeople();
@@ -141,14 +144,11 @@ describe('GlobalSearch', () => {
     expect(await screen.findByText('Maria Silva')).toBeInTheDocument();
     expect(screen.getByText('Pedro Silva')).toBeInTheDocument();
     expect(screen.getByText('Carla Nogueira')).toBeInTheDocument();
-
-    // The group headings are what tell a guardian from a student of the same name.
     expect(screen.getByText('Responsáveis')).toBeInTheDocument();
     expect(screen.getByText('Estudantes')).toBeInTheDocument();
     expect(screen.getByText('Colaboradores')).toBeInTheDocument();
   });
 
-  // Picking a person opens their listing already filtered — that is what `?q=` is for.
   it('opens the register of the person picked, filtered by their CPF', async () => {
     authenticate();
     stubPeople();
@@ -184,19 +184,22 @@ describe('GlobalSearch', () => {
     expect(seen.sort()).toEqual(['guardians:Silva', 'students:Silva', 'teachers:Silva']);
   });
 
-  // The people registers are staff-only; a guardian must still get the pages.
-  it('offers pages only when the user has no staff membership', async () => {
+  it('offers only guardian pages when the active context is Responsável', async () => {
     authenticate();
     const seen = stubPeople();
     renderSearch('guardian');
 
     await user.type(box(), 'Turmas');
 
-    expect(await screen.findByText('Turmas')).toBeInTheDocument();
+    expect(await screen.findByText(/nada encontrado/i)).toBeInTheDocument();
     expect(seen).toEqual([]);
+
+    await user.clear(box());
+    await user.type(box(), 'Preceptoria');
+
+    expect(await screen.findByText('Preceptoria')).toBeInTheDocument();
   });
 
-  // One register being unavailable must not hide the other two.
   it('still shows what it found when a register fails', async () => {
     authenticate();
     server.use(

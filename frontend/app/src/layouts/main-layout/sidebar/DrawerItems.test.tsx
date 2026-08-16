@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { renderWithTheme } from 'test/renderWithTheme';
+import { activeMembershipValueFor } from 'test/activeMembership';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
+import { ActiveMembershipContext } from 'providers/ActiveMembershipContext';
 import { Membership } from 'types/auth';
-import { ownerPendingMembership, staffMembership } from 'test/msw';
+import { guardianMembership, ownerPendingMembership, staffMembership } from 'test/msw';
 import DrawerItems from './DrawerItems';
 
 const teacherMembership: Membership = {
@@ -38,12 +40,12 @@ const billingMembership: Membership = {
   },
 };
 
-const authValueFor = (membership: Membership): AuthContextValue => ({
+const authValueFor = (memberships: Membership[]): AuthContextValue => ({
   user: {
     id: 1,
-    email: membership.email ?? 'user@example.com',
+    email: memberships[0]?.email ?? 'user@example.com',
     status: 'active',
-    memberships: [membership],
+    memberships,
     guardian_profiles: [],
   },
   status: 'authenticated',
@@ -53,34 +55,36 @@ const authValueFor = (membership: Membership): AuthContextValue => ({
   refreshUser: vi.fn(),
 });
 
-const renderDrawer = (membership: Membership) =>
+const renderDrawer = (memberships: Membership[], selectedId?: number) =>
   renderWithTheme(
     <MemoryRouter>
-      <AuthContext.Provider value={authValueFor(membership)}>
-        <DrawerItems />
+      <AuthContext.Provider value={authValueFor(memberships)}>
+        <ActiveMembershipContext.Provider
+          value={activeMembershipValueFor(memberships, selectedId ?? memberships[0]?.id ?? null)}
+        >
+          <DrawerItems />
+        </ActiveMembershipContext.Provider>
       </AuthContext.Provider>
     </MemoryRouter>,
   );
 
 describe('DrawerItems permission gating', () => {
   it('shows people routes to a secretary with manage_people', () => {
-    renderDrawer(staffMembership);
+    renderDrawer([staffMembership]);
 
     expect(screen.getByRole('link', { name: 'Responsáveis' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Estudantes' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Colaboradores' })).toBeInTheDocument();
   });
 
-  // "Equipe" is off the menu — it read as a second Colaboradores. The page still exists at its
-  // path, since it is the only place a membership's permissions can be edited.
   it('does not offer Equipe in the sidebar', () => {
-    renderDrawer(staffMembership);
+    renderDrawer([staffMembership]);
 
     expect(screen.queryByRole('link', { name: 'Equipe' })).not.toBeInTheDocument();
   });
 
   it('hides people routes from a teacher without manage_people', () => {
-    renderDrawer(teacherMembership);
+    renderDrawer([teacherMembership]);
 
     expect(screen.queryByRole('link', { name: 'Responsáveis' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Estudantes' })).not.toBeInTheDocument();
@@ -88,7 +92,7 @@ describe('DrawerItems permission gating', () => {
   });
 
   it('shows billing routes to a user with manage_billing', () => {
-    renderDrawer(billingMembership);
+    renderDrawer([billingMembership]);
 
     expect(screen.getByRole('link', { name: 'Boletos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Planos' })).toBeInTheDocument();
@@ -96,10 +100,48 @@ describe('DrawerItems permission gating', () => {
   });
 
   it('hides billing routes from a user without manage_billing', () => {
-    renderDrawer(teacherMembership);
+    renderDrawer([teacherMembership]);
 
     expect(screen.queryByRole('link', { name: 'Boletos' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Planos' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Contrato' })).not.toBeInTheDocument();
+  });
+});
+
+describe('DrawerItems guardian audience', () => {
+  it('shows only guardian destinations for an active Responsável context', () => {
+    renderDrawer([guardianMembership]);
+
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Meus boletos' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Preceptoria' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Meus pedidos' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Estudantes' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Colaboradores' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Boletos' })).not.toBeInTheDocument();
+  });
+
+  it('updates the menu when a dual-role user switches active membership', () => {
+    const { rerender } = renderDrawer([staffMembership, guardianMembership], staffMembership.id);
+
+    expect(screen.getByRole('link', { name: 'Estudantes' })).toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <AuthContext.Provider value={authValueFor([staffMembership, guardianMembership])}>
+          <ActiveMembershipContext.Provider
+            value={activeMembershipValueFor(
+              [staffMembership, guardianMembership],
+              guardianMembership.id,
+            )}
+          >
+            <DrawerItems />
+          </ActiveMembershipContext.Provider>
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Estudantes' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Meus pedidos' })).toBeInTheDocument();
   });
 });
