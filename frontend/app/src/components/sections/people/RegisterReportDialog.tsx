@@ -13,47 +13,54 @@ import Typography from '@mui/material/Typography';
 import { ErrorBanner } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { ApiError } from 'services/api';
-import { fetchGuardiansReport } from 'services/guardiansApi';
 import type { MessageKey } from 'locales';
 
-export interface GuardiansReportDialogProps {
+export interface ReportColumn {
+  key: string;
+  label: MessageKey;
+}
+
+export interface RegisterReportDialogProps {
   open: boolean;
   schoolId: number;
   /** The listing's own filters, so the report matches the screen it was asked for from. */
   search: string;
   status: string;
+  /** Mirrors the service's own `COLUMNS`, which decides what may actually be drawn. */
+  columns: ReportColumn[];
+  defaultColumns: string[];
+  fetchReport: (
+    schoolId: number,
+    params: { columns: string[]; q?: string; status?: string },
+  ) => Promise<Blob>;
+  filename: string;
   onClose: () => void;
 }
 
-/** Mirrors `RenderGuardiansReportService::COLUMNS`, which decides what may actually be drawn. */
-const COLUMNS: { key: string; label: MessageKey }[] = [
-  { key: 'name', label: 'common.name' },
-  { key: 'cpf', label: 'guardians.report.cpf' },
-  { key: 'phone', label: 'common.phone' },
-  { key: 'email', label: 'common.email' },
-  { key: 'student_name', label: 'guardians.report.studentName' },
-  { key: 'student_class', label: 'guardians.report.studentClass' },
-];
-
-const DEFAULT_COLUMNS = ['name', 'cpf', 'phone', 'student_name', 'student_class'];
-
 /**
- * Picks the columns and downloads the register as a PDF.
+ * Picks the columns and downloads a register as a PDF.
+ *
+ * Shared by the guardian and student registers: they differ in which columns they offer and which
+ * endpoint they call, and in nothing else.
  *
  * Fetched rather than linked: the endpoint needs the bearer token, which an `<a href>` cannot
  * carry. The bytes arrive as a blob and are handed to the browser through a temporary object URL,
  * revoked straight after so the file is not held in memory.
  */
-const GuardiansReportDialog = ({
+const RegisterReportDialog = ({
   open,
   schoolId,
   search,
   status,
+  columns,
+  defaultColumns,
+  fetchReport,
+  filename,
   onClose,
-}: GuardiansReportDialogProps) => {
+}: RegisterReportDialogProps) => {
   const { t } = useTranslation();
 
-  const [chosen, setChosen] = useState<string[]>(DEFAULT_COLUMNS);
+  const [chosen, setChosen] = useState<string[]>(defaultColumns);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
 
@@ -69,12 +76,12 @@ const GuardiansReportDialog = ({
     setError('');
 
     try {
-      const blob = await fetchGuardiansReport(schoolId, { columns: chosen, q: search, status });
+      const blob = await fetchReport(schoolId, { columns: chosen, q: search, status });
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'responsaveis.pdf';
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -100,7 +107,7 @@ const GuardiansReportDialog = ({
           {error && <ErrorBanner message={error} />}
 
           <FormGroup>
-            {COLUMNS.map((column) => (
+            {columns.map((column) => (
               <FormControlLabel
                 key={column.key}
                 control={
@@ -141,4 +148,4 @@ const GuardiansReportDialog = ({
   );
 };
 
-export default GuardiansReportDialog;
+export default RegisterReportDialog;

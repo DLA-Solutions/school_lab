@@ -58,6 +58,56 @@ RSpec.describe "The guardians report", type: :request do
     expect(text).not_to include("Telefone", "Filho(a)")
   end
 
+  # The cohort heads its own page now, in teaching order, so a report can be handed round a class
+  # at a time.
+  describe "grouping by cohort" do
+    let(:infantil) do
+      create(:school_class, school: school, name: "A", grade_level: "infantil_2",
+                            shift: "matutino", year: 2026)
+    end
+
+    it "heads each group with the cohort named in full" do
+      get "#{path}?columns=name", headers: headers
+
+      expect(text_of(response.body))
+        .to include("Ensino Fundamental I — 5º ano A · Matutino — 2026")
+    end
+
+    # Infantil comes before Fundamental, whatever order the rows arrived in.
+    it "lays the cohorts out in teaching order" do
+      early = create(:student, school: school, school_class: infantil, name: "Zoe")
+      create(:student_guardian, school: school, student: early, guardian: bruno,
+                                relationship: "mother")
+
+      get "#{path}?columns=name", headers: headers
+
+      text = text_of(response.body)
+      infantil_at = text.index("Infantil II")
+      fundamental_at = text.index("5º ano")
+
+      expect(infantil_at).to be < fundamental_at
+    end
+
+    # They are on the register, and leaving them out would make the report disagree with the
+    # listing it was printed from.
+    it "prints a guardian with no child under their own heading" do
+      get "#{path}?columns=name", headers: headers
+
+      expect(text_of(response.body)).to include("Sem turma", "Bruno Alves")
+    end
+
+    # A family with children in two classes belongs on both pages.
+    it "repeats a guardian under each of their cohorts" do
+      second = create(:student, school: school, school_class: infantil, name: "Ana Silva")
+      create(:student_guardian, school: school, student: second, guardian: maria,
+                                relationship: "mother")
+
+      get "#{path}?columns=name", headers: headers
+
+      expect(text_of(response.body).scan("Maria Silva").size).to be >= 2
+    end
+  end
+
   it "carries the child and the cohort when those columns are asked for" do
     get "#{path}?columns=name,student_name,student_class", headers: headers
 

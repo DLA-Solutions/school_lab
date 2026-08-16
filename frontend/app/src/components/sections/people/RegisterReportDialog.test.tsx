@@ -4,7 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, jsonError, server } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { setAccessToken } from 'services/tokenStore';
-import GuardiansReportDialog from './GuardiansReportDialog';
+import RegisterReportDialog from './RegisterReportDialog';
+import { GUARDIAN_REPORT_COLUMNS, GUARDIAN_REPORT_DEFAULTS } from 'pages/people/guardiansReport';
+import { fetchGuardiansReport } from 'services/guardiansApi';
 
 const PATH = `/api/v1/schools/${SCHOOL_ID}/people/guardians/report`;
 
@@ -25,16 +27,20 @@ const stub = () => {
   return asked;
 };
 
-const renderDialog = (props: Partial<Parameters<typeof GuardiansReportDialog>[0]> = {}) => {
+const renderDialog = (props: Partial<Parameters<typeof RegisterReportDialog>[0]> = {}) => {
   setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
   const onClose = vi.fn();
 
   renderWithTheme(
-    <GuardiansReportDialog
+    <RegisterReportDialog
       open
       schoolId={SCHOOL_ID}
       search=""
       status="active"
+      columns={GUARDIAN_REPORT_COLUMNS}
+      defaultColumns={GUARDIAN_REPORT_DEFAULTS}
+      fetchReport={fetchGuardiansReport}
+      filename="responsaveis.pdf"
       onClose={onClose}
       {...props}
     />,
@@ -43,7 +49,7 @@ const renderDialog = (props: Partial<Parameters<typeof GuardiansReportDialog>[0]
   return { onClose };
 };
 
-describe('GuardiansReportDialog', () => {
+describe('RegisterReportDialog', () => {
   it('offers every column the report can draw', async () => {
     stub();
     renderDialog();
@@ -66,7 +72,7 @@ describe('GuardiansReportDialog', () => {
     await waitFor(() => expect(asked.length).toBe(1));
     const columns = asked[0].get('columns')?.split(',') ?? [];
     expect(columns).toContain('name');
-    expect(columns).toContain('student_class');
+    expect(columns).toContain('student_name');
     expect(columns).not.toContain('phone');
   });
 
@@ -117,5 +123,13 @@ describe('GuardiansReportDialog', () => {
     await user.click(screen.getByRole('button', { name: /gerar pdf/i }));
 
     expect(await screen.findByText(/caracteres que a fonte do pdf/i)).toBeInTheDocument();
+  });
+
+  // The cohort heads each page of the PDF now, so ticking it as a column is redundant by default.
+  it('leaves the cohort column unticked, since it heads each page', async () => {
+    stub();
+    renderDialog();
+
+    expect(screen.getByRole('checkbox', { name: 'Turma do filho' })).not.toBeChecked();
   });
 });

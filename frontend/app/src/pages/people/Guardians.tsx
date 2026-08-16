@@ -14,7 +14,7 @@ import PersonDocumentsDialog from 'components/sections/documents/PersonDocuments
 import GuardianChargesDialog from 'components/sections/people/guardians/GuardianChargesDialog';
 import GuardianContractsDialog from 'components/sections/people/guardians/GuardianContractsDialog';
 import GuardianDetailsDialog from 'components/sections/people/guardians/GuardianDetailsDialog';
-import GuardiansReportDialog from 'components/sections/people/guardians/GuardiansReportDialog';
+import RegisterReportDialog from 'components/sections/people/RegisterReportDialog';
 import GuardianFormDialog from 'components/sections/people/guardians/GuardianFormDialog';
 import {
   ConfirmDialog,
@@ -31,10 +31,12 @@ import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import {
   activateGuardian,
+  fetchGuardiansReport,
   sendGuardianAccess,
   deleteGuardian,
   listGuardians,
 } from 'services/guardiansApi';
+import { GUARDIAN_REPORT_COLUMNS, GUARDIAN_REPORT_DEFAULTS } from 'pages/people/guardiansReport';
 import { Guardian } from 'types/guardian';
 import { formatCpf } from 'utils/documentNumber';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
@@ -442,12 +444,16 @@ const Guardians = () => {
       />
 
       {/* Mounted only while open so each guardian's dialog fetches its own data on mount. */}
-      <GuardiansReportDialog
+      <RegisterReportDialog
         key={String(reportOpen)}
         open={reportOpen}
         schoolId={school.school_id}
         search={debouncedSearch}
         status={activation}
+        columns={GUARDIAN_REPORT_COLUMNS}
+        defaultColumns={GUARDIAN_REPORT_DEFAULTS}
+        fetchReport={fetchGuardiansReport}
+        filename="responsaveis.pdf"
         onClose={() => setReportOpen(false)}
       />
 

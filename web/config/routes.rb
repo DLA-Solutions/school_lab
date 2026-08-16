@@ -58,6 +58,9 @@ Rails.application.routes.draw do
               end
             end
             resources :students do
+              collection do
+                get :report
+              end
               member do
                 post :activate
               end
