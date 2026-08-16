@@ -41,6 +41,11 @@ module Billing
 
       return ResponseService.failure(code: :validation_error, details: charge.errors.to_hash) unless charge.save
 
+      # A one-off is raised to be paid, so it needs a boleto like any scheduled charge — the
+      # monthly and bulk paths enqueue the same job right after saving. Without this the charge
+      # sits open forever with nothing for the guardian to pay.
+      Billing::IssueChargeJob.perform_later(charge.id, school.id)
+
       Rails.logger.info(
         {
           event: "charge.one_off_created",

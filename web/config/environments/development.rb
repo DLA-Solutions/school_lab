@@ -63,6 +63,11 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
 
+  # Same adapter as production and test. Without this development falls back to the :async
+  # adapter, which keeps jobs in a thread pool of the enqueueing process: nothing is persisted
+  # and anything still queued dies with the process, so a boleto is silently never issued.
+  config.active_job.queue_adapter = :solid_queue
+
   # Highlight code that triggered redirect in logs.
   config.action_dispatch.verbose_redirect_logs = true
 
