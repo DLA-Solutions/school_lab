@@ -188,5 +188,86 @@ RSpec.describe "Preceptoria: what the teacher writes", type: :request do
 
       expect(response).to have_http_status(:forbidden)
     end
+
+    it "returns not_found when teach is held but no teacher email record exists" do
+      coord_user = create(:user, email: "coord@example.com")
+      coord_membership = create(:membership, user: coord_user, school: school, role: "staff")
+      templates = Identity::ProvisionSystemRoleTemplatesService.call(school: school).data[:templates]
+      create(:staff_profile,
+             membership: coord_membership, school: school,
+             role_template: templates["coordination"],
+             also_teaches: true)
+
+      post base,
+           params: { preceptorship_report: { student_id: pedro.id, body: "Relatório da coordenação." } },
+           headers: auth_headers_for(coord_user), as: :json
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "assignment-narrowed access for teachers" do
+    let(:other_class) { create(:school_class, school: school, name: "B", year: 2026) }
+    let!(:bruno) { create(:teacher, school: school, email: "bruno@example.com", name: "Bruno Lima") }
+    let(:bruno_user) { create(:user, email: "bruno@example.com") }
+    let!(:bruno_membership) { create(:membership, user: bruno_user, school: school, role: "teacher") }
+    let(:bruno_headers) { auth_headers_for(bruno_user) }
+
+    before do
+      templates = Identity::ProvisionSystemRoleTemplatesService.call(school: school).data[:templates]
+      create(:staff_profile,
+             membership: bruno_membership, school: school, role_template: templates["teacher"])
+      create(:teaching_assignment,
+             school: school, teacher: bruno, school_class: other_class, subject: maths)
+    end
+
+    it "hides another teacher's report when the student is outside the roll" do
+      report = write
+
+      get "#{base}/#{report['id']}", headers: bruno_headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "lists only reports for students on the teacher's roll" do
+      report = write
+      create(:preceptorship_report,
+             school: school,
+             student: create(:student, school: school, school_class: other_class),
+             teacher: bruno,
+             body: "Outro relatório.")
+
+      get base, headers: headers
+
+      expect(response.parsed_body["data"].map { |row| row["id"] }).to eq([ report["id"] ])
+    end
+  end
+
+  describe "coordination staff with a matching teacher record" do
+    let(:coord_user) { create(:user, email: "coord@example.com") }
+    let!(:coord_membership) { create(:membership, user: coord_user, school: school, role: "staff") }
+    let!(:coord_teacher) { create(:teacher, school: school, email: "coord@example.com", name: "Coordenação") }
+    let(:coord_headers) { auth_headers_for(coord_user) }
+
+    before do
+      templates = Identity::ProvisionSystemRoleTemplatesService.call(school: school).data[:templates]
+      create(:staff_profile,
+             membership: coord_membership, school: school,
+             role_template: templates["coordination"],
+             also_teaches: true)
+    end
+
+    it "creates for any same-school student and reads school-wide reports" do
+      post base,
+           params: { preceptorship_report: { student_id: pedro.id, body: "Relatório da coordenação." } },
+           headers: coord_headers, as: :json
+
+      expect(response).to have_http_status(:created)
+
+      teacher_report = write
+      get "#{base}/#{teacher_report['id']}", headers: coord_headers
+
+      expect(response).to have_http_status(:ok)
+    end
   end
 end
