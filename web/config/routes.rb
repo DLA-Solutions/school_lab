@@ -107,6 +107,31 @@ Rails.application.routes.draw do
                 get :pdf
               end
             end
+
+            resources :academic_periods, only: [] do
+              member do
+                get :closure_checklist
+                post :start_closure
+              end
+            end
+
+            resource :report_card_config, only: %i[show update]
+            resources :report_card_publication_batches, only: %i[create show] do
+              collection do
+                post :validate
+              end
+            end
+            resources :report_card_publish_schedules, only: :show
+            resources :report_card_publications, only: :show do
+              member do
+                post :republish
+              end
+              resources :snapshots, only: :show, controller: "report_card_snapshots" do
+                member do
+                  get :pdf
+                end
+              end
+            end
           end
 
           namespace :communication do
@@ -128,6 +153,8 @@ Rails.application.routes.draw do
           resources :holidays, only: %i[update destroy]
 
           namespace :billing do
+            resources :purposes, only: %i[index create update]
+            resource :tax_declaration_settings, only: %i[show update]
             resource :settings, only: %i[show update]
             resource :contract_template, only: %i[show update], controller: "contract_template" do
               get :preview
@@ -205,6 +232,19 @@ Rails.application.routes.draw do
             resources :requests, only: %i[index show create]
             resources :preceptorship_reports, only: %i[index show] do
               get :pdf, on: :member
+            end
+            resources :report_cards, only: %i[index show] do
+              member do
+                get "snapshots/:snapshot_id", action: :snapshot
+                get "snapshots/:snapshot_id/pdf", action: :pdf
+              end
+            end
+            resources :tax_declarations, only: %i[index create show] do
+              resources :versions, only: %i[index show], controller: "tax_declaration_versions" do
+                member do
+                  get :pdf
+                end
+              end
             end
           end
         end

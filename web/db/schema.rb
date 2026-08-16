@@ -10,13 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_16_225058) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "vector"
 
   create_table "academic_periods", force: :cascade do |t|
+    t.jsonb "attendance_policy_override"
     t.string "closure_status", default: "open", null: false
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -75,6 +75,53 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
     t.check_constraint "amount_cents IS NULL OR amount_cents >= 0", name: "applied_discounts_amount_cents_non_negative"
   end
 
+  create_table "attendance_policies", force: :cascade do |t|
+    t.integer "auto_confirm_absence_after_minutes", default: 15, null: false
+    t.string "counting_mode", default: "lesson", null: false
+    t.datetime "created_at", null: false
+    t.boolean "late_counts_as_absence", default: false, null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_attendance_policies_on_school_id", unique: true
+    t.check_constraint "auto_confirm_absence_after_minutes > 0", name: "attendance_policies_auto_confirm_positive"
+  end
+
+  create_table "attendance_records", force: :cascade do |t|
+    t.datetime "absence_notified_at"
+    t.bigint "attendance_session_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "school_id", null: false
+    t.string "status", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["attendance_session_id", "student_id"], name: "index_attendance_records_on_session_student_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["attendance_session_id"], name: "index_attendance_records_on_attendance_session_id"
+    t.index ["school_id"], name: "index_attendance_records_on_school_id"
+    t.index ["student_id"], name: "index_attendance_records_on_student_id"
+  end
+
+  create_table "attendance_sessions", force: :cascade do |t|
+    t.bigint "academic_period_id"
+    t.datetime "confirmed_at"
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "lesson_id"
+    t.bigint "recorded_by_membership_id"
+    t.bigint "school_class_id", null: false
+    t.bigint "school_id", null: false
+    t.bigint "school_year_id", null: false
+    t.date "session_date", null: false
+    t.datetime "updated_at", null: false
+    t.index ["academic_period_id"], name: "index_attendance_sessions_on_academic_period_id"
+    t.index ["recorded_by_membership_id"], name: "index_attendance_sessions_on_recorded_by_membership_id"
+    t.index ["school_class_id", "academic_period_id", "session_date"], name: "index_attendance_sessions_period_total_kept", unique: true, where: "((lesson_id IS NULL) AND (discarded_at IS NULL))"
+    t.index ["school_class_id", "session_date", "lesson_id"], name: "index_attendance_sessions_on_class_date_lesson_kept", unique: true, where: "((lesson_id IS NOT NULL) AND (discarded_at IS NULL))"
+    t.index ["school_class_id"], name: "index_attendance_sessions_on_school_class_id"
+    t.index ["school_id"], name: "index_attendance_sessions_on_school_id"
+    t.index ["school_year_id"], name: "index_attendance_sessions_on_school_year_id"
+  end
+
   create_table "audits", force: :cascade do |t|
     t.string "action"
     t.integer "associated_id"
@@ -109,6 +156,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
     t.check_constraint "base_amount_cents IS NULL OR base_amount_cents >= 0", name: "billing_plans_base_amount_cents_non_negative"
   end
 
+  create_table "billing_purposes", force: :cascade do |t|
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.boolean "tax_declaration_eligible", default: false, null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "code"], name: "index_billing_purposes_on_school_id_and_code_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id"], name: "index_billing_purposes_on_school_id"
+  end
+
   create_table "charge_issuances", force: :cascade do |t|
     t.integer "amount_cents", null: false
     t.string "barcode"
@@ -138,6 +197,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
 
   create_table "charges", force: :cascade do |t|
     t.date "billing_period", null: false
+    t.string "billing_purpose_code"
+    t.bigint "billing_purpose_id"
     t.string "boleto_url"
     t.datetime "cancelled_at"
     t.bigint "contract_id"
@@ -157,8 +218,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
     t.string "provider_invoice_id"
     t.bigint "school_id", null: false
     t.string "status", default: "pending", null: false
+    t.boolean "tax_declaration_eligible", default: false, null: false
     t.integer "total_amount_cents", null: false
     t.datetime "updated_at", null: false
+    t.index ["billing_purpose_id"], name: "index_charges_on_billing_purpose_id"
     t.index ["contract_id", "billing_period"], name: "index_charges_on_contract_period_tuition_kept", unique: true, where: "((discarded_at IS NULL) AND ((kind)::text = 'tuition'::text))"
     t.index ["contract_id"], name: "index_charges_on_contract_id"
     t.index ["discarded_by_id"], name: "index_charges_on_discarded_by_id"
@@ -172,6 +235,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
     t.check_constraint "late_fee_amount_cents >= 0", name: "charges_late_fee_amount_cents_non_negative"
     t.check_constraint "original_amount_cents >= 0", name: "charges_original_amount_cents_non_negative"
     t.check_constraint "total_amount_cents >= 0", name: "charges_total_amount_cents_non_negative"
+  end
+
+  create_table "class_disciplines", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.boolean "required_on_report_card", default: true, null: false
+    t.bigint "school_class_id", null: false
+    t.bigint "school_id", null: false
+    t.bigint "school_year_id", null: false
+    t.bigint "subject_id", null: false
+    t.bigint "teacher_id"
+    t.datetime "updated_at", null: false
+    t.index ["school_class_id", "subject_id"], name: "index_class_disciplines_on_class_subject_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_class_id"], name: "index_class_disciplines_on_school_class_id"
+    t.index ["school_id"], name: "index_class_disciplines_on_school_id"
+    t.index ["school_year_id"], name: "index_class_disciplines_on_school_year_id"
+    t.index ["subject_id"], name: "index_class_disciplines_on_subject_id"
+    t.index ["teacher_id"], name: "index_class_disciplines_on_teacher_id"
   end
 
   create_table "collection_reminder_deliveries", force: :cascade do |t|
@@ -243,6 +324,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
     t.index ["user_id"], name: "index_device_tokens_on_user_id"
   end
 
+  create_table "document_signatories", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.string "role_label", null: false
+    t.bigint "school_id", null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "discarded_at"], name: "index_document_signatories_on_school_id_and_discarded_at"
+    t.index ["school_id"], name: "index_document_signatories_on_school_id"
+  end
+
   create_table "documents", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -262,6 +355,129 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
     t.index ["school_id", "status"], name: "index_documents_on_school_id_and_status"
     t.index ["school_id"], name: "index_documents_on_school_id"
     t.index ["uploaded_by_id"], name: "index_documents_on_uploaded_by_id"
+  end
+
+  create_table "evaluation_components", force: :cascade do |t|
+    t.bigint "class_discipline_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "entry_kind", default: "regular", null: false
+    t.bigint "evaluation_template_id", null: false
+    t.bigint "grade_scale_id", null: false
+    t.string "name", null: false
+    t.integer "position", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.decimal "weight_percent", precision: 5, scale: 2, null: false
+    t.index ["class_discipline_id"], name: "index_evaluation_components_on_class_discipline_id"
+    t.index ["evaluation_template_id", "class_discipline_id", "position"], name: "idx_eval_components_template_disc_pos_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["evaluation_template_id"], name: "index_evaluation_components_on_evaluation_template_id"
+    t.index ["grade_scale_id"], name: "index_evaluation_components_on_grade_scale_id"
+    t.index ["school_id"], name: "index_evaluation_components_on_school_id"
+  end
+
+  create_table "evaluation_templates", force: :cascade do |t|
+    t.bigint "academic_period_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_membership_id", null: false
+    t.datetime "discarded_at"
+    t.boolean "lock_on_launch", default: false, null: false
+    t.datetime "retired_at"
+    t.string "rounding_mode", default: "half_up", null: false
+    t.bigint "school_class_id", null: false
+    t.bigint "school_id", null: false
+    t.bigint "supersedes_id"
+    t.datetime "updated_at", null: false
+    t.integer "version", null: false
+    t.index ["academic_period_id"], name: "index_evaluation_templates_on_academic_period_id"
+    t.index ["created_by_membership_id"], name: "index_evaluation_templates_on_created_by_membership_id"
+    t.index ["school_class_id"], name: "index_evaluation_templates_on_school_class_id"
+    t.index ["school_id", "school_class_id", "academic_period_id", "version"], name: "idx_eval_templates_class_period_version_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id", "school_class_id", "academic_period_id"], name: "idx_eval_templates_current_per_class_period", unique: true, where: "((retired_at IS NULL) AND (discarded_at IS NULL))"
+    t.index ["school_id"], name: "index_evaluation_templates_on_school_id"
+    t.index ["supersedes_id"], name: "index_evaluation_templates_on_supersedes_id"
+  end
+
+  create_table "grade_entries", force: :cascade do |t|
+    t.bigint "academic_period_id", null: false
+    t.bigint "activity_id"
+    t.bigint "class_discipline_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.bigint "entered_by_membership_id"
+    t.string "entry_kind", default: "regular", null: false
+    t.bigint "evaluation_component_id", null: false
+    t.bigint "lesson_id"
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "value"
+    t.index ["academic_period_id"], name: "index_grade_entries_on_academic_period_id"
+    t.index ["class_discipline_id"], name: "index_grade_entries_on_class_discipline_id"
+    t.index ["entered_by_membership_id"], name: "index_grade_entries_on_entered_by_membership_id"
+    t.index ["evaluation_component_id", "student_id", "lesson_id", "activity_id"], name: "idx_grade_entries_component_student_ctx_kept", unique: true, where: "(discarded_at IS NULL)", nulls_not_distinct: true
+    t.index ["evaluation_component_id"], name: "index_grade_entries_on_evaluation_component_id"
+    t.index ["school_id"], name: "index_grade_entries_on_school_id"
+    t.index ["student_id"], name: "index_grade_entries_on_student_id"
+  end
+
+  create_table "grade_launches", force: :cascade do |t|
+    t.bigint "academic_period_id", null: false
+    t.bigint "class_discipline_id", null: false
+    t.datetime "created_at", null: false
+    t.string "input_digest", null: false
+    t.datetime "invalidated_at"
+    t.string "invalidation_reason"
+    t.datetime "launched_at", null: false
+    t.bigint "launched_by_membership_id", null: false
+    t.bigint "school_class_id", null: false
+    t.bigint "school_id", null: false
+    t.string "status", default: "launched", null: false
+    t.bigint "supersedes_id"
+    t.datetime "updated_at", null: false
+    t.index ["academic_period_id"], name: "index_grade_launches_on_academic_period_id"
+    t.index ["class_discipline_id"], name: "index_grade_launches_on_class_discipline_id"
+    t.index ["launched_by_membership_id"], name: "index_grade_launches_on_launched_by_membership_id"
+    t.index ["school_class_id"], name: "index_grade_launches_on_school_class_id"
+    t.index ["school_id", "class_discipline_id", "academic_period_id", "input_digest"], name: "idx_grade_launches_discipline_period_digest", unique: true
+    t.index ["school_id", "class_discipline_id", "academic_period_id"], name: "idx_grade_launches_current_launched", unique: true, where: "((status)::text = 'launched'::text)"
+    t.index ["school_id"], name: "index_grade_launches_on_school_id"
+    t.index ["supersedes_id"], name: "index_grade_launches_on_supersedes_id"
+  end
+
+  create_table "grade_overrides", force: :cascade do |t|
+    t.bigint "academic_period_id", null: false
+    t.bigint "applied_by_membership_id", null: false
+    t.bigint "class_discipline_id", null: false
+    t.string "computed_value", null: false
+    t.datetime "created_at", null: false
+    t.string "override_value", null: false
+    t.string "reason_code", null: false
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "superseded_at"
+    t.bigint "supersedes_id"
+    t.datetime "updated_at", null: false
+    t.index ["academic_period_id"], name: "index_grade_overrides_on_academic_period_id"
+    t.index ["applied_by_membership_id"], name: "index_grade_overrides_on_applied_by_membership_id"
+    t.index ["class_discipline_id"], name: "index_grade_overrides_on_class_discipline_id"
+    t.index ["school_id", "student_id", "class_discipline_id", "academic_period_id"], name: "index_grade_overrides_current_per_result", unique: true, where: "(superseded_at IS NULL)"
+    t.index ["school_id"], name: "index_grade_overrides_on_school_id"
+    t.index ["student_id"], name: "index_grade_overrides_on_student_id"
+    t.index ["supersedes_id"], name: "index_grade_overrides_on_supersedes_id"
+  end
+
+  create_table "grade_scales", force: :cascade do |t|
+    t.jsonb "configuration", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.string "scale_type", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "version", null: false
+    t.index ["school_id", "name", "version"], name: "index_grade_scales_on_school_name_version_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id"], name: "index_grade_scales_on_school_id"
   end
 
   create_table "grades", force: :cascade do |t|
@@ -478,6 +694,95 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
     t.bigint "user_id", null: false
     t.index ["token_digest"], name: "index_refresh_tokens_on_token_digest", unique: true
     t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
+  end
+
+  create_table "report_card_configs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_membership_id", null: false
+    t.jsonb "display_config", default: {}, null: false
+    t.bigint "document_signatory_id", null: false
+    t.text "footer_text"
+    t.text "header_text"
+    t.bigint "school_id", null: false
+    t.string "template_key", null: false
+    t.datetime "updated_at", null: false
+    t.integer "version", null: false
+    t.index ["created_by_membership_id"], name: "index_report_card_configs_on_created_by_membership_id"
+    t.index ["document_signatory_id"], name: "index_report_card_configs_on_document_signatory_id"
+    t.index ["school_id", "version"], name: "index_report_card_configs_on_school_id_and_version", unique: true
+    t.index ["school_id"], name: "index_report_card_configs_on_school_id"
+  end
+
+  create_table "report_card_publications", force: :cascade do |t|
+    t.bigint "academic_period_id", null: false
+    t.bigint "active_snapshot_id"
+    t.datetime "created_at", null: false
+    t.bigint "created_by_membership_id", null: false
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["academic_period_id"], name: "index_report_card_publications_on_academic_period_id"
+    t.index ["created_by_membership_id"], name: "index_report_card_publications_on_created_by_membership_id"
+    t.index ["school_id", "student_id", "academic_period_id"], name: "index_rc_publications_on_school_student_period", unique: true
+    t.index ["school_id"], name: "index_report_card_publications_on_school_id"
+    t.index ["student_id"], name: "index_report_card_publications_on_student_id"
+  end
+
+  create_table "report_card_publish_batches", force: :cascade do |t|
+    t.bigint "academic_period_id", null: false
+    t.jsonb "blockers", default: [], null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.integer "failed_count", default: 0, null: false
+    t.text "force_publish_reason"
+    t.string "mode", null: false
+    t.integer "released_count", default: 0, null: false
+    t.bigint "requested_by_membership_id", null: false
+    t.integer "requested_count", default: 0, null: false
+    t.bigint "school_class_id", null: false
+    t.bigint "school_id", null: false
+    t.string "status", default: "processing", null: false
+    t.datetime "updated_at", null: false
+    t.index ["academic_period_id"], name: "index_report_card_publish_batches_on_academic_period_id"
+    t.index ["requested_by_membership_id"], name: "idx_on_requested_by_membership_id_49306825ce"
+    t.index ["school_class_id"], name: "index_report_card_publish_batches_on_school_class_id"
+    t.index ["school_id", "school_class_id", "academic_period_id", "status"], name: "index_rc_batches_on_school_class_period_status"
+    t.index ["school_id"], name: "index_report_card_publish_batches_on_school_id"
+  end
+
+  create_table "report_card_publish_schedules", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "executed_at"
+    t.string "queue_job_reference"
+    t.bigint "report_card_publish_batch_id", null: false
+    t.datetime "scheduled_for", null: false
+    t.bigint "school_id", null: false
+    t.string "school_timezone", null: false
+    t.string "status", default: "scheduled", null: false
+    t.datetime "updated_at", null: false
+    t.index ["report_card_publish_batch_id"], name: "idx_on_report_card_publish_batch_id_4f3ab08554", unique: true
+    t.index ["school_id"], name: "index_report_card_publish_schedules_on_school_id"
+  end
+
+  create_table "report_card_snapshots", force: :cascade do |t|
+    t.text "correction_reason"
+    t.datetime "created_at", null: false
+    t.string "grade_launch_digest", null: false
+    t.string "pdf_storage_key", null: false
+    t.datetime "released_at", null: false
+    t.bigint "report_card_config_id", null: false
+    t.bigint "report_card_publication_id", null: false
+    t.bigint "report_card_publish_batch_id"
+    t.bigint "school_id", null: false
+    t.jsonb "snapshot", null: false
+    t.bigint "supersedes_id"
+    t.datetime "updated_at", null: false
+    t.integer "version", null: false
+    t.index ["report_card_config_id"], name: "index_report_card_snapshots_on_report_card_config_id"
+    t.index ["report_card_publication_id", "version"], name: "index_rc_snapshots_on_publication_version", unique: true
+    t.index ["report_card_publication_id"], name: "index_report_card_snapshots_on_report_card_publication_id"
+    t.index ["report_card_publish_batch_id"], name: "index_report_card_snapshots_on_report_card_publish_batch_id"
+    t.index ["school_id"], name: "index_report_card_snapshots_on_school_id"
   end
 
   create_table "role_template_permissions", force: :cascade do |t|
@@ -887,6 +1192,109 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
     t.index ["school_id"], name: "index_subjects_on_school_id"
   end
 
+  create_table "tax_declaration_access_events", force: :cascade do |t|
+    t.bigint "actor_user_id", null: false
+    t.datetime "created_at", null: false
+    t.string "event_type", default: "pdf_download", null: false
+    t.bigint "guardian_id", null: false
+    t.datetime "occurred_at", null: false
+    t.string "request_uuid", null: false
+    t.bigint "school_id", null: false
+    t.bigint "tax_declaration_id", null: false
+    t.bigint "tax_declaration_version_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["actor_user_id"], name: "index_tax_declaration_access_events_on_actor_user_id"
+    t.index ["guardian_id"], name: "index_tax_declaration_access_events_on_guardian_id"
+    t.index ["request_uuid"], name: "index_tax_declaration_access_events_on_request_uuid", unique: true
+    t.index ["school_id", "guardian_id", "occurred_at"], name: "index_tax_declaration_access_events_on_school_guardian_time"
+    t.index ["school_id"], name: "index_tax_declaration_access_events_on_school_id"
+    t.index ["tax_declaration_id"], name: "index_tax_declaration_access_events_on_tax_declaration_id"
+    t.index ["tax_declaration_version_id", "occurred_at"], name: "index_tax_declaration_access_events_on_version_time"
+    t.index ["tax_declaration_version_id"], name: "idx_on_tax_declaration_version_id_a539fe4cad"
+  end
+
+  create_table "tax_declaration_items", force: :cascade do |t|
+    t.string "billing_purpose_code", null: false
+    t.bigint "charge_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "declared_principal_amount_cents", null: false
+    t.datetime "paid_at", null: false
+    t.bigint "payment_id", null: false
+    t.bigint "school_id", null: false
+    t.integer "source_fine_amount_cents", default: 0, null: false
+    t.integer "source_interest_amount_cents", default: 0, null: false
+    t.integer "source_paid_amount_cents", null: false
+    t.bigint "student_id", null: false
+    t.bigint "tax_declaration_version_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["charge_id"], name: "index_tax_declaration_items_on_charge_id"
+    t.index ["payment_id"], name: "index_tax_declaration_items_on_payment_id"
+    t.index ["school_id"], name: "index_tax_declaration_items_on_school_id"
+    t.index ["student_id"], name: "index_tax_declaration_items_on_student_id"
+    t.index ["tax_declaration_version_id", "payment_id"], name: "index_tax_declaration_items_on_version_payment", unique: true
+    t.index ["tax_declaration_version_id", "student_id"], name: "index_tax_declaration_items_on_version_student"
+    t.index ["tax_declaration_version_id"], name: "index_tax_declaration_items_on_tax_declaration_version_id"
+    t.check_constraint "declared_principal_amount_cents >= 0", name: "tax_declaration_items_declared_principal_non_negative"
+    t.check_constraint "source_fine_amount_cents >= 0", name: "tax_declaration_items_fine_non_negative"
+    t.check_constraint "source_interest_amount_cents >= 0", name: "tax_declaration_items_interest_non_negative"
+  end
+
+  create_table "tax_declaration_settings", force: :cascade do |t|
+    t.bigint "approved_by_id"
+    t.string "approved_purpose_configuration_digest"
+    t.integer "configuration_version", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.bigint "document_signatory_id"
+    t.datetime "legal_accounting_approved_at"
+    t.text "legal_text"
+    t.string "legal_text_version"
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["approved_by_id"], name: "index_tax_declaration_settings_on_approved_by_id"
+    t.index ["document_signatory_id"], name: "index_tax_declaration_settings_on_document_signatory_id"
+    t.index ["school_id"], name: "index_tax_declaration_settings_on_school_id", unique: true
+  end
+
+  create_table "tax_declaration_versions", force: :cascade do |t|
+    t.jsonb "approval_snapshot", default: {}, null: false
+    t.string "calculation_digest", null: false
+    t.jsonb "calculation_snapshot", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.jsonb "document_signatory_snapshot", default: {}, null: false
+    t.datetime "issued_at", null: false
+    t.text "legal_text_snapshot", null: false
+    t.string "legal_text_version_snapshot", null: false
+    t.jsonb "payer_identity_snapshot", default: {}, null: false
+    t.string "pdf_storage_key", null: false
+    t.jsonb "purpose_configuration_snapshot", default: {}, null: false
+    t.bigint "school_id", null: false
+    t.jsonb "school_identity_snapshot", default: {}, null: false
+    t.integer "settings_version", null: false
+    t.bigint "supersedes_id"
+    t.bigint "tax_declaration_id", null: false
+    t.integer "total_declared_principal_amount_cents", null: false
+    t.datetime "updated_at", null: false
+    t.string "verification_code", null: false
+    t.integer "version", null: false
+    t.index ["school_id"], name: "index_tax_declaration_versions_on_school_id"
+    t.index ["tax_declaration_id", "calculation_digest"], name: "index_tax_declaration_versions_on_declaration_digest", unique: true
+    t.index ["tax_declaration_id", "version"], name: "index_tax_declaration_versions_on_declaration_version", unique: true
+    t.index ["tax_declaration_id"], name: "index_tax_declaration_versions_on_tax_declaration_id"
+    t.index ["verification_code"], name: "index_tax_declaration_versions_on_verification_code", unique: true
+  end
+
+  create_table "tax_declarations", force: :cascade do |t|
+    t.bigint "active_version_id"
+    t.integer "calendar_year", null: false
+    t.datetime "created_at", null: false
+    t.bigint "guardian_id", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["guardian_id"], name: "index_tax_declarations_on_guardian_id"
+    t.index ["school_id", "guardian_id", "calendar_year"], name: "index_tax_declarations_on_school_guardian_year", unique: true
+    t.index ["school_id"], name: "index_tax_declarations_on_school_id"
+  end
+
   create_table "teachers", force: :cascade do |t|
     t.string "cpf", limit: 11
     t.datetime "created_at", null: false
@@ -976,13 +1384,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "applied_discounts", "charges"
   add_foreign_key "applied_discounts", "schools"
+  add_foreign_key "attendance_policies", "schools"
+  add_foreign_key "attendance_records", "attendance_sessions"
+  add_foreign_key "attendance_records", "schools"
+  add_foreign_key "attendance_records", "students"
+  add_foreign_key "attendance_sessions", "academic_periods"
+  add_foreign_key "attendance_sessions", "memberships", column: "recorded_by_membership_id"
+  add_foreign_key "attendance_sessions", "school_classes"
+  add_foreign_key "attendance_sessions", "school_years"
+  add_foreign_key "attendance_sessions", "schools"
   add_foreign_key "billing_plans", "schools"
+  add_foreign_key "billing_purposes", "schools"
   add_foreign_key "charge_issuances", "charges"
   add_foreign_key "charge_issuances", "schools"
+  add_foreign_key "charges", "billing_purposes"
   add_foreign_key "charges", "contracts"
   add_foreign_key "charges", "guardians"
   add_foreign_key "charges", "schools"
   add_foreign_key "charges", "users", column: "discarded_by_id"
+  add_foreign_key "class_disciplines", "school_classes"
+  add_foreign_key "class_disciplines", "school_years"
+  add_foreign_key "class_disciplines", "schools"
+  add_foreign_key "class_disciplines", "subjects"
+  add_foreign_key "class_disciplines", "teachers"
   add_foreign_key "collection_reminder_deliveries", "charges"
   add_foreign_key "collection_reminder_deliveries", "schools"
   add_foreign_key "contract_templates", "schools"
@@ -993,9 +1417,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
   add_foreign_key "contracts", "schools"
   add_foreign_key "contracts", "students"
   add_foreign_key "device_tokens", "users"
+  add_foreign_key "document_signatories", "schools"
   add_foreign_key "documents", "schools"
   add_foreign_key "documents", "users", column: "discarded_by_id"
   add_foreign_key "documents", "users", column: "uploaded_by_id"
+  add_foreign_key "evaluation_components", "class_disciplines"
+  add_foreign_key "evaluation_components", "evaluation_templates"
+  add_foreign_key "evaluation_components", "grade_scales"
+  add_foreign_key "evaluation_components", "schools"
+  add_foreign_key "evaluation_templates", "academic_periods"
+  add_foreign_key "evaluation_templates", "evaluation_templates", column: "supersedes_id"
+  add_foreign_key "evaluation_templates", "memberships", column: "created_by_membership_id"
+  add_foreign_key "evaluation_templates", "school_classes"
+  add_foreign_key "evaluation_templates", "schools"
+  add_foreign_key "grade_entries", "academic_periods"
+  add_foreign_key "grade_entries", "class_disciplines"
+  add_foreign_key "grade_entries", "evaluation_components"
+  add_foreign_key "grade_entries", "memberships", column: "entered_by_membership_id"
+  add_foreign_key "grade_entries", "schools"
+  add_foreign_key "grade_entries", "students"
+  add_foreign_key "grade_launches", "academic_periods"
+  add_foreign_key "grade_launches", "class_disciplines"
+  add_foreign_key "grade_launches", "grade_launches", column: "supersedes_id"
+  add_foreign_key "grade_launches", "memberships", column: "launched_by_membership_id"
+  add_foreign_key "grade_launches", "school_classes"
+  add_foreign_key "grade_launches", "schools"
+  add_foreign_key "grade_overrides", "academic_periods"
+  add_foreign_key "grade_overrides", "class_disciplines"
+  add_foreign_key "grade_overrides", "grade_overrides", column: "supersedes_id"
+  add_foreign_key "grade_overrides", "memberships", column: "applied_by_membership_id"
+  add_foreign_key "grade_overrides", "schools"
+  add_foreign_key "grade_overrides", "students"
+  add_foreign_key "grade_scales", "schools"
   add_foreign_key "grades", "academic_periods"
   add_foreign_key "grades", "school_classes"
   add_foreign_key "grades", "schools"
@@ -1033,6 +1486,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
   add_foreign_key "provisioning_imports", "schools"
   add_foreign_key "provisioning_imports", "users", column: "uploaded_by_id"
   add_foreign_key "refresh_tokens", "users"
+  add_foreign_key "report_card_configs", "document_signatories"
+  add_foreign_key "report_card_configs", "memberships", column: "created_by_membership_id"
+  add_foreign_key "report_card_configs", "schools"
+  add_foreign_key "report_card_publications", "academic_periods"
+  add_foreign_key "report_card_publications", "memberships", column: "created_by_membership_id"
+  add_foreign_key "report_card_publications", "report_card_snapshots", column: "active_snapshot_id"
+  add_foreign_key "report_card_publications", "schools"
+  add_foreign_key "report_card_publications", "students"
+  add_foreign_key "report_card_publish_batches", "academic_periods"
+  add_foreign_key "report_card_publish_batches", "memberships", column: "requested_by_membership_id"
+  add_foreign_key "report_card_publish_batches", "school_classes"
+  add_foreign_key "report_card_publish_batches", "schools"
+  add_foreign_key "report_card_publish_schedules", "report_card_publish_batches"
+  add_foreign_key "report_card_publish_schedules", "schools"
+  add_foreign_key "report_card_snapshots", "report_card_configs"
+  add_foreign_key "report_card_snapshots", "report_card_publications"
+  add_foreign_key "report_card_snapshots", "report_card_publish_batches"
+  add_foreign_key "report_card_snapshots", "report_card_snapshots", column: "supersedes_id"
+  add_foreign_key "report_card_snapshots", "schools"
   add_foreign_key "role_template_permissions", "school_role_templates", column: "role_template_id"
   add_foreign_key "role_template_permissions", "schools"
   add_foreign_key "school_billing_settings", "schools"
@@ -1070,6 +1542,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_150000) do
   add_foreign_key "students", "users", column: "discarded_by_id"
   add_foreign_key "subjects", "schools"
   add_foreign_key "subjects", "users", column: "discarded_by_id"
+  add_foreign_key "tax_declaration_access_events", "guardians"
+  add_foreign_key "tax_declaration_access_events", "schools"
+  add_foreign_key "tax_declaration_access_events", "tax_declaration_versions"
+  add_foreign_key "tax_declaration_access_events", "tax_declarations"
+  add_foreign_key "tax_declaration_access_events", "users", column: "actor_user_id"
+  add_foreign_key "tax_declaration_items", "charges"
+  add_foreign_key "tax_declaration_items", "payments"
+  add_foreign_key "tax_declaration_items", "schools"
+  add_foreign_key "tax_declaration_items", "students"
+  add_foreign_key "tax_declaration_items", "tax_declaration_versions"
+  add_foreign_key "tax_declaration_settings", "document_signatories"
+  add_foreign_key "tax_declaration_settings", "schools"
+  add_foreign_key "tax_declaration_settings", "users", column: "approved_by_id"
+  add_foreign_key "tax_declaration_versions", "schools"
+  add_foreign_key "tax_declaration_versions", "tax_declaration_versions", column: "supersedes_id"
+  add_foreign_key "tax_declaration_versions", "tax_declarations"
+  add_foreign_key "tax_declarations", "guardians"
+  add_foreign_key "tax_declarations", "schools"
+  add_foreign_key "tax_declarations", "tax_declaration_versions", column: "active_version_id"
   add_foreign_key "teachers", "job_positions"
   add_foreign_key "teachers", "schools"
   add_foreign_key "teachers", "users", column: "discarded_by_id"
