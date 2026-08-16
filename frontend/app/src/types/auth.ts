@@ -1,5 +1,8 @@
 export type MembershipRole = string;
 
+/** Module keys from GET /me membership — mirrors `SchoolLab::SchoolModuleKeys`. */
+export type SchoolModuleKey = 'communication' | 'academic' | 'billing' | 'documents';
+
 export interface RoleTemplate {
   id: number;
   name: string;
@@ -20,6 +23,8 @@ export interface Membership {
   segment_id: number | null;
   display_title: string | null;
   permission_sources: Record<string, string>;
+  /** Enabled module keys for this school — absent on legacy payloads (treat as all enabled). */
+  enabled_modules?: SchoolModuleKey[];
   /** Present when GET /me embeds school lifecycle (onboarding guards). */
   school_onboarding_status?: string;
   school_onboarding_mode?: string;

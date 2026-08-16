@@ -33,6 +33,9 @@ export const VALID_CREDENTIALS = { email: 'maria@example.com', password: 'correc
 export const SECRETARY_TEMPLATE_ID = 101;
 export const DIRECTOR_TEMPLATE_ID = 102;
 
+/** All MVP module keys enabled — matches schools seeded via POST /schools. */
+export const ALL_ENABLED_MODULES = ['communication', 'academic', 'billing', 'documents'] as const;
+
 /** Guardian membership shape from GET /api/v1/me — staff-only fields are null or empty. */
 export const guardianMembership: Membership = {
   id: 10,
@@ -47,6 +50,7 @@ export const guardianMembership: Membership = {
   segment_id: null,
   display_title: null,
   permission_sources: {},
+  enabled_modules: [...ALL_ENABLED_MODULES],
 };
 
 /** Staff membership with permissions fields populated per GET /api/v1/me. */
@@ -68,6 +72,7 @@ export const staffMembership: Membership = {
   display_title: 'Secretária',
   permissions: ['manage_people'],
   permission_sources: { manage_people: 'template' },
+  enabled_modules: [...ALL_ENABLED_MODULES],
   school_onboarding_status: 'active',
   school_onboarding_mode: 'white_glove',
 };

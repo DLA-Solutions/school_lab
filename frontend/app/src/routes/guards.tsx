@@ -5,6 +5,10 @@ import { useCurrentSchool } from 'providers/useCurrentSchool';
 import Splash from 'components/loader/Splash';
 import { onboardingRedirectPath } from 'utils/onboarding/access';
 import { postLoginDestination } from 'utils/auth/postLogin';
+import {
+  isModuleEnabledForMembership,
+  routeModuleKeyForPath,
+} from 'utils/navigation/visibleSitemap';
 import paths from './paths';
 
 /** Blocks owner-only flows (permission overrides) from non-owners hitting the URL directly. */
@@ -19,6 +23,24 @@ export const RequireSchoolOwner = ({ children }: PropsWithChildren) => {
 
   if (!school?.is_owner) {
     return <Navigate to={paths.team} state={{ from: location.pathname }} replace />;
+  }
+
+  return children;
+};
+
+/** Redirects deep-links to module-gated routes when the school module is disabled. */
+export const RequireRouteModule = ({ children }: PropsWithChildren) => {
+  const { status } = useAuth();
+  const membership = useCurrentSchool();
+  const location = useLocation();
+
+  if (status === 'loading') {
+    return <Splash />;
+  }
+
+  const moduleKey = routeModuleKeyForPath(location.pathname);
+  if (moduleKey && !isModuleEnabledForMembership(membership, moduleKey)) {
+    return <Navigate to={paths.dashboard} replace />;
   }
 
   return children;
