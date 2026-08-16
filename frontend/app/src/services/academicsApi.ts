@@ -245,3 +245,72 @@ export const listTeachingAssignments = (
     `${base(schoolId)}/teaching_assignments?${query}`,
   );
 };
+
+/* ------------------------------------------------------------------ grades */
+
+export interface GradeSheetPeriod {
+  id: number;
+  name: string;
+  sequence: number;
+  /** A closed period is the school's record of what was awarded; the grid greys it out. */
+  closed: boolean;
+}
+
+export interface GradeSheetStudent {
+  id: number;
+  name: string;
+  /** Keyed by period id. `null` means no mark given yet, which is not the same as a zero. */
+  scores: Record<string, number | null>;
+}
+
+export interface GradeSheet {
+  periods: GradeSheetPeriod[];
+  students: GradeSheetStudent[];
+}
+
+/** GET .../grades — the whole sheet for one class and subject, empty cells included. */
+export const fetchGradeSheet = async (
+  schoolId: number,
+  schoolClassId: number,
+  subjectId: number,
+): Promise<GradeSheet> => {
+  const query = new URLSearchParams({
+    school_class_id: String(schoolClassId),
+    subject_id: String(subjectId),
+  });
+  const response = await request<{ data: GradeSheet }>(`${base(schoolId)}/grades?${query}`);
+
+  return response.data;
+};
+
+/**
+ * PUT .../grades/cell — one mark.
+ *
+ * A cell is identified by the student and the period rather than by a row id: the screen edits a
+ * grid, and a cell nobody has marked yet has no row behind it.
+ */
+export const saveGradeCell = (
+  schoolId: number,
+  params: {
+    schoolClassId: number;
+    subjectId: number;
+    studentId: number;
+    academicPeriodId: number;
+    score: number | null;
+  },
+) =>
+  request<{ data: { student_id: number; academic_period_id: number; score: number | null } }>(
+    `${base(schoolId)}/grades/cell`,
+    {
+      method: 'PUT',
+      body: {
+        school_class_id: params.schoolClassId,
+        subject_id: params.subjectId,
+        grade: {
+          student_id: params.studentId,
+          academic_period_id: params.academicPeriodId,
+          score: params.score,
+        },
+      },
+    },
+  );

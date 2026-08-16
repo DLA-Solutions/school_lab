@@ -81,6 +81,13 @@ Rails.application.routes.draw do
               resources :teaching_assignments, only: :create
             end
             resources :teaching_assignments, only: %i[index destroy]
+
+            # The mark sheet: read whole for one class and subject, written a cell at a time. The
+            # cell is identified by the student and the period, not by a row id — the screen edits
+            # a grid, and a cell that has never been marked has no row yet.
+            resources :grades, only: :index do
+              put :cell, on: :collection
+            end
           end
 
           namespace :communication do
