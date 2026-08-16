@@ -242,7 +242,7 @@ const Lessons = () => {
       {/* Under the tabs, where Turmas and Matérias put their own: the controls belong to the tab
           they filter, not to the page that holds all three. */}
       {tab === 'lessons' && (
-        <Stack direction="row" gap={1.5} flexWrap="wrap" alignItems="center">
+        <Stack direction="row" gap={1.5} flexWrap="wrap" alignItems="flex-end">
           <SearchField
             value={search}
             onChange={(e) => setFilter('q', e.target.value)}
@@ -311,8 +311,8 @@ const Lessons = () => {
 
       {/* Turmas and Matérias keep their own pages, headers and all: they are reached from here
           rather than reimplemented here. */}
-      {tab === 'classes' && <SchoolClasses />}
-      {tab === 'subjects' && <Subjects />}
+      {tab === 'classes' && <SchoolClasses embedded />}
+      {tab === 'subjects' && <Subjects embedded />}
 
       {tab === 'lessons' && (
         <>

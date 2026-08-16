@@ -106,6 +106,24 @@ const ptBR = {
   'nav.schools': 'Escolas',
   'nav.language': 'Idioma',
 
+  'bankCredentials.title': 'Credenciais bancárias',
+  'bankCredentials.cora': 'Integração Cora (boleto)',
+  'bankCredentials.active': 'Ativa',
+  'bankCredentials.notConfigured': 'Não configurada',
+  'bankCredentials.fingerprint': 'Impressão digital do certificado',
+  'bankCredentials.validUntil': 'Certificado válido até',
+  'bankCredentials.none':
+    'Esta escola ainda não tem credenciais Cora. Sem elas, nenhum boleto pode ser emitido.',
+  'bankCredentials.help':
+    'O certificado e a chave privada são enviados como arquivos .pem ou .cert, guardados criptografados e nunca devolvidos pela API. Um certificado vencido, ou uma chave que não corresponda a ele, é recusado aqui.',
+  'bankCredentials.certificate': 'Certificado (.pem, .cert)',
+  'bankCredentials.privateKey': 'Chave privada (.pem, .key)',
+  'bankCredentials.noFile': 'Nenhum arquivo selecionado',
+  'bankCredentials.send': 'Enviar credenciais',
+  'bankCredentials.sending': 'Enviando...',
+  'bankCredentials.uploaded': 'Credenciais enviadas e validadas com sucesso.',
+  'bankCredentials.connectionError':
+    'Não foi possível enviar as credenciais. Verifique sua conexão.',
   'charges.title': 'Boletos',
   'charges.noAccess.title': 'Sem acesso a esta área',
   'charges.noAccess.description':

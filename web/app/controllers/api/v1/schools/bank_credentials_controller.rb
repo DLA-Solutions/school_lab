@@ -4,7 +4,7 @@ module Api
   module V1
     module Schools
       class BankCredentialsController < Api::V1::BaseController
-        before_action :set_school!
+        before_action :set_credentials_context!
 
         def index
           authorize SchoolPaymentProvider
@@ -33,8 +33,22 @@ module Api
 
         private
 
-        def set_school!
-          Current.school = School.kept.find(params[:school_id])
+        # Establishes the context and nothing more; who may do what is the policy's decision.
+        #
+        # The shared `set_school_context!` refuses a backoffice operator who lacks
+        # `provision_school`, which is the wrong question here — this endpoint is not part of
+        # provisioning. The previous `set_school!` had the opposite problem: it never resolved a
+        # membership, so a school's own billing staff arrived indistinguishable from a stranger and
+        # the policy could only ever recognise the platform's operators.
+        def set_credentials_context!
+          school = School.kept.find(params[:school_id])
+          membership = Current.user.memberships.kept.find_by(school: school)
+
+          return render_error(:membership_suspended, status: :forbidden) if membership&.suspended?
+          return render_error(:membership_invited, status: :forbidden) if membership&.invited?
+
+          Current.school = school
+          Current.membership = membership
         end
 
         def upload_params

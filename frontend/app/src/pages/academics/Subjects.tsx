@@ -31,7 +31,15 @@ import { Subject } from 'types/academics';
 
 const PAGE_SIZE = 25;
 
-const Subjects = () => {
+export interface SubjectsProps {
+  /**
+   * Rendered as a tab inside the Aulas page rather than on its own route. The page above
+   * already names itself and carries the tabs, so the heading is dropped and the toolbar is
+   * laid out the way the sibling tabs lay theirs out.
+   */
+  embedded?: boolean;
+}
+const Subjects = ({ embedded = false }: SubjectsProps) => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
@@ -193,37 +201,69 @@ const Subjects = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader
-        title={t('subjects.title')}
-        actions={
-          <>
-            <SearchField
-              value={search}
-              onChange={(e) => {
-                setSearchParams(
-                  (current) => {
-                    const next = new URLSearchParams(current);
-                    if (e.target.value) {
-                      next.set('q', e.target.value);
-                    } else {
-                      next.delete('q');
-                    }
-                    return next;
-                  },
-                  { replace: true },
-                );
-                setPage(0);
-              }}
-              placeholder={t('subjects.searchPlaceholder')}
-              ariaLabel={t('subjects.searchAria')}
-              sx={{ width: 220 }}
-            />
-            <Button variant="contained" size="small" onClick={() => openForm(null)}>
-              {t('subjects.new')}
-            </Button>
-          </>
-        }
-      />
+      {embedded ? (
+        // Same toolbar the Aulas tab lays out for itself, so the three tabs read as one
+        // screen: ranged left rather than pushed right by `PageHeader`'s `space-between`,
+        // and bottom-aligned because a labelled select is taller than a bare search box.
+        <Stack direction="row" gap={1.5} flexWrap="wrap" alignItems="flex-end">
+          <SearchField
+            value={search}
+            onChange={(e) => {
+              setSearchParams(
+                (current) => {
+                  const next = new URLSearchParams(current);
+                  if (e.target.value) {
+                    next.set('q', e.target.value);
+                  } else {
+                    next.delete('q');
+                  }
+                  return next;
+                },
+                { replace: true },
+              );
+              setPage(0);
+            }}
+            placeholder={t('subjects.searchPlaceholder')}
+            ariaLabel={t('subjects.searchAria')}
+            sx={{ width: 220 }}
+          />
+          <Button variant="contained" size="small" onClick={() => openForm(null)}>
+            {t('subjects.new')}
+          </Button>
+        </Stack>
+      ) : (
+        <PageHeader
+          title={t('subjects.title')}
+          actions={
+            <>
+              <SearchField
+                value={search}
+                onChange={(e) => {
+                  setSearchParams(
+                    (current) => {
+                      const next = new URLSearchParams(current);
+                      if (e.target.value) {
+                        next.set('q', e.target.value);
+                      } else {
+                        next.delete('q');
+                      }
+                      return next;
+                    },
+                    { replace: true },
+                  );
+                  setPage(0);
+                }}
+                placeholder={t('subjects.searchPlaceholder')}
+                ariaLabel={t('subjects.searchAria')}
+                sx={{ width: 220 }}
+              />
+              <Button variant="contained" size="small" onClick={() => openForm(null)}>
+                {t('subjects.new')}
+              </Button>
+            </>
+          }
+        />
+      )}
 
       {error && <ErrorBanner message={error} />}
 

@@ -53,8 +53,19 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
         run_test!
       end
 
-      response "403", "forbidden for school staff" do
+      # The school's own billing staff may read and replace their own school's credentials: the
+      # bank issued the certificate to them, and a certificate expires — waiting on the platform to
+      # replace it stops their billing.
+      response "200", "allowed for the school's own billing staff" do
         let(:Authorization) { auth_headers_for(school_admin)["Authorization"] }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body)).to have_key("data")
+        end
+      end
+
+      response "403", "forbidden for school staff without billing" do
+        let(:Authorization) { auth_headers_for(teacher_user)["Authorization"] }
 
         run_test! do |response|
           expect(JSON.parse(response.body).dig("error", "code")).to eq("forbidden")
@@ -248,6 +259,34 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
 
         run_test!
       end
+    end
+  end
+
+  # The widened rule reaches the caller's own school and no further: nothing here lets one school
+  # read, or replace, another's certificate.
+  describe "one school cannot reach another's credentials" do
+    let(:other_school) { create(:school) }
+
+    it "refuses a listing for a school the caller has no membership in" do
+      create(:school_payment_provider, :cora, :active, school: other_school)
+
+      get "/api/v1/schools/#{other_school.id}/bank_credentials",
+          headers: auth_headers_for(school_admin)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "refuses an upload to a school the caller has no membership in" do
+      post "/api/v1/schools/#{other_school.id}/bank_credentials",
+           params: {
+             provider: "cora", instrument: "bank_slip", client_id: "abc",
+             certificate: uploaded_pem(pair[:certificate], "cert.pem"),
+             private_key: uploaded_pem(pair[:private_key], "key.pem")
+           },
+           headers: auth_headers_for(school_admin)
+
+      expect(response).to have_http_status(:forbidden)
+      expect(other_school.school_payment_providers).to be_empty
     end
   end
 end
