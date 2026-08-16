@@ -62,7 +62,9 @@ const LanguageSelect = () => {
             sx: {
               mt: 1.5,
               p: '0 !important',
-              width: 240,
+              // Sized to the longest language name rather than fixed: a name that does not fit
+              // is what pushed "Português (Brasil)" over the tag beside it.
+              minWidth: 240,
               overflow: 'hidden',
             },
           },
@@ -80,12 +82,13 @@ const LanguageSelect = () => {
               <ListItemIcon sx={{ mr: 2, fontSize: 'h3.fontSize' }}>
                 <IconifyIcon icon={langItem.flag} />
               </ListItemIcon>
-              <ListItemText>
-                <Typography>{langItem.label}</Typography>
-              </ListItemText>
-              <ListItemText>
-                <Typography textAlign="right">{langItem.code}</Typography>
-              </ListItemText>
+              {/* One flexible column and one that sizes to its text. Two ListItemText siblings
+                  split the row evenly instead, which is too little for "Português (Brasil)" —
+                  it overflowed its half and ran on top of the tag beside it. */}
+              <ListItemText primary={langItem.label} sx={{ mr: 2, my: 0 }} />
+              <Typography variant="body2" color="text.secondary" flexShrink={0}>
+                {langItem.code}
+              </Typography>
             </MenuItem>
           );
         })}
