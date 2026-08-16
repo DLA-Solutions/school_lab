@@ -8,6 +8,17 @@ en:
   billing:
     settings:
       default_service_description: "School tuition"
+    tax_declaration:
+      pdf:
+        title: "Annual payment declaration"
+        calendar_year: "Calendar year"
+        payer: "Payer"
+        cpf: "CPF"
+        cnpj: "CNPJ"
+        student: "Student"
+        amount: "Amount (BRL)"
+        total: "Total declared"
+        verification_code: "Verification code"
     mailer:
       collection_reminder:
         subject: "Open charge — %{amount}"
@@ -44,6 +55,12 @@ en:
       teacher: "Teacher"
       cohort: "Class"
       period: "Term"
+    report_card:
+      title: "Report card"
+      student: "Student"
+      period: "Term"
+      final_grade: "Final grade"
+      attendance: "Attendance"
     guardians:
       title: "Guardians register"
     students:
@@ -68,6 +85,11 @@ en:
       backoffice_only: "This action is restricted to backoffice operators."
       not_found: "Not found."
       not_implemented: "Not implemented yet."
+      report_card_not_ready: "Report card prerequisites are not met."
+      report_card_frozen: "Published report card snapshots cannot be changed."
+      publication_in_progress: "A publication is already in progress."
+      batch_release_failed: "Batch release failed; no students were published."
+      republish_reason_required: "A correction reason is required to republish."
       validation_error: "Invalid data."
       invalid_state_transition: "Invalid state transition."
       provider_error: "The payment provider could not be reached."
@@ -91,6 +113,7 @@ en:
       charge_batch_invalid_period: "Provide a valid billing period, formatted YYYY-MM."
       charge_amount_required: "Provide an amount greater than zero."
       charge_due_date_required: "Provide a due date."
+      billing_purpose_required: "Select a billing purpose for this charge."
       plan_discount_in_use: "This discount is applied to %{count} contract(s) and cannot be removed."
       cannot_delete_system_template: "System templates cannot be deleted."
       template_in_use: "This template is in use by %{count} staff member(s)."
@@ -114,6 +137,11 @@ en:
       invalid_period_range: "The period must fall within the school year dates."
       archived_school_year: "Changes are not allowed on an archived school year."
       no_active_school_year: "No active school year."
+      generation_in_progress: "A declaration for this payer and year is already being generated."
+      calendar_year_not_closed: "The calendar year has not ended yet."
+      no_eligible_payments: "No eligible settled payments were found for this year."
+      tax_declaration_configuration_incomplete: "Tax declaration configuration is incomplete."
+      unclassified_legacy_charge: "A payment references a charge without verified billing purpose."
     # Not blocking — the contract goes out with a gap someone has to fill in later.
     warnings:
       student_without_cpf: "This student has no CPF on file; the contract will go out with that field blank."

@@ -9,6 +9,7 @@ RSpec.describe SchoolLab::Permissions do
     manage_people
     manage_enrollment
     manage_documents
+    manage_academic
     approve_lesson_plans
     moderate_messages
     teach
@@ -23,6 +24,7 @@ RSpec.describe SchoolLab::Permissions do
       { key: "manage_people", scope_kind: "full" },
       { key: "manage_enrollment", scope_kind: "full" },
       { key: "manage_documents", scope_kind: "full" },
+      { key: "manage_academic", scope_kind: "full" },
       { key: "approve_lesson_plans", scope_kind: "full" },
       { key: "moderate_messages", scope_kind: "full" },
       { key: "view_billing_summary", scope_kind: "full" }
@@ -34,6 +36,7 @@ RSpec.describe SchoolLab::Permissions do
     ],
     "coordination" => [
       { key: "manage_people", scope_kind: "partial" },
+      { key: "manage_academic", scope_kind: "full" },
       { key: "approve_lesson_plans", scope_kind: "full" },
       { key: "moderate_messages", scope_kind: "full" },
       { key: "teach", scope_kind: "full", requires_also_teaches: true }
@@ -44,7 +47,7 @@ RSpec.describe SchoolLab::Permissions do
   }.freeze
 
   describe "CATALOG" do
-    it "lists exactly the nine staff permission keys" do
+    it "lists exactly the ten staff permission keys" do
       expect(described_class::CATALOG.keys).to match_array(EXPECTED_CATALOG_KEYS)
     end
 
