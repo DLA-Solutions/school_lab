@@ -61,6 +61,33 @@ RSpec.describe Gateways::BankSlip::IssueRequestBuilder do
       expect(request.interest_rate_percent).to eq(BigDecimal("1.0"))
     end
 
+    # A one-off names what it is for, and that reason is what the payer was shown when it was
+    # raised. Billing it as "Mensalidade escolar" describes the wrong thing.
+    it "bills a charge under its own description when it has one" do
+      charge.update!(description: "Excursão pedagógica")
+
+      request = described_class.from_charge(charge)
+
+      expect(request.service_description).to eq("Excursão pedagógica")
+    end
+
+    it "falls back to the school's description when the charge names no reason" do
+      charge.update!(description: nil)
+
+      request = described_class.from_charge(charge)
+
+      expect(request.service_description).to eq(I18n.t("billing.settings.default_service_description"))
+    end
+
+    # The explicit argument is the caller overruling both, and it still wins.
+    it "lets an explicit description overrule the charge's own" do
+      charge.update!(description: "Excursão pedagógica")
+
+      request = described_class.from_charge(charge, service_description: "Segunda via")
+
+      expect(request.service_description).to eq("Segunda via")
+    end
+
     it "truncates over-long text without corrupting multi-byte characters" do
       guardian.update!(name: "Á" * 80, email: "#{'a' * 70}@example.com")
 

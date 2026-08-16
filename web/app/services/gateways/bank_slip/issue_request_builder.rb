@@ -63,8 +63,13 @@ module Gateways
       end
       private_class_method :validate_charge!
 
+      # What the boleto says it is for, most specific first. A charge that names its own reason —
+      # a trip, a replacement uniform — is describing itself better than any school-wide default
+      # could, and that description is what the payer was shown when it was raised. The school
+      # setting is the fallback for everything that says nothing, which is most tuition.
       def resolve_service_description(charge, override)
-        override.presence || Billing::SchoolSettings.for(charge.school).service_description
+        override.presence || charge.description.presence ||
+          Billing::SchoolSettings.for(charge.school).service_description
       end
       private_class_method :resolve_service_description
 
