@@ -3,7 +3,7 @@
 > Status: validated  
 > Relation to School Lab: core MVP domain #6 per [`docs/product-map.md`](../../product-map.md) §5 — **MVP pillar #2** (reliability-critical)  
 > Capability IDs: see [Competitive grounding](#competitive-grounding) — **22** MVP canonical `academic.*` rows in [`mvp-scope.md`](../../product/mvp-scope.md); **34** canonicals total in taxonomy  
-> Domain PRDs: [`attendance.md`](attendance.md) (BC1), [`grades.md`](grades.md) (BC2), [`report-cards.md`](report-cards.md) (BC3), [`diary.md`](diary.md) (BC4), [`curriculum.md`](curriculum.md) (BC5), [`periods.md`](periods.md) (BC6), [`incidents.md`](incidents.md) (BC7), [`coordination.md`](coordination.md) (BC8)  
+> Domain PRDs: [`attendance.md`](attendance.md) (BC1), [`grades.md`](grades.md) (BC2), [`report-cards.md`](report-cards.md) (BC3), [`diary.md`](diary.md) (BC4), [`curriculum.md`](curriculum.md) (BC5), [`periods.md`](periods.md) (BC6), [`incidents.md`](incidents.md) (BC7), [`coordination.md`](coordination.md) (BC8), [`preceptorship.md`](preceptorship.md) (BC9 shipped backfill)
 > Modeling: [`docs/modeling/007-academic.md`](../../modeling/007-academic.md)  
 > API: [`docs/api/v1/academic.md`](../../api/v1/academic.md)  
 > Traceability: BR-/UC-/AC- IDs per bounded context — see [`traceability.md`](../../product/traceability.md)
@@ -137,6 +137,8 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 - **BC6 Periods** — academic period closure checklist.
 - **BC7 Incidents** — typed occurrences with family visibility policy.
 - **BC8 Coordination** — dashboard for diary/grade/attendance status.
+- **BC9 Preceptorship** — shipped teacher narrative `draft` → `published`, family read/PDF;
+  explicitly not PEI/AEE.
 
 ### Out of scope
 
@@ -166,6 +168,7 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 | **BC6 — Periods** | [`periods.md`](periods.md) | Period/year closure gates? |
 | **BC7 — Incidents** | [`incidents.md`](incidents.md) | Occurrences and guardian visibility? |
 | **BC8 — Coordination** | [`coordination.md`](coordination.md) | Monitoring dashboard? |
+| **BC9 — Preceptorship** | [`preceptorship.md`](preceptorship.md) | Shipped narrative publish, family isolation, PDF, and PEI/AEE boundary? |
 
 ```mermaid
 flowchart TB
@@ -216,7 +219,7 @@ flowchart TB
 |-------|----------|--------------------------------|
 | teacher | Web SPA + mobile (attendance priority on mobile) | Record attendance, enter grades, diary content, justify absences |
 | staff (coordination, secretary) | Web SPA + mobile read | Templates, report card publish, period close, overrides with audit, dashboard |
-| guardian | Mobile (primary); web read | View report card, view justified absences; receives absence push (comms) |
+| guardian (UI: **Responsável**) | Web first for portal reads; mobile parity and absence push | View released report cards and justified-absence summaries for linked children |
 | student | — *(MVP)* | No login; grades via guardian ([`actors-and-surfaces.md`](../../actors-and-surfaces.md)) |
 | backoffice | Web SPA (backoffice) | Module enablement; no grade content access in MVP |
 
@@ -255,12 +258,19 @@ Shared with [`students-and-enrollments/`](../students-and-enrollments/index.md),
    absence state (BR-AT08). Communication notifications BC subscribes and delivers on
    `attendance` channel policy only ([`communication/notifications.md`](../communication/notifications.md)
    BR-N02). **Comms does not validate absence** — NFR-001 correctness owned here.
-5. **Report card publish notification** — `ReportCardPublished` event → comms `announcements` or
-   `grades` channel policy `[product decision]`.
-6. **Permissions** — keys such as `record_attendance`, `enter_grades`, `manage_academic`,
-   `publish_report_card` on system role templates (identity BC1).
+5. **Report card publish event** — academic always emits `ReportCardPublished` per active snapshot;
+   whether comms consumes it and which channel it uses remain unresolved.
+6. **Permissions** — fixed key `manage_academic` covers staff school-wide administration;
+   target teacher writes use `teach` intersected with class/subject assignment.
+   `record_attendance`, `enter_grades`, and `publish_report_card` are capability ids, not
+   permission keys. The shipped Preceptoria exception is recorded next.
 7. **Re-enrollment** — staff returning-student enrollment is students BC1; online trilha is P2
    ([`enrollments.md`](../students-and-enrollments/enrollments.md) § Re-enrollment boundary).
+8. **Preceptoria** — shipped create/roll applies assignment narrowing only to teacher-role
+   memberships; existing-report policy scope is currently school-wide for every `teach` holder.
+   Narrowing that application authorization is a blocker, not behavior this PRD can claim as
+   shipped. Guardians receive only published reports for linked students. It remains separate from
+   PEI/AEE and special-education records.
 
 ```mermaid
 sequenceDiagram
@@ -366,7 +376,7 @@ in MVP (unsigned contract rule BR-O11 applies to enrollment only).
 
 ## 13. Definition of Done (documentation)
 
-- [x] Nine PRD files in `docs/prds/academic/` with complete sections.
+- [x] Ten PRD files in `docs/prds/academic/` (index + BC1–BC9) with complete sections.
 - [x] All **22** MVP `academic.*` capabilities mapped (20 in this folder + 2 platform cross-refs).
 - [x] All **34** canonicals enumerated in competitive grounding.
 - [x] BR-/UC-/AC- IDs standardized per BC prefix.
@@ -374,5 +384,7 @@ in MVP (unsigned contract rule BR-O11 applies to enrollment only).
 - [x] DIV-academic-001…009 reflected in decisions.
 - [x] Re-enrollment and routine infantil P2 boundaries documented.
 - [x] Status promoted to `validated` (2026-08-15).
-- [x] Modeling [`007-academic.md`](../../modeling/007-academic.md) + API [`academic.md`](../../api/v1/academic.md) drafted; DBML hardening pending (Phase 4B).
+- [x] Modeling [`007-academic.md`](../../modeling/007-academic.md) locally DBML-validated,
+      including attendance support tables; API [`academic.md`](../../api/v1/academic.md) remains
+      draft pending OpenAPI freeze.
 - [x] Partner workshop deferred — live stakeholder session is a separate milestone.

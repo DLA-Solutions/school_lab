@@ -238,7 +238,7 @@ Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testin
 | DLA backoffice | `frontend/backoffice/` | Web SPA at `/backoffice` | Yes |
 | School admin | `frontend/app/` | Web SPA at `/app` (+ light mobile) | Yes |
 | Teacher | `frontend/app/` + `mobile/` | Web + mobile | Yes |
-| Parents | `mobile/` (+ school web phase 2) | App first for boletos | Yes |
+| Guardian (UI: Responsável) | `frontend/app/` + `mobile/` | Web-first portal; mobile parity after stable contracts, mobile primary for push | Yes |
 
 ## 12. Conventions
 

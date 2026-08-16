@@ -13,9 +13,9 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`identity-and-onboarding/`](identity-and-onboarding/index.md) | Multi-tenancy, permissions, onboarding, auth, invites, profiles, consent | validated | **13** MVP `identity.*` canonicals per [`mvp-scope.md`](../product/mvp-scope.md) | [`003-identity-permissions`](../modeling/003-identity-permissions.md), [`004-school-onboarding`](../modeling/004-school-onboarding.md) | [`identity-onboarding`](../api/v1/identity-onboarding.md) |
 | [`students-and-enrollments/`](students-and-enrollments/index.md) | Student records, guardian links, classes, enrollments (BC1 + BC2) | validated | **9** MVP `students.*` canonicals | [`005-students-enrollments`](../modeling/005-students-enrollments.md) | [`students-and-enrollments`](../api/v1/students-and-enrollments.md) |
 | [`communication/`](communication/index.md) | Messages, channels, announcements, notifications, media (BC1–BC5) | validated | **37** MVP `communication.*` canonicals (**46** total) | [`006-communication`](../modeling/006-communication.md) | [`communication`](../api/v1/communication.md) |
-| [`academic/`](academic/index.md) | Attendance, grades, report cards, diary, curriculum, periods, incidents, coordination (BC1–BC8) | validated | **22** MVP `academic.*` canonicals (**34** total) | [`007-academic`](../modeling/007-academic.md) | [`academic`](../api/v1/academic.md) |
-| [`billing/`](billing/index.md) | Charges, boletos, payments, dunning, settings, guardian portal, NFS-e scope (BC1–BC7) | validated | **32** MVP `billing.*` canonicals; partner slice **implemented** in `web/` | [`001-fintech-first`](../modeling/001-fintech-first.md) *(baseline + PRD delta)* | [`billing`](../api/v1/billing.md) extends [`fintech-first`](../api/v1/fintech-first.md) |
-| [`documents-and-archive/`](documents-and-archive/index.md) | Digital archive, audit export, signatories; retention hooks (BC1 + BC2) | validated | **5** MVP `documents.*` canonicals (**12** total) | [`008-documents-archive`](../modeling/008-documents-archive.md) | [`documents-and-archive`](../api/v1/documents-and-archive.md) |
+| [`academic/`](academic/index.md) | Attendance, grades, report cards, diary, curriculum, periods, incidents, coordination, Preceptoria backfill (BC1–BC9) | validated | **22** MVP `academic.*` canonicals (**34** total) + product-decision Preceptoria | [`007-academic`](../modeling/007-academic.md) | [`academic`](../api/v1/academic.md) |
+| [`billing/`](billing/index.md) | Charges, boletos, payments, dunning, settings, guardian portal, NFS-e scope, annual tax declarations (BC1–BC8) | validated; tax declaration release legally gated | **32** MVP `billing.*` canonicals + product-decision tax declaration; partner slice **implemented** in `web/` | [`001-fintech-first`](../modeling/001-fintech-first.md) *(baseline + PRD delta)* | [`billing`](../api/v1/billing.md) extends [`fintech-first`](../api/v1/fintech-first.md) |
+| [`documents-and-archive/`](documents-and-archive/index.md) | Digital archive, audit export, signatories, retention hooks, guardian requests (BC1–BC3) | validated | **5** MVP `documents.*` canonicals (**12** total) + implemented guardian-request backfill | [`008-documents-archive`](../modeling/008-documents-archive.md) | [`documents-and-archive`](../api/v1/documents-and-archive.md) |
 | [`platform-and-admin/`](platform-and-admin/index.md) | School year, backoffice ops, calendar, staff users, product access (BC1–BC5) | validated | **6** MVP `platform.*` canonicals (**13** total) | [`009-platform-admin`](../modeling/009-platform-admin.md) | [`platform-and-admin`](../api/v1/platform-and-admin.md) — **W1 frozen (4C.1)** |
 
 ### Domain folder — identity & onboarding
@@ -62,6 +62,7 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`periods.md`](academic/periods.md) | BC6 — period closure checklist | validated |
 | [`incidents.md`](academic/incidents.md) | BC7 — occurrences, guardian visibility | validated |
 | [`coordination.md`](academic/coordination.md) | BC8 — coordination dashboard | validated |
+| [`preceptorship.md`](academic/preceptorship.md) | BC9 — implemented narrative publish, family read/PDF; not PEI/AEE | implemented |
 
 ### Domain folder — billing
 
@@ -75,6 +76,7 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`settings.md`](billing/settings.md) | BC5 — mora, multa, pontualidade, grace per school | validated |
 | [`guardian-portal.md`](billing/guardian-portal.md) | BC6 — family charges, pay online, forward-only history | validated |
 | [`invoices.md`](billing/invoices.md) | BC7 — NFS-e P2 scope note only | validated |
+| [`tax-declarations.md`](billing/tax-declarations.md) | BC8 — automatic annual payer declaration, purpose eligibility, immutable versions/PDF | validated; release legally gated |
 
 ### Domain folder — documents & archive
 
@@ -83,6 +85,7 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`index.md`](documents-and-archive/index.md) | Integration, vision grounding, MVP vs P2, fintech-first supersede | validated |
 | [`archive.md`](documents-and-archive/archive.md) | BC1 — store, search, guardian view, audit export, signatories | validated |
 | [`retention.md`](documents-and-archive/retention.md) | BC2 — P2 retention policy hooks; MVP default retain | validated |
+| [`guardian-requests.md`](documents-and-archive/guardian-requests.md) | BC3 — implemented Meus pedidos / Solicitações lifecycle and isolation | implemented |
 
 ### Domain folder — platform & admin
 
@@ -150,9 +153,11 @@ Modeling **`008`** (documents & archive) has validated DBML/narrative aligned wi
 domain PRDs — store, search, guardian view, audit export, signatories, retention P2 hooks, and
 cross-domain refs (enrollment contracts, academic attachments). Billing **MVP gap tables** added
 to `schema.dbml` with delta documented in [`001-fintech-first`](../modeling/001-fintech-first.md)
-appendix (`charge_types`, ad-hoc charge columns, notification policy, tiers, remittance, resend
+appendix (`billing_purposes`, ad-hoc charge columns, notification policy, tiers, remittance, resend
 audit). Platform régua automation and P2 NFS-e tables remain **deferred**. Published dbdocs
-reflects extended schema. DER export: `der_008.png` *(manual dbdiagram)*. API narratives remain
+reflects the prior extended schema; the current uncommitted DBML delta is local only and remote
+publication was not authorized. No repository-local DER renderer is installed, so `der_007.png`
+and `der_008.png` remain unavailable and no artifacts were fabricated. API narratives remain
 **draft**.
 
 **Next:** Phase 4C — API contract freeze per domain (`docs/api/v1/`); then engineering W1 waves.

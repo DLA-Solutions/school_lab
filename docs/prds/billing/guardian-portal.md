@@ -209,3 +209,5 @@ AC-G05
 
 - Staff billing operations — other BCs.
 - Enrollment/KYC documents — documents increment (`/me/documents` remains fintech-first enrollment slice until superseded).
+- Automatic annual income-tax declarations — adjacent guardian billing surface owned by
+  [`tax-declarations.md`](tax-declarations.md), web first and mobile after contract acceptance.

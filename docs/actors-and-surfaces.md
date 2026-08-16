@@ -9,8 +9,9 @@
   **role templates** on the `staff` role, not separate membership roles — see
   [`docs/prds/identity-and-onboarding/permissions.md`](prds/identity-and-onboarding/permissions.md).
 - **Teacher**: posts grades and academic activities for their class/subject.
-- **Parents / guardians**: follow the academic, financial, and document life of
-  their child(ren).
+- **Guardians** (product UI: **Responsáveis**): follow the academic, financial, and document life
+  of their child(ren). `guardian` is the technical membership role. **Responsável financeiro** is
+  only a payer relationship to a student/charge, not another login role.
 - **Student**: the enrolled learner — a **person record** managed by staff and linked to
   guardians and classes. Competitors often give students their own app login (e.g. Proesc
   Aluno, Agenda Edu student diary); in School Lab MVP the student is primarily a **data
@@ -45,12 +46,22 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 | Backoffice   | Yes         | No (phase 2)| Operation is primarily desktop       |
 | Staff        | Yes         | Yes         | System role templates: director, secretary, etc. |
 | Teacher      | Yes         | Yes         | Grades and lesson plans on web; messages on app |
-| Parents      | Yes         | Yes         | App primary for messaging/boleto; web guardian routes in MVP per Aug 2026 decision |
+| Guardian     | Yes         | Yes         | Web-first guardian portal; mobile parity after each stable API/web contract |
 | Student      | No (phase 2)| No (phase 2)| MVP: no student login; record managed by staff/guardian surfaces |
 
 > **Decided Aug 2026:** Guardians use **both** web SPA and mobile in MVP
-> ([`docs/product/mvp-scope.md`](product/mvp-scope.md) § Executive summary). Mobile is primary for
-> push-driven flows; web provides parity for billing and documents on desktop.
+> ([`docs/product/mvp-scope.md`](product/mvp-scope.md) § Executive summary). The guardian portal is
+> delivered web first; mobile follows stable domain contracts and remains primary for push-driven
+> flows. Product UI always says **Responsável** while repository identifiers remain `guardian`.
+
+### Active profile and school context
+
+One account may hold multiple memberships across roles and schools. The active product context is
+one explicit `membership.id` from `GET /api/v1/me`; it determines both audience and `school_id`.
+A dual-role user switches between staff/teacher and Responsável profiles instead of receiving a
+merged menu. A multi-school user likewise chooses the school explicitly. Clients persist only the
+membership id, clear school-scoped state on switch, and reject stale, suspended, or removed
+memberships. Authorization remains server-side through Pundit and family/school scopes.
 
 ## 4. High-level capabilities by role
 
@@ -89,7 +100,7 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 - (Phase 2) Record a structured daily routine — meals, sleep, hygiene, health,
   mood. [early childhood education]
 
-### Parents
+### Guardians (UI: Responsáveis)
 
 - View their child's grades, report card, and academic status.
   [elementary/high school]
@@ -98,6 +109,11 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 - Receive push notifications (messages, attendance absence, notices).
 - View and pay boletos.
 - Access the student's documents.
+- View published Preceptoria reports and report cards.
+- Create and follow their own school requests.
+- Generate/download one annual income-tax declaration per payer and school, consolidated across
+  every child represented by eligible charges that payer settled; payer ownership, not a live
+  guardian-child link at generation time, controls inclusion.
 - (Phase 2) Sign minutes digitally (family meetings, events).
 - (Phase 2) Receive mass announcements with read receipts; follow the child's
   structured daily routine. [early childhood education]

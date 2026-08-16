@@ -3,7 +3,7 @@
 > Status: validated  
 > Relation to School Lab: core MVP domain #8 per [`docs/product-map.md`](../../product-map.md) §5  
 > Capability IDs: see [Competitive grounding](#competitive-grounding) — **12** canonical `documents.*` rows in [`capability-taxonomy.yaml`](../../product/capability-taxonomy.yaml) (**5** MVP)  
-> Domain PRDs: [`archive.md`](archive.md) (BC1 — MVP), [`retention.md`](retention.md) (BC2 — P2 hooks)  
+> Domain PRDs: [`archive.md`](archive.md) (BC1 — MVP), [`retention.md`](retention.md) (BC2 — P2 hooks), [`guardian-requests.md`](guardian-requests.md) (BC3 — implemented backfill)
 > Modeling: [`docs/modeling/008-documents-archive.md`](../../modeling/008-documents-archive.md)  
 > API: [`docs/api/v1/documents-and-archive.md`](../../api/v1/documents-and-archive.md)  
 > Traceability: BR-/UC-/AC- IDs per bounded context — see [`traceability.md`](../../product/traceability.md)
@@ -62,7 +62,9 @@ archive waves ship.
 
 **Billing boundary:** NFS-e (Nota Fiscal de Serviço eletrônica) PDFs belong in
 [`billing/invoices.md`](../billing/invoices.md) BC7 (P2) — **not** this domain. Tax documents may
-**link** to archive entries but issuance stays in billing.
+**link** to archive entries but issuance stays in billing. Automatic annual tax-declaration
+eligibility, calculation, versioning, and payer API are owned by
+[`billing/tax-declarations.md`](../billing/tax-declarations.md).
 
 ---
 
@@ -156,6 +158,7 @@ MVP matches **out**: Livro Ata, digital signatures, semantic search — **phase 
 |----|----------|---------|
 | **BC1 — Archive** | [`archive.md`](archive.md) | How are files stored, typed, searched, shared with guardians, and exported for audit? |
 | **BC2 — Retention** | [`retention.md`](retention.md) | What retention hooks exist in MVP? What is deferred for configurable policy (P2)? |
+| **BC3 — Guardian requests** | [`guardian-requests.md`](guardian-requests.md) | How do Responsáveis create/follow Meus pedidos and staff work the Solicitações queue? |
 
 **Future P2 bounded contexts** (not in this increment):
 
@@ -204,7 +207,7 @@ flowchart TB
 |-------|----------|--------------------------------|
 | staff (secretary, director) | Web SPA + mobile | Upload, classify, search, review, export audit package, configure signatories |
 | staff (teacher) | Web SPA + mobile | Upload student docs where permitted; attach via academic flows |
-| guardian | Mobile (primary); web read | View documents shared for linked children |
+| guardian (UI: **Responsável**) | Web first; mobile parity | View documents shared for linked children |
 | student | — *(MVP)* | No login; documents via guardian ([`actors-and-surfaces.md`](../../actors-and-surfaces.md)) |
 | backoffice | Web SPA (backoffice) | Storage backend config; retention policy P2 |
 
@@ -253,6 +256,9 @@ Shared with [`students-and-enrollments/`](../students-and-enrollments/),
 9. **Retention** — MVP uses **platform default retention** (no UI); P2 `manage_retention_policy`
    in [`retention.md`](retention.md). Communication media follows comms policy — not auto-deleted
    when archive policy changes.
+10. **Guardian requests** — the request queue records the ask and resolution; a future generated
+    document is a separate archive entry. Automatic income-tax declarations bypass this queue and
+    are billing-owned.
 
 ```mermaid
 sequenceDiagram
@@ -342,7 +348,9 @@ Domain-specific:
 - [x] Cross-links: students contracts, academic attachments, billing NFS-e boundary
 - [x] P2 canonicals listed with future file targets
 - [x] Partner validation deferred — documentation-phase sign-off Aug 2026 ([`open-questions.md`](../../open-questions.md)).
-- [x] Modeling [`008-documents-archive.md`](../../modeling/008-documents-archive.md) + API [`documents-and-archive.md`](../../api/v1/documents-and-archive.md) drafted; DBML hardening pending (Phase 4B).
+- [x] Modeling [`008-documents-archive.md`](../../modeling/008-documents-archive.md) aligned with
+      locally validated DBML; API [`documents-and-archive.md`](../../api/v1/documents-and-archive.md)
+      remains draft pending OpenAPI freeze.
 
 ---
 

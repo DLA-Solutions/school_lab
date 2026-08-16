@@ -8,7 +8,8 @@
 
 Deliver **React Native** mobile apps for **guardian** and **teacher** MVP workflows — messages,
 attendance, push notifications, boleto view/pay, and document read — consuming the same `/api/v1`
-contract as the web SPA.
+contract as the web SPA. Guardian portal domains are delivered **web first**; mobile ports only
+stable API/web contracts and never becomes a second source of business rules.
 
 ## Context
 
@@ -17,12 +18,14 @@ Guardians and teachers both use mobile; staff administration remains primarily w
 
 **Product decisions (Aug 2026 documentation phase):**
 
-- **Guardians:** mobile **primary** for messaging, push, boleto, documents; **web guardian surface
-  also in MVP** (responsive `/app` routes) — aligns with mvp-scope "all MVP roles on web + mobile".
+- **Guardians:** product UI says **Responsável** while technical identifiers remain `guardian`.
+  The web portal ships first; mobile remains the primary eventual surface for push-driven messaging
+  and receives billing/document/academic parity after each domain contract is accepted.
 - **Teachers:** app for messages + attendance; web for grades and lesson plans
   ([`actors-and-surfaces.md`](../actors-and-surfaces.md)).
 - **Students:** no login in MVP — record only.
-- **Backoffice:** web only (`frontend/backoffice`).
+- **Backoffice:** web only in the separate `frontend/backoffice/` SPA; never routed through
+  `frontend/app/` or mobile.
 
 ## Responsibilities
 
@@ -59,6 +62,11 @@ Guardians and teachers both use mobile; staff administration remains primarily w
 - Secure token storage — never AsyncStorage for refresh token.
 - Image attachments: camera/gallery picker; max 5 MB per communication PRD.
 - Locale: pt-BR UI strings; English code identifiers.
+- Active context is an explicitly selected `membership.id` from `GET /me`. Store only that
+  non-sensitive identifier, never school names, student lists, CPF, or financial data.
+- Dual-role or multi-school users select profile and school explicitly. Switching context clears
+  school-scoped caches, re-evaluates navigation/deep links, and returns to the selected audience's
+  home. The app must not merge staff/teacher and Responsável menus.
 
 ## MVP screens (minimum)
 
@@ -71,8 +79,17 @@ Guardians and teachers both use mobile; staff administration remains primarily w
 | Messages inbox | `GET /communication/conversations` |
 | Thread | `POST .../messages` |
 | Announcements | `GET /me/announcements` |
-| Boletos | `GET /me/charges` |
+| Meus boletos | `GET /me/charges` |
+| Boletins | `GET /me/report_cards` *(after web contract acceptance)* |
+| Preceptoria | `GET /me/preceptorship_reports` *(after web contract acceptance)* |
+| Meus pedidos | `GET /me/requests` *(after web contract acceptance)* |
+| Imposto de renda | `GET /me/tax_declarations` *(after web contract acceptance)* |
 | Documents | `GET /me/students/:id/documents` |
+
+Guardian navigation uses the same audience matrix as
+[`layer-web-spa.md`](layer-web-spa.md) and shows only implemented destinations. Staff-only
+registries, grade entry, staff billing, plans/settings, contracts, and the staff Solicitações queue
+must not appear or resolve from a Responsável context.
 
 ### Teacher
 
@@ -126,6 +143,10 @@ Then guardian receives push within SLA after 15-minute window
 ## Review-ready checklist (stakeholder)
 
 - [ ] Guardian and teacher actor flows match [`actors-and-surfaces.md`](../actors-and-surfaces.md)
+- [ ] Product labels render **Responsável**; no raw `guardian`, `staff`, or `teacher` value is
+      displayed in pt-BR UI
+- [ ] Profile/school switching validates an active `membership.id` and clears stale scoped state
+- [ ] Guardian portal domains port only after their web/API contracts are accepted
 - [ ] Push notification policy aligned with [`communication/notifications.md`](communication/notifications.md)
 - [ ] FCM token lifecycle and multi-device policy documented
 - [ ] No business rules duplicated in app — all via `/api/v1`

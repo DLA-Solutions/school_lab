@@ -49,6 +49,35 @@ Supersedes fintech-first `GET /me/documents`.
 
 ---
 
+## Guardian requests (implemented backfill)
+
+The staff **Solicitações** queue and guardian **Meus pedidos** surface share
+`guardian_requests`. The row records the ask and resolution; a future generated declaration is a
+separate archive document.
+
+| Method | Path | Actor | Description |
+|--------|------|-------|-------------|
+| `GET/POST` | `/requests` | staff with `manage_documents` | List/filter queue or create on behalf of guardian |
+| `GET/DELETE` | `/requests/:id` | staff | Read or soft-discard |
+| `POST` | `/requests/:id/start` | staff | `pending` → `in_progress` |
+| `POST` | `/requests/:id/release` | staff | `in_progress` → `pending` |
+| `POST` | `/requests/:id/fulfill` | staff | Open state → `fulfilled`; resolution note optional |
+| `POST` | `/requests/:id/reject` | staff | Open state → `rejected`; non-blank resolution note required |
+| `GET/POST` | `/me/requests` | guardian | List own requests or create in current guardian context |
+| `GET` | `/me/requests/:id` | guardian | Own request and resolution |
+
+Kinds are `declaration` and `second_call`; statuses are `pending`, `in_progress`, `fulfilled`, and
+`rejected`. Guardian create ignores any body `guardian_id`, validates the student-family link, and
+clears subject/reference date for a declaration. A supplied second-call `subject_id` is an optional
+same-school foreign key. Unknown, other-school, and same-school-but-unlinked student identifiers
+return indistinguishable `404 not_found`; cross-family request ids also return `404`. Non-sensitive
+payload errors such as blank `details`, invalid `kind`, malformed field combinations, or rejection
+without `resolution_note` return `422 validation_error`. `details` presence is enforced by the
+shipped application but the existing DB column remains nullable pending a safe backfill/migration.
+Guardian attempts to work the staff lifecycle return `403`.
+
+---
+
 ## Audit export (W2)
 
 | Method | Path | Description |
@@ -92,4 +121,4 @@ UC-07 in fintech-first PRD marked **deprecated** — behaviour preserved until W
 
 ## OpenAPI tags
 
-`Documents`, `Archive`, `Guardian Me`
+`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`

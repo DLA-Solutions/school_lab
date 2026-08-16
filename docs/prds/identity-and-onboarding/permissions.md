@@ -123,12 +123,21 @@ BR-P01 — `capability_id`: `identity.manage_roles`
 `memberships.role` ∈ `backoffice | staff | teacher | guardian`. The value `school` is
 deprecated and migrated to `staff` (D1).
 
+A user may hold one kept membership per `(school_id, role)`, including separate staff/teacher and
+guardian memberships in the same school. Duplicate memberships for the same role/school are
+forbidden. Authorization evaluates exactly one request-selected membership and never unions
+permissions or family access across roles.
+
 BR-P02
 
 Permission keys are a **fixed enum versioned in code** — schools cannot invent custom keys.
 Initial keys: `manage_school_settings`, `manage_billing`, `manage_people`, `manage_enrollment`,
-`manage_documents`, `approve_lesson_plans`, `moderate_messages`, `teach`, `view_billing_summary`.
-Catalog exposed read-only via `GET permission_definitions` (from code registry in MVP).
+`manage_documents`, `manage_academic`, `approve_lesson_plans`, `moderate_messages`, `teach`,
+`view_billing_summary`. `manage_academic` is the staff key for school-wide academic configuration,
+attendance review/override, grade launch/override, period closure, and report-card publication.
+Teacher write actions still require `teach` plus class/subject assignment; canonical capability ids
+such as `academic.record_attendance` and `academic.enter_grades` are not permission keys. Catalog is
+exposed read-only via `GET permission_definitions` (from code registry in MVP).
 
 BR-P03 — `capability_id`: `identity.manage_roles`
 
@@ -277,6 +286,7 @@ Provisioned per school from `SYSTEM_TEMPLATES` registry. Schools may edit these 
 | `manage_people` | ✓ | ✓ | partial | — |
 | `manage_enrollment` | ✓ | ✓ | — | — |
 | `manage_documents` | ✓ | ✓ | segment | — |
+| `manage_academic` | ✓ | — | ✓ | — |
 | `approve_lesson_plans` | ✓ | — | ✓ | — |
 | `moderate_messages` | ✓ | — | ✓ | — |
 | `teach` | — | — | if teaches | ✓ |
@@ -479,6 +489,7 @@ Only owner may call. Returns updated effective permission list.
           "manage_people",
           "manage_enrollment",
           "manage_documents",
+          "manage_academic",
           "approve_lesson_plans",
           "moderate_messages",
           "view_billing_summary"
@@ -564,6 +575,7 @@ from fintech-first except `school` → `staff`.
 | `billing/*` | — | `manage_billing` | — | — |
 | `billing/summary` read | — | `view_billing_summary` | — | — |
 | `documents` write/review | — | `manage_documents` (scope) | — | — |
+| Academic configuration, closure, publish, and staff override | — | `manage_academic` | — | — |
 | `lesson_plans` approve | — | `approve_lesson_plans` | — | — |
 | Messages moderate | — | `moderate_messages` | — | — |
 | Class teaching actions | — | `teach` if granted | `teach` | — |
