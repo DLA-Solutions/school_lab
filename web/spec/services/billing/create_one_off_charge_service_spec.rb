@@ -8,8 +8,14 @@ RSpec.describe Billing::CreateOneOffChargeService do
   let(:school) { create(:school) }
   let(:guardian) { create(:guardian, school: school, name: "Maria Silva") }
   let(:params) do
-    { total_amount_cents: 7_500, due_date: "2026-09-15", description: "Aluguel da quadra" }
+    {
+      total_amount_cents: 7_500,
+      due_date: "2026-09-15",
+      description: "Aluguel da quadra",
+      billing_purpose_id: purpose.id
+    }
   end
+  let!(:purpose) { create(:billing_purpose, school: school, code: "material", name: "Material") }
 
   def call(**overrides)
     described_class.call(**{ school: school, guardian: guardian, params: params }.merge(overrides))
@@ -68,6 +74,10 @@ RSpec.describe Billing::CreateOneOffChargeService do
 
     it "refuses an unreadable due date" do
       expect(call(params: params.merge(due_date: "not a date"))).to be_failure
+    end
+
+    it "refuses one without a billing purpose" do
+      expect(call(params: params.except(:billing_purpose_id))).to be_failure
     end
 
     # Nothing should reach the bank for a charge that was never created.

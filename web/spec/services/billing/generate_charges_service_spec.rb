@@ -20,6 +20,12 @@ RSpec.describe Billing::GenerateChargesService do
                       negotiated_amount_cents: 90_000, due_day: 10, status: "active")
   end
 
+  it "captures immutable tuition purpose classification" do
+    charge = result.data.fetch(:created_charges).first
+    expect(charge.billing_purpose_code).to eq("tuition")
+    expect(charge.tax_declaration_eligible).to be(false)
+  end
+
   it "creates a pending charge for an active contract" do
     expect { result }.to change(Charge, :count).by(1)
       .and have_enqueued_job(Billing::IssueChargeJob).with(kind_of(Integer), school.id)

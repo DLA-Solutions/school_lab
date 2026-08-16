@@ -82,7 +82,9 @@ module Api
           private
 
           def charge_params
-            params.require(:charge).permit(:contract_id, :guardian_id, :total_amount_cents, :due_date, :description)
+            params.require(:charge).permit(
+              :contract_id, :guardian_id, :total_amount_cents, :due_date, :description, :billing_purpose_id
+            )
           end
 
           def apply_filters(scope)

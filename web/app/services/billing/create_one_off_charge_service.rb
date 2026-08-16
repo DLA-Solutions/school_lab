@@ -24,6 +24,9 @@ module Billing
       due_date = parse_date(params[:due_date])
       return invalid_due_date if due_date.blank?
 
+      purpose = resolve_billing_purpose
+      return purpose if purpose.is_a?(ResponseService)
+
       charge = school.charges.build(
         contract: contract,
         guardian: payer,
@@ -38,6 +41,9 @@ module Billing
         late_fee_amount_cents: 0,
         total_amount_cents: amount
       )
+
+      classification = Billing::ApplyChargeClassificationService.call(charge: charge, billing_purpose: purpose)
+      return classification if classification.failure?
 
       return ResponseService.failure(code: :validation_error, details: charge.errors.to_hash) unless charge.save
 
@@ -67,6 +73,21 @@ module Billing
       value.is_a?(Date) ? value : Date.parse(value.to_s)
     rescue ArgumentError, TypeError
       nil
+    end
+
+    def resolve_billing_purpose
+      purpose_id = params[:billing_purpose_id]
+      if purpose_id.blank?
+        return ResponseService.failure(
+          code: :validation_error,
+          details: { billing_purpose_id: [ I18n.t("api.errors.billing_purpose_required") ] }
+        )
+      end
+
+      purpose = school.billing_purposes.kept.find_by(id: purpose_id)
+      return ResponseService.failure(code: :not_found) if purpose.blank?
+
+      purpose
     end
 
     def no_payer

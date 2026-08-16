@@ -169,6 +169,7 @@ RSpec.describe "Manual activation, contract payer and one-off charges", type: :r
   describe "one-off charges" do
     let(:charges_path) { "/api/v1/schools/#{school.id}/billing/charges" }
     let(:plan) { create(:billing_plan, school: school) }
+    let!(:material_purpose) { create(:billing_purpose, school: school, code: "material", name: "Material") }
     let(:contract) do
       create(:contract, school: school, student: student, billing_plan: plan,
                         payer_guardian: mother)
@@ -180,7 +181,8 @@ RSpec.describe "Manual activation, contract payer and one-off charges", type: :r
       post charges_path,
            params: {
              charge: { contract_id: contract.id, total_amount_cents: 12_500,
-                       due_date: "2026-09-10", description: "Excursão pedagógica" }
+                       due_date: "2026-09-10", description: "Excursão pedagógica",
+                       billing_purpose_id: material_purpose.id }
            },
            headers: headers, as: :json
 
@@ -204,7 +206,8 @@ RSpec.describe "Manual activation, contract payer and one-off charges", type: :r
       post charges_path,
            params: {
              charge: { contract_id: contract.id, total_amount_cents: 5_000,
-                       due_date: "2026-09-20", description: "Segunda via de uniforme" }
+                       due_date: "2026-09-20", description: "Segunda via de uniforme",
+                       billing_purpose_id: material_purpose.id }
            },
            headers: headers, as: :json
 
@@ -216,7 +219,7 @@ RSpec.describe "Manual activation, contract payer and one-off charges", type: :r
         post charges_path,
              params: {
                charge: { contract_id: contract.id, total_amount_cents: 1_000 * (index + 1),
-                         due_date: "2026-09-10" }
+                         due_date: "2026-09-10", billing_purpose_id: material_purpose.id }
              },
              headers: headers, as: :json
 
