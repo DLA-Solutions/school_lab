@@ -11,6 +11,10 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
   let(:school_id) { school.id }
   let(:Authorization) { auth_headers_for(school_admin)["Authorization"] }
 
+  before do
+    Schools::SeedSchoolModulesService.call(school: school)
+  end
+
   let(:guardian) { create(:guardian, school: school) }
   let(:student) { create(:student, school: school) }
   let(:billing_plan) { create(:billing_plan, school: school) }
@@ -27,7 +31,7 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
 
-      response "200", "charges expose amounts in cents" do
+      response "200", "charges expose amounts in cents when billing module enabled" do
         let!(:charge) do
           create(:charge, school: school, contract: contract, guardian: guardian, total_amount_cents: 150_000)
         end
@@ -38,6 +42,16 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
 
           expect(record["total_amount_cents"]).to eq(150_000)
           expect(record).not_to have_key("total_amount")
+        end
+      end
+
+      response "403", "billing module disabled" do
+        before do
+          Schools::SeedSchoolModulesService.call(school: school, overrides: { billing: false })
+        end
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("module_disabled")
         end
       end
     end
@@ -59,6 +73,19 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
 
         run_test! do
           expect(charge.reload.status).to eq("cancelled")
+        end
+      end
+
+      response "403", "billing module disabled" do
+        let!(:charge) { create(:charge, school: school, contract: contract, guardian: guardian) }
+        let(:id) { charge.id }
+
+        before do
+          Schools::SeedSchoolModulesService.call(school: school, overrides: { billing: false })
+        end
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("module_disabled")
         end
       end
 
@@ -95,6 +122,21 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
           expect(charge.status).to eq("pending")
         end
       end
+
+      response "403", "billing module disabled" do
+        let!(:charge) do
+          create(:charge, school: school, contract: contract, guardian: guardian)
+        end
+        let(:id) { charge.id }
+
+        before do
+          Schools::SeedSchoolModulesService.call(school: school, overrides: { billing: false })
+        end
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("module_disabled")
+        end
+      end
     end
   end
 
@@ -115,6 +157,19 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
         run_test! do |response|
           body = JSON.parse(response.body)
           expect(body.dig("error", "code")).to eq("invalid_state_transition")
+        end
+      end
+
+      response "403", "billing module disabled" do
+        let!(:charge) { create(:charge, school: school, contract: contract, guardian: guardian) }
+        let(:id) { charge.id }
+
+        before do
+          Schools::SeedSchoolModulesService.call(school: school, overrides: { billing: false })
+        end
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("module_disabled")
         end
       end
     end

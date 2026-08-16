@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       resources :schools, only: %i[index show create update destroy] do
         member do
           post :handoff
+          patch :modules, to: "schools/modules#update"
         end
         scope module: :schools do
           namespace :provisioning do

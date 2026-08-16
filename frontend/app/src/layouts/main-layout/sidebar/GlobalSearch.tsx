@@ -14,7 +14,7 @@ import { listTeachers } from 'services/academicsApi';
 import { listGuardians } from 'services/guardiansApi';
 import { listStudents } from 'services/studentsApi';
 import { searchableSubPages } from 'routes/sitemap';
-import { visibleSitemap } from 'utils/navigation/visibleSitemap';
+import { visibleMenuItems, visibleSitemap } from 'utils/navigation/visibleSitemap';
 import { formatCpf } from 'utils/documentNumber';
 import { matchesTerm } from 'utils/searchTerm';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
@@ -68,7 +68,7 @@ const GlobalSearch = () => {
     }
 
     // The nav plus the places that are reachable but no longer have a menu entry of their own.
-    return [...visibleSitemap(school), ...searchableSubPages]
+    return [...visibleSitemap(school), ...visibleMenuItems(school, searchableSubPages)]
       .filter((item) => item.path && matchesTerm(t(item.subheader as MessageKey), debouncedTerm))
       .map((item) => ({
         key: `page-${item.id}`,

@@ -37,6 +37,7 @@ class School < ApplicationRecord
   has_many :membership_invite_tokens, dependent: :destroy
   has_many :provisioning_imports, dependent: :destroy
   has_many :school_years, dependent: :destroy
+  has_many :school_modules, dependent: :destroy
 
   DEFAULT_TIMEZONE = "America/Sao_Paulo"
 

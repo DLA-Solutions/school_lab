@@ -665,7 +665,10 @@
         ],
         "responses": {
           "200": {
-            "description": "charges expose amounts in cents"
+            "description": "charges expose amounts in cents when billing module enabled"
+          },
+          "403": {
+            "description": "billing module disabled"
           }
         }
       }
@@ -711,6 +714,9 @@
         "responses": {
           "200": {
             "description": "pending charge cancelled"
+          },
+          "403": {
+            "description": "billing module disabled"
           },
           "409": {
             "description": "second cancel returns invalid_state_transition"
@@ -759,6 +765,9 @@
         "responses": {
           "204": {
             "description": "soft-discards erroneous charge"
+          },
+          "403": {
+            "description": "billing module disabled"
           }
         }
       }
@@ -804,6 +813,9 @@
         "responses": {
           "409": {
             "description": "reissue paid charge returns conflict"
+          },
+          "403": {
+            "description": "billing module disabled"
           }
         }
       }
@@ -1694,6 +1706,109 @@
         "responses": {
           "200": {
             "description": "linked children only"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{id}/modules": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "School tenant identifier",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "patch": {
+        "summary": "Update school module flags",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "backoffice disables billing module",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "modules"
+                      ],
+                      "properties": {
+                        "modules": {
+                          "type": "object",
+                          "description": "Module enablement map keyed by module_key",
+                          "additionalProperties": {
+                            "type": "boolean"
+                          },
+                          "example": {
+                            "communication": true,
+                            "academic": true,
+                            "billing": false,
+                            "documents": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "staff without backoffice role"
+          },
+          "404": {
+            "description": "invalid school id"
+          },
+          "422": {
+            "description": "unknown module key"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "modules"
+                ],
+                "properties": {
+                  "modules": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "boolean"
+                    },
+                    "example": {
+                      "billing": false
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -3093,6 +3208,7 @@
         "tags": [
           "Backoffice"
         ],
+        "description": "Creates a school tenant. Backoffice actors must include school.owner_email; school staff may omit it when opening their own school. Set onboarding_mode to self_serve (default) for backoffice self-serve provisioning — response data.onboarding_status is pending_handoff. Set onboarding_mode to white_glove for assisted onboarding — response data.onboarding_status is provisioning while platform staff configure the tenant. All four MVP modules (communication, academic, billing, documents) are seeded enabled by default; pass optional modules to override individual flags.",
         "security": [
           {
             "bearer_auth": []
@@ -3109,7 +3225,106 @@
         ],
         "responses": {
           "201": {
-            "description": "school admin opens a school and becomes its administrator"
+            "description": "backoffice white-glove school created with onboarding_status provisioning",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "description": "Created school (SchoolBlueprint). Server seeds MVP modules (communication, academic, billing, documents); all enabled by default unless request modules overrides individual flags.",
+                      "required": [
+                        "id",
+                        "onboarding_status",
+                        "onboarding_mode",
+                        "name"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "School tenant identifier"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "cnpj": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "address": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "saas_plan": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "school_group_id": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "onboarding_status": {
+                          "type": "string",
+                          "enum": [
+                            "provisioning",
+                            "pending_handoff",
+                            "active"
+                          ],
+                          "description": "provisioning when onboarding_mode is white_glove; pending_handoff for backoffice self_serve"
+                        },
+                        "onboarding_mode": {
+                          "type": "string",
+                          "enum": [
+                            "self_serve",
+                            "white_glove"
+                          ]
+                        },
+                        "example": {
+                          "id": 42,
+                          "name": "White Glove Modules School",
+                          "onboarding_status": "provisioning",
+                          "onboarding_mode": "white_glove"
+                        },
+                        "billing_waived_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "segments_skipped_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "signature_email": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "signs_contracts": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Present when owner_email was supplied for backoffice provisioning",
+                      "properties": {
+                        "owner_invite_email_status": {
+                          "type": "string",
+                          "enum": [
+                            "queued",
+                            "not_configured"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "422": {
             "description": "missing owner_email for backoffice"
@@ -3138,16 +3353,63 @@
                       },
                       "school_group_id": {
                         "type": "integer"
+                      },
+                      "onboarding_mode": {
+                        "type": "string",
+                        "enum": [
+                          "self_serve",
+                          "white_glove"
+                        ]
+                      },
+                      "owner_email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Required for backoffice provisioning; omit when a school admin opens their own school."
                       }
                     },
                     "required": [
                       "name"
-                    ]
+                    ],
+                    "example": {
+                      "name": "White Glove Modules School",
+                      "cnpj": "98.765.432/0001-11",
+                      "onboarding_mode": "white_glove",
+                      "owner_email": "owner@whiteglove.example"
+                    }
+                  },
+                  "modules": {
+                    "type": "object",
+                    "description": "Optional partial overrides for MVP module flags; omitted keys keep defaults (all enabled).",
+                    "properties": {
+                      "communication": {
+                        "type": "boolean"
+                      },
+                      "academic": {
+                        "type": "boolean"
+                      },
+                      "billing": {
+                        "type": "boolean"
+                      },
+                      "documents": {
+                        "type": "boolean"
+                      }
+                    },
+                    "example": {
+                      "billing": false,
+                      "communication": true
+                    }
                   }
                 },
                 "required": [
                   "school"
-                ]
+                ],
+                "example": {
+                  "school": {
+                    "name": "White Glove Modules School",
+                    "onboarding_mode": "white_glove",
+                    "owner_email": "owner@whiteglove.example"
+                  }
+                }
               }
             }
           }

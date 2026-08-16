@@ -10,15 +10,16 @@ module SchoolAuditable
   included do
     audited associated_with: :school, except: AUDITED_EXCEPT
 
-    before_create :assign_provisioning_audit_comment
-    before_update :assign_provisioning_audit_comment
-    before_destroy :assign_provisioning_audit_comment
+    before_create :assign_provisioning_audit_comment, prepend: true
+    before_update :assign_provisioning_audit_comment, prepend: true
+    before_destroy :assign_provisioning_audit_comment, prepend: true
   end
 
   private
 
   def assign_provisioning_audit_comment
-    comment = SchoolLab::ProvisioningAuditMetadata.current_comment
+    comment = SchoolLab::ProvisioningAuditMetadata.current_comment ||
+              SchoolLab::BackofficeAuditMetadata.current_comment
     self.audit_comment = comment if comment.present?
   end
 end

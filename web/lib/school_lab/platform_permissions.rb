@@ -6,6 +6,10 @@ module SchoolLab
       "provision_school" => {
         domain: "onboarding",
         description: "Configure schools while onboarding_status is provisioning"
+      }.freeze,
+      "manage_backoffice_ops" => {
+        domain: "platform",
+        description: "Tenant module toggles and backoffice operations"
       }.freeze
     }.freeze
 

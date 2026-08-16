@@ -1,4 +1,17 @@
-import { AuthUser, Membership, RoleTemplate } from 'types/auth';
+import { AuthUser, Membership, RoleTemplate, SchoolModuleKey } from 'types/auth';
+
+const SCHOOL_MODULE_KEYS: SchoolModuleKey[] = ['communication', 'academic', 'billing', 'documents'];
+
+const parseEnabledModules = (value: unknown): SchoolModuleKey[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value.filter(
+    (key): key is SchoolModuleKey =>
+      typeof key === 'string' && SCHOOL_MODULE_KEYS.includes(key as SchoolModuleKey),
+  );
+};
 
 const parseRoleTemplate = (value: unknown): RoleTemplate | undefined => {
   if (!value || typeof value !== 'object') {
@@ -41,6 +54,7 @@ export const parseMembership = (raw: unknown): Membership => {
       membership.permission_sources && typeof membership.permission_sources === 'object'
         ? (membership.permission_sources as Record<string, string>)
         : {},
+    enabled_modules: parseEnabledModules(membership.enabled_modules),
     school_onboarding_status:
       typeof membership.school_onboarding_status === 'string'
         ? membership.school_onboarding_status

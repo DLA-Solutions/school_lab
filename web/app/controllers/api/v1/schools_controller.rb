@@ -29,7 +29,8 @@ module Api
         result = ::Schools::CreateSchoolService.call(
           params: school_params,
           actor: Current.user,
-          owner_email: owner_email
+          owner_email: owner_email,
+          modules: modules_params
         )
         render_service_result(result, success_status: :created) do |school|
           payload = { data: SchoolBlueprint.render_as_hash(school) }
@@ -81,6 +82,13 @@ module Api
           :name, :cnpj, :address, :saas_plan, :school_group_id, :onboarding_mode,
           :signature_email
         )
+      end
+
+      def modules_params
+        raw = params[:modules]
+        return if raw.blank?
+
+        raw.to_unsafe_h
       end
 
       def handoff_params

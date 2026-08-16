@@ -18,7 +18,7 @@ class UserBlueprint < Blueprinter::Base
 
   association :memberships, blueprint: MembershipBlueprint do |user, _options|
     user.memberships.kept.includes(
-      :school,
+      { school: :school_modules },
       staff_profile: { role_template: :role_template_permissions },
       membership_permissions: []
     )
