@@ -153,6 +153,13 @@ Rails.application.routes.draw do
           resources :holidays, only: %i[update destroy]
 
           namespace :billing do
+            get "fiscal/supported_cities", to: "supported_cities#index"
+            resource :fiscal_settings, only: %i[show update]
+            resources :fiscal_credentials, only: %i[index create] do
+              collection do
+                post :certificate
+              end
+            end
             resources :purposes, only: %i[index create update]
             resource :tax_declaration_settings, only: %i[show update]
             resource :settings, only: %i[show update]
