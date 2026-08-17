@@ -19,6 +19,7 @@ RSpec.describe "Standalone boletos, batch issuing and the dashboard", type: :req
 
   describe "a one-off boleto that answers to no contract" do
     let(:charges_path) { "/api/v1/schools/#{school.id}/billing/charges" }
+    let!(:material_purpose) { create(:billing_purpose, school: school, code: "material", name: "Material") }
 
     # A school bills for things nobody signed a contract about — a room rented for a weekend, a
     # replacement book for a child who already left. All the slip needs is a CPF to carry.
@@ -26,7 +27,8 @@ RSpec.describe "Standalone boletos, batch issuing and the dashboard", type: :req
       post charges_path,
            params: {
              charge: { guardian_id: mother.id, total_amount_cents: 7_500,
-                       due_date: "2026-09-15", description: "Aluguel da quadra" }
+                       due_date: "2026-09-15", description: "Aluguel da quadra",
+                       billing_purpose_id: material_purpose.id }
            },
            headers: headers, as: :json
 
@@ -46,7 +48,8 @@ RSpec.describe "Standalone boletos, batch issuing and the dashboard", type: :req
 
       post charges_path,
            params: {
-             charge: { contract_id: contract.id, total_amount_cents: 4_000, due_date: "2026-09-15" }
+             charge: { contract_id: contract.id, total_amount_cents: 4_000, due_date: "2026-09-15",
+                       billing_purpose_id: material_purpose.id }
            },
            headers: headers, as: :json
 

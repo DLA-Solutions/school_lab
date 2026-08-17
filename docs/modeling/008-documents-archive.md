@@ -2,7 +2,8 @@
 
 > PRD: [`docs/prds/documents-and-archive/`](../prds/documents-and-archive/)  
 > Depends on: [`005-students-enrollments.md`](005-students-enrollments.md)  
-> Executable schema: [`docs/database/schema.dbml`](../database/schema.dbml) · DER: `der_008.png` (TBD)
+> Executable schema: [`docs/database/schema.dbml`](../database/schema.dbml) · Local DER unavailable:
+> no repository renderer is installed; `der_008.png` was not fabricated
 
 ## Storage decision (Aug 2026)
 
@@ -27,6 +28,23 @@ must share the enrollment's `school_id` and `student_id`.
 | `archive_document_types` | School-configurable taxonomy |
 | `document_signatories` | Secretary/director blocks for generated docs |
 | `archive_exports` | Audit package generation jobs |
+
+### Guardian requests (BC3 backfill)
+
+| Table | Role |
+|-------|------|
+| `guardian_requests` | Family request queue for `declaration` or `second_call`, with staff resolution lifecycle |
+
+Each request carries `school_id`, the requesting guardian, a linked student, application-required
+details (nullable in the shipped DB pending a verified backfill + `NOT NULL` migration), optional
+same-school second-call subject/date, requester, and resolution actor/note/time. Rejection requires
+a note in the shipped service; fulfillment permits no note. Lifecycle is
+`pending` → `in_progress` → `fulfilled | rejected`, with `in_progress` releasable to `pending`.
+Guardian reads scope by both active school and `Current.guardian.id`; staff work the school queue
+with `manage_documents`.
+
+The request is not the generated file. A future fulfilled declaration may reference one or more
+`archive_documents`, but cardinality and retention require an explicit follow-up decision.
 
 Migration path: existing `documents` rows map to `archive_documents` with
 `legacy_fintech_kyc: true` flag during W1.
@@ -58,6 +76,10 @@ Guardian read moves to family-scoped archive routes.
 Access audit on guardian document views (P2 full audit; MVP log staff exports).
 Retention policy hooks in [`retention.md`](../prds/documents-and-archive/retention.md) — default
 retain until legal review.
+
+Guardian request details and resolution notes may contain child/family information. They are
+school-audited, family-scoped, and retained until a legal period is approved. Tax declaration
+calculations remain in billing; documents/archive may only store or index the final artifact.
 
 ## Out of scope (P2)
 

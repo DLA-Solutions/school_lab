@@ -19,6 +19,11 @@ Narrative DSL for the permissions engine. Authoritative columns for migrations a
 | `membership_permissions` | Per-membership overrides only (`effect`: grant \| deny) |
 | `segments` | Optional school education segment (MVP: id + name; stub allowed — D6) |
 
+`memberships` is unique by `(user_id, school_id, role)` among kept rows. This permits an account
+to hold, for example, separate `staff` and `guardian` profiles in the same school while preventing
+duplicate same-role memberships. Each request selects exactly one membership context; permissions
+and family scope never merge across those rows.
+
 ### Unchanged from 001
 
 `users`, `refresh_tokens`, `device_tokens`, `guardians`, `students` — see
@@ -31,6 +36,12 @@ Not a database table. `SchoolLab::Permissions::CATALOG` and `SYSTEM_TEMPLATES` i
 - `GET permission_definitions` API
 - `ProvisionSystemRoleTemplatesService` (new schools)
 - UC-P04 data migration (existing schools)
+
+The fixed catalog includes `manage_academic` for staff school-wide academic administration.
+Director and coordination system templates receive it by default; secretary and teacher templates
+do not. Teacher academic writes use `teach` intersected with class/subject assignments. Canonical
+capability ids such as `academic.record_attendance` or `academic.enter_grades` are traceability
+labels, not additional permission keys.
 
 ## school_role_templates
 
@@ -103,6 +114,12 @@ effective_permissions(membership) =
 ```
 
 Computed at runtime on every policy check and `GET /me` — no snapshot on membership.
+
+For tenant requests the client sends `X-Membership-Id` when more than one active membership exists
+for the path school. The API validates that the membership belongs to `Current.user`, matches
+`:school_id`, is kept/active, and then assigns `Current.membership`. Missing/ambiguous or mismatched
+context is rejected before Pundit. See [`docs/api/README.md`](../api/README.md) § Multi-school and
+profile context.
 
 Scope:
 

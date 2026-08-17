@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { staffMembership } from 'test/msw/handlers';
+import { staffMembership, guardianMembership } from 'test/msw/handlers';
 import sitemap, { searchableSubPages } from 'routes/sitemap';
 import {
   isModuleEnabledForMembership,
   menuItemModuleKey,
+  routeAudienceForPath,
   routeModuleKeyForPath,
   visibleMenuItems,
   visibleSitemap,
@@ -27,6 +28,15 @@ describe('visibleSitemap module filtering', () => {
     expect(routeModuleKeyForPath(paths.students)).toBe('academic');
     expect(routeModuleKeyForPath(paths.collaborators)).toBe('academic');
     expect(routeModuleKeyForPath(paths.dashboard)).toBeNull();
+  });
+
+  it('maps route audiences for deep-link guards', () => {
+    expect(routeAudienceForPath(paths.dashboard)).toBe('shared');
+    expect(routeAudienceForPath(paths.myPreceptorship)).toBe('guardian');
+    expect(routeAudienceForPath(paths.myReportCards)).toBe('guardian');
+    expect(routeAudienceForPath(paths.myTaxDeclarations)).toBe('guardian');
+    expect(routeAudienceForPath(paths.myCharges)).toBe('guardian');
+    expect(routeAudienceForPath(paths.reportCards)).toBe('staff');
   });
 
   it('hides billing menu items when billing module is disabled', () => {
@@ -72,8 +82,6 @@ describe('visibleSitemap module filtering', () => {
   });
 
   it('keeps module-gated items visible when enabled_modules is absent', () => {
-    // Built by removing the key rather than by destructuring it away: the lint rule here counts
-    // the discarded binding as an unused variable.
     const membership = { ...billingStaff };
     delete membership.enabled_modules;
 
@@ -92,5 +100,36 @@ describe('visibleSitemap module filtering', () => {
 
     expect(ids).not.toContain('charges');
     expect(ids).toContain('students');
+  });
+});
+
+describe('visibleSitemap audience filtering', () => {
+  it('shows only guardian destinations for a guardian membership', () => {
+    const ids = visibleSitemap(guardianMembership).map((item) => item.id);
+
+    expect(ids).toEqual([
+      'dashboard',
+      'my-charges',
+      'my-preceptorship',
+      'my-report-cards',
+      'my-tax-declarations',
+      'my-requests',
+    ]);
+  });
+
+  it('hides guardian-only items from staff memberships', () => {
+    const ids = visibleSitemap(staffMembership).map((item) => item.id);
+
+    expect(ids).not.toContain('my-preceptorship');
+    expect(ids).not.toContain('my-report-cards');
+    expect(ids).not.toContain('my-tax-declarations');
+    expect(ids).not.toContain('my-requests');
+    expect(ids).not.toContain('my-charges');
+  });
+
+  it('hides staff searchable sub-pages from guardians', () => {
+    const ids = visibleMenuItems(guardianMembership, searchableSubPages).map((item) => item.id);
+
+    expect(ids).toEqual([]);
   });
 });

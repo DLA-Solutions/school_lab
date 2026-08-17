@@ -8,9 +8,11 @@ module Api
           def index
             authorize Charge
 
-            charges = policy_scope(Charge).open
-                                          .includes(contract: :student)
-                                          .order(due_date: :asc)
+            charges = filter_charges_by_student(
+              policy_scope(Charge).open
+                                  .includes(contract: :student)
+                                  .order(due_date: :asc)
+            )
             pagy, records = pagy(charges)
 
             render json: {
@@ -22,9 +24,11 @@ module Api
           def history
             authorize Charge, :index?
 
-            charges = policy_scope(Charge).where(status: :paid)
-                                          .includes(:payments, contract: :student)
-                                          .order(updated_at: :desc)
+            charges = filter_charges_by_student(
+              policy_scope(Charge).where(status: :paid)
+                                  .includes(:payments, contract: :student)
+                                  .order(updated_at: :desc)
+            )
             pagy, records = pagy(charges)
 
             render json: {
@@ -48,6 +52,15 @@ module Api
             render_service_result(result) do |updated|
               render json: { data: ChargeBlueprint.render_as_hash(updated, view: :guardian) }
             end
+          end
+
+          private
+
+          def filter_charges_by_student(scope)
+            return scope if params[:student_id].blank?
+
+            student = policy_scope(Student).find(params[:student_id])
+            scope.joins(:contract).where(contracts: { student_id: student.id })
           end
         end
       end

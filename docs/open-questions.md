@@ -141,13 +141,18 @@ See [`onboarding.md`](prds/identity-and-onboarding/onboarding.md) § Future inte
 - [x] **Backoffice in the MVP** — school registration, module flags, white-glove provisioning
       dashboard only — **not** platform SaaS billing to schools (phase 2). See
       [`platform-and-admin/backoffice.md`](prds/platform-and-admin/backoffice.md).
-- [x] **Parents in the MVP: app and web** — both channels; mobile primary for push/messaging;
-      web guardian routes in MVP for billing/documents parity. Aligned across
+- [x] **Responsáveis in the MVP: web and app** — guardian portal delivery is web first, followed
+      by mobile parity after each stable contract; mobile remains primary for push/messaging. Aligned across
       [`actors-and-surfaces.md`](actors-and-surfaces.md), [`mvp-scope.md`](product/mvp-scope.md),
       [`layer-mobile-app.md`](prds/layer-mobile-app.md).
 - [x] **Student login in MVP** — **record-only** through MVP; no student app login. Staff and
       guardian surfaces proxy student data. Phase 2 minimal student portal (diary, grades read-only).
       See [`actors-and-surfaces.md`](actors-and-surfaces.md) §1.
+- [x] **Guardian portal terminology and context** — pt-BR UI uses **Responsável** while technical
+      identifiers remain `guardian`; Responsável financeiro is a payer relationship, not a role.
+      Dual-role/multi-school users explicitly select one `membership.id` profile/school context;
+      menus are never merged. Web portal ships before mobile parity. See
+      [`layer-web-spa.md`](prds/layer-web-spa.md) § MVP product menus.
 
 ## Billing
 
@@ -216,6 +221,23 @@ in `docs/prds/fintech-first.md` (Open items).
       `Billing::CollectionReguaNotifier` and `notification_schedule`. WhatsApp/SMS out of
       MVP.
 
+### Annual tax declarations — release blockers
+
+PRD and API/model contract:
+[`billing/tax-declarations.md`](prds/billing/tax-declarations.md). Engineering may implement the
+contract, but product release remains blocked until these decisions are approved by Brazilian
+legal/accounting specialists:
+
+- [ ] Which billing purposes are legally eligible. `tuition` and `enrollment` are provisional
+      seeded defaults only. The product decision is to declare settled principal after discounts
+      and always exclude bank-reported fine and interest; legal/accounting must approve that
+      conservative rule and any eligible-purpose release.
+- [ ] Approved declaration wording, signatory qualification, and required presentation of school
+      CNPJ and payer CPF.
+- [ ] Fiscal/LGPD retention period for declaration versions, PDFs, payment line items, and download
+      audit events.
+- [ ] Whether superseded declaration versions remain guardian-downloadable or audit/staff-only.
+
 ## Digital archive / auditing
 
 - [x] **Which documents does the Secretaria/Conselho require?** — MVP seed list in
@@ -263,7 +285,8 @@ signature infrastructure with contracts.
       **trimester** for fundamental_medio; numeric and concept scales supported per evaluation
       template ([`academic/grades.md`](prds/academic/grades.md), [`platform-and-admin/school-year.md`](prds/platform-and-admin/school-year.md) BR-SY04).
 - [x] **Report card format** — per-school template reference on `report_card_configs`; standard
-      engine with school logo/signatories ([`academic/report-cards.md`](prds/academic/report-cards.md)).
+      engine with school logo and exactly one `document_signatory_id`, matching DBML
+      ([`academic/report-cards.md`](prds/academic/report-cards.md)).
 - [x] **Attendance reliability rules** — **15-minute** auto-confirm delay after last edit; idempotent
       `AbsenceRecorded` → FCM; retry with backoff; audit on `notification_deliveries`
       ([`academic/attendance.md`](prds/academic/attendance.md), NFR-001).
@@ -335,6 +358,10 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
 - [ ] Legacy billing year resolution — contracts created before `contracts.enrollment_id` cannot
       be assigned to a school year safely from dates alone. Define backfill evidence and how
       school-year deletion treats unresolved legacy contracts.
+- [ ] Retention and access-audit requirements for published Preceptoria narratives/PDFs and
+      guardian request details/resolutions.
+- [ ] Retention and download-audit requirements for annual tax declarations and their immutable
+      payer/child/payment snapshots (also tracked under Billing release blockers).
 
 ### Billing integration (Cora) — recorded Aug 2026
 

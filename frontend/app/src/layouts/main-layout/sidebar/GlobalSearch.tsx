@@ -8,6 +8,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
+import { useActiveMembership } from 'providers/ActiveMembershipContext';
 import { useTranslation } from 'providers/I18nContext';
 import type { MessageKey } from 'locales';
 import { listTeachers } from 'services/academicsApi';
@@ -50,6 +51,7 @@ const GROUPS = {
  */
 const GlobalSearch = () => {
   const navigate = useNavigate();
+  const activeMembership = useActiveMembership();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -68,7 +70,7 @@ const GlobalSearch = () => {
     }
 
     // The nav plus the places that are reachable but no longer have a menu entry of their own.
-    return [...visibleSitemap(school), ...visibleMenuItems(school, searchableSubPages)]
+    return [...visibleSitemap(activeMembership), ...visibleMenuItems(activeMembership, searchableSubPages)]
       .filter((item) => item.path && matchesTerm(t(item.subheader as MessageKey), debouncedTerm))
       .map((item) => ({
         key: `page-${item.id}`,
@@ -76,7 +78,7 @@ const GlobalSearch = () => {
         label: t(item.subheader as MessageKey),
         to: item.path as string,
       }));
-  }, [debouncedTerm, isSearching, school, t]);
+  }, [activeMembership, debouncedTerm, isSearching, t]);
 
   useEffect(() => {
     // The people registers are staff-only; a guardian gets pages alone rather than three 403s.

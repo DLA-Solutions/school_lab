@@ -109,8 +109,16 @@ When `contracts.plan_discount_id` is set, generation applies `PlanDiscount#apply
 
 BR-C06
 
-**Planned:** `charge_types` are school-scoped categories (tuition, enrollment, material, activity)
-with optional chart-of-accounts code for export. Every charge references `charge_type_id`.
+**Planned:** `billing_purposes` are school-scoped categories with stable English codes (for
+example `tuition`, `enrollment`, `material`, `activity`) and optional chart-of-accounts code for
+export. Every new charge references `billing_purpose_id` and copies `billing_purpose_code` plus the
+purpose's current `tax_declaration_eligible` value. Those copied values are immutable so future
+school configuration changes cannot rewrite annual declarations
+([`tax-declarations.md`](tax-declarations.md) BR-TD04–BR-TD05).
+
+`billing.manage_charge_types` remains the canonical market capability id/label, but the School Lab
+domain entity and API resource are consistently named `billing_purposes` / `/billing/purposes`.
+There is no separate `charge_types` table.
 
 BR-C07
 
@@ -125,7 +133,7 @@ automated régua actions when `in_negotiation` (manual flag; no auto-protest in 
 
 BR-C09
 
-Ad-hoc charges require explicit `due_date`, `charge_type_id`, `student_id`, `guardian_id`, and
+Ad-hoc charges require explicit `due_date`, `billing_purpose_id`, `student_id`, `guardian_id`, and
 amount; enqueue issuance same as recurring ([`boletos.md`](boletos.md) UC-B01).
 
 BR-C10
@@ -136,7 +144,7 @@ charge `pending` with monitoring alert (NFR-001). **Implemented.**
 BR-C11
 
 Search receivables by `student_id`, `guardian_id`, `status`, `billing_period`, `due_date` range,
-and `charge_type_id` (when types ship). **Partial** — API filters exist; UX search planned.
+and `billing_purpose_id` (when purposes ship). **Partial** — API filters exist; UX search planned.
 
 ---
 
@@ -157,7 +165,7 @@ Flow
 
 ### UC-C02 — Create ad-hoc charge
 
-Input: student, guardian, charge type, amount, due date.
+Input: student, guardian, billing purpose, amount, due date.
 
 Flow
 
@@ -224,8 +232,8 @@ Baseline routes in [`fintech-first.md`](../../api/v1/fintech-first.md). Extensio
 
 | Method | Path | Notes |
 |--------|------|-------|
-| `GET` | `/billing/charge_types` | List school charge types |
-| `POST` | `/billing/charge_types` | Create type |
+| `GET` | `/billing/purposes` | List school billing purposes and future-charge eligibility |
+| `POST` | `/billing/purposes` | Create purpose |
 | `POST` | `/billing/charges` | Ad-hoc charge create |
 | `POST` | `/billing/charges/:id/adjustments` | Adjustment with audit |
 | `POST` | `/billing/charges/:id/negotiate` | Set negotiation status |
@@ -250,7 +258,7 @@ Baseline routes in [`fintech-first.md`](../../api/v1/fintech-first.md). Extensio
 |----------|----------|
 | Narrative DSL | [`001-fintech-first.md`](../../modeling/001-fintech-first.md) |
 | DBML | [`schema.dbml`](../../database/schema.dbml) |
-| Planned entities | `charge_types`, `charge_adjustments` (naming TBD at modeling) |
+| Planned entities | `billing_purposes`, `charge_adjustments` |
 
 Existing: `billing_plans`, `contracts`, `charges`, `applied_discounts`.
 

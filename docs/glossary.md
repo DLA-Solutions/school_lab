@@ -39,6 +39,11 @@ When adding a new Portuguese identifier, confirm with the team and update this t
 | Onboarding status | `onboarding_status` | Status de onboarding |
 | Onboarding mode | `onboarding_mode` | Modo de onboarding |
 | Role template | `role_template_id` | Perfil de acesso |
+| Financially responsible guardian (payer relationship) | `financial_responsible`, `guardian_id` on charge | Responsável financeiro |
+| Active membership context | `active_membership_id` (client selection of `membership.id`) | Perfil e escola ativos |
+| Preceptorship narrative report | `preceptorship_report` | Preceptoria |
+| Guardian request | `guardian_request` | Pedido / Solicitação |
+| Tax declaration | `tax_declaration` | Declaração de imposto de renda |
 
 `signature_status` values (phase 2, enrollment contracts): `pending`, `sent`, `signed`,
 `declined`, `expired` — tracked separately from `onboarding_status`.
@@ -57,6 +62,10 @@ existing rows rather than introduce both table names.
 | Guardian | `guardian` | Responsável |
 
 Legacy: `school` role maps to `staff` (see identity PRD D1).
+
+`guardian` is the only login-role identifier for a Responsável. **Responsável financeiro** is a
+payer relationship on `student_guardians`/billing records; it must never be modeled or displayed as
+a second authorization role.
 
 ## Role templates
 

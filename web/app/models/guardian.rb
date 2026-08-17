@@ -18,6 +18,8 @@ class Guardian < ApplicationRecord
   has_many :charges, dependent: :destroy
   has_many :documents, as: :documentable, dependent: :destroy
   has_many :guardian_requests, dependent: :destroy
+  has_many :tax_declarations, dependent: :destroy
+  has_many :tax_declaration_access_events, dependent: :destroy
 
   # Normalisation runs before validation so uniqueness compares the canonical form, and so a
   # guardian saved through the console or a seed is stored exactly like one saved through the API.

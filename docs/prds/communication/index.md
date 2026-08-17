@@ -193,7 +193,7 @@ flowchart TB
 
 | Actor | Surfaces | Primary actions in this domain |
 |-------|----------|--------------------------------|
-| guardian | Mobile (primary); web phase 2 | DM, group read, tickets, announcements, photos, notification inbox, push receive |
+| guardian (UI: **Responsável**) | Web and mobile MVP; mobile priority for push-driven communication | DM, group read, tickets, announcements, photos, notification inbox, push receive; web routes live in `frontend/app`, never `frontend/backoffice` |
 | teacher | Web SPA + mobile | Send/receive messages, class groups, photo updates, submit announcements for approval |
 | staff (secretary, coordination, director) | Web SPA + mobile | Channels, moderation, announcements, module config, push policy, service inbox |
 | backoffice | Web SPA (backoffice) | Module enablement per tenant; no school message content access in MVP |

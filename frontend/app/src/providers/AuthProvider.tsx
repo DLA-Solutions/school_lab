@@ -4,6 +4,7 @@ import { AuthUser } from 'types/auth';
 import { refreshAccessToken } from 'services/api';
 import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from 'services/authApi';
 import { clearAccessToken, setAccessToken } from 'services/tokenStore';
+import { clearStoredActiveMembershipId } from 'services/activeMembershipStore';
 import { AuthContext, AuthStatus, LoginCredentials } from './AuthContext';
 
 const AuthProvider = ({ children }: PropsWithChildren) => {
@@ -63,6 +64,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
       // The session is dropped locally even if the revoke call fails.
     } finally {
       clearAccessToken();
+      clearStoredActiveMembershipId();
       setUser(null);
       setStatus('unauthenticated');
     }

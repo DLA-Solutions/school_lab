@@ -342,9 +342,9 @@ Entity groups — full definitions in modeling doc when available.
 
 | Artifact | Location |
 |----------|----------|
-| Narrative DSL | `docs/modeling/008-documents-archive.md` *(pending)* |
+| Narrative model | [`docs/modeling/008-documents-archive.md`](../../modeling/008-documents-archive.md) *(aligned)* |
 | DBML | `docs/database/database_dml.md` |
-| DER | `docs/database/der_008.png` *(pending)* |
+| DER | `docs/database/der_008.png` *(unavailable — no repository-local renderer; not fabricated)* |
 
 ---
 

@@ -93,6 +93,12 @@ BR-S10
 Settlement interest from bank persists on `payments.interest_amount_cents` when provider reports
 it. **Implemented.**
 
+BR-S11
+
+Annual tax-declaration purpose eligibility is configured per school in `billing_purposes`, not in
+payment-provider settings or `school_transactions.category`. Changes apply only to future charges;
+see [`tax-declarations.md`](tax-declarations.md).
+
 ---
 
 ## Use Cases
@@ -211,3 +217,4 @@ AC-S04
 - Gateway credentials — [`payments.md`](payments.md) / `bank_credentials`.
 - NFS-e per-city parameters — [`invoices.md`](invoices.md) P2.
 - Platform-wide default mora rate — explicitly rejected Aug 2026.
+- Annual declaration calculation, wording, and versioning — [`tax-declarations.md`](tax-declarations.md).

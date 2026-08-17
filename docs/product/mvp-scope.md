@@ -151,9 +151,9 @@ domain PRD is missing or not written (see capability-map for detail).
 | Capability | Label | PRD target | Parity gap | Notes |
 |:---|:---|:---|:---:|:---|
 | `academic.assign_teacher_to_subject` | Assign teachers to subjects and diaries | `prds/academic/diary.md` | no | Bulk and individual teacher–discipline links. |
-| `academic.configure_evaluation_template` | Configure evaluation templates | `prds/academic/grades.md` | no | Self-service templates; ERP mode when integrated. Blocked — see capability-map. |
+| `academic.configure_evaluation_template` | Configure evaluation templates | `prds/academic/grades.md` | no | Self-service templates; ERP mode when integrated. |
 | `academic.configure_multi_school` | Configure multi-school tenancy views | `prds/platform-and-admin/backoffice.md` | no | Multi-school tenancy; per-school isolation. |
-| `academic.configure_report_card` | Configure report card display rules | `prds/academic/report-cards.md` | no | Hide disciplines or final grades per policy. Blocked — see capability-map. |
+| `academic.configure_report_card` | Configure report card display rules | `prds/academic/report-cards.md` | no | Hide disciplines or final grades per policy. |
 | `academic.enter_grades` | Enter grades in diary and activities | `prds/academic/grades.md` | no | Teacher diary grade entry; secretary override with audit. Differentiator. |
 | `academic.export_attendance` | Export and print attendance records | `prds/academic/attendance.md` | no | Blank frequency sheets and period exports. |
 | `academic.justify_absence` | Justify student absences | `prds/academic/attendance.md` | no | Documented justification with audit trail. |
@@ -162,11 +162,11 @@ domain PRD is missing or not written (see capability-map for detail).
 | `academic.manage_attendance_policy` | Manage attendance counting policy | `prds/academic/attendance.md` | no | School-level policy with per-period override. Differentiator. |
 | `academic.manage_class_diary` | Manage class diary lessons and activities | `prds/academic/diary.md` | no | Individual and batch lessons tied to evaluation. |
 | `academic.manage_curriculum_matrix` | Manage curriculum matrix and disciplines | `prds/academic/curriculum.md` | no | Disciplines, subdisciplines, skills matrix self-service. |
-| `academic.manage_grade_scale` | Configure grading criteria and formulas | `prds/academic/grades.md` | no | Self-service grade scales; ERP mode when integrated. Blocked — see capability-map. |
+| `academic.manage_grade_scale` | Configure grading criteria and formulas | `prds/academic/grades.md` | no | Self-service numeric/concept/rubric scales; report-card format is decided. |
 | `academic.manage_period_closure` | Close academic period and year | `prds/academic/periods.md` | no | Checklist-driven period close; blocks incomplete diaries. |
 | `academic.manage_recovery_grades` | Manage recovery and reassessment grades | `prds/academic/grades.md` | no | Parallel recovery and dependency flows explicit. |
 | `academic.manage_teacher_diary` | Manage teacher diary workflow | `prds/academic/diary.md` | no | Submit, return, and monitor diary delivery. |
-| `academic.publish_report_card` | Publish report cards (boletim) | `prds/academic/report-cards.md` | no | Scheduled boletim release with guardian notification. Differentiator. |
+| `academic.publish_report_card` | Publish report cards (boletim) | `prds/academic/report-cards.md` | no | Scheduled atomic release emits `ReportCardPublished`; notification consumption is unresolved. Differentiator. |
 | `academic.record_attendance` | Record attendance | `prds/academic/attendance.md` | no | Reliable attendance; legal impact if wrong. Differentiator. |
 | `academic.record_incidents` | Record disciplinary and pastoral incidents | `prds/academic/incidents.md` | no | Typed occurrences with family visibility policy. |
 | `academic.search_help_center` | Search product help center | — | no | Ship searchable help for own product. |

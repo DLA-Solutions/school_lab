@@ -13,6 +13,22 @@ class AcademicPeriodPolicy < ApplicationPolicy
     staff_with?(:manage_school_settings)
   end
 
+  def closure_checklist?
+    staff_with?(:manage_academic)
+  end
+
+  def start_closure?
+    staff_with?(:manage_academic)
+  end
+
+  def close?
+    staff_with?(:manage_academic)
+  end
+
+  def reopen?
+    staff_with?(:manage_academic)
+  end
+
   class Scope < Scope
     def resolve
       return scope.none unless Current.school

@@ -1084,6 +1084,104 @@
         ]
       }
     },
+    "/api/v1/schools/{school_id}/academics/academic_periods/{id}/closure_checklist": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Closure checklist for academic period",
+        "tags": [
+          "Academic",
+          "Academic Periods"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns checklist blockers"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/academic_periods/{id}/start_closure": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Start academic period closure",
+        "tags": [
+          "Academic",
+          "Academic Periods"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "transitions open to closing when checklist passes"
+          },
+          "422": {
+            "description": "checklist incomplete when grade launch missing"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/academics/grades": {
       "get": {
         "summary": "List grades",
@@ -1755,6 +1853,577 @@
         "responses": {
           "201": {
             "description": "created"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_config": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show report card config",
+        "tags": [
+          "Report Cards",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "missing config"
+          },
+          "200": {
+            "description": "returns current config"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update report card config",
+        "tags": [
+          "Report Cards",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "creates next config version"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "report_card_config": {
+                    "type": "object",
+                    "properties": {
+                      "document_signatory_id": {
+                        "type": "integer"
+                      },
+                      "template_key": {
+                        "type": "string"
+                      },
+                      "display_config": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update report card configs",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_report_card_configs_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_publication_batches": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Publish report cards for a class",
+        "tags": [
+          "Report Cards",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "atomic immediate publish"
+          },
+          "422": {
+            "description": "batch fails when attendance pending"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "report_card_publication_batch": {
+                    "type": "object",
+                    "properties": {
+                      "class_id": {
+                        "type": "integer"
+                      },
+                      "academic_period_id": {
+                        "type": "integer"
+                      },
+                      "scheduled_for": {
+                        "type": "string",
+                        "nullable": true
+                      }
+                    },
+                    "required": [
+                      "class_id",
+                      "academic_period_id"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_publication_batches/validate": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Validate report card batch readiness",
+        "tags": [
+          "Report Cards",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ready when prerequisites met"
+          },
+          "422": {
+            "description": "not ready when grade launch missing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "report_card_publication_batch": {
+                    "type": "object",
+                    "properties": {
+                      "class_id": {
+                        "type": "integer"
+                      },
+                      "academic_period_id": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "class_id",
+                      "academic_period_id"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_publication_batches/{id}": {
+      "get": {
+        "summary": "Show report card publication batches",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_report_card_publication_batches_show",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_publications/{id}": {
+      "get": {
+        "summary": "Show report card publications",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_report_card_publications_show",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_publications/{id}/republish": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Republish report card",
+        "tags": [
+          "Report Cards",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "422": {
+            "description": "requires correction reason"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "report_card_publication": {
+                    "type": "object",
+                    "properties": {
+                      "correction_reason": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_publications/{report_card_publication_id}/snapshots/{id}": {
+      "get": {
+        "summary": "Show report card snapshots",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_report_card_snapshots_show",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "report_card_publication_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_publications/{report_card_publication_id}/snapshots/{id}/pdf": {
+      "get": {
+        "summary": "Pdf — report card snapshots",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_report_card_snapshots_pdf",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "report_card_publication_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/report_card_publish_schedules/{id}": {
+      "get": {
+        "summary": "Show report card publish schedules",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_report_card_publish_schedules_show",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
           },
           "401": {
             "description": "not authenticated"
@@ -2625,13 +3294,13 @@
         ],
         "responses": {
           "200": {
-            "description": "lists metadata only"
+            "description": "allowed for the school's own billing staff"
           },
           "401": {
             "description": "unauthenticated"
           },
           "403": {
-            "description": "forbidden for school staff"
+            "description": "forbidden for school staff without billing"
           }
         }
       },
@@ -4404,6 +5073,219 @@
         ]
       }
     },
+    "/api/v1/schools/{school_id}/billing/purposes": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List billing purposes",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns seeded default purposes"
+          },
+          "403": {
+            "description": "forbidden for guardian"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create billing purpose",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "creates a school purpose"
+          },
+          "422": {
+            "description": "validation error for duplicate code"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "billing_purpose": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "name"
+                    ]
+                  }
+                },
+                "required": [
+                  "billing_purpose"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/billing/purposes/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "patch": {
+        "summary": "Update billing purpose eligibility",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "updates future-charge eligibility and approves configuration"
+          },
+          "404": {
+            "description": "not found for another school"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "billing_purpose": {
+                    "type": "object",
+                    "properties": {
+                      "tax_declaration_eligible": {
+                        "type": "boolean"
+                      },
+                      "acknowledge_legal_ownership": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "billing_purpose"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update purposes",
+        "tags": [
+          "Billing"
+        ],
+        "operationId": "api_v1_schools_billing_purposes_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/schools/{school_id}/billing/settings": {
       "parameters": [
         {
@@ -4580,6 +5462,142 @@
             "description": "summary reflects open and overdue counts"
           }
         }
+      }
+    },
+    "/api/v1/schools/{school_id}/billing/tax_declaration_settings": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show tax declaration settings",
+        "tags": [
+          "Billing",
+          "Tax Declarations"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns defaults with provisioned purposes"
+          },
+          "403": {
+            "description": "forbidden for guardian"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update tax declaration settings",
+        "tags": [
+          "Billing",
+          "Tax Declarations"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "persists legal text and signatory"
+          },
+          "404": {
+            "description": "not found for another school"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tax_declaration_settings": {
+                    "type": "object",
+                    "properties": {
+                      "legal_text": {
+                        "type": "string"
+                      },
+                      "legal_text_version": {
+                        "type": "string"
+                      },
+                      "document_signatory_id": {
+                        "type": "integer"
+                      },
+                      "acknowledge_legal_ownership": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "tax_declaration_settings"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update tax declaration settings",
+        "tags": [
+          "Billing"
+        ],
+        "operationId": "api_v1_schools_billing_tax_declaration_settings_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
       }
     },
     "/api/v1/schools/{school_id}/billing/transactions": {
@@ -5398,11 +6416,26 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "student_id",
+            "in": "query",
+            "required": false,
+            "description": "Optional linked child filter",
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "family open charges only"
+            "description": "filters by linked student_id"
+          },
+          "404": {
+            "description": "unlinked student_id filter"
+          },
+          "403": {
+            "description": "non-guardian role"
           }
         }
       }
@@ -5435,11 +6468,26 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "student_id",
+            "in": "query",
+            "required": false,
+            "description": "Optional linked child filter",
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "platform paid charges with source"
+            "description": "filters history by linked student_id"
+          },
+          "404": {
+            "description": "unlinked student_id filter"
+          },
+          "403": {
+            "description": "non-guardian role"
           }
         }
       }
@@ -5488,53 +6536,62 @@
           },
           "404": {
             "description": "cross-family charge"
+          },
+          "403": {
+            "description": "non-guardian role"
           }
         }
       }
     },
     "/api/v1/schools/{school_id}/me/charges/{id}/reissue": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
       "post": {
-        "summary": "Reissue — charges",
+        "summary": "Reissue guardian charge",
         "tags": [
-          "Me"
+          "Guardian Me"
         ],
-        "operationId": "api_v1_schools_me_charges_reissue",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
         "parameters": [
           {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
+            "name": "Authorization",
+            "in": "header",
             "schema": {
               "type": "string"
             }
           }
         ],
         "responses": {
-          "201": {
-            "description": "created"
+          "200": {
+            "description": "guardian reissues own open charge"
           },
-          "401": {
-            "description": "not authenticated"
+          "404": {
+            "description": "cross-family charge"
           },
           "403": {
-            "description": "not allowed"
+            "description": "non-guardian role"
           }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/schools/{school_id}/me/documents": {
@@ -5738,6 +6795,207 @@
         ]
       }
     },
+    "/api/v1/schools/{school_id}/me/report_cards": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "student_id",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List guardian report cards",
+        "tags": [
+          "Report Cards",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns released snapshots for linked student"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/report_cards/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show guardian report card",
+        "tags": [
+          "Report Cards",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns active snapshot"
+          },
+          "404": {
+            "description": "cross-family publication hidden"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/report_cards/{id}/snapshots/{snapshot_id}": {
+      "get": {
+        "summary": "Snapshot — report cards",
+        "tags": [
+          "Me"
+        ],
+        "operationId": "api_v1_schools_me_report_cards_snapshot",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/me/report_cards/{id}/snapshots/{snapshot_id}/pdf": {
+      "get": {
+        "summary": "Pdf — report cards",
+        "tags": [
+          "Me"
+        ],
+        "operationId": "api_v1_schools_me_report_cards_pdf",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/schools/{school_id}/me/requests": {
       "get": {
         "summary": "List requests",
@@ -5888,6 +7146,315 @@
         "responses": {
           "200": {
             "description": "linked children only"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/tax_declarations": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List guardian tax declarations",
+        "tags": [
+          "Tax Declarations",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns own aggregates"
+          }
+        }
+      },
+      "post": {
+        "summary": "Ensure tax declaration generation",
+        "tags": [
+          "Tax Declarations",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "creates first version"
+          },
+          "200": {
+            "description": "returns unchanged version"
+          },
+          "422": {
+            "description": "no eligible payments"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tax_declaration": {
+                    "type": "object",
+                    "properties": {
+                      "calendar_year": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "calendar_year"
+                    ]
+                  }
+                },
+                "required": [
+                  "tax_declaration"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/tax_declarations/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show guardian tax declaration",
+        "tags": [
+          "Tax Declarations",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns aggregate detail"
+          },
+          "404": {
+            "description": "cross-family aggregate hidden"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/tax_declarations/{tax_declaration_id}/versions": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "tax_declaration_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List tax declaration versions",
+        "tags": [
+          "Tax Declarations",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "lists versions"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/tax_declarations/{tax_declaration_id}/versions/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "tax_declaration_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show tax declaration version",
+        "tags": [
+          "Tax Declarations",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns version detail"
+          },
+          "404": {
+            "description": "version not under aggregate"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/tax_declarations/{tax_declaration_id}/versions/{id}/pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "tax_declaration_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Download tax declaration PDF",
+        "tags": [
+          "Tax Declarations",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Request-UUID",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns stored PDF bytes"
           }
         }
       }

@@ -10,6 +10,7 @@ class Charge < ApplicationRecord
   belongs_to :contract, optional: true
   belongs_to :school
   belongs_to :guardian
+  belongs_to :billing_purpose, optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
 
   has_many :applied_discounts, dependent: :destroy

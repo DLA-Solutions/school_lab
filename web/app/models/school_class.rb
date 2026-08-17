@@ -27,6 +27,10 @@ class SchoolClass < ApplicationRecord
   has_many :teaching_assignments, dependent: :destroy
   has_many :teachers, -> { distinct }, through: :teaching_assignments
   has_many :subjects, -> { distinct }, through: :teaching_assignments
+  has_many :class_disciplines, dependent: :destroy
+  has_many :evaluation_templates, dependent: :destroy
+  has_many :grade_launches, dependent: :destroy
+  has_many :attendance_sessions, dependent: :destroy
 
   # "A", "a" and " A " all name the same cohort. Folded on the way in so the register holds one
   # spelling, and compared case-insensitively so the older spellings cannot slip past either.

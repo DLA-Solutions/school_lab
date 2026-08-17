@@ -64,6 +64,7 @@ Membership objects include permission payload:
         "school_name": "Example School",
         "role": "staff",
         "status": "active",
+        "selectable": true,
         "role_template": {
           "id": 1,
           "name": "Direção",
@@ -73,12 +74,36 @@ Membership objects include permission payload:
         "is_owner": true,
         "segment_id": null,
         "display_title": "Diretor",
-        "permissions": ["manage_billing", "manage_people"]
+        "permissions": ["manage_billing", "manage_people", "manage_academic"]
       }
     ]
   }
 }
 ```
+
+`GET /me` returns every kept membership so invite/suspension state remains visible, but only
+`status: active` rows carry `selectable: true`. It does not declare a server-global active school.
+Clients select one selectable `membership.id`, persist only that id, and revalidate it against this
+payload on refresh. One eligible membership may be selected automatically; multiple memberships
+require an explicit profile/school choice. Invited/suspended rows are not selectable, and a removed
+or discarded row is absent.
+
+Role and `school_id` always derive from the selected membership. Switching clears school-scoped
+client state and navigates to the audience dashboard. A user with staff/teacher and guardian
+memberships switches explicitly; clients do not merge menus or silently prioritize staff. UI
+localizes `guardian` as **Responsável** and uses `display_title`/role-template names for staff.
+`financial_responsible` is a payer relationship and never appears as a membership role.
+
+`manage_academic` is a fixed staff permission returned by
+`GET /permission_definitions`; director and coordination system templates receive it by default.
+Teacher writes use `teach` plus assignment scope. Capability ids such as
+`academic.record_attendance` and `academic.enter_grades` are not permission keys.
+
+School-scoped requests carry `X-Membership-Id`. The API validates ownership, path-school match, and
+active status before setting `Current.membership`; it may infer the context only when exactly one
+eligible membership exists for that school. Same-school dual-role accounts are represented by
+separate `(user_id, school_id, role)` memberships. Ambiguous omission returns `409
+membership_context_required`; invalid/stale selection returns `403 invalid_membership_context`.
 
 | Method | Path | Description |
 |--------|------|-------------|

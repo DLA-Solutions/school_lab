@@ -2,6 +2,11 @@ import { Membership, SchoolModuleKey } from 'types/auth';
 import paths from 'routes/paths';
 import sitemap, { MenuItem } from 'routes/sitemap';
 import { membershipHasPermission } from 'utils/onboarding/access';
+import {
+  membershipAudience,
+  membershipMatchesAudience,
+  RouteAudience,
+} from 'utils/membership/audience';
 
 /** Maps sitemap item ids to the school module that gates visibility. */
 const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
@@ -14,6 +19,10 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   plans: 'billing',
   'billing-settings': 'billing',
   'contract-template': 'billing',
+  'my-charges': 'billing',
+  'my-tax-declarations': 'billing',
+  'report-cards': 'academic',
+  'my-report-cards': 'academic',
 };
 
 /** Maps SPA paths to module keys for deep-link route guards (includes off-menu academic routes). */
@@ -29,6 +38,41 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.subjects]: 'academic',
   [paths.collaborators]: 'academic',
   [paths.jobPositions]: 'academic',
+  [paths.grades]: 'academic',
+  [paths.preceptorship]: 'academic',
+  [paths.reportCards]: 'academic',
+  [paths.requests]: 'documents',
+  [paths.myPreceptorship]: 'academic',
+  [paths.myReportCards]: 'academic',
+  [paths.myTaxDeclarations]: 'billing',
+  [paths.myCharges]: 'billing',
+  [paths.myRequests]: 'documents',
+};
+
+/** Maps SPA paths to route audiences for deep-link guards. */
+const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
+  [paths.dashboard]: 'shared',
+  [paths.myPreceptorship]: 'guardian',
+  [paths.myReportCards]: 'guardian',
+  [paths.myTaxDeclarations]: 'guardian',
+  [paths.myCharges]: 'guardian',
+  [paths.myRequests]: 'guardian',
+  [paths.guardians]: 'staff',
+  [paths.students]: 'staff',
+  [paths.team]: 'staff',
+  [paths.collaborators]: 'staff',
+  [paths.lessons]: 'staff',
+  [paths.grades]: 'staff',
+  [paths.schoolClasses]: 'staff',
+  [paths.subjects]: 'staff',
+  [paths.jobPositions]: 'staff',
+  [paths.preceptorship]: 'staff',
+  [paths.reportCards]: 'staff',
+  [paths.requests]: 'staff',
+  [paths.charges]: 'staff',
+  [paths.plans]: 'staff',
+  [paths.billingSettings]: 'staff',
+  [paths.contractTemplate]: 'staff',
 };
 
 export const menuItemModuleKey = (item: MenuItem): SchoolModuleKey | null =>
@@ -36,6 +80,9 @@ export const menuItemModuleKey = (item: MenuItem): SchoolModuleKey | null =>
 
 export const routeModuleKeyForPath = (pathname: string): SchoolModuleKey | null =>
   ROUTE_MODULE_BY_PATH[pathname] ?? null;
+
+export const routeAudienceForPath = (pathname: string): RouteAudience | null =>
+  ROUTE_AUDIENCE_BY_PATH[pathname] ?? null;
 
 /** When `enabled_modules` is absent, legacy payloads keep all module-gated items visible. */
 export const isModuleEnabledForMembership = (
@@ -52,12 +99,12 @@ export const isModuleEnabledForMembership = (
 /** Shared filter for sidebar nav and global search so module gating cannot drift. */
 export const visibleMenuItems = (membership: Membership | null, items: MenuItem[]): MenuItem[] =>
   items.filter((item) => {
-    const moduleKey = menuItemModuleKey(item);
-    if (moduleKey && !isModuleEnabledForMembership(membership, moduleKey)) {
+    if (!membershipMatchesAudience(membership, item.audience)) {
       return false;
     }
 
-    if (item.requiredRole && membership?.role !== item.requiredRole) {
+    const moduleKey = menuItemModuleKey(item);
+    if (moduleKey && !isModuleEnabledForMembership(membership, moduleKey)) {
       return false;
     }
 
@@ -70,3 +117,29 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
 
 export const visibleSitemap = (membership: Membership | null): MenuItem[] =>
   visibleMenuItems(membership, sitemap);
+
+export const isStaffRouteForMembership = (
+  pathname: string,
+  membership: Membership | null,
+): boolean => {
+  const audience = routeAudienceForPath(pathname);
+
+  if (!audience || audience === 'shared' || !membership) {
+    return false;
+  }
+
+  return audience === 'staff' && membershipAudience(membership) === 'guardian';
+};
+
+export const isGuardianRouteForMembership = (
+  pathname: string,
+  membership: Membership | null,
+): boolean => {
+  const audience = routeAudienceForPath(pathname);
+
+  if (!audience || audience === 'shared' || !membership) {
+    return false;
+  }
+
+  return audience === 'guardian' && membershipAudience(membership) === 'staff';
+};

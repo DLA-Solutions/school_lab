@@ -2,32 +2,18 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { HttpResponse, SCHOOL_ID, apiUrl, http, server } from 'test/msw';
+import { HttpResponse, SCHOOL_ID, apiUrl, guardianMembership, http, server } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
+import { withActiveMembership } from 'test/activeMembership';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { setAccessToken } from 'services/tokenStore';
-import { AuthUser, Membership } from 'types/auth';
+import { AuthUser } from 'types/auth';
 import { GuardianRequest } from 'types/guardianRequest';
 import MyRequests from './MyRequests';
 
 const BASE = `/api/v1/schools/${SCHOOL_ID}/me`;
 
 const user = userEvent.setup({ delay: null });
-
-const guardianMembership: Membership = {
-  id: 14,
-  school_id: SCHOOL_ID,
-  school_name: 'Example School — Downtown',
-  role: 'guardian',
-  status: 'active',
-  email: 'guardian@example.com',
-  role_template: null,
-  permissions: [],
-  is_owner: null,
-  segment_id: null,
-  display_title: null,
-  permission_sources: {},
-};
 
 const mine: GuardianRequest = {
   id: 1,
@@ -97,11 +83,13 @@ const renderPage = () => {
   setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
 
   return renderWithTheme(
-    <MemoryRouter initialEntries={['/meus-pedidos']}>
-      <AuthContext.Provider value={authValue}>
-        <MyRequests />
-      </AuthContext.Provider>
-    </MemoryRouter>,
+    withActiveMembership([guardianMembership])(
+      <MemoryRouter initialEntries={['/meus-pedidos']}>
+        <AuthContext.Provider value={authValue}>
+          <MyRequests />
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    ),
   );
 };
 

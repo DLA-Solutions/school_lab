@@ -188,7 +188,7 @@ flowchart TB
 | backoffice | Web SPA (`/backoffice`) | School register, module enablement, white-glove provisioning support |
 | staff (secretary, director) | Web SPA (`/app`) | School year, calendar admin, staff roster, menu visibility |
 | teacher | Web SPA + mobile | View calendar; personal events on web |
-| guardian | Mobile (+ web) | Product access links only (BC5); no school year admin |
+| guardian (UI: **Responsável**) | `frontend/app` web first; mobile parity | Product access links only (BC5); no school year admin |
 | student | — | No login in MVP |
 
 Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md).

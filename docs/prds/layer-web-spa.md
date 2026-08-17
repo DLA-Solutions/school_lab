@@ -5,20 +5,28 @@
 
 ## Objective
 
-Deliver a complete, documented and governed design system for `frontend/app`, so that every
-product surface (backoffice, school, teacher, guardian) can be built from a single set of tokens,
-themed primitives and pattern components — without re-deciding the visual language per feature.
+Deliver a complete, documented and governed design system for `frontend/app`, so that the school
+staff, teacher, and guardian product surfaces can be built from a single set of tokens, themed
+primitives and pattern components — without re-deciding the visual language per feature.
+
+The platform backoffice is a separate deployable SPA in `frontend/backoffice` at `/backoffice/*`.
+It may consume the shared design-token package, but it is not routed through or owned by
+`frontend/app`.
 
 The SPA stays a thin client: it owns presentation, navigation and session handling, and consumes
 `/api/v1` for every business rule.
 
 ## Context
 
-`frontend/app` is the React 19 + Vite 7 SPA described in `docs/web-stack.md` §3. It serves
-backoffice, school staff, teacher, and **guardian** web surfaces at `/app/*`.
+`frontend/app` is the React 19 + Vite 7 SPA described in `docs/web-stack.md` §3. It serves school
+staff, teacher, and **guardian** web surfaces at `/app/*`. Platform operators use
+`frontend/backoffice` at `/backoffice/*`; authentication may redirect that audience to the separate
+surface, but no backoffice product route belongs under `/app/*`.
 
-Guardian web is **in MVP** (Aug 2026) — responsive routes for billing and documents; mobile remains
-primary for push-driven messaging ([`layer-mobile-app.md`](layer-mobile-app.md)).
+Guardian web is **in MVP** and is the first delivery surface for the guardian portal (Aug 2026).
+Mobile parity follows only after each web/API contract is stable
+([`layer-mobile-app.md`](layer-mobile-app.md)). Product UI uses **Responsável**; `guardian`
+remains the English technical role in routes, JSON, code, and tests.
 
 The SPA was generated from the DashdarkX template, kept frozen as `frontend/base` (MIT,
 ThemeWagon). The visual essence — dark admin shell, purple gradient primary (`#CB3CFF`), Mona Sans
@@ -217,22 +225,50 @@ reachable from nav.
       and `1.2.0` the `light.secondary.darker` move, each with the measurements behind it. Standing
       invariant, like the override table: a token change without an entry is incomplete.)*
 
-## MVP product menus (Phase 4)
+## Product menus and guardian initiative (Phase 4)
 
-Role-based navigation targets for `frontend/app` once domain screens ship. Menu visibility follows
-permission keys from [`identity-and-onboarding/permissions.md`](identity-and-onboarding/permissions.md).
+Role-based navigation targets for `frontend/app` once domain screens ship. A route is assigned to an
+explicit audience (`staff`, `teacher`, `guardian`, or intentionally `shared`) in addition to
+permission checks. Permission keys from
+[`identity-and-onboarding/permissions.md`](identity-and-onboarding/permissions.md) narrow staff and
+teacher access; they never turn a staff route into a guardian route.
 
-| Role | Primary menu groups | Surfaces |
-|------|-------------------|----------|
-| **Staff (Secretaria)** | Alunos, Matrículas, Turmas, Comunicação (moderação), Financeiro, Documentos, Configurações | Web |
-| **Staff (Coordenação)** | Acadêmico (notas, fechamento), Comunicação, Turmas | Web |
-| **Staff (Direção)** | Dashboard, Financeiro (inadimplência), Acadêmico, Equipe, Ano letivo | Web |
-| **Teacher** | Turmas, Chamada, Mensagens, Diário (web), Notas (web) | Web + mobile (chamada/mensagens) |
-| **Guardian** | Filhos, Mensagens, Comunicados, Boletos, Documentos | Mobile primary + web parity |
-| **Backoffice** | Escolas, Provisionamento, Módulos | `/backoffice` SPA only |
+The six guardian items below are the current portal initiative's menu, not the complete guardian
+MVP. **Mensagens**, **Comunicados**, and guardian-visible **Documentos** remain MVP capabilities
+owned by their domain PRDs and must stay reachable when implemented, even if composed in a
+separate communication/documents navigation group.
 
-Implementation pattern: `src/routes/` role guards + `GET /me` permission payload; no business rules
-in menu logic.
+| Active audience | Primary menu groups | Explicit exclusions |
+|-----------------|---------------------|---------------------|
+| **Staff (Secretaria)** | Dashboard, Estudantes, Responsáveis, Matrículas, Turmas, Financeiro, Documentos, Solicitações, Configurações | Guardian self-service routes |
+| **Staff (Coordenação)** | Dashboard, Acadêmico (notas, boletins, fechamento, Preceptoria), Turmas, Comunicação | Guardian self-service routes |
+| **Staff (Direção)** | Dashboard, Financeiro, Acadêmico, Equipe, Ano letivo, Configurações | Guardian self-service routes |
+| **Teacher** | Turmas, Chamada, Mensagens, Diário, Notas, Preceptoria | Staff administration and guardian self-service routes |
+| **Guardian** (UI: **Responsável**) | **Current initiative:** Dashboard, Meus boletos, Boletins, Preceptoria, Meus pedidos, Imposto de renda. **Broader MVP:** Mensagens, Comunicados, Documentos | Responsáveis registry, Estudantes registry, Colaboradores, Notas entry, Aulas, Cargos, staff Boletos, Planos, Financeiro settings, Contrato, and staff Solicitações |
+| **Backoffice** | *(separate `frontend/backoffice` SPA)* Escolas, Provisionamento, Módulos | Every `/app/*` school, teacher, and guardian route |
+
+Items without an implemented destination stay hidden; the menu must not expose dead links.
+Sidebar, global search, dashboard cards, breadcrumbs, and direct-route guards all consume the same
+active audience. Frontend guards are a usability boundary only: the API independently enforces
+school and family isolation.
+
+### Active profile and school context
+
+- `GET /api/v1/me` may return multiple memberships. The client persists only the selected
+  `membership.id`, validates it on every session refresh, and derives role + `school_id` from that
+  server payload.
+- One eligible membership may be selected automatically. With multiple eligible memberships, the
+  user explicitly selects a profile and school; the SPA never merges menus or silently prioritizes
+  a staff/teacher membership over a guardian membership.
+- Switching profile or school clears school-scoped cached state and navigates to the selected
+  audience dashboard. Logout, suspension, discard, or membership removal clears stale selection.
+- A user who is both staff/teacher and a guardian switches context explicitly. In pt-BR the role
+  label is **Responsável**, never the raw `guardian` value.
+- **Responsável financeiro** is a payer relationship between a guardian and a student/charge; it
+  is not a membership role and does not create a second profile.
+
+Implementation pattern: explicit route audiences + `GET /me` membership/permission payload; no
+business rules in menu logic.
 
 ## Roadmap
 
@@ -449,5 +485,8 @@ Business rules stay in API services. This layer PRD consumes validated domain PR
 
 - [ ] Role × menu matrix matches [`actors-and-surfaces.md`](../actors-and-surfaces.md)
 - [ ] Design system catalog covers MVP patterns per domain row above
-- [ ] Guardian web routes scoped for billing + documents (mobile primary for push/messaging)
+- [ ] Guardian web-first routes cover Meus boletos, Boletins, Preceptoria, Meus pedidos, and
+      Imposto de renda as their contracts ship; mobile parity follows stable contracts
+- [ ] Dual-role and multi-school users switch active `membership.id` explicitly without menu or
+      cached-data bleed
 - [ ] No business rules duplicated in SPA — all via `/api/v1`

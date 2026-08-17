@@ -3,7 +3,7 @@
 > Status: validated  
 > Relation to School Lab: core MVP domain #7 per [`docs/product-map.md`](../../product-map.md) §5  
 > Capability IDs: see [Competitive grounding](#competitive-grounding) — **32** MVP canonical `billing.*` rows in [`mvp-scope.md`](../../product/mvp-scope.md); **46** canonicals total in taxonomy  
-> Domain PRDs: [`charges.md`](charges.md) (BC1), [`boletos.md`](boletos.md) (BC2), [`payments.md`](payments.md) (BC3), [`dunning.md`](dunning.md) (BC4), [`settings.md`](settings.md) (BC5), [`guardian-portal.md`](guardian-portal.md) (BC6), [`invoices.md`](invoices.md) (BC7 — P2 scope)  
+> Domain PRDs: [`charges.md`](charges.md) (BC1), [`boletos.md`](boletos.md) (BC2), [`payments.md`](payments.md) (BC3), [`dunning.md`](dunning.md) (BC4), [`settings.md`](settings.md) (BC5), [`guardian-portal.md`](guardian-portal.md) (BC6), [`invoices.md`](invoices.md) (BC7 — P2 scope), [`tax-declarations.md`](tax-declarations.md) (BC8 — automatic annual payer declaration)
 > Modeling: [`docs/modeling/001-fintech-first.md`](../../modeling/001-fintech-first.md) *(implemented baseline; extend for MVP gaps)*  
 > API: [`docs/api/v1/billing.md`](../../api/v1/billing.md) extends [`fintech-first.md`](../../api/v1/fintech-first.md) *(implemented baseline)*  
 > Traceability: BR-/UC-/AC- IDs per bounded context — see [`traceability.md`](../../product/traceability.md)
@@ -160,6 +160,9 @@ Financial divergence decisions: [`DIV-financial-001`…`008`](../../ref/divergen
 - **BC5 Settings** — mora, multa, pontualidade, grace days per school.
 - **BC6 Guardian portal** — family-scoped charges and forward-only history.
 - **BC7 Invoices** — NFS-e **P2 scope note** only ([`DIV-financial-005`](../../ref/divergencias.md)).
+- **BC8 Tax declarations** — one automatic annual declaration per payer/school/year, consolidating
+  eligible settled payments across children with immutable versions and PDF. Release is legally
+  gated.
 
 ### Out of scope
 
@@ -187,6 +190,7 @@ Financial divergence decisions: [`DIV-financial-001`…`008`](../../ref/divergen
 | **BC5 — Settings** | [`settings.md`](settings.md) | Per-school mora, multa, pontualidade, grace? |
 | **BC6 — Guardian portal** | [`guardian-portal.md`](guardian-portal.md) | Family billing UX and API contract? |
 | **BC7 — Invoices** | [`invoices.md`](invoices.md) | NFS-e phase boundary? |
+| **BC8 — Tax declarations** | [`tax-declarations.md`](tax-declarations.md) | Which settled payments are eligible, consolidated, versioned, and exposed to the payer? |
 
 ```mermaid
 flowchart TB
@@ -248,6 +252,9 @@ Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md).
 3. **Permissions** — `manage_billing`, `view_billing_summary`, `billing.resend` (identity BC1 templates); fintech-first binary `school` role maps to `staff` + presets.
 4. **Communication handoff** — billing push (resend, payment confirmed) uses notification infrastructure; templates and triggers owned by billing services ([`DIV-communication-007`](../../ref/divergencias.md)).
 5. **Absence of silent settlement** — webhooks trigger `fetch_invoice`; daily reconciliation backfills ([`fintech-first.md`](../fintech-first.md) UC-02) — NFR-001.
+6. **Annual declaration calculation** — derives only from immutable `payments` + each charge's
+   captured payer/purpose eligibility, never from the management ledger. Documents/archive may
+   store the PDF but does not own calculation.
 
 ---
 
@@ -262,6 +269,7 @@ Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md).
 | **W4** | payments.md | Manual receipt, batch pay, payment links, card instrument | planned |
 | **W5** | dunning.md | Dashboard filters, notification policy config; régua builder **phase 2** | partial |
 | **W6** | guardian-portal.md | Mobile parity, checkout embed | partial |
+| **W7** | tax-declarations.md | Purpose classification/configuration, annual versions, PDF, guardian web | planned; legal/accounting release gate |
 | **P2** | invoices.md | NFS-e settings + issuance | — |
 
 W2 depends on students W1–W2 (enrollments) for enrollment-scoped contracts.
@@ -320,7 +328,7 @@ See [`docs/open-questions.md`](../../open-questions.md) § Billing:
 
 ## 15. Definition of Done (documentation)
 
-- [x] Eight PRD files in `docs/prds/billing/` with complete sections.
+- [x] Nine PRD files in `docs/prds/billing/` (index + BC1–BC8) with complete sections.
 - [x] All **32** MVP `billing.*` capabilities mapped (30 in folder + 2 out-of-scope refs).
 - [x] BR-/UC-/AC- IDs standardized per BC prefix.
 - [x] fintech-first supersede notes and implementation status explicit.
@@ -328,5 +336,6 @@ See [`docs/open-questions.md`](../../open-questions.md) § Billing:
 - [x] Aug 2026 régua deferral documented.
 - [x] Status promoted to `validated` (2026-08-15).
 - [x] API narrative [`billing.md`](../../api/v1/billing.md) drafted; extends fintech-first baseline.
-- [x] Modeling baseline [`001-fintech-first`](../../modeling/001-fintech-first.md); billing domain extensions in API narrative pending DBML hardening (Phase 4B).
+- [x] Modeling baseline [`001-fintech-first`](../../modeling/001-fintech-first.md) plus locally
+      validated DBML extensions; API/OpenAPI freeze remains pending.
 - [x] Partner workshop deferred — live stakeholder session is a separate milestone.
