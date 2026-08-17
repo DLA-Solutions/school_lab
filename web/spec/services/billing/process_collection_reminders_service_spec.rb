@@ -13,10 +13,7 @@ RSpec.describe Billing::ProcessCollectionRemindersService do
   let(:today) { Date.new(2026, 8, 8) }
 
   around do |example|
-    original_token = ENV["POSTMARK_API_TOKEN"]
-    ENV["POSTMARK_API_TOKEN"] = "test-token"
     travel_to(Time.utc(2026, 8, 8, 15, 0, 0)) { example.run }
-    ENV["POSTMARK_API_TOKEN"] = original_token
   end
 
   before do

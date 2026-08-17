@@ -10,14 +10,6 @@ RSpec.describe People::InviteMembershipNotificationJob do
   let(:membership) { create(:membership, :invited, user: user, school: school) }
   let(:raw_token) { "raw-invite-token" }
 
-  around do |example|
-    original_token = ENV["POSTMARK_API_TOKEN"]
-    ENV["POSTMARK_API_TOKEN"] = "test-token"
-    example.run
-  ensure
-    ENV["POSTMARK_API_TOKEN"] = original_token
-  end
-
   it "queues the membership invite mail when e-mail delivery is configured" do
     expect do
       described_class.perform_now(membership.id, raw_token)
@@ -30,8 +22,8 @@ RSpec.describe People::InviteMembershipNotificationJob do
     end.not_to have_enqueued_job(ActionMailer::MailDeliveryJob)
   end
 
-  it "skips delivery when Postmark is not configured" do
-    ENV.delete("POSTMARK_API_TOKEN")
+  it "skips delivery when e-mail delivery is not configured" do
+    allow(SchoolLab::EmailDelivery).to receive(:configured?).and_return(false)
 
     expect do
       described_class.perform_now(membership.id, raw_token)
