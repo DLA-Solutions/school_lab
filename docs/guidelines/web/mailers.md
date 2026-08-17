@@ -1,7 +1,8 @@
 # Mailers
 
-Email conventions for `web/app/mailers/`. Provider choice is open in
-`docs/open-questions.md` — conventions apply regardless of adapter.
+Email conventions for `web/app/mailers/`. Staging/production use Postmark;
+local development uses Letter Opener and RSpec uses `:test` — never the
+provider API.
 
 Rule: `.cursor/rules/web/mailers.mdc`. Related: `jobs`, `gateways`.
 
@@ -46,15 +47,36 @@ Password reset and unlock use Devise mailer hooks — customize via `app/mailers
 and locale files. Keep templates consistent with product branding (layout in
 `application_mailer`).
 
+## Local vs provider delivery
+
+Local work must **never** call Postmark (or any mail provider API), even when
+`POSTMARK_API_TOKEN` is present in `.env`.
+
+| Environment | Delivery | Inbox / inspect |
+|-------------|---------|-----------------|
+| Development | `:letter_opener_web` | Browse `http://localhost:3000/letter_opener` |
+| Test (RSpec) | `:test` | `ActionMailer::Base.deliveries` |
+| Production / staging | `:postmark` when `POSTMARK_API_TOKEN` is set | Provider dashboard |
+
+`SchoolLab::EmailDelivery.configured?` is true in development and test so invite and
+régua mail is not skipped for lack of a token. Production still gates on the token.
+
+Do not set `config.action_mailer.delivery_method = :postmark` in `development.rb` or
+`test.rb`. An initializer must raise if a local environment is pointed at Postmark.
+
 ## Testing
 
 - Mailer specs assert **subject**, **to**, and key body content (i18n rendered).
 - Service/request specs use `have_enqueued_job(ActionMailer::MailDeliveryJob)` or
   `perform_enqueued_jobs` when delivery is the behavior under test.
 - Do not send real email in test — `config.action_mailer.delivery_method = :test`.
+- Do not set `POSTMARK_API_TOKEN` in specs to enable mail. Stub
+  `SchoolLab::EmailDelivery.configured?` only when asserting the production skip path.
+- Letter Opener is a **development** preview tool — do not use it as the RSpec
+  delivery method (no browser, no `tmp/letter_opener` assertions in CI).
 
 ## Provider adapter
 
-When a provider is chosen (Postmark, SES, etc.), configure in `config/environments/*.rb` and
-extract API calls to a **gateway adapter** if the integration grows beyond Rails mailer config.
-See `gateways.md`.
+Postmark is configured only in `config/environments/production.rb` (and staging via
+the same file + Kamal secrets). Extract API calls to a **gateway adapter** if the
+integration grows beyond Rails mailer config. See `gateways.md`.

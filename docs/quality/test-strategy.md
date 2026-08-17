@@ -32,7 +32,9 @@ School Lab verification layers for docs-driven delivery. Business rules are auth
 ## Cora and external services
 
 - CI uses `Fake` adapter and WebMock — no live Cora credentials.
-- Postmark skipped when `POSTMARK_API_TOKEN` unset.
+- Email: RSpec uses Action Mailer `:test`; development uses Letter Opener. Never Postmark
+  or any mail API locally, even if `POSTMARK_API_TOKEN` is set. Production still gates
+  on the token.
 - FCM push tested with stubbed HTTP in notification job specs.
 
 ## Definition of done (engineering)

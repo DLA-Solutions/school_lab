@@ -356,7 +356,9 @@ flowchart TB
 
 See `docs/open-questions.md` (Web stack section):
 
-- ~~Email provider~~ — **Postmark** for transactional mail (collection régua; `POSTMARK_API_TOKEN`)
+- ~~Email provider~~ — **Postmark** for transactional mail in staging/production
+  (`POSTMARK_API_TOKEN`). Local development uses **Letter Opener** (`/letter_opener`);
+  RSpec uses Action Mailer `:test`. Neither local environment may call the provider API.
 - When to add Redis (cache only)
 
 Open for the school SPA — each is missing today (§3):

@@ -28,3 +28,4 @@ Full guide: `docs/guidelines/web/jobs.md`. Stack: `docs/web-stack.md` §8. Relat
 ## Testing
 
 - `have_enqueued_job` from service specs; job spec stubs gateway at boundary only.
+- Email jobs: assert enqueue / `:test` deliveries — never Postmark (rule `mailers`).
