@@ -13,6 +13,8 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { ErrorBanner, PageHeader, SectionCard } from 'design-system';
 import BankCredentialsCard from 'components/sections/billing/BankCredentialsCard';
+import FiscalCredentialsCard from 'components/sections/billing/FiscalCredentialsCard';
+import FiscalSettingsCard from 'components/sections/billing/FiscalSettingsCard';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
@@ -268,8 +270,11 @@ const BillingSettingsPage = () => {
         </Button>
       </Box>
 
-      {/* Saved on its own — the certificate is uploaded as files, not as part of this form. */}
-      {schoolId && <BankCredentialsCard schoolId={schoolId} />}
+      {schoolId ? <FiscalSettingsCard schoolId={schoolId} /> : null}
+
+      {/* Saved on its own — credentials and certificates are uploaded separately. */}
+      {schoolId ? <FiscalCredentialsCard schoolId={schoolId} /> : null}
+      {schoolId ? <BankCredentialsCard schoolId={schoolId} /> : null}
     </Stack>
   );
 };
