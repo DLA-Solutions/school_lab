@@ -20,7 +20,7 @@ const SectionCardDoc = () => (
       {
         name: 'padding',
         type: 'number',
-        description: 'Paper padding in theme spacing units (default 0 = flush; e.g. 3.5 matches themed Paper)',
+        description: 'Paper padding in theme spacing units (default 3.5; use 0 for edge-to-edge tables)',
       },
     ]}
     code={`import { SectionCard } from 'design-system';
@@ -28,12 +28,12 @@ const SectionCardDoc = () => (
 <SectionCard title="Overview">{content}</SectionCard>`}
     preview={
       <SectionCard title="Revenue">
-        <Typography px={3.5}>Section body</Typography>
+        <Typography>Section body</Typography>
       </SectionCard>
     }
     variants={
       <SectionCard title="Orders" headerActions={<Button size="small">New</Button>}>
-        <Typography px={3.5}>With header action</Typography>
+        <Typography>With header action</Typography>
       </SectionCard>
     }
   />

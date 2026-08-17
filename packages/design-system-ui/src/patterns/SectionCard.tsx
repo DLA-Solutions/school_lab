@@ -11,7 +11,7 @@ export interface SectionCardProps {
   padding?: number;
 }
 
-const SectionCard = ({ title, headerActions, children, padding = 0 }: SectionCardProps) => {
+const SectionCard = ({ title, headerActions, children, padding = 3.5 }: SectionCardProps) => {
   const hasHeader = Boolean(title || headerActions);
   const isFlush = padding === 0;
 

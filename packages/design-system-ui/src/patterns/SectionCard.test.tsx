@@ -4,6 +4,18 @@ import { SectionCard } from 'design-system';
 import { renderWithTheme } from 'test/renderWithTheme';
 
 describe('SectionCard', () => {
+  it('applies default Paper padding', () => {
+    const { container } = renderWithTheme(
+      <SectionCard>
+        <Typography>Body</Typography>
+      </SectionCard>,
+    );
+
+    const paper = container.firstElementChild as HTMLElement;
+
+    expect(window.getComputedStyle(paper).paddingTop).not.toBe('0px');
+  });
+
   it('removes Paper padding when padding is 0', () => {
     const { container } = renderWithTheme(
       <SectionCard padding={0}>
