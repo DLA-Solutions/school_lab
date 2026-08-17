@@ -4,8 +4,8 @@
 > Parent PRD: [`index.md`](index.md)  
 > Capability IDs: `academic.record_attendance`, `academic.manage_attendance_policy`, `academic.justify_absence`, `academic.export_attendance`  
 > Related BCs: [`diary.md`](diary.md), [`communication/notifications.md`](../communication/notifications.md) *(consumer)*  
-> Modeling: *(pending — `docs/modeling/007-academic.md`)*  
-> API narrative: *(pending — `docs/api/v1/academic.md`)*
+> Modeling: [`docs/modeling/007-academic.md`](../../modeling/007-academic.md)
+> API narrative: [`docs/api/v1/academic.md`](../../api/v1/academic.md)
 
 ---
 
@@ -25,6 +25,16 @@ for guardian push — academic owns correctness; comms owns delivery only.
 | Manage attendance policy | `academic.manage_attendance_policy` | [`DIV-academic-002`](../../ref/divergencias.md) — school-level policy with per-period override |
 | Justify absence | `academic.justify_absence` | Proesc documented justification with audit |
 | Export attendance | `academic.export_attendance` | Proesc blank frequency sheets and period exports |
+
+---
+
+## Actors and surfaces
+
+| Actor | Surfaces | Actions |
+|-------|----------|---------|
+| teacher | Mobile priority + Web SPA/API | Record assigned attendance and submit justification |
+| staff with academic/attendance permission | Web SPA/API | Configure policy, approve, override, export |
+| guardian (UI: **Responsável**) | Web first for portal read; mobile for push | Read linked-student summary and submit justification |
 
 ---
 
@@ -60,8 +70,10 @@ School Lab supports **school-level default policy** with optional **per-academic
 
 BR-AT01
 
-An **attendance record** is scoped by `school_id`, `student_id`, and either `lesson_id`
-(lesson mode) or `(class_id, academic_period_id, date)` (period mode).
+An **attendance record** is unique by `(attendance_session_id, student_id)`. Its parent session is
+scoped by `school_id`, `class_id`, `date`, and either non-null `lesson_id` (lesson mode) or
+`academic_period_id` with null `lesson_id` (period-total mode). Partial unique indexes allow
+multiple class lessons on one date but only one period-total roll per class/period/date.
 
 BR-AT02
 
@@ -71,7 +83,7 @@ BR-AT02
 BR-AT03
 
 **School attendance policy** (`attendance_policies`) defines default `counting_mode`, whether
-`late` counts as partial absence, and **auto_confirm_absence_after_minutes** default **15**
+`late` counts as absence, and **auto_confirm_absence_after_minutes** default **15**
 (configurable per school attendance policy — `[product decision Aug 2026]`).
 
 BR-AT04
@@ -82,7 +94,8 @@ only before period has locked attendance `[product decision]`.
 BR-AT05
 
 Teachers may record attendance only for classes where they are assigned (`teacher_subject_assignments`)
-or staff with `record_attendance` on school-wide scope.
+or staff with the fixed `manage_academic` permission on school-wide scope. `record_attendance` is a
+capability id, not a permission key.
 
 BR-AT06
 
@@ -92,7 +105,7 @@ BR-AT06
 BR-AT07
 
 Guardian-submitted justifications create `pending` requests; teacher or staff with
-`manage_attendance` approves or rejects (audit on decision).
+`manage_academic` approves or rejects (audit on decision).
 
 BR-AT08
 
@@ -108,7 +121,7 @@ Each `AbsenceRecorded` carries stable **`event_id`** (UUID) for idempotent comms
 
 BR-AT10
 
-Editing **confirmed** attendance requires `manage_attendance` or secretary override with
+Editing **confirmed** attendance requires `manage_academic` with
 **reason_code** and audit (NFR-005). If edit changes absent → present, emit
 `AbsenceRevoked` (comms may send correction notification — `[product decision]`).
 
@@ -126,6 +139,27 @@ BR-AT13
 
 Withdrawn enrollments (`EnrollmentWithdrawn`) exclude student from future attendance lists;
 historical records retained.
+
+BR-AT14
+
+Report-card readiness requires no pending attendance session within the academic period. At
+publication, confirmed records are summarized as instructional sessions, present, absent, late,
+excused, and attendance percentage; the complete summary is copied into the immutable report-card
+snapshot. Later attendance corrections do not mutate an already released version.
+
+The report-card denominator is deterministic `[product decision]`:
+
+1. One attendance unit exists for every kept, confirmed, non-cancelled instructional session in
+   the period where the student's enrollment/class assignment was active on `session_date`.
+2. Every unit must have exactly one kept attendance record; a missing, duplicate, or unconfirmed
+   unit blocks report-card publication.
+3. `instructional_sessions` (the denominator) includes `present`, `absent`, `late`, and `excused`.
+   An excused absence remains absent for percentage purposes; justification changes the audit
+   classification, not legal presence.
+4. The numerator is `present + late` when `late_counts_as_absence = false`, otherwise `present`
+   only. `absent` and `excused` never enter the numerator.
+5. Percentage is `numerator / instructional_sessions * 100`, rounded half-up to two decimals.
+   A zero denominator returns `null` percentage and is a readiness blocker, not `100%`.
 
 ---
 
@@ -230,11 +264,11 @@ Async export enqueue.
 
 | Artifact | Location |
 |----------|----------|
-| Narrative DSL | `docs/modeling/007-academic.md` *(pending)* |
-| DBML | `docs/database/database_dml.md` |
+| Narrative model | [`docs/modeling/007-academic.md`](../../modeling/007-academic.md) *(aligned)* |
+| DBML | [`docs/database/schema.dbml`](../../database/schema.dbml) |
 
-Expected entity groups: `attendance_policies`, `attendance_records`, `absence_justifications`,
-`attendance_exports`, `domain_outbox_events`.
+Modeled entity groups: `attendance_policies`, `attendance_sessions`, `attendance_records`,
+`absence_justifications`, `attendance_exports`, and shared `domain_outbox_events`.
 
 ---
 
@@ -276,7 +310,6 @@ call FCM directly.
 | Role / key | record | justify | policy | export | override confirmed |
 |------------|--------|---------|--------|--------|-------------------|
 | teacher (assigned) | yes | yes | — | own classes | — |
-| staff `manage_attendance` | yes | approve | — | yes | yes |
 | staff `manage_academic` | yes | approve | yes | yes | yes |
 | guardian | — | submit | — | — | — |
 | guardian `/me` | read linked students | — | — | — | — |
@@ -324,6 +357,20 @@ AC-AT06 *(roster)*
 
 - [ ] Given enrollment is withdrawn, When teacher opens lesson attendance, Then student no longer appears in roster.
 - Source: [`students-and-enrollments/enrollments.md`](../students-and-enrollments/enrollments.md) BR-E11
+
+AC-AT07 *(deterministic report-card denominator)*
+
+- [ ] Given ten confirmed instructional sessions with six present, one late, two absent, and one
+      excused record, when `late_counts_as_absence = false`, then the snapshot stores denominator
+      10, numerator 7, and percentage 70.00; when the policy is true, numerator is 6 and percentage
+      is 60.00. The excused record remains outside the numerator in both cases.
+- Source: BR-AT14 `[product decision]`
+
+AC-AT08 *(missing attendance blocks publish)*
+
+- [ ] Given an eligible instructional session has no kept confirmed record for the student, when
+      report-card readiness runs, then it returns an attendance blocker and creates no snapshot.
+- Source: BR-AT14/NFR-001 `[product decision]`
 
 ---
 

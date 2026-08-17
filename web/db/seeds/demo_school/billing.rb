@@ -4,6 +4,7 @@ module DemoSchool
   module_function
 
   def seed_billing!(school, students, guardians_by_index)
+    BillingPurpose.provision_defaults!(school)
     billing_plan = BillingPlan.find_or_create_by!(school: school, name: "Mensalidade 2026") do |record|
       record.plan_type = "tuition"
       record.base_amount_cents = 90_000
@@ -47,6 +48,7 @@ module DemoSchool
                     guardians_by_index.dig(0, :mother)
     return if demo_contract.blank? || demo_guardian.blank?
 
+    tuition_purpose = BillingPurpose.find_or_provision!(school, code: "tuition")
     charge = Charge.find_or_initialize_by(
       school: school,
       contract: demo_contract,
@@ -55,6 +57,9 @@ module DemoSchool
     clear_conflicting_demo_invoice!(charge)
     charge.assign_attributes(
       guardian: demo_guardian,
+      billing_purpose: tuition_purpose,
+      billing_purpose_code: tuition_purpose.code,
+      tax_declaration_eligible: tuition_purpose.tax_declaration_eligible,
       original_amount_cents: 90_000,
       discount_amount_cents: 5_000,
       late_fee_amount_cents: 0,
@@ -78,6 +83,7 @@ module DemoSchool
   def seed_current_month_charges!(school, contracts)
     billing_period = Date.current.beginning_of_month
     previous_period = billing_period.prev_month
+    tuition_purpose = BillingPurpose.find_or_provision!(school, code: "tuition")
 
     contracts.each_with_index do |contract, index|
       next if contract.student.cpf == DemoSchool::DEMO_STUDENT_CPF
@@ -96,6 +102,9 @@ module DemoSchool
         record.late_fee_amount_cents = 0
         record.total_amount_cents = 85_000
         record.due_date = billing_period.change(day: 10)
+        record.billing_purpose = tuition_purpose
+        record.billing_purpose_code = tuition_purpose.code
+        record.tax_declaration_eligible = tuition_purpose.tax_declaration_eligible
       end
 
       apply_sample_charge_status!(charge, index)
@@ -111,6 +120,9 @@ module DemoSchool
         record.late_fee_amount_cents = 0
         record.total_amount_cents = 85_000
         record.due_date = previous_period.change(day: 10)
+        record.billing_purpose = tuition_purpose
+        record.billing_purpose_code = tuition_purpose.code
+        record.tax_declaration_eligible = tuition_purpose.tax_declaration_eligible
       end
 
       apply_previous_charge_status!(previous_charge, index)

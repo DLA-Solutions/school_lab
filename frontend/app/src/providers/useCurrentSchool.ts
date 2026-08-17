@@ -1,32 +1,24 @@
 import { useMemo } from 'react';
 import { Membership } from 'types/auth';
-import { useAuth } from './AuthContext';
-
-/** Active roles that may call school-scoped staff endpoints (`staff_with?` on the API). */
-const STAFF_MEMBERSHIP_ROLES = new Set(['staff', 'teacher', 'school']);
+import { useActiveMembership } from './ActiveMembershipContext';
+import { isStaffMembership } from 'utils/membership/audience';
 
 /**
- * The school whose staff endpoints the signed-in user may call.
+ * The school whose staff endpoints the signed-in user may call in the **active** context.
  *
- * Every `/api/v1/schools/:school_id/...` route resolves its context from the path, and the
- * People endpoints are guarded by `staff_with?` — a `guardian` membership gets a 403. So the
- * only membership that can drive these screens is an active one with role `staff` or `teacher`
- * (legacy `school` is still accepted until migration completes).
- *
- * There is no school switcher yet: a user with staff memberships in more than one school lands
- * on the first. Replace this with a selection stored in context when that case becomes real.
+ * Returns the active membership only when it is a staff or teacher role. In guardian context this
+ * is intentionally null so staff screens cannot accidentally call `staff_with?` endpoints.
  */
 export const useCurrentSchool = (): Membership | null => {
-  const { user } = useAuth();
+  const activeMembership = useActiveMembership();
 
-  return useMemo(
-    () =>
-      user?.memberships.find(
-        (membership) =>
-          STAFF_MEMBERSHIP_ROLES.has(membership.role) && membership.status === 'active',
-      ) ?? null,
-    [user],
-  );
+  return useMemo(() => {
+    if (!activeMembership || !isStaffMembership(activeMembership)) {
+      return null;
+    }
+
+    return activeMembership;
+  }, [activeMembership]);
 };
 
 export default useCurrentSchool;

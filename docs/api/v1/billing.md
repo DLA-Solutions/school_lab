@@ -83,6 +83,77 @@ See [`fintech-first.md`](fintech-first.md) for request/response examples:
 |--------|------|-------|
 | `PATCH` | `/billing/settings` | Mora, multa, pontualidade — partial in fintech-first |
 
+### Annual tax declarations (BC8 — draft narrative; executable OpenAPI pending)
+
+Billing owns the calculation. One logical declaration exists per payer `guardian_id`, school, and
+closed Gregorian calendar year; immutable versions consolidate all children whose eligible charges
+that payer actually settled. Purpose eligibility is captured on each charge when created, so later
+school configuration changes do not rewrite historical classification.
+
+Guardian routes:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/me/tax_declarations` | Own annual aggregates and active version metadata |
+| `POST` | `/me/tax_declarations` | Idempotently ensure `calendar_year` is generated |
+| `GET` | `/me/tax_declarations/:tax_declaration_id` | Aggregate detail with active version metadata |
+| `GET` | `/me/tax_declarations/:tax_declaration_id/versions` | Immutable version list |
+| `GET` | `/me/tax_declarations/:tax_declaration_id/versions/:version_id` | Exact version detail |
+| `GET` | `/me/tax_declarations/:tax_declaration_id/versions/:version_id/pdf` | Family-scoped PDF for that exact version |
+
+Staff configuration:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET/POST` | `/billing/purposes` | List/create school billing purposes |
+| `PATCH` | `/billing/purposes/:id` | Configure eligibility for future charges |
+| `GET/PATCH` | `/billing/tax_declaration_settings` | Approved legal text/signatory/release gate |
+
+`POST /me/tax_declarations` body:
+
+```json
+{ "tax_declaration": { "calendar_year": 2025 } }
+```
+
+It returns `200` when the stored calculation/configuration digest is unchanged and `201` when the
+first or a corrected version is created. `:tax_declaration_id` is the logical aggregate id;
+`:version_id` is the child `tax_declaration_versions.id`, never its sequential number. Responses
+carry both `tax_declaration_id` and `active_version_id`. Version lifecycle is computed as `active`
+when those ids match and `superseded` otherwise; version rows are append-only and have no lifecycle
+status column.
+
+Selection uses immutable confirmed `payments.paid_at`, matching `charges.guardian_id` and captured
+`charges.tax_declaration_eligible`. Each source line declares
+`paid_amount_cents - fine_amount_cents - interest_amount_cents`: settled principal after discounts
+only. Discounts are not added back; fine and interest are always excluded by conservative product
+decision pending legal/accounting approval. It does not use due dates, billing periods, current
+settings, descriptions, or `school_transactions`.
+
+Each immutable item stores `source_paid_amount_cents`, `source_fine_amount_cents`,
+`source_interest_amount_cents`, and their non-negative `declared_principal_amount_cents`; the PDF
+total sums only the final field. Each version also snapshots the approved settings version, legal
+text version, one signatory, eligible-purpose configuration/digest, and approval actor/time.
+
+After an authorized exact-version PDF response succeeds, the API appends a
+`tax_declaration_access_events` row and emits `TaxDeclarationPdfDownloaded`, both idempotently keyed
+by request UUID. Audit payloads contain resource/actor ids and timestamps only—no CPF, student
+names, amounts, or payment lines.
+
+Errors:
+
+- `404 not_found` — cross-school/family aggregate/version/PDF, unknown version, or version not
+  nested under the requested aggregate.
+- `409 generation_in_progress` — the same payer/year is already calculating.
+- `422 calendar_year_not_closed` — current/future year.
+- `422 no_eligible_payments` — create no empty document.
+- `422 tax_declaration_configuration_incomplete` — legal/accounting approval, school CNPJ,
+  payer CPF, legal text, or signatory missing.
+- `422 unclassified_legacy_charge` — candidate payment has no verified purpose snapshot.
+
+Release remains blocked until legal/accounting approval of eligible purposes, provisional
+tuition/enrollment defaults, principal-after-discounts/excluded-fee rule, wording, the single
+configured `document_signatory_id`, and retention.
+
 ### NFS-e (P2)
 
 | Method | Path | Returns |
@@ -108,4 +179,4 @@ deferred Aug 2026; overdue detection + dashboard ship in MVP.
 
 ## OpenAPI tags
 
-`Billing`, `Guardian Me`, `Webhooks`
+`Billing`, `Tax Declarations`, `Guardian Me`, `Webhooks`

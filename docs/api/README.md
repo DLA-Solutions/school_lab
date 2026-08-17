@@ -46,7 +46,24 @@ Tenant-scoped resources use the school in the path:
 
 Global endpoints (no school): `auth/*`, `GET /me`, backoffice `schools`.
 
-The client selects a school after login using memberships from `GET /me`.
+The client selects one profile/school membership after login using `GET /me`.
+
+Tenant requests send:
+
+```
+X-Membership-Id: <membership.id>
+```
+
+The header is required when the user has more than one active membership for the path school and is
+recommended on every tenant request. The API validates that it belongs to the authenticated user,
+matches `:school_id`, and is kept with `status: active` before assigning `Current.membership`.
+Missing context when selection is ambiguous returns `409 membership_context_required`; a header
+that names a removed/suspended, other-user, or other-school membership returns `403
+invalid_membership_context` without revealing membership metadata.
+
+One account may hold distinct staff/teacher and guardian memberships in the same school. Selecting
+one never merges permissions or family scope from another. Clients persist only the membership id
+and clear school-scoped state when switching.
 
 ## Authentication
 
@@ -64,7 +81,8 @@ Authorization: Bearer <access_token>
 ## Authorization
 
 - **Pundit** policies on every mutating and tenant-scoped read.
-- `Current.user` from JWT; `Current.school` from `:school_id`; `Current.membership` for role.
+- `Current.user` from JWT; `Current.school` from `:school_id`; `Current.membership` from the
+  validated `X-Membership-Id` (or the sole eligible membership) for role/profile context.
 - Guardian routes under `.../me/...` — family isolation (never another family's data).
 
 ## Request conventions

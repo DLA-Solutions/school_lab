@@ -104,7 +104,7 @@ Table memberships {
   updated_at timestamp
 
   indexes {
-    (user_id, school_id) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+    (user_id, school_id, role) [unique, note: 'DB migration target: UNIQUE WHERE discarded_at IS NULL. Allows one account to hold distinct staff/teacher/guardian profiles in the same school; duplicate same-role memberships remain forbidden.']
   }
 }
 
@@ -267,7 +267,7 @@ Table teachers {
   discarded_at timestamp [note: 'Discard gem — null = kept']
   created_at timestamp
   updated_at timestamp
-  Note: 'PLANNED — not migrated. No teachers table exists in web/db/schema.rb; the academic phase creates it. Teacher role is carried by memberships.role today.'
+  Note: 'Teacher domain record; user_id links the login when provisioned. Membership role remains the authorization context.'
 }
 
 Table student_guardians {
@@ -341,6 +341,122 @@ Table school_billing_settings {
   updated_at timestamp
 }
 
+Table billing_purposes {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  code varchar [not null, note: 'English stable identifier, e.g. tuition | enrollment | material | activity | transport | meal | other']
+  name varchar [not null, note: 'School-facing display name']
+  tax_declaration_eligible boolean [not null, default: false, note: 'Applies to future charges only. Tuition/enrollment may be provisionally seeded true but release remains blocked until legal/accounting approval.']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, code) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table tax_declaration_settings {
+  id integer [primary key, increment]
+  school_id integer [not null, unique]
+  document_signatory_id integer [note: 'Required for generation; same-school active signatory']
+  legal_text text [note: 'Approved declaration wording; version is snapshotted on generation']
+  legal_text_version varchar
+  configuration_version integer [not null, default: 1, note: 'Incremented whenever legal text, signatory, or approved eligible-purpose configuration changes']
+  approved_purpose_configuration_digest varchar [note: 'Digest of approved billing purpose codes/eligibility used as generation release gate']
+  legal_accounting_approved_at timestamp [note: 'Release gate acknowledgment; engineering does not infer Brazilian tax eligibility']
+  approved_by_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table tax_declarations {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  guardian_id integer [not null, note: 'Payer guardian; not merely any guardian linked to the student']
+  calendar_year integer [not null, note: 'Gregorian calendar year in school timezone; only closed years']
+  active_version_id integer [note: 'Current immutable version; FK to tax_declaration_versions added after both tables exist']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, guardian_id, calendar_year) [unique, note: 'One logical declaration per payer/school/calendar year']
+  }
+}
+
+Table tax_declaration_versions {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  tax_declaration_id integer [not null]
+  version integer [not null]
+  supersedes_id integer
+  calculation_digest varchar [not null, note: 'Digest of payment ids/amounts, charge classification snapshots, and approved config; idempotency key']
+  total_declared_principal_amount_cents integer [not null, note: 'Sum of eligible settled principal after discounts, excluding fine and interest; check >= 0']
+  settings_version integer [not null, note: 'tax_declaration_settings.configuration_version approved for this immutable version']
+  school_identity_snapshot jsonb [not null, note: 'Legal name, CNPJ, and address fields used in this version']
+  payer_identity_snapshot jsonb [not null, note: 'LGPD: payer name/CPF used in this version']
+  legal_text_snapshot text [not null]
+  legal_text_version_snapshot varchar [not null]
+  document_signatory_snapshot jsonb [not null, note: 'Exactly one signatory id/name/title as issued; live signatory changes do not alter this version']
+  purpose_configuration_snapshot jsonb [not null, note: 'Approved purpose codes, future-charge eligibility values, configuration digest, and approval metadata']
+  approval_snapshot jsonb [not null, note: 'Legal/accounting approved_at and approved_by identifiers for the selected settings version']
+  calculation_snapshot jsonb [not null, note: 'Per-student and per-purpose totals; immutable']
+  verification_code varchar [not null, unique]
+  pdf_storage_key varchar [not null, note: 'Active Storage/blob reference or equivalent; bytes generated only from snapshot']
+  issued_at timestamp [not null]
+  created_at timestamp
+  updated_at timestamp
+  Note: 'Append-only fiscal/LGPD record. Corrections create a new version; no Discard. Retention pending legal review.'
+
+  indexes {
+    (tax_declaration_id, version) [unique]
+    (tax_declaration_id, calculation_digest) [unique]
+  }
+}
+
+Table tax_declaration_items {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  tax_declaration_version_id integer [not null]
+  student_id integer [not null]
+  payment_id integer [not null]
+  charge_id integer [not null]
+  billing_purpose_code varchar [not null, note: 'Copied from immutable charge classification']
+  paid_at timestamp [not null]
+  source_paid_amount_cents integer [not null]
+  source_fine_amount_cents integer [not null, default: 0]
+  source_interest_amount_cents integer [not null, default: 0]
+  declared_principal_amount_cents integer [not null, note: 'source_paid - source_fine - source_interest; check >= 0']
+  created_at timestamp
+  updated_at timestamp
+  Note: 'Immutable payment traceability; no Discard. One source payment appears at most once in a version.'
+
+  indexes {
+    (tax_declaration_version_id, payment_id) [unique]
+    (tax_declaration_version_id, student_id)
+  }
+}
+
+Table tax_declaration_access_events {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  tax_declaration_id integer [not null]
+  tax_declaration_version_id integer [not null]
+  guardian_id integer [not null, note: 'Authenticated payer guardian whose family-scoped request succeeded']
+  actor_user_id integer [not null]
+  event_type varchar [not null, default: 'pdf_download', note: 'pdf_download']
+  request_uuid varchar [not null, unique, note: 'Idempotent request correlation; no CPF or financial line items']
+  occurred_at timestamp [not null]
+  created_at timestamp
+  updated_at timestamp
+  Note: 'Append-only read-access audit. No Discard; retention remains legal/LGPD gated.'
+
+  indexes {
+    (school_id, guardian_id, occurred_at)
+    (tax_declaration_version_id, occurred_at)
+  }
+}
+
 Table contracts {
   id integer [primary key, increment]
   student_id integer [not null]
@@ -367,6 +483,9 @@ Table charges {
   contract_id integer [not null]
   school_id integer [not null]
   guardian_id integer [not null, note: 'Financially responsible guardian for this charge']
+  billing_purpose_id integer [note: 'Required for new charges; nullable only for legacy rows pending verified classification']
+  billing_purpose_code varchar [note: 'Immutable purpose code captured when charge is created']
+  tax_declaration_eligible boolean [not null, default: false, note: 'Immutable eligibility captured from billing_purposes at charge creation; later school setting changes do not reclassify this charge']
   billing_period date [not null, note: 'First day of billing month — e.g. 2026-08-01']
   original_amount_cents integer [not null, note: 'Monetary amounts stored as integer cents. Check constraint: >= 0.']
   discount_amount_cents integer [not null, default: 0, note: 'Check constraint: >= 0']
@@ -590,6 +709,7 @@ Table academic_periods {
   starts_on date [not null, note: 'Must fall within school year bounds']
   ends_on date [not null, note: 'Check constraint intent: ends_on >= starts_on; periods in a year must not overlap']
   closure_status varchar [not null, default: 'open', note: 'open | closing | closed — academic BC6']
+  attendance_policy_override jsonb [note: 'Optional period override of school attendance policy; immutable once closure_status = closed']
   discarded_at timestamp
   created_at timestamp
   updated_at timestamp
@@ -845,12 +965,55 @@ Table notification_deliveries {
 
 // --- Academic (007) ---
 
+Table subjects {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null]
+  code varchar
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, name) [unique, note: 'WHERE discarded_at IS NULL']
+    (school_id, code) [unique, note: 'WHERE code IS NOT NULL AND discarded_at IS NULL']
+  }
+}
+
+Table class_disciplines {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  class_id integer [not null]
+  subject_id integer [not null]
+  school_year_id integer [not null]
+  teacher_id integer
+  required_on_report_card boolean [not null, default: true]
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (class_id, subject_id) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table attendance_policies {
+  id integer [primary key, increment]
+  school_id integer [not null, unique]
+  counting_mode varchar [not null, default: 'lesson', note: 'lesson | period_total']
+  late_counts_as_absence boolean [not null, default: false, note: 'Controls report-card numerator; late always remains in denominator']
+  auto_confirm_absence_after_minutes integer [not null, default: 15, note: 'Check > 0']
+  created_at timestamp
+  updated_at timestamp
+}
+
 Table attendance_sessions {
   id integer [primary key, increment]
   school_id integer [not null]
   class_id integer [not null]
   school_year_id integer [not null]
   academic_period_id integer
+  lesson_id integer [note: 'Required when attendance policy counting_mode = lesson; null for period_total roll']
   session_date date [not null]
   recorded_by_membership_id integer
   confirmed_at timestamp [note: 'After 15-minute auto-confirm delay']
@@ -859,7 +1022,8 @@ Table attendance_sessions {
   updated_at timestamp
 
   indexes {
-    (class_id, session_date) [unique, note: 'WHERE discarded_at IS NULL']
+    (class_id, session_date, lesson_id) [unique, note: 'Partial unique WHERE lesson_id IS NOT NULL AND discarded_at IS NULL']
+    (class_id, academic_period_id, session_date) [unique, note: 'Partial unique WHERE lesson_id IS NULL AND discarded_at IS NULL — one period-total roll per class/date']
   }
 }
 
@@ -868,7 +1032,7 @@ Table attendance_records {
   attendance_session_id integer [not null]
   school_id integer [not null]
   student_id integer [not null]
-  status varchar [not null, note: 'present | absent | late | justified']
+  status varchar [not null, note: 'present | absent | late | excused']
   absence_notified_at timestamp
   discarded_at timestamp
   created_at timestamp
@@ -879,17 +1043,270 @@ Table attendance_records {
   }
 }
 
+Table absence_justifications {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  attendance_record_id integer [not null]
+  submitted_by_membership_id integer [not null]
+  reason_code varchar [not null]
+  explanation text [note: 'LGPD: may contain child health/family information; minimize and retain per approved policy']
+  attachment_storage_key varchar
+  status varchar [not null, default: 'pending', note: 'pending | approved | rejected']
+  reviewed_by_membership_id integer
+  reviewed_at timestamp
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, status, created_at)
+    (attendance_record_id, created_at)
+  }
+}
+
+Table attendance_exports {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  class_id integer [not null]
+  academic_period_id integer
+  requested_by_membership_id integer [not null]
+  format varchar [not null, note: 'pdf | csv']
+  status varchar [not null, default: 'pending', note: 'pending | processing | completed | failed']
+  filter_snapshot jsonb [not null, default: '{}']
+  storage_key varchar
+  completed_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table grade_scales {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null]
+  scale_type varchar [not null, note: 'numeric | concept | rubric']
+  version integer [not null]
+  configuration jsonb [not null, default: '{}', note: 'Numeric bounds/precision or concept/rubric allowed values']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, name, version) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
+Table evaluation_templates {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  class_id integer [not null]
+  academic_period_id integer [not null]
+  version integer [not null]
+  supersedes_id integer
+  retired_at timestamp [note: 'Current template has retired_at NULL; replaced versions remain immutable for existing entries']
+  rounding_mode varchar [not null, default: 'half_up']
+  lock_on_launch boolean [not null, default: false]
+  created_by_membership_id integer [not null]
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, class_id, academic_period_id, version) [unique, note: 'WHERE discarded_at IS NULL']
+    (school_id, class_id, academic_period_id) [unique, note: 'Partial unique WHERE retired_at IS NULL AND discarded_at IS NULL — one current template for the class/period']
+  }
+}
+
+Table evaluation_components {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  evaluation_template_id integer [not null]
+  class_discipline_id integer [not null]
+  grade_scale_id integer [not null]
+  name varchar [not null]
+  weight_percent decimal(5,2) [not null, note: 'Template regular-component weights sum to 100 unless explicit extra-credit rule']
+  entry_kind varchar [not null, default: 'regular', note: 'regular | recovery']
+  position integer [not null]
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (evaluation_template_id, class_discipline_id, position) [unique, note: 'WHERE discarded_at IS NULL']
+  }
+}
+
 Table grade_entries {
   id integer [primary key, increment]
   school_id integer [not null]
   student_id integer [not null]
   class_discipline_id integer [not null]
   academic_period_id integer [not null]
+  evaluation_component_id integer [not null]
+  lesson_id integer
+  activity_id integer
+  entry_kind varchar [not null, default: 'regular', note: 'regular | recovery; must match component']
   value varchar [note: 'Numeric or concept — LGPD: academic record']
   entered_by_membership_id integer
   discarded_at timestamp
   created_at timestamp
   updated_at timestamp
+
+  indexes {
+    (evaluation_component_id, student_id, lesson_id, activity_id) [unique, note: 'PostgreSQL NULLS NOT DISTINCT partial unique WHERE discarded_at IS NULL — idempotent grade cell identity even when lesson/activity is null']
+  }
+}
+
+Table grade_overrides {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  class_discipline_id integer [not null]
+  academic_period_id integer [not null]
+  computed_value varchar [not null]
+  override_value varchar [not null]
+  reason_code varchar [not null]
+  applied_by_membership_id integer [not null]
+  supersedes_id integer
+  superseded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+  Note: 'Append-only audited override of one computed student/discipline/period result. Current row has superseded_at NULL; correction appends and supersedes.'
+
+  indexes {
+    (school_id, student_id, class_discipline_id, academic_period_id) [unique, note: 'Partial unique WHERE superseded_at IS NULL — one current override per computed result']
+  }
+}
+
+Table grade_launches {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  class_id integer [not null]
+  class_discipline_id integer [not null]
+  academic_period_id integer [not null]
+  launched_by_membership_id integer [not null]
+  supersedes_id integer [note: 'Prior invalidated launch replaced by this append-only relaunch']
+  status varchar [not null, default: 'launched', note: 'launched | invalidated; readiness requires launched plus matching current digest']
+  launched_at timestamp [not null]
+  input_digest varchar [not null, note: 'Traceable digest of launched grade entries/formula version']
+  invalidated_at timestamp
+  invalidation_reason varchar [note: 'Audited source-change reason; required when status = invalidated']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, class_discipline_id, academic_period_id, input_digest) [unique]
+    (school_id, class_discipline_id, academic_period_id) [unique, note: 'Partial unique WHERE status = launched — at most one current non-invalidated launch']
+  }
+}
+
+Table report_card_configs {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  version integer [not null]
+  template_key varchar [not null, note: 'Versioned standard engine template reference; no executable arbitrary template']
+  display_config jsonb [not null, default: '{}', note: 'Visible columns, discipline rules, numeric/concept and attendance display modes']
+  header_text text
+  footer_text text
+  document_signatory_id integer [not null, note: 'Exactly one same-school active signatory per config version']
+  created_by_membership_id integer [not null]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, version) [unique]
+  }
+}
+
+Table report_card_publish_batches {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  class_id integer [not null]
+  academic_period_id integer [not null]
+  requested_by_membership_id integer [not null]
+  mode varchar [not null, note: 'immediate | scheduled']
+  status varchar [not null, default: 'processing', note: 'scheduled | processing | completed | failed']
+  force_publish_reason text
+  requested_count integer [not null, default: 0]
+  released_count integer [not null, default: 0, note: 'Atomic invariant: completed equals requested; failed equals 0']
+  failed_count integer [not null, default: 0]
+  blockers jsonb [not null, default: '[]', note: 'Structured per-student blockers; no sensitive details in logs']
+  completed_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, class_id, academic_period_id, status)
+  }
+}
+
+Table report_card_publish_schedules {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  report_card_publish_batch_id integer [not null, unique]
+  scheduled_for timestamp [not null, note: 'UTC instant derived from school_timezone']
+  school_timezone varchar [not null, note: 'IANA timezone used to interpret the request']
+  status varchar [not null, default: 'scheduled', note: 'scheduled | processing | completed | failed']
+  queue_job_reference varchar [note: 'Internal Solid Queue correlation; never exposed as product id']
+  executed_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table report_card_publications {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  academic_period_id integer [not null]
+  active_snapshot_id integer [note: 'Current released version; FK to report_card_snapshots added after both tables exist']
+  created_by_membership_id integer [not null]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, student_id, academic_period_id) [unique, note: 'One logical publication; corrections are snapshot versions']
+  }
+}
+
+Table report_card_snapshots {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  report_card_publication_id integer [not null]
+  report_card_publish_batch_id integer [note: 'Atomic class batch that first released this snapshot; null only for individual correction/legacy rows']
+  report_card_config_id integer [not null]
+  version integer [not null]
+  supersedes_id integer
+  grade_launch_digest varchar [not null]
+  snapshot jsonb [not null, note: 'Immutable student/period/config, launched grades/formulas/overrides, visibility, attendance denominator/numerator/counts/late policy/percentage']
+  correction_reason text
+  released_at timestamp [not null]
+  pdf_storage_key varchar [not null, note: 'Rendered only from snapshot; row is inserted only after bytes stage successfully']
+  created_at timestamp
+  updated_at timestamp
+  Note: 'Append-only released academic record; no persisted draft snapshot. Guardian visibility requires released_at <= now.'
+
+  indexes {
+    (report_card_publication_id, version) [unique]
+  }
+}
+
+Table preceptorship_reports {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  teacher_id integer [not null]
+  academic_period_id integer
+  author_id integer
+  body text [not null, note: 'LGPD: narrative about a child; not PEI/AEE or a grade scale']
+  status varchar [not null, default: 'draft', note: 'draft | published; one-way transition']
+  published_at timestamp
+  discarded_at timestamp [note: 'Drafts only; published rows are retained and corrected by a new report']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, student_id, created_at)
+    (school_id, status)
+  }
 }
 
 Table incidents {
@@ -951,6 +1368,31 @@ Table document_signatories {
   discarded_at timestamp
   created_at timestamp
   updated_at timestamp
+}
+
+Table guardian_requests {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  guardian_id integer [not null]
+  student_id integer [not null]
+  kind varchar [not null, note: 'declaration | second_call']
+  status varchar [not null, default: 'pending', note: 'pending | in_progress | fulfilled | rejected']
+  details text [note: 'Nullable in shipped schema although application validates presence; null:false hardening requires a follow-up safe migration. LGPD: family request content']
+  subject_id integer [note: 'Optional second-call subject FK; must share school_id. Cleared for declaration by shipped create service']
+  reference_date date [note: 'Second-call request only']
+  resolution_note text [note: 'Required by shipped resolve service when status = rejected; optional when fulfilled']
+  resolved_by_id integer
+  resolved_at timestamp
+  requested_by_id integer
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, status, created_at)
+    (guardian_id, created_at)
+  }
+  Note: 'Shipped nullable-details mismatch is explicit; DB hardening is not yet implemented.'
 }
 
 // --- Relationships ---
@@ -1024,6 +1466,13 @@ Ref: announcements.author_membership_id > memberships.id
 Ref: notification_deliveries.school_id > schools.id
 Ref: notification_deliveries.device_token_id > device_tokens.id
 
+Ref: subjects.school_id > schools.id
+Ref: class_disciplines.school_id > schools.id
+Ref: class_disciplines.class_id > classes.id
+Ref: class_disciplines.subject_id > subjects.id
+Ref: class_disciplines.school_year_id > school_years.id
+Ref: class_disciplines.teacher_id > teachers.id
+Ref: attendance_policies.school_id > schools.id
 Ref: attendance_sessions.school_id > schools.id
 Ref: attendance_sessions.class_id > classes.id
 Ref: attendance_sessions.school_year_id > school_years.id
@@ -1032,8 +1481,66 @@ Ref: attendance_sessions.recorded_by_membership_id > memberships.id
 Ref: attendance_records.attendance_session_id > attendance_sessions.id
 Ref: attendance_records.school_id > schools.id
 Ref: attendance_records.student_id > students.id
+Ref: absence_justifications.school_id > schools.id
+Ref: absence_justifications.attendance_record_id > attendance_records.id
+Ref: absence_justifications.submitted_by_membership_id > memberships.id
+Ref: absence_justifications.reviewed_by_membership_id > memberships.id
+Ref: attendance_exports.school_id > schools.id
+Ref: attendance_exports.class_id > classes.id
+Ref: attendance_exports.academic_period_id > academic_periods.id
+Ref: attendance_exports.requested_by_membership_id > memberships.id
+Ref: grade_scales.school_id > schools.id
+Ref: evaluation_templates.school_id > schools.id
+Ref: evaluation_templates.class_id > classes.id
+Ref: evaluation_templates.academic_period_id > academic_periods.id
+Ref: evaluation_templates.created_by_membership_id > memberships.id
+Ref: evaluation_templates.supersedes_id > evaluation_templates.id
+Ref: evaluation_components.school_id > schools.id
+Ref: evaluation_components.evaluation_template_id > evaluation_templates.id
+Ref: evaluation_components.class_discipline_id > class_disciplines.id
+Ref: evaluation_components.grade_scale_id > grade_scales.id
 Ref: grade_entries.school_id > schools.id
 Ref: grade_entries.student_id > students.id
+Ref: grade_entries.class_discipline_id > class_disciplines.id
+Ref: grade_entries.academic_period_id > academic_periods.id
+Ref: grade_entries.evaluation_component_id > evaluation_components.id
+Ref: grade_entries.entered_by_membership_id > memberships.id
+Ref: grade_overrides.school_id > schools.id
+Ref: grade_overrides.student_id > students.id
+Ref: grade_overrides.class_discipline_id > class_disciplines.id
+Ref: grade_overrides.academic_period_id > academic_periods.id
+Ref: grade_overrides.applied_by_membership_id > memberships.id
+Ref: grade_overrides.supersedes_id > grade_overrides.id
+Ref: grade_launches.school_id > schools.id
+Ref: grade_launches.class_id > classes.id
+Ref: grade_launches.class_discipline_id > class_disciplines.id
+Ref: grade_launches.academic_period_id > academic_periods.id
+Ref: grade_launches.launched_by_membership_id > memberships.id
+Ref: grade_launches.supersedes_id > grade_launches.id
+Ref: report_card_configs.school_id > schools.id
+Ref: report_card_configs.document_signatory_id > document_signatories.id
+Ref: report_card_configs.created_by_membership_id > memberships.id
+Ref: report_card_publish_batches.school_id > schools.id
+Ref: report_card_publish_batches.class_id > classes.id
+Ref: report_card_publish_batches.academic_period_id > academic_periods.id
+Ref: report_card_publish_batches.requested_by_membership_id > memberships.id
+Ref: report_card_publish_schedules.school_id > schools.id
+Ref: report_card_publish_schedules.report_card_publish_batch_id > report_card_publish_batches.id
+Ref: report_card_publications.school_id > schools.id
+Ref: report_card_publications.student_id > students.id
+Ref: report_card_publications.academic_period_id > academic_periods.id
+Ref: report_card_publications.active_snapshot_id > report_card_snapshots.id
+Ref: report_card_publications.created_by_membership_id > memberships.id
+Ref: report_card_snapshots.school_id > schools.id
+Ref: report_card_snapshots.report_card_publication_id > report_card_publications.id
+Ref: report_card_snapshots.report_card_publish_batch_id > report_card_publish_batches.id
+Ref: report_card_snapshots.report_card_config_id > report_card_configs.id
+Ref: report_card_snapshots.supersedes_id > report_card_snapshots.id
+Ref: preceptorship_reports.school_id > schools.id
+Ref: preceptorship_reports.student_id > students.id
+Ref: preceptorship_reports.teacher_id > teachers.id
+Ref: preceptorship_reports.academic_period_id > academic_periods.id
+Ref: preceptorship_reports.author_id > users.id
 Ref: incidents.school_id > schools.id
 Ref: incidents.student_id > students.id
 Ref: incidents.reported_by_membership_id > memberships.id
@@ -1046,6 +1553,12 @@ Ref: archive_documents.archive_document_type_id > archive_document_types.id
 Ref: archive_documents.uploaded_by_id > users.id
 Ref: archive_documents.discarded_by_id > users.id
 Ref: document_signatories.school_id > schools.id
+Ref: guardian_requests.school_id > schools.id
+Ref: guardian_requests.guardian_id > guardians.id
+Ref: guardian_requests.student_id > students.id
+Ref: guardian_requests.subject_id > subjects.id
+Ref: guardian_requests.resolved_by_id > users.id
+Ref: guardian_requests.requested_by_id > users.id
 
 Ref: refresh_tokens.user_id > users.id
 Ref: device_tokens.user_id > users.id
@@ -1063,6 +1576,26 @@ Ref: billing_plans.school_id > schools.id
 Ref: school_payment_providers.school_id > schools.id
 Ref: school_payment_providers.uploaded_by_id > users.id
 Ref: school_billing_settings.school_id > schools.id
+Ref: billing_purposes.school_id > schools.id
+Ref: tax_declaration_settings.school_id > schools.id
+Ref: tax_declaration_settings.document_signatory_id > document_signatories.id
+Ref: tax_declaration_settings.approved_by_id > users.id
+Ref: tax_declarations.school_id > schools.id
+Ref: tax_declarations.guardian_id > guardians.id
+Ref: tax_declarations.active_version_id > tax_declaration_versions.id
+Ref: tax_declaration_versions.school_id > schools.id
+Ref: tax_declaration_versions.tax_declaration_id > tax_declarations.id
+Ref: tax_declaration_versions.supersedes_id > tax_declaration_versions.id
+Ref: tax_declaration_items.school_id > schools.id
+Ref: tax_declaration_items.tax_declaration_version_id > tax_declaration_versions.id
+Ref: tax_declaration_items.student_id > students.id
+Ref: tax_declaration_items.payment_id > payments.id
+Ref: tax_declaration_items.charge_id > charges.id
+Ref: tax_declaration_access_events.school_id > schools.id
+Ref: tax_declaration_access_events.tax_declaration_id > tax_declarations.id
+Ref: tax_declaration_access_events.tax_declaration_version_id > tax_declaration_versions.id
+Ref: tax_declaration_access_events.guardian_id > guardians.id
+Ref: tax_declaration_access_events.actor_user_id > users.id
 Ref: school_modules.school_id > schools.id
 
 Ref: student_guardians.guardian_id > guardians.id
@@ -1076,6 +1609,7 @@ Ref: contracts.enrollment_id > enrollments.id
 
 Ref: charges.contract_id > contracts.id
 Ref: charges.guardian_id > guardians.id
+Ref: charges.billing_purpose_id > billing_purposes.id
 Ref: charges.discarded_by_id > users.id
 Ref: charges.school_id > schools.id
 

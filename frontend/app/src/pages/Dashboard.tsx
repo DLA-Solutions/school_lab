@@ -7,13 +7,17 @@ import SchoolIncome from 'components/sections/dashboard/completed-task/Completed
 import Ledger from 'components/sections/dashboard/orders-status/OrdersStatus';
 import useDashboardMetrics from 'components/sections/dashboard/useDashboardMetrics';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
+import { useGuardianSchool } from 'providers/useGuardianSchool';
 import { useTranslation } from 'providers/I18nContext';
 import { membershipHasPermission } from 'utils/onboarding/access';
 import { currentMonth } from 'utils/month';
+import GuardianDashboard from './GuardianDashboard';
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const guardianSchool = useGuardianSchool();
   const school = useCurrentSchool();
+
   const canViewBillingSummary =
     school !== null &&
     (membershipHasPermission(school, 'view_billing_summary') ||
@@ -25,16 +29,19 @@ const Dashboard = () => {
   const canViewPeopleMetrics =
     school !== null && membershipHasPermission(school, 'manage_people');
 
-  const hasContent = canViewBillingSummary || canViewPeopleMetrics;
+  const hasStaffContent = !guardianSchool && (canViewBillingSummary || canViewPeopleMetrics);
 
-  // One month drives the whole page: the KPI row, the income chart and the ledger all report it.
   const [month, setMonth] = useState(currentMonth);
   const { metrics, loading, error, accessDenied, reload } = useDashboardMetrics(
     month,
-    hasContent,
+    hasStaffContent,
   );
 
-  if (!hasContent) {
+  if (guardianSchool) {
+    return <GuardianDashboard />;
+  }
+
+  if (!hasStaffContent) {
     return (
       <EmptyState
         title={t('dashboard.welcome.title')}

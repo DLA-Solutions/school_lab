@@ -76,6 +76,9 @@ module Billing
 
       ActiveRecord::Base.transaction do
         charge = build_charge(contract, payer)
+        classification = classify_charge!(charge, code: "tuition")
+        raise ActiveRecord::Rollback unless classification.success?
+
         charge.save!
         record_plan_discount!(charge, contract)
         Billing::IssueChargeJob.perform_later(charge.id, school.id)
@@ -166,6 +169,11 @@ module Billing
 
     def failure(message)
       ResponseService.failure(code: :validation_error, details: { base: [ message ] })
+    end
+
+    def classify_charge!(charge, code:)
+      purpose = BillingPurpose.find_or_provision!(school, code: code)
+      Billing::ApplyChargeClassificationService.call(charge: charge, billing_purpose: purpose)
     end
   end
 end

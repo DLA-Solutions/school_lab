@@ -9,6 +9,17 @@ pt-BR:
   billing:
     settings:
       default_service_description: "Mensalidade escolar"
+    tax_declaration:
+      pdf:
+        title: "Declaração anual de pagamentos"
+        calendar_year: "Ano calendário"
+        payer: "Responsável"
+        cpf: "CPF"
+        cnpj: "CNPJ"
+        student: "Aluno"
+        amount: "Valor (R$)"
+        total: "Total declarado"
+        verification_code: "Código de verificação"
     mailer:
       collection_reminder:
         subject: "Cobrança em aberto — %{amount}"
@@ -45,6 +56,12 @@ pt-BR:
       teacher: "Professor(a)"
       cohort: "Turma"
       period: "Período"
+    report_card:
+      title: "Boletim escolar"
+      student: "Estudante"
+      period: "Período"
+      final_grade: "Nota final"
+      attendance: "Frequência"
     guardians:
       title: "Relação de responsáveis"
     students:
@@ -69,6 +86,11 @@ pt-BR:
       backoffice_only: "Esta ação é restrita a operadores do backoffice."
       not_found: "Não encontrado."
       not_implemented: "Recurso ainda não implementado."
+      report_card_not_ready: "Os pré-requisitos do boletim não foram atendidos."
+      report_card_frozen: "Boletins publicados não podem ser alterados."
+      publication_in_progress: "Já existe uma publicação em andamento."
+      batch_release_failed: "A publicação em lote falhou; nenhum estudante foi liberado."
+      republish_reason_required: "Informe o motivo da correção para republicar."
       validation_error: "Dados inválidos."
       invalid_state_transition: "Transição de estado inválida."
       provider_error: "Falha na comunicação com o provedor de pagamento."
@@ -95,6 +117,7 @@ pt-BR:
       charge_batch_invalid_period: "Informe uma competência válida, no formato AAAA-MM."
       charge_amount_required: "Informe um valor maior que zero."
       charge_due_date_required: "Informe a data de vencimento."
+      billing_purpose_required: "Selecione a finalidade da cobrança."
       plan_discount_in_use: "Este desconto está aplicado em %{count} contrato(s) e não pode ser removido."
       cannot_delete_system_template: "Modelos do sistema não podem ser excluídos."
       template_in_use: "Este modelo está em uso por %{count} colaborador(es)."
@@ -118,6 +141,11 @@ pt-BR:
       invalid_period_range: "O período deve estar dentro das datas do ano letivo."
       archived_school_year: "Alterações não são permitidas em ano letivo arquivado."
       no_active_school_year: "Nenhum ano letivo ativo."
+      generation_in_progress: "Uma declaração para este responsável e ano já está sendo gerada."
+      calendar_year_not_closed: "O ano calendário ainda não encerrou."
+      no_eligible_payments: "Não há pagamentos elegíveis para este ano."
+      tax_declaration_configuration_incomplete: "A configuração da declaração está incompleta."
+      unclassified_legacy_charge: "Um pagamento referencia uma cobrança sem finalidade verificada."
     # Não impedem o envio — o contrato sai com uma lacuna que alguém terá de preencher depois.
     warnings:
       student_without_cpf: "Este aluno não tem CPF cadastrado; o contrato sairá com esse campo em branco."

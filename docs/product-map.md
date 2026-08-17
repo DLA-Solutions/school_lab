@@ -96,9 +96,12 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
    identity/onboarding modeling and API narratives are **in progress** (domain PRDs validated).
 4. API contracts — **Platform W1 frozen** (Phase 4C.1 — school years, periods, holidays +
    `school_year_id` cross-domain contract; see [`api/v1/platform-and-admin.md`](api/v1/platform-and-admin.md)).
-   Other domain narratives remain draft. The billing partner slice is **implemented** in `web/`
-   (historical baseline per [`prds/fintech-first.md`](prds/fintech-first.md)). **Normative billing
-   scope** is [`prds/billing/`](prds/billing/).
+   Other domain APIs remain draft. The guardian-delivery work has approved scoped **narrative
+   targets** for report cards and annual tax declarations, but those are not executable/frozen
+   OpenAPI until rswag request specs and generated YAML land. The billing partner slice is
+   **implemented** in `web/` (historical baseline per
+   [`prds/fintech-first.md`](prds/fintech-first.md)). **Normative billing scope** is
+   [`prds/billing/`](prds/billing/).
 5. Implementation (`web/` with the stack defined in `web-stack.md`) follows the maturation
    order in [`product/domain-roadmap.md`](product/domain-roadmap.md) (communication-first).
 

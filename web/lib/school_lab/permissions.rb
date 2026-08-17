@@ -23,6 +23,10 @@ module SchoolLab
         domain: "documents",
         scope_kinds: %w[full segment].freeze
       }.freeze,
+      "manage_academic" => {
+        domain: "academic",
+        scope_kinds: [ "full" ].freeze
+      }.freeze,
       "approve_lesson_plans" => {
         domain: "academic",
         scope_kinds: [ "full" ].freeze
@@ -51,6 +55,7 @@ module SchoolLab
           { key: "manage_people", scope_kind: "full" },
           { key: "manage_enrollment", scope_kind: "full" },
           { key: "manage_documents", scope_kind: "full" },
+          { key: "manage_academic", scope_kind: "full" },
           { key: "approve_lesson_plans", scope_kind: "full" },
           { key: "moderate_messages", scope_kind: "full" },
           { key: "view_billing_summary", scope_kind: "full" }
@@ -68,6 +73,7 @@ module SchoolLab
         default_name: "Coordenação",
         permissions: [
           { key: "manage_people", scope_kind: "partial" },
+          { key: "manage_academic", scope_kind: "full" },
           { key: "approve_lesson_plans", scope_kind: "full" },
           { key: "moderate_messages", scope_kind: "full" },
           { key: "teach", scope_kind: "full", requires_also_teaches: true }

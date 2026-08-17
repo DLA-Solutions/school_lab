@@ -138,7 +138,7 @@ Stakeholder → authorization mapping (system role templates by default, not new
 | Secretaria | `staff` | `secretary` | Web SPA |
 | Coordenação | `staff` or `teacher` | `coordination` | Web SPA |
 | Professor | `teacher` | `teacher` | Web + app |
-| Responsável | `guardian` | — | App (+ web per channel decision) |
+| Responsável | `guardian` | — | `frontend/app` web first; mobile parity |
 | DLA backoffice | `backoffice` | — | Web SPA (backoffice) |
 
 Schools may create custom templates; invites use `role_template_id`.
@@ -150,7 +150,7 @@ Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md) (updated i
 | backoffice | Web SPA (backoffice) | Create school, white-glove provisioning, `provision_school` during lifecycle |
 | staff (owner, secretary, director) | Web SPA (school) | Role templates, team invites, owner wizard, handoff |
 | teacher | Web SPA + mobile | Invite accept, `role_template_id` assignment |
-| guardian | Mobile (+ web per channel decision) | Invite accept, set password; no permission keys |
+| guardian | `frontend/app` web first; mobile parity | Invite accept, set password; no permission keys |
 | student | — | No student login in MVP; proxy via guardian/staff |
 
 ---

@@ -67,20 +67,28 @@ module DemoSchool
   end
 
   def find_or_create_school!
-    school_group = SchoolGroup.find_or_create_by!(name: ENV.fetch("SEED_SCHOOL_GROUP_NAME", "School Lab Group"))
+    school_group = SchoolGroup.find_or_create_by!(name: seed_school_group_name)
 
     school = School.find_or_create_by!(cnpj: SCHOOL_CNPJ) do |record|
-      record.name = ENV.fetch("SEED_SCHOOL_NAME", "Colégio Demo School Lab")
+      record.name = seed_school_name
       record.school_group = school_group
       record.onboarding_mode = "self_serve"
       record.onboarding_status = "active"
     end
     school.update!(
-      name: ENV.fetch("SEED_SCHOOL_NAME", school.name),
+      name: seed_school_name,
       onboarding_mode: "self_serve",
       onboarding_status: "active"
     )
     school
+  end
+
+  def seed_school_name
+    ENV["SEED_SCHOOL_NAME"].presence || "Colégio Demo School Lab"
+  end
+
+  def seed_school_group_name
+    ENV["SEED_SCHOOL_GROUP_NAME"].presence || "School Lab Group"
   end
 
   def ensure_system_role_templates!(school)
@@ -127,5 +135,6 @@ module DemoSchool
   end
 
   private_class_method :find_or_create_bank_slip_provider!, :find_or_create_billing_settings!,
-                      :find_or_create_confirmed_user!, :find_or_create_membership!
+                      :find_or_create_confirmed_user!, :find_or_create_membership!,
+                      :seed_school_name, :seed_school_group_name
 end

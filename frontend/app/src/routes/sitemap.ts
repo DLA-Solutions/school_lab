@@ -1,4 +1,5 @@
 import paths from './paths';
+import type { RouteAudience } from 'utils/membership/audience';
 
 export interface SubMenuItem {
   name: string;
@@ -7,6 +8,7 @@ export interface SubMenuItem {
   active?: boolean;
   items?: SubMenuItem[];
   requiredPermission?: string;
+  audience?: RouteAudience;
 }
 
 export interface MenuItem {
@@ -20,11 +22,10 @@ export interface MenuItem {
   /** When set, the item is hidden unless the current membership includes this permission key. */
   requiredPermission?: string;
   /**
-   * When set, the item is shown only to a membership in this role. Permissions cannot express
-   * this: a guardian holds none, so a guardian-only entry gated by a permission key would be
-   * hidden from the only people it is for.
+   * Which profile context may see this entry. Defaults to `staff` when omitted.
+   * Permission keys narrow staff/teacher access; they never turn a staff route into a guardian route.
    */
-  requiredRole?: string;
+  audience?: RouteAudience;
 }
 
 const sitemap: MenuItem[] = [
@@ -34,6 +35,15 @@ const sitemap: MenuItem[] = [
     path: paths.dashboard,
     icon: 'mingcute:home-1-fill',
     active: true,
+    audience: 'shared',
+  },
+  {
+    id: 'my-charges',
+    subheader: 'nav.myCharges',
+    path: paths.myCharges,
+    icon: 'mingcute:bill-line',
+    active: true,
+    audience: 'guardian',
   },
   {
     id: 'students',
@@ -41,6 +51,7 @@ const sitemap: MenuItem[] = [
     path: paths.students,
     icon: 'mingcute:school-line',
     active: true,
+    audience: 'staff',
     requiredPermission: 'manage_people',
   },
   {
@@ -49,55 +60,75 @@ const sitemap: MenuItem[] = [
     path: paths.guardians,
     icon: 'mingcute:user-2-fill',
     active: true,
+    audience: 'staff',
     requiredPermission: 'manage_people',
   },
   {
-    // A teacher's account, in prose, of how a student is getting on. Gated on `teach` because
-    // that is who writes one — the office files the school's papers, it does not write these.
     id: 'preceptorship',
     subheader: 'nav.preceptorship',
     path: paths.preceptorship,
     icon: 'mingcute:quill-pen-line',
     active: true,
+    audience: 'staff',
     requiredPermission: 'teach',
   },
   {
-    // The family's side of the same thing.
+    id: 'report-cards',
+    subheader: 'nav.reportCards',
+    path: paths.reportCards,
+    icon: 'mingcute:report-forms-line',
+    active: true,
+    audience: 'staff',
+    requiredPermission: 'manage_academic',
+  },
+  {
     id: 'my-preceptorship',
     subheader: 'nav.myPreceptorship',
     path: paths.myPreceptorship,
     icon: 'mingcute:quill-pen-line',
     active: true,
-    requiredRole: 'guardian',
+    audience: 'guardian',
   },
   {
-    // What guardians have asked the school for. The archive desk answers these, which is the
-    // desk `manage_documents` describes — a declaration is a document the school issues.
+    id: 'my-report-cards',
+    subheader: 'nav.myReportCards',
+    path: paths.myReportCards,
+    icon: 'mingcute:report-forms-line',
+    active: true,
+    audience: 'guardian',
+  },
+  {
+    id: 'my-tax-declarations',
+    subheader: 'nav.myTaxDeclarations',
+    path: paths.myTaxDeclarations,
+    icon: 'mingcute:file-certificate-line',
+    active: true,
+    audience: 'guardian',
+  },
+  {
     id: 'requests',
     subheader: 'nav.requests',
     path: paths.requests,
     icon: 'mingcute:inbox-line',
     active: true,
+    audience: 'staff',
     requiredPermission: 'manage_documents',
   },
   {
-    // The guardian's own side of the same queue.
     id: 'my-requests',
     subheader: 'nav.myRequests',
     path: paths.myRequests,
     icon: 'mingcute:inbox-line',
     active: true,
-    requiredRole: 'guardian',
+    audience: 'guardian',
   },
-  // "Equipe" is off the menu: the register of who works at the school is Colaboradores, and the
-  // two read as the same thing to anyone scanning the sidebar. The page itself is kept — it is
-  // the only place a membership's permissions can be edited — and stays reachable at its path.
   {
     id: 'collaborators',
     subheader: 'nav.collaborators',
     path: paths.collaborators,
     icon: 'mingcute:presentation-2-line',
     active: true,
+    audience: 'staff',
   },
   {
     id: 'grades',
@@ -105,15 +136,15 @@ const sitemap: MenuItem[] = [
     path: paths.grades,
     icon: 'mingcute:edit-4-line',
     active: true,
+    audience: 'staff',
   },
   {
-    // Turmas and Matérias are tabs inside this page: they are what a lesson is made of, and three
-    // separate menu entries made an obvious sequence read as three unrelated screens.
     id: 'lessons',
     subheader: 'nav.lessons',
     path: paths.lessons,
     icon: 'mingcute:book-5-line',
     active: true,
+    audience: 'staff',
   },
   {
     id: 'job-positions',
@@ -121,6 +152,7 @@ const sitemap: MenuItem[] = [
     path: paths.jobPositions,
     icon: 'mingcute:idcard-line',
     active: true,
+    audience: 'staff',
   },
   {
     id: 'charges',
@@ -128,6 +160,7 @@ const sitemap: MenuItem[] = [
     path: paths.charges,
     icon: 'mingcute:bill-line',
     active: true,
+    audience: 'staff',
     requiredPermission: 'manage_billing',
   },
   {
@@ -136,6 +169,7 @@ const sitemap: MenuItem[] = [
     path: paths.plans,
     icon: 'mingcute:currency-dollar-line',
     active: true,
+    audience: 'staff',
     requiredPermission: 'manage_billing',
   },
   {
@@ -144,6 +178,7 @@ const sitemap: MenuItem[] = [
     path: paths.billingSettings,
     icon: 'mingcute:settings-3-line',
     active: true,
+    audience: 'staff',
     requiredPermission: 'manage_billing',
   },
   {
@@ -152,6 +187,7 @@ const sitemap: MenuItem[] = [
     path: paths.contractTemplate,
     icon: 'mingcute:document-2-line',
     active: true,
+    audience: 'staff',
     requiredPermission: 'manage_billing',
   },
 ];
@@ -168,11 +204,13 @@ export const searchableSubPages: MenuItem[] = [
     id: 'school-classes',
     subheader: 'nav.classes',
     path: `${paths.lessons}?tab=classes`,
+    audience: 'staff',
   },
   {
     id: 'subjects',
     subheader: 'nav.subjects',
     path: `${paths.lessons}?tab=subjects`,
+    audience: 'staff',
   },
 ];
 

@@ -399,7 +399,7 @@ Do not duplicate full table definitions here. Update `schema.dbml` before migrat
 | Group | Tables |
 |-------|--------|
 | Identity | `users`, `memberships`, `refresh_tokens`, `device_tokens` |
-| School | `school_groups`, `schools`, `guardians`, `students`, `student_guardians` (plus `teachers`, modeled in DBML but not migrated) |
+| School | `school_groups`, `schools`, `guardians`, `students`, `student_guardians`; `teachers` is now migrated for academic flows outside this historical baseline |
 | Billing | `billing_plans`, `school_payment_providers`, `school_billing_settings`, `contracts`, `charges`, `charge_issuances`, `applied_discounts`, `payments`, `webhook_events` |
 | Documents (enrollment/KYC) | `documents` |
 | Auditing | `audits` (audited gem — not a domain entity) |

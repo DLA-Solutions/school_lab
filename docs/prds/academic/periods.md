@@ -4,8 +4,8 @@
 > Parent PRD: [`index.md`](index.md)  
 > Capability IDs: `academic.manage_period_closure`  
 > Related BCs: [`diary.md`](diary.md), [`grades.md`](grades.md), [`report-cards.md`](report-cards.md)  
-> Modeling: *(pending — `docs/modeling/007-academic.md`)*  
-> API narrative: *(pending — `docs/api/v1/academic.md`)*
+> Modeling: [`docs/modeling/007-academic.md`](../../modeling/007-academic.md)
+> API narrative: [`docs/api/v1/academic.md`](../../api/v1/academic.md)
 
 ---
 
@@ -21,6 +21,16 @@ and mutating grades after close — coordinated with platform school-year config
 | Capability | `capability_id` | Evidence |
 |------------|-----------------|----------|
 | Manage period closure | `academic.manage_period_closure` | [`proesc/gestao-academica/funcionalidades-por-ator.md`](../../ref/proesc/gestao-academica/funcionalidades-por-ator.md) (fechamento) |
+
+---
+
+## Actors and surfaces
+
+| Actor | Surfaces | Actions |
+|-------|----------|---------|
+| staff with `manage_academic` | Web SPA/API | Run checklist, move to closing, close/reopen with audit |
+| teacher | Web SPA/API | Resolve linked diary/grade blockers; no closure transition |
+| guardian | — | No direct period-management access |
 
 ---
 
@@ -51,8 +61,11 @@ state on school year aggregate.
 
 BR-PC02
 
-**Checklist** items (configurable defaults): all diaries submitted or accepted, all components
-launched, report cards published, no pending attendance confirmations `[product decision]`.
+Closure has two checklist stages `[product decision]`. The **pre-closing checklist** requires
+submitted/accepted diaries, launched grade components, and no pending attendance confirmations;
+passing it moves `open` → `closing` and freezes the readiness input set while allowing initial
+report-card publication. The **final-close checklist** additionally requires all expected report
+cards released before `closing` → `closed`.
 
 BR-PC03
 
@@ -72,6 +85,13 @@ BR-PC06
 
 Attendance policy override locked after period close (attendance BR-AT04).
 
+BR-PC07
+
+Initial report-card publication is allowed only while the period is `closing`, after grade and
+attendance readiness passes. A `closed` period permits only an audited report-card correction
+(republish), never an initial publication. This prevents a circular gate: checklist/readiness moves
+`open` → `closing`, publication completes, and final close verifies released report cards.
+
 ---
 
 ## Use Cases
@@ -85,23 +105,48 @@ Flow
 1. Compute checklist status (BR-PC02).
 2. Return blocking items with deep links.
 
-### UC-PC02 — Close academic period
+### UC-PC02 — Start academic period closure
+
+Input: period_id.
+
+Flow
+
+1. `AcademicPeriods::StartClosureService` receives the school-scoped period and actor from the
+   controller; it never resolves either from an unscoped raw id.
+2. Require `closure_status: open` and validate the pre-closing checklist (BR-PC02).
+3. Atomically set `closure_status: closing`.
+4. Emit `AcademicPeriodClosingStarted` after commit.
+
+### UC-PC03 — Close academic period
 
 Input: period_id, force flag, reason.
 
 Flow
 
-1. Validate checklist or force (BR-PC03).
-2. Set `closed` (BR-PC01).
+1. Require `closure_status: closing`; validate the final-close checklist or force (BR-PC03).
+2. Set `closure_status: closed` (BR-PC01).
 3. Emit `AcademicPeriodClosed`.
 
 ---
 
 ## API
 
-### GET /api/v1/schools/:school_id/academic_periods/:id/closure_checklist
+All period-closure routes live under the academic namespace. Platform's frozen
+`/academic_periods/:id` PATCH remains calendar metadata only and never accepts `closure_status`.
 
-### POST /api/v1/schools/:school_id/academic_periods/:id/close
+### GET /api/v1/schools/:school_id/academics/academic_periods/:id/closure_checklist
+
+### POST /api/v1/schools/:school_id/academics/academic_periods/:id/start_closure
+
+Delegates to `AcademicPeriods::StartClosureService`.
+
+### POST /api/v1/schools/:school_id/academics/academic_periods/:id/close
+
+Delegates to `AcademicPeriods::CloseService`.
+
+### POST /api/v1/schools/:school_id/academics/academic_periods/:id/reopen
+
+Delegates to `AcademicPeriods::ReopenService`.
 
 ---
 
@@ -110,13 +155,17 @@ Flow
 | Status | Code | Description |
 |--------|------|-------------|
 | 422 | `checklist_incomplete` | Blockers listed in body |
+| 409 | `invalid_closure_transition` | State is not valid for `start_closure`, `close`, or `reopen` |
 | 409 | `period_closed` | Mutation on closed period |
 
 ---
 
 ## Database
 
-Expected entity groups: `academic_periods`, `period_closure_checklists`, `period_closure_audits`.
+`academic_periods.closure_status` is the persisted report-card readiness boundary. Checklist
+results are computed responses, not a `period_closure_checklists` table. Closure/reopen change
+history is recorded by the existing `audits` table, not a parallel `period_closure_audits` table.
+See [`schema.dbml`](../../database/schema.dbml).
 
 ---
 
@@ -124,6 +173,7 @@ Expected entity groups: `academic_periods`, `period_closure_checklists`, `period
 
 | Event | When | Consumers |
 |-------|------|-----------|
+| `AcademicPeriodClosingStarted` | Pre-closing checklist passes | Report-card publication |
 | `AcademicPeriodClosed` | Period close | Grades, diary, report cards enforcement |
 | `AcademicPeriodReopened` | Reopen | Coordination alert |
 
@@ -131,9 +181,9 @@ Expected entity groups: `academic_periods`, `period_closure_checklists`, `period
 
 ## Permissions
 
-| Key | checklist | close | reopen |
-|-----|-----------|-------|--------|
-| `manage_academic` | yes | yes | yes |
+| Key | checklist | start closure | close | reopen |
+|-----|-----------|---------------|-------|--------|
+| `manage_academic` | yes | yes | yes | yes |
 
 ---
 
@@ -160,6 +210,12 @@ AC-PC03 *(NFR-001)*
 
 - [ ] Given close operation fails mid-transaction, When retried, Then period state is not partially closed and checklist idempotent.
 - Source: NFR-001 `[product decision]`
+
+AC-PC04
+
+- [ ] Given the pre-closing checklist passes for an open period, when staff starts closure, then
+      status becomes `closing` and initial report-card publication becomes reachable.
+- Source: BR-PC02/BR-PC07 `[product decision]`
 
 ---
 

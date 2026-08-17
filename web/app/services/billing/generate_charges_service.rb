@@ -37,6 +37,9 @@ module Billing
     def create_charge_for(contract, guardian, created, skipped_contract_ids)
       ActiveRecord::Base.transaction do
         charge = build_charge(contract, guardian)
+        classification = classify_charge!(charge, code: "tuition")
+        raise ActiveRecord::Rollback unless classification.success?
+
         charge.save!
         record_plan_discount!(charge, contract)
         Billing::IssueChargeJob.perform_later(charge.id, school.id)
@@ -96,6 +99,11 @@ module Billing
     def due_date_for(contract)
       day = contract.due_day || 10
       Date.new(normalized_billing_period.year, normalized_billing_period.month, day)
+    end
+
+    def classify_charge!(charge, code:)
+      purpose = BillingPurpose.find_or_provision!(school, code: code)
+      Billing::ApplyChargeClassificationService.call(charge: charge, billing_purpose: purpose)
     end
   end
 end

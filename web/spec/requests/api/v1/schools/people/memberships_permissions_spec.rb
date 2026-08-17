@@ -143,6 +143,7 @@ RSpec.describe "Secretary with billing grant can create charge", type: :request 
     secretary_template = create_system_templates_for(school).find { |t| t.system_key == "secretary" }
     create(:staff_profile, membership: secretary_membership, school: school, role_template: secretary_template)
     guardian = create(:guardian, school: school)
+    billing_purpose = create(:billing_purpose, school: school, code: "material", name: "Material")
 
     patch "/api/v1/schools/#{school.id}/people/memberships/#{secretary_membership.id}/permissions",
           params: { grants: [ "manage_billing" ] },
@@ -156,7 +157,8 @@ RSpec.describe "Secretary with billing grant can create charge", type: :request 
              guardian_id: guardian.id,
              total_amount_cents: 5_000,
              due_date: "2026-09-15",
-             description: "Override billing test"
+             description: "Override billing test",
+             billing_purpose_id: billing_purpose.id
            }
          },
          headers: auth_headers_for(secretary_user),

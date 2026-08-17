@@ -1,29 +1,24 @@
 import { useMemo } from 'react';
 import { Membership } from 'types/auth';
-import { useAuth } from './AuthContext';
+import { useActiveMembership } from './ActiveMembershipContext';
+import { isGuardianMembership } from 'utils/membership/audience';
 
 /**
- * The school whose `me` endpoints the signed-in guardian may call.
+ * The school whose `me` endpoints the signed-in user may call in the **active** context.
  *
- * The sibling `useCurrentSchool` is staff-only on purpose — every screen it drives calls an
- * endpoint guarded by `staff_with?`, which answers a guardian membership with a 403. The guardian
- * routes under `/api/v1/schools/:school_id/me/...` are the mirror of that: they refuse anything
- * that is not a guardian. So the two need different memberships, and one hook returning "whatever
- * membership is active" would hand each screen the wrong one half the time.
- *
- * As with the staff hook, there is no school switcher: a guardian with children at two schools
- * lands on the first.
+ * Returns the active membership only when it is a guardian role. In staff context this is
+ * intentionally null so guardian screens cannot call family-scoped routes with the wrong profile.
  */
 export const useGuardianSchool = (): Membership | null => {
-  const { user } = useAuth();
+  const activeMembership = useActiveMembership();
 
-  return useMemo(
-    () =>
-      user?.memberships.find(
-        (membership) => membership.role === 'guardian' && membership.status === 'active',
-      ) ?? null,
-    [user],
-  );
+  return useMemo(() => {
+    if (!activeMembership || !isGuardianMembership(activeMembership)) {
+      return null;
+    }
+
+    return activeMembership;
+  }, [activeMembership]);
 };
 
 export default useGuardianSchool;

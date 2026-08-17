@@ -11,7 +11,7 @@ drive modeling and implementation. Repository language is **English** (product U
 | **B — Benchmark** | [`ref/`](ref/README.md) | Competitive evidence (corpus, catalog, divergences, aliases) | Mature (harvest); taxonomy **100%** mapped (**1,325/1,325**) |
 | **C — Product truth** | [`product/`](product/README.md) | School Lab inventory, traceability, roadmap, taxonomy | **Phase 2 complete** — parity, capability-map, mvp-scope, NFR |
 | **D — PRDs** | [`prds/`](prds/index.md) | Domain and layer requirements | **Domain gate complete** — **7/7** validated (doc sign-off); layer PRDs **draft** |
-| **E — Modeling** | [`modeling/`](modeling/README.md), [`database/schema.dbml`](database/schema.dbml) | Narrative DSL + executable schema | **005** and **009 Wave 1 validated** (DBML published; DER exported); **006–008 draft**; identity in progress; billing partner baseline in `web/` |
+| **E — Modeling** | [`modeling/`](modeling/README.md), [`database/schema.dbml`](database/schema.dbml) | Narrative model + executable schema | **005–009 Wave 1 locally DBML-validated**; DER exported only for **005/009**; **006–008** DERs unavailable without a repository renderer; identity in progress; billing baseline + documented delta |
 | **F — API** | [`api/`](api/README.md), `swagger/v1/` | REST contract narratives + OpenAPI | **7** domain narratives **draft** + billing baseline (historical) / identity in progress |
 | **G — Guidelines** | [`guidelines/`](guidelines/README.md) | How to implement (process, web, reliability) | Includes reliability, LGPD, traceability |
 | **H — Quality** | [`quality/`](quality/test-strategy.md) | Test strategy, AC harness | **Started** — test-strategy + acceptance-harness |

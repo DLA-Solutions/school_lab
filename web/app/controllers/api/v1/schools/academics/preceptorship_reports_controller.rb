@@ -32,7 +32,8 @@ module Api
             authorize PreceptorshipReport, :index?
 
             students = Current.school.students.kept.includes(:school_class).order(:name)
-            students = students.select { |student| teaches?(student) }
+            report_policy = policy(PreceptorshipReport)
+            students = students.select { |student| report_policy.assignable_student?(student) }
 
             render json: {
               data: students.map do |student|
@@ -55,8 +56,10 @@ module Api
           def create
             authorize PreceptorshipReport
 
+            return render_not_found if current_teacher.blank?
+
             student = find_student
-            return render_not_your_student unless teaches?(student)
+            return render_not_your_student unless policy(PreceptorshipReport).assignable_student?(student)
 
             result = ::Preceptorship::WriteReportService.call(
               school: Current.school,
@@ -121,7 +124,8 @@ module Api
           # Read from the school rather than through `policy_scope(Student)`: the student scope is
           # gated on `manage_people`, which a teacher does not hold — using it here would lock
           # preceptoria to the office and away from the only people who write it. The school
-          # bounds the lookup, and `teaches?` below is what narrows it to this teacher's roll.
+          # bounds the lookup, and `PreceptorshipReportPolicy#assignable_student?` narrows creation
+          # and the roll to this teacher's cohorts.
           def find_student
             Current.school.students.kept.find(report_params[:student_id])
           end
@@ -132,20 +136,6 @@ module Api
             scope = scope.where(status: params[:status]) if %w[draft published].include?(params[:status])
             scope = scope.where(teacher_id: current_teacher.id) if params[:mine] == "true" && current_teacher
             scope
-          end
-
-          # A teacher writes about the students they teach and no others. Staff who hold `teach`
-          # without being a teacher — coordination — are not narrowed this way: they are the ones
-          # who write about a child whose teacher has left.
-          #
-          # Mirrors `teaches?` on the mark sheet, widened from a lesson to a cohort: preceptoria
-          # is about the student, not about one subject.
-          def teaches?(student)
-            return true unless Current.membership&.role == "teacher"
-            return false if current_teacher.blank?
-            return false if student.school_class_id.blank?
-
-            current_teacher.teaching_assignments.kept.exists?(school_class_id: student.school_class_id)
           end
 
           def current_teacher
