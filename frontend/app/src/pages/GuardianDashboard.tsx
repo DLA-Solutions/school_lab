@@ -36,6 +36,12 @@ const GuardianDashboard = () => {
       to: paths.myHealthRecords,
     },
     {
+      key: 'myPickups',
+      title: t('pickups.myChildren.title'),
+      description: t('pickups.myChildren.description'),
+      to: paths.myPickups,
+    },
+    {
       key: 'myReportCards',
       title: t('dashboard.guardian.link.myReportCards'),
       description: t('dashboard.guardian.link.myReportCardsDescription'),

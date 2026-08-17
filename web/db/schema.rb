@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_17_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_17_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -143,6 +143,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_120000) do
     t.index ["created_at"], name: "index_audits_on_created_at"
     t.index ["request_uuid"], name: "index_audits_on_request_uuid"
     t.index ["user_id", "user_type"], name: "user_index"
+  end
+
+  create_table "authorized_pickups", force: :cascade do |t|
+    t.string "cpf", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.string "phone"
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_authorized_pickups_on_created_by_id"
+    t.index ["school_id"], name: "index_authorized_pickups_on_school_id"
+    t.index ["student_id", "cpf"], name: "index_authorized_pickups_on_student_and_cpf_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["student_id", "discarded_at"], name: "index_authorized_pickups_on_student_id_and_discarded_at"
+    t.index ["student_id"], name: "index_authorized_pickups_on_student_id"
   end
 
   create_table "billing_plans", force: :cascade do |t|
@@ -1409,6 +1426,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_120000) do
   add_foreign_key "attendance_sessions", "school_classes"
   add_foreign_key "attendance_sessions", "school_years"
   add_foreign_key "attendance_sessions", "schools"
+  add_foreign_key "authorized_pickups", "schools"
+  add_foreign_key "authorized_pickups", "students"
+  add_foreign_key "authorized_pickups", "users", column: "created_by_id"
   add_foreign_key "billing_plans", "schools"
   add_foreign_key "billing_purposes", "schools"
   add_foreign_key "charge_issuances", "charges"

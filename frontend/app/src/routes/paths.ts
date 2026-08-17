@@ -33,6 +33,7 @@ export default {
   myRequests: '/meus-pedidos',
   myCharges: '/meus-boletos',
   myHealthRecords: '/ficha-de-saude',
+  myPickups: '/quem-pode-buscar',
   myTaxDeclarations: '/imposto-de-renda',
 
   charges: '/boletos',

@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import { useSearchParams } from 'react-router';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
+import AuthorizedPickupsDialog from 'components/sections/people/students/AuthorizedPickupsDialog';
 import HealthRecordDialog from 'components/sections/people/students/HealthRecordDialog';
 import StudentFormDialog from 'components/sections/people/students/StudentFormDialog';
 import {
@@ -85,6 +86,7 @@ const Students = () => {
   const [editing, setEditing] = useState<Student | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Student | null>(null);
   const [healthFor, setHealthFor] = useState<Student | null>(null);
+  const [pickupsFor, setPickupsFor] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const renderClass = ({ row }: GridRenderCellParams<Student>) =>
@@ -296,6 +298,17 @@ const Students = () => {
             <>
               {/* What the family told the school about the child's health. Read here rather
                     than chased over the phone on the day it matters. */}
+              {/* Who may collect the child. Read at the gate, the moment somebody turns up
+                  asking for the student. */}
+              <Tooltip title={t('pickups.action')}>
+                <IconButton
+                  size="small"
+                  aria-label={t('pickups.aria', { name: row.name })}
+                  onClick={() => setPickupsFor(row)}
+                >
+                  <IconifyIcon icon="mingcute:user-follow-line" />
+                </IconButton>
+              </Tooltip>
               <Tooltip title={t('health.action')}>
                 <IconButton
                   size="small"
@@ -447,6 +460,16 @@ const Students = () => {
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
+
+      {pickupsFor && (
+        <AuthorizedPickupsDialog
+          open
+          schoolId={school.school_id}
+          studentId={pickupsFor.id}
+          studentName={pickupsFor.name}
+          onClose={() => setPickupsFor(null)}
+        />
+      )}
 
       {healthFor && (
         <HealthRecordDialog

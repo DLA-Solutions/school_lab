@@ -54,6 +54,14 @@ const sitemap: MenuItem[] = [
     audience: 'guardian',
   },
   {
+    id: 'my-pickups',
+    subheader: 'nav.myPickups',
+    path: paths.myPickups,
+    icon: 'mingcute:user-follow-line',
+    active: true,
+    audience: 'guardian',
+  },
+  {
     id: 'students',
     subheader: 'nav.students',
     path: paths.students,
