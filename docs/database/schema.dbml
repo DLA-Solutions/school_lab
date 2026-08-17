@@ -305,10 +305,11 @@ Table billing_plans {
 Table school_payment_providers {
   id integer [primary key, increment]
   school_id integer [not null]
-  instrument varchar [not null, note: 'bank_slip — card added later without migration. Check constraint: instrument = bank_slip.']
-  provider varchar [not null, note: 'cora | fake — model validates inclusion in the registered adapters']
+  instrument varchar [not null, note: 'bank_slip | service_invoice — check constraint lists allowed values']
+  provider varchar [not null, note: 'cora | fake | spedy — model validates inclusion in the registered adapters']
   active boolean [not null, default: true]
-  settings jsonb [not null, default: '{}']
+  settings jsonb [not null, default: '{}', note: 'Spedy: spedy_company_id and provider-specific metadata']
+  api_key text [note: 'Active Record Encryption — required for spedy (model validation)']
   client_id varchar [note: 'Required for cora (model validation); nullable in DB because fake needs no credentials']
   certificate_pem text [note: 'Active Record Encryption — non-deterministic. Required for cora (model validation)']
   private_key_pem text [note: 'Active Record Encryption — non-deterministic. Required for cora (model validation)']
@@ -324,6 +325,30 @@ Table school_payment_providers {
     (school_id, instrument) [unique, note: 'Partial: WHERE active = true — one active configuration per school and instrument']
     webhook_endpoint_token [unique]
   }
+}
+
+Table school_fiscal_settings {
+  id integer [primary key, increment]
+  school_id integer [not null, unique]
+  enabled boolean [not null, default: false, note: 'True only when config complete and city validated against Spedy']
+  issuance_city_name varchar [not null]
+  issuance_state varchar(2) [not null]
+  spedy_city_code integer [not null, note: 'IBGE code from Spedy GET /cities']
+  provider_options_snapshot jsonb [not null, default: '{}', note: 'Cached provider.options at city selection']
+  federal_service_code varchar
+  cnae_code varchar
+  city_service_code varchar
+  nbs_code varchar
+  national_taxation_code varchar
+  iss_rate_percent decimal(5,2) [note: 'ISS rate sent in total.issRate']
+  service_description varchar(100)
+  taxation_type varchar [not null, default: 'taxationInMunicipality']
+  tax_location varchar [not null, default: 'companyMunicipality']
+  issue_type varchar [note: 'annfs | website | alt — Spedy company serviceInvoice.issueType']
+  reform_tributaria_enabled boolean [not null, default: false]
+  ibs_cbs_config jsonb [not null, default: '{}']
+  created_at timestamp
+  updated_at timestamp
 }
 
 Table school_billing_settings {
@@ -576,6 +601,62 @@ Table applied_discounts {
 
   indexes {
     charge_id
+    school_id
+  }
+}
+
+Table service_invoices {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  payment_id integer [not null, note: 'One NFS-e per confirmed payment — BR-I02']
+  charge_id integer [not null]
+  provider varchar [not null, note: 'spedy | fake']
+  provider_document_id varchar [note: 'Spedy document id; partial unique when present']
+  integration_id varchar [not null, note: 'Stable idempotency key pay-{payment_id}']
+  status varchar [not null, default: 'pending', note: 'pending | enqueued | authorized | rejected | canceled | failed']
+  invoice_number varchar
+  verification_code varchar
+  access_key varchar
+  pdf_blob_key varchar [note: 'Active Storage attachment key after authorization']
+  xml_blob_key varchar
+  enqueued_at timestamp
+  authorized_at timestamp
+  rejected_at timestamp
+  failed_at timestamp
+  canceled_at timestamp
+  last_error text [note: 'Redacted provider error on failed/rejected']
+  created_at timestamp
+  updated_at timestamp
+  Note: 'Immutable fiscal record — cancel via status, not Discard'
+
+  indexes {
+    payment_id [unique]
+    integration_id [unique]
+    provider_document_id [unique, note: 'WHERE provider_document_id IS NOT NULL']
+    (school_id, status)
+    charge_id
+    school_id
+  }
+}
+
+Table service_invoice_attempts {
+  id integer [primary key, increment]
+  service_invoice_id integer [not null]
+  school_id integer [not null]
+  provider varchar [not null]
+  idempotency_key varchar [not null]
+  status varchar [not null, default: 'pending', note: 'pending | enqueued | failed']
+  provider_response jsonb [note: 'Last provider payload snapshot — redacted']
+  last_error text
+  enqueued_at timestamp
+  failed_at timestamp
+  created_at timestamp
+  updated_at timestamp
+  Note: 'One row per HTTP attempt — mirrors charge_issuances'
+
+  indexes {
+    idempotency_key [unique]
+    service_invoice_id
     school_id
   }
 }
@@ -1575,6 +1656,7 @@ Ref: teachers.user_id > users.id
 Ref: billing_plans.school_id > schools.id
 Ref: school_payment_providers.school_id > schools.id
 Ref: school_payment_providers.uploaded_by_id > users.id
+Ref: school_fiscal_settings.school_id > schools.id
 Ref: school_billing_settings.school_id > schools.id
 Ref: billing_purposes.school_id > schools.id
 Ref: tax_declaration_settings.school_id > schools.id
@@ -1623,6 +1705,12 @@ Ref: applied_discounts.charge_id > charges.id
 Ref: applied_discounts.school_id > schools.id
 Ref: payments.charge_id > charges.id
 Ref: payments.school_id > schools.id
+
+Ref: service_invoices.school_id > schools.id
+Ref: service_invoices.payment_id > payments.id
+Ref: service_invoices.charge_id > charges.id
+Ref: service_invoice_attempts.service_invoice_id > service_invoices.id
+Ref: service_invoice_attempts.school_id > schools.id
 
 Ref: documents.school_id > schools.id
 Ref: documents.uploaded_by_id > users.id

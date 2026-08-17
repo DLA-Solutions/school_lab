@@ -34,7 +34,7 @@ contract ([`platform-and-admin.md`](platform-and-admin.md) § Cross-domain contr
 | Charges, boletos, Cora | **implemented** | Adjustments, plan bands, batch pay |
 | Guardian portal | **implemented** | Forward-only history (unchanged) |
 | Dunning dashboard | **partial** | Summary + filters — régua deferred |
-| NFS-e | — | **P2** — [`invoices.md`](../../prds/billing/invoices.md) |
+| NFS-e | — | **implemented (BC7 v1)** — [`invoices.md`](../../prds/billing/invoices.md) |
 | Card/Pix checkout | stub | W4+ per [`payments.md`](../../prds/billing/payments.md) |
 
 ---
@@ -154,11 +154,65 @@ Release remains blocked until legal/accounting approval of eligible purposes, pr
 tuition/enrollment defaults, principal-after-discounts/excluded-fee rule, wording, the single
 configured `document_signatory_id`, and retention.
 
-### NFS-e (P2)
+### NFS-e / Service invoices (BC7)
 
-| Method | Path | Returns |
-|--------|------|---------|
-| `POST` | `/billing/invoices/nfs_e` | `501` until phase 2 |
+Modeling: [`010-service-invoices.md`](../../modeling/010-service-invoices.md).
+
+Staff routes (under `schools/:school_id/billing`):
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/fiscal/supported_cities` | Proxy Spedy city search (`query`, `state`, `code`) |
+| `GET` | `/fiscal_settings` | School NFS-e configuration |
+| `PATCH` | `/fiscal_settings` | Update settings; validates city against Spedy when changed |
+| `GET` | `/fiscal_credentials` | Active Spedy provider row (masked api_key) |
+| `POST` | `/fiscal_credentials` | Register Spedy api_key (supersedes previous active row) |
+| `POST` | `/fiscal_credentials/certificate` | Upload A1 certificate (.pfx) to Spedy |
+| `GET` | `/service_invoices` | Paginated staff list |
+| `GET` | `/service_invoices/:id` | Detail |
+| `GET` | `/service_invoices/:id/pdf` | Authorized PDF download |
+
+Guardian routes (`schools/:school_id/me`):
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/service_invoices` | Family-scoped list |
+| `GET` | `/service_invoices/:id/pdf` | Family-scoped PDF |
+
+`PATCH /fiscal_settings` body (partial):
+
+```json
+{
+  "fiscal_settings": {
+    "enabled": true,
+    "issuance_city_name": "Goiânia",
+    "issuance_state": "GO",
+    "spedy_city_code": 5208707,
+    "federal_service_code": "8.01",
+    "cnae_code": "8513900",
+    "iss_rate_percent": "5.0",
+    "service_description": "Mensalidade escolar"
+  }
+}
+```
+
+Errors:
+
+- `422 validation_error` — incomplete guardian data would block issuance (BR-I08 preview), invalid
+  Spedy city (BR-I06), or incomplete fiscal codes when enabling.
+- `422 fiscal_configuration_incomplete` — `enabled: true` without credentials or certificate at Spedy.
+- `404 not_found` — cross-school or cross-family access.
+- `409 generation_in_progress` — not used for NFS-e (reserved).
+
+Webhook: `POST /webhooks/spedy/:token` — account-level; token matches `SPEDY_WEBHOOK_TOKEN`.
+School resolved from `spedy_company_id` or issuer CNPJ in payload.
+
+---
+
+### NFS-e (legacy placeholder — removed)
+
+The former `POST /billing/invoices/nfs_e` stub is superseded by automatic issuance on payment
+confirmation and the routes above.
 
 ---
 
