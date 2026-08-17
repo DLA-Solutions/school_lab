@@ -47,201 +47,206 @@ const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
 const MyTaxDeclarations = lazy(() => import('pages/billing/MyTaxDeclarations'));
 const MyCharges = lazy(() => import('pages/billing/MyCharges'));
+const MyHealthRecords = lazy(() => import('pages/people/MyHealthRecords'));
 
 const router = createBrowserRouter(
   [
-  {
-    element: (
-      <Suspense fallback={<Splash />}>
-        <App />
-      </Suspense>
-    ),
-    children: [
-      {
-        path: rootPaths.root,
-        element: (
-          <RequireAuth>
-            <RequireRouteAudience>
-              <RequireRouteModule>
-                <MainLayout>
-                <Suspense fallback={<PageLoader />}>
-                  <Outlet />
-                </Suspense>
-                </MainLayout>
-              </RequireRouteModule>
-            </RequireRouteAudience>
-          </RequireAuth>
-        ),
-        children: [
-          {
-            index: true,
-            element: <Dashboard />,
-          },
-          {
-            path: paths.guardians,
-            element: <Guardians />,
-          },
-          {
-            path: paths.team,
-            element: <Team />,
-          },
-          {
-            path: paths.students,
-            element: <Students />,
-          },
-          {
-            path: paths.collaborators,
-            element: <Collaborators />,
-          },
-          {
-            path: paths.lessons,
-            element: <Lessons />,
-          },
-          {
-            path: paths.grades,
-            element: <Grades />,
-          },
-          {
-            // Kept at its own address though it left the menu: it is a tab inside Aulas now, and
-            // an existing link to a class listing should still land somewhere.
-            path: paths.schoolClasses,
-            element: <SchoolClasses />,
-          },
-          {
-            path: paths.subjects,
-            element: <Subjects />,
-          },
-          {
-            path: paths.jobPositions,
-            element: <JobPositions />,
-          },
-          {
-            path: paths.preceptorship,
-            element: <Preceptorship />,
-          },
-          {
-            path: paths.reportCards,
-            element: <ReportCards />,
-          },
-          {
-            path: paths.myPreceptorship,
-            element: <MyPreceptorship />,
-          },
-          {
-            path: paths.myReportCards,
-            element: <MyReportCards />,
-          },
-          {
-            path: paths.requests,
-            element: <Requests />,
-          },
-          {
-            path: paths.myRequests,
-            element: <MyRequests />,
-          },
-          {
-            path: paths.charges,
-            element: <Charges />,
-          },
-          {
-            path: paths.plans,
-            element: <Plans />,
-          },
-          {
-            path: paths.billingSettings,
-            element: <BillingSettings />,
-          },
-          {
-            path: paths.contractTemplate,
-            element: <ContractTemplatePage />,
-          },
-          {
-            path: paths.myTaxDeclarations,
-            element: <MyTaxDeclarations />,
-          },
-          {
-            path: paths.myCharges,
-            element: <MyCharges />,
-          },
-        ],
-      },
-      {
-        path: rootPaths.authRoot,
-        element: (
-          <RequireGuest>
+    {
+      element: (
+        <Suspense fallback={<Splash />}>
+          <App />
+        </Suspense>
+      ),
+      children: [
+        {
+          path: rootPaths.root,
+          element: (
+            <RequireAuth>
+              <RequireRouteAudience>
+                <RequireRouteModule>
+                  <MainLayout>
+                    <Suspense fallback={<PageLoader />}>
+                      <Outlet />
+                    </Suspense>
+                  </MainLayout>
+                </RequireRouteModule>
+              </RequireRouteAudience>
+            </RequireAuth>
+          ),
+          children: [
+            {
+              index: true,
+              element: <Dashboard />,
+            },
+            {
+              path: paths.guardians,
+              element: <Guardians />,
+            },
+            {
+              path: paths.team,
+              element: <Team />,
+            },
+            {
+              path: paths.students,
+              element: <Students />,
+            },
+            {
+              path: paths.collaborators,
+              element: <Collaborators />,
+            },
+            {
+              path: paths.lessons,
+              element: <Lessons />,
+            },
+            {
+              path: paths.grades,
+              element: <Grades />,
+            },
+            {
+              // Kept at its own address though it left the menu: it is a tab inside Aulas now, and
+              // an existing link to a class listing should still land somewhere.
+              path: paths.schoolClasses,
+              element: <SchoolClasses />,
+            },
+            {
+              path: paths.subjects,
+              element: <Subjects />,
+            },
+            {
+              path: paths.jobPositions,
+              element: <JobPositions />,
+            },
+            {
+              path: paths.preceptorship,
+              element: <Preceptorship />,
+            },
+            {
+              path: paths.reportCards,
+              element: <ReportCards />,
+            },
+            {
+              path: paths.myPreceptorship,
+              element: <MyPreceptorship />,
+            },
+            {
+              path: paths.myReportCards,
+              element: <MyReportCards />,
+            },
+            {
+              path: paths.requests,
+              element: <Requests />,
+            },
+            {
+              path: paths.myRequests,
+              element: <MyRequests />,
+            },
+            {
+              path: paths.charges,
+              element: <Charges />,
+            },
+            {
+              path: paths.plans,
+              element: <Plans />,
+            },
+            {
+              path: paths.billingSettings,
+              element: <BillingSettings />,
+            },
+            {
+              path: paths.contractTemplate,
+              element: <ContractTemplatePage />,
+            },
+            {
+              path: paths.myTaxDeclarations,
+              element: <MyTaxDeclarations />,
+            },
+            {
+              path: paths.myCharges,
+              element: <MyCharges />,
+            },
+            {
+              path: paths.myHealthRecords,
+              element: <MyHealthRecords />,
+            },
+          ],
+        },
+        {
+          path: rootPaths.authRoot,
+          element: (
+            <RequireGuest>
+              <AuthLayout>
+                <Outlet />
+              </AuthLayout>
+            </RequireGuest>
+          ),
+          children: [
+            {
+              path: paths.signin,
+              element: <Signin />,
+            },
+          ],
+        },
+        {
+          // Reached from an e-mail by someone who cannot sign in, so no guard: `RequireGuest` would
+          // bounce a signed-in parent trying to reset the password they had just forgotten.
+          element: (
             <AuthLayout>
               <Outlet />
             </AuthLayout>
-          </RequireGuest>
-        ),
-        children: [
-          {
-            path: paths.signin,
-            element: <Signin />,
-          },
-        ],
-      },
-      {
-        // Reached from an e-mail by someone who cannot sign in, so no guard: `RequireGuest` would
-        // bounce a signed-in parent trying to reset the password they had just forgotten.
-        element: (
-          <AuthLayout>
-            <Outlet />
-          </AuthLayout>
-        ),
-        children: [
-          {
-            path: paths.guardianAccess,
-            element: <GuardianAccess />,
-          },
-          {
-            path: paths.forgotPassword,
-            element: <ForgotPassword />,
-          },
-          {
-            path: paths.resetPassword,
-            element: <ResetPassword />,
-          },
-        ],
-      },
-      {
-        path: rootPaths.inviteRoot,
-        element: (
-          <AuthLayout>
-            <Outlet />
-          </AuthLayout>
-        ),
-        children: [
-          {
-            path: 'accept',
-            element: <InviteAccept />,
-          },
-        ],
-      },
-      {
-        path: rootPaths.onboardingRoot,
-        element: (
-          <RequireOwnerOnboardingComplete>
-            <MainLayout>
-              <Suspense fallback={<PageLoader />}>
-                <Outlet />
-              </Suspense>
-            </MainLayout>
-          </RequireOwnerOnboardingComplete>
-        ),
-        children: [
-          {
-            path: 'owner',
-            element: <OwnerOnboarding />,
-          },
-        ],
-      },
-      {
-        path: '*',
-        element: <Error404 />,
-      },
-    ],
-  },
+          ),
+          children: [
+            {
+              path: paths.guardianAccess,
+              element: <GuardianAccess />,
+            },
+            {
+              path: paths.forgotPassword,
+              element: <ForgotPassword />,
+            },
+            {
+              path: paths.resetPassword,
+              element: <ResetPassword />,
+            },
+          ],
+        },
+        {
+          path: rootPaths.inviteRoot,
+          element: (
+            <AuthLayout>
+              <Outlet />
+            </AuthLayout>
+          ),
+          children: [
+            {
+              path: 'accept',
+              element: <InviteAccept />,
+            },
+          ],
+        },
+        {
+          path: rootPaths.onboardingRoot,
+          element: (
+            <RequireOwnerOnboardingComplete>
+              <MainLayout>
+                <Suspense fallback={<PageLoader />}>
+                  <Outlet />
+                </Suspense>
+              </MainLayout>
+            </RequireOwnerOnboardingComplete>
+          ),
+          children: [
+            {
+              path: 'owner',
+              element: <OwnerOnboarding />,
+            },
+          ],
+        },
+        {
+          path: '*',
+          element: <Error404 />,
+        },
+      ],
+    },
   ],
   { basename: routerBasename },
 );

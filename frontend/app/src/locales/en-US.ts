@@ -77,6 +77,28 @@ const enUS: Messages = {
   'common.teacherRole': 'Teacher',
   'common.activeStatus': 'Active',
 
+  'health.title': 'Health sheet',
+  'health.action': 'Health sheet',
+  'health.aria': "{name}'s health sheet",
+  'health.description':
+    'What the school needs to know about the student’s health: allergies, ongoing medication, conditions the staff should recognise. The family fills it in from the portal; the front desk can also write down what a parent reports at the counter.',
+  'health.field': 'Health information',
+  'health.loadError': 'The health sheet could not be loaded.',
+  'health.saveError': 'The health sheet could not be saved.',
+  'health.saved': 'Sheet saved.',
+  'health.tooLong': 'The sheet cannot exceed {limit} characters.',
+  'health.lastWrittenBy': 'Written by {name} on {date}.',
+  'health.neverFilled': 'Not filled in yet.',
+  'health.filled': 'Filled in',
+  'health.empty': 'Not filled in',
+  'health.myChildren.title': "Your children's health sheets",
+  'health.myChildren.description':
+    'Tell the school what it needs to know about each child’s health.',
+  'health.myChildren.loadError': 'Your children could not be loaded.',
+  'health.myChildren.empty': 'No child is linked to your record.',
+  'health.fill': 'Fill in',
+
+  'nav.myHealthRecords': 'Health sheet',
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Students',
   'nav.guardians': 'Guardians',
@@ -147,7 +169,8 @@ const enUS: Messages = {
   'nav.reportCards': 'Report cards',
   'nav.myReportCards': 'Report cards',
   'nav.myTaxDeclarations': 'Income tax declaration',
-  'reportCards.noAccess.description': 'You do not have access to report card publishing for this school.',
+  'reportCards.noAccess.description':
+    'You do not have access to report card publishing for this school.',
   'reportCards.tab.config': 'Configuration',
   'reportCards.tab.publish': 'Publish class',
   'reportCards.tab.republish': 'Republish',
@@ -210,7 +233,8 @@ const enUS: Messages = {
   'myTaxDeclarations.generateError': 'Could not generate the declaration.',
   'myTaxDeclarations.detailError': 'Could not load declaration details.',
   'myTaxDeclarations.pdfError': 'Could not download the PDF.',
-  'myTaxDeclarations.noAccess.description': 'You do not have access to declarations for this school.',
+  'myTaxDeclarations.noAccess.description':
+    'You do not have access to declarations for this school.',
   'myTaxDeclarations.year': 'Calendar year',
   'myTaxDeclarations.generate': 'Generate declaration',
   'myTaxDeclarations.regenerate': 'Refresh declaration',
@@ -327,7 +351,8 @@ const enUS: Messages = {
   'myCharges.pixCopyError': 'Could not copy the Pix code.',
   'myCharges.noAccess.description': 'You do not have access to this school’s boletos.',
   'myCharges.empty.open.title': 'No open boletos',
-  'myCharges.empty.open.description': 'When the school issues a boleto for your family, it appears here.',
+  'myCharges.empty.open.description':
+    'When the school issues a boleto for your family, it appears here.',
   'myCharges.empty.history.title': 'No payments yet',
   'myCharges.empty.history.description': 'Boletos you pay through the platform appear here.',
 

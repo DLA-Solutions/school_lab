@@ -46,6 +46,14 @@ const sitemap: MenuItem[] = [
     audience: 'guardian',
   },
   {
+    id: 'my-health-records',
+    subheader: 'nav.myHealthRecords',
+    path: paths.myHealthRecords,
+    icon: 'mingcute:heartbeat-line',
+    active: true,
+    audience: 'guardian',
+  },
+  {
     id: 'students',
     subheader: 'nav.students',
     path: paths.students,

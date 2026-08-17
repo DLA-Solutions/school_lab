@@ -65,6 +65,9 @@ Rails.application.routes.draw do
                 post :activate
               end
               resources :guardians, only: %i[index create], controller: "student_guardians"
+              # What the family wants the school to know about the child's health. One standing
+              # sheet per student, so it is a singular resource rather than a list.
+              resource :health_record, only: %i[show update], controller: "student_health_records"
             end
             resources :student_guardians, only: :destroy
             resources :memberships do
@@ -234,7 +237,10 @@ Rails.application.routes.draw do
               end
             end
             resources :payments, only: :index
-            resources :students, only: :index
+            resources :students, only: :index do
+              # The family fills in the health sheet for each of their children from here.
+              resource :health_record, only: %i[show update], controller: "student_health_records"
+            end
             resources :documents, only: :index
             resources :requests, only: %i[index show create]
             resources :preceptorship_reports, only: %i[index show] do

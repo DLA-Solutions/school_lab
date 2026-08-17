@@ -77,6 +77,28 @@ const ptBR = {
   'common.teacherRole': 'Professor',
   'common.activeStatus': 'Ativo',
 
+  'health.title': 'Ficha de saúde',
+  'health.action': 'Ficha de saúde',
+  'health.aria': 'Ficha de saúde de {name}',
+  'health.description':
+    'O que a escola precisa saber sobre a saúde do estudante: alergias, medicações de uso contínuo, condições que a equipe deve reconhecer. A família preenche pelo portal; a secretaria também pode anotar o que for informado no balcão.',
+  'health.field': 'Informações de saúde',
+  'health.loadError': 'Não foi possível carregar a ficha de saúde.',
+  'health.saveError': 'Não foi possível salvar a ficha de saúde.',
+  'health.saved': 'Ficha salva.',
+  'health.tooLong': 'A ficha não pode passar de {limit} caracteres.',
+  'health.lastWrittenBy': 'Preenchido por {name} em {date}.',
+  'health.neverFilled': 'Ainda não preenchida.',
+  'health.filled': 'Preenchida',
+  'health.empty': 'Não preenchida',
+  'health.myChildren.title': 'Ficha de saúde dos filhos',
+  'health.myChildren.description':
+    'Conte à escola o que ela precisa saber sobre a saúde de cada filho.',
+  'health.myChildren.loadError': 'Não foi possível carregar seus filhos.',
+  'health.myChildren.empty': 'Nenhum filho vinculado ao seu cadastro.',
+  'health.fill': 'Preencher',
+
+  'nav.myHealthRecords': 'Ficha de saúde',
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Estudantes',
   'nav.guardians': 'Responsáveis',
@@ -320,7 +342,8 @@ const ptBR = {
   'myCharges.payment.pix': 'Pix copia e cola',
   'myCharges.payment.copyPix': 'Copiar código Pix',
   'myCharges.payment.pixCopied': 'Código Pix copiado',
-  'myCharges.payment.unavailable': 'As formas de pagamento ainda não estão disponíveis para esta cobrança.',
+  'myCharges.payment.unavailable':
+    'As formas de pagamento ainda não estão disponíveis para esta cobrança.',
   'myCharges.reissue': 'Segunda via',
   'myCharges.reissuing': 'Emitindo…',
   'myCharges.reissueSuccess': 'Segunda via emitida. Use o novo boleto ou código Pix acima.',
@@ -328,7 +351,8 @@ const ptBR = {
   'myCharges.pixCopyError': 'Não foi possível copiar o código Pix.',
   'myCharges.noAccess.description': 'Você não tem acesso aos boletos desta escola.',
   'myCharges.empty.open.title': 'Nenhum boleto em aberto',
-  'myCharges.empty.open.description': 'Quando a escola emitir um boleto para a sua família, ele aparece aqui.',
+  'myCharges.empty.open.description':
+    'Quando a escola emitir um boleto para a sua família, ele aparece aqui.',
   'myCharges.empty.history.title': 'Nenhum pagamento ainda',
   'myCharges.empty.history.description': 'Os boletos pagos pela plataforma aparecem aqui.',
 

@@ -17,6 +17,9 @@ class Student < ApplicationRecord
   has_many :guardians, through: :student_guardians
   has_many :contracts, dependent: :destroy
   has_many :documents, as: :documentable, dependent: :destroy
+  # What the family wants the school to know about the child's health. Created on first read
+  # rather than with the student, so a register full of untouched blanks does not read as filled.
+  has_one :health_record, class_name: "StudentHealthRecord", dependent: :destroy
   has_many :grades, dependent: :destroy
 
   before_validation :normalize_cpf
