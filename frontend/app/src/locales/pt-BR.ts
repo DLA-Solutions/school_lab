@@ -349,6 +349,8 @@ const ptBR = {
 
   'contract.preview.signedFrame': 'Contrato assinado',
   'contract.preview.downloadSigned': 'Baixar PDF assinado',
+  'contract.preview.download': 'Baixar PDF',
+  'contract.preview.downloadError': 'Não foi possível baixar o contrato.',
   'contract.preview.showingSignedFile':
     'Assinado. Abaixo está o PDF da Autentique, com a página de assinaturas.',
   'contract.preview.signedFileUnavailable':

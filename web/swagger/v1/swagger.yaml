@@ -3611,6 +3611,51 @@
         ]
       }
     },
+    "/api/v1/schools/{school_id}/billing/contracts/{id}/document": {
+      "get": {
+        "summary": "Document — contracts",
+        "tags": [
+          "Billing"
+        ],
+        "operationId": "api_v1_schools_billing_contracts_document",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/schools/{school_id}/billing/contracts/{id}/preview": {
       "get": {
         "summary": "Preview — contracts",
@@ -3730,6 +3775,51 @@
         "responses": {
           "201": {
             "description": "created"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/billing/contracts/{id}/signed_document": {
+      "get": {
+        "summary": "Signed document — contracts",
+        "tags": [
+          "Billing"
+        ],
+        "operationId": "api_v1_schools_billing_contracts_signed_document",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
           },
           "401": {
             "description": "not authenticated"

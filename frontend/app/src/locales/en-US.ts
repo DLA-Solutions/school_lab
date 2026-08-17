@@ -346,6 +346,8 @@ const enUS: Messages = {
 
   'contract.preview.signedFrame': 'Signed contract',
   'contract.preview.downloadSigned': 'Download signed PDF',
+  'contract.preview.download': 'Download PDF',
+  'contract.preview.downloadError': 'The contract could not be downloaded.',
   'contract.preview.showingSignedFile':
     'Signed. Below is the Autentique PDF, with its signature page.',
   'contract.preview.signedFileUnavailable':

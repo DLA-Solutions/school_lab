@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import { ErrorBanner } from 'design-system';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { ApiError } from 'services/api';
-import { fetchSignedContract, previewContract } from 'services/contractsApi';
+import { fetchContractDocument, fetchSignedContract, previewContract } from 'services/contractsApi';
 import downloadBlob from 'utils/downloadBlob';
 import { Contract } from 'types/contract';
 import { useTranslation } from 'providers/I18nContext';
@@ -61,6 +61,31 @@ const ContractPreviewDialog = ({
   const [signedFile, setSignedFile] = useState<Blob | null>(null);
   const [signedUrl, setSignedUrl] = useState('');
   const [signedError, setSignedError] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  // The PDF is rendered on demand rather than alongside the preview: most readings of a contract
+  // never end in a download, and the preview is already on screen by then.
+  const handleDownload = async () => {
+    if (!contract) {
+      return;
+    }
+
+    setDownloading(true);
+
+    try {
+      const file = await fetchContractDocument(schoolId, contract.id);
+      downloadBlob(
+        file,
+        `contrato-${(contract.student_name ?? String(contract.id))
+          .toLowerCase()
+          .replace(/\s+/g, '-')}.pdf`,
+      );
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('contract.preview.downloadError'));
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const signed = contract?.signature_status === 'signed';
   // Nothing has been created yet, so there is nothing left to send only once it has gone out.
@@ -206,7 +231,7 @@ const ContractPreviewDialog = ({
         <Button onClick={onClose} color="inherit" disabled={sending}>
           {t('common.close')}
         </Button>
-        {signedFile && (
+        {signedFile ? (
           <Button
             variant="contained"
             startIcon={<IconifyIcon icon="mingcute:download-2-line" />}
@@ -221,6 +246,24 @@ const ContractPreviewDialog = ({
           >
             {t('contract.preview.downloadSigned')}
           </Button>
+        ) : (
+          // A draft has no id yet, so there is nothing for the API to render — it becomes
+          // downloadable once the school sends it and it is recorded.
+          contract && (
+            <Button
+              startIcon={
+                downloading ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : (
+                  <IconifyIcon icon="mingcute:download-2-line" />
+                )
+              }
+              disabled={downloading || loading}
+              onClick={handleDownload}
+            >
+              {t('contract.preview.download')}
+            </Button>
+          )
         )}
         {onSend && canSend && (
           <Button

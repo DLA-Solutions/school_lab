@@ -119,6 +119,14 @@ export const previewContract = async (
 };
 
 /**
+ * GET /api/v1/schools/:school_id/billing/contracts/:id/document — the agreement as the PDF that
+ * goes out for signature. The same document `preview` renders as HTML, in the form a school can
+ * keep or forward.
+ */
+export const fetchContractDocument = (schoolId: number, id: number): Promise<Blob> =>
+  requestBlob(`${collectionPath(schoolId)}/${id}/document`);
+
+/**
  * GET /api/v1/schools/:school_id/billing/contracts/:id/signed_document — the provider's own file,
  * the one carrying the signature page.
  *

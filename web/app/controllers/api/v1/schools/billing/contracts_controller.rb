@@ -55,6 +55,26 @@ module Api
             end
           end
 
+          # The agreement as a PDF — the very document that goes out for signature, not a second
+          # rendering of it. Offered from the preview so a school can keep or forward a copy of
+          # what it is about to send, or of what it already sent and is still waiting on.
+          def document
+            contract = policy_scope(Contract).find(params[:id])
+            authorize contract, :show?
+
+            result = ::Contracts::RenderContractPdfService.call(contract: contract)
+
+            if result.failure?
+              return render_error(result.error_code, status: :unprocessable_content,
+                                                     details: result.details)
+            end
+
+            send_data result.data.fetch(:pdf),
+                      filename: result.data.fetch(:filename),
+                      type: "application/pdf",
+                      disposition: "inline"
+          end
+
           # The provider's signed file — the agreement plus the signature page, which is the copy
           # that proves anything. Streamed through here rather than linked to: the provider's URL
           # answers only to the school's API token, and that token can sign documents, so it never

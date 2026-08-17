@@ -167,4 +167,39 @@ describe('ContractPreviewDialog, before it is signed', () => {
     expect(await screen.findByTitle('Contrato')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Baixar PDF assinado' })).not.toBeInTheDocument();
   });
+
+  // Reading a contract and keeping a copy of it are the same errand — a school forwards it,
+  // files it, or prints it for a family that asked, and that is true long before anyone signs.
+  it('downloads the agreement as the PDF that goes out for signature', async () => {
+    stubHtmlPreview();
+    server.use(
+      http.get(apiUrl(`${CONTRACTS_PATH}/${CONTRACT_ID}/document`), () =>
+        HttpResponse.arrayBuffer(new TextEncoder().encode('%PDF-1.4').buffer, {
+          headers: { 'Content-Type': 'application/pdf' },
+        }),
+      ),
+    );
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    renderDialog({ signature_status: 'pending_signature', signed_document_url: null });
+
+    await user.click(await screen.findByRole('button', { name: 'Baixar PDF' }));
+
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+  });
+
+  it('says so when the contract cannot be downloaded', async () => {
+    stubHtmlPreview();
+    server.use(
+      http.get(apiUrl(`${CONTRACTS_PATH}/${CONTRACT_ID}/document`), () => HttpResponse.error()),
+    );
+
+    renderDialog({ signature_status: 'pending_signature', signed_document_url: null });
+
+    await user.click(await screen.findByRole('button', { name: 'Baixar PDF' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível baixar o contrato.',
+    );
+  });
 });

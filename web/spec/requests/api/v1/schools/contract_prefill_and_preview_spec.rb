@@ -179,4 +179,63 @@ RSpec.describe "Filling a contract from the register and reading it before it go
       expect(response).to have_http_status(:forbidden)
     end
   end
+
+  # Reading a contract and keeping a copy of it are the same errand: the school forwards it, files
+  # it, or prints it for a family that asked. The bytes are the very document sent for signature,
+  # not a second rendering that could drift from it.
+  describe "downloading the contract as a PDF" do
+    let(:plan) { create(:billing_plan, school: school, base_amount_cents: 85_000) }
+    let(:contract) do
+      create(:contract, school: school, student: student, billing_plan: plan,
+                        payer_guardian: mother, negotiated_amount_cents: 85_000)
+    end
+    let(:document_path) { "/api/v1/schools/#{school.id}/billing/contracts/#{contract.id}/document" }
+
+    before { link(mother, "mother", primary: true) }
+
+    it "serves a PDF named after the contract" do
+      get document_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq("application/pdf")
+      expect(response.body[0, 5]).to eq("%PDF-")
+      expect(response.headers["Content-Disposition"]).to include("contrato-#{contract.id}")
+    end
+
+    it "sends nothing to the provider" do
+      expect { get document_path, headers: headers }
+        .not_to change { contract.reload.provider_document_id }
+    end
+
+    # Nobody is party to it yet, so there is no agreement to draw.
+    it "refuses a contract whose student has no guardian on file" do
+      orphan_student = create(:student, school: school, name: "Ana Souza")
+      orphan = create(:contract, school: school, student: orphan_student, billing_plan: plan,
+                                 negotiated_amount_cents: 85_000)
+
+      get "/api/v1/schools/#{school.id}/billing/contracts/#{orphan.id}/document", headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "is closed to guardians" do
+      guardian_user = create(:user)
+      create(:membership, user: guardian_user, school: school, role: "guardian")
+
+      get document_path, headers: auth_headers_for(guardian_user)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "does not reach another school's contract" do
+      other = create(:school)
+      other_student = create(:student, school: other)
+      other_contract = create(:contract, school: other, student: other_student)
+
+      get "/api/v1/schools/#{school.id}/billing/contracts/#{other_contract.id}/document",
+          headers: headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end
