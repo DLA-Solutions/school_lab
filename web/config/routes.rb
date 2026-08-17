@@ -274,5 +274,6 @@ Rails.application.routes.draw do
   end
 
   post "webhooks/signatures/:token", to: "webhooks/signatures#create"
+  post "webhooks/spedy/:token", to: "webhooks/spedy#create"
   post "webhooks/:provider/:token", to: "webhooks/providers#create", as: :provider_webhook
 end
