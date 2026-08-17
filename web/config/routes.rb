@@ -160,6 +160,11 @@ Rails.application.routes.draw do
                 post :certificate
               end
             end
+            resources :service_invoices, only: %i[index show] do
+              member do
+                get :pdf
+              end
+            end
             resources :purposes, only: %i[index create update]
             resource :tax_declaration_settings, only: %i[show update]
             resource :settings, only: %i[show update]
@@ -241,6 +246,11 @@ Rails.application.routes.draw do
               end
             end
             resources :payments, only: :index
+            resources :service_invoices, only: %i[index] do
+              member do
+                get :pdf
+              end
+            end
             resources :students, only: :index
             resources :documents, only: :index
             resources :requests, only: %i[index show create]
