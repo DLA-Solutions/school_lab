@@ -10,6 +10,8 @@ import Typography from '@mui/material/Typography';
 import { useSearchParams } from 'react-router';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
+import AuthorizedPickupsDialog from 'components/sections/people/students/AuthorizedPickupsDialog';
+import HealthRecordDialog from 'components/sections/people/students/HealthRecordDialog';
 import StudentFormDialog from 'components/sections/people/students/StudentFormDialog';
 import {
   ConfirmDialog,
@@ -83,6 +85,8 @@ const Students = () => {
   const [reportOpen, setReportOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Student | null>(null);
+  const [healthFor, setHealthFor] = useState<Student | null>(null);
+  const [pickupsFor, setPickupsFor] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const renderClass = ({ row }: GridRenderCellParams<Student>) =>
@@ -116,9 +120,7 @@ const Students = () => {
   // A transfer still outranks it: that child has left, whatever their contract says.
   const renderStatus = ({ row }: GridRenderCellParams<Student>) => (
     <SemanticChip
-      variant={
-        row.status !== 'active' ? 'info' : row.contract_active ? 'success' : 'warning'
-      }
+      variant={row.status !== 'active' ? 'info' : row.contract_active ? 'success' : 'warning'}
       label={
         row.status !== 'active'
           ? t('common.transferred')
@@ -244,82 +246,104 @@ const Students = () => {
   };
 
   const columns: GridColDef<Student>[] = [
-      { field: 'name', headerName: t('common.name'), flex: 1, minWidth: 180 },
-      { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
-      {
-        field: 'birth_date',
-        headerName: t('common.birthDate'),
-        width: 130,
-        renderCell: renderBirthDate,
-      },
-      {
-        field: 'grade_level',
-        headerName: t('common.class'),
-        width: 210,
-        sortable: false,
-        renderCell: renderClass,
-      },
-      {
-        field: 'guardians',
-        headerName: t('common.guardians'),
-        width: 200,
-        sortable: false,
-        renderCell: renderGuardians,
-      },
-      {
-        field: 'status',
-        headerName: t('common.status'),
-        width: 130,
-        renderCell: renderStatus,
-      },
-      {
-        field: 'actions',
-        headerName: t('common.actions'),
-        width: 110,
-        sortable: false,
-        filterable: false,
-        align: 'right',
-        headerAlign: 'right',
-        renderCell: ({ row }: GridRenderCellParams<Student>) => (
-          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
-            {!row.active ? (
-              <Tooltip title={t('common.activate')}>
+    { field: 'name', headerName: t('common.name'), flex: 1, minWidth: 180 },
+    { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
+    {
+      field: 'birth_date',
+      headerName: t('common.birthDate'),
+      width: 130,
+      renderCell: renderBirthDate,
+    },
+    {
+      field: 'grade_level',
+      headerName: t('common.class'),
+      width: 210,
+      sortable: false,
+      renderCell: renderClass,
+    },
+    {
+      field: 'guardians',
+      headerName: t('common.guardians'),
+      width: 200,
+      sortable: false,
+      renderCell: renderGuardians,
+    },
+    {
+      field: 'status',
+      headerName: t('common.status'),
+      width: 130,
+      renderCell: renderStatus,
+    },
+    {
+      field: 'actions',
+      headerName: t('common.actions'),
+      width: 150,
+      sortable: false,
+      filterable: false,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: ({ row }: GridRenderCellParams<Student>) => (
+        <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+          {!row.active ? (
+            <Tooltip title={t('common.activate')}>
+              <IconButton
+                size="small"
+                aria-label={t('students.activateAria', { name: row.name })}
+                onClick={() => handleActivate(row)}
+              >
+                <IconifyIcon icon="mingcute:refresh-2-line" />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <>
+              {/* What the family told the school about the child's health. Read here rather
+                    than chased over the phone on the day it matters. */}
+              {/* Who may collect the child. Read at the gate, the moment somebody turns up
+                  asking for the student. */}
+              <Tooltip title={t('pickups.action')}>
                 <IconButton
                   size="small"
-                  aria-label={t('students.activateAria', { name: row.name })}
-                  onClick={() => handleActivate(row)}
+                  aria-label={t('pickups.aria', { name: row.name })}
+                  onClick={() => setPickupsFor(row)}
                 >
-                  <IconifyIcon icon="mingcute:refresh-2-line" />
+                  <IconifyIcon icon="mingcute:user-follow-line" />
                 </IconButton>
               </Tooltip>
-            ) : (
-              <>
-                <Tooltip title={t('common.edit')}>
-                  <IconButton
-                    size="small"
-                    aria-label={`${t('common.edit')} ${row.name}`}
-                    onClick={() => {
-                      setEditing(row);
-                      setFormOpen(true);
-                    }}
-                  >
-                    <IconifyIcon icon="mingcute:edit-2-line" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={t('common.delete')}>
-                  <IconButton
-                    size="small"
-                    aria-label={`${t('common.delete')} ${row.name}`}
-                    onClick={() => setPendingDelete(row)}
-                  >
-                    <IconifyIcon icon="mingcute:delete-2-line" />
-                  </IconButton>
-                </Tooltip>
-              </>
-            )}
-          </Stack>
-        ),
-      },
+              <Tooltip title={t('health.action')}>
+                <IconButton
+                  size="small"
+                  aria-label={t('health.aria', { name: row.name })}
+                  onClick={() => setHealthFor(row)}
+                >
+                  <IconifyIcon icon="mingcute:heartbeat-line" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.edit')}>
+                <IconButton
+                  size="small"
+                  aria-label={`${t('common.edit')} ${row.name}`}
+                  onClick={() => {
+                    setEditing(row);
+                    setFormOpen(true);
+                  }}
+                >
+                  <IconifyIcon icon="mingcute:edit-2-line" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.delete')}>
+                <IconButton
+                  size="small"
+                  aria-label={`${t('common.delete')} ${row.name}`}
+                  onClick={() => setPendingDelete(row)}
+                >
+                  <IconifyIcon icon="mingcute:delete-2-line" />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+        </Stack>
+      ),
+    },
   ];
 
   if (!school) {
@@ -386,9 +410,7 @@ const Students = () => {
       <SectionCard padding={0}>
         {!loading && students.length === 0 && !error ? (
           <EmptyState
-            title={
-              debouncedSearch ? t('students.empty.searchTitle') : t('students.empty.title')
-            }
+            title={debouncedSearch ? t('students.empty.searchTitle') : t('students.empty.title')}
             description={
               debouncedSearch
                 ? t('students.empty.searchDescription', { query: debouncedSearch })
@@ -438,6 +460,26 @@ const Students = () => {
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
+
+      {pickupsFor && (
+        <AuthorizedPickupsDialog
+          open
+          schoolId={school.school_id}
+          studentId={pickupsFor.id}
+          studentName={pickupsFor.name}
+          onClose={() => setPickupsFor(null)}
+        />
+      )}
+
+      {healthFor && (
+        <HealthRecordDialog
+          open
+          schoolId={school.school_id}
+          studentId={healthFor.id}
+          studentName={healthFor.name}
+          onClose={() => setHealthFor(null)}
+        />
+      )}
 
       <RegisterReportDialog
         key={String(reportOpen)}

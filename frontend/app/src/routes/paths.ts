@@ -32,6 +32,8 @@ export default {
   // and sharing a path would mean one screen deciding which it is on every render.
   myRequests: '/meus-pedidos',
   myCharges: '/meus-boletos',
+  myHealthRecords: '/ficha-de-saude',
+  myPickups: '/quem-pode-buscar',
   myTaxDeclarations: '/imposto-de-renda',
 
   charges: '/boletos',

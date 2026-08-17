@@ -144,6 +144,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
     t.index ["user_id", "user_type"], name: "user_index"
   end
 
+  create_table "authorized_pickups", force: :cascade do |t|
+    t.string "cpf", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.string "phone"
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_authorized_pickups_on_created_by_id"
+    t.index ["school_id"], name: "index_authorized_pickups_on_school_id"
+    t.index ["student_id", "cpf"], name: "index_authorized_pickups_on_student_and_cpf_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["student_id", "discarded_at"], name: "index_authorized_pickups_on_student_id_and_discarded_at"
+    t.index ["student_id"], name: "index_authorized_pickups_on_student_id"
+  end
+
   create_table "billing_plans", force: :cascade do |t|
     t.integer "base_amount_cents"
     t.datetime "created_at", null: false
@@ -1232,6 +1249,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
     t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying, 'mother'::character varying, 'other'::character varying]::text[])", name: "student_guardians_relationship_valid"
   end
 
+  create_table "student_health_records", force: :cascade do |t|
+    t.text "content", default: "", null: false
+    t.datetime "content_updated_at"
+    t.datetime "created_at", null: false
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "updated_by_id"
+    t.index ["school_id"], name: "index_student_health_records_on_school_id"
+    t.index ["student_id"], name: "index_student_health_records_on_student", unique: true
+    t.index ["student_id"], name: "index_student_health_records_on_student_id"
+    t.index ["updated_by_id"], name: "index_student_health_records_on_updated_by_id"
+  end
+
   create_table "students", force: :cascade do |t|
     t.date "birth_date"
     t.string "cpf", limit: 11
@@ -1465,6 +1496,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
   add_foreign_key "attendance_sessions", "school_classes"
   add_foreign_key "attendance_sessions", "school_years"
   add_foreign_key "attendance_sessions", "schools"
+  add_foreign_key "authorized_pickups", "schools"
+  add_foreign_key "authorized_pickups", "students"
+  add_foreign_key "authorized_pickups", "users", column: "created_by_id"
   add_foreign_key "billing_plans", "schools"
   add_foreign_key "billing_purposes", "schools"
   add_foreign_key "charge_issuances", "charges"
@@ -1615,6 +1649,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
   add_foreign_key "student_guardians", "guardians"
   add_foreign_key "student_guardians", "schools"
   add_foreign_key "student_guardians", "students"
+  add_foreign_key "student_health_records", "schools"
+  add_foreign_key "student_health_records", "students"
+  add_foreign_key "student_health_records", "users", column: "updated_by_id"
   add_foreign_key "students", "school_classes"
   add_foreign_key "students", "schools"
   add_foreign_key "students", "users", column: "discarded_by_id"

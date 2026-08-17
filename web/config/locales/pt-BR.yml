@@ -105,6 +105,7 @@ pt-BR:
       contract_template_missing: "Nenhum modelo de contrato configurado para esta escola."
       contract_already_sent: "Este contrato já foi enviado para assinatura."
       contract_not_sent: "Este contrato ainda não foi enviado para assinatura."
+      health_record_too_long: "A ficha de saúde não pode passar de %{limit} caracteres."
       contract_already_signed: "Este contrato já foi assinado. Cancelar uma assinatura firmada é uma rescisão, feita fora daqui."
       contract_already_cancelled: "Este contrato já foi cancelado."
       contract_cancel_provider_failed: "Não foi possível cancelar o documento na Autentique. O contrato segue aguardando assinatura — tente de novo."

@@ -104,6 +104,7 @@ en:
       contract_template_missing: "No contract template configured for this school."
       contract_already_sent: "This contract has already been sent for signature."
       contract_not_sent: "This contract has not been sent for signature yet."
+      health_record_too_long: "The health sheet cannot exceed %{limit} characters."
       contract_already_signed: "This contract has already been signed. Undoing a signed agreement is a rescission, handled elsewhere."
       contract_already_cancelled: "This contract has already been cancelled."
       contract_cancel_provider_failed: "The document could not be cancelled at Autentique. The contract is still awaiting signature — try again."

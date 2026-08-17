@@ -30,6 +30,18 @@ const GuardianDashboard = () => {
       to: paths.myCharges,
     },
     {
+      key: 'myHealthRecords',
+      title: t('health.myChildren.title'),
+      description: t('health.myChildren.description'),
+      to: paths.myHealthRecords,
+    },
+    {
+      key: 'myPickups',
+      title: t('pickups.myChildren.title'),
+      description: t('pickups.myChildren.description'),
+      to: paths.myPickups,
+    },
+    {
       key: 'myReportCards',
       title: t('dashboard.guardian.link.myReportCards'),
       description: t('dashboard.guardian.link.myReportCardsDescription'),
@@ -62,7 +74,12 @@ const GuardianDashboard = () => {
                 <Typography variant="body2" color="text.secondary">
                   {link.description}
                 </Typography>
-                <Button component={RouterLink} to={link.to} variant="outlined" sx={{ alignSelf: 'flex-start' }}>
+                <Button
+                  component={RouterLink}
+                  to={link.to}
+                  variant="outlined"
+                  sx={{ alignSelf: 'flex-start' }}
+                >
                   {link.title}
                 </Button>
               </Stack>

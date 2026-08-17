@@ -2688,6 +2688,278 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/me/students/{student_id}/authorized_pickups": {
+      "get": {
+        "summary": "List authorized pickups",
+        "tags": [
+          "Me"
+        ],
+        "operationId": "api_v1_schools_me_authorized_pickups_index",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create authorized pickups",
+        "tags": [
+          "Me"
+        ],
+        "operationId": "api_v1_schools_me_authorized_pickups_create",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "created"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/me/students/{student_id}/authorized_pickups/{id}": {
+      "delete": {
+        "summary": "Delete authorized pickups",
+        "tags": [
+          "Me"
+        ],
+        "operationId": "api_v1_schools_me_authorized_pickups_destroy",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "deleted"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/me/students/{student_id}/health_record": {
+      "get": {
+        "summary": "Show student health records",
+        "tags": [
+          "Me"
+        ],
+        "operationId": "api_v1_schools_me_student_health_records_show",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update student health records",
+        "tags": [
+          "Me"
+        ],
+        "operationId": "api_v1_schools_me_student_health_records_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update student health records",
+        "tags": [
+          "Me"
+        ],
+        "operationId": "api_v1_schools_me_student_health_records_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/schools/{school_id}/me/tax_declarations": {
       "parameters": [
         {
@@ -3763,6 +4035,475 @@
             "description": "cross-school student access denied"
           }
         }
+      },
+      "patch": {
+        "summary": "Update students",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_students_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update students",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_students_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete students",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_students_destroy",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "deleted"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/people/students/{id}/activate": {
+      "post": {
+        "summary": "Activate — students",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_students_activate",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "created"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/people/students/{student_id}/authorized_pickups": {
+      "get": {
+        "summary": "List authorized pickups",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_authorized_pickups_index",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/people/students/{student_id}/guardians": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "student_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Link guardian to student",
+        "tags": [
+          "People"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "student_guardian link created"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "student_guardian": {
+                    "type": "object",
+                    "properties": {
+                      "guardian_id": {
+                        "type": "integer"
+                      },
+                      "financial_percentage": {
+                        "type": "number"
+                      },
+                      "primary_guardian": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "guardian_id"
+                    ]
+                  }
+                },
+                "required": [
+                  "student_guardian"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List student guardians",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_student_guardians_index",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/schools/{school_id}/people/students/{student_id}/health_record": {
+      "get": {
+        "summary": "Show student health records",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_student_health_records_show",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update student health records",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_student_health_records_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update student health records",
+        "tags": [
+          "People"
+        ],
+        "operationId": "api_v1_schools_people_student_health_records_update",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
       }
     },
     "/api/v1/schools/{school_id}/permission_definitions": {
