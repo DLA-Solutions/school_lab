@@ -11,9 +11,6 @@ module Billing
       existing = Payment.find_by(provider_payment_id: remote_payment.provider_payment_id)
       return ResponseService.success(data: existing) if existing
 
-      # Guard before opening the transaction: `return` from inside a transaction block
-      # commits instead of rolling back (Rails >= 6.1), which would leave a confirmed
-      # payment attached to a charge that cannot be paid.
       return ResponseService.failure(code: :invalid_state_transition) unless charge.paid? || charge.may_pay?
 
       payment = nil
@@ -33,13 +30,22 @@ module Billing
         charge.pay! unless charge.paid?
       end
 
+      enqueue_service_invoice_if_enabled(payment)
       ResponseService.success(data: payment)
     rescue ActiveRecord::RecordNotUnique
-      ResponseService.success(data: Payment.find_by!(provider_payment_id: remote_payment.provider_payment_id))
+      payment = Payment.find_by!(provider_payment_id: remote_payment.provider_payment_id)
+      ResponseService.success(data: payment)
     end
 
     private
 
     attr_reader :charge, :remote_payment
+
+    def enqueue_service_invoice_if_enabled(payment)
+      settings = charge.school.school_fiscal_setting
+      return unless settings&.enabled?
+
+      IssueServiceInvoiceJob.perform_later(payment.id, charge.school_id)
+    end
   end
 end
