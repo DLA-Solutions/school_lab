@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SchoolPaymentProvider < ApplicationRecord
-  INSTRUMENTS = %w[bank_slip].freeze
+  INSTRUMENTS = %w[bank_slip service_invoice].freeze
 
   # What each provider needs before its configuration may be used to issue. A row that is not
   # complete is not selectable at all: the missing piece would otherwise surface as a failure
@@ -9,16 +9,17 @@ class SchoolPaymentProvider < ApplicationRecord
   # `fake` legitimately has no credentials.
   REQUIRED_CREDENTIALS = {
     "cora" => %i[client_id certificate_pem private_key_pem],
-    "fake" => []
+    "fake" => [],
+    "spedy" => %i[api_key]
   }.freeze
 
   belongs_to :school
   belongs_to :uploaded_by, class_name: "User", optional: true
 
-  encrypts :certificate_pem, :private_key_pem
+  encrypts :certificate_pem, :private_key_pem, :api_key
 
   audited associated_with: :school,
-          except: SchoolAuditable::AUDITED_EXCEPT + %w[certificate_pem private_key_pem settings]
+          except: SchoolAuditable::AUDITED_EXCEPT + %w[certificate_pem private_key_pem api_key settings]
 
   validates :instrument, inclusion: { in: INSTRUMENTS }
   validates :provider, presence: true, inclusion: { in: REQUIRED_CREDENTIALS.keys }
@@ -28,6 +29,8 @@ class SchoolPaymentProvider < ApplicationRecord
   before_validation :derive_certificate_metadata, if: -> { certificate_pem.present? }
 
   scope :active, -> { where(active: true) }
+
+  store_accessor :settings, :spedy_company_id
 
   before_validation :ensure_webhook_endpoint_token, on: :create
 

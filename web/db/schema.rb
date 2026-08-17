@@ -10,11 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_17_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "vector"
 
   create_table "academic_periods", force: :cascade do |t|
     t.jsonb "attendance_policy_override"
@@ -842,6 +841,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_090000) do
     t.check_constraint "shift::text = ANY (ARRAY['matutino'::character varying, 'vespertino'::character varying]::text[])", name: "school_classes_shift_allowed"
   end
 
+  create_table "school_fiscal_settings", force: :cascade do |t|
+    t.string "city_service_code"
+    t.string "cnae_code"
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: false, null: false
+    t.string "federal_service_code"
+    t.jsonb "ibs_cbs_config", default: {}, null: false
+    t.decimal "iss_rate_percent", precision: 5, scale: 2
+    t.string "issuance_city_name", null: false
+    t.string "issuance_state", limit: 2, null: false
+    t.string "issue_type"
+    t.string "national_taxation_code"
+    t.string "nbs_code"
+    t.jsonb "provider_options_snapshot", default: {}, null: false
+    t.boolean "reform_tributaria_enabled", default: false, null: false
+    t.bigint "school_id", null: false
+    t.string "service_description", limit: 100
+    t.integer "spedy_city_code", null: false
+    t.string "tax_location", default: "companyMunicipality", null: false
+    t.string "taxation_type", default: "taxationInMunicipality", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_school_fiscal_settings_on_school_id", unique: true
+  end
+
   create_table "school_groups", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -876,6 +899,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_090000) do
 
   create_table "school_payment_providers", force: :cascade do |t|
     t.boolean "active", default: true, null: false
+    t.text "api_key"
     t.datetime "certificate_expires_at"
     t.string "certificate_fingerprint"
     t.text "certificate_pem"
@@ -894,7 +918,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_090000) do
     t.index ["school_id"], name: "index_school_payment_providers_on_school_id"
     t.index ["uploaded_by_id"], name: "index_school_payment_providers_on_uploaded_by_id"
     t.index ["webhook_endpoint_token"], name: "index_school_payment_providers_on_webhook_endpoint_token", unique: true
-    t.check_constraint "instrument::text = 'bank_slip'::text", name: "school_payment_providers_instrument_allowed"
+    t.check_constraint "instrument::text = ANY (ARRAY['bank_slip'::text, 'service_invoice'::text])", name: "school_payment_providers_instrument_allowed"
   end
 
   create_table "school_role_templates", force: :cascade do |t|
@@ -990,6 +1014,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_090000) do
     t.datetime "updated_at", null: false
     t.index ["school_id", "name"], name: "index_segments_on_school_id_and_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_id"], name: "index_segments_on_school_id"
+  end
+
+  create_table "service_invoice_attempts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "enqueued_at"
+    t.datetime "failed_at"
+    t.string "idempotency_key", null: false
+    t.text "last_error"
+    t.string "provider", null: false
+    t.jsonb "provider_response"
+    t.bigint "school_id", null: false
+    t.bigint "service_invoice_id", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.index ["idempotency_key"], name: "index_service_invoice_attempts_on_idempotency_key", unique: true
+    t.index ["school_id"], name: "index_service_invoice_attempts_on_school_id"
+    t.index ["service_invoice_id"], name: "index_service_invoice_attempts_on_service_invoice_id"
+  end
+
+  create_table "service_invoices", force: :cascade do |t|
+    t.string "access_key"
+    t.datetime "authorized_at"
+    t.datetime "canceled_at"
+    t.bigint "charge_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "enqueued_at"
+    t.datetime "failed_at"
+    t.string "integration_id", null: false
+    t.string "invoice_number"
+    t.text "last_error"
+    t.bigint "payment_id", null: false
+    t.string "pdf_blob_key"
+    t.string "provider", null: false
+    t.string "provider_document_id"
+    t.datetime "rejected_at"
+    t.bigint "school_id", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.string "verification_code"
+    t.string "xml_blob_key"
+    t.index ["charge_id"], name: "index_service_invoices_on_charge_id"
+    t.index ["integration_id"], name: "index_service_invoices_on_integration_id", unique: true
+    t.index ["payment_id"], name: "index_service_invoices_on_payment_id", unique: true
+    t.index ["provider_document_id"], name: "index_service_invoices_on_provider_document_id", unique: true, where: "(provider_document_id IS NOT NULL)"
+    t.index ["school_id", "status"], name: "index_service_invoices_on_school_id_and_status"
+    t.index ["school_id"], name: "index_service_invoices_on_school_id"
   end
 
   create_table "solid_cache_entries", force: :cascade do |t|
@@ -1512,6 +1582,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_090000) do
   add_foreign_key "school_billing_settings", "schools"
   add_foreign_key "school_classes", "schools"
   add_foreign_key "school_classes", "users", column: "discarded_by_id"
+  add_foreign_key "school_fiscal_settings", "schools"
   add_foreign_key "school_holidays", "school_years"
   add_foreign_key "school_holidays", "schools"
   add_foreign_key "school_modules", "schools"
@@ -1526,6 +1597,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_090000) do
   add_foreign_key "schools", "school_groups"
   add_foreign_key "schools", "users", column: "discarded_by_id"
   add_foreign_key "segments", "schools"
+  add_foreign_key "service_invoice_attempts", "schools"
+  add_foreign_key "service_invoice_attempts", "service_invoices"
+  add_foreign_key "service_invoices", "charges"
+  add_foreign_key "service_invoices", "payments"
+  add_foreign_key "service_invoices", "schools"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
