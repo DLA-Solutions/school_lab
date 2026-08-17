@@ -119,6 +119,20 @@ export const previewContract = async (
 };
 
 /**
+ * POST /api/v1/schools/:school_id/billing/contracts/:id/cancel_signature — calls off a contract
+ * the family has not signed, withdrawing the document at the provider so the link they were sent
+ * stops collecting signatures. The contract stays on record, marked cancelled.
+ */
+export const cancelContractSignature = async (schoolId: number, id: number): Promise<Contract> => {
+  const response = await request<ContractResponse>(
+    `${collectionPath(schoolId)}/${id}/cancel_signature`,
+    { method: 'POST' },
+  );
+
+  return response.data;
+};
+
+/**
  * GET /api/v1/schools/:school_id/billing/contracts/:id/document — the agreement as the PDF that
  * goes out for signature. The same document `preview` renders as HTML, in the form a school can
  * keep or forward.

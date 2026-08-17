@@ -55,6 +55,12 @@ module Gateways
           }
         GRAPHQL
 
+        DELETE_DOCUMENT_MUTATION = <<~GRAPHQL
+          mutation DeleteDocumentMutation($id: UUID!) {
+            deleteDocument(id: $id)
+          }
+        GRAPHQL
+
         def initialize(school:, config:)
           @school = school
           @config = config
@@ -77,6 +83,19 @@ module Gateways
           raise ValidationError, "Autentique returned no document" if document.blank?
 
           to_remote_document(document)
+        end
+
+        # Autentique withdraws an unsigned document outright, which is what a cancelled contract
+        # needs: the link the family was sent stops collecting signatures. On an already-signed
+        # document it only moves the file to the bin and leaves the signatures standing, so
+        # callers must not offer this as a way to undo an agreement in force.
+        def cancel_document(provider_document_id:)
+          body = post_json(query: DELETE_DOCUMENT_MUTATION, variables: { id: provider_document_id })
+
+          deleted = body.dig("data", "deleteDocument")
+          raise ValidationError, "Autentique refused to delete the document" unless deleted
+
+          true
         end
 
         private

@@ -50,6 +50,7 @@ const signedContract: Contract = {
   signature_status: 'signed',
   sent_at: '2026-01-02T12:00:00Z',
   signed_at: '2026-01-05T12:00:00Z',
+  signature_cancelled_at: null,
   signature_provider: 'autentique',
   signature_requested_at: '2026-01-02T12:00:00Z',
   sent_to_provider: true,
@@ -664,6 +665,123 @@ describe('GuardianContractsDialog', () => {
     expect(screen.getByRole('button', { name: 'Baixar PDF assinado' })).toBeInTheDocument();
 
     vi.restoreAllMocks();
+  });
+
+  // A contract goes out with a wrong figure, or a family decides not to go ahead. Either way the
+  // school has to stop it before anyone signs.
+  describe('calling off a contract sent for signature', () => {
+    const listPending = (rows: Contract[]) =>
+      http.get(apiUrl(CONTRACTS_PATH), ({ request }) => {
+        const status = new URL(request.url).searchParams.get('signature_status');
+        return HttpResponse.json(page(status === 'pending_signature' ? rows : []));
+      });
+
+    it('cancels it after the school confirms', async () => {
+      let cancelled = false;
+      authenticate();
+      stubFormOptions();
+      server.use(
+        listPending([pendingContract]),
+        http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/cancel_signature`), () => {
+          cancelled = true;
+          return HttpResponse.json({
+            data: { ...pendingContract, signature_status: 'cancelled' },
+          });
+        }),
+      );
+
+      renderDialog();
+      await user.click(await screen.findByRole('tab', { name: /aguardando assinatura/i }));
+      await user.click(await screen.findByRole('button', { name: 'Cancelar' }));
+      await user.click(await screen.findByRole('button', { name: 'Cancelar contrato' }));
+
+      await waitFor(() => expect(cancelled).toBe(true));
+    });
+
+    // Cancelling withdraws the document at the provider, so it is confirmed rather than done on
+    // a single click.
+    it('cancels nothing until the school confirms', async () => {
+      let cancelled = false;
+      authenticate();
+      stubFormOptions();
+      server.use(
+        listPending([pendingContract]),
+        http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/cancel_signature`), () => {
+          cancelled = true;
+          return HttpResponse.json({ data: pendingContract });
+        }),
+      );
+
+      renderDialog();
+      await user.click(await screen.findByRole('tab', { name: /aguardando assinatura/i }));
+      await user.click(await screen.findByRole('button', { name: 'Cancelar' }));
+      await user.click(await screen.findByRole('button', { name: 'Manter' }));
+
+      expect(cancelled).toBe(false);
+    });
+
+    // A signed contract is an agreement in force; undoing it is a rescission, not a button here.
+    it('offers no cancel action on a signed contract', async () => {
+      authenticate();
+      stubFormOptions();
+      server.use(http.get(apiUrl(CONTRACTS_PATH), () => HttpResponse.json(page([signedContract]))));
+
+      renderDialog();
+      await screen.findByRole('button', { name: /pré-visualizar/i });
+
+      expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
+    });
+
+    it('lists what was cancelled under its own tab', async () => {
+      const cancelledContract: Contract = {
+        ...pendingContract,
+        id: 94,
+        signature_status: 'cancelled',
+        signature_cancelled_at: '2026-08-16T12:00:00Z',
+      };
+      authenticate();
+      stubFormOptions();
+      server.use(
+        http.get(apiUrl(CONTRACTS_PATH), ({ request }) => {
+          const status = new URL(request.url).searchParams.get('signature_status');
+          return HttpResponse.json(page(status === 'cancelled' ? [cancelledContract] : []));
+        }),
+      );
+
+      renderDialog();
+      await user.click(await screen.findByRole('tab', { name: /cancelados/i }));
+
+      expect(await screen.findByText('Cancelado')).toBeInTheDocument();
+    });
+
+    // The document is still out there collecting signatures, so the contract must not read as
+    // cancelled on our side alone.
+    it('reports a provider refusal instead of showing it as cancelled', async () => {
+      authenticate();
+      stubFormOptions();
+      server.use(
+        listPending([pendingContract]),
+        http.post(apiUrl(`${CONTRACTS_PATH}/${pendingContract.id}/cancel_signature`), () =>
+          HttpResponse.json(
+            {
+              error: {
+                code: 'provider_error',
+                message: 'Não foi possível cancelar o documento na Autentique.',
+                details: {},
+              },
+            },
+            { status: 422 },
+          ),
+        ),
+      );
+
+      renderDialog();
+      await user.click(await screen.findByRole('tab', { name: /aguardando assinatura/i }));
+      await user.click(await screen.findByRole('button', { name: 'Cancelar' }));
+      await user.click(await screen.findByRole('button', { name: 'Cancelar contrato' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(/Autentique/);
+    });
   });
 
   // Nothing to sign a second time, and nothing left to send.

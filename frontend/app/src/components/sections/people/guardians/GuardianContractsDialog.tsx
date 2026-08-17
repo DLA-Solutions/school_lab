@@ -17,9 +17,10 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { EmptyState, ErrorBanner, SemanticChip } from 'design-system';
+import { ConfirmDialog, EmptyState, ErrorBanner, SemanticChip } from 'design-system';
 import { ApiError } from 'services/api';
 import {
+  cancelContractSignature,
   dispatchContract,
   getContractPrefill,
   listBillingPlans,
@@ -89,6 +90,11 @@ const signatureChip = (contract: Contract) => {
     return { variant: 'success' as const, label: 'Assinado' };
   }
 
+  // Called off before anyone signed — on the record, but owed by nobody.
+  if (contract.signature_status === 'cancelled') {
+    return { variant: 'info' as const, label: 'Cancelado' };
+  }
+
   return contract.sent_to_provider
     ? { variant: 'warning' as const, label: 'Aguardando assinatura' }
     : { variant: 'error' as const, label: 'Não enviado' };
@@ -131,6 +137,8 @@ const GuardianContractsDialog = ({
   const [prefill, setPrefill] = useState<ContractPrefill | null>(null);
   const [prefilling, setPrefilling] = useState(false);
   const [previewing, setPreviewing] = useState<Contract | null>(null);
+  const [cancelling, setCancelling] = useState<Contract | null>(null);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   // The agreement as generated, before anything was recorded. It becomes a contract only when the
   // school sends it from here.
@@ -414,6 +422,28 @@ const GuardianContractsDialog = ({
     }
   };
 
+  // The document is withdrawn at the provider before anything is recorded here, so a failure
+  // leaves the contract awaiting signature rather than dead on our side and live on theirs.
+  const handleCancel = async () => {
+    if (!cancelling) {
+      return;
+    }
+
+    const target = cancelling;
+    setCancellingId(target.id);
+    setCancelling(null);
+    setError('');
+
+    try {
+      await cancelContractSignature(schoolId, target.id);
+      await loadContracts(tab);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível cancelar o contrato.');
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   const fieldProps = (field: FormField) => ({
     id: `contract-${field}`,
     name: field,
@@ -446,6 +476,7 @@ const GuardianContractsDialog = ({
           >
             <Tab value="signed" label="Assinados" />
             <Tab value="pending_signature" label="Aguardando assinatura" />
+            <Tab value="cancelled" label="Cancelados" />
           </Tabs>
 
           {error && <ErrorBanner message={error} />}
@@ -533,6 +564,23 @@ const GuardianContractsDialog = ({
                           Enviar para assinatura
                         </Button>
                       )}
+
+                    {/* A wrong figure to reissue, or a family that decided not to go ahead. Only
+                        before it is signed: undoing a signed agreement is a rescission, and the
+                        provider would leave the signatures standing anyway. */}
+                    {contract.signature_status === 'pending_signature' && (
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => setCancelling(contract)}
+                        disabled={cancellingId === contract.id}
+                        startIcon={
+                          cancellingId === contract.id ? <CircularProgress size={14} /> : null
+                        }
+                      >
+                        Cancelar
+                      </Button>
+                    )}
                   </Stack>
                 </ListItem>
               ))}
@@ -674,6 +722,23 @@ const GuardianContractsDialog = ({
         onClose={() => setDraft(null)}
         onSend={handleSendDraft}
         sending={dispatchingDraft}
+      />
+
+      <ConfirmDialog
+        open={cancelling !== null}
+        title="Cancelar este contrato?"
+        message={
+          cancelling
+            ? `${cancelling.student_name ?? 'Este contrato'} — o documento é retirado da ` +
+              'Autentique e o link enviado à família para de colher assinaturas. O contrato ' +
+              'permanece na lista, marcado como cancelado.'
+            : ''
+        }
+        destructive
+        confirmLabel="Cancelar contrato"
+        cancelLabel="Manter"
+        onConfirm={handleCancel}
+        onCancel={() => setCancelling(null)}
       />
     </Dialog>
   );

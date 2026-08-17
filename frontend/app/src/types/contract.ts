@@ -14,9 +14,14 @@ export interface Contract {
   starts_on: string | null;
   ends_on: string | null;
   status: 'active' | 'suspended' | 'ended';
-  signature_status: 'pending_signature' | 'signed';
+  /**
+   * `cancelled` is a contract the school called off before it was signed — a wrong figure to
+   * reissue, or a family that decided not to go ahead. It stays on record.
+   */
+  signature_status: 'pending_signature' | 'signed' | 'cancelled';
   sent_at: string | null;
   signed_at: string | null;
+  signature_cancelled_at: string | null;
   /** Which integration carried it — `autentique`, or `fake` in development. */
   signature_provider: string | null;
   signature_requested_at: string | null;

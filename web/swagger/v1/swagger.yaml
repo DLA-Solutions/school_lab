@@ -4280,6 +4280,51 @@
         ]
       }
     },
+    "/api/v1/schools/{school_id}/billing/contracts/{id}/cancel_signature": {
+      "post": {
+        "summary": "Cancel signature — contracts",
+        "tags": [
+          "Billing"
+        ],
+        "operationId": "api_v1_schools_billing_contracts_cancel_signature",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "created"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/schools/{school_id}/billing/contracts/{id}/document": {
       "get": {
         "summary": "Document — contracts",

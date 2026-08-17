@@ -174,6 +174,8 @@ Rails.application.routes.draw do
               member do
                 post :sign
                 post :send_for_signature
+                # Calls off a contract the family has not signed, withdrawing it at the provider.
+                post :cancel_signature
                 get :preview
                 # The same agreement `preview` renders, as the PDF that goes out for signature.
                 get :document

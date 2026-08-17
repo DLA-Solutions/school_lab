@@ -180,6 +180,82 @@ RSpec.describe "Filling a contract from the register and reading it before it go
     end
   end
 
+  # A contract goes out with a wrong figure, or a family decides not to go ahead. Either way the
+  # school has to stop it before it is signed.
+  describe "cancelling a contract sent for signature" do
+    let(:plan) { create(:billing_plan, school: school, base_amount_cents: 85_000) }
+    let!(:signature_config) { create(:school_signature_provider, school: school) }
+    let(:contract) do
+      create(:contract, school: school, student: student, billing_plan: plan,
+                        payer_guardian: mother, negotiated_amount_cents: 85_000,
+                        signature_status: "pending_signature", provider_document_id: "doc-abc")
+    end
+    let(:cancel_path) do
+      "/api/v1/schools/#{school.id}/billing/contracts/#{contract.id}/cancel_signature"
+    end
+
+    before do
+      link(mother, "mother", primary: true)
+      adapter = instance_double(Gateways::Signature::Fake, cancel_document: true)
+      allow(Gateways::Signature::Registry).to receive(:resolve).and_return(adapter)
+    end
+
+    it "records it as cancelled and answers with the contract" do
+      post cancel_path, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body.dig("data", "signature_status")).to eq("cancelled")
+      expect(response.parsed_body.dig("data", "signature_cancelled_at")).to be_present
+      expect(contract.reload.signature_status).to eq("cancelled")
+    end
+
+    it "leaves it out of the contracts still awaiting signature" do
+      post cancel_path, headers: headers
+
+      get "/api/v1/schools/#{school.id}/billing/contracts?signature_status=pending_signature",
+          headers: headers
+
+      expect(response.parsed_body["data"].map { |row| row["id"] }).not_to include(contract.id)
+    end
+
+    it "lists it under the cancelled ones" do
+      post cancel_path, headers: headers
+
+      get "/api/v1/schools/#{school.id}/billing/contracts?signature_status=cancelled",
+          headers: headers
+
+      expect(response.parsed_body["data"].map { |row| row["id"] }).to include(contract.id)
+    end
+
+    it "refuses a contract the family already signed" do
+      contract.update!(signature_status: "signed", signed_at: Time.current)
+
+      post cancel_path, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(contract.reload.signature_status).to eq("signed")
+    end
+
+    it "is closed to guardians" do
+      guardian_user = create(:user)
+      create(:membership, user: guardian_user, school: school, role: "guardian")
+
+      post cancel_path, headers: auth_headers_for(guardian_user)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "does not reach another school's contract" do
+      other = create(:school)
+      other_contract = create(:contract, school: other, student: create(:student, school: other))
+
+      post "/api/v1/schools/#{school.id}/billing/contracts/#{other_contract.id}/cancel_signature",
+           headers: headers
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   # Reading a contract and keeping a copy of it are the same errand: the school forwards it, files
   # it, or prints it for a family that asked. The bytes are the very document sent for signature,
   # not a second rendering that could drift from it.

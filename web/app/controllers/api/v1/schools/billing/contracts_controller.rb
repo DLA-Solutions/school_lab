@@ -156,6 +156,18 @@ module Api
             end
           end
 
+          # Calls off a contract before the family signs it. The document is withdrawn at the
+          # provider first; only then is it recorded as cancelled here.
+          def cancel_signature
+            contract = policy_scope(Contract).find(params[:id])
+            authorize contract, :update?
+
+            result = ::Contracts::CancelSignatureService.call(contract: contract, actor: Current.user)
+            render_service_result(result) do |updated|
+              render json: { data: ContractBlueprint.render_as_hash(updated) }
+            end
+          end
+
           def update
             contract = policy_scope(Contract).find(params[:id])
             authorize contract

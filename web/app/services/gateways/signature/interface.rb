@@ -12,6 +12,12 @@ module Gateways
       def fetch_document(provider_document_id:)
         raise NotImplementedError
       end
+
+      # Withdraws a document the family has not signed yet, so the link they were sent stops
+      # collecting signatures. Called when the school cancels a contract it had already dispatched.
+      def cancel_document(provider_document_id:)
+        raise NotImplementedError
+      end
     end
   end
 end

@@ -8,7 +8,11 @@ class Contract < ApplicationRecord
 
   # Where the contract stands with the family. No e-signature provider is integrated: the school
   # sends the contract and marks it signed once the family returns it.
-  SIGNATURE_STATUSES = %w[pending_signature signed].freeze
+  # `cancelled` is a contract the school called off before it was signed — a wrong figure to
+  # reissue, or a family that decided not to go ahead. It stays on record rather than being
+  # deleted, because when the reason was an error it is the context for the corrected contract
+  # that follows it.
+  SIGNATURE_STATUSES = %w[pending_signature signed cancelled].freeze
 
   belongs_to :student
   belongs_to :school
@@ -31,9 +35,20 @@ class Contract < ApplicationRecord
   scope :active, -> { kept.where(status: "active") }
   scope :signed, -> { kept.where(signature_status: "signed") }
   scope :pending_signature, -> { kept.where(signature_status: "pending_signature") }
+  scope :signature_cancelled, -> { kept.where(signature_status: "cancelled") }
 
   def signed?
     signature_status == "signed"
+  end
+
+  def signature_cancelled?
+    signature_status == "cancelled"
+  end
+
+  # Only what the family has not signed yet. A signed contract is an agreement in force —
+  # undoing it is a rescission, not a button on a listing.
+  def signature_cancellable?
+    signature_status == "pending_signature"
   end
 
   # Who has to sign: the guardians of the student, one or two. The API requires a guardian to

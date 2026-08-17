@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_16_225058) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_17_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "vector"
 
   create_table "academic_periods", force: :cascade do |t|
     t.jsonb "attendance_policy_override"
@@ -292,6 +293,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_225058) do
     t.string "provider_document_id"
     t.bigint "school_id", null: false
     t.datetime "sent_at"
+    t.datetime "signature_cancelled_at"
     t.string "signature_provider"
     t.datetime "signature_requested_at"
     t.string "signature_status", default: "pending_signature", null: false
@@ -310,7 +312,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_225058) do
     t.index ["signature_provider", "provider_document_id"], name: "index_contracts_on_provider_document", unique: true, where: "(provider_document_id IS NOT NULL)"
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
-    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying]::text[])", name: "contracts_signature_status_valid"
+    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying, 'cancelled'::character varying]::text[])", name: "contracts_signature_status_valid"
   end
 
   create_table "device_tokens", force: :cascade do |t|

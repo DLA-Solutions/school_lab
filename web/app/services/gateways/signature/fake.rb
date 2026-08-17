@@ -42,6 +42,11 @@ module Gateways
         end
       end
 
+      def cancel_document(provider_document_id:)
+        @documents.delete(provider_document_id)
+        true
+      end
+
       private
 
       attr_reader :school, :config

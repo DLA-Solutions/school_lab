@@ -5,7 +5,8 @@ class ContractBlueprint < Blueprinter::Base
 
   fields :school_id, :student_id, :billing_plan_id, :negotiated_amount_cents, :due_day,
          :starts_on, :ends_on, :status, :signature_status, :sent_at, :signed_at,
-         :signature_provider, :signature_requested_at, :plan_discount_id, :payer_guardian_id
+         :signature_cancelled_at, :signature_provider, :signature_requested_at, :plan_discount_id,
+         :payer_guardian_id
 
   # Saves the contract list a lookup per row just to name the child it belongs to.
   field :student_name do |contract|
