@@ -18,6 +18,7 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   charges: 'billing',
   plans: 'billing',
   'billing-settings': 'billing',
+  'service-invoices': 'billing',
   'contract-template': 'billing',
   'my-charges': 'billing',
   'my-tax-declarations': 'billing',
@@ -30,6 +31,7 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.charges]: 'billing',
   [paths.plans]: 'billing',
   [paths.billingSettings]: 'billing',
+  [paths.serviceInvoices]: 'billing',
   [paths.contractTemplate]: 'billing',
   [paths.students]: 'academic',
   [paths.guardians]: 'academic',
@@ -72,6 +74,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.charges]: 'staff',
   [paths.plans]: 'staff',
   [paths.billingSettings]: 'staff',
+  [paths.serviceInvoices]: 'staff',
   [paths.contractTemplate]: 'staff',
 };
 

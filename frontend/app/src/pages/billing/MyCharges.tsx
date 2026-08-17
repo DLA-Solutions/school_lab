@@ -33,11 +33,14 @@ import {
   listMyOpenCharges,
   reissueMyCharge,
 } from 'services/myChargesApi';
+import { downloadMyServiceInvoicePdf, listMyServiceInvoices } from 'services/serviceInvoicesApi';
 import { listMyStudents } from 'services/studentsApi';
 import { Charge } from 'types/charge';
 import { MyCharge, MyChargeHistory } from 'types/myCharge';
+import { ServiceInvoice } from 'types/serviceInvoice';
 import { Student } from 'types/student';
 import { formatCents } from 'utils/money';
+import { downloadBlob } from 'utils/downloadBlob';
 import type { MessageKey } from 'locales';
 
 type TabValue = 'open' | 'history';
@@ -104,9 +107,11 @@ const MyCharges = () => {
 
   const [openRows, setOpenRows] = useState<MyCharge[]>([]);
   const [historyRows, setHistoryRows] = useState<MyChargeHistory[]>([]);
+  const [historyInvoices, setHistoryInvoices] = useState<ServiceInvoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
 
   const [detail, setDetail] = useState<MyCharge | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -129,9 +134,14 @@ const MyCharges = () => {
       if (tab === 'open') {
         const response = await listMyOpenCharges({ schoolId, studentId: studentFilter });
         setOpenRows(response.data);
+        setHistoryInvoices([]);
       } else {
-        const response = await listMyChargeHistory({ schoolId, studentId: studentFilter });
-        setHistoryRows(response.data);
+        const [historyResponse, invoicesResponse] = await Promise.all([
+          listMyChargeHistory({ schoolId, studentId: studentFilter }),
+          listMyServiceInvoices({ schoolId }),
+        ]);
+        setHistoryRows(historyResponse.data);
+        setHistoryInvoices(invoicesResponse.data);
       }
     } catch (err) {
       setOpenRows([]);
@@ -215,6 +225,32 @@ const MyCharges = () => {
       setPixCopied(true);
     } catch {
       setDetailError(t('myCharges.pixCopyError'));
+    }
+  };
+
+  const invoiceForCharge = (chargeId: number) =>
+    historyInvoices.find(
+      (invoice) =>
+        invoice.charge_id === chargeId &&
+        invoice.status === 'authorized' &&
+        invoice.pdf_available,
+    ) ?? null;
+
+  const downloadInvoice = async (invoice: ServiceInvoice) => {
+    if (!schoolId) {
+      return;
+    }
+
+    setDownloadingInvoiceId(invoice.id);
+    setError('');
+
+    try {
+      const blob = await downloadMyServiceInvoicePdf(schoolId, invoice.id);
+      downloadBlob(blob, `nfse-${invoice.invoice_number ?? invoice.id}.pdf`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('myCharges.invoicePdfError'));
+    } finally {
+      setDownloadingInvoiceId(null);
     }
   };
 
@@ -314,7 +350,10 @@ const MyCharges = () => {
                     </Button>
                   </Stack>
                 ))
-              : historyRows.map((row) => (
+              : historyRows.map((row) => {
+                  const invoice = invoiceForCharge(row.id);
+
+                  return (
                   <Stack
                     key={row.id}
                     direction="row"
@@ -334,8 +373,22 @@ const MyCharges = () => {
                     <Typography variant="body2" color="text.secondary">
                       {chargeLabel(row, t)}
                     </Typography>
+                    {invoice ? (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        disabled={downloadingInvoiceId === invoice.id}
+                        startIcon={<IconifyIcon icon="mingcute:file-line" />}
+                        onClick={() => downloadInvoice(invoice)}
+                      >
+                        {downloadingInvoiceId === invoice.id
+                          ? t('myCharges.invoiceDownloading')
+                          : t('myCharges.downloadInvoice')}
+                      </Button>
+                    ) : null}
                   </Stack>
-                ))}
+                  );
+                })}
           </Stack>
         )}
       </SectionCard>

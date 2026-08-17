@@ -359,6 +359,81 @@ export const myChargeHistory = [
   },
 ];
 
+export const fiscalSettingsFixture = {
+  id: 1,
+  enabled: false,
+  issuance_city_name: 'Goiânia',
+  issuance_state: 'GO',
+  spedy_city_code: 5_208_707,
+  federal_service_code: '8.01',
+  cnae_code: '8513900',
+  city_service_code: null,
+  nbs_code: null,
+  national_taxation_code: null,
+  iss_rate_percent: 5.0,
+  service_description: 'Mensalidade escolar',
+  taxation_type: 'taxationInMunicipality',
+  tax_location: 'companyMunicipality',
+  issue_type: null,
+  reform_tributaria_enabled: false,
+  provider_options_snapshot: {},
+  ibs_cbs_config: {},
+};
+
+export const supportedCitiesFixture = [
+  {
+    code: 5_208_707,
+    name: 'Goiânia',
+    state: 'GO',
+    provider: 'ISSNet',
+    provider_options: { requiredFields: ['city_service_code'] },
+  },
+  {
+    code: 3_550_308,
+    name: 'São Paulo',
+    state: 'SP',
+    provider: 'Ginfes',
+    provider_options: {},
+  },
+];
+
+export const fiscalCredentialsBySchool: Record<number, unknown[]> = {};
+
+export const serviceInvoicesFixture = [
+  {
+    id: 501,
+    status: 'authorized',
+    integration_id: 'pay-9001',
+    provider: 'fake',
+    provider_document_id: 'fake-si-001',
+    invoice_number: '12345',
+    verification_code: 'ABCD1234',
+    access_key: null,
+    payment_id: 9001,
+    charge_id: 88,
+    authorized_at: '2025-12-08T15:00:00Z',
+    enqueued_at: '2025-12-08T14:35:00Z',
+    failed_at: null,
+    pdf_available: true,
+  },
+  {
+    id: 502,
+    status: 'enqueued',
+    integration_id: 'pay-9002',
+    provider: 'fake',
+    provider_document_id: 'fake-si-002',
+    invoice_number: null,
+    verification_code: null,
+    access_key: null,
+    payment_id: 9002,
+    charge_id: 101,
+    authorized_at: null,
+    enqueued_at: '2026-08-17T10:00:00Z',
+    failed_at: null,
+    pdf_available: false,
+  },
+];
+
 /** Default open-charges list used by `api.test.ts`. */
 export const charges = myOpenCharges;
 
@@ -1311,6 +1386,194 @@ export const handlers = [
         },
         { status: 201 },
       );
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_settings'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: fiscalSettingsFixture });
+  }),
+
+  http.patch(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_settings'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as { fiscal_settings?: Record<string, unknown> };
+
+    return HttpResponse.json({
+      data: {
+        ...fiscalSettingsFixture,
+        ...body.fiscal_settings,
+      },
+    });
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/billing/fiscal/supported_cities'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const url = new URL(request.url);
+      const query = (url.searchParams.get('query') ?? '').toLowerCase();
+
+      const rows = supportedCitiesFixture.filter((city) =>
+        city.name.toLowerCase().includes(query),
+      );
+
+      return HttpResponse.json({ data: rows });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const schoolId = Number(params.schoolId);
+    return HttpResponse.json({ data: fiscalCredentialsBySchool[schoolId] ?? [] });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const schoolId = Number(params.schoolId);
+    const credential = {
+      id: 901,
+      school_id: schoolId,
+      instrument: 'service_invoice',
+      provider: 'spedy',
+      active: true,
+      client_id: '',
+      certificate_fingerprint: null,
+      certificate_expires_at: null,
+      uploaded_at: '2026-08-17T12:00:00Z',
+      uploaded_by_id: 1,
+    };
+    fiscalCredentialsBySchool[schoolId] = [credential];
+
+    return HttpResponse.json({ data: credential }, { status: 201 });
+  }),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials/certificate'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const schoolId = Number(params.schoolId);
+      const existing = fiscalCredentialsBySchool[schoolId]?.[0] ?? {
+        id: 901,
+        school_id: schoolId,
+        instrument: 'service_invoice',
+        provider: 'spedy',
+        active: true,
+        client_id: '',
+        uploaded_at: '2026-08-17T12:00:00Z',
+        uploaded_by_id: 1,
+      };
+
+      return HttpResponse.json({
+        data: {
+          ...existing,
+          certificate_fingerprint: 'SHA256:FISCAL:01',
+          certificate_expires_at: '2027-06-30T23:59:59Z',
+        },
+      });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/billing/service_invoices'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return paginated(serviceInvoicesFixture, new URL(request.url));
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/billing/service_invoices/:id/pdf'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return new HttpResponse(new Blob(['%PDF-nfse'], { type: 'application/pdf' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/pdf' },
+      });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/service_invoices'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const authorized = serviceInvoicesFixture.filter((invoice) => invoice.status === 'authorized');
+
+    return paginated(authorized, new URL(request.url));
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/me/service_invoices/:id/pdf'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return new HttpResponse(new Blob(['%PDF-nfse-guardian'], { type: 'application/pdf' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/pdf' },
+      });
     },
   ),
 ];

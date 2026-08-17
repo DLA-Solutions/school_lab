@@ -39,6 +39,7 @@ export default {
   charges: '/boletos',
   plans: '/planos',
   billingSettings: '/financeiro/configuracoes',
+  serviceInvoices: '/nfse',
   contractTemplate: '/contrato',
 
   signin: `/${rootPaths.authRoot}/signin`,

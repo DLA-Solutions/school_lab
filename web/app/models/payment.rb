@@ -6,6 +6,8 @@ class Payment < ApplicationRecord
   belongs_to :charge
   belongs_to :school
 
+  has_one :service_invoice, dependent: :destroy
+
   validates :status, inclusion: { in: STATUSES }
   validates :provider_payment_id, uniqueness: true, allow_nil: true
   validates :paid_amount_cents, presence: true

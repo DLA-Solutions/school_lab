@@ -5,7 +5,8 @@ module Webhooks
     class Registry
       PARSERS = {
         "cora" => Cora,
-        "fake" => Fake
+        "fake" => Fake,
+        "spedy" => Spedy
       }.freeze
 
       class UnknownProviderError < StandardError; end
