@@ -91,9 +91,9 @@ PRD: [`docs/prds/identity-and-onboarding/`](prds/identity-and-onboarding/) (**va
       `pending_handoff` → `active`.
 - [x] **Invite flow** — single-use token + set password (not random server password).
 - [x] **Enrollment contract does not block login** — signature gate deferred to phase 2 (BR-O11).
-- [ ] Transactional email provider for invites (Postmark, SES, …). **Collection régua**
-      uses Postmark when `POSTMARK_API_TOKEN` is set (issue #124); invite mailers can reuse
-      the same configuration.
+- [x] **Transactional email for invites** — Postmark in staging/production (same
+      `POSTMARK_API_TOKEN` as collection régua, issue #124). Local development uses
+      Letter Opener; RSpec uses `:test`. Never the provider API locally.
 - [x] **LGPD consent record location** — `consent_records` table linked to student + guardian;
       see [`consent.md`](prds/identity-and-onboarding/consent.md) and [`005-students-enrollments.md`](modeling/005-students-enrollments.md).
 - [x] **`segments` MVP depth** — full entity (`segments` id + name per school); optional at handoff
@@ -506,11 +506,14 @@ Decisions finalized in `docs/web-stack.md`. Open items:
       question the standard does not answer; moving any of them is a minor token bump and a repaint
       of the DashdarkX charts.
 - [x] **Transactional email (collection régua)** — Postmark via `postmark-rails` when
-      `POSTMARK_API_TOKEN` is set; otherwise reminders are skipped. Invite mailers pending.
+      `POSTMARK_API_TOKEN` is set in staging/production; otherwise reminders are skipped
+      there. Development uses Letter Opener; RSpec uses `:test`. Invite mailers reuse
+      `SchoolLab::EmailDelivery`.
 - [ ] SPA data fetching — keep hand-rolled `fetch`, or adopt TanStack Query / SWR?
 - [ ] SPA global state — stay on React Context, or add a store?
 - [ ] SPA API types — hand-written in `src/types/`, or generated from the OpenAPI spec?
-- [ ] Email provider (Postmark, SES, etc.)?
+- [x] **Email provider** — Postmark in staging/production. Local development uses Letter
+      Opener (`/letter_opener`); RSpec uses Action Mailer `:test`.
 - [x] **Boleto integration** — Cora Direct Integration on the school's own account
       (mTLS); see the Billing section above.
 - [ ] When to add Redis (cache only) — scaling criterion?

@@ -396,6 +396,8 @@ kamal app exec -d production "bin/rails db:migrate"
 
 Deploy staging first and confirm `/`, `/app/`, `/backoffice/`, and `/up` respond before
 touching production. `/backoffice/` must return the backoffice SPA (not the site landing).
+Smoke is read-only — do not POST invite, password reset, or other mailer-triggering
+routes on staging or production (see `docs/guidelines/web/mailers.md`).
 
 ## API documentation (staging only)
 

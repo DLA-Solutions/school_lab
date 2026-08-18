@@ -198,6 +198,15 @@ const sitemap: MenuItem[] = [
     requiredPermission: 'manage_billing',
   },
   {
+    id: 'service-invoices',
+    subheader: 'nav.serviceInvoices',
+    path: paths.serviceInvoices,
+    icon: 'mingcute:file-certificate-line',
+    active: true,
+    audience: 'staff',
+    requiredPermission: 'manage_billing',
+  },
+  {
     id: 'contract-template',
     subheader: 'nav.contract',
     path: paths.contractTemplate,

@@ -27,7 +27,7 @@ and architecture) — it does not repeat it.
 | **Auditing** | [`auditing.md`](auditing.md) | `auditing` | — |
 | **Jobs** | [`jobs.md`](jobs.md) | `jobs` | — |
 | **Serializers** | [`serializers.md`](serializers.md) | `serializers` | `review-api` |
-| **Mailers** | [`mailers.md`](mailers.md) | `mailers` | — |
+| **Mailers** | [`mailers.md`](mailers.md) | `mailers` | `write-rspec-spec` |
 | **Gateways** | [`gateways.md`](gateways.md) | `gateways` | `use-vendor-integration`, `review-vendor-integration` |
 | **Integrations** | [`integrations.md`](integrations.md) | `integrations` | `use-vendor-integration`, `review-vendor-integration` |
 | **HTTP client** | [`http-client.md`](http-client.md) | `http-client` | `use-http-client`, `review-http-client` |
@@ -41,7 +41,8 @@ and architecture) — it does not repeat it.
 
 ## Open decisions (do not choose unilaterally)
 
-Tracked in `docs/open-questions.md` (Web stack): email provider.
-Serialization (**blueprinter**), web/mobile clients, auth TTL, and the bank slip gateway
+Tracked in `docs/open-questions.md` (Web stack) for remaining items.
+Serialization (**blueprinter**), transactional email (**Postmark** in staging/production;
+Letter Opener locally), web/mobile clients, auth TTL, and the bank slip gateway
 (**Cora** Direct Integration) are decided — see `docs/web-stack.md`,
 `docs/modeling/002-api-auth.md`, and [`gateways.md`](gateways.md).

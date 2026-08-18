@@ -62,6 +62,8 @@ Use during `review-api`. Check only what the diff touches.
 - [ ] Invalid params → `422` with error payload
 - [ ] Tests use real records (FactoryBot); mocks only at external boundaries
 - [ ] No assertions on internal `receive` stubs for same-domain services
+- [ ] Email-related specs use `:test` delivery (or enqueue assertions) — never Postmark/SMTP/mail API; no real `POSTMARK_API_TOKEN` to enable mail
+- [ ] No staging/production smoke that POSTs invite, password reset, access, or other mailer routes (rule `email-safety`)
 
 ## LGPD and sensitive data
 

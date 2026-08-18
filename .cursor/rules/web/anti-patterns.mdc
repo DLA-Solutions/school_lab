@@ -20,6 +20,7 @@ Full guide: `docs/guidelines/web/anti-patterns.md`. Principles: `design-principl
 - **Premature abstraction** — extract on third stable case, not before.
 - **Direct AASM** — controllers/jobs → services → `event!`.
 - **Mocking domain in tests** — real AR + DB; mock external gateways only.
+- **Provider email in local/test** — never `:postmark` / SMTP / mail API in development or RSpec. Development uses Letter Opener; test uses `:test` (rule `mailers`).
 - **Raw outbound HTTP** — no `Net::HTTP` or ad-hoc Faraday in product code; use `SchoolLab::Http` (rule `http-client`).
 - **Vendor HTTP in gateways** — OAuth/client/token cache belong in `lib/school_lab/integrations/` (rule `integrations`); gateway keeps adapter + mappers only.
 - **Port errors in lib** — lib raises vendor errors; adapter `ErrorMapper` translates (rule `integrations`).

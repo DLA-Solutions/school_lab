@@ -73,6 +73,15 @@ describe('MyCharges', () => {
     expect(screen.getByText(/pago em/i)).toBeInTheDocument();
   });
 
+  it('shows NFS-e download on paid history when authorized', async () => {
+    renderPage();
+
+    await screen.findAllByText('R$ 850,00');
+    await user.click(screen.getByRole('tab', { name: /histórico/i }));
+
+    expect(await screen.findByRole('button', { name: /baixar nfs-e/i })).toBeInTheDocument();
+  });
+
   it('filters open charges by child', async () => {
     renderPage();
 

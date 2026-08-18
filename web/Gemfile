@@ -97,6 +97,10 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Local mail preview — never Postmark/SMTP in development (see mailers guideline).
+  gem "letter_opener"
+  gem "letter_opener_web", "~> 3.0"
 end
 
 gem "postmark-rails", "~> 0.22.1"

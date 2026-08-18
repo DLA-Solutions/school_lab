@@ -29,6 +29,17 @@ Before adding a mock, ask: can I use a real record, fake adapter, or `travel_to`
 | External gateway fake / WebMock | `expect(Service).to receive(:call)` |
 | FCM client when push is not under test | Stubbing ActiveRecord |
 | `travel_to` for time | Stubbing Pundit or same-domain services |
+| `ActionMailer::Base.deliveries` / `have_enqueued_job(ActionMailer::MailDeliveryJob)` | Setting `POSTMARK_API_TOKEN` or calling the mail provider API |
+
+## Email
+
+Follow rule `mailers` and `docs/guidelines/web/mailers.md`.
+
+- Test env is `delivery_method = :test`. Assert on `ActionMailer::Base.deliveries` or `have_enqueued_job(ActionMailer::MailDeliveryJob)`.
+- Do **not** configure `:postmark`, SMTP, or any provider in specs. WebMock must keep `api.postmarkapp.com` blocked.
+- Do **not** set `POSTMARK_API_TOKEN` to “turn mail on”. Local/test delivery is already configured; stub `SchoolLab::EmailDelivery.configured?` only for the production skip path.
+- Letter Opener is for **development** preview (`/letter_opener`), not for RSpec.
+- Never run specs or `rails runner` against a live staging/production database to “see the email”. Do not POST invite, password reset, or access endpoints on those hosts (rule `email-safety`).
 
 Integration lib specs live under `spec/lib/school_lab/integrations/`; gateway adapter specs
 under `spec/gateways/` — see skill `use-vendor-integration` and

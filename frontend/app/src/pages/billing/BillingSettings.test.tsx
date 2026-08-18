@@ -58,7 +58,12 @@ const authenticate = () => setAccessToken('fresh-access-token', '2026-08-04T23:2
 describe('BillingSettingsPage', () => {
   it('shows the page subtitle under the title', async () => {
     authenticate();
-    server.use(http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })));
+    server.use(
+      http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
+        HttpResponse.json({ data: [] }),
+      ),
+    );
 
     renderPage();
 
@@ -71,7 +76,12 @@ describe('BillingSettingsPage', () => {
 
   it('loads billing settings into the form', async () => {
     authenticate();
-    server.use(http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })));
+    server.use(
+      http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
+        HttpResponse.json({ data: [] }),
+      ),
+    );
 
     renderPage();
 
@@ -89,6 +99,9 @@ describe('BillingSettingsPage', () => {
 
     server.use(
       http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
+        HttpResponse.json({ data: [] }),
+      ),
       http.patch(apiUrl(PATH), async ({ request }) => {
         patched = true;
         const body = (await request.json()) as { billing_settings: Record<string, unknown> };
@@ -110,7 +123,7 @@ describe('BillingSettingsPage', () => {
 
     await user.clear(screen.getByLabelText(/desconto por pontualidade/i));
     await user.type(screen.getByLabelText(/desconto por pontualidade/i), '5');
-    await user.click(screen.getByRole('button', { name: /salvar/i }));
+    await user.click(screen.getByRole('button', { name: /^salvar$/i }));
 
     await waitFor(() => expect(patched).toBe(true));
     expect(screen.getByText(/configurações salvas/i)).toBeInTheDocument();
@@ -139,7 +152,7 @@ describe('BillingSettingsPage', () => {
 
     await waitFor(() => expect(screen.getByLabelText(/multa em percentual/i)).toBeInTheDocument());
     await user.click(screen.getByLabelText(/multa em percentual/i));
-    await user.click(screen.getByRole('button', { name: /salvar/i }));
+    await user.click(screen.getByRole('button', { name: /^salvar$/i }));
 
     await waitFor(() => expect(screen.getByText(/revise os campos/i)).toBeInTheDocument());
   });

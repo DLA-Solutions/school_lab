@@ -22,10 +22,11 @@ class School < ApplicationRecord
   has_many :billing_purposes, dependent: :destroy
   has_many :plan_discounts, dependent: :destroy
   has_one :school_billing_settings, dependent: :destroy
+  has_one :school_fiscal_setting, dependent: :destroy
   has_one :tax_declaration_setting, dependent: :destroy
   has_many :contracts, dependent: :destroy
   has_many :charges, dependent: :destroy
-  has_many :charge_issuances, dependent: :destroy
+  has_many :service_invoices, dependent: :destroy
   has_many :payments, dependent: :destroy
   has_many :school_transactions, dependent: :destroy
   has_many :documents, dependent: :destroy

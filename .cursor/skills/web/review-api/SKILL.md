@@ -62,6 +62,7 @@ Skill: `consult-context7`. Rule: `rules/core/use-context7`.
 | Serialization | blueprinter views, conditional fields |
 | Auth / tokens | JWT gem, Devise API mode, refresh rotation |
 | Jobs triggered by API | Solid Queue enqueue patterns |
+| Mailers / invite email | Letter Opener in development; `:test` in RSpec — never Postmark locally |
 | Pagination | Pagy JSON metadata |
 | Soft delete | Discard gem, `kept` / `discarded` scopes |
 | CORS | rack-cors configuration |

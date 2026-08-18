@@ -150,6 +150,8 @@ ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
 
 **Production** — same paths on `scholarpremium.com.br` (and `www.` if configured).
 
+Smoke is **read-only**. Do not POST invite, password reset, guardian access, school create/handoff, or any other mailer-triggering route. Do not run `rails runner` mailers or `deliver_now` on the host. See rule `email-safety`.
+
 ## Rollback (single layer)
 
 ```bash

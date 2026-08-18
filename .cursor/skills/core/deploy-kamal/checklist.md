@@ -37,5 +37,6 @@
 - [ ] `/app/` returns school SPA (not blank page)
 - [ ] `/backoffice/` returns platform SPA (not the site landing)
 - [ ] `/up` returns 200 (API health)
+- [ ] Smoke stayed read-only — no invite, password reset, or other mailer-triggering requests
 - [ ] `kamal-proxy ls` shows four services with expected path prefixes
 - [ ] API migration run if schema changed (`kamal app exec ... db:migrate`)

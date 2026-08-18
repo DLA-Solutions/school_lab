@@ -33,7 +33,7 @@ Parent agents **must** delegate by surface — see rule `agent-routing` (always 
 Do not implement `web/` or client feature code in the parent agent when a specialist exists.
 
 ## `.cursor` layout
-- `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming, **agent-routing**).
+- `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming, **agent-routing**, **email-safety**).
 - `rules/docs/`, `rules/web/`, `rules/mobile/` — scoped by surface via `globs`; the folder is organizational, activation is driven by frontmatter.
 - `agents/` — specialized subagents (`rails-implementer` orchestrates `web/`; `frontend-implementer` orchestrates `frontend/app`, `frontend/backoffice`, and `mobile/`; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/` via rails-implementer; `prd-reviewer`, `doc-consistency-checker` for docs; `backend-ci` for `web/` CI).
 - `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `mobile/`). Deploy workflow: skill `deploy-kamal`; guardrails: rule `deployment`.
@@ -42,4 +42,5 @@ Do not implement `web/` or client feature code in the parent agent when a specia
 ## Ground rules
 - Business logic lives in the API layer (service objects), shared by web + mobile.
 - Data is isolated per school (`school_id`); never leak data across schools.
+- Never send real email from tests or from staging/production smoke — rule `email-safety`.
 - When unsure about scope, check `docs/open-questions.md` before assuming.

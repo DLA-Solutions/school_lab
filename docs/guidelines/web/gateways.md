@@ -23,6 +23,7 @@ adapter owns port mapping and error translation.
 | Integration | Port | Status | Adapters |
 |-------------|------|--------|----------|
 | Bank slip (boleto + embedded Pix) | `Gateways::BankSlip` | Active (Cora) | `cora`, `fake` |
+| Service invoice (NFS-e) | `Gateways::ServiceInvoice` | Active (Spedy) | `spedy`, `fake` |
 | Card (checkout, capture, refund) | *Future sibling port* | Not started | — |
 | FCM push | TBD | Decided (FCM) | Not yet extracted |
 | Email | — | Open | Mailer + provider config |

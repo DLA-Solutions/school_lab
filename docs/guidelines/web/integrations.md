@@ -57,7 +57,8 @@ flowchart TB
 | **4 — Service** | `app/services/<domain>/` | Orchestration, persistence, `ResponseService`, jobs |
 
 Reference implementation: **Cora bank slip** — `SchoolLab::Integrations::Cora` +
-`Gateways::BankSlip::Cora::Adapter`.
+`Gateways::BankSlip::Cora::Adapter`. **Spedy NFS-e** — `SchoolLab::Integrations::Spedy` +
+`Gateways::ServiceInvoice::Spedy::Adapter`.
 
 ## Dependency rules
 

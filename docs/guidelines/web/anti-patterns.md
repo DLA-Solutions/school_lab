@@ -72,6 +72,14 @@ rules and side effects in one place.
 Do not mock ActiveRecord, Pundit, or same-domain services in specs. Use real records and
 the database; mock only external gateways. See `testing.md`.
 
+## Provider email in local or test
+
+Never point development or RSpec at Postmark, SMTP, or any mail provider API — even when
+`POSTMARK_API_TOKEN` is in `.env` or `RAILS_ENV=production`. Development uses Letter
+Opener (`/letter_opener`); test uses `delivery_method = :test`. Do not trigger invite,
+password reset, or other mailers when checking staging or production. See
+[`mailers.md`](mailers.md).
+
 ## Raw outbound HTTP
 
 Do not call third-party APIs with `Net::HTTP`, `HTTParty`, or ad-hoc `Faraday.new` in

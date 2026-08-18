@@ -26,6 +26,11 @@ production:
     queue: billing
     schedule: at 6am every day
     timezone: America/Sao_Paulo
+  billing_daily_fiscal_reconciliation:
+    class: Billing::DailyFiscalReconciliationJob
+    queue: billing
+    schedule: at 6:15am every day
+    timezone: America/Sao_Paulo
   billing_mark_overdue_charges:
     class: Billing::MarkOverdueChargesJob
     queue: billing
@@ -62,6 +67,11 @@ development:
     class: Billing::DailyReconciliationJob
     queue: billing
     schedule: at 6am every day
+    timezone: America/Sao_Paulo
+  billing_daily_fiscal_reconciliation:
+    class: Billing::DailyFiscalReconciliationJob
+    queue: billing
+    schedule: at 6:15am every day
     timezone: America/Sao_Paulo
   billing_mark_overdue_charges:
     class: Billing::MarkOverdueChargesJob

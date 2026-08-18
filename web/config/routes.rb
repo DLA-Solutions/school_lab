@@ -10,6 +10,8 @@ Rails.application.routes.draw do
 
   get "up" => "rails/health#show", as: :rails_health_check
 
+  mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
+
   namespace :api do
     namespace :v1 do
       scope :auth do
@@ -161,6 +163,18 @@ Rails.application.routes.draw do
           resources :holidays, only: %i[update destroy]
 
           namespace :billing do
+            get "fiscal/supported_cities", to: "supported_cities#index"
+            resource :fiscal_settings, only: %i[show update]
+            resources :fiscal_credentials, only: %i[index create] do
+              collection do
+                post :certificate
+              end
+            end
+            resources :service_invoices, only: %i[index show] do
+              member do
+                get :pdf
+              end
+            end
             resources :purposes, only: %i[index create update]
             resource :tax_declaration_settings, only: %i[show update]
             resource :settings, only: %i[show update]
@@ -242,6 +256,11 @@ Rails.application.routes.draw do
               end
             end
             resources :payments, only: :index
+            resources :service_invoices, only: %i[index] do
+              member do
+                get :pdf
+              end
+            end
             resources :students, only: :index do
               # The family fills in the health sheet for each of their children from here.
               resource :health_record, only: %i[show update], controller: "student_health_records"
@@ -280,5 +299,6 @@ Rails.application.routes.draw do
   end
 
   post "webhooks/signatures/:token", to: "webhooks/signatures#create"
+  post "webhooks/spedy/:token", to: "webhooks/spedy#create"
   post "webhooks/:provider/:token", to: "webhooks/providers#create", as: :provider_webhook
 end

@@ -350,6 +350,16 @@ FactoryBot.define do
     trait :inactive do
       active { false }
     end
+
+    trait :spedy do
+      instrument { "service_invoice" }
+      provider { "spedy" }
+      api_key { "spedy-test-api-key-#{SecureRandom.hex(8)}" }
+      settings { { spedy_company_id: "company-123" } }
+      client_id { nil }
+      certificate_pem { nil }
+      private_key_pem { nil }
+    end
   end
 
   factory :school_signature_provider do
