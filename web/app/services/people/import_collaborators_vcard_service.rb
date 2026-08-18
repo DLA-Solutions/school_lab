@@ -111,6 +111,5 @@ module People
     def humanize_title(title)
       title.to_s.strip.split(/\s+/).map(&:capitalize).join(" ")
     end
-
   end
 end

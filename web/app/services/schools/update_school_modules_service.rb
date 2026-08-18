@@ -55,6 +55,5 @@ module Schools
         normalized[key.to_s] = ActiveModel::Type::Boolean.new.cast(value)
       end
     end
-
   end
 end
