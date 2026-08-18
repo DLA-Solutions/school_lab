@@ -43,6 +43,30 @@ const sitemap: MenuItem[] = [
     path: paths.audits,
     icon: 'mingcute:history-line',
   },
+  {
+    id: 'schoolGroups',
+    subheader: 'nav.schoolGroups',
+    path: paths.schoolGroups,
+    icon: 'mingcute:group-3-line',
+  },
+  {
+    id: 'subscriptions',
+    subheader: 'nav.subscriptions',
+    path: paths.subscriptions,
+    icon: 'mingcute:wallet-4-line',
+  },
+  {
+    id: 'analytics',
+    subheader: 'nav.analytics',
+    path: paths.analytics,
+    icon: 'mingcute:chart-bar-line',
+  },
+  {
+    id: 'helpTaxonomy',
+    subheader: 'nav.helpTaxonomy',
+    path: paths.helpTaxonomy,
+    icon: 'mingcute:book-6-line',
+  },
 ];
 
 export default sitemap;

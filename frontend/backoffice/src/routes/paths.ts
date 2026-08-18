@@ -6,6 +6,10 @@ export default {
   schools: '/schools',
   users: '/users',
   audits: '/audits',
+  schoolGroups: '/school-groups',
+  subscriptions: '/subscriptions',
+  analytics: '/analytics',
+  helpTaxonomy: '/help-taxonomy',
   schoolsWithOnboardingStatus: (status: SchoolOnboardingStatus) =>
     `/schools?onboarding_status=${status}`,
   provisioningWizard: (schoolId: number) => `/schools/${schoolId}/provisioning`,
