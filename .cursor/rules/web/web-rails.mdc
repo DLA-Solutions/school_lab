@@ -24,7 +24,7 @@ Index: `docs/guidelines/web/README.md`.
 - Auditing: `docs/guidelines/web/auditing.md` — rule `auditing`.
 - Jobs: `docs/guidelines/web/jobs.md` — rule `jobs`.
 - Serializers: `docs/guidelines/web/serializers.md` — rule `serializers`.
-- Mailers / gateways / HTTP: `docs/guidelines/web/mailers.md`, `gateways.md`, `http-client.md` — rules `mailers`, `gateways`, `http-client`.
+- Mailers / gateways / HTTP: `docs/guidelines/web/mailers.md`, `gateways.md`, `http-client.md` — rules `mailers`, `gateways`, `http-client`. Development mail is Letter Opener; RSpec is `:test`; never Postmark locally.
 - Anti-patterns: `docs/guidelines/web/anti-patterns.md` — rule `anti-patterns`.
 - **No Hotwire UI** in `web/` — `config.api_only = true`; the product web surface is the React SPA in `frontend/app`.
 - API: REST JSON under `/api/v1`, JWT auth; OpenAPI via **rswag** request specs.

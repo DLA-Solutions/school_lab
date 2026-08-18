@@ -13,10 +13,7 @@ RSpec.describe Billing::CollectionReguaNotifier do
   let(:today) { Date.new(2026, 8, 11) }
 
   around do |example|
-    original_token = ENV["POSTMARK_API_TOKEN"]
-    ENV["POSTMARK_API_TOKEN"] = "test-token"
     travel_to(Time.utc(2026, 8, 11, 15, 0, 0)) { example.run }
-    ENV["POSTMARK_API_TOKEN"] = original_token
   end
 
   before do
@@ -90,7 +87,7 @@ RSpec.describe Billing::CollectionReguaNotifier do
     end
 
     it "does nothing when email delivery is not configured" do
-      ENV.delete("POSTMARK_API_TOKEN")
+      allow(SchoolLab::EmailDelivery).to receive(:configured?).and_return(false)
       charge = create(
         :charge,
         school: school,

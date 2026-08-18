@@ -71,6 +71,7 @@ State transition (AASM):
 ## Skills and tools
 
 - Write tests: skill `write-rspec-spec` (`docs/guidelines/web/testing.md`)
+- Mailers: rule `mailers` — development is Letter Opener (`/letter_opener`); RSpec is `:test`; never Postmark or any mail API locally
 - HTTP transport (`SchoolLab::Http`): skill `use-http-client` (`docs/guidelines/web/http-client.md`)
 - Vendor integrations + gateway adapters: skill `use-vendor-integration` (`docs/guidelines/web/integrations.md`)
 - Library docs: skill `consult-context7` (Context7 MCP)

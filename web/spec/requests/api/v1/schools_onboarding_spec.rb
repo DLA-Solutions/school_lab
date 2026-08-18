@@ -52,14 +52,6 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
       }
 
       response "201", "self-serve school created with owner invite" do
-        around do |example|
-          original_token = ENV["POSTMARK_API_TOKEN"]
-          ENV.delete("POSTMARK_API_TOKEN")
-          example.run
-        ensure
-          ENV["POSTMARK_API_TOKEN"] = original_token
-        end
-
         let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
         let(:payload) do
           {
@@ -75,13 +67,36 @@ RSpec.describe "Api::V1::Schools onboarding", type: :request do
           body = JSON.parse(response.body)
           expect(body.dig("data", "onboarding_status")).to eq("pending_handoff")
           expect(body.dig("data", "onboarding_mode")).to eq("self_serve")
-          expect(body.dig("meta", "owner_invite_email_status")).to eq("not_configured")
+          expect(body.dig("meta", "owner_invite_email_status")).to eq("queued")
 
           school = School.find(body.dig("data", "id"))
           owner = school.owner_membership
           expect(owner.status).to eq("invited")
           expect(owner.staff_profile.is_owner).to be(true)
           expect(owner.membership_invite_tokens.count).to eq(1)
+        end
+      end
+
+      response "201", "self-serve school created when email delivery is not configured" do
+        before do
+          allow(SchoolLab::EmailDelivery).to receive(:configured?).and_return(false)
+        end
+
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:payload) do
+          {
+            school: {
+              name: "Self Serve Unconfigured Mail School",
+              onboarding_mode: "self_serve",
+              owner_email: "director@example.com"
+            }
+          }
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("data", "onboarding_status")).to eq("pending_handoff")
+          expect(body.dig("meta", "owner_invite_email_status")).to eq("not_configured")
         end
       end
 

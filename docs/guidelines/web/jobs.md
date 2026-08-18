@@ -125,4 +125,6 @@ Specs in `spec/jobs/`:
 - Job unit spec: stub gateway at boundary; assert service called or DB state updated
 - Tenant: job cannot process record from another school when IDs are mismatched
 
-Prefer testing behavior through service + job integration; mock only external gateways (FCM, boleto, email).
+Prefer testing behavior through service + job integration; mock only external gateways
+(FCM, boleto). Email jobs use Action Mailer `:test` — never the provider API
+(see [`mailers.md`](mailers.md)).

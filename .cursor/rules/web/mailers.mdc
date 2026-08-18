@@ -19,7 +19,15 @@ Full guide: `docs/guidelines/web/mailers.md`. Provider: `docs/open-questions.md`
 - `Mailer.with(...).action.deliver_later` — pass scoped records or IDs.
 - Minimize PII in subject lines; LGPD-sensitive content only when required.
 
+## Local vs provider delivery (hard rule)
+
+- **Development** — `delivery_method = :letter_opener_web` (inbox at `/letter_opener`). Never `:postmark`, SMTP, or any provider API — even if `POSTMARK_API_TOKEN` is in `.env`.
+- **Test** — `delivery_method = :test` (`ActionMailer::Base.deliveries`). Never Letter Opener in RSpec (no browser/files), never the provider API.
+- **Production / staging** — Postmark only when `POSTMARK_API_TOKEN` is set.
+- `SchoolLab::EmailDelivery.configured?` is true in development and test so local mail is not skipped for lack of a token.
+- Specs must not set a real provider token to “enable” mail, call Postmark, or allow-list `api.postmarkapp.com` in WebMock.
+
 ## Testing
 
 - Mailer specs: subject, to, key body; `have_enqueued_job(ActionMailer::MailDeliveryJob)` in service specs.
-- Test env: `delivery_method = :test`.
+- Test env: `delivery_method = :test`. Stub `SchoolLab::EmailDelivery.configured?` only when asserting the production skip path.
