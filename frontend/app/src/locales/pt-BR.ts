@@ -20,6 +20,13 @@ const ptBR = {
   'common.status': 'Situação',
   'common.actions': 'Ações',
   'common.connectionError': 'Verifique sua conexão.',
+
+  'auth.signin.orContinueWith': 'ou continue com',
+  'auth.signin.googleAccessDenied':
+    'Não foi possível entrar com Google. Verifique se sua conta está cadastrada na escola.',
+  'auth.signin.connectionError':
+    'Não foi possível conectar à API. Verifique se o servidor está no ar.',
+
   'common.range': '{from}-{to} de {count}',
   'common.edit': 'Editar',
   'common.delete': 'Excluir',
