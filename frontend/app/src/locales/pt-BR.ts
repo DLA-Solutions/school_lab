@@ -131,6 +131,26 @@ const ptBR = {
   'pickups.count': '{count} autorizada(s)',
   'nav.myPickups': 'Quem pode buscar',
 
+  'academic.title': 'Desempenho do estudante',
+  'academic.action': 'Boletim e preceptoria',
+  'academic.aria': 'Boletim e preceptoria de {name}',
+  'academic.tab.reportCards': 'Boletim',
+  'academic.tab.preceptorship': 'Preceptoria',
+  'academic.term': 'Bimestre',
+  'academic.allTerms': 'Todos os bimestres',
+  'academic.reportCards.released': 'Publicado em {date} — versão {version}',
+  'academic.reportCards.notReleased': 'Ainda não publicado',
+  'academic.reportCards.download': 'Baixar PDF',
+  'academic.reportCards.loadError': 'Não foi possível carregar os boletins.',
+  'academic.reportCards.pdfError': 'Não foi possível baixar o boletim.',
+  'academic.reportCards.empty.title': 'Nenhum boletim publicado',
+  'academic.reportCards.empty.description':
+    'Nada publicado para este estudante no período escolhido.',
+  'academic.preceptorship.loadError': 'Não foi possível carregar a preceptoria.',
+  'academic.preceptorship.empty.title': 'Nenhum relatório publicado',
+  'academic.preceptorship.empty.description':
+    'O que os professores escreverem e publicarem sobre o estudante aparece aqui.',
+
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Estudantes',
   'nav.guardians': 'Responsáveis',
@@ -846,6 +866,26 @@ const ptBR = {
   'collaborators.deleteMessage':
     'Excluir {name}? Ele deixa de aparecer na listagem e perde suas turmas.',
   'collaborators.deleteError': 'Não foi possível excluir o colaborador.',
+  'collaborators.bankAccount': 'Dados bancários',
+  'collaborators.bankAccountAria': 'Dados bancários de {name}',
+
+  'bankAccount.title': 'Dados bancários',
+  'bankAccount.description':
+    'Para onde o salário é enviado. A chave pix basta sozinha; se preferir a conta, informe o banco, a agência e o número.',
+  'bankAccount.pixKey': 'Chave pix',
+  'bankAccount.pixPlaceholder': 'CPF, e-mail, telefone ou chave aleatória',
+  'bankAccount.orAccount': 'ou conta bancária',
+  'bankAccount.bank': 'Banco',
+  'bankAccount.bankPlaceholder': 'Ex.: Banco do Brasil',
+  'bankAccount.agency': 'Agência',
+  'bankAccount.accountNumber': 'Número da conta',
+  'bankAccount.lastUpdatedBy': 'Última atualização por {name} em {date}.',
+  'bankAccount.loadError': 'Não foi possível carregar os dados bancários.',
+  'bankAccount.saveError': 'Não foi possível salvar os dados bancários.',
+  'bankAccount.error.noRoute': 'Informe a chave pix ou os dados da conta.',
+  'bankAccount.error.bankRequired': 'Informe o banco da conta.',
+  'bankAccount.error.agencyRequired': 'Informe a agência.',
+  'bankAccount.error.accountRequired': 'Informe o número da conta.',
 
   'documents.empty.guardian': 'Envie CPF, RG ou comprovante de residência deste responsável.',
   'documents.empty.collaborator':

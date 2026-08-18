@@ -90,6 +90,9 @@ Rails.application.routes.draw do
             resources :school_classes, only: %i[index show create update destroy]
             resources :teachers, only: %i[index show create update destroy] do
               resources :teaching_assignments, only: :create
+              # Where the collaborator's salary is sent. One standing record per person, so it is
+              # a singular resource rather than a list.
+              resource :bank_account, only: %i[show update], controller: "teacher_bank_accounts"
             end
             resources :teaching_assignments, only: %i[index destroy]
 
@@ -127,7 +130,7 @@ Rails.application.routes.draw do
               end
             end
             resources :report_card_publish_schedules, only: :show
-            resources :report_card_publications, only: :show do
+            resources :report_card_publications, only: %i[index show] do
               member do
                 post :republish
               end

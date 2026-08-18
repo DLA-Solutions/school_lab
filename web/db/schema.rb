@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_17_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_17_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -1328,7 +1328,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_140000) do
     t.index ["school_id"], name: "index_tax_declarations_on_school_id"
   end
 
+  create_table "teacher_bank_accounts", force: :cascade do |t|
+    t.text "account_number"
+    t.string "agency"
+    t.string "bank_name"
+    t.datetime "created_at", null: false
+    t.text "pix_key"
+    t.bigint "school_id", null: false
+    t.bigint "teacher_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "updated_by_id"
+    t.index ["school_id"], name: "index_teacher_bank_accounts_on_school_id"
+    t.index ["teacher_id"], name: "index_teacher_bank_accounts_on_teacher", unique: true
+    t.index ["teacher_id"], name: "index_teacher_bank_accounts_on_teacher_id"
+    t.index ["updated_by_id"], name: "index_teacher_bank_accounts_on_updated_by_id"
+  end
+
   create_table "teachers", force: :cascade do |t|
+    t.string "city"
+    t.string "complement"
     t.string "cpf", limit: 11
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -1337,14 +1355,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_140000) do
     t.date "hired_on"
     t.bigint "job_position_id"
     t.string "name", null: false
+    t.string "neighborhood"
+    t.string "number"
     t.string "phone"
     t.bigint "school_id", null: false
+    t.string "state", limit: 2
+    t.string "street"
     t.datetime "updated_at", null: false
+    t.string "zip_code", limit: 8
     t.index ["discarded_by_id"], name: "index_teachers_on_discarded_by_id"
     t.index ["job_position_id"], name: "index_teachers_on_job_position_id"
     t.index ["school_id", "cpf"], name: "index_teachers_on_school_id_and_cpf_kept", unique: true, where: "((discarded_at IS NULL) AND (cpf IS NOT NULL))"
     t.index ["school_id"], name: "index_teachers_on_school_id"
     t.check_constraint "cpf IS NULL OR cpf::text ~ '^[0-9]{11}$'::text", name: "teachers_cpf_format"
+    t.check_constraint "state IS NULL OR state::text ~ '^[A-Z]{2}$'::text", name: "teachers_state_format"
+    t.check_constraint "zip_code IS NULL OR zip_code::text ~ '^[0-9]{8}$'::text", name: "teachers_zip_code_format"
   end
 
   create_table "teaching_assignments", force: :cascade do |t|
@@ -1600,6 +1625,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_140000) do
   add_foreign_key "tax_declarations", "guardians"
   add_foreign_key "tax_declarations", "schools"
   add_foreign_key "tax_declarations", "tax_declaration_versions", column: "active_version_id"
+  add_foreign_key "teacher_bank_accounts", "schools"
+  add_foreign_key "teacher_bank_accounts", "teachers"
+  add_foreign_key "teacher_bank_accounts", "users", column: "updated_by_id"
   add_foreign_key "teachers", "job_positions"
   add_foreign_key "teachers", "schools"
   add_foreign_key "teachers", "users", column: "discarded_by_id"

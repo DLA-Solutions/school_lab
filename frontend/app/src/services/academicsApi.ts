@@ -5,6 +5,8 @@ import {
   SchoolClassPayload,
   Subject,
   Teacher,
+  TeacherBankAccount,
+  TeacherBankAccountPayload,
   TeacherPayload,
   TeachingAssignment,
 } from 'types/academics';
@@ -314,3 +316,32 @@ export const saveGradeCell = (
       },
     },
   );
+
+/**
+ * GET .../teachers/:id/bank_account — where this collaborator's salary is sent.
+ *
+ * One standing record per person, so it is a singular resource: there is nothing to list, only
+ * the account that is current. A collaborator nobody has set up yet answers an empty sheet
+ * rather than a 404 — not being paid yet is a state, not a failure.
+ */
+export const getTeacherBankAccount = async (schoolId: number, teacherId: number) => {
+  const response = await request<{ data: TeacherBankAccount }>(
+    `${base(schoolId)}/teachers/${teacherId}/bank_account`,
+  );
+
+  return response.data;
+};
+
+/** PUT .../teachers/:id/bank_account — replaces the details rather than adding a second set. */
+export const updateTeacherBankAccount = async (
+  schoolId: number,
+  teacherId: number,
+  payload: TeacherBankAccountPayload,
+) => {
+  const response = await request<{ data: TeacherBankAccount }>(
+    `${base(schoolId)}/teachers/${teacherId}/bank_account`,
+    { method: 'PUT', body: { bank_account: payload } },
+  );
+
+  return response.data;
+};

@@ -131,8 +131,18 @@ module Api
           end
 
           # A teacher's own list is the common read; the whole school's is for coordination.
+          #
+          # Preceptoria is read the same way a boletim is — one child, one year, one bimestre —
+          # so a register spanning several years does not answer with everything ever written.
+          # A report with no term cannot be placed in a year, so the year filter leaves it out.
           def filter(scope)
             scope = scope.where(student_id: params[:student_id]) if params[:student_id].present?
+            if params[:academic_period_id].present?
+              scope = scope.where(academic_period_id: params[:academic_period_id])
+            elsif params[:school_year_id].present?
+              scope = scope.joins(:academic_period)
+                           .where(academic_periods: { school_year_id: params[:school_year_id] })
+            end
             scope = scope.where(status: params[:status]) if %w[draft published].include?(params[:status])
             scope = scope.where(teacher_id: current_teacher.id) if params[:mine] == "true" && current_teacher
             scope

@@ -76,6 +76,59 @@ RSpec.describe "Preceptoria: what the teacher writes", type: :request do
     end
   end
 
+  # Preceptoria is read the way a boletim is: one child, one year, one bimestre. A register
+  # spanning several years otherwise answers with everything ever written about the child.
+  describe "reading a listing by year and term" do
+    let(:school_year) { create(:school_year, school: school) }
+    let(:first_term) do
+      create(:academic_period, school_year: school_year, name: "1º bimestre", sequence: 1,
+                               starts_on: school_year.starts_on,
+                               ends_on: school_year.starts_on + 2.months)
+    end
+    let(:second_term) do
+      create(:academic_period, school_year: school_year, name: "2º bimestre", sequence: 2,
+                               starts_on: school_year.starts_on + 2.months + 1.day,
+                               ends_on: school_year.starts_on + 4.months)
+    end
+
+    def report_in(period)
+      create(:preceptorship_report, school: school, student: pedro, teacher: carla,
+                                    academic_period: period)
+    end
+
+    it "narrows to one term when asked" do
+      report_in(first_term)
+      second = report_in(second_term)
+
+      get base, params: { student_id: pedro.id, academic_period_id: second_term.id },
+                headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"].map { |row| row["id"] }).to eq([ second.id ])
+    end
+
+    it "keeps to one year when no term is asked for" do
+      mine = report_in(first_term)
+      other_year = create(:school_year, school: school,
+                                        starts_on: school_year.starts_on + 1.year,
+                                        ends_on: school_year.ends_on + 1.year)
+      report_in(create(:academic_period, school_year: other_year, sequence: 1))
+
+      get base, params: { student_id: pedro.id, school_year_id: school_year.id }, headers: headers
+
+      expect(response.parsed_body["data"].map { |row| row["id"] }).to eq([ mine.id ])
+    end
+
+    # A report with no term cannot be placed in a year, so a year-bounded read leaves it out.
+    it "leaves out a report written against no term" do
+      report_in(nil)
+
+      get base, params: { student_id: pedro.id, school_year_id: school_year.id }, headers: headers
+
+      expect(response.parsed_body["data"]).to be_empty
+    end
+  end
+
   describe "publishing" do
     let(:draft) { write }
 

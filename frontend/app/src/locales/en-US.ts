@@ -131,6 +131,26 @@ const enUS: Messages = {
   'pickups.count': '{count} authorised',
   'nav.myPickups': 'Who may collect',
 
+  'academic.title': 'Student progress',
+  'academic.action': 'Report card and preceptorship',
+  'academic.aria': "{name}'s report card and preceptorship",
+  'academic.tab.reportCards': 'Report card',
+  'academic.tab.preceptorship': 'Preceptorship',
+  'academic.term': 'Term',
+  'academic.allTerms': 'All terms',
+  'academic.reportCards.released': 'Published on {date} — version {version}',
+  'academic.reportCards.notReleased': 'Not published yet',
+  'academic.reportCards.download': 'Download PDF',
+  'academic.reportCards.loadError': 'The report cards could not be loaded.',
+  'academic.reportCards.pdfError': 'The report card could not be downloaded.',
+  'academic.reportCards.empty.title': 'No report card published',
+  'academic.reportCards.empty.description':
+    'Nothing published for this student in the chosen term.',
+  'academic.preceptorship.loadError': 'The preceptorship could not be loaded.',
+  'academic.preceptorship.empty.title': 'No report published',
+  'academic.preceptorship.empty.description':
+    'What teachers write and publish about the student appears here.',
+
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Students',
   'nav.guardians': 'Guardians',
@@ -841,6 +861,26 @@ const enUS: Messages = {
   'collaborators.deleteMessage':
     'Delete {name}? They will no longer appear in the list and lose their class assignments.',
   'collaborators.deleteError': 'Could not delete the collaborator.',
+  'collaborators.bankAccount': 'Bank details',
+  'collaborators.bankAccountAria': "{name}'s bank details",
+
+  'bankAccount.title': 'Bank details',
+  'bankAccount.description':
+    'Where the salary is sent. A pix key is enough on its own; for a bank account, fill in the bank, branch and account number.',
+  'bankAccount.pixKey': 'Pix key',
+  'bankAccount.pixPlaceholder': 'CPF, e-mail, phone or random key',
+  'bankAccount.orAccount': 'or bank account',
+  'bankAccount.bank': 'Bank',
+  'bankAccount.bankPlaceholder': 'e.g. Banco do Brasil',
+  'bankAccount.agency': 'Branch',
+  'bankAccount.accountNumber': 'Account number',
+  'bankAccount.lastUpdatedBy': 'Last updated by {name} on {date}.',
+  'bankAccount.loadError': 'Could not load the bank details.',
+  'bankAccount.saveError': 'Could not save the bank details.',
+  'bankAccount.error.noRoute': 'Fill in a pix key or the account details.',
+  'bankAccount.error.bankRequired': 'Name the bank.',
+  'bankAccount.error.agencyRequired': 'Fill in the branch.',
+  'bankAccount.error.accountRequired': 'Fill in the account number.',
 
   'documents.empty.guardian': 'Upload CPF, ID or proof of residence for this guardian.',
   'documents.empty.collaborator':

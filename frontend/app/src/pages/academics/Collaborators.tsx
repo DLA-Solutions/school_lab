@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import { useSearchParams } from 'react-router';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
+import CollaboratorBankAccountDialog from 'components/sections/academics/CollaboratorBankAccountDialog';
 import CollaboratorDetailsDialog from 'components/sections/academics/CollaboratorDetailsDialog';
 import CollaboratorFormDialog from 'components/sections/academics/CollaboratorFormDialog';
 import TeacherAssignmentsDialog from 'components/sections/academics/TeacherAssignmentsDialog';
@@ -55,6 +56,7 @@ const Collaborators = () => {
   const [assignmentsFor, setAssignmentsFor] = useState<Teacher | null>(null);
   const [detailsFor, setDetailsFor] = useState<Teacher | null>(null);
   const [documentsFor, setDocumentsFor] = useState<Teacher | null>(null);
+  const [bankAccountFor, setBankAccountFor] = useState<Teacher | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -132,7 +134,7 @@ const Collaborators = () => {
       {
         field: 'actions',
         headerName: t('common.actions'),
-        width: 210,
+        width: 250,
         sortable: false,
         filterable: false,
         align: 'right',
@@ -155,6 +157,18 @@ const Collaborators = () => {
                 onClick={() => setDocumentsFor(row)}
               >
                 <IconifyIcon icon="mingcute:file-certificate-line" />
+              </IconButton>
+            </Tooltip>
+            {/* Where the salary is sent. Next to the person rather than in the billing
+                settings: whoever keeps the collaborator's register current is the one who
+                learns their account changed. */}
+            <Tooltip title={t('collaborators.bankAccount')}>
+              <IconButton
+                size="small"
+                aria-label={t('collaborators.bankAccountAria', { name: row.name })}
+                onClick={() => setBankAccountFor(row)}
+              >
+                <IconifyIcon icon="mingcute:bank-card-line" />
               </IconButton>
             </Tooltip>
             <Tooltip title={t('collaborators.classesTooltip')}>
@@ -309,6 +323,15 @@ const Collaborators = () => {
           teacher={assignmentsFor}
           onClose={() => setAssignmentsFor(null)}
           onChanged={load}
+        />
+      )}
+
+      {bankAccountFor && (
+        <CollaboratorBankAccountDialog
+          open
+          schoolId={school.school_id}
+          teacher={bankAccountFor}
+          onClose={() => setBankAccountFor(null)}
         />
       )}
 

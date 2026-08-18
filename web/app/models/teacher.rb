@@ -18,12 +18,26 @@ class Teacher < ApplicationRecord
   has_many :school_classes, -> { distinct }, through: :teaching_assignments
   has_many :subjects, -> { distinct }, through: :teaching_assignments
   has_many :documents, as: :documentable, dependent: :destroy
+  # Where their salary is sent. One standing record, not a history — the school pays into the
+  # account that is current.
+  has_one :bank_account, class_name: "TeacherBankAccount", dependent: :destroy
+
+  ADDRESS_FIELDS = %i[zip_code street number complement neighborhood city state].freeze
 
   before_validation :normalize_cpf
+  before_validation :normalize_zip_code
+  before_validation :normalize_state
 
   validates :name, presence: true
   validates :cpf, presence: true
-  validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true }
+  # Optional, unlike a guardian's. A school putting its existing staff on file has an e-mail for
+  # some of them and not for others, and a register that refused the rest would simply not be
+  # filled in — the CPF is what identifies a collaborator here, not the address they answer at.
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true }
+  # The address is kept for the same reasons the guardian's is — a contract, a payroll
+  # registration — but none of it is required, for the same reason the e-mail is not.
+  validates :state, format: { with: /\A[A-Z]{2}\z/, allow_blank: true }
+  validates :zip_code, format: { with: /\A\d{8}\z/, allow_blank: true }
   validate :cpf_is_a_valid_document
   validate :hired_on_is_not_in_the_future
   validate :job_position_belongs_to_the_same_school
@@ -45,6 +59,14 @@ class Teacher < ApplicationRecord
 
   def normalize_cpf
     self.cpf = Cpf.normalize(cpf)
+  end
+
+  def normalize_zip_code
+    self.zip_code = zip_code.to_s.gsub(/\D/, "").presence if zip_code.present?
+  end
+
+  def normalize_state
+    self.state = state.to_s.strip.upcase.presence if state.present?
   end
 
   def cpf_is_a_valid_document

@@ -88,6 +88,8 @@ export interface MyReportCardListItem {
   publication_id: number;
   student_id: number;
   academic_period_id: number;
+  /** Named by the API so a listing reads without a lookup per row. Absent on the family route. */
+  academic_period_name?: string | null;
   snapshot_id: number | null;
   version: number | null;
   released_at: string | null;

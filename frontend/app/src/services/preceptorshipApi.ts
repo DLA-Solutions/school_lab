@@ -18,11 +18,25 @@ export interface ReportInput {
   body: string;
 }
 
-/** GET .../academics/preceptorship_reports */
-export const listReports = (schoolId: number, params: { student_id?: number } = {}) => {
-  const query = params.student_id ? `?student_id=${params.student_id}` : '';
+export interface ListReportsParams {
+  student_id?: number;
+  /** One bimestre. Takes precedence over the year, which it already sits inside. */
+  academic_period_id?: number;
+  /** Every bimestre of one year — reports with no term are left out, having no year to be in. */
+  school_year_id?: number;
+}
 
-  return request<PreceptorshipListResponse>(`${teacherPath(schoolId)}${query}`);
+/** GET .../academics/preceptorship_reports */
+export const listReports = (schoolId: number, params: ListReportsParams = {}) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) {
+      query.set(key, String(value));
+    }
+  });
+  const suffix = query.toString() ? `?${query}` : '';
+
+  return request<PreceptorshipListResponse>(`${teacherPath(schoolId)}${suffix}`);
 };
 
 /**

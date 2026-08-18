@@ -2179,6 +2179,43 @@
         ]
       }
     },
+    "/api/v1/schools/{school_id}/academics/report_card_publications": {
+      "get": {
+        "summary": "List report card publications",
+        "tags": [
+          "Academics"
+        ],
+        "operationId": "api_v1_schools_academics_report_card_publications_index",
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "School the resource belongs to"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "not allowed"
+          }
+        },
+        "x-generated": true,
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/v1/schools/{school_id}/academics/report_card_publications/{id}": {
       "get": {
         "summary": "Show report card publications",

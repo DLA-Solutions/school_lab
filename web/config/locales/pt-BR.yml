@@ -185,6 +185,10 @@ pt-BR:
           attributes:
             cpf:
               taken: "já cadastrado para outro responsável nesta escola"
+        teacher_bank_account:
+          attributes:
+            base:
+              no_payment_route: "Informe a chave pix ou o banco, a agência e o número da conta."
     attributes:
       contract_template:
         logo: "Logo"
@@ -196,6 +200,11 @@ pt-BR:
         phone: "Telefone"
         job_position: "Cargo"
         hired_on: "Início da contratação"
+      teacher_bank_account:
+        pix_key: "Chave pix"
+        bank_name: "Banco"
+        agency: "Agência"
+        account_number: "Número da conta"
       guardian:
         name: "Nome"
         cpf: "CPF"

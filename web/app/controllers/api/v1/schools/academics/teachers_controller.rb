@@ -76,7 +76,9 @@ module Api
           end
 
           def teacher_params
-            params.require(:teacher).permit(:name, :cpf, :email, :phone, :job_position_id, :hired_on)
+            params.require(:teacher)
+                  .permit(:name, :cpf, :email, :phone, :job_position_id, :hired_on,
+                          *Teacher::ADDRESS_FIELDS)
           end
         end
       end

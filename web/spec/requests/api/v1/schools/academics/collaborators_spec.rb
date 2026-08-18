@@ -54,6 +54,39 @@ RSpec.describe "Collaborator register: post, hire date, search and documents", t
       expect(response.parsed_body.dig("data", "hired_on")).to be_nil
     end
 
+    # A school putting its existing staff on file has an e-mail for some of them and not for
+    # others; the CPF is what identifies a collaborator here.
+    it "accepts a collaborator with no e-mail" do
+      post base,
+           params: {
+             teacher: { name: "Sem e-mail", cpf: "529.982.247-25", job_position_id: coordinator.id }
+           },
+           headers: headers, as: :json
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig("data", "email")).to be_blank
+    end
+
+    # Asked for by a work contract and a payroll registration, and incomplete more often than not.
+    it "keeps the address, whatever parts of it the school has" do
+      post base,
+           params: {
+             teacher: { name: "Com endereço", cpf: "529.982.247-25",
+                        job_position_id: coordinator.id,
+                        zip_code: "74110-090", street: "Rua 7", neighborhood: "Setor Oeste",
+                        state: "go" }
+           },
+           headers: headers, as: :json
+
+      expect(response).to have_http_status(:created)
+      # The postcode is stored as digits and the state upcased, so two spellings of one address
+      # are one address.
+      expect(response.parsed_body["data"]).to include(
+        "zip_code" => "74110090", "street" => "Rua 7", "neighborhood" => "Setor Oeste",
+        "state" => "GO", "city" => nil
+      )
+    end
+
     it "refuses a hire date in the future" do
       post base,
            params: {

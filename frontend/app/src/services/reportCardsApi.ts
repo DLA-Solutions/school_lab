@@ -25,6 +25,8 @@ export interface ListMyReportCardsParams {
   page?: number;
   studentId?: number;
   academicPeriodId?: number;
+  /** Every term of one year, used when no single term was asked for. */
+  schoolYearId?: number;
 }
 
 const batchBody = (input: BatchInput) => ({ report_card_publication_batch: input });
@@ -33,6 +35,7 @@ const listQuery = ({
   page = 1,
   studentId,
   academicPeriodId,
+  schoolYearId,
 }: Omit<ListMyReportCardsParams, 'schoolId'>) => {
   const query = new URLSearchParams({ page: String(page) });
   if (studentId !== undefined) {
@@ -40,6 +43,9 @@ const listQuery = ({
   }
   if (academicPeriodId !== undefined) {
     query.set('academic_period_id', String(academicPeriodId));
+  }
+  if (schoolYearId !== undefined) {
+    query.set('school_year_id', String(schoolYearId));
   }
 
   return query;
@@ -148,6 +154,36 @@ export const republishReportCard = async (
   return response.data;
 };
 
+/**
+ * GET .../academics/report_card_publications — one student's published report cards, as the school
+ * reads them from the register. `academic_period_id` narrows it to a single term.
+ */
+export const listStudentReportCards = ({
+  schoolId,
+  page,
+  studentId,
+  academicPeriodId,
+  schoolYearId,
+}: ListMyReportCardsParams) =>
+  request<MyReportCardListResponse>(
+    `${staffBase(schoolId)}/report_card_publications?${listQuery({
+      page,
+      studentId,
+      academicPeriodId,
+      schoolYearId,
+    })}`,
+  );
+
+/** GET .../academics/report_card_publications/:publication_id/snapshots/:snapshot_id/pdf */
+export const fetchStudentReportCardPdf = (
+  schoolId: number,
+  publicationId: number,
+  snapshotId: number,
+) =>
+  requestBlob(
+    `${staffBase(schoolId)}/report_card_publications/${publicationId}/snapshots/${snapshotId}/pdf`,
+  );
+
 /** GET .../me/report_cards */
 export const listMyReportCards = ({
   schoolId,
@@ -185,9 +221,5 @@ export const getMyReportCardSnapshot = async (
 };
 
 /** GET .../me/report_cards/:publication_id/snapshots/:snapshot_id/pdf */
-export const fetchMyReportCardPdf = (
-  schoolId: number,
-  publicationId: number,
-  snapshotId: number,
-) =>
+export const fetchMyReportCardPdf = (schoolId: number, publicationId: number, snapshotId: number) =>
   requestBlob(`${familyBase(schoolId)}/${publicationId}/snapshots/${snapshotId}/pdf`);

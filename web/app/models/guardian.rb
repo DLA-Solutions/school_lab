@@ -7,6 +7,12 @@ class Guardian < ApplicationRecord
 
   attr_accessor :provisioning_import
 
+  # A school putting its existing families on file brings the list it already has, and that list
+  # has holes: a guardian with no e-mail, a household whose address was never written down past
+  # the street. Set on that import alone — the form the secretary fills in and the white-glove
+  # provisioning CSV still ask for all of it, because a contract has to be mailed somewhere.
+  attr_accessor :partial_import
+
   ADDRESS_FIELDS = %i[zip_code street number complement neighborhood city state].freeze
 
   belongs_to :school
@@ -28,8 +34,11 @@ class Guardian < ApplicationRecord
   before_validation :normalize_state
 
   validates :name, presence: true
-  validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true }
-  validates :phone, presence: true
+  # The format always holds; only the demand that there be one at all gives way on a partial
+  # import. An address nobody can write to is a gap; a malformed one is a mistake.
+  validates :email, presence: true, unless: -> { skip_presence_of?(:email) }
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true }
+  validates :phone, presence: true, unless: -> { skip_presence_of?(:phone) }
 
   validates :cpf, presence: true, unless: :provisioning_import
   validate :cpf_is_a_valid_document, if: -> { cpf.present? }
@@ -42,7 +51,9 @@ class Guardian < ApplicationRecord
 
   # The address is required in full — it is what a contract is mailed to and what a bank
   # registration asks for. `complement` stays optional: plenty of addresses have no apartment.
-  validates(*(ADDRESS_FIELDS - %i[complement]), presence: true)
+  (ADDRESS_FIELDS - %i[complement]).each do |field|
+    validates field, presence: true, unless: -> { skip_presence_of?(field) }
+  end
   validates :state, format: { with: /\A[A-Z]{2}\z/, allow_blank: true }
   validates :zip_code, format: { with: /\A\d{8}\z/, allow_blank: true }
 
@@ -51,6 +62,22 @@ class Guardian < ApplicationRecord
   end
 
   private
+
+  # Two ways a required field may legitimately be empty.
+  #
+  # The first is the import itself: the school's old list has holes, and refusing it would only
+  # mean the families stay in the old system.
+  #
+  # The second is everything afterwards. A guardian who arrived without an address must not become
+  # a record nobody can touch — a secretary correcting a phone number would be met with six errors
+  # about an address the school never had. So the demand is made of fields that were filled and of
+  # records that arrive complete; a gap that was already there stays allowed until somebody fills
+  # it, and once filled it can no longer be emptied.
+  def skip_presence_of?(field)
+    return true if partial_import
+
+    persisted? && attribute_in_database(field.to_s).blank?
+  end
 
   def normalize_cpf
     self.cpf = Cpf.normalize(cpf)

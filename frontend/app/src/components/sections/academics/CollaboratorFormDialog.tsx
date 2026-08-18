@@ -23,7 +23,20 @@ export interface CollaboratorFormDialogProps {
   onSaved: (teacher: Teacher) => void;
 }
 
-type FormField = 'name' | 'cpf' | 'email' | 'phone' | 'job_position_id' | 'hired_on';
+type FormField =
+  | 'name'
+  | 'cpf'
+  | 'email'
+  | 'phone'
+  | 'job_position_id'
+  | 'hired_on'
+  | 'zip_code'
+  | 'street'
+  | 'number'
+  | 'complement'
+  | 'neighborhood'
+  | 'city'
+  | 'state';
 
 type FormState = Record<FormField, string>;
 
@@ -36,6 +49,13 @@ const emptyForm: FormState = {
   phone: '',
   job_position_id: '',
   hired_on: '',
+  zip_code: '',
+  street: '',
+  number: '',
+  complement: '',
+  neighborhood: '',
+  city: '',
+  state: '',
 };
 
 const toFormState = (teacher?: Teacher | null): FormState =>
@@ -47,17 +67,37 @@ const toFormState = (teacher?: Teacher | null): FormState =>
         phone: teacher.phone ?? '',
         job_position_id: teacher.job_position_id ? String(teacher.job_position_id) : '',
         hired_on: teacher.hired_on ?? '',
+        zip_code: teacher.zip_code ?? '',
+        street: teacher.street ?? '',
+        number: teacher.number ?? '',
+        complement: teacher.complement ?? '',
+        neighborhood: teacher.neighborhood ?? '',
+        city: teacher.city ?? '',
+        state: teacher.state ?? '',
       }
     : emptyForm;
+
+const optional = (value: string) => value.trim() || null;
 
 const toPayload = (form: FormState): TeacherPayload => ({
   name: form.name.trim(),
   cpf: normalizeCpf(form.cpf),
-  email: form.email.trim(),
-  phone: form.phone.trim() || null,
+  // Optional: a school putting its existing staff on file has an e-mail for some of them and
+  // not for others, and the CPF is what identifies a collaborator here.
+  email: optional(form.email),
+  phone: optional(form.phone),
   job_position_id: Number(form.job_position_id),
   // Optional: a collaborator on file since before the field existed has no honest date.
   hired_on: form.hired_on || null,
+  // The address is kept for a contract or a payroll registration, and comes in incomplete more
+  // often than not.
+  zip_code: optional(form.zip_code),
+  street: optional(form.street),
+  number: optional(form.number),
+  complement: optional(form.complement),
+  neighborhood: optional(form.neighborhood),
+  city: optional(form.city),
+  state: form.state.trim().toUpperCase() || null,
 });
 
 const toFieldErrors = (details: Record<string, unknown>): FieldErrors =>
@@ -82,10 +122,6 @@ const validate = (form: FormState): FieldErrors => {
     errors.cpf = 'Informe o CPF.';
   } else if (!isValidCpf(form.cpf)) {
     errors.cpf = 'CPF inválido — confira os dígitos.';
-  }
-
-  if (!form.email.trim()) {
-    errors.email = 'Informe o e-mail.';
   }
 
   if (!form.job_position_id) {
@@ -202,7 +238,7 @@ const CollaboratorFormDialog = ({
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...fieldProps('email')} label="E-mail" type="email" required />
+              <TextField {...fieldProps('email')} label="E-mail" type="email" />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField {...fieldProps('phone')} label="Telefone" />
@@ -225,6 +261,30 @@ const CollaboratorFormDialog = ({
                 type="date"
                 slotProps={{ inputLabel: { shrink: true } }}
               />
+            </Grid>
+            {/* The address is asked for by a work contract and a payroll registration. Every
+                part is optional: a register that refused the incomplete ones would simply not
+                be filled in. */}
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField {...fieldProps('zip_code')} label="CEP" inputMode="numeric" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 8 }}>
+              <TextField {...fieldProps('street')} label="Logradouro" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <TextField {...fieldProps('number')} label="Número" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 9 }}>
+              <TextField {...fieldProps('complement')} label="Complemento" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField {...fieldProps('neighborhood')} label="Bairro" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField {...fieldProps('city')} label="Cidade" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 2 }}>
+              <TextField {...fieldProps('state')} label="UF" slotProps={{ htmlInput: { maxLength: 2 } }} />
             </Grid>
             {error && (
               <Grid size={12}>

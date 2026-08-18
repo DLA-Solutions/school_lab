@@ -59,13 +59,22 @@ export interface Teacher {
   name: string;
   /** Canonical 11 digits — format with `formatCpf` for display. */
   cpf: string;
-  email: string;
+  /** Optional: a school putting its existing staff on file has one for some of them. */
+  email: string | null;
   phone: string | null;
   job_position_id: number;
   /** The post's name, denormalized by the blueprint so a listing reads without a join. */
   job_title: string | null;
   /** ISO date (`2024-02-01`), or null for a record that predates the field. */
   hired_on: string | null;
+  /** The address, every part optional — kept for a contract or a payroll registration. */
+  zip_code: string | null;
+  street: string | null;
+  number: string | null;
+  complement: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
   classes: TeacherClass[];
 }
 
@@ -92,10 +101,17 @@ export interface TeachingAssignment {
 export interface TeacherPayload {
   name: string;
   cpf: string;
-  email: string;
+  email?: string | null;
   phone?: string | null;
   job_position_id: number;
   hired_on?: string | null;
+  zip_code?: string | null;
+  street?: string | null;
+  number?: string | null;
+  complement?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
 }
 
 export interface SchoolClassPayload {
@@ -108,4 +124,32 @@ export interface SchoolClassPayload {
 export interface Paginated<T> {
   data: T[];
   meta: { page: number; per_page: number; total: number };
+}
+
+/**
+ * Where a collaborator's salary is sent — mirrors `TeacherBankAccountBlueprint`.
+ *
+ * A pix key is enough on its own; the bank, branch and account number are the longer road. The
+ * bank is free text because a code list goes stale every time two banks merge, and what the payer
+ * needs is the name they will recognise on the transfer screen.
+ */
+export interface TeacherBankAccount {
+  id: number | null;
+  teacher_id: number;
+  pix_key: string | null;
+  bank_name: string | null;
+  agency: string | null;
+  account_number: string | null;
+  /** Money leaves on the strength of this record, so it says who last wrote it. */
+  updated_by_name: string | null;
+  updated_at: string | null;
+  /** False for a collaborator nobody has set up yet — not the same as details that failed to load. */
+  filled: boolean;
+}
+
+export interface TeacherBankAccountPayload {
+  pix_key: string | null;
+  bank_name: string | null;
+  agency: string | null;
+  account_number: string | null;
 }

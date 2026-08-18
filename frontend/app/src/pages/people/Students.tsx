@@ -12,6 +12,7 @@ import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
 import AuthorizedPickupsDialog from 'components/sections/people/students/AuthorizedPickupsDialog';
 import HealthRecordDialog from 'components/sections/people/students/HealthRecordDialog';
+import StudentAcademicDialog from 'components/sections/people/students/StudentAcademicDialog';
 import StudentFormDialog from 'components/sections/people/students/StudentFormDialog';
 import {
   ConfirmDialog,
@@ -87,6 +88,7 @@ const Students = () => {
   const [pendingDelete, setPendingDelete] = useState<Student | null>(null);
   const [healthFor, setHealthFor] = useState<Student | null>(null);
   const [pickupsFor, setPickupsFor] = useState<Student | null>(null);
+  const [academicFor, setAcademicFor] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const renderClass = ({ row }: GridRenderCellParams<Student>) =>
@@ -298,6 +300,17 @@ const Students = () => {
             <>
               {/* What the family told the school about the child's health. Read here rather
                     than chased over the phone on the day it matters. */}
+              {/* How the child is getting on: the boletins published and what their teachers
+                  wrote. Two readings of one question, so they share a button. */}
+              <Tooltip title={t('academic.action')}>
+                <IconButton
+                  size="small"
+                  aria-label={t('academic.aria', { name: row.name })}
+                  onClick={() => setAcademicFor(row)}
+                >
+                  <IconifyIcon icon="mingcute:book-5-line" />
+                </IconButton>
+              </Tooltip>
               {/* Who may collect the child. Read at the gate, the moment somebody turns up
                   asking for the student. */}
               <Tooltip title={t('pickups.action')}>
@@ -460,6 +473,16 @@ const Students = () => {
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
+
+      {academicFor && (
+        <StudentAcademicDialog
+          open
+          schoolId={school.school_id}
+          studentId={academicFor.id}
+          studentName={academicFor.name}
+          onClose={() => setAcademicFor(null)}
+        />
+      )}
 
       {pickupsFor && (
         <AuthorizedPickupsDialog

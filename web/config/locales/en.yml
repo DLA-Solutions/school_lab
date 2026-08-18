@@ -184,6 +184,10 @@ en:
           attributes:
             cpf:
               taken: "is already registered for another guardian in this school"
+        teacher_bank_account:
+          attributes:
+            base:
+              no_payment_route: "Fill in a pix key, or the bank, branch and account number."
     attributes:
       contract_template:
         logo: "Logo"
@@ -195,6 +199,11 @@ en:
         phone: "Phone"
         job_position: "Position"
         hired_on: "Start date"
+      teacher_bank_account:
+        pix_key: "Pix key"
+        bank_name: "Bank"
+        agency: "Branch"
+        account_number: "Account number"
       guardian:
         name: "Name"
         cpf: "CPF"

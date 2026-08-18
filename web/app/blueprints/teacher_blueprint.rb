@@ -6,6 +6,10 @@ class TeacherBlueprint < Blueprinter::Base
   # `cpf` is the canonical 11 digits; clients format it for display.
   fields :school_id, :name, :cpf, :email, :phone, :hired_on
 
+  # The address, for the same reasons the guardian's is kept: a contract, a payroll registration,
+  # anything mailed to them. Every part is optional and often blank.
+  fields(*Teacher::ADDRESS_FIELDS)
+
   field :job_position_id
 
   # The post's name, so a listing reads without resolving the association client-side.
