@@ -2,11 +2,17 @@
 
 > Status: validated  
 > Parent PRD: [`index.md`](index.md)  
+> Evolution PRD: [`backoffice-evolution.md`](backoffice-evolution.md) *(draft — E1–E3 gaps)*  
 > Capability IDs: `platform.manage_backoffice_ops`  
 > Related: [`identity-and-onboarding/onboarding.md`](../identity-and-onboarding/onboarding.md), [`staff-users.md`](staff-users.md)  
 > Surface: `frontend/backoffice/` at `/backoffice`  
 > Modeling: [`009-platform-admin.md`](../../modeling/009-platform-admin.md)  
 > API narrative: [`platform-and-admin.md`](../../api/v1/platform-and-admin.md) *(draft contract)*
+
+**Implementation note (Aug 2026):** W3 is **partially implemented** in staging — school register,
+provisioning wizard, and `PATCH /api/v1/schools/:id/modules` exist; module flags UI, tenant detail,
+school-year wizard step, and operational dashboard alerts are tracked in
+[`backoffice-evolution.md`](backoffice-evolution.md) wave **E1**.
 
 ---
 
@@ -58,7 +64,7 @@ namespace.
 
 BR-BO02
 
-Backoffice **creates schools** via `POST /backoffice/schools` — wraps identity
+Backoffice **creates schools** via `POST /api/v1/schools` — wraps identity
 `CreateSchoolService` + sets `onboarding_mode` (`self_serve` | `white_glove`).
 
 BR-BO03
@@ -140,15 +146,22 @@ Flow
 
 ## API
 
-Namespace: `/api/v1/backoffice/` (JWT role `backoffice`).
+**Namespace:** `/api/v1/schools` (JWT role `backoffice` + Pundit policies — not a separate
+`/api/v1/backoffice/` prefix). See [`school-module-flags.md`](school-module-flags.md) and
+[`backoffice-evolution.md`](backoffice-evolution.md) for E1/E2 extensions.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/schools` | Tenant list (UC-BO04) |
-| `POST` | `/schools` | Register school (UC-BO01) |
-| `GET` | `/schools/:id` | Tenant detail + modules + onboarding |
-| `PATCH` | `/schools/:id/modules` | Module flags (UC-BO03) |
-| `POST` | `/schools/:id/provisioning/*` | On-behalf-of actions during provisioning |
+| `GET` | `/api/v1/schools` | Tenant list (UC-BO04) |
+| `POST` | `/api/v1/schools` | Register school (UC-BO01) |
+| `GET` | `/api/v1/schools/:id` | Tenant detail + modules + onboarding *(E1: extend blueprint)* |
+| `GET` | `/api/v1/schools/:id/modules` | Module map for UI *(E1 — if not embedded in show)* |
+| `PATCH` | `/api/v1/schools/:id/modules` | Module flags (UC-BO03) |
+| `POST` | `/api/v1/schools/:id/provisioning/*` | On-behalf-of actions during provisioning |
+
+E2+ platform routes (`/api/v1/platform/audits`, etc.) documented in
+[`backoffice-evolution.md`](backoffice-evolution.md) and
+[`platform-and-admin.md`](../../api/v1/platform-and-admin.md).
 
 School-scoped domain APIs remain under `/api/v1/schools/:school_id/` with `provision_school`
 elevation during provisioning.
@@ -204,7 +217,7 @@ Platform permission keys (backoffice role):
 
 AC-BO01
 
-- [ ] Given backoffice user, when POST /backoffice/schools with white_glove mode, then school is provisioning and owner invite is created.
+- [ ] Given backoffice user, when POST /api/v1/schools with white_glove mode, then school is provisioning and owner invite is created.
 - Source: [`identity-and-onboarding/onboarding.md`](../identity-and-onboarding/onboarding.md)
 
 AC-BO02
@@ -226,8 +239,9 @@ AC-BO04
 
 ## Open items
 
-- [ ] Backoffice platform billing (SaaS subscription) — deferred P2.
-- [ ] Impersonation / login-as-school for support — out of MVP.
+- [ ] Backoffice platform billing (SaaS subscription) — deferred P2; see [`backoffice-evolution.md`](backoffice-evolution.md) E3 and [`open-questions.md`](../../open-questions.md).
+- [ ] Impersonation / login-as-school for support — E3 P2; policy open in [`open-questions.md`](../../open-questions.md).
+- [ ] W3 UI gaps — tracked in [`backoffice-evolution.md`](backoffice-evolution.md) waves E1–E2.
 
 ---
 

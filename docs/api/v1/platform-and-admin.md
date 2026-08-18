@@ -352,9 +352,68 @@ Do not implement calendar CRUD or backoffice module routes as part of 4C.1 engin
 
 ---
 
+## Backoffice operations — E1/E2 (draft)
+
+> **Status: draft** — not frozen. Engineering ships after PRD validation per
+> [`backoffice-evolution.md`](../../prds/platform-and-admin/backoffice-evolution.md).  
+> Namespace: `/api/v1/schools` for tenant ops; `/api/v1/platform/` for cross-tenant ops.  
+> JWT role `backoffice` + Pundit — **not** `/api/v1/backoffice/`.
+
+W3 backoffice UI is **in progress** (partial staging): register, wizard, PATCH modules exist; E1
+closes UI gaps.
+
+### E1 — Tenant detail and modules
+
+Base: `/api/v1/schools`
+
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/:id/modules` | `manage_backoffice_ops` | Module map `{ communication, academic, billing, documents }` |
+| `GET` | `/:id` | `manage_backoffice_ops` or `provision_school` | Show with `?include=modules,active_school_year,aggregate_counts` |
+
+**Aggregate counts** (no PII): `{ students_count, staff_count }` — names excluded (BR-BOE03).
+
+Existing routes used by E1 wizard (W1 frozen):
+
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `POST` | `/:school_id/school_years` | `provision_school` during provisioning | Create draft year (UC-BOE02) |
+| `POST` | `/:school_id/school_years/:id/activate` | `provision_school` during provisioning | Activate first year |
+
+Module PATCH (implemented):
+
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `PATCH` | `/:id/modules` | `manage_backoffice_ops` | Toggle module flags (UC-BO03) |
+
+### E2 — Search, audit, discarded schools
+
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/schools` | `manage_backoffice_ops` | Extended filters: `q`, `saas_plan`, `created_after`, `created_before`, `discarded`, `onboarding_status` |
+| `GET` | `/platform/audits` | `manage_backoffice_ops` | Cross-tenant audit log — paginated; filters `school_id`, `action`, `date_from`, `date_to` |
+| `POST` | `/schools/:id/restore` | `manage_backoffice_ops` | Undiscard school (BR-BOE06) |
+| `POST` | `/schools/:id/provisioning/resend_invites` | `provision_school` | Optional bulk invite resend (rate limited) |
+| `GET` | `/platform/operators` | `manage_backoffice_ops` | Read-only backoffice users + platform permissions — consumed by **Operators tab on `/users`** (no `/operators` route) |
+
+### E2 errors (additional)
+
+| HTTP | `error.code` | When |
+|------|--------------|------|
+| `403` | `backoffice_only` | Non-backoffice role on platform routes |
+| `409` | `not_discarded` | Restore on active school |
+| `429` | `rate_limited` | Invite resend throttled |
+
+E3 P2 routes (`/platform/subscriptions`, `/platform/impersonations`, `/platform/analytics/overview`,
+`/platform/school_groups`, help taxonomy) remain **draft** in slice PRDs until modeling and open
+questions close.
+
+---
+
 ## OpenAPI tags
 
 `Platform`, `School Years`, `Academic Periods`, `Holidays`
 
-W2+ tags (`Calendar`, `Backoffice`) apply after Phase 4C.1b freeze.
+W2+ tags (`Calendar`, `Backoffice`) apply after Phase 4C.1b freeze. E1/E2 backoffice tags:
+`Backoffice`, `Platform Audits`, `School Modules`.
 
