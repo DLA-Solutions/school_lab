@@ -46,13 +46,17 @@ module Api
           client: login_params[:client]
         )
 
-        render_service_result(result, success_status: :ok) do |data|
-          set_refresh_cookie(data[:refresh_token], Time.zone.parse(data[:refresh_expires_at])) if web_client?
+        render_auth_tokens(result)
+      end
 
-          render json: AuthTokensBlueprint.render_as_hash(
-            data.except(:refresh_token).merge(refresh_token: mobile_client? ? data[:refresh_token] : nil)
-          ), status: :ok
-        end
+      def google_login
+        result = Auth::GoogleLoginService.call(
+          id_token: google_login_params[:id_token],
+          remember_me: google_login_params[:remember_me],
+          client: google_login_params[:client]
+        )
+
+        render_auth_tokens(result)
       end
 
       def refresh
@@ -99,7 +103,7 @@ module Api
       private
 
       def public_auth_action?
-        action_name.in?(%w[login refresh invite_accept reset_password request_access]) ||
+        action_name.in?(%w[login google_login refresh invite_accept reset_password request_access]) ||
           (action_name == "password" && request.post?)
       end
 
@@ -116,6 +120,10 @@ module Api
         params.permit(:email, :password, :remember_me, :client)
       end
 
+      def google_login_params
+        params.permit(:id_token, :remember_me, :client)
+      end
+
       def refresh_params
         params.permit(:refresh_token, :remember_me, :client)
       end
@@ -125,7 +133,7 @@ module Api
       end
 
       def web_client?
-        login_params[:client].to_s == "web"
+        auth_client_param == "web"
       end
 
       def web_client_from_params?
@@ -133,7 +141,25 @@ module Api
       end
 
       def mobile_client?
-        login_params[:client].to_s != "web"
+        auth_client_param != "web"
+      end
+
+      def auth_client_param
+        if action_name == "google_login"
+          google_login_params[:client].to_s
+        else
+          login_params[:client].to_s
+        end
+      end
+
+      def render_auth_tokens(result)
+        render_service_result(result, success_status: :ok) do |data|
+          set_refresh_cookie(data[:refresh_token], Time.zone.parse(data[:refresh_expires_at])) if web_client?
+
+          render json: AuthTokensBlueprint.render_as_hash(
+            data.except(:refresh_token).merge(refresh_token: mobile_client? ? data[:refresh_token] : nil)
+          ), status: :ok
+        end
       end
 
       def mobile_refresh_response?

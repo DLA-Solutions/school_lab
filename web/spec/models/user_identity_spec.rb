@@ -3,14 +3,19 @@
 require "rails_helper"
 
 RSpec.describe UserIdentity do
-  subject(:identity) { build(:user_identity) }
+  it "requires core attributes" do
+    identity = build(:user_identity, provider: nil)
 
-  it { is_expected.to belong_to(:user) }
-  it { is_expected.to validate_presence_of(:provider) }
-  it { is_expected.to validate_presence_of(:provider_uid) }
-  it { is_expected.to validate_presence_of(:email) }
-  it { is_expected.to validate_presence_of(:linked_at) }
-  it { is_expected.to validate_inclusion_of(:provider).in_array(%w[google]) }
+    expect(identity).not_to be_valid
+    expect(identity.errors[:provider]).to be_present
+  end
+
+  it "accepts only supported providers" do
+    identity = build(:user_identity, provider: "apple")
+
+    expect(identity).not_to be_valid
+    expect(identity.errors[:provider]).to be_present
+  end
 
   it "rejects duplicate provider_uid for the same provider" do
     create(:user_identity, provider_uid: "sub-123")

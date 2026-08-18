@@ -5,6 +5,53 @@
     "version": "v1"
   },
   "paths": {
+    "/api/v1/auth/oauth/google": {
+      "post": {
+        "summary": "Google login",
+        "tags": [
+          "Auth"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "sets refresh cookie for web client"
+          },
+          "401": {
+            "description": "invalid oauth token"
+          },
+          "403": {
+            "description": "disabled user"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_token": {
+                    "type": "string"
+                  },
+                  "remember_me": {
+                    "type": "boolean"
+                  },
+                  "client": {
+                    "type": "string",
+                    "enum": [
+                      "web",
+                      "mobile"
+                    ]
+                  }
+                },
+                "required": [
+                  "id_token"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "summary": "Login",

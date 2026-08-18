@@ -16,6 +16,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       scope :auth do
         post "login", to: "auth#login"
+        post "oauth/google", to: "auth#google_login"
         post "refresh", to: "auth#refresh"
         post "logout", to: "auth#logout"
         post "password", to: "auth#password"

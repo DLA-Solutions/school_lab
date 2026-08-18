@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_18_223648) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -1513,6 +1513,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["teacher_id"], name: "index_teaching_assignments_on_teacher_id"
   end
 
+  create_table "user_identities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.boolean "email_verified", default: false, null: false
+    t.datetime "last_used_at"
+    t.datetime "linked_at", null: false
+    t.string "provider", null: false
+    t.string "provider_uid", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["provider", "provider_uid"], name: "index_user_identities_on_provider_and_provider_uid", unique: true
+    t.index ["user_id", "provider"], name: "index_user_identities_on_user_id_and_provider", unique: true
+    t.index ["user_id"], name: "index_user_identities_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
@@ -1772,6 +1787,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
   add_foreign_key "teaching_assignments", "subjects"
   add_foreign_key "teaching_assignments", "teachers"
   add_foreign_key "teaching_assignments", "users", column: "discarded_by_id"
+  add_foreign_key "user_identities", "users"
   add_foreign_key "users", "users", column: "disabled_by_id"
   add_foreign_key "webhook_events", "schools"
 end

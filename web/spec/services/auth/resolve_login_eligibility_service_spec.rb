@@ -82,11 +82,12 @@ RSpec.describe Auth::ResolveLoginEligibilityService do
 
   context "when user has both staff and guardian paths" do
     let(:user) { create(:user) }
-    let(:school) { create(:school) }
+    let(:staff_school) { create(:school) }
+    let(:guardian_school) { create(:school) }
 
     before do
-      create(:membership, :staff, user: user, school: school)
-      create(:membership, user: user, school: school, role: "guardian", status: "suspended")
+      create(:membership, :staff, user: user, school: staff_school)
+      create(:membership, user: user, school: guardian_school, role: "guardian", status: "suspended")
     end
 
     it { is_expected.to be_success }
