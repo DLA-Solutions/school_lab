@@ -75,8 +75,10 @@ the database; mock only external gateways. See `testing.md`.
 ## Provider email in local or test
 
 Never point development or RSpec at Postmark, SMTP, or any mail provider API — even when
-`POSTMARK_API_TOKEN` is in `.env`. Development uses Letter Opener (`/letter_opener`);
-test uses `delivery_method = :test`. See [`mailers.md`](mailers.md).
+`POSTMARK_API_TOKEN` is in `.env` or `RAILS_ENV=production`. Development uses Letter
+Opener (`/letter_opener`); test uses `delivery_method = :test`. Do not trigger invite,
+password reset, or other mailers when checking staging or production. See
+[`mailers.md`](mailers.md).
 
 ## Raw outbound HTTP
 

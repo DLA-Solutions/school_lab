@@ -19,6 +19,8 @@ Full runbook: `docs/guidelines/process/deployment.md`. Executable workflow: skil
 
 Always pass `-d staging` or `-d production` (`require_destination: true`).
 
+Post-deploy smoke is read-only (`GET /`, `/app/`, `/backoffice/`, `/up`). Never trigger transactional email on staging or production (rule `email-safety`).
+
 ## Guardrails
 
 - **Secrets per service directory** — Kamal reads `.kamal/` from the cwd (`site/`, `frontend/app/`, `frontend/backoffice/`, or `web/`). Copy `secrets-common` into each before the first deploy.
