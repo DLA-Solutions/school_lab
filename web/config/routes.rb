@@ -28,6 +28,11 @@ Rails.application.routes.draw do
       end
 
       get "me", to: "me#show"
+      namespace :platform do
+        resource :operational_summary, only: :show, controller: "operational_summary"
+        resources :audits, only: :index
+        resources :operators, only: :index
+      end
       namespace :me do
         resources :device_tokens, only: :create
         resources :memberships, only: [] do
@@ -40,11 +45,14 @@ Rails.application.routes.draw do
       resources :schools, only: %i[index show create update destroy] do
         member do
           post :handoff
+          post :restore
+          get :modules, to: "schools/modules#show"
           patch :modules, to: "schools/modules#update"
         end
         scope module: :schools do
           namespace :provisioning do
             resource :import, only: :create, controller: "imports"
+            resource :resend_invites, only: :create, controller: "resend_invites"
           end
 
           resource :dashboard, only: :show, controller: "dashboard"

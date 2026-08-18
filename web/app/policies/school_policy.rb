@@ -27,6 +27,10 @@ class SchoolPolicy < ApplicationPolicy
     update?
   end
 
+  def restore?
+    backoffice? && platform_with?(:manage_backoffice_ops)
+  end
+
   def handoff?
     return provisioning_handoff? if record.provisioning?
     return activation_handoff? if record.pending_handoff?

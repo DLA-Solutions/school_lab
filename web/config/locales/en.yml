@@ -91,6 +91,8 @@ en:
       batch_release_failed: "Batch release failed; no students were published."
       republish_reason_required: "A correction reason is required to republish."
       validation_error: "Invalid data."
+      not_discarded: "School is not archived."
+      rate_limited: "Too many requests. Try again later."
       invalid_state_transition: "Invalid state transition."
       provider_error: "The payment provider could not be reached."
       billing_interest_rate_missing: "Set the late-payment interest rate in billing settings before issuing boletos."

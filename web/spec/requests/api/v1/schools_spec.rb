@@ -68,6 +68,14 @@ RSpec.describe "Api::V1::Schools", type: :request do
                 enum: %w[provisioning pending_handoff active]
       parameter name: :onboarding_mode, in: :query, type: :string, required: false,
                 enum: %w[self_serve white_glove]
+      parameter name: :q, in: :query, type: :string, required: false,
+                description: "Partial match on name or CNPJ"
+      parameter name: :created_after, in: :query, type: :string, required: false,
+                description: "ISO date (YYYY-MM-DD)"
+      parameter name: :created_before, in: :query, type: :string, required: false,
+                description: "ISO date (YYYY-MM-DD)"
+      parameter name: :discarded, in: :query, type: :boolean, required: false,
+                description: "When true, lists only discarded schools"
 
       response "200", "schools listed for backoffice" do
         let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
@@ -96,6 +104,62 @@ RSpec.describe "Api::V1::Schools", type: :request do
           body = JSON.parse(response.body)
           names = body.fetch("data").map { |row| row["name"] }
           expect(names).to eq([ "Filtered Match" ])
+        end
+      end
+
+      response "200", "schools filtered by q on name" do
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:q) { "Alpha" }
+        let!(:alpha_school) { create(:school, name: "Escola Alpha") }
+        let!(:beta_school) { create(:school, name: "Escola Beta") }
+
+        run_test! do |response|
+          names = JSON.parse(response.body).fetch("data").map { |row| row["name"] }
+          expect(names).to include("Escola Alpha")
+          expect(names).not_to include("Escola Beta")
+        end
+      end
+
+      response "200", "schools filtered by created_after" do
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:created_after) { Date.current.iso8601 }
+        let!(:recent_school) { create(:school, name: "Recent School", created_at: Time.current) }
+        let!(:old_school) do
+          create(:school, name: "Old School", created_at: 2.years.ago)
+        end
+
+        run_test! do |response|
+          names = JSON.parse(response.body).fetch("data").map { |row| row["name"] }
+          expect(names).to include("Recent School")
+          expect(names).not_to include("Old School")
+        end
+      end
+
+      response "200", "discarded schools listed when discarded=true" do
+        let(:backoffice_ops_user) { create(:user) }
+        let!(:backoffice_ops_membership) do
+          create(:membership, :with_manage_backoffice_ops, user: backoffice_ops_user)
+        end
+        let(:Authorization) { auth_headers_for(backoffice_ops_user)["Authorization"] }
+        let(:discarded) { true }
+        let!(:archived_school) { create(:school, name: "Archived School").tap(&:discard!) }
+        let!(:active_school) { create(:school, name: "Active School") }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          names = body.map { |row| row["name"] }
+          expect(names).to include("Archived School")
+          expect(names).not_to include("Active School")
+          expect(body.first).to have_key("discarded_at")
+        end
+      end
+
+      response "422", "invalid created_after date" do
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:created_after) { "invalid-date" }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("validation_error")
         end
       end
 
@@ -290,6 +354,62 @@ RSpec.describe "Api::V1::Schools", type: :request do
   path "/api/v1/schools/{id}" do
     parameter name: :id, in: :path, type: :string
 
+    get "Show school" do
+      tags "Backoffice"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+      parameter name: :include, in: :query, type: :string, required: false,
+                description: "Backoffice embeds: modules, active_school_year, aggregate_counts"
+
+      response "200", "backoffice detail with embeds" do
+        let(:backoffice_ops_user) { create(:user) }
+        let!(:backoffice_ops_membership) do
+          create(:membership, :with_manage_backoffice_ops, user: backoffice_ops_user)
+        end
+        let(:Authorization) { auth_headers_for(backoffice_ops_user)["Authorization"] }
+        let(:target_school) { create(:school, name: "Detail School") }
+        let(:id) { target_school.id }
+        let(:include) { "modules,active_school_year,aggregate_counts" }
+
+        before do
+          Schools::SeedSchoolModulesService.call(
+            school: target_school,
+            overrides: { billing: false }
+          )
+          create(:school_year, :active, school: target_school, name: "2026")
+          create(:student, school: target_school, status: "active")
+          create(:guardian, school: target_school)
+          create(:membership, :staff, user: create(:user), school: target_school, status: "active")
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["name"]).to eq("Detail School")
+          expect(body.dig("modules", "billing")).to be(false)
+          expect(body.dig("active_school_year", "name")).to eq("2026")
+          expect(body.dig("aggregate_counts", "student_count")).to eq(1)
+          expect(body.dig("aggregate_counts", "guardian_count")).to eq(1)
+          expect(body.dig("aggregate_counts", "staff_count")).to eq(1)
+          expect(body).not_to have_key("students")
+          expect(body).not_to have_key("guardians")
+        end
+      end
+
+      response "200", "school admin show without backoffice embeds" do
+        let(:Authorization) { auth_headers_for(school_admin_user)["Authorization"] }
+        let(:id) { school.id }
+        let(:include) { "modules,aggregate_counts" }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["name"]).to eq(school.name)
+          expect(body).not_to have_key("modules")
+          expect(body).not_to have_key("aggregate_counts")
+        end
+      end
+    end
+
     delete "Soft delete school" do
       tags "Backoffice"
       security [ bearer_auth: [] ]
@@ -303,6 +423,44 @@ RSpec.describe "Api::V1::Schools", type: :request do
         run_test! do
           expect(School.kept).not_to include(target_school.reload)
           expect(target_school.discarded_by).to eq(backoffice_user)
+        end
+      end
+    end
+
+    post "Restore discarded school" do
+      tags "Backoffice"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+
+      response "200", "discarded school restored" do
+        let(:backoffice_ops_user) { create(:user) }
+        let!(:backoffice_ops_membership) do
+          create(:membership, :with_manage_backoffice_ops, user: backoffice_ops_user)
+        end
+        let(:Authorization) { auth_headers_for(backoffice_ops_user)["Authorization"] }
+        let(:target_school) { create(:school, name: "Restore Me").tap(&:discard!) }
+        let(:id) { target_school.id }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body.fetch("name")).to eq("Restore Me")
+          expect(School.kept).to include(target_school.reload)
+          expect(target_school.discarded_at).to be_nil
+        end
+      end
+
+      response "409", "active school cannot be restored" do
+        let(:backoffice_ops_user) { create(:user) }
+        let!(:backoffice_ops_membership) do
+          create(:membership, :with_manage_backoffice_ops, user: backoffice_ops_user)
+        end
+        let(:Authorization) { auth_headers_for(backoffice_ops_user)["Authorization"] }
+        let(:target_school) { create(:school, name: "Still Active") }
+        let(:id) { target_school.id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("not_discarded")
         end
       end
     end

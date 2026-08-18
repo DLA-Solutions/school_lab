@@ -92,6 +92,8 @@ pt-BR:
       batch_release_failed: "A publicação em lote falhou; nenhum estudante foi liberado."
       republish_reason_required: "Informe o motivo da correção para republicar."
       validation_error: "Dados inválidos."
+      not_discarded: "A escola não está arquivada."
+      rate_limited: "Muitas solicitações. Tente novamente mais tarde."
       invalid_state_transition: "Transição de estado inválida."
       provider_error: "Falha na comunicação com o provedor de pagamento."
       billing_interest_rate_missing: "Configure a taxa de mora nas configurações de cobrança antes de emitir boletos."
