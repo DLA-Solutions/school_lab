@@ -1,6 +1,6 @@
 # PRD — Platform: Backoffice Evolution
 
-> Status: draft (E1 slices near-ready; E2 blocked on audit PII OQ; E3 P2 blocked on commercial/policy OQs)  
+> Status: draft (E1/E2 shipped; **E3 P2 implemented** Aug 2026 — pending QA sign-off)  
 > Relation to School Lab: Platform & admin BC2 extension — core MVP domain #9 per [`product-map.md`](../../product-map.md) §5  
 > Parent PRDs: [`backoffice.md`](backoffice.md), [`index.md`](index.md)  
 > Capability IDs: `platform.manage_backoffice_ops`, `platform.configure_school_year`; P2: `platform.view_analytics_dashboard`, `platform.manage_multi_unit`, `platform.configure_help_taxonomy`  
@@ -63,11 +63,11 @@ Non-goals, harness notes) linked from [Delivery waves](#delivery-waves-e1-e2-e3)
 | Discarded schools restore | BR-BOE06 | **Net-new** | **Net-new** | **E2** |
 | Bulk invite resend | UC-BOE08 | Optional endpoint | **Missing** | **E2** |
 | Operator permissions (read-only) | UC-BOE09 | Exists in identity | **Missing UI** | **E2** |
-| Platform SaaS billing | BR-BOE08 | **Net-new** | **Net-new** | **E3 P2** |
-| Impersonation | BR-BOE07 | **Net-new** | **Net-new** | **E3 P2** |
-| Cross-tenant analytics | BR-BOE10 | **Net-new** | **Net-new** | **E3 P2** |
-| Multi-unit groups | BR-BOE09 | **Net-new** | **Net-new** | **E3 P2** |
-| Help taxonomy CMS | P2 capability | **Net-new** | **Net-new** | **E3 P2** |
+| Platform SaaS billing | BR-BOE08 | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
+| Impersonation | BR-BOE07 | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
+| Cross-tenant analytics | BR-BOE10 | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
+| Multi-unit groups | BR-BOE09 | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
+| Help taxonomy CMS | P2 capability | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
 
 ---
 
@@ -368,8 +368,9 @@ P2 impersonation and billing errors documented in slice files when contracts fre
 | DBML | [`schema.dbml`](../../database/schema.dbml) — `school_modules`, `schools`, audits |
 | DER | [`der_009.png`](../../database/der_009.png) *(when published)* |
 
-E3 P2 adds `school_groups`, `platform_subscriptions`, help taxonomy tables — modeling TBD before
-implementation.
+E3 P2 adds `school_groups`, `platform_plans`, `platform_subscriptions`,
+`platform_impersonation_sessions`, `help_taxonomy_categories` — see [`schema.dbml`](../../database/schema.dbml)
+and modeling increment in [`009-platform-admin.md`](../../modeling/009-platform-admin.md).
 
 ---
 
@@ -468,27 +469,35 @@ AC-BOE09 — Operator permissions read-only (E2)
 
 AC-BOE10 — Platform billing P2 (E3)
 
-- [ ] Deferred — blocked on commercial model. Slice:
-  [`backoffice-platform-billing-p2.md`](backoffice-platform-billing-p2.md)
+- [x] Given platform plan catalog, when operator assigns plan to school S via backoffice, then
+  `POST /api/v1/platform/subscriptions` creates subscription and tenant detail shows status (incl.
+  `past_due` due date via `current_period_end`). Plan catalog is read-only seeded MVP (no plan CRUD).
+- Slice: [`backoffice-platform-billing-p2.md`](backoffice-platform-billing-p2.md)
 
 AC-BOE11 — Impersonation P2 (E3)
 
-- [ ] Deferred — blocked on policy. Slice: [`backoffice-impersonation-p2.md`](backoffice-impersonation-p2.md)
+- [x] Given approved operator, when starting impersonation as director/secretary, then scoped JWT
+  issued, school SPA shows non-dismissable banner, actions audited; operator can end session via
+  backoffice `DELETE /platform/impersonations/:id`.
+- Slice: [`backoffice-impersonation-p2.md`](backoffice-impersonation-p2.md)
 
 AC-BOE12 — Analytics P2 (E3)
 
-- [ ] Deferred — depends on billing + events. Slice: [`backoffice-analytics-p2.md`](backoffice-analytics-p2.md)
+- [x] Given active schools and subscriptions, when operator loads `/analytics`, then KPI cards match
+  `GET /api/v1/platform/analytics/overview` including MRR from billable subscriptions.
+- Slice: [`backoffice-analytics-p2.md`](backoffice-analytics-p2.md)
 
 AC-BOE13 — Multi-unit P2 (E3)
 
-- [ ] Deferred. Slice: [`backoffice-multi-unit-p2.md`](backoffice-multi-unit-p2.md)
+- [x] Given group G, when operator assigns schools S1/S2 (group manage UI or tenant detail), then
+  both show `school_group_id` on tenant detail; `GET /platform/school_groups/:id/schools` lists members.
+- Slice: [`backoffice-multi-unit-p2.md`](backoffice-multi-unit-p2.md)
 
 AC-BOE14 — Help taxonomy CMS P2 (E3)
 
-- [ ] Given operator with `configure_help_taxonomy`, when creating category "Financeiro" linked to
+- [x] Given operator with `configure_help_taxonomy`, when creating category "Financeiro" linked to
   persona `secretary`, then taxonomy persists and is readable via platform API.
-- Slice: [`backoffice-help-taxonomy-p2.md`](backoffice-help-taxonomy-p2.md) — blocked on persona
-  model ([`open-questions.md`](../../open-questions.md) § Platform & admin).
+- Slice: [`backoffice-help-taxonomy-p2.md`](backoffice-help-taxonomy-p2.md)
 
 ---
 
@@ -508,10 +517,8 @@ policy).
 
 ## Open items / pending decisions
 
-- [ ] Platform billing model (per student, per school, per plan) —
-  [`open-questions.md`](../../open-questions.md) § GTM / business
-- [ ] Impersonation policy: duration, roles allowed, LGPD notice, banner UX —
-  [`open-questions.md`](../../open-questions.md) § Platform & admin
+- [x] Platform billing model (MVP E3) — flat monthly plan; see [`open-questions.md`](../../open-questions.md) § Platform & admin
+- [x] Impersonation policy (MVP E3) — `manage_backoffice_ops`, director/secretary, 15min TTL, no guardian
 - [ ] Audit route prefix: `/platform/audits` vs nested under schools — prefer `/platform/audits`
 - [ ] **Audit viewer PII display** — E2 sign-off blocked until redaction policy decided
   ([`open-questions.md`](../../open-questions.md) § Platform & admin; default: redact PII in

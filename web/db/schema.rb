@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -574,6 +574,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
     t.check_constraint "zip_code IS NULL OR zip_code::text ~ '^[0-9]{8}$'::text", name: "guardians_zip_code_format"
   end
 
+  create_table "help_taxonomy_categories", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "module_key"
+    t.string "name", null: false
+    t.jsonb "persona_tags", default: [], null: false
+    t.integer "position", default: 0, null: false
+    t.string "slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["position"], name: "index_help_taxonomy_categories_on_position"
+    t.index ["slug"], name: "index_help_taxonomy_categories_on_slug", unique: true, where: "(discarded_at IS NULL)"
+  end
+
   create_table "job_positions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -666,6 +679,47 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
     t.index ["school_id", "name"], name: "index_plan_discounts_on_school_id_and_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_id"], name: "index_plan_discounts_on_school_id"
     t.check_constraint "percent >= 0::numeric AND percent <= 100::numeric", name: "plan_discounts_percent_range"
+  end
+
+  create_table "platform_impersonation_sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "ended_at"
+    t.datetime "expires_at", null: false
+    t.bigint "operator_user_id", null: false
+    t.bigint "school_id", null: false
+    t.bigint "target_membership_id", null: false
+    t.bigint "target_user_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ended_at"], name: "index_platform_impersonation_sessions_on_ended_at"
+    t.index ["expires_at"], name: "index_platform_impersonation_sessions_on_expires_at"
+    t.index ["operator_user_id"], name: "index_platform_impersonation_sessions_on_operator_user_id"
+    t.index ["school_id"], name: "index_platform_impersonation_sessions_on_school_id"
+    t.index ["target_membership_id"], name: "index_platform_impersonation_sessions_on_target_membership_id"
+    t.index ["target_user_id"], name: "index_platform_impersonation_sessions_on_target_user_id"
+  end
+
+  create_table "platform_plans", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "key", null: false
+    t.integer "monthly_amount_cents", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_platform_plans_on_key", unique: true, where: "(discarded_at IS NULL)"
+  end
+
+  create_table "platform_subscriptions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "current_period_end"
+    t.datetime "discarded_at"
+    t.bigint "platform_plan_id", null: false
+    t.bigint "school_id", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "trial_ends_at"
+    t.datetime "updated_at", null: false
+    t.index ["platform_plan_id"], name: "index_platform_subscriptions_on_platform_plan_id"
+    t.index ["school_id"], name: "index_platform_subscriptions_on_school_id", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["status"], name: "index_platform_subscriptions_on_status"
   end
 
   create_table "preceptorship_reports", force: :cascade do |t|
@@ -1609,6 +1663,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
   add_foreign_key "payments", "schools"
   add_foreign_key "plan_discounts", "schools"
   add_foreign_key "plan_discounts", "users", column: "discarded_by_id"
+  add_foreign_key "platform_impersonation_sessions", "memberships", column: "target_membership_id"
+  add_foreign_key "platform_impersonation_sessions", "schools"
+  add_foreign_key "platform_impersonation_sessions", "users", column: "operator_user_id"
+  add_foreign_key "platform_impersonation_sessions", "users", column: "target_user_id"
+  add_foreign_key "platform_subscriptions", "platform_plans"
+  add_foreign_key "platform_subscriptions", "schools"
   add_foreign_key "preceptorship_reports", "academic_periods"
   add_foreign_key "preceptorship_reports", "schools"
   add_foreign_key "preceptorship_reports", "students"

@@ -12,7 +12,16 @@ module AuditContext
   private
 
   def set_audit_user
-    return unless defined?(Current) && Current.user
+    return unless defined?(Current)
+
+    if Current.impersonation_session&.active?
+      Audited.store[:audited_user] = Current.impersonation_operator
+      comment = SchoolLab::ImpersonationAuditMetadata.comment_for(session: Current.impersonation_session)
+      Audited.store[SchoolLab::ImpersonationAuditMetadata::STORE_KEY] = comment if comment.present?
+      return
+    end
+
+    return unless Current.user
 
     Audited.store[:audited_user] = Current.user
   end

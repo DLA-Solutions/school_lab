@@ -294,6 +294,1292 @@
         }
       }
     },
+    "/api/v1/platform/analytics/overview": {
+      "get": {
+        "summary": "Platform analytics overview",
+        "tags": [
+          "Backoffice",
+          "Platform Analytics"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "interim manage_backoffice_ops access"
+          },
+          "422": {
+            "description": "invalid date_from"
+          },
+          "403": {
+            "description": "staff forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/audits": {
+      "get": {
+        "summary": "List platform audits",
+        "tags": [
+          "Backoffice",
+          "Platform Audits"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "school_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "audited_changes redact guardian email values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "action",
+                          "auditable_type",
+                          "created_at",
+                          "changed_keys",
+                          "audited_changes"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "action": {
+                            "type": "string"
+                          },
+                          "auditable_type": {
+                            "type": "string"
+                          },
+                          "auditable_id": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "school_id": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "changed_keys": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "audited_changes": {
+                            "type": "object"
+                          },
+                          "actor": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "type": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "comment": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "page",
+                        "per_page",
+                        "total"
+                      ],
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "per_page": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "invalid date_from"
+          },
+          "403": {
+            "description": "staff without backoffice role"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/help_taxonomy/categories": {
+      "get": {
+        "summary": "List help taxonomy categories",
+        "tags": [
+          "Backoffice",
+          "Help Taxonomy"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "categories listed"
+          },
+          "403": {
+            "description": "staff forbidden"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create help taxonomy category",
+        "tags": [
+          "Backoffice",
+          "Help Taxonomy"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "category created"
+          },
+          "422": {
+            "description": "invalid persona tag"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "module_key": {
+                        "type": "string"
+                      },
+                      "persona_tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "position": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/help_taxonomy/categories/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show help taxonomy category",
+        "tags": [
+          "Backoffice",
+          "Help Taxonomy"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "category found"
+          },
+          "404": {
+            "description": "unknown category"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update help taxonomy category",
+        "tags": [
+          "Backoffice",
+          "Help Taxonomy"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "category updated"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "persona_tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Discard help taxonomy category",
+        "tags": [
+          "Backoffice",
+          "Help Taxonomy"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "category discarded"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/impersonations": {
+      "post": {
+        "summary": "Start impersonation",
+        "tags": [
+          "Backoffice",
+          "Platform Impersonation"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "impersonation started"
+          },
+          "403": {
+            "description": "guardian membership rejected"
+          },
+          "404": {
+            "description": "unknown membership"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "impersonation": {
+                    "type": "object",
+                    "properties": {
+                      "school_id": {
+                        "type": "integer"
+                      },
+                      "target_membership_id": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "school_id",
+                      "target_membership_id"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/impersonations/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "delete": {
+        "summary": "End impersonation",
+        "tags": [
+          "Backoffice",
+          "Platform Impersonation"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "session ended"
+          },
+          "409": {
+            "description": "already ended"
+          },
+          "404": {
+            "description": "unknown session"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/operational_summary": {
+      "get": {
+        "summary": "Platform operational summary",
+        "tags": [
+          "Backoffice",
+          "Platform"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "backoffice reads operational alerts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "credentials_expiring",
+                        "schools_with_disabled_modules",
+                        "provisioning_backlog_count"
+                      ],
+                      "properties": {
+                        "credentials_expiring": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "school_id",
+                              "school_name",
+                              "certificate_expires_at",
+                              "days_remaining"
+                            ],
+                            "properties": {
+                              "school_id": {
+                                "type": "integer"
+                              },
+                              "school_name": {
+                                "type": "string"
+                              },
+                              "certificate_expires_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "days_remaining": {
+                                "type": "integer"
+                              }
+                            }
+                          }
+                        },
+                        "schools_with_disabled_modules": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "school_id",
+                              "school_name",
+                              "disabled_modules"
+                            ],
+                            "properties": {
+                              "school_id": {
+                                "type": "integer"
+                              },
+                              "school_name": {
+                                "type": "string"
+                              },
+                              "disabled_modules": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "provisioning_backlog_count": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "staff without backoffice role"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/operators": {
+      "get": {
+        "summary": "List platform operators",
+        "tags": [
+          "Backoffice",
+          "Platform"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "backoffice reads operator permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "email",
+                          "status",
+                          "platform_permissions"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "platform_permissions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "page",
+                        "per_page",
+                        "total"
+                      ],
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "per_page": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "staff without backoffice role"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/plans": {
+      "get": {
+        "summary": "List platform plans",
+        "tags": [
+          "Backoffice",
+          "Platform Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "plans listed"
+          },
+          "403": {
+            "description": "missing permission"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/school_groups": {
+      "get": {
+        "summary": "List school groups",
+        "tags": [
+          "Backoffice",
+          "Platform School Groups"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "operator lists school groups"
+          },
+          "403": {
+            "description": "staff without permission"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create school group",
+        "tags": [
+          "Backoffice",
+          "Platform School Groups"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "group created"
+          },
+          "422": {
+            "description": "missing name"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "school_group": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "headquarters_cnpj": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/school_groups/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show school group",
+        "tags": [
+          "Backoffice",
+          "Platform School Groups"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "group found"
+          },
+          "404": {
+            "description": "unknown group"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update school group",
+        "tags": [
+          "Backoffice",
+          "Platform School Groups"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "group updated"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "school_group": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Discard school group",
+        "tags": [
+          "Backoffice",
+          "Platform School Groups"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "empty group discarded"
+          },
+          "409": {
+            "description": "group has schools"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/school_groups/{id}/schools": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List schools in group",
+        "tags": [
+          "Backoffice",
+          "Platform School Groups"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "member schools listed"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/school_groups/{id}/assign_school": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Assign school to group",
+        "tags": [
+          "Backoffice",
+          "Platform School Groups"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "school assigned"
+          },
+          "409": {
+            "description": "school already in another group"
+          },
+          "404": {
+            "description": "unknown school"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "school_id": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "school_id"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/school_groups/{id}/schools/{school_id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "delete": {
+        "summary": "Unassign school from group",
+        "tags": [
+          "Backoffice",
+          "Platform School Groups"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "school unassigned"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/subscriptions": {
+      "get": {
+        "summary": "List platform subscriptions",
+        "tags": [
+          "Backoffice",
+          "Platform Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "subscriptions listed"
+          },
+          "403": {
+            "description": "staff forbidden"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create platform subscription",
+        "tags": [
+          "Backoffice",
+          "Platform Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "subscription created"
+          },
+          "409": {
+            "description": "subscription already exists"
+          },
+          "404": {
+            "description": "unknown school"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "subscription": {
+                    "type": "object",
+                    "properties": {
+                      "school_id": {
+                        "type": "integer"
+                      },
+                      "platform_plan_id": {
+                        "type": "integer"
+                      },
+                      "status": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "school_id",
+                      "platform_plan_id"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/subscriptions/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show platform subscription",
+        "tags": [
+          "Backoffice",
+          "Platform Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "subscription found"
+          },
+          "404": {
+            "description": "unknown subscription"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update platform subscription",
+        "tags": [
+          "Backoffice",
+          "Platform Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "plan change audited"
+          },
+          "403": {
+            "description": "backoffice without billing permission"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "subscription": {
+                    "type": "object",
+                    "properties": {
+                      "platform_plan_id": {
+                        "type": "integer"
+                      },
+                      "status": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/school_years/{school_year_id}/academic_periods": {
       "parameters": [
         {
@@ -817,203 +2103,6 @@
         }
       }
     },
-<<<<<<< HEAD
-    "/api/v1/schools/{school_id}/academics/report_card_publication_batches/validate": {
-      "parameters": [
-        {
-          "name": "school_id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "integer"
-          }
-        }
-      ],
-      "post": {
-        "summary": "Validate report card batch readiness",
-        "tags": [
-          "Report Cards",
-          "Academic"
-        ],
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ready when prerequisites met"
-          },
-          "422": {
-            "description": "not ready when grade launch missing"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "report_card_publication_batch": {
-                    "type": "object",
-                    "properties": {
-                      "class_id": {
-                        "type": "integer"
-                      },
-                      "academic_period_id": {
-                        "type": "integer"
-                      }
-                    },
-                    "required": [
-                      "class_id",
-                      "academic_period_id"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/schools/{school_id}/academics/report_card_publication_batches/{id}": {
-      "get": {
-        "summary": "Show report card publication batches",
-        "tags": [
-          "Academics"
-        ],
-        "operationId": "api_v1_schools_academics_report_card_publication_batches_show",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/schools/{school_id}/academics/report_card_publications": {
-      "get": {
-        "summary": "List report card publications",
-        "tags": [
-          "Academics"
-        ],
-        "operationId": "api_v1_schools_academics_report_card_publications_index",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/schools/{school_id}/academics/report_card_publications/{id}": {
-      "get": {
-        "summary": "Show report card publications",
-        "tags": [
-          "Academics"
-        ],
-        "operationId": "api_v1_schools_academics_report_card_publications_show",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-=======
->>>>>>> be10004f123ac3884e8554937c52be11e2aac822
     "/api/v1/schools/{school_id}/academics/report_card_publications/{id}/republish": {
       "parameters": [
         {
@@ -2885,278 +3974,6 @@
         }
       }
     },
-    "/api/v1/schools/{school_id}/me/students/{student_id}/authorized_pickups": {
-      "get": {
-        "summary": "List authorized pickups",
-        "tags": [
-          "Me"
-        ],
-        "operationId": "api_v1_schools_me_authorized_pickups_index",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      },
-      "post": {
-        "summary": "Create authorized pickups",
-        "tags": [
-          "Me"
-        ],
-        "operationId": "api_v1_schools_me_authorized_pickups_create",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "created"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/schools/{school_id}/me/students/{student_id}/authorized_pickups/{id}": {
-      "delete": {
-        "summary": "Delete authorized pickups",
-        "tags": [
-          "Me"
-        ],
-        "operationId": "api_v1_schools_me_authorized_pickups_destroy",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "deleted"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/schools/{school_id}/me/students/{student_id}/health_record": {
-      "get": {
-        "summary": "Show student health records",
-        "tags": [
-          "Me"
-        ],
-        "operationId": "api_v1_schools_me_student_health_records_show",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Update student health records",
-        "tags": [
-          "Me"
-        ],
-        "operationId": "api_v1_schools_me_student_health_records_update",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      },
-      "put": {
-        "summary": "Update student health records",
-        "tags": [
-          "Me"
-        ],
-        "operationId": "api_v1_schools_me_student_health_records_update",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
     "/api/v1/schools/{school_id}/me/tax_declarations": {
       "parameters": [
         {
@@ -3478,6 +4295,71 @@
           }
         }
       ],
+      "get": {
+        "summary": "Show school module flags",
+        "tags": [
+          "Backoffice",
+          "School Modules"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "backoffice reads module map",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "modules"
+                      ],
+                      "properties": {
+                        "modules": {
+                          "type": "object",
+                          "description": "Module enablement map keyed by module_key",
+                          "additionalProperties": {
+                            "type": "boolean"
+                          },
+                          "example": {
+                            "communication": true,
+                            "academic": true,
+                            "billing": false,
+                            "documents": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "staff without backoffice role"
+          },
+          "404": {
+            "description": "invalid school id"
+          }
+        }
+      },
       "patch": {
         "summary": "Update school module flags",
         "tags": [
@@ -4232,475 +5114,6 @@
             "description": "cross-school student access denied"
           }
         }
-      },
-      "patch": {
-        "summary": "Update students",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_students_update",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      },
-      "put": {
-        "summary": "Update students",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_students_update",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete students",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_students_destroy",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "deleted"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/schools/{school_id}/people/students/{id}/activate": {
-      "post": {
-        "summary": "Activate — students",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_students_activate",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "created"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/schools/{school_id}/people/students/{student_id}/authorized_pickups": {
-      "get": {
-        "summary": "List authorized pickups",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_authorized_pickups_index",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/schools/{school_id}/people/students/{student_id}/guardians": {
-      "parameters": [
-        {
-          "name": "school_id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "integer"
-          }
-        },
-        {
-          "name": "student_id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "integer"
-          }
-        }
-      ],
-      "post": {
-        "summary": "Link guardian to student",
-        "tags": [
-          "People"
-        ],
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "student_guardian link created"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "student_guardian": {
-                    "type": "object",
-                    "properties": {
-                      "guardian_id": {
-                        "type": "integer"
-                      },
-                      "financial_percentage": {
-                        "type": "number"
-                      },
-                      "primary_guardian": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "guardian_id"
-                    ]
-                  }
-                },
-                "required": [
-                  "student_guardian"
-                ]
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "summary": "List student guardians",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_student_guardians_index",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      }
-    },
-    "/api/v1/schools/{school_id}/people/students/{student_id}/health_record": {
-      "get": {
-        "summary": "Show student health records",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_student_health_records_show",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Update student health records",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_student_health_records_update",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      },
-      "put": {
-        "summary": "Update student health records",
-        "tags": [
-          "People"
-        ],
-        "operationId": "api_v1_schools_people_student_health_records_update",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "student_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
       }
     },
     "/api/v1/schools/{school_id}/permission_definitions": {
@@ -4736,6 +5149,49 @@
         "responses": {
           "200": {
             "description": "returns the platform permission catalog"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/provisioning/resend_invites": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Resend pending provisioning invites",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pending invites re-queued"
+          },
+          "429": {
+            "description": "rate limited on repeated resend"
+          },
+          "403": {
+            "description": "forbidden outside provisioning school"
           }
         }
       }
@@ -5723,151 +6179,13 @@
         ],
         "responses": {
           "200": {
-            "description": "schools filtered by onboarding status and mode"
+            "description": "discarded schools listed when discarded=true"
           },
           "422": {
             "description": "invalid created_after date"
           },
           "403": {
             "description": "forbidden for guardian"
-          }
-        }
-      }
-    },
-    "/api/v1/platform/audits": {
-      "get": {
-        "summary": "List platform audits",
-        "tags": [
-          "Backoffice",
-          "Platform Audits"
-        ],
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "school_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "action",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "date_from",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "date_to",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "backoffice reads paginated audits newest first"
-          },
-          "422": {
-            "description": "invalid date_from"
-          },
-          "403": {
-            "description": "staff without backoffice role"
-          }
-        }
-      }
-    },
-    "/api/v1/platform/operators": {
-      "get": {
-        "summary": "List platform operators",
-        "tags": [
-          "Backoffice",
-          "Platform"
-        ],
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "backoffice reads operator permissions"
-          },
-          "403": {
-            "description": "staff without backoffice role"
-          }
-        }
-      }
-    },
-    "/api/v1/schools/{school_id}/provisioning/resend_invites": {
-      "post": {
-        "summary": "Resend pending provisioning invites",
-        "tags": [
-          "Backoffice"
-        ],
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "pending invites re-queued"
-          },
-          "429": {
-            "description": "rate limited on repeated resend"
-          },
-          "403": {
-            "description": "forbidden outside provisioning school"
           }
         }
       }
@@ -6006,6 +6324,40 @@
           }
         }
       ],
+      "get": {
+        "summary": "Show school",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "description": "Backoffice embeds: modules, active_school_year, aggregate_counts",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "school admin show without backoffice embeds"
+          }
+        }
+      },
       "delete": {
         "summary": "Soft delete school",
         "tags": [
@@ -6030,19 +6382,7 @@
             "description": "school discarded"
           }
         }
-      }
-    },
-    "/api/v1/schools/{id}/restore": {
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
+      },
       "post": {
         "summary": "Restore discarded school",
         "tags": [

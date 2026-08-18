@@ -3,18 +3,42 @@ import { Link as RouterLink, useParams } from 'react-router';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Grid from '@mui/material/Grid';
+import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { EmptyState, PageHeader, SectionCard, SemanticChip } from 'design-system';
+import { EmptyState, ErrorBanner, PageHeader, SectionCard, SemanticChip } from 'design-system';
 import SchoolModulesSection from 'components/sections/schools/SchoolModulesSection';
 import { useTranslation } from 'providers/I18nContext';
 import { useAuth } from 'providers/AuthContext';
 import paths from 'routes/paths';
 import { ApiError } from 'services/api';
+import {
+  endImpersonation,
+  openSchoolSpaAsImpersonatedUser,
+  startImpersonation,
+} from 'services/impersonationsApi';
+import { listMemberships } from 'services/peopleApi';
+import {
+  assignSchoolToGroup,
+  getSchoolGroup,
+  listSchoolGroups,
+  unassignSchoolFromGroup,
+} from 'services/schoolGroupsApi';
 import { getSchoolDetail } from 'services/schoolsApi';
+import { listSubscriptions } from 'services/subscriptionsApi';
+import { Membership } from 'types/auth';
+import { SchoolGroup } from 'types/schoolGroup';
 import { SchoolDetail as SchoolDetailData } from 'types/school';
+import { PlatformSubscription } from 'types/subscription';
+import { ImpersonationSession } from 'types/impersonation';
 import { SCHOOL_MODULE_KEYS } from 'types/modules';
+import { canManageBackofficeOps } from 'utils/platformPermissions';
 import { isBackofficeUser } from 'utils/onboarding/access';
 
 const ONBOARDING_STATUS_CHIP: Record<
@@ -61,16 +85,46 @@ const formatDate = (iso: string | undefined) => {
   });
 };
 
+const IMPERSONATION_TEMPLATE_KEYS = new Set(['director', 'secretary']);
+
+const isImpersonationTarget = (membership: Membership) =>
+  membership.status === 'active' &&
+  membership.role === 'staff' &&
+  membership.role_template?.system_key != null &&
+  IMPERSONATION_TEMPLATE_KEYS.has(membership.role_template.system_key);
+
+const formatCurrency = (cents: number) =>
+  (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
 const SchoolDetail = () => {
   const { t } = useTranslation();
   const { schoolId: schoolIdParam } = useParams();
   const schoolId = Number(schoolIdParam);
   const { user } = useAuth();
   const backoffice = isBackofficeUser(user?.memberships ?? []);
+  const canImpersonate = canManageBackofficeOps(user);
 
   const [school, setSchool] = useState<SchoolDetailData | null>(null);
+  const [schoolGroup, setSchoolGroup] = useState<SchoolGroup | null>(null);
+  const [subscription, setSubscription] = useState<PlatformSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+
+  const [impersonationOpen, setImpersonationOpen] = useState(false);
+  const [impersonationTargets, setImpersonationTargets] = useState<Membership[]>([]);
+  const [impersonationLoading, setImpersonationLoading] = useState(false);
+  const [selectedMembershipId, setSelectedMembershipId] = useState('');
+  const [impersonationError, setImpersonationError] = useState('');
+  const [impersonationStarting, setImpersonationStarting] = useState(false);
+  const [activeImpersonation, setActiveImpersonation] = useState<ImpersonationSession | null>(null);
+  const [impersonationEnding, setImpersonationEnding] = useState(false);
+
+  const [groupAssignOpen, setGroupAssignOpen] = useState(false);
+  const [availableGroups, setAvailableGroups] = useState<SchoolGroup[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [groupAssignLoading, setGroupAssignLoading] = useState(false);
+  const [groupAssignError, setGroupAssignError] = useState('');
+  const [groupAssignSaving, setGroupAssignSaving] = useState(false);
 
   useEffect(() => {
     if (!backoffice || !Number.isFinite(schoolId)) {
@@ -88,6 +142,24 @@ const SchoolDetail = () => {
         const data = await getSchoolDetail(schoolId);
         if (!cancelled) {
           setSchool(data);
+
+          const groupPromise =
+            data.school_group_id != null
+              ? getSchoolGroup(data.school_group_id).catch(() => null)
+              : Promise.resolve(null);
+          const subscriptionPromise = listSubscriptions(1, {
+            school_id: String(schoolId),
+          }).catch(() => null);
+
+          const [group, subscriptionResponse] = await Promise.all([
+            groupPromise,
+            subscriptionPromise,
+          ]);
+
+          if (!cancelled) {
+            setSchoolGroup(group);
+            setSubscription(subscriptionResponse?.data[0] ?? null);
+          }
         }
       } catch (error) {
         if (!cancelled) {
@@ -125,6 +197,148 @@ const SchoolDetail = () => {
       />
     ));
   }, [school?.modules, t]);
+
+  const openImpersonationDialog = async () => {
+    if (!school) {
+      return;
+    }
+
+    setImpersonationOpen(true);
+    setImpersonationError('');
+    setSelectedMembershipId('');
+    setImpersonationLoading(true);
+
+    try {
+      const response = await listMemberships(school.id, 1);
+      setImpersonationTargets(response.data.filter(isImpersonationTarget));
+    } catch (error) {
+      setImpersonationTargets([]);
+      setImpersonationError(
+        error instanceof ApiError
+          ? error.message
+          : t('backoffice.schoolDetail.impersonation.loadError'),
+      );
+    } finally {
+      setImpersonationLoading(false);
+    }
+  };
+
+  const handleStartImpersonation = async () => {
+    if (!school || !selectedMembershipId) {
+      return;
+    }
+
+    setImpersonationStarting(true);
+    setImpersonationError('');
+
+    try {
+      const session = await startImpersonation({
+        school_id: school.id,
+        target_membership_id: Number(selectedMembershipId),
+      });
+      openSchoolSpaAsImpersonatedUser(session);
+      setActiveImpersonation(session);
+      setImpersonationOpen(false);
+    } catch (error) {
+      setImpersonationError(
+        error instanceof ApiError
+          ? error.message
+          : t('backoffice.schoolDetail.impersonation.startError'),
+      );
+    } finally {
+      setImpersonationStarting(false);
+    }
+  };
+
+  const handleEndImpersonation = async () => {
+    if (!activeImpersonation) {
+      return;
+    }
+
+    setImpersonationEnding(true);
+
+    try {
+      await endImpersonation(activeImpersonation.id);
+      setActiveImpersonation(null);
+    } catch (error) {
+      setImpersonationError(
+        error instanceof ApiError
+          ? error.message
+          : t('backoffice.schoolDetail.impersonation.endError'),
+      );
+    } finally {
+      setImpersonationEnding(false);
+    }
+  };
+
+  const openGroupAssignDialog = async () => {
+    setGroupAssignOpen(true);
+    setGroupAssignError('');
+    setSelectedGroupId('');
+    setGroupAssignLoading(true);
+
+    try {
+      const response = await listSchoolGroups(1);
+      setAvailableGroups(response.data);
+    } catch (error) {
+      setAvailableGroups([]);
+      setGroupAssignError(
+        error instanceof ApiError
+          ? error.message
+          : t('backoffice.schoolDetail.schoolGroupLoadError'),
+      );
+    } finally {
+      setGroupAssignLoading(false);
+    }
+  };
+
+  const handleAssignGroup = async () => {
+    if (!school || !selectedGroupId) {
+      return;
+    }
+
+    setGroupAssignSaving(true);
+    setGroupAssignError('');
+
+    try {
+      await assignSchoolToGroup(Number(selectedGroupId), school.id);
+      const group = await getSchoolGroup(Number(selectedGroupId));
+      setSchool((current) => (current ? { ...current, school_group_id: group.id } : current));
+      setSchoolGroup(group);
+      setGroupAssignOpen(false);
+    } catch (error) {
+      setGroupAssignError(
+        error instanceof ApiError
+          ? error.message
+          : t('backoffice.schoolDetail.schoolGroupAssignError'),
+      );
+    } finally {
+      setGroupAssignSaving(false);
+    }
+  };
+
+  const handleUnassignGroup = async () => {
+    if (!school?.school_group_id) {
+      return;
+    }
+
+    setGroupAssignSaving(true);
+    setGroupAssignError('');
+
+    try {
+      await unassignSchoolFromGroup(school.school_group_id, school.id);
+      setSchool((current) => (current ? { ...current, school_group_id: null } : current));
+      setSchoolGroup(null);
+    } catch (error) {
+      setGroupAssignError(
+        error instanceof ApiError
+          ? error.message
+          : t('backoffice.schoolDetail.schoolGroupUnassignError'),
+      );
+    } finally {
+      setGroupAssignSaving(false);
+    }
+  };
 
   if (!backoffice) {
     window.location.assign('/app/');
@@ -203,6 +417,37 @@ const SchoolDetail = () => {
               <Typography variant="body1">—</Typography>
             )}
           </Grid>
+          {school.school_group_id != null && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {t('backoffice.schoolDetail.schoolGroup')}
+              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                <SemanticChip
+                  variant="info"
+                  label={schoolGroup?.name ?? `#${school.school_group_id}`}
+                />
+                <Button
+                  size="small"
+                  variant="text"
+                  disabled={groupAssignSaving}
+                  onClick={handleUnassignGroup}
+                >
+                  {t('backoffice.schoolDetail.schoolGroupUnassign')}
+                </Button>
+              </Stack>
+            </Grid>
+          )}
+          {school.school_group_id == null && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {t('backoffice.schoolDetail.schoolGroup')}
+              </Typography>
+              <Button size="small" variant="outlined" onClick={openGroupAssignDialog}>
+                {t('backoffice.schoolDetail.schoolGroupAssign')}
+              </Button>
+            </Grid>
+          )}
           <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="body2" color="text.secondary">
               {t('backoffice.schoolDetail.onboardingMode')}
@@ -261,6 +506,93 @@ const SchoolDetail = () => {
         />
       </SectionCard>
 
+      <SectionCard title={t('backoffice.schoolDetail.billingTitle')} padding={3.5}>
+        {subscription ? (
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Typography variant="body2" color="text.secondary">
+                {t('backoffice.schoolDetail.billingPlan')}
+              </Typography>
+              <Typography variant="body1">
+                {subscription.platform_plan?.name ?? `#${subscription.platform_plan_id}`}
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {t('backoffice.schoolDetail.billingStatus')}
+              </Typography>
+              <SemanticChip
+                variant={
+                  subscription.status === 'active'
+                    ? 'success'
+                    : subscription.status === 'trial'
+                      ? 'warning'
+                      : 'error'
+                }
+                label={t(`backoffice.subscriptions.status.${subscription.status}`)}
+              />
+            </Grid>
+            {subscription.platform_plan?.monthly_amount_cents != null && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('backoffice.schoolDetail.billingAmount')}
+                </Typography>
+                <Typography variant="body1">
+                  {formatCurrency(subscription.platform_plan.monthly_amount_cents)}
+                </Typography>
+              </Grid>
+            )}
+            {subscription.status === 'past_due' && subscription.current_period_end && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('backoffice.schoolDetail.billingDueDate')}
+                </Typography>
+                <Typography variant="body1" color="error.main">
+                  {formatDate(subscription.current_period_end)}
+                </Typography>
+              </Grid>
+            )}
+          </Grid>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            {t('backoffice.schoolDetail.billingEmpty')}
+          </Typography>
+        )}
+      </SectionCard>
+
+      {canImpersonate && (
+        <SectionCard title={t('backoffice.schoolDetail.impersonation.title')} padding={3.5}>
+          <Stack spacing={1.5}>
+            <Typography variant="body2" color="text.secondary">
+              {t('backoffice.schoolDetail.impersonation.description')}
+            </Typography>
+            {activeImpersonation && (
+              <Stack spacing={1} data-testid="active-impersonation">
+                <Typography variant="body2">
+                  {t('backoffice.schoolDetail.impersonation.activeSession', {
+                    school: activeImpersonation.school_name,
+                    expires: formatDate(activeImpersonation.expires_at),
+                  })}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  sx={{ alignSelf: 'flex-start' }}
+                  disabled={impersonationEnding}
+                  onClick={handleEndImpersonation}
+                >
+                  {t('backoffice.schoolDetail.impersonation.endSession')}
+                </Button>
+              </Stack>
+            )}
+            <Button variant="outlined" size="small" sx={{ alignSelf: 'flex-start' }} onClick={openImpersonationDialog}>
+              {t('backoffice.schoolDetail.impersonation.launch')}
+            </Button>
+          </Stack>
+        </SectionCard>
+      )}
+
       {showProvisioningLinks && (
         <SectionCard title={t('backoffice.schoolDetail.quickLinksTitle')} padding={3.5}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} flexWrap="wrap">
@@ -295,6 +627,103 @@ const SchoolDetail = () => {
           </Stack>
         </SectionCard>
       )}
+
+      <Dialog open={impersonationOpen} onClose={() => !impersonationStarting && setImpersonationOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>{t('backoffice.schoolDetail.impersonation.dialogTitle')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            {impersonationError && <ErrorBanner message={impersonationError} />}
+            {impersonationLoading ? (
+              <CircularProgress size={28} />
+            ) : impersonationTargets.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                {t('backoffice.schoolDetail.impersonation.noTargets')}
+              </Typography>
+            ) : (
+              <TextField
+                label={t('backoffice.schoolDetail.impersonation.selectStaff')}
+                value={selectedMembershipId}
+                onChange={(event) => setSelectedMembershipId(event.target.value)}
+                select
+                fullWidth
+                variant="filled"
+              >
+                {impersonationTargets.map((membership) => (
+                  <MenuItem key={membership.id} value={String(membership.id)}>
+                    {membership.display_title ?? membership.role_template?.name ?? membership.email} (
+                    {membership.role_template?.system_key})
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setImpersonationOpen(false)} disabled={impersonationStarting}>
+            {t('backoffice.schoolDetail.impersonation.cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            disabled={
+              impersonationStarting ||
+              impersonationLoading ||
+              !selectedMembershipId ||
+              impersonationTargets.length === 0
+            }
+            onClick={handleStartImpersonation}
+          >
+            {t('backoffice.schoolDetail.impersonation.confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={groupAssignOpen}
+        onClose={() => !groupAssignSaving && setGroupAssignOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{t('backoffice.schoolDetail.schoolGroupAssignTitle')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            {groupAssignError && <ErrorBanner message={groupAssignError} />}
+            {groupAssignLoading ? (
+              <CircularProgress size={28} />
+            ) : availableGroups.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                {t('backoffice.schoolDetail.schoolGroupEmpty')}
+              </Typography>
+            ) : (
+              <TextField
+                label={t('backoffice.schoolDetail.schoolGroupSelect')}
+                value={selectedGroupId}
+                onChange={(event) => setSelectedGroupId(event.target.value)}
+                select
+                fullWidth
+                variant="filled"
+              >
+                {availableGroups.map((group) => (
+                  <MenuItem key={group.id} value={String(group.id)}>
+                    {group.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGroupAssignOpen(false)} disabled={groupAssignSaving}>
+            {t('backoffice.schoolDetail.impersonation.cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            disabled={groupAssignSaving || groupAssignLoading || !selectedGroupId}
+            onClick={handleAssignGroup}
+          >
+            {t('backoffice.schoolDetail.schoolGroupAssignConfirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };

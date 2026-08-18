@@ -386,26 +386,36 @@ does not assume indefinite storage.
 
 - [ ] Format of the partnership with the Sindicato (commercial, pricing)?
 - [ ] **Platform billing model (DLA → school SaaS)** — per student, per school, flat plan, or
-      hybrid? Blocks E3 [`backoffice-platform-billing-p2.md`](prds/platform-and-admin/backoffice-platform-billing-p2.md)
-      and analytics MRR. Related: enterprise **multi-unit** pricing per group vs per campus
-      ([`backoffice-multi-unit-p2.md`](prds/platform-and-admin/backoffice-multi-unit-p2.md)).
+      hybrid? **E3 MVP decided flat monthly plan** (see Platform & admin section); proration and
+      enterprise multi-unit pricing per group vs per campus remain open for post-E3.
       See also [`backoffice-evolution.md`](prds/platform-and-admin/backoffice-evolution.md) BR-BOE08.
 
 ## Platform & admin (backoffice evolution P2)
 
 Decisions blocking E3 slices in [`backoffice-evolution.md`](prds/platform-and-admin/backoffice-evolution.md).
 
-- [ ] **Impersonation policy** — who may impersonate (all backoffice vs subset); target roles
-      (director/secretary only); session TTL; mandatory banner text; whether guardian impersonation
-      is ever allowed (default **no** — LGPD); audit retention; legal basis for accessing children's
-      data during support. Blocks [`backoffice-impersonation-p2.md`](prds/platform-and-admin/backoffice-impersonation-p2.md)
-      (BR-BOE07).
-- [ ] **Impersonation token scope** — school SPA only vs API-wide; refresh behavior; concurrent
-      sessions per operator.
-- [ ] **Platform SaaS payment collection** — manual invoicing vs integrated gateway for DLA
-      receivables in first P2 ship.
-- [ ] **Help taxonomy persona list** — align with identity role templates before
+- [x] **Platform billing model (MVP E3)** — **flat monthly plan per school**; catalog keys
+      `starter` / `pro` / `enterprise` with `monthly_amount_cents` on `platform_plans`;
+      `platform_subscriptions.status` is `active` | `trial` | `past_due`; **manual invoicing OK**
+      (no DLA receivables gateway in E3). See [`backoffice-platform-billing-p2.md`](prds/platform-and-admin/backoffice-platform-billing-p2.md).
+- [x] **Multi-unit groups (MVP E3)** — optional `schools.school_group_id`; group has `name` +
+      `headquarters_cnpj`; operator access via `manage_multi_unit` platform permission. No
+      cross-school academic roll-up in P2. See [`backoffice-multi-unit-p2.md`](prds/platform-and-admin/backoffice-multi-unit-p2.md).
+- [x] **Impersonation policy (MVP E3)** — **`manage_backoffice_ops` only**; target staff with
+      system role templates **director** or **secretary** only; **15-minute TTL**; mandatory audit
+      with `impersonating: true`; **no guardian impersonation**. See
+      [`backoffice-impersonation-p2.md`](prds/platform-and-admin/backoffice-impersonation-p2.md).
+- [ ] **Impersonation token scope** — E3 MVP uses **API-wide** scoped JWT (same `/api/v1` as staff);
+      no refresh token for impersonation sessions; concurrent sessions allowed per operator until
+      explicit end or TTL. SPA-only restriction deferred.
+- [x] **Platform SaaS payment collection (MVP E3)** — **manual invoicing** for first P2 ship;
+      subscription state tracked in API; integrated gateway deferred.
+- [x] **Help taxonomy persona list (MVP E3)** — categories with persona tags
+      `secretary` | `director` | `teacher` | `guardian` plus optional `module_key`. See
       [`backoffice-help-taxonomy-p2.md`](prds/platform-and-admin/backoffice-help-taxonomy-p2.md).
+- [x] **Analytics dashboard (MVP E3)** — **aggregate counts only**, no PII; MRR from active/trial
+      subscriptions; `view_analytics_dashboard` or interim `manage_backoffice_ops`. See
+      [`backoffice-analytics-p2.md`](prds/platform-and-admin/backoffice-analytics-p2.md).
 - [ ] **Audit viewer PII display** — redact all `audited_changes` values vs show non-sensitive diffs
       ([`backoffice-audit-viewer.md`](prds/platform-and-admin/backoffice-audit-viewer.md)).
 

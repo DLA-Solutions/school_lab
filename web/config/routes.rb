@@ -32,6 +32,22 @@ Rails.application.routes.draw do
         resource :operational_summary, only: :show, controller: "operational_summary"
         resources :audits, only: :index
         resources :operators, only: :index
+        resources :school_groups do
+          member do
+            get :schools
+            post :assign_school
+            delete "schools/:school_id", action: :unassign_school, as: :unassign_school
+          end
+        end
+        resources :subscriptions, only: %i[index show create update]
+        resources :plans, only: :index
+        namespace :analytics do
+          resource :overview, only: :show, controller: "overview"
+        end
+        resources :impersonations, only: %i[create destroy]
+        namespace :help_taxonomy do
+          resources :categories
+        end
       end
       namespace :me do
         resources :device_tokens, only: :create

@@ -1,5 +1,6 @@
 import { useState, PropsWithChildren } from 'react';
 import Stack from '@mui/material/Stack';
+import ImpersonationBanner from 'components/ImpersonationBanner';
 import Sidebar from 'layouts/main-layout/sidebar';
 import Topbar from 'layouts/main-layout/topbar';
 import Footer from './Footer';
@@ -13,6 +14,7 @@ const MainLayout = ({ children }: PropsWithChildren) => {
 
   return (
     <Stack width={1} minHeight="100vh">
+      <ImpersonationBanner />
       <SkipLink targetId={MAIN_CONTENT_ID}>Skip to main content</SkipLink>
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} setIsClosing={setIsClosing} />
       <Stack

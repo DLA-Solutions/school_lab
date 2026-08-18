@@ -1,9 +1,12 @@
 import { HttpResponse, http } from 'msw';
 import { AuthUser, Membership } from 'types/auth';
 import { PlatformAudit } from 'types/audit';
+import { HelpTaxonomyCategory } from 'types/helpTaxonomy';
 import { SchoolModulesMap } from 'types/modules';
 import { PlatformOperator } from 'types/operator';
+import { SchoolGroup } from 'types/schoolGroup';
 import { School } from 'types/school';
+import { PlatformPlan, PlatformSubscription } from 'types/subscription';
 import { SchoolYear } from 'types/schoolYear';
 import { PlatformUser } from 'types/user';
 import { API_BASE_URL } from 'services/api';
@@ -387,6 +390,99 @@ export const sampleAudits: PlatformAudit[] = [
     auditable_type: 'School',
     changed_keys: ['discarded_at'],
     audited_changes: { discarded_at: [null, '2026-07-01T09:00:00Z'] },
+  },
+];
+
+export const sampleSchoolGroups: SchoolGroup[] = [
+  {
+    id: 1,
+    name: 'Rede ABC',
+    headquarters_cnpj: '00.000.000/0001-91',
+    schools_count: 2,
+    created_at: '2026-01-01T12:00:00Z',
+    updated_at: '2026-01-01T12:00:00Z',
+  },
+  {
+    id: 2,
+    name: 'Grupo Norte',
+    headquarters_cnpj: null,
+    schools_count: 0,
+    created_at: '2026-02-01T12:00:00Z',
+    updated_at: '2026-02-01T12:00:00Z',
+  },
+];
+
+export const samplePlans: PlatformPlan[] = [
+  {
+    id: 1,
+    key: 'starter',
+    name: 'Starter',
+    monthly_amount_cents: 29_900,
+    created_at: '2026-01-01T12:00:00Z',
+    updated_at: '2026-01-01T12:00:00Z',
+  },
+  {
+    id: 2,
+    key: 'pro',
+    name: 'Pro',
+    monthly_amount_cents: 59_900,
+    created_at: '2026-01-01T12:00:00Z',
+    updated_at: '2026-01-01T12:00:00Z',
+  },
+];
+
+export const sampleSubscriptions: PlatformSubscription[] = [
+  {
+    id: 1,
+    school_id: 1,
+    platform_plan_id: 1,
+    status: 'active',
+    trial_ends_at: null,
+    current_period_end: '2026-09-01T00:00:00Z',
+    created_at: '2026-01-15T12:00:00Z',
+    updated_at: '2026-01-15T12:00:00Z',
+    platform_plan: samplePlans[0],
+    school: { id: 1, name: 'Escola Alpha', onboarding_status: 'active' },
+  },
+];
+
+export const defaultAnalyticsOverview = () => ({
+  active_schools: 10,
+  provisioning_count: 2,
+  module_adoption: {
+    communication: 0.9,
+    academic: 0.85,
+    billing: 0.8,
+    documents: 0.75,
+  },
+  mrr_cents: 599_000,
+  onboarding_funnel: {
+    provisioning: 2,
+    pending_handoff: 1,
+    active: 10,
+  },
+});
+
+export const sampleHelpTaxonomyCategories: HelpTaxonomyCategory[] = [
+  {
+    id: 1,
+    name: 'Financeiro',
+    slug: 'financeiro',
+    module_key: 'billing',
+    persona_tags: ['secretary'],
+    position: 1,
+    created_at: '2026-01-01T12:00:00Z',
+    updated_at: '2026-01-01T12:00:00Z',
+  },
+  {
+    id: 2,
+    name: 'Comunicação',
+    slug: 'comunicacao',
+    module_key: 'communication',
+    persona_tags: ['teacher', 'guardian'],
+    position: 2,
+    created_at: '2026-01-02T12:00:00Z',
+    updated_at: '2026-01-02T12:00:00Z',
   },
 ];
 
@@ -1356,5 +1452,326 @@ export const handlers = [
     }
 
     return paginated(charges, new URL(request.url));
+  }),
+
+  http.get(apiUrl('/api/v1/platform/school_groups'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return paginated(sampleSchoolGroups, new URL(request.url));
+  }),
+
+  http.post(apiUrl('/api/v1/platform/school_groups'), async ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const body = (await request.json()) as {
+      school_group?: { name?: string; headquarters_cnpj?: string | null };
+    };
+
+    if (!body.school_group?.name?.trim()) {
+      return jsonError(422, 'validation_error', 'Não foi possível salvar.');
+    }
+
+    const created: SchoolGroup = {
+      id: sampleSchoolGroups.length + 1,
+      name: body.school_group.name.trim(),
+      headquarters_cnpj: body.school_group.headquarters_cnpj ?? null,
+      schools_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    sampleSchoolGroups.push(created);
+
+    return HttpResponse.json({ data: created }, { status: 201 });
+  }),
+
+  http.get(apiUrl('/api/v1/platform/school_groups/:id'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const group = sampleSchoolGroups.find((row) => String(row.id) === String(params.id));
+
+    if (!group) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: group });
+  }),
+
+  http.patch(apiUrl('/api/v1/platform/school_groups/:id'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const group = sampleSchoolGroups.find((row) => String(row.id) === String(params.id));
+
+    if (!group) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as {
+      school_group?: { name?: string; headquarters_cnpj?: string | null };
+    };
+
+    if (body.school_group?.name) {
+      group.name = body.school_group.name;
+    }
+
+    if (body.school_group?.headquarters_cnpj !== undefined) {
+      group.headquarters_cnpj = body.school_group.headquarters_cnpj;
+    }
+
+    group.updated_at = new Date().toISOString();
+
+    return HttpResponse.json({ data: group });
+  }),
+
+  http.delete(apiUrl('/api/v1/platform/school_groups/:id'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const index = sampleSchoolGroups.findIndex((row) => String(row.id) === String(params.id));
+
+    if (index === -1) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    if (sampleSchoolGroups[index]!.schools_count > 0) {
+      return jsonError(409, 'group_has_schools', 'O grupo ainda possui escolas vinculadas.');
+    }
+
+    sampleSchoolGroups.splice(index, 1);
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get(apiUrl('/api/v1/platform/plans'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({ data: samplePlans });
+  }),
+
+  http.get(apiUrl('/api/v1/platform/subscriptions'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const url = new URL(request.url);
+    let rows = [...sampleSubscriptions];
+    const schoolId = url.searchParams.get('school_id');
+    const status = url.searchParams.get('status');
+
+    if (schoolId) {
+      rows = rows.filter((row) => String(row.school_id) === schoolId);
+    }
+
+    if (status) {
+      rows = rows.filter((row) => row.status === status);
+    }
+
+    return paginated(rows, url);
+  }),
+
+  http.post(apiUrl('/api/v1/platform/subscriptions'), async ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const body = (await request.json()) as {
+      subscription?: { school_id?: number; platform_plan_id?: number; status?: string };
+    };
+
+    if (
+      sampleSubscriptions.some((row) => row.school_id === body.subscription?.school_id)
+    ) {
+      return jsonError(409, 'subscription_exists', 'A escola já possui assinatura.');
+    }
+
+    const plan = samplePlans.find((row) => row.id === body.subscription?.platform_plan_id);
+
+    const created: PlatformSubscription = {
+      id: sampleSubscriptions.length + 1,
+      school_id: body.subscription?.school_id ?? 0,
+      platform_plan_id: body.subscription?.platform_plan_id ?? 0,
+      status: (body.subscription?.status as PlatformSubscription['status']) ?? 'active',
+      trial_ends_at: null,
+      current_period_end: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      platform_plan: plan,
+      school: sampleSchools.find((row) => row.id === body.subscription?.school_id)
+        ? {
+            id: body.subscription!.school_id!,
+            name: sampleSchools.find((row) => row.id === body.subscription?.school_id)!.name,
+            onboarding_status: sampleSchools.find((row) => row.id === body.subscription?.school_id)!
+              .onboarding_status ?? null,
+          }
+        : undefined,
+    };
+
+    sampleSubscriptions.push(created);
+
+    return HttpResponse.json({ data: created }, { status: 201 });
+  }),
+
+  http.patch(apiUrl('/api/v1/platform/subscriptions/:id'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const subscription = sampleSubscriptions.find((row) => String(row.id) === String(params.id));
+
+    if (!subscription) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as {
+      subscription?: { platform_plan_id?: number; status?: string };
+    };
+
+    if (body.subscription?.platform_plan_id) {
+      subscription.platform_plan_id = body.subscription.platform_plan_id;
+      subscription.platform_plan = samplePlans.find((row) => row.id === body.subscription!.platform_plan_id);
+    }
+
+    if (body.subscription?.status) {
+      subscription.status = body.subscription.status as PlatformSubscription['status'];
+    }
+
+    subscription.updated_at = new Date().toISOString();
+
+    return HttpResponse.json({ data: subscription });
+  }),
+
+  http.get(apiUrl('/api/v1/platform/analytics/overview'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({ data: defaultAnalyticsOverview() });
+  }),
+
+  http.post(apiUrl('/api/v1/platform/impersonations'), async ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const body = (await request.json()) as {
+      impersonation?: { school_id?: number; target_membership_id?: number };
+    };
+
+    const school = sampleSchools.find((row) => row.id === body.impersonation?.school_id);
+
+    return HttpResponse.json(
+      {
+        data: {
+          id: 1,
+          operator_user_id: backofficeOpsUser.id,
+          target_user_id: 2,
+          school_id: body.impersonation?.school_id ?? 0,
+          target_membership_id: body.impersonation?.target_membership_id ?? 0,
+          expires_at: '2026-08-18T20:00:00Z',
+          ended_at: null,
+          created_at: new Date().toISOString(),
+          operator_email: backofficeOpsUser.email,
+          school_name: school?.name ?? 'Escola',
+          active: true,
+          access_token: 'impersonation-access-token',
+          access_expires_at: '2026-08-18T20:00:00Z',
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
+  http.get(apiUrl('/api/v1/platform/help_taxonomy/categories'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return paginated(sampleHelpTaxonomyCategories, new URL(request.url));
+  }),
+
+  http.post(apiUrl('/api/v1/platform/help_taxonomy/categories'), async ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const body = (await request.json()) as {
+      category?: {
+        name?: string;
+        module_key?: string | null;
+        persona_tags?: string[];
+        position?: number;
+      };
+    };
+
+    if (!body.category?.name?.trim()) {
+      return jsonError(422, 'validation_error', 'Não foi possível salvar.');
+    }
+
+    const created: HelpTaxonomyCategory = {
+      id: sampleHelpTaxonomyCategories.length + 1,
+      name: body.category.name.trim(),
+      slug: body.category.name.trim().toLowerCase().replace(/\s+/g, '-'),
+      module_key: body.category.module_key ?? null,
+      persona_tags: (body.category.persona_tags ?? []) as HelpTaxonomyCategory['persona_tags'],
+      position: body.category.position ?? 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    sampleHelpTaxonomyCategories.push(created);
+
+    return HttpResponse.json({ data: created }, { status: 201 });
+  }),
+
+  http.patch(apiUrl('/api/v1/platform/help_taxonomy/categories/:id'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const category = sampleHelpTaxonomyCategories.find(
+      (row) => String(row.id) === String(params.id),
+    );
+
+    if (!category) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as {
+      category?: Partial<HelpTaxonomyCategory>;
+    };
+
+    Object.assign(category, body.category);
+    category.updated_at = new Date().toISOString();
+
+    return HttpResponse.json({ data: category });
+  }),
+
+  http.delete(apiUrl('/api/v1/platform/help_taxonomy/categories/:id'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const index = sampleHelpTaxonomyCategories.findIndex(
+      (row) => String(row.id) === String(params.id),
+    );
+
+    if (index === -1) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    sampleHelpTaxonomyCategories.splice(index, 1);
+
+    return new HttpResponse(null, { status: 204 });
   }),
 ];

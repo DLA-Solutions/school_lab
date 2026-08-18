@@ -1,4 +1,4 @@
-import { AuthUser, Membership, RoleTemplate, SchoolModuleKey } from 'types/auth';
+import { AuthUser, ImpersonationContext, Membership, RoleTemplate, SchoolModuleKey } from 'types/auth';
 
 const SCHOOL_MODULE_KEYS: SchoolModuleKey[] = ['communication', 'academic', 'billing', 'documents'];
 
@@ -66,6 +66,23 @@ export const parseMembership = (raw: unknown): Membership => {
   };
 };
 
+const parseImpersonation = (value: unknown): ImpersonationContext | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const impersonation = value as Record<string, unknown>;
+
+  return {
+    active: Boolean(impersonation.active),
+    operator_email:
+      typeof impersonation.operator_email === 'string' ? impersonation.operator_email : null,
+    school_name: typeof impersonation.school_name === 'string' ? impersonation.school_name : null,
+    session_id: typeof impersonation.session_id === 'number' ? impersonation.session_id : null,
+    expires_at: typeof impersonation.expires_at === 'string' ? impersonation.expires_at : null,
+  };
+};
+
 export const parseAuthUser = (raw: unknown): AuthUser | null => {
   if (raw == null) {
     return null;
@@ -81,5 +98,6 @@ export const parseAuthUser = (raw: unknown): AuthUser | null => {
       ? user.memberships.map(parseMembership)
       : [],
     guardian_profiles: Array.isArray(user.guardian_profiles) ? user.guardian_profiles : [],
+    impersonation: parseImpersonation(user.impersonation),
   };
 };

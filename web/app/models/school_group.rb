@@ -4,4 +4,6 @@ class SchoolGroup < ApplicationRecord
   include Discard::Model
 
   has_many :schools, dependent: :restrict_with_error
+
+  validates :name, presence: true
 end

@@ -57,6 +57,71 @@ Table school_modules {
   }
 }
 
+Table platform_plans {
+  id integer [primary key, increment]
+  key varchar [not null, note: 'starter | pro | enterprise']
+  name varchar [not null]
+  monthly_amount_cents integer [not null]
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    key [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+  }
+}
+
+Table platform_subscriptions {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  platform_plan_id integer [not null]
+  status varchar [not null, default: 'active', note: 'active | trial | past_due']
+  trial_ends_at timestamp
+  current_period_end timestamp
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    school_id [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL — one active subscription per school']
+    status
+  }
+}
+
+Table platform_impersonation_sessions {
+  id integer [primary key, increment]
+  operator_user_id integer [not null, note: 'users.id — backoffice operator']
+  target_user_id integer [not null, note: 'users.id — impersonated staff user']
+  school_id integer [not null]
+  target_membership_id integer [not null]
+  expires_at timestamp [not null, note: '15-minute TTL']
+  ended_at timestamp [note: 'Set when operator ends session']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    expires_at
+    ended_at
+  }
+}
+
+Table help_taxonomy_categories {
+  id integer [primary key, increment]
+  name varchar [not null]
+  slug varchar [not null]
+  module_key varchar [note: 'Optional — communication | academic | billing | documents']
+  persona_tags jsonb [not null, default: '[]', note: 'secretary | director | teacher | guardian']
+  position integer [not null, default: 0]
+  discarded_at timestamp [note: 'Discard gem — null = kept']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    slug [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
+    position
+  }
+}
+
 // --- Identity (Devise) ---
 
 Table users {
@@ -1480,6 +1545,13 @@ Table guardian_requests {
 
 Ref: schools.school_group_id > school_groups.id
 Ref: schools.discarded_by_id > users.id
+
+Ref: platform_subscriptions.school_id > schools.id
+Ref: platform_subscriptions.platform_plan_id > platform_plans.id
+Ref: platform_impersonation_sessions.operator_user_id > users.id
+Ref: platform_impersonation_sessions.target_user_id > users.id
+Ref: platform_impersonation_sessions.school_id > schools.id
+Ref: platform_impersonation_sessions.target_membership_id > memberships.id
 
 Ref: memberships.user_id > users.id
 Ref: memberships.school_id > schools.id

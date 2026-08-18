@@ -126,9 +126,25 @@ school-scoped; personal reads additionally require owner scope. Creation, edits,
 be audited. The retention window for calendar text remains pending legal validation; do not assume
 indefinite storage.
 
+- [x] Help taxonomy CMS: same SPA — `/help-taxonomy` in backoffice (E3 shipped)
+
+## E3 P2 — platform ops entities (Aug 2026)
+
+| Table | Role |
+|-------|------|
+| `school_groups` | Optional network/holding container; `schools.school_group_id` nullable FK |
+| `platform_plans` | Seeded SaaS catalog (`starter` / `pro` / `enterprise`) with `monthly_amount_cents` |
+| `platform_subscriptions` | One kept subscription per school; status `active` \| `trial` \| `past_due` |
+| `platform_impersonation_sessions` | Short-lived support sessions; operator + target staff + school scope |
+| `help_taxonomy_categories` | Operator-maintained help structure; `persona_tags` jsonb + optional `module_key` |
+
+Platform-scoped tables have no `school_id` except subscriptions and impersonation sessions (which
+reference `school_id` for tenancy context). Cross-tenant analytics reads aggregate only.
+
 ## Out of scope
 
 - `menu_visibility_overrides` and `school_product_settings`.
 - A separate `personal_calendar_events` table.
 - Recurring events and automatic publication to communication.
-- Multi-unit roll-up years, transport routes, and analytics dashboards.
+- Multi-unit roll-up years, transport routes.
+- Pre-aggregated analytics materialized views (E3 uses live aggregates).
