@@ -1,4 +1,4 @@
-import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, KeyboardEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
@@ -33,6 +33,7 @@ import {
 } from 'services/usersApi';
 import { PlatformOperator } from 'types/operator';
 import { PlatformUser, UserStatus } from 'types/user';
+import { canManageBackofficeOps } from 'utils/platformPermissions';
 
 const PAGE_SIZE = 25;
 const ALL_FILTER = 'all';
@@ -68,7 +69,8 @@ const formatMembership = (membership: PlatformUser['memberships'][number]) => {
   return `${roleLabel} — ${membership.school_name}`;
 };
 
-const parseUsersTab = (value: string | null): UsersTab => (value === 'operators' ? 'operators' : 'users');
+const parseUsersTab = (value: string | null, showOperatorsTab: boolean): UsersTab =>
+  value === 'operators' && showOperatorsTab ? 'operators' : 'users';
 
 /**
  * Platform user register — search, list, and disable/enable accounts for backoffice operators.
@@ -77,8 +79,11 @@ const Users = () => {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const showOperatorsTab = canManageBackofficeOps(currentUser);
 
-  const [activeTab, setActiveTab] = useState<UsersTab>(() => parseUsersTab(searchParams.get('tab')));
+  const [activeTab, setActiveTab] = useState<UsersTab>(() =>
+    parseUsersTab(searchParams.get('tab'), showOperatorsTab),
+  );
 
   const [users, setUsers] = useState<PlatformUser[]>([]);
   const [operators, setOperators] = useState<PlatformOperator[]>([]);
@@ -107,11 +112,18 @@ const Users = () => {
   const hasActiveFilters = Boolean(searchQuery) || statusFilter !== ALL_FILTER;
 
   useEffect(() => {
+    if (activeTab === 'operators' && !showOperatorsTab) {
+      setActiveTab('users');
+    }
+  }, [activeTab, showOperatorsTab]);
+
+  useEffect(() => {
     let cancelled = false;
 
     const run = async () => {
       setLoading(true);
       setError('');
+      setForbidden(false);
 
       try {
         if (activeTab === 'operators') {
@@ -136,7 +148,11 @@ const Users = () => {
           setTotal(0);
 
           if (err instanceof ApiError && err.status === 403) {
-            setForbidden(true);
+            if (activeTab === 'users') {
+              setForbidden(true);
+            } else {
+              setError(err.message);
+            }
           } else {
             setError(
               err instanceof ApiError
@@ -178,6 +194,7 @@ const Users = () => {
   const reload = async () => {
     setLoading(true);
     setError('');
+    setForbidden(false);
 
     try {
       if (activeTab === 'operators') {
@@ -246,6 +263,12 @@ const Users = () => {
       );
       setPendingEnable(null);
     }
+  };
+
+  const handleTabChange = (_event: SyntheticEvent, value: UsersTab) => {
+    setActiveTab(value);
+    setError('');
+    setForbidden(false);
   };
 
   const isCurrentUser = (row: PlatformUser) => row.id === currentUser?.id;
@@ -437,12 +460,11 @@ const Users = () => {
         }
       />
 
-      <Tabs
-        value={activeTab}
-        onChange={(_event, value: UsersTab) => setActiveTab(value)}
-      >
+      <Tabs value={activeTab} onChange={handleTabChange}>
         <Tab value="users" label={t('backoffice.users.tab.users')} />
-        <Tab value="operators" label={t('backoffice.users.tab.operators')} />
+        {showOperatorsTab ? (
+          <Tab value="operators" label={t('backoffice.users.tab.operators')} />
+        ) : null}
       </Tabs>
 
       {error && <ErrorBanner message={error} />}

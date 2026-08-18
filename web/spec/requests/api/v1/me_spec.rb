@@ -130,6 +130,35 @@ RSpec.describe "Api::V1::Me", type: :request do
         end
       end
 
+      response "200", "backoffice membership includes platform permissions" do
+        let(:backoffice_user) { create(:user) }
+        let!(:backoffice_membership) do
+          create(:membership, :with_manage_backoffice_ops, user: backoffice_user)
+        end
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          membership = body.dig("data", "memberships").find { |m| m["role"] == "backoffice" }
+
+          expect(membership["platform_permissions"]).to include("manage_backoffice_ops")
+        end
+      end
+
+      response "200", "non-backoffice membership exposes empty platform permissions" do
+        let(:staff_user) { create(:user) }
+        let(:staff_school) { create(:school, name: "Staff School") }
+        let!(:staff_membership) { create(:membership, :staff, user: staff_user, school: staff_school) }
+        let(:Authorization) { auth_headers_for(staff_user)["Authorization"] }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          membership = body.dig("data", "memberships").find { |m| m["school_id"] == staff_school.id }
+
+          expect(membership["platform_permissions"]).to eq([])
+        end
+      end
+
       response "200", "secretary with grant override exposes grant source" do
         let(:secretary_school) { create(:school, name: "Secretary School") }
         let(:secretary_user) { create(:user) }
