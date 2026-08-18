@@ -1692,6 +1692,14 @@ export const handlers = [
     );
   }),
 
+  http.delete(apiUrl('/api/v1/platform/impersonations/:id'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   http.get(apiUrl('/api/v1/platform/help_taxonomy/categories'), ({ request }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
