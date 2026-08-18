@@ -28,7 +28,7 @@ import {
 } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
-import { ApiError } from 'services/api';
+import { resolveApiErrorMessage } from 'utils/api/resolveApiErrorMessage';
 import {
   activateGuardian,
   fetchGuardiansReport,
@@ -102,7 +102,7 @@ const Guardians = () => {
     } catch (err) {
       setGuardians([]);
       setTotal(0);
-      setError(err instanceof ApiError ? err.message : t('guardians.loadError'));
+      setError(resolveApiErrorMessage(err, t, 'guardians.loadError'));
     } finally {
       setLoading(false);
     }
@@ -163,7 +163,7 @@ const Guardians = () => {
       // school can rely on — a link is on its way to the address on file.
       setAccessSent(t('guardians.accessSent', { email: record.email ?? '' }));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('guardians.accessError'));
+      setError(resolveApiErrorMessage(err, t, 'guardians.accessError'));
     } finally {
       setSendingAccessTo(null);
     }
@@ -180,7 +180,7 @@ const Guardians = () => {
       await activateGuardian(schoolId, record.id);
       load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('guardians.activateError'));
+      setError(resolveApiErrorMessage(err, t, 'guardians.activateError'));
     }
   };
 
@@ -220,7 +220,7 @@ const Guardians = () => {
         load();
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('guardians.deleteError'));
+      setError(resolveApiErrorMessage(err, t, 'guardians.deleteError'));
       setPendingDelete(null);
     } finally {
       setDeleting(false);
