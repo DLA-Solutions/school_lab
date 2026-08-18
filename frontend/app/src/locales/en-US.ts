@@ -1011,6 +1011,9 @@ const enUS: Messages = {
   'plans.discountPercentHelper': '100% equals a full scholarship.',
   'plans.fullPercent': '100% (full)',
 
+  'impersonation.banner.title': 'DLA support mode',
+  'impersonation.banner.detail': 'Operator {operator} · School {school}',
+
   'error404.title': 'Page not found',
   'error404.description': 'The page you are looking for does not exist or has been moved.',
   'error404.home': 'Go back home',

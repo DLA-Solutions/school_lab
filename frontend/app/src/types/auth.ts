@@ -35,12 +35,22 @@ export interface GuardianProfile {
   [key: string]: unknown;
 }
 
+/** Present on GET /me when the access token is an impersonation JWT. */
+export interface ImpersonationContext {
+  active: boolean;
+  operator_email: string | null;
+  school_name: string | null;
+  session_id: number | null;
+  expires_at: string | null;
+}
+
 export interface AuthUser {
   id: number;
   email: string;
   status: string;
   memberships: Membership[];
   guardian_profiles: GuardianProfile[];
+  impersonation?: ImpersonationContext;
 }
 
 /** POST /api/v1/auth/login — `client: 'web'` keeps the refresh token in an httpOnly cookie. */

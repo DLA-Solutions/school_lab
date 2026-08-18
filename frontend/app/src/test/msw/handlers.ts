@@ -23,6 +23,9 @@ export const SCHOOL_ID = 42;
 /** The token the protected handlers accept; `POST /auth/refresh` hands this one out. */
 export const FRESH_ACCESS_TOKEN = 'fresh-access-token';
 
+/** Impersonation JWT used in support sessions from backoffice. */
+export const IMPERSONATION_ACCESS_TOKEN = 'impersonation-access-token';
+
 /** An expired token: protected handlers answer 401, which is what triggers the refresh. */
 export const STALE_ACCESS_TOKEN = 'stale-access-token';
 
@@ -881,9 +884,28 @@ export const handlers = [
     },
   ),
 
-  http.get(apiUrl('/api/v1/me'), ({ request }) =>
-    hasFreshToken(request) ? HttpResponse.json({ data: currentUser }) : expiredToken(),
-  ),
+  http.get(apiUrl('/api/v1/me'), ({ request }) => {
+    const auth = request.headers.get('Authorization');
+
+    if (auth === `Bearer ${IMPERSONATION_ACCESS_TOKEN}`) {
+      return HttpResponse.json({
+        data: {
+          ...staffUser,
+          impersonation: {
+            active: true,
+            operator_email: 'ops@example.com',
+            school_name: staffMembership.school_name,
+            session_id: 1,
+            expires_at: '2026-08-18T20:00:00Z',
+          },
+        },
+      });
+    }
+
+    return hasFreshToken(request)
+      ? HttpResponse.json({ data: currentUser })
+      : expiredToken();
+  }),
 
   http.get(apiUrl('/api/v1/schools'), ({ request }) => {
     if (!hasFreshToken(request)) {

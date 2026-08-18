@@ -3,6 +3,12 @@ import { flushSync } from 'react-dom';
 import { AuthUser } from 'types/auth';
 import { refreshAccessToken } from 'services/api';
 import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from 'services/authApi';
+import {
+  bootstrapImpersonationFromUrl,
+  clearStoredImpersonationToken,
+  getStoredImpersonationExpiresAt,
+  getStoredImpersonationToken,
+} from 'services/impersonationTokenStore';
 import { clearAccessToken, setAccessToken } from 'services/tokenStore';
 import { clearStoredActiveMembershipId } from 'services/activeMembershipStore';
 import { AuthContext, AuthStatus, LoginCredentials } from './AuthContext';
@@ -26,9 +32,20 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const restoreSession = async () => {
       try {
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          throw new Error('no active session');
+        bootstrapImpersonationFromUrl();
+
+        const impersonationToken = getStoredImpersonationToken();
+
+        if (impersonationToken) {
+          setAccessToken(
+            impersonationToken,
+            getStoredImpersonationExpiresAt() ?? new Date(Date.now() + 15 * 60_000).toISOString(),
+          );
+        } else {
+          const refreshed = await refreshAccessToken();
+          if (!refreshed) {
+            throw new Error('no active session');
+          }
         }
 
         const profile = await fetchCurrentUser();
@@ -64,6 +81,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
       // The session is dropped locally even if the revoke call fails.
     } finally {
       clearAccessToken();
+      clearStoredImpersonationToken();
       clearStoredActiveMembershipId();
       setUser(null);
       setStatus('unauthenticated');
