@@ -41,6 +41,46 @@ RSpec.describe "Api::V1::Schools::Modules", type: :request do
   path "/api/v1/schools/{id}/modules" do
     parameter name: :id, in: :path, type: :integer, description: "School tenant identifier"
 
+    get "Show school module flags" do
+      tags "Backoffice", "School Modules"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+
+      response "200", "backoffice reads module map" do
+        schema SCHOOL_MODULES_RESPONSE_SCHEMA
+
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("data", "modules")).to include(
+            "communication" => true,
+            "academic" => true,
+            "billing" => true,
+            "documents" => true
+          )
+        end
+      end
+
+      response "403", "staff without backoffice role" do
+        let(:Authorization) { auth_headers_for(staff_user)["Authorization"] }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("backoffice_only")
+        end
+      end
+
+      response "404", "invalid school id" do
+        let(:Authorization) { auth_headers_for(backoffice_user)["Authorization"] }
+        let(:id) { 999_999 }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("not_found")
+        end
+      end
+    end
+
     patch "Update school module flags" do
       tags "Backoffice"
       consumes "application/json"

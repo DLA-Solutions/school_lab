@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 class SchoolModulePolicy < ApplicationPolicy
+  def show?
+    manage_backoffice_ops?
+  end
+
   def update?
-    backoffice? && platform_with?(:manage_backoffice_ops)
+    manage_backoffice_ops?
   end
 
   class Scope < Scope
@@ -11,5 +15,11 @@ class SchoolModulePolicy < ApplicationPolicy
 
       scope.none
     end
+  end
+
+  private
+
+  def manage_backoffice_ops?
+    backoffice? && platform_with?(:manage_backoffice_ops)
   end
 end
