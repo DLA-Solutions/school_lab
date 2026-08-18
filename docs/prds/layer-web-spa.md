@@ -256,15 +256,16 @@ targets ([`backoffice-evolution.md`](platform-and-admin/backoffice-evolution.md)
 |-------|-------------------|------|---------|
 | `/` , `/dashboard` | Implemented | — | Operational dashboard (KPIs; E1 adds alert widgets) |
 | `/schools` | Implemented | E2 | Tenant list + advanced filters + Arquivadas tab |
-| `/schools/:id` | **Planned** | E1 | Tenant detail — modules, year, counts, quick links |
+| `/schools/:id` | Implemented | E1 | Tenant detail — modules, year, counts, billing, group, impersonation |
 | `/schools/:id/provisioning` | Implemented | E1 | Wizard (+ school year step) |
 | `/schools/:id/activation` | Implemented | — | Handoff checklist |
 | `/schools/:id/bank-credentials` | Implemented | — | Cora mTLS credentials |
 | `/users` | Implemented | E2 | Cross-tenant user list + **Operators tab** (platform permissions read-only) |
-| `/audits` | **Planned** | E2 | Platform audit viewer |
-| `/analytics` | **Planned** | E3 P2 | Cross-tenant KPI dashboard |
-| `/school-groups` | **Planned** | E3 P2 | Multi-unit group CRUD |
-| `/help-taxonomy` | **Planned** | E3 P2 | Help category/persona CMS (optional separate menu) |
+| `/audits` | Implemented | E2 | Platform audit viewer |
+| `/analytics` | Implemented | E3 P2 | Cross-tenant KPI dashboard |
+| `/school-groups` | Implemented | E3 P2 | Multi-unit group CRUD + school assignment |
+| `/subscriptions` | Implemented | E3 P2 | Platform SaaS subscription management |
+| `/help-taxonomy` | Implemented | E3 P2 | Help category/persona CMS |
 
 Implementation paths: `frontend/backoffice/src/routes/paths.ts`, `router.tsx`, `sitemap.ts`.
 Auth: backoffice JWT role only; school staff redirected to `/app` (AC-BO04).

@@ -405,8 +405,72 @@ Module PATCH (implemented):
 | `429` | `rate_limited` | Invite resend throttled |
 
 E3 P2 routes (`/platform/subscriptions`, `/platform/impersonations`, `/platform/analytics/overview`,
-`/platform/school_groups`, help taxonomy) remain **draft** in slice PRDs until modeling and open
-questions close.
+`/platform/school_groups`, help taxonomy) are **implemented** per MVP decisions in
+[`open-questions.md`](../../open-questions.md) § Platform & admin.
+
+### E3 — Multi-unit, billing, analytics, impersonation, help taxonomy (P2)
+
+Base: `/api/v1/platform`
+
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/school_groups` | `manage_multi_unit` | Paginated list of school groups |
+| `POST` | `/school_groups` | `manage_multi_unit` | Create group (`name`, `headquarters_cnpj`) |
+| `GET` | `/school_groups/:id` | `manage_multi_unit` | Show group with `schools_count` |
+| `PATCH` | `/school_groups/:id` | `manage_multi_unit` | Update group metadata |
+| `DELETE` | `/school_groups/:id` | `manage_multi_unit` | Discard empty group — `409 group_has_schools` if members remain |
+| `GET` | `/school_groups/:id/schools` | `manage_multi_unit` | List member schools (summary) |
+| `POST` | `/school_groups/:id/assign_school` | `manage_multi_unit` | Body `{ school_id }` — `409 school_already_in_group` when assigned elsewhere |
+| `DELETE` | `/school_groups/:id/schools/:school_id` | `manage_multi_unit` | Unassign school from group |
+| `GET` | `/plans` | `manage_platform_billing` | List SaaS plans (`starter`, `pro`, `enterprise`) |
+| `GET` | `/subscriptions` | `manage_platform_billing` | Paginated subscriptions — filters `status`, `school_id` |
+| `POST` | `/subscriptions` | `manage_platform_billing` | Assign plan to school — `409 subscription_exists` |
+| `PATCH` | `/subscriptions/:id` | `manage_platform_billing` | Update status/plan — plan change audited |
+| `GET` | `/subscriptions/:id` | `manage_platform_billing` | Show subscription with plan + school summary |
+| `GET` | `/analytics/overview` | `view_analytics_dashboard` or `manage_backoffice_ops` | Aggregate KPIs — optional `date_from`, `date_to` |
+| `POST` | `/impersonations` | `manage_backoffice_ops` | Start impersonation — returns 15min scoped JWT |
+| `DELETE` | `/impersonations/:id` | `manage_backoffice_ops` | End impersonation session |
+| `GET` | `/help_taxonomy/categories` | `configure_help_taxonomy` | Paginated taxonomy categories |
+| `POST` | `/help_taxonomy/categories` | `configure_help_taxonomy` | Create category |
+| `GET` | `/help_taxonomy/categories/:id` | `configure_help_taxonomy` | Show category |
+| `PATCH` | `/help_taxonomy/categories/:id` | `configure_help_taxonomy` | Update category |
+| `DELETE` | `/help_taxonomy/categories/:id` | `configure_help_taxonomy` | Discard category |
+
+**Impersonation JWT claims:** `sub` (target user), `impersonated_by`, `impersonation_session_id`,
+`school_id`, `membership_id`; 15-minute TTL. `GET /me` includes `impersonation` block when active.
+Audited actions during impersonation attribute to operator with `impersonating: true`.
+
+**Analytics response (no PII):**
+
+```json
+{
+  "data": {
+    "active_schools": 10,
+    "provisioning_count": 2,
+    "module_adoption": {
+      "communication": 0.9,
+      "academic": 0.85,
+      "billing": 0.8,
+      "documents": 0.75
+    },
+    "mrr_cents": 599000,
+    "onboarding_funnel": {
+      "provisioning": 2,
+      "pending_handoff": 1,
+      "active": 10
+    }
+  }
+}
+```
+
+### E3 errors (additional)
+
+| HTTP | `error.code` | When |
+|------|--------------|------|
+| `409` | `group_has_schools` | Discard group with member schools |
+| `409` | `school_already_in_group` | Assign school already linked to another group |
+| `409` | `subscription_exists` | Create second subscription for same school |
+| `422` | `validation_error` | Invalid params / persona tags / dates |
 
 ---
 
