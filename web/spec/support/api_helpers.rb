@@ -11,6 +11,11 @@ module AuthHelpers
     result = Auth::EncodeAccessTokenService.call(user: user)
     { "Authorization" => "Bearer #{result.data[:access_token]}" }
   end
+
+  def impersonation_headers_for(session)
+    result = Auth::EncodeImpersonationTokenService.call(session: session)
+    { "Authorization" => "Bearer #{result.data[:access_token]}" }
+  end
 end
 
 RSpec.configure do |config|

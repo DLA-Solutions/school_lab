@@ -56,6 +56,26 @@ FactoryBot.define do
       platform_permissions { [ "manage_backoffice_ops" ] }
     end
 
+    trait :with_manage_multi_unit do
+      backoffice
+      platform_permissions { [ "manage_multi_unit" ] }
+    end
+
+    trait :with_manage_platform_billing do
+      backoffice
+      platform_permissions { [ "manage_platform_billing" ] }
+    end
+
+    trait :with_view_analytics_dashboard do
+      backoffice
+      platform_permissions { [ "view_analytics_dashboard" ] }
+    end
+
+    trait :with_configure_help_taxonomy do
+      backoffice
+      platform_permissions { [ "configure_help_taxonomy" ] }
+    end
+
     trait :school_admin do
       role { "staff" }
 
