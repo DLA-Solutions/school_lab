@@ -12,7 +12,8 @@ RSpec.describe "db:seed" do
     expect(Guardian.where(school: school).count).to be >= 50
     expect(SchoolClass.where(school: school).count).to be >= 10
 
-    expect(User.find_by!(email: DemoSchool::BACKOFFICE_EMAIL).memberships.kept.find_by(role: "backoffice")).to be_present
+    backoffice_membership = User.find_by!(email: DemoSchool::BACKOFFICE_EMAIL).memberships.kept.find_by!(role: "backoffice")
+    expect(backoffice_membership.platform_permissions).to contain_exactly("manage_backoffice_ops", "provision_school")
     expect(User.find_by!(email: DemoSchool::ADMIN_EMAIL).memberships.kept.find_by(school: school, role: "staff")).to be_present
     expect(User.find_by!(email: DemoSchool::SECRETARY_EMAIL).memberships.kept.find_by(school: school, role: "staff")).to be_present
     expect(User.find_by!(email: DemoSchool::COORDINATOR_EMAIL).memberships.kept.find_by(school: school, role: "staff")).to be_present

@@ -11,7 +11,11 @@ module DemoSchool
   def seed_backoffice_user!
     user = find_or_create_confirmed_user!(BACKOFFICE_EMAIL)
     membership = Membership.find_or_initialize_by(user: user, school: nil)
-    membership.assign_attributes(role: "backoffice", status: "active", platform_permissions: [ "provision_school" ])
+    membership.assign_attributes(
+      role: "backoffice",
+      status: "active",
+      platform_permissions: [ "manage_backoffice_ops", "provision_school" ]
+    )
     membership.save!
     user
   end
