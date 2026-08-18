@@ -175,6 +175,7 @@ en:
   activerecord:
     errors:
       messages:
+        record_invalid: "Validation failed: %{errors}"
         invalid_cpf: "is not a valid CPF"
         requires_valid_cnpj: "can only be set once the school's CNPJ is valid — it is the document the school signs under"
         too_short: "must be at least 10 characters"
