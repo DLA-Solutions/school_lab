@@ -7,6 +7,7 @@ import {
   FRESH_ACCESS_TOKEN,
   ACCESS_EXPIRES_AT,
   apiUrl,
+  backofficeOpsUser,
   backofficeUser,
   http,
   jsonError,
@@ -21,6 +22,7 @@ import paths from 'routes/paths';
 import Users from './Users';
 
 const USERS_PATH = '/api/v1/users';
+const OPERATORS_PATH = '/api/v1/platform/operators';
 
 const user = userEvent.setup({ delay: null });
 
@@ -33,16 +35,25 @@ const backofficeAuth: AuthContextValue = {
   refreshUser: vi.fn(),
 };
 
+const backofficeOpsAuth: AuthContextValue = {
+  user: backofficeOpsUser,
+  status: 'authenticated',
+  isAuthenticated: true,
+  login: vi.fn(),
+  logout: vi.fn(),
+  refreshUser: vi.fn(),
+};
+
 const page = (rows: typeof sampleUsers) => ({
   data: rows,
   meta: { page: 1, per_page: 25, total: rows.length },
 });
 
-const renderPage = (auth: AuthContextValue = backofficeAuth) => {
+const renderPage = (auth: AuthContextValue = backofficeAuth, initialEntry = paths.users) => {
   setAccessToken(FRESH_ACCESS_TOKEN, ACCESS_EXPIRES_AT);
 
   return renderWithTheme(
-    <MemoryRouter initialEntries={[paths.users]}>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <AuthContext.Provider value={auth}>
         <Users />
       </AuthContext.Provider>
@@ -193,8 +204,28 @@ describe('Users page', () => {
     expect(await screen.findByText(/sem acesso a esta área/i)).toBeInTheDocument();
   });
 
-  it('lists operators with platform permissions on the Operators tab', async () => {
+  it('hides the Operators tab without manage_backoffice_ops', async () => {
+    resetSampleUsers();
+    server.use(http.get(apiUrl(USERS_PATH), () => HttpResponse.json(page(sampleUsers))));
+
     renderPage();
+
+    await screen.findByText('maria@example.com');
+    expect(screen.queryByRole('tab', { name: /operadores/i })).not.toBeInTheDocument();
+  });
+
+  it('shows the Operators tab with manage_backoffice_ops', async () => {
+    resetSampleUsers();
+    server.use(http.get(apiUrl(USERS_PATH), () => HttpResponse.json(page(sampleUsers))));
+
+    renderPage(backofficeOpsAuth);
+
+    await screen.findByText('maria@example.com');
+    expect(screen.getByRole('tab', { name: /operadores/i })).toBeInTheDocument();
+  });
+
+  it('lists operators with platform permissions on the Operators tab', async () => {
+    renderPage(backofficeOpsAuth);
 
     await screen.findByText('maria@example.com');
     await user.click(screen.getByRole('tab', { name: /operadores/i }));
@@ -206,5 +237,27 @@ describe('Users page', () => {
     expect(
       screen.queryByRole('button', { name: /desativar maria@example.com/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('keeps the Users tab available when operators listing returns 403', async () => {
+    resetSampleUsers();
+    server.use(
+      http.get(apiUrl(USERS_PATH), () => HttpResponse.json(page(sampleUsers))),
+      http.get(apiUrl(OPERATORS_PATH), () =>
+        jsonError(403, 'forbidden', 'Você não tem permissão para esta ação.'),
+      ),
+    );
+
+    renderPage(backofficeOpsAuth, `${paths.users}?tab=operators`);
+
+    expect(await screen.findByRole('tab', { name: /usuários/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /operadores/i })).toBeInTheDocument();
+    expect(await screen.findByText(/você não tem permissão para esta ação/i)).toBeInTheDocument();
+    expect(screen.queryByText(/sem acesso a esta área/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: /usuários/i }));
+
+    expect(await screen.findByText('maria@example.com')).toBeInTheDocument();
+    expect(screen.queryByText(/você não tem permissão para esta ação/i)).not.toBeInTheDocument();
   });
 });

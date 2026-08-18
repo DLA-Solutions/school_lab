@@ -249,6 +249,14 @@ export const backofficeMembership: Membership = {
   segment_id: null,
   display_title: null,
   permission_sources: {},
+  platform_permissions: ['provision_school'],
+};
+
+export const backofficeOpsMembership: Membership = {
+  ...backofficeMembership,
+  id: 21,
+  email: 'ops@example.com',
+  platform_permissions: ['manage_backoffice_ops', 'provision_school'],
 };
 
 export const backofficeUser: AuthUser = {
@@ -256,6 +264,14 @@ export const backofficeUser: AuthUser = {
   email: 'backoffice@example.com',
   status: 'active',
   memberships: [backofficeMembership],
+  guardian_profiles: [],
+};
+
+export const backofficeOpsUser: AuthUser = {
+  id: 6,
+  email: 'ops@example.com',
+  status: 'active',
+  memberships: [backofficeOpsMembership],
   guardian_profiles: [],
 };
 

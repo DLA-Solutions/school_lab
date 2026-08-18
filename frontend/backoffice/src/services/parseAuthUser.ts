@@ -41,6 +41,9 @@ export const parseMembership = (raw: unknown): Membership => {
       membership.permission_sources && typeof membership.permission_sources === 'object'
         ? (membership.permission_sources as Record<string, string>)
         : {},
+    platform_permissions: Array.isArray(membership.platform_permissions)
+      ? membership.platform_permissions.filter((key): key is string => typeof key === 'string')
+      : undefined,
     school_onboarding_status:
       typeof membership.school_onboarding_status === 'string'
         ? membership.school_onboarding_status

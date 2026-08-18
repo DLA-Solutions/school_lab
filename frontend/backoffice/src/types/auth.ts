@@ -20,6 +20,8 @@ export interface Membership {
   segment_id: number | null;
   display_title: string | null;
   permission_sources: Record<string, string>;
+  /** Backoffice memberships only — platform permission keys from GET /me. */
+  platform_permissions?: string[];
   /** Present when GET /me embeds school lifecycle (onboarding guards). */
   school_onboarding_status?: string;
   school_onboarding_mode?: string;
