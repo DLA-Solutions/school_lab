@@ -192,4 +192,19 @@ describe('Users page', () => {
 
     expect(await screen.findByText(/sem acesso a esta área/i)).toBeInTheDocument();
   });
+
+  it('lists operators with platform permissions on the Operators tab', async () => {
+    renderPage();
+
+    await screen.findByText('maria@example.com');
+    await user.click(screen.getByRole('tab', { name: /operadores/i }));
+
+    expect(await screen.findByText('ops@example.com')).toBeInTheDocument();
+    expect(screen.getByText('backoffice@example.com')).toBeInTheDocument();
+    expect(screen.getByText(/manage_backoffice_ops, provision_school/i)).toBeInTheDocument();
+    expect(screen.getByText('provision_school')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /desativar maria@example.com/i }),
+    ).not.toBeInTheDocument();
+  });
 });

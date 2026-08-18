@@ -1,6 +1,10 @@
 import { HttpResponse, http } from 'msw';
 import { AuthUser, Membership } from 'types/auth';
+import { PlatformAudit } from 'types/audit';
+import { SchoolModulesMap } from 'types/modules';
+import { PlatformOperator } from 'types/operator';
 import { School } from 'types/school';
+import { SchoolYear } from 'types/schoolYear';
 import { PlatformUser } from 'types/user';
 import { API_BASE_URL } from 'services/api';
 
@@ -267,6 +271,7 @@ export const sampleSchools: School[] = [
     onboarding_mode: 'self_serve',
     billing_waived_at: null,
     segments_skipped_at: null,
+    created_at: '2025-06-01T12:00:00Z',
   },
   {
     id: 2,
@@ -279,6 +284,7 @@ export const sampleSchools: School[] = [
     onboarding_mode: 'white_glove',
     billing_waived_at: null,
     segments_skipped_at: null,
+    created_at: '2026-08-01T12:00:00Z',
   },
   {
     id: 3,
@@ -291,8 +297,236 @@ export const sampleSchools: School[] = [
     onboarding_mode: 'white_glove',
     billing_waived_at: null,
     segments_skipped_at: null,
+    created_at: '2026-07-15T12:00:00Z',
   },
 ];
+
+export const sampleDiscardedSchools: School[] = [
+  {
+    id: 4,
+    name: 'Escola Delta',
+    cnpj: '98.765.432/0001-10',
+    address: 'Rua D, 400',
+    saas_plan: 'partner',
+    school_group_id: null,
+    onboarding_status: 'active',
+    onboarding_mode: 'self_serve',
+    billing_waived_at: null,
+    segments_skipped_at: null,
+    created_at: '2025-01-10T12:00:00Z',
+    discarded_at: '2026-07-01T09:00:00Z',
+  },
+];
+
+export const resetSampleDiscardedSchools = () => {
+  sampleSchools.splice(
+    0,
+    sampleSchools.length,
+    ...sampleSchools.filter((school) => school.id !== 4),
+  );
+
+  sampleDiscardedSchools.splice(0, sampleDiscardedSchools.length, {
+    id: 4,
+    name: 'Escola Delta',
+    cnpj: '98.765.432/0001-10',
+    address: 'Rua D, 400',
+    saas_plan: 'partner',
+    school_group_id: null,
+    onboarding_status: 'active',
+    onboarding_mode: 'self_serve',
+    billing_waived_at: null,
+    segments_skipped_at: null,
+    created_at: '2025-01-10T12:00:00Z',
+    discarded_at: '2026-07-01T09:00:00Z',
+  });
+};
+
+export const sampleAudits: PlatformAudit[] = [
+  {
+    id: 1,
+    created_at: '2026-08-10T14:30:00Z',
+    school_id: 1,
+    actor: { id: 1, type: 'User' },
+    action: 'update',
+    auditable_type: 'SchoolModule',
+    changed_keys: ['billing'],
+    audited_changes: { enabled: [true, false] },
+  },
+  {
+    id: 2,
+    created_at: '2026-08-09T10:00:00Z',
+    school_id: 2,
+    actor: { id: 1, type: 'User' },
+    action: 'create',
+    auditable_type: 'SchoolYear',
+    changed_keys: ['name', 'starts_on', 'ends_on'],
+    audited_changes: { name: ['', '[REDACTED]'] },
+  },
+  {
+    id: 3,
+    created_at: '2026-07-01T09:05:00Z',
+    school_id: 4,
+    actor: { id: 1, type: 'User' },
+    action: 'destroy',
+    auditable_type: 'School',
+    changed_keys: ['discarded_at'],
+    audited_changes: { discarded_at: [null, '2026-07-01T09:00:00Z'] },
+  },
+];
+
+export const sampleOperators: PlatformOperator[] = [
+  {
+    id: backofficeUser.id,
+    email: backofficeUser.email,
+    status: 'active',
+    platform_permissions: ['manage_backoffice_ops', 'provision_school'],
+  },
+  {
+    id: 6,
+    email: 'ops@example.com',
+    status: 'active',
+    platform_permissions: ['provision_school'],
+  },
+];
+
+const filterSchoolRows = (rows: School[], url: URL) => {
+  let filtered = [...rows];
+
+  const q = url.searchParams.get('q')?.trim().toLowerCase();
+  const saasPlan = url.searchParams.get('saas_plan');
+  const createdAfter = url.searchParams.get('created_after');
+  const createdBefore = url.searchParams.get('created_before');
+  const status = url.searchParams.get('onboarding_status');
+  const mode = url.searchParams.get('onboarding_mode');
+
+  if (q) {
+    filtered = filtered.filter((school) => {
+      const nameMatch = school.name.toLowerCase().includes(q);
+      const cnpjDigits = school.cnpj?.replace(/\D/g, '') ?? '';
+      const queryDigits = q.replace(/\D/g, '');
+
+      return nameMatch || (queryDigits.length > 0 && cnpjDigits.includes(queryDigits));
+    });
+  }
+
+  if (saasPlan) {
+    filtered = filtered.filter((school) => school.saas_plan === saasPlan);
+  }
+
+  if (createdAfter) {
+    filtered = filtered.filter((school) => (school.created_at ?? '') >= `${createdAfter}T00:00:00Z`);
+  }
+
+  if (createdBefore) {
+    filtered = filtered.filter((school) => (school.created_at ?? '') <= `${createdBefore}T23:59:59Z`);
+  }
+
+  if (status) {
+    filtered = filtered.filter((school) => school.onboarding_status === status);
+  }
+
+  if (mode) {
+    filtered = filtered.filter((school) => school.onboarding_mode === mode);
+  }
+
+  return filtered;
+};
+
+const defaultModules = (): SchoolModulesMap => ({
+  communication: true,
+  academic: true,
+  billing: true,
+  documents: true,
+});
+
+/** Mutable module flags per school — tests override billing off for dashboard alerts. */
+export const modulesBySchool: Record<number, SchoolModulesMap> = {
+  1: defaultModules(),
+  2: defaultModules(),
+  3: { ...defaultModules(), billing: false },
+};
+
+export const resetModulesBySchool = () => {
+  modulesBySchool[1] = defaultModules();
+  modulesBySchool[2] = defaultModules();
+  modulesBySchool[3] = { ...defaultModules(), billing: false };
+};
+
+/** Active school years per school — provisioning school 2 starts without one. */
+export const activeSchoolYearBySchool: Record<number, SchoolYear | null> = {
+  1: {
+    id: 10,
+    school_id: 1,
+    name: '2026',
+    starts_on: '2026-02-01',
+    ends_on: '2026-12-15',
+    period_template: 'trimester',
+    status: 'active',
+  },
+  2: null,
+  3: {
+    id: 11,
+    school_id: 3,
+    name: '2026',
+    starts_on: '2026-02-01',
+    ends_on: '2026-12-15',
+    period_template: 'trimester',
+    status: 'active',
+  },
+};
+
+export const resetActiveSchoolYears = () => {
+  activeSchoolYearBySchool[1] = {
+    id: 10,
+    school_id: 1,
+    name: '2026',
+    starts_on: '2026-02-01',
+    ends_on: '2026-12-15',
+    period_template: 'trimester',
+    status: 'active',
+  };
+  activeSchoolYearBySchool[2] = null;
+  activeSchoolYearBySchool[3] = {
+    id: 11,
+    school_id: 3,
+    name: '2026',
+    starts_on: '2026-02-01',
+    ends_on: '2026-12-15',
+    period_template: 'trimester',
+    status: 'active',
+  };
+};
+
+export const defaultOperationalSummary = () => ({
+  credentials_expiring: [
+    {
+      school_id: 1,
+      school_name: 'Escola Alpha',
+      certificate_expires_at: '2026-09-01T12:00:00Z',
+      days_remaining: 14,
+    },
+  ],
+  schools_with_disabled_modules: [
+    {
+      school_id: 3,
+      school_name: 'Escola Gama',
+      disabled_modules: ['billing'],
+    },
+  ],
+  provisioning_backlog_count: 1,
+});
+
+let nextSchoolYearId = 100;
+
+const schoolDetailPayload = (school: School) => ({
+  ...school,
+  modules: modulesBySchool[school.id] ?? defaultModules(),
+  active_school_year: activeSchoolYearBySchool[school.id] ?? null,
+  aggregate_counts: {
+    students_count: school.id * 10,
+    staff_count: school.id,
+  },
+});
 
 /** Mutable platform users for list/disable/enable handlers in tests. */
 export const sampleUsers: PlatformUser[] = [
@@ -603,10 +837,16 @@ export const handlers = [
       billingWaived || hasActiveBankCredentials(schoolId) || Boolean(school?.billing_waived_at);
 
     if (school?.onboarding_status === 'provisioning') {
+      const checklist: string[] = [];
       if (!billingReady) {
-        return jsonError(422, 'validation_error', 'Checklist incompleta.', {
-          checklist: ['billing'],
-        });
+        checklist.push('billing');
+      }
+      if (!activeSchoolYearBySchool[schoolId]?.status || activeSchoolYearBySchool[schoolId]?.status !== 'active') {
+        checklist.push('school_year');
+      }
+
+      if (checklist.length > 0) {
+        return jsonError(422, 'validation_error', 'Checklist incompleta.', { checklist });
       }
 
       return HttpResponse.json({
@@ -632,6 +872,9 @@ export const handlers = [
       }
       if (!billingReady) {
         checklist.push('billing');
+      }
+      if (!activeSchoolYearBySchool[schoolId]?.status || activeSchoolYearBySchool[schoolId]?.status !== 'active') {
+        checklist.push('school_year');
       }
 
       if (checklist.length > 0) {
@@ -706,7 +949,144 @@ export const handlers = [
       return jsonError(404, 'not_found', 'Recurso não encontrado.');
     }
 
+    const url = new URL(request.url);
+    const include = url.searchParams.get('include') ?? '';
+
+    if (include.includes('modules') || include.includes('active_school_year') || include.includes('aggregate_counts')) {
+      return HttpResponse.json({ data: schoolDetailPayload(school) });
+    }
+
     return HttpResponse.json({ data: school });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/modules'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+
+    return HttpResponse.json({
+      data: {
+        modules: modulesBySchool[schoolId] ?? defaultModules(),
+      },
+    });
+  }),
+
+  http.patch(apiUrl('/api/v1/schools/:schoolId/modules'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+    const body = (await request.json()) as { modules?: Partial<SchoolModulesMap> };
+    const current = modulesBySchool[schoolId] ?? defaultModules();
+    const next = { ...current, ...body.modules };
+    modulesBySchool[schoolId] = next;
+
+    return HttpResponse.json({ data: { modules: next } });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/school_years/active'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+    const active = activeSchoolYearBySchool[schoolId];
+
+    if (!active || active.status !== 'active') {
+      return jsonError(422, 'no_active_school_year', 'Nenhum ano letivo ativo.');
+    }
+
+    return HttpResponse.json({ data: active });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/school_years'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+    const body = (await request.json()) as {
+      name?: string;
+      starts_on?: string;
+      ends_on?: string;
+      period_template?: string;
+    };
+
+    if (body.starts_on && body.ends_on && body.ends_on < body.starts_on) {
+      return jsonError(422, 'validation_error', 'Datas inválidas.', {
+        ends_on: ['must be on or after starts_on'],
+      });
+    }
+
+    const draft: SchoolYear = {
+      id: nextSchoolYearId++,
+      school_id: schoolId,
+      name: body.name?.trim() || '2026',
+      starts_on: body.starts_on || '2026-02-01',
+      ends_on: body.ends_on || '2026-12-15',
+      period_template: (body.period_template as SchoolYear['period_template']) || 'trimester',
+      status: 'draft',
+    };
+
+    return HttpResponse.json(
+      {
+        data: {
+          ...draft,
+          academic_periods: [
+            {
+              id: 3000 + schoolId,
+              name: '1º trimestre',
+              sequence: 1,
+              starts_on: draft.starts_on,
+              ends_on: '2026-05-15',
+              closure_status: 'open',
+            },
+          ],
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/school_years/:yearId/activate'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      const schoolId = Number(params.schoolId);
+      const yearId = Number(params.yearId);
+
+      activeSchoolYearBySchool[schoolId] = {
+        id: yearId,
+        school_id: schoolId,
+        name: '2026',
+        starts_on: '2026-02-01',
+        ends_on: '2026-12-15',
+        period_template: 'trimester',
+        status: 'active',
+      };
+
+      return HttpResponse.json({
+        data: {
+          id: yearId,
+          status: 'active',
+          archived_year_id: null,
+        },
+      });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/platform/operational_summary'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({ data: defaultOperationalSummary() });
   }),
 
   http.post(apiUrl('/api/v1/schools/:schoolId/provisioning/import'), async ({ request }) => {
@@ -775,20 +1155,78 @@ export const handlers = [
     }
 
     const url = new URL(request.url);
-    let rows = [...sampleSchools];
+    const discarded = url.searchParams.get('discarded') === 'true';
+    const source = discarded ? sampleDiscardedSchools : sampleSchools;
+    const rows = filterSchoolRows(source, url);
 
-    const status = url.searchParams.get('onboarding_status');
-    const mode = url.searchParams.get('onboarding_mode');
+    return paginated(rows, url);
+  }),
 
-    if (status) {
-      rows = rows.filter((school) => school.onboarding_status === status);
+  http.post(apiUrl('/api/v1/schools/:schoolId/restore'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
     }
 
-    if (mode) {
-      rows = rows.filter((school) => school.onboarding_mode === mode);
+    const schoolId = Number(params.schoolId);
+    const index = sampleDiscardedSchools.findIndex((row) => row.id === schoolId);
+
+    if (index === -1) {
+      return jsonError(409, 'not_discarded', 'A escola não está arquivada.');
+    }
+
+    const [restored] = sampleDiscardedSchools.splice(index, 1);
+    const activeSchool = { ...restored, discarded_at: null };
+    sampleSchools.push(activeSchool);
+
+    return HttpResponse.json({ data: activeSchool });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/provisioning/resend_invites'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({ data: { resent_count: 2 } });
+  }),
+
+  http.get(apiUrl('/api/v1/platform/audits'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const url = new URL(request.url);
+    let rows = [...sampleAudits];
+
+    const schoolId = url.searchParams.get('school_id');
+    const action = url.searchParams.get('action');
+    const dateFrom = url.searchParams.get('date_from');
+    const dateTo = url.searchParams.get('date_to');
+
+    if (schoolId) {
+      rows = rows.filter((row) => String(row.school_id) === schoolId);
+    }
+
+    if (action) {
+      rows = rows.filter((row) => row.action === action);
+    }
+
+    if (dateFrom) {
+      rows = rows.filter((row) => row.created_at >= `${dateFrom}T00:00:00Z`);
+    }
+
+    if (dateTo) {
+      rows = rows.filter((row) => row.created_at <= `${dateTo}T23:59:59Z`);
     }
 
     return paginated(rows, url);
+  }),
+
+  http.get(apiUrl('/api/v1/platform/operators'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return paginated(sampleOperators, new URL(request.url));
   }),
 
   http.get(apiUrl('/api/v1/users'), ({ request }) => {

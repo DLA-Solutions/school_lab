@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, KeyboardEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -11,6 +11,8 @@ import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
@@ -22,16 +24,25 @@ import {
   EmptyState,
   ErrorBanner,
   PageHeader,
+  SearchField,
   SectionCard,
   SemanticChip,
   SuccessBanner,
 } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { ApiError } from 'services/api';
-import { createSchool, deleteSchool, listSchools, SchoolListFilters, updateSchool } from 'services/schoolsApi';
+import {
+  createSchool,
+  deleteSchool,
+  listSchools,
+  restoreSchool,
+  SchoolListFilters,
+  updateSchool,
+} from 'services/schoolsApi';
 import paths from 'routes/paths';
 import { SchoolOnboardingMode } from 'types/onboarding';
 import { CreateSchoolMeta, School } from 'types/school';
+import { normalizeSchoolSearchQuery } from 'utils/search/normalizeSchoolSearchQuery';
 
 const PAGE_SIZE = 25;
 
@@ -66,8 +77,19 @@ const ONBOARDING_MODE_CHIP_VARIANT: Record<
 
 const ALL_FILTER = 'all';
 
+type SchoolListTab = 'active' | 'archived';
 type OnboardingStatusFilter = NonNullable<School['onboarding_status']> | typeof ALL_FILTER;
 type OnboardingModeFilter = SchoolOnboardingMode | typeof ALL_FILTER;
+type SaasPlanFilter = string;
+
+const SAAS_PLAN_FILTER_LABELS: Record<string, string> = {
+  all: 'Todos',
+  standard: 'standard',
+  partner: 'partner',
+};
+
+const parseListTab = (value: string | null): SchoolListTab =>
+  value === 'archived' ? 'archived' : 'active';
 
 const ONBOARDING_MODE_LABELS: Record<SchoolOnboardingMode, string> = {
   self_serve: 'Autoatendimento',
@@ -132,6 +154,16 @@ const renderOptional = ({ value }: GridRenderCellParams<School, string | null>) 
     </Typography>
   );
 
+const formatDiscardedAt = (value?: string | null) => {
+  if (!value) {
+    return '—';
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('pt-BR');
+};
+
 /**
  * Platform school register — lists every school for backoffice operators.
  */
@@ -157,6 +189,21 @@ const Schools = () => {
   const [createdSchool, setCreatedSchool] = useState<School | null>(null);
   const [createdSchoolMeta, setCreatedSchoolMeta] = useState<CreateSchoolMeta | undefined>();
   const [pendingDelete, setPendingDelete] = useState<School | null>(null);
+  const [pendingRestore, setPendingRestore] = useState<School | null>(null);
+  const [restoreSuccess, setRestoreSuccess] = useState('');
+  const [listTab, setListTab] = useState<SchoolListTab>(() => parseListTab(searchParams.get('tab')));
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('q') ?? '');
+  const [searchQuery, setSearchQuery] = useState(() =>
+    normalizeSchoolSearchQuery(searchParams.get('q') ?? ''),
+  );
+  const [saasPlanFilter, setSaasPlanFilter] = useState<SaasPlanFilter>(() => {
+    const value = searchParams.get('saas_plan');
+    return value && value in SAAS_PLAN_FILTER_LABELS ? value : ALL_FILTER;
+  });
+  const [createdAfter, setCreatedAfter] = useState(() => searchParams.get('created_after') ?? '');
+  const [createdBefore, setCreatedBefore] = useState(
+    () => searchParams.get('created_before') ?? '',
+  );
   const [statusFilter, setStatusFilter] = useState<OnboardingStatusFilter>(() =>
     parseStatusFilter(searchParams.get('onboarding_status')),
   );
@@ -164,15 +211,36 @@ const Schools = () => {
     parseModeFilter(searchParams.get('onboarding_mode')),
   );
 
+  const isArchivedTab = listTab === 'archived';
+
   const listFilters = useMemo<SchoolListFilters>(
     () => ({
+      q: searchQuery,
+      saas_plan: saasPlanFilter === ALL_FILTER ? '' : saasPlanFilter,
+      created_after: createdAfter,
+      created_before: createdBefore,
+      discarded: isArchivedTab,
       onboarding_status: statusFilter === ALL_FILTER ? '' : statusFilter,
       onboarding_mode: modeFilter === ALL_FILTER ? '' : modeFilter,
     }),
-    [modeFilter, statusFilter],
+    [
+      createdAfter,
+      createdBefore,
+      isArchivedTab,
+      modeFilter,
+      saasPlanFilter,
+      searchQuery,
+      statusFilter,
+    ],
   );
 
-  const hasActiveFilters = statusFilter !== ALL_FILTER || modeFilter !== ALL_FILTER;
+  const hasActiveFilters =
+    Boolean(searchQuery) ||
+    saasPlanFilter !== ALL_FILTER ||
+    Boolean(createdAfter) ||
+    Boolean(createdBefore) ||
+    statusFilter !== ALL_FILTER ||
+    modeFilter !== ALL_FILTER;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -202,10 +270,38 @@ const Schools = () => {
 
   useEffect(() => {
     setPage(0);
-  }, [statusFilter, modeFilter]);
+  }, [
+    createdAfter,
+    createdBefore,
+    listTab,
+    modeFilter,
+    saasPlanFilter,
+    searchQuery,
+    statusFilter,
+  ]);
 
   useEffect(() => {
     const params = new URLSearchParams();
+
+    if (listTab === 'archived') {
+      params.set('tab', 'archived');
+    }
+
+    if (searchQuery) {
+      params.set('q', searchQuery);
+    }
+
+    if (saasPlanFilter !== ALL_FILTER) {
+      params.set('saas_plan', saasPlanFilter);
+    }
+
+    if (createdAfter) {
+      params.set('created_after', createdAfter);
+    }
+
+    if (createdBefore) {
+      params.set('created_before', createdBefore);
+    }
 
     if (statusFilter !== ALL_FILTER) {
       params.set('onboarding_status', statusFilter);
@@ -216,7 +312,16 @@ const Schools = () => {
     }
 
     setSearchParams(params, { replace: true });
-  }, [modeFilter, setSearchParams, statusFilter]);
+  }, [
+    createdAfter,
+    createdBefore,
+    listTab,
+    modeFilter,
+    saasPlanFilter,
+    searchQuery,
+    setSearchParams,
+    statusFilter,
+  ]);
 
   useEffect(() => {
     load();
@@ -348,6 +453,36 @@ const Schools = () => {
     }
   };
 
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(event.target.value);
+  };
+
+  const handleSearchSubmit = () => {
+    setSearchQuery(normalizeSchoolSearchQuery(searchInput));
+  };
+
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
+
+  const handleConfirmRestore = async () => {
+    if (!pendingRestore) {
+      return;
+    }
+
+    try {
+      await restoreSchool(pendingRestore.id);
+      setPendingRestore(null);
+      setRestoreSuccess(t('backoffice.schools.restoreSuccess'));
+      load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível restaurar a escola.');
+      setPendingRestore(null);
+    }
+  };
+
   const createdStatus = createdSchool?.onboarding_status;
   const createdStatusMeta = createdStatus ? ONBOARDING_STATUS_LABELS[createdStatus] : null;
 
@@ -356,132 +491,176 @@ const Schools = () => {
 
   const showPendingHandoffAction = (school: School) => school.onboarding_status === 'pending_handoff';
 
-  const columns: GridColDef<School>[] = [
-    { field: 'name', headerName: 'Nome', flex: 1, minWidth: 200 },
-    { field: 'cnpj', headerName: 'CNPJ', width: 190, renderCell: renderOptional },
-    {
-      field: 'address',
-      headerName: 'Endereço',
-      flex: 1,
-      minWidth: 200,
-      renderCell: renderOptional,
-    },
-    { field: 'saas_plan', headerName: 'Plano', width: 130, renderCell: renderOptional },
-    {
-      field: 'onboarding_status',
-      headerName: 'Status',
-      width: 190,
-      sortable: false,
-      filterable: false,
-      renderCell: ({ row }: GridRenderCellParams<School>) => {
-        const status = row.onboarding_status;
-
-        if (!status) {
-          return (
-            <Typography variant="body2" color="text.secondary">
-              —
-            </Typography>
-          );
-        }
-
-        const meta = ONBOARDING_STATUS_LABELS[status];
-
-        return <SemanticChip variant={meta.variant} label={meta.label} />;
+  const columns: GridColDef<School>[] = useMemo(() => {
+    const baseColumns: GridColDef<School>[] = [
+      { field: 'name', headerName: 'Nome', flex: 1, minWidth: 200 },
+      { field: 'cnpj', headerName: 'CNPJ', width: 190, renderCell: renderOptional },
+      {
+        field: 'address',
+        headerName: 'Endereço',
+        flex: 1,
+        minWidth: 200,
+        renderCell: renderOptional,
       },
-    },
-    {
-      field: 'onboarding_mode',
-      headerName: 'Modo',
-      width: 200,
-      sortable: false,
-      filterable: false,
-      renderCell: ({ row }: GridRenderCellParams<School>) => {
-        const mode = row.onboarding_mode;
+      { field: 'saas_plan', headerName: 'Plano', width: 130, renderCell: renderOptional },
+    ];
 
-        if (!mode) {
-          return (
-            <Typography variant="body2" color="text.secondary">
-              —
-            </Typography>
-          );
-        }
+    if (isArchivedTab) {
+      baseColumns.push({
+        field: 'discarded_at',
+        headerName: t('backoffice.schools.discardedAt'),
+        width: 150,
+        sortable: false,
+        filterable: false,
+        renderCell: ({ row }: GridRenderCellParams<School>) => (
+          <Typography variant="body2">{formatDiscardedAt(row.discarded_at)}</Typography>
+        ),
+      });
+    } else {
+      baseColumns.push(
+        {
+          field: 'onboarding_status',
+          headerName: 'Status',
+          width: 190,
+          sortable: false,
+          filterable: false,
+          renderCell: ({ row }: GridRenderCellParams<School>) => {
+            const status = row.onboarding_status;
 
-        return (
-          <SemanticChip
-            variant={ONBOARDING_MODE_CHIP_VARIANT[mode]}
-            label={ONBOARDING_MODE_LABELS[mode]}
-          />
-        );
-      },
-    },
-    {
+            if (!status) {
+              return (
+                <Typography variant="body2" color="text.secondary">
+                  —
+                </Typography>
+              );
+            }
+
+            const meta = ONBOARDING_STATUS_LABELS[status];
+
+            return <SemanticChip variant={meta.variant} label={meta.label} />;
+          },
+        },
+        {
+          field: 'onboarding_mode',
+          headerName: 'Modo',
+          width: 200,
+          sortable: false,
+          filterable: false,
+          renderCell: ({ row }: GridRenderCellParams<School>) => {
+            const mode = row.onboarding_mode;
+
+            if (!mode) {
+              return (
+                <Typography variant="body2" color="text.secondary">
+                  —
+                </Typography>
+              );
+            }
+
+            return (
+              <SemanticChip
+                variant={ONBOARDING_MODE_CHIP_VARIANT[mode]}
+                label={ONBOARDING_MODE_LABELS[mode]}
+              />
+            );
+          },
+        },
+      );
+    }
+
+    baseColumns.push({
       field: 'actions',
       headerName: 'Ações',
-      width: 205,
+      width: isArchivedTab ? 120 : 245,
       sortable: false,
       filterable: false,
       align: 'right',
       headerAlign: 'right',
-      renderCell: ({ row }: GridRenderCellParams<School>) => (
-        <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
-          {showContinueProvisioning(row) && (
-            <Tooltip title="Continuar provisionamento">
+      renderCell: ({ row }: GridRenderCellParams<School>) =>
+        isArchivedTab ? (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            <Tooltip title={t('backoffice.schools.restore')}>
               <IconButton
                 size="small"
-                aria-label={`Continuar provisionamento de ${row.name}`}
-                component={RouterLink}
-                to={paths.provisioningWizard(row.id)}
+                aria-label={`${t('backoffice.schools.restore')} ${row.name}`}
+                onClick={() => setPendingRestore(row)}
+                color="success"
               >
-                <IconifyIcon icon="mingcute:settings-3-line" />
+                <IconifyIcon icon="mingcute:refresh-2-line" />
               </IconButton>
             </Tooltip>
-          )}
-          {showPendingHandoffAction(row) && (
-            <Tooltip title="Ativar escola">
+          </Stack>
+        ) : (
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            <Tooltip title={t('backoffice.schools.viewDetail')}>
               <IconButton
                 size="small"
-                aria-label={`Ativar ${row.name}`}
+                aria-label={`${t('backoffice.schools.viewDetail')} ${row.name}`}
                 component={RouterLink}
-                to={paths.schoolActivation(row.id)}
-                color="info"
+                to={paths.schoolDetail(row.id)}
               >
-                <IconifyIcon icon="mingcute:check-circle-line" />
+                <IconifyIcon icon="mingcute:eye-line" />
               </IconButton>
             </Tooltip>
-          )}
-          {/* A certificate expires, so this stays reachable long after provisioning is done. */}
-          <Tooltip title="Credenciais bancárias">
-            <IconButton
-              size="small"
-              aria-label={`Credenciais bancárias de ${row.name}`}
-              component={RouterLink}
-              to={paths.bankCredentials(row.id)}
-            >
-              <IconifyIcon icon="mingcute:bank-card-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Editar">
-            <IconButton
-              size="small"
-              aria-label={`Editar ${row.name}`}
-              onClick={() => openForm(row)}
-            >
-              <IconifyIcon icon="mingcute:edit-2-line" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Excluir">
-            <IconButton
-              size="small"
-              aria-label={`Excluir ${row.name}`}
-              onClick={() => setPendingDelete(row)}
-            >
-              <IconifyIcon icon="mingcute:delete-2-line" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
-    },
-  ];
+            {showContinueProvisioning(row) && (
+              <Tooltip title="Continuar provisionamento">
+                <IconButton
+                  size="small"
+                  aria-label={`Continuar provisionamento de ${row.name}`}
+                  component={RouterLink}
+                  to={paths.provisioningWizard(row.id)}
+                >
+                  <IconifyIcon icon="mingcute:settings-3-line" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {showPendingHandoffAction(row) && (
+              <Tooltip title="Ativar escola">
+                <IconButton
+                  size="small"
+                  aria-label={`Ativar ${row.name}`}
+                  component={RouterLink}
+                  to={paths.schoolActivation(row.id)}
+                  color="info"
+                >
+                  <IconifyIcon icon="mingcute:check-circle-line" />
+                </IconButton>
+              </Tooltip>
+            )}
+            <Tooltip title="Credenciais bancárias">
+              <IconButton
+                size="small"
+                aria-label={`Credenciais bancárias de ${row.name}`}
+                component={RouterLink}
+                to={paths.bankCredentials(row.id)}
+              >
+                <IconifyIcon icon="mingcute:bank-card-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Editar">
+              <IconButton
+                size="small"
+                aria-label={`Editar ${row.name}`}
+                onClick={() => openForm(row)}
+              >
+                <IconifyIcon icon="mingcute:edit-2-line" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Excluir">
+              <IconButton
+                size="small"
+                aria-label={`Excluir ${row.name}`}
+                onClick={() => setPendingDelete(row)}
+              >
+                <IconifyIcon icon="mingcute:delete-2-line" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        ),
+    });
+
+    return baseColumns;
+  }, [isArchivedTab, t]);
 
   if (forbidden) {
     return (
@@ -504,12 +683,78 @@ const Schools = () => {
         title={t('backoffice.schools.title')}
         subtitle=""
         actions={
-          <Stack direction="row" spacing={1.5} alignItems="center">
+          !isArchivedTab ? (
+            <Button variant="contained" size="small" onClick={() => openForm(null)}>
+              Nova escola
+            </Button>
+          ) : undefined
+        }
+      />
+
+      <Tabs
+        value={listTab}
+        onChange={(_event, value: SchoolListTab) => {
+          setListTab(value);
+          setRestoreSuccess('');
+        }}
+      >
+        <Tab value="active" label={t('backoffice.schools.tab.active')} />
+        <Tab value="archived" label={t('backoffice.schools.tab.archived')} />
+      </Tabs>
+
+      <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
+        <SearchField
+          value={searchInput}
+          onChange={handleSearchChange}
+          placeholder={t('backoffice.schools.searchPlaceholder')}
+          ariaLabel={t('backoffice.schools.searchAriaLabel')}
+          onKeyDown={handleSearchKeyDown}
+        />
+        <TextField
+          id="school-saas-plan-filter"
+          label={t('backoffice.schools.planFilter')}
+          value={saasPlanFilter}
+          onChange={(event) => setSaasPlanFilter(event.target.value)}
+          select
+          size="small"
+          variant="filled"
+          sx={{ width: 150 }}
+        >
+          {Object.keys(SAAS_PLAN_FILTER_LABELS).map((value) => (
+            <MenuItem key={value} value={value}>
+              {value === ALL_FILTER ? t('backoffice.schools.planAll') : value}
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          id="school-created-after"
+          label={t('backoffice.schools.createdAfter')}
+          type="date"
+          value={createdAfter}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => setCreatedAfter(event.target.value)}
+          size="small"
+          variant="filled"
+          slotProps={{ inputLabel: { shrink: true } }}
+          sx={{ width: 170 }}
+        />
+        <TextField
+          id="school-created-before"
+          label={t('backoffice.schools.createdBefore')}
+          type="date"
+          value={createdBefore}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => setCreatedBefore(event.target.value)}
+          size="small"
+          variant="filled"
+          slotProps={{ inputLabel: { shrink: true } }}
+          sx={{ width: 170 }}
+        />
+        {!isArchivedTab && (
+          <>
             <TextField
               id="school-onboarding-status-filter"
               label="Status"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as OnboardingStatusFilter)}
+              onChange={(event) => setStatusFilter(event.target.value as OnboardingStatusFilter)}
               select
               size="small"
               variant="filled"
@@ -527,7 +772,7 @@ const Schools = () => {
               id="school-onboarding-mode-filter"
               label="Modo"
               value={modeFilter}
-              onChange={(e) => setModeFilter(e.target.value as OnboardingModeFilter)}
+              onChange={(event) => setModeFilter(event.target.value as OnboardingModeFilter)}
               select
               size="small"
               variant="filled"
@@ -541,28 +786,36 @@ const Schools = () => {
                 ),
               )}
             </TextField>
-            <Button variant="contained" size="small" onClick={() => openForm(null)}>
-              Nova escola
-            </Button>
-          </Stack>
-        }
-      />
+          </>
+        )}
+      </Stack>
 
+      {restoreSuccess && <SuccessBanner message={restoreSuccess} />}
       {error && <ErrorBanner message={error} />}
 
       <SectionCard padding={0}>
         {!loading && schools.length === 0 && !error ? (
           <EmptyState
-            title={hasActiveFilters ? 'Nenhuma escola encontrada' : 'Nenhuma escola cadastrada'}
+            title={
+              isArchivedTab
+                ? t('backoffice.schools.emptyArchived')
+                : hasActiveFilters
+                  ? 'Nenhuma escola encontrada'
+                  : 'Nenhuma escola cadastrada'
+            }
             description={
-              hasActiveFilters
-                ? 'Nenhuma escola corresponde aos filtros selecionados. Ajuste o status ou o modo de onboarding.'
-                : 'Ainda não há escolas registradas na plataforma. Cadastre a primeira escola para iniciar o onboarding.'
+              isArchivedTab
+                ? t('backoffice.schools.emptyArchivedDescription')
+                : hasActiveFilters
+                  ? 'Nenhuma escola corresponde aos filtros selecionados. Ajuste a busca ou os filtros.'
+                  : 'Ainda não há escolas registradas na plataforma. Cadastre a primeira escola para iniciar o onboarding.'
             }
             action={
-              <Button variant="contained" size="small" onClick={() => openForm(null)}>
-                Nova escola
-              </Button>
+              !isArchivedTab ? (
+                <Button variant="contained" size="small" onClick={() => openForm(null)}>
+                  Nova escola
+                </Button>
+              ) : undefined
             }
           />
         ) : (
@@ -799,6 +1052,18 @@ const Schools = () => {
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingRestore)}
+        title={t('backoffice.schools.restoreConfirmTitle')}
+        message={t('backoffice.schools.restoreConfirmMessage', {
+          name: pendingRestore?.name ?? '',
+        })}
+        confirmLabel={t('backoffice.schools.restore')}
+        cancelLabel="Cancelar"
+        onConfirm={handleConfirmRestore}
+        onCancel={() => setPendingRestore(null)}
       />
     </Stack>
   );

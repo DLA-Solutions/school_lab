@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -11,6 +11,8 @@ import {
   http,
   jsonError,
   sampleSchools,
+  sampleDiscardedSchools,
+  resetSampleDiscardedSchools,
   server,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
@@ -59,6 +61,10 @@ const openCreateForm = async () => {
 };
 
 describe('Schools page', () => {
+  beforeEach(() => {
+    resetSampleDiscardedSchools();
+  });
+
   it('lists schools with onboarding status and mode columns', async () => {
     server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))));
 
@@ -135,6 +141,89 @@ describe('Schools page', () => {
     });
 
     expect(requests.some((url) => url.includes('onboarding_status=provisioning'))).toBe(true);
+  });
+
+  it('filters schools by search query and syncs q in the URL', async () => {
+    const requests: string[] = [];
+
+    server.use(
+      http.get(apiUrl(SCHOOLS_PATH), ({ request }) => {
+        requests.push(request.url);
+        const url = new URL(request.url);
+        const q = url.searchParams.get('q')?.toLowerCase();
+        const rows = q
+          ? sampleSchools.filter((school) => school.name.toLowerCase().includes(q))
+          : sampleSchools;
+
+        return HttpResponse.json(page(rows));
+      }),
+    );
+
+    renderPage();
+
+    await screen.findByText('Escola Alpha');
+
+    const search = screen.getByLabelText(/buscar escolas por nome ou cnpj/i);
+    await user.type(search, 'Alpha');
+    await user.keyboard('{Enter}');
+
+    await waitFor(() => {
+      expect(requests.some((url) => url.includes('q=Alpha'))).toBe(true);
+    });
+
+    expect(screen.getByText('Escola Alpha')).toBeInTheDocument();
+    expect(screen.queryByText('Escola Beta')).not.toBeInTheDocument();
+  });
+
+  it('lists archived schools on the Arquivadas tab with restore action', async () => {
+    server.use(
+      http.get(apiUrl(SCHOOLS_PATH), ({ request }) => {
+        const url = new URL(request.url);
+        const discarded = url.searchParams.get('discarded') === 'true';
+        const rows = discarded ? sampleDiscardedSchools : sampleSchools;
+
+        return HttpResponse.json(page(rows));
+      }),
+    );
+
+    renderPage();
+
+    await screen.findByText('Escola Alpha');
+
+    await user.click(screen.getByRole('tab', { name: /arquivadas/i }));
+
+    expect(await screen.findByText('Escola Delta')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /restaurar escola delta/i })).toBeInTheDocument();
+  });
+
+  it('restores a discarded school after confirmation', async () => {
+    const restoreCalls: string[] = [];
+
+    server.use(
+      http.get(apiUrl(SCHOOLS_PATH), ({ request }) => {
+        const url = new URL(request.url);
+        const discarded = url.searchParams.get('discarded') === 'true';
+
+        return HttpResponse.json(page(discarded ? sampleDiscardedSchools : sampleSchools));
+      }),
+      http.post(apiUrl('/api/v1/schools/:id/restore'), ({ params }) => {
+        restoreCalls.push(String(params.id));
+        return HttpResponse.json({
+          data: { ...sampleDiscardedSchools[0]!, discarded_at: null },
+        });
+      }),
+    );
+
+    renderPage(undefined, `${paths.schools}?tab=archived`);
+
+    await screen.findByText('Escola Delta');
+
+    await user.click(screen.getByRole('button', { name: /restaurar escola delta/i }));
+    await user.click(screen.getByRole('button', { name: /^restaurar$/i }));
+
+    await waitFor(() => {
+      expect(restoreCalls).toEqual(['4']);
+    });
   });
 
   it('offers continue provisioning for white-glove provisioning schools', async () => {
