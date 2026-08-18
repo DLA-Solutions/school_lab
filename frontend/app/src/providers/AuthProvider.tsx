@@ -2,7 +2,12 @@ import { PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } 
 import { flushSync } from 'react-dom';
 import { AuthUser } from 'types/auth';
 import { refreshAccessToken } from 'services/api';
-import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from 'services/authApi';
+import {
+  fetchCurrentUser,
+  login as loginRequest,
+  loginWithGoogle as loginWithGoogleRequest,
+  logout as logoutRequest,
+} from 'services/authApi';
 import {
   bootstrapImpersonationFromUrl,
   clearStoredImpersonationToken,
@@ -74,6 +79,15 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     return tokens.user;
   }, []);
 
+  const loginWithGoogle = useCallback(async (idToken: string, rememberMe = false) => {
+    const tokens = await loginWithGoogleRequest({ idToken, rememberMe });
+
+    setAccessToken(tokens.access_token, tokens.access_expires_at);
+    setUser(tokens.user);
+    setStatus('authenticated');
+    return tokens.user;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await logoutRequest();
@@ -108,10 +122,11 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
       status,
       isAuthenticated: status === 'authenticated',
       login,
+      loginWithGoogle,
       logout,
       refreshUser,
     }),
-    [user, status, login, logout, refreshUser],
+    [user, status, login, loginWithGoogle, logout, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -8,6 +8,22 @@ export interface LoginPayload {
   rememberMe?: boolean;
 }
 
+export interface GoogleLoginPayload {
+  idToken: string;
+  rememberMe?: boolean;
+}
+
+/** POST /api/v1/auth/oauth/google */
+export const loginWithGoogle = async ({ idToken, rememberMe = false }: GoogleLoginPayload) => {
+  const response = await request<LoginResponse>('/api/v1/auth/oauth/google', {
+    method: 'POST',
+    auth: false,
+    body: { id_token: idToken, remember_me: rememberMe, client: 'web' },
+  });
+
+  return { ...response, user: parseAuthUser(response.user)! };
+};
+
 /** POST /api/v1/auth/login */
 export const login = async ({ email, password, rememberMe = false }: LoginPayload) => {
   const response = await request<LoginResponse>('/api/v1/auth/login', {

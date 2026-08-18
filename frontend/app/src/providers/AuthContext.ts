@@ -14,6 +14,7 @@ export interface AuthContextValue {
   status: AuthStatus;
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<AuthUser>;
+  loginWithGoogle: (idToken: string, rememberMe?: boolean) => Promise<AuthUser>;
   logout: () => Promise<void>;
   /** Reload profile from GET /api/v1/me after onboarding steps. */
   refreshUser: () => Promise<AuthUser>;
