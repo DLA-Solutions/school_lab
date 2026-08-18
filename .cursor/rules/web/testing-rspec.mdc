@@ -12,4 +12,4 @@ Full guide: `docs/guidelines/web/testing.md`. Skill: `write-rspec-spec`.
 - Avoid mocks and stubs; use real records (FactoryBot) and the real database.
 - Mock only at **external boundaries** (gateways, FCM, S3) when unavoidable — never mock AR, Pundit, or same-domain services.
 - Request specs + rswag are the API contract; cover auth, validation, and `school_id` isolation.
-- **Email:** RSpec uses `delivery_method = :test` only. Never hit Postmark or any mail API. Local manual preview uses Letter Opener (`mailers` rule) — not a provider token.
+- **Email:** RSpec uses `delivery_method = :test` only — including `RAILS_ENV=production rspec`. Never hit Postmark. Staging/production smoke must not trigger mail (rule `email-safety`).

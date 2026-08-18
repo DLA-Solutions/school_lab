@@ -55,14 +55,30 @@ Local work must **never** call Postmark (or any mail provider API), even when
 | Environment | Delivery | Inbox / inspect |
 |-------------|---------|-----------------|
 | Development | `:letter_opener_web` | Browse `http://localhost:3000/letter_opener` |
-| Test (RSpec) | `:test` | `ActionMailer::Base.deliveries` |
+| Test (RSpec) | `:test` (forced even if `RAILS_ENV=production`) | `ActionMailer::Base.deliveries` |
 | Production / staging | `:postmark` when `POSTMARK_API_TOKEN` is set | Provider dashboard |
 
-`SchoolLab::EmailDelivery.configured?` is true in development and test so invite and
-régua mail is not skipped for lack of a token. Production still gates on the token.
+`SchoolLab::EmailDelivery.configured?` is true in development, test, and any RSpec
+process so invite and régua mail is not skipped for lack of a token. Live staging
+and production still gate on the token.
+
+`DISABLE_EMAIL_DELIVERY=true` makes `configured?` false on staging/production so
+jobs skip send. Use it as a host-level kill switch — not as permission to exercise
+mail endpoints on a live host.
 
 Do not set `config.action_mailer.delivery_method = :postmark` in `development.rb` or
-`test.rb`. An initializer must raise if a local environment is pointed at Postmark.
+`test.rb`. An initializer must force `:test` when the process is RSpec and raise if
+a local or RSpec process is pointed at Postmark.
+
+### Staging and production checks
+
+Agents and humans verifying a live host must **not** send mail “to see if it works”:
+
+- Allowed: `GET /up`, login with **existing** credentials, read-only pages.
+- Forbidden: invite, password reset, guardian access, school create/handoff,
+  collection régua, `deliver_now` / `deliver_later`, `rails runner` mailers.
+
+Preview templates locally with Letter Opener. Assert mail in RSpec with `:test`.
 
 ## Testing
 
