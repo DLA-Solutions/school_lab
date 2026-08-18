@@ -46,6 +46,12 @@ class MembershipBlueprint < Blueprinter::Base
     end
   end
 
+  field :platform_permissions do |membership|
+    next [] unless membership.role == "backoffice"
+
+    Array(membership.platform_permissions).map(&:to_s)
+  end
+
   field :permissions do |membership, options|
     MembershipBlueprint.send(:effective_resolution, membership, options)[:keys]
   end
