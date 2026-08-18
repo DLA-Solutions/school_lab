@@ -8,4 +8,5 @@ builder:
   args:
     VITE_BASE_PATH: /app/
     VITE_API_BASE_URL: ""
-    VITE_GOOGLE_OAUTH_CLIENT_ID: ""
+  secrets:
+    - GOOGLE_OAUTH_CLIENT_ID
