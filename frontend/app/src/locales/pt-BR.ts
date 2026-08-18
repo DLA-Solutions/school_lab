@@ -702,6 +702,13 @@ const ptBR = {
     'Veja o andamento das solicitações feitas à escola.',
 
   'membership.switchContext': 'Trocar perfil e escola',
+  'membership.switchSecondaryWithId': '{schoolName} · escola {schoolId}',
+
+  'errors.schoolAccessDenied':
+    'Você não tem acesso a esta escola. Troque de perfil no menu superior.',
+  'errors.accessDenied': 'Acesso negado.',
+  'errors.membershipSuspended': 'Acesso suspenso nesta escola.',
+  'errors.membershipInvited': 'Convite pendente para esta escola.',
 
   'ledger.title': 'Entradas e saídas',
   'ledger.filter': 'Filtrar por tipo',

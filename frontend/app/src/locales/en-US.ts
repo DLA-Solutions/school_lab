@@ -699,6 +699,13 @@ const enUS: Messages = {
     'See the status of requests you have made to the school.',
 
   'membership.switchContext': 'Switch profile and school',
+  'membership.switchSecondaryWithId': '{schoolName} · school {schoolId}',
+
+  'errors.schoolAccessDenied':
+    'You do not have access to this school. Switch profile from the menu above.',
+  'errors.accessDenied': 'Access denied.',
+  'errors.membershipSuspended': 'Access to this school is suspended.',
+  'errors.membershipInvited': 'There is a pending invitation for this school.',
 
   'ledger.title': 'Money in and out',
   'ledger.filter': 'Filter by kind',

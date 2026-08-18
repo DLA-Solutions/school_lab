@@ -15,7 +15,10 @@ import { listClasses } from '@mui/material';
 import { useAuth } from 'providers/AuthContext';
 import { useActiveMembershipContext } from 'providers/ActiveMembershipContext';
 import { useTranslation } from 'providers/I18nContext';
-import { membershipDisplayRole } from 'utils/membership/audience';
+import {
+  membershipSwitchPrimary,
+  membershipSwitchSecondary,
+} from 'utils/membership/switchLabel';
 
 const ProfileMenu = () => {
   const { t } = useTranslation();
@@ -34,7 +37,10 @@ const ProfileMenu = () => {
 
   const userName = user?.email.split('@')[0] ?? 'User';
   const activeRoleLabel = activeMembership
-    ? membershipDisplayRole(activeMembership, t)
+    ? membershipSwitchPrimary(activeMembership, t)
+    : null;
+  const activeSchoolLabel = activeMembership
+    ? membershipSwitchSecondary(activeMembership, t, eligibleMemberships)
     : null;
 
   return (
@@ -98,7 +104,7 @@ const ProfileMenu = () => {
             </Typography>
             {activeMembership && activeRoleLabel && (
               <Typography variant="caption" fontWeight={400} color="text.secondary">
-                {[activeRoleLabel, activeMembership.school_name].filter(Boolean).join(' · ')}
+                {[activeRoleLabel, activeSchoolLabel].filter(Boolean).join(' · ')}
               </Typography>
             )}
           </Stack>
@@ -113,7 +119,12 @@ const ProfileMenu = () => {
               </Typography>
             </MenuItem>
             {eligibleMemberships.map((membership) => {
-              const roleLabel = membershipDisplayRole(membership, t);
+              const roleLabel = membershipSwitchPrimary(membership, t);
+              const schoolLabel = membershipSwitchSecondary(
+                membership,
+                t,
+                eligibleMemberships,
+              );
               const isActive = membership.id === activeMembership?.id;
 
               return (
@@ -128,7 +139,7 @@ const ProfileMenu = () => {
                 >
                   <ListItemText
                     primary={roleLabel}
-                    secondary={membership.school_name ?? undefined}
+                    secondary={schoolLabel}
                     primaryTypographyProps={{ variant: 'body2' }}
                     secondaryTypographyProps={{ variant: 'caption' }}
                   />

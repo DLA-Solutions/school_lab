@@ -39,6 +39,32 @@ RSpec.describe "Api::V1::Me", type: :request do
         end
       end
 
+      response "200", "excludes memberships at discarded schools" do
+        let(:active_school) { create(:school, name: "Active School") }
+        let(:discarded_school) { create(:school, name: "Discarded School") }
+        let(:filtered_user) { create(:user) }
+        let!(:active_membership) do
+          create(:membership, user: filtered_user, school: active_school, role: "staff", status: "active")
+        end
+        let!(:discarded_school_membership) do
+          create(:membership, user: filtered_user, school: discarded_school, role: "staff", status: "active")
+        end
+        let!(:backoffice_membership) { create(:membership, :backoffice, user: filtered_user) }
+        let(:Authorization) { auth_headers_for(filtered_user)["Authorization"] }
+
+        before { discarded_school.discard! }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          memberships = body.dig("data", "memberships")
+          school_ids = memberships.filter_map { |m| m["school_id"] }
+
+          expect(school_ids).to contain_exactly(active_school.id)
+          expect(school_ids).not_to include(discarded_school.id)
+          expect(memberships.map { |m| m["role"] }).to include("backoffice")
+        end
+      end
+
       response "200", "staff owner membership includes permissions" do
         let(:owner_school) { create(:school, name: "Owner School") }
         let(:owner_user) { create(:user) }
