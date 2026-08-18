@@ -12,7 +12,9 @@ module Auth
     def call
       user = User.kept.find_by(email: email)
       return ResponseService.failure(code: :invalid_credentials) unless user&.valid_password?(password)
-      return ResponseService.failure(code: :unauthorized) unless user.active_for_authentication?
+
+      eligibility = Auth::ResolveLoginEligibilityService.call(user: user)
+      return eligibility if eligibility.failure?
 
       Auth::IssueTokensService.call(user: user, remember_me: remember_me, client: client)
     end
