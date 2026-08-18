@@ -20,6 +20,13 @@ const enUS: Messages = {
   'common.status': 'Status',
   'common.actions': 'Actions',
   'common.connectionError': 'Check your connection.',
+
+  'auth.signin.orContinueWith': 'or continue with',
+  'auth.signin.googleAccessDenied':
+    'Could not sign in with Google. Check that your account is registered with the school.',
+  'auth.signin.connectionError':
+    'Could not connect to the API. Check that the server is running.',
+
   'common.range': '{from}-{to} of {count}',
   'common.edit': 'Edit',
   'common.delete': 'Delete',

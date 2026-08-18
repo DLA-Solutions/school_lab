@@ -24,7 +24,7 @@ module Api
         def audit_filters
           {
             school_id: params[:school_id],
-            action: params[:action].to_s.presence,
+            action: request.query_parameters["action"].presence,
             date_from: params[:date_from],
             date_to: params[:date_to]
           }

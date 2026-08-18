@@ -4,7 +4,7 @@ require "swagger_helper"
 
 RSpec.describe "Api::V1::Auth", type: :request do
   let(:user) { create(:user, email: "maria@example.com") }
-  let!(:membership) { create(:membership, user: user) }
+  let!(:membership) { create(:membership, :staff, user: user) }
 
   path "/api/v1/auth/login" do
     post "Login" do

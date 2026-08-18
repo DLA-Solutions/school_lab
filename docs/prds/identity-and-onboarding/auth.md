@@ -55,6 +55,62 @@ Firebase Authentication is **not** used for login — FCM only ([`web-stack.md`]
 
 ---
 
+## OAuth (Google — MVP)
+
+BR-GO01 — `capability_id`: `identity.authenticate_user`
+
+No auto-registration — Google login only for pre-provisioned users (school staff, guardians,
+backoffice operators already on file).
+
+BR-GO02
+
+Require `email_verified: true` in the Google ID token.
+
+BR-GO03
+
+Match user by normalized email; create or update a `user_identities` row on first successful
+Google login (`provider: google`, `provider_uid: sub`).
+
+BR-GO04
+
+Global blocks match password login: `users.status = disabled`, discarded users, Devise lockout
+(`locked_at`).
+
+BR-GO05
+
+**Staff / teacher / director / backoffice:** at least one kept membership with role in
+`staff`, `teacher`, `school`, or `backoffice` and status `active` or `invited`.
+
+BR-GO06
+
+**Guardian:** at least one kept `guardian` profile with at least one kept `student_guardian`
+link to an enrolled student (same semantics as
+[`SyncGuardianActivationService`](../../../web/app/services/people/sync_guardian_activation_service.rb))
+and a guardian membership at the same school with status `active` or `invited`.
+
+BR-GO07
+
+Dual-role accounts may log in when **any** eligible path (staff or guardian) is satisfied.
+
+BR-GO08
+
+Password and Google sign-in coexist on the same account when emails match.
+
+BR-GO09
+
+API returns generic `403 access_denied` for all eligibility failures (unknown email, no eligible
+membership, guardian without enrolled child, identity bound to another user). Specific reasons
+are logged server-side only.
+
+BR-GO10
+
+Other OAuth providers (Apple, Microsoft) are out of scope unless a new product need is recorded.
+
+Competitive note: Agenda Edu staff app offers Google login
+([`docs/ref/agenda-edu/comunicacao/funcionalidades-por-ator.md`](../../ref/agenda-edu/comunicacao/funcionalidades-por-ator.md)).
+
+---
+
 ## Use Cases
 
 ### UC-A01 — Login with email and password
@@ -72,6 +128,12 @@ Flow: enqueue email with reset link; always return `200` (no email enumeration).
 ### UC-A04 — Complete password reset
 
 Flow: validate token → set password → invalidate reset token.
+
+### UC-GO01 — Google login (web)
+
+Flow: SPA obtains Google ID token (GIS) → `POST /auth/oauth/google` → verify token → link
+`UserIdentity` → eligibility check → issue access JWT + refresh (same transport as password
+login).
 
 ---
 
@@ -95,6 +157,33 @@ When POST /auth/login
 Then response is 403 user_disabled
 ```
 
+AC-GO001
+
+```gherkin
+Given a pre-provisioned staff user whose Google email matches users.email
+  And the user has an active staff membership
+When POST /auth/oauth/google with a valid Google id_token and client web
+Then response is 200 with access_token
+  And a refresh cookie is set
+  And a user_identities row exists for provider google
+
+Given a Google id_token with email_verified false
+When POST /auth/oauth/google
+Then response is 401 invalid_oauth_token
+
+Given a Google email not registered in the platform
+When POST /auth/oauth/google with a valid token
+Then response is 403 access_denied
+
+Given a guardian whose children are all discarded or not enrolled
+When POST /auth/oauth/google with a valid token
+Then response is 403 access_denied
+
+Given users.status disabled
+When POST /auth/oauth/google with a valid token
+Then response is 403 user_disabled
+```
+
 ---
 
 ## Out of Scope
@@ -102,3 +191,5 @@ Then response is 403 user_disabled
 - MFA / WebAuthn (`identity.configure_multi_factor` — P2).
 - Magic-link login without password.
 - Student login (record-only through MVP — [`actors-and-surfaces.md`](../../actors-and-surfaces.md)).
+- Apple / Microsoft OAuth (BR-GO10).
+- Unlink identity UI (P2).

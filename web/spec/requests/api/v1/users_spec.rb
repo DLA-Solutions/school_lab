@@ -79,7 +79,7 @@ RSpec.describe "Api::V1::Users", type: :request do
 
           login = Auth::LoginService.call(email: target_user.email, password: "Password123!")
           expect(login.success?).to be(false)
-          expect(login.error_code).to eq(:unauthorized)
+          expect(login.error_code).to eq(:user_disabled)
         end
       end
 

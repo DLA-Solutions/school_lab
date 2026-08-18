@@ -375,17 +375,73 @@ const SchoolDetail = () => {
   const statusMeta = status ? ONBOARDING_STATUS_CHIP[status] : null;
   const showProvisioningLinks = status === 'provisioning' || status === 'pending_handoff';
 
+  const impersonationSection = canImpersonate ? (
+    <Box data-testid="impersonation-section">
+      <SectionCard title={t('backoffice.schoolDetail.impersonation.title')} padding={3.5}>
+      <Stack spacing={1.5}>
+        <Typography variant="body2" color="text.secondary">
+          {t('backoffice.schoolDetail.impersonation.description')}
+        </Typography>
+        {impersonationError && !impersonationOpen && <ErrorBanner message={impersonationError} />}
+        {activeImpersonation && (
+          <Stack spacing={1} data-testid="active-impersonation">
+            <Typography variant="body2">
+              {t('backoffice.schoolDetail.impersonation.activeSession', {
+                school: activeImpersonation.school_name,
+                expires: formatDate(activeImpersonation.expires_at),
+              })}
+            </Typography>
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              sx={{ alignSelf: 'flex-start' }}
+              disabled={impersonationEnding}
+              onClick={handleEndImpersonation}
+            >
+              {t('backoffice.schoolDetail.impersonation.endSession')}
+            </Button>
+          </Stack>
+        )}
+        <Button
+          variant="outlined"
+          size="small"
+          sx={{ alignSelf: 'flex-start' }}
+          data-testid="impersonation-launch"
+          onClick={openImpersonationDialog}
+        >
+          {t('backoffice.schoolDetail.impersonation.launch')}
+        </Button>
+      </Stack>
+      </SectionCard>
+    </Box>
+  ) : null;
+
   return (
     <Stack direction="column" gap={3.5} py={2} data-testid="school-detail">
       <PageHeader
         title={school.name}
         subtitle={t('backoffice.schoolDetail.subtitle')}
         actions={
-          <Button component={RouterLink} to={paths.schools} variant="outlined" size="small">
-            {t('backoffice.schoolDetail.backToSchools')}
-          </Button>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            {canImpersonate && (
+              <Button
+                variant="contained"
+                size="small"
+                data-testid="impersonation-header-action"
+                onClick={openImpersonationDialog}
+              >
+                {t('backoffice.schoolDetail.impersonation.launch')}
+              </Button>
+            )}
+            <Button component={RouterLink} to={paths.schools} variant="outlined" size="small">
+              {t('backoffice.schoolDetail.backToSchools')}
+            </Button>
+          </Stack>
         }
       />
+
+      {impersonationSection}
 
       <SectionCard title={t('backoffice.schoolDetail.profileTitle')} padding={3.5}>
         <Grid container spacing={2.5}>
@@ -559,39 +615,6 @@ const SchoolDetail = () => {
           </Typography>
         )}
       </SectionCard>
-
-      {canImpersonate && (
-        <SectionCard title={t('backoffice.schoolDetail.impersonation.title')} padding={3.5}>
-          <Stack spacing={1.5}>
-            <Typography variant="body2" color="text.secondary">
-              {t('backoffice.schoolDetail.impersonation.description')}
-            </Typography>
-            {activeImpersonation && (
-              <Stack spacing={1} data-testid="active-impersonation">
-                <Typography variant="body2">
-                  {t('backoffice.schoolDetail.impersonation.activeSession', {
-                    school: activeImpersonation.school_name,
-                    expires: formatDate(activeImpersonation.expires_at),
-                  })}
-                </Typography>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  size="small"
-                  sx={{ alignSelf: 'flex-start' }}
-                  disabled={impersonationEnding}
-                  onClick={handleEndImpersonation}
-                >
-                  {t('backoffice.schoolDetail.impersonation.endSession')}
-                </Button>
-              </Stack>
-            )}
-            <Button variant="outlined" size="small" sx={{ alignSelf: 'flex-start' }} onClick={openImpersonationDialog}>
-              {t('backoffice.schoolDetail.impersonation.launch')}
-            </Button>
-          </Stack>
-        </SectionCard>
-      )}
 
       {showProvisioningLinks && (
         <SectionCard title={t('backoffice.schoolDetail.quickLinksTitle')} padding={3.5}>

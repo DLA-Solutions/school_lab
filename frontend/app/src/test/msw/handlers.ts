@@ -33,6 +33,9 @@ export const ACCESS_EXPIRES_AT = '2026-08-04T23:20:00Z';
 
 export const VALID_CREDENTIALS = { email: 'maria@example.com', password: 'correct-horse' };
 
+/** A valid Google ID token accepted by the default OAuth handler. */
+export const VALID_GOOGLE_ID_TOKEN = 'valid-google-id-token';
+
 export const SECRETARY_TEMPLATE_ID = 101;
 export const DIRECTOR_TEMPLATE_ID = 102;
 
@@ -580,6 +583,20 @@ export const handlers = [
 
     if (body.email !== VALID_CREDENTIALS.email || body.password !== VALID_CREDENTIALS.password) {
       return jsonError(401, 'invalid_credentials', 'E-mail ou senha inválidos.');
+    }
+
+    return HttpResponse.json({
+      access_token: FRESH_ACCESS_TOKEN,
+      access_expires_at: ACCESS_EXPIRES_AT,
+      user: currentUser,
+    });
+  }),
+
+  http.post(apiUrl('/api/v1/auth/oauth/google'), async ({ request }) => {
+    const body = (await request.json()) as { id_token?: string };
+
+    if (body.id_token !== VALID_GOOGLE_ID_TOKEN) {
+      return jsonError(403, 'access_denied', 'Acesso negado.');
     }
 
     return HttpResponse.json({

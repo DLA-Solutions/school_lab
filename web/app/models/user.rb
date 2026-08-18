@@ -27,6 +27,7 @@ class User < ApplicationRecord
   has_many :schools, through: :memberships
   has_many :guardians, dependent: :nullify
   has_many :refresh_tokens, dependent: :destroy
+  has_many :user_identities, dependent: :destroy
   has_many :device_tokens, dependent: :destroy
 
   belongs_to :disabled_by, class_name: "User", optional: true

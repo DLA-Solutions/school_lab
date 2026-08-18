@@ -182,6 +182,25 @@ Table refresh_tokens {
   created_at timestamp
 }
 
+Table user_identities {
+  id integer [primary key, increment]
+  user_id integer [not null]
+  provider varchar [not null, note: 'google — model validates; extensible later']
+  provider_uid varchar [not null, note: 'Google sub — stable subject id']
+  email varchar [not null, note: 'Snapshot at link; LGPD contact data']
+  email_verified boolean [not null, default: false]
+  linked_at timestamp [not null]
+  last_used_at timestamp
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+    (provider, provider_uid) [unique]
+    (user_id, provider) [unique]
+    user_id
+  }
+}
+
 Table device_tokens {
   id integer [primary key, increment]
   user_id integer [not null]
@@ -1714,6 +1733,7 @@ Ref: guardian_requests.resolved_by_id > users.id
 Ref: guardian_requests.requested_by_id > users.id
 
 Ref: refresh_tokens.user_id > users.id
+Ref: user_identities.user_id > users.id
 Ref: device_tokens.user_id > users.id
 Ref: users.disabled_by_id > users.id
 

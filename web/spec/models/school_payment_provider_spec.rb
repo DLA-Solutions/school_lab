@@ -97,8 +97,9 @@ RSpec.describe SchoolPaymentProvider, type: :model do
     end
 
     it "states the credential requirements of every registered adapter" do
-      expect(described_class::REQUIRED_CREDENTIALS.keys)
-        .to match_array(Gateways::BankSlip::Registry::ADAPTERS.keys)
+      bank_slip_providers = described_class::REQUIRED_CREDENTIALS.except("spedy").keys
+
+      expect(bank_slip_providers).to match_array(Gateways::BankSlip::Registry::ADAPTERS.keys)
     end
   end
 end

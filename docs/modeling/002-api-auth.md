@@ -4,8 +4,8 @@
 > DB schema: [`docs/database/database_dml.md`](../database/database_dml.md) (`users`, `memberships`, `refresh_tokens`)  
 > Identity lifecycle: [`001-fintech-first.md`](001-fintech-first.md) (status, Discard)
 
-Narrative DSL for API token authentication. Complements the DB schema — no new tables beyond
-`refresh_tokens` unless implementation adds session metadata columns later.
+Narrative DSL for API token authentication. Complements the DB schema — `refresh_tokens` for
+session rotation; `user_identities` for OAuth provider linkage (Google MVP).
 
 ## Stack
 
@@ -92,11 +92,30 @@ School context comes from the request path `:school_id` + membership check.
 
 No Discard on `refresh_tokens` — purge rows after `expires_at` or `revoked_at` + short grace.
 
+## OAuth identities (`user_identities`)
+
+Google Sign-In (MVP) links a stable provider subject (`provider_uid` = Google `sub`) to an
+existing `users` row. Password credentials on `users` remain the source of truth for
+email/password login; OAuth is a parallel front door into the same JWT pipeline.
+
+| Column | Use |
+|--------|-----|
+| `provider` | `google` (validated in model; extensible later) |
+| `provider_uid` | Google `sub` — canonical identity key |
+| `email` | Snapshot at link / refresh on login |
+| `email_verified` | Last known verification flag from token |
+| `linked_at` | First successful link timestamp |
+| `last_used_at` | Updated on each successful Google login |
+
+Partial unique indexes: `(provider, provider_uid)` globally; `(user_id, provider)` per user.
+No auto-registration — eligibility rules in auth PRD (BR-GO01–BR-GO09) gate login after link.
+
 ## Auth endpoints
 
 | Method | Path | Auth |
 |--------|------|------|
 | `POST` | `/api/v1/auth/login` | Public |
+| `POST` | `/api/v1/auth/oauth/google` | Public — Google ID token |
 | `POST` | `/api/v1/auth/refresh` | Refresh token |
 | `POST` | `/api/v1/auth/logout` | Access + refresh |
 | `POST` | `/api/v1/auth/password` | Public — reset request |

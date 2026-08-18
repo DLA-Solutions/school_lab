@@ -80,6 +80,9 @@ pt-BR:
       report_unsupported_characters: "O relatório traz caracteres que a fonte do PDF não desenha. Verifique os nomes cadastrados."
       invalid_reset_token: "Este link expirou ou já foi usado. Peça um novo."
       invalid_credentials: "E-mail ou senha inválidos."
+      invalid_oauth_token: "Token de login do Google inválido."
+      access_denied: "Acesso negado."
+      user_disabled: "Esta conta está desativada."
       invalid_invite_token: "Este convite é inválido ou expirou."
       forbidden: "Acesso negado."
       module_disabled: "Este módulo está desativado para esta escola."
@@ -173,6 +176,7 @@ pt-BR:
   activerecord:
     errors:
       messages:
+        record_invalid: "A validação falhou: %{errors}"
         invalid_cpf: "não é um CPF válido"
         requires_valid_cnpj: "só pode ser preenchido quando o CNPJ da escola for válido — é o documento sob o qual a escola assina"
         too_short: "deve ter ao menos 10 caracteres"

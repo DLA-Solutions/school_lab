@@ -79,6 +79,9 @@ en:
       report_unsupported_characters: "The report contains characters the PDF font cannot draw. Check the names on file."
       invalid_reset_token: "This link has expired or was already used. Request a new one."
       invalid_credentials: "Invalid e-mail or password."
+      invalid_oauth_token: "Invalid Google sign-in token."
+      access_denied: "Access denied."
+      user_disabled: "This account is disabled."
       invalid_invite_token: "This invite link is invalid or has expired."
       forbidden: "Access denied."
       module_disabled: "This module is disabled for this school."
@@ -172,6 +175,7 @@ en:
   activerecord:
     errors:
       messages:
+        record_invalid: "Validation failed: %{errors}"
         invalid_cpf: "is not a valid CPF"
         requires_valid_cnpj: "can only be set once the school's CNPJ is valid — it is the document the school signs under"
         too_short: "must be at least 10 characters"
