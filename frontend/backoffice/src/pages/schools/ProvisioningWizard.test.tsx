@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import {
@@ -14,6 +14,7 @@ import {
   server,
   SECRETARY_TEMPLATE_ID,
   resetTeamMembershipsBySchool,
+  resetActiveSchoolYears,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
@@ -54,8 +55,33 @@ const advanceToBilling = async () => {
   await user.click(screen.getByRole('button', { name: /continuar/i }));
 };
 
-const advanceToPeople = async () => {
+const advanceToSchoolYear = async () => {
   await advanceToBilling();
+  await user.click(screen.getByRole('button', { name: /continuar/i }));
+};
+
+const completeSchoolYearStep = async () => {
+  if (screen.queryByText(/ano letivo ativo:/i)) {
+    return;
+  }
+
+  const nameInput = screen.queryByLabelText(/nome do ano/i);
+  if (nameInput) {
+    fireEvent.change(nameInput, { target: { value: '2026' } });
+    fireEvent.change(screen.getByLabelText(/^início$/i), { target: { value: '2026-02-01' } });
+    fireEvent.change(screen.getByLabelText(/^término$/i), { target: { value: '2026-12-15' } });
+  }
+
+  const createButton = screen.queryByRole('button', { name: /criar e ativar ano letivo/i });
+  if (createButton && !(createButton as HTMLButtonElement).disabled) {
+    await user.click(createButton);
+    await screen.findByText(/ano letivo criado e ativado com sucesso/i);
+  }
+};
+
+const advanceToPeople = async () => {
+  await advanceToSchoolYear();
+  await completeSchoolYearStep();
   await user.click(screen.getByRole('button', { name: /continuar/i }));
 };
 
@@ -64,9 +90,28 @@ const advanceToCsv = async () => {
   await user.click(screen.getByRole('button', { name: /continuar/i }));
 };
 
+const clickWizardForward = async () => {
+  const reviewButton = screen.queryByRole('button', { name: /revisar repasse/i });
+  if (reviewButton) {
+    await user.click(reviewButton);
+    return;
+  }
+
+  await user.click(screen.getByRole('button', { name: /continuar/i }));
+};
+
 const advanceToHandoff = async () => {
   await advanceToCsv();
-  await user.click(screen.getByRole('button', { name: /continuar/i }));
+  await clickWizardForward();
+};
+
+/** From Cobrança (step 1) after billing setup, advance through remaining steps to Repasse. */
+const continueFromBillingToHandoff = async () => {
+  await clickWizardForward();
+  await completeSchoolYearStep();
+  await clickWizardForward();
+  await clickWizardForward();
+  await clickWizardForward();
 };
 
 const uploadCredentialsOnBillingStep = async () => {
@@ -88,6 +133,7 @@ const waitForWizardLoaded = async () => {
 describe('ProvisioningWizard', () => {
   beforeEach(() => {
     resetTeamMembershipsBySchool();
+    resetActiveSchoolYears();
   });
 
   it('renders wizard steps for provisioning school', async () => {
@@ -120,13 +166,17 @@ describe('ProvisioningWizard', () => {
     ).toBeTruthy();
   });
 
-  it('navigates through billing and people steps', async () => {
+  it('navigates through billing, school year, and people steps', async () => {
     renderWizard();
     await waitForWizardLoaded();
 
     await advanceToBilling();
     expect(screen.getByText(/adiar configuração de cobrança/i)).toBeInTheDocument();
 
+    await user.click(screen.getByRole('button', { name: /continuar/i }));
+    expect(await screen.findByText(/configure o primeiro ano letivo/i)).toBeInTheDocument();
+
+    await completeSchoolYearStep();
     await user.click(screen.getByRole('button', { name: /continuar/i }));
     expect(screen.getByText(/convide membros da equipe administrativa/i)).toBeInTheDocument();
   });
@@ -155,7 +205,7 @@ describe('ProvisioningWizard', () => {
     await waitForWizardLoaded();
     await advanceToPeople();
 
-    await user.type(screen.getByLabelText(/^e-mail$/i), 'secretaria@example.com');
+    await user.type(await screen.findByLabelText(/^e-mail$/i), 'secretaria@example.com');
     await user.click(screen.getByRole('button', { name: /^enviar convite$/i }));
 
     await waitFor(() => {
@@ -206,7 +256,7 @@ describe('ProvisioningWizard', () => {
     await waitForWizardLoaded();
     await advanceToPeople();
 
-    await user.type(screen.getByLabelText(/^e-mail$/i), 'secretaria@example.com');
+    await user.type(await screen.findByLabelText(/^e-mail$/i), 'secretaria@example.com');
     await user.click(screen.getByRole('button', { name: /^enviar convite$/i }));
     await screen.findByText(/convite enviado com sucesso/i);
 
@@ -263,17 +313,45 @@ describe('ProvisioningWizard', () => {
     expect(await screen.findByText(/convite reenviado com sucesso/i)).toBeInTheDocument();
   });
 
+  it('bulk resends pending invites on people step', async () => {
+    let bulkResendCalled = false;
+
+    server.use(
+      http.post(apiUrl('/api/v1/schools/:schoolId/provisioning/resend_invites'), ({ params }) => {
+        bulkResendCalled = true;
+        expect(params.schoolId).toBe(String(PROVISIONING_SCHOOL_ID));
+
+        return HttpResponse.json({ data: { resent_count: 1 } });
+      }),
+    );
+
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToPeople();
+
+    expect(screen.getByText('diretor@example.com')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: /reenviar todos os convites pendentes/i }),
+    );
+
+    await waitFor(() => {
+      expect(bulkResendCalled).toBe(true);
+    });
+    expect(await screen.findByText(/1 convite\(s\) reenviado\(s\) com sucesso/i)).toBeInTheDocument();
+  });
+
   it('shows team invite indicator on handoff step after sending invite', async () => {
     renderWizard();
     await waitForWizardLoaded();
     await advanceToPeople();
 
-    await user.type(screen.getByLabelText(/^e-mail$/i), 'secretaria@example.com');
+    await user.type(await screen.findByLabelText(/^e-mail$/i), 'secretaria@example.com');
     await user.click(screen.getByRole('button', { name: /^enviar convite$/i }));
     await screen.findByText(/convite enviado com sucesso/i);
 
-    await user.click(screen.getByRole('button', { name: /continuar/i }));
-    await user.click(screen.getByRole('button', { name: /continuar/i }));
+    await clickWizardForward();
+    await clickWizardForward();
 
     expect(screen.getByText(/convite da equipe enviado \(opcional\)/i)).toBeInTheDocument();
   });
@@ -373,16 +451,26 @@ describe('ProvisioningWizard', () => {
     expect(screen.getByText(/linha 2, student_name/i)).toBeInTheDocument();
   });
 
+  it('creates and activates school year on wizard step', async () => {
+    renderWizard();
+    await waitForWizardLoaded();
+    await advanceToSchoolYear();
+
+    expect(screen.getByText(/configure o primeiro ano letivo/i)).toBeInTheDocument();
+    await completeSchoolYearStep();
+  });
+
   it('completes provisioning handoff and navigates to schools', async () => {
     renderWizard();
     await waitForWizardLoaded();
 
     await advanceToBilling();
     await user.click(screen.getByRole('checkbox', { name: /adiar configuração de cobrança/i }));
-    await user.click(screen.getByRole('button', { name: /continuar/i }));
-    await user.click(screen.getByRole('button', { name: /continuar/i }));
-    await user.click(screen.getByRole('button', { name: /continuar/i }));
+    await continueFromBillingToHandoff();
 
+    expect(
+      await screen.findByRole('button', { name: /confirmar repasse ao responsável/i }),
+    ).toBeEnabled();
     await user.click(screen.getByRole('button', { name: /confirmar repasse ao responsável/i }));
 
     await waitFor(() => {
@@ -465,10 +553,7 @@ describe('ProvisioningWizard', () => {
     await advanceToBilling();
     await uploadCredentialsOnBillingStep();
     await screen.findByText(/credenciais enviadas com sucesso/i);
-
-    await user.click(screen.getByRole('button', { name: /continuar/i }));
-    await user.click(screen.getByRole('button', { name: /continuar/i }));
-    await user.click(screen.getByRole('button', { name: /continuar/i }));
+    await continueFromBillingToHandoff();
 
     expect(screen.getByRole('button', { name: /confirmar repasse ao responsável/i })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: /confirmar repasse ao responsável/i }));

@@ -13,7 +13,9 @@ const App = lazy(() => import('App'));
 const Dashboard = lazy(() => import('pages/Dashboard'));
 const Schools = lazy(() => import('pages/schools/Schools'));
 const Users = lazy(() => import('pages/users/Users'));
+const Audits = lazy(() => import('pages/audits/Audits'));
 const ProvisioningWizard = lazy(() => import('pages/schools/ProvisioningWizard'));
+const SchoolDetail = lazy(() => import('pages/schools/SchoolDetail'));
 const SchoolActivation = lazy(() => import('pages/schools/SchoolActivation'));
 const BankCredentials = lazy(() => import('pages/schools/BankCredentials'));
 
@@ -55,6 +57,10 @@ const router = createBrowserRouter(
               element: <Users />,
             },
             {
+              path: paths.audits.slice(1),
+              element: <Audits />,
+            },
+            {
               path: 'schools/:schoolId/provisioning',
               element: <ProvisioningWizard />,
             },
@@ -65,6 +71,10 @@ const router = createBrowserRouter(
             {
               path: 'schools/:schoolId/bank-credentials',
               element: <BankCredentials />,
+            },
+            {
+              path: 'schools/:schoolId',
+              element: <SchoolDetail />,
             },
           ],
         },

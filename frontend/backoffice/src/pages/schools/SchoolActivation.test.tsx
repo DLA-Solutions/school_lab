@@ -89,6 +89,7 @@ describe('SchoolActivation', () => {
     expect(await screen.findByText(/checklist de ativação/i)).toBeInTheDocument();
     expect(screen.getByText(/proprietário com acesso ativo/i)).toBeInTheDocument();
     expect(screen.getByText(/cobrança configurada ou adiada/i)).toBeInTheDocument();
+    expect(screen.getByText(/ano letivo ativo configurado/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /confirmar e ativar escola/i })).toBeEnabled();
   });
 

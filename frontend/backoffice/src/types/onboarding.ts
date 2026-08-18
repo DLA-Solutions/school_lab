@@ -3,7 +3,12 @@ export type SchoolOnboardingStatus = 'provisioning' | 'pending_handoff' | 'activ
 export type SchoolOnboardingMode = 'self_serve' | 'white_glove';
 
 /** Checklist keys returned in `422 details.checklist` from POST handoff. */
-export type HandoffChecklistItem = 'billing' | 'owner_active' | 'owner_invite' | 'invalid_phase';
+export type HandoffChecklistItem =
+  | 'billing'
+  | 'owner_active'
+  | 'owner_invite'
+  | 'invalid_phase'
+  | 'school_year';
 
 export interface HandoffSchool {
   id: number;
