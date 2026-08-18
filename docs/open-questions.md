@@ -51,6 +51,14 @@ Recorded from a conversation with the partner director (escola NSR). Details in
       identifiers only for approved domain exceptions (`docs/glossary.md`); ask
       before adding new ones.
 
+## Identity — OAuth
+
+- [x] **Google OAuth provider for login (MVP)** — `user_identities` table, `POST /auth/oauth/google`,
+      Google Identity Services on web SPA; no Firebase Auth; password login unchanged. See auth PRD
+      BR-GO01–BR-GO10 and [`002-api-auth.md`](modeling/002-api-auth.md).
+- [ ] **Backoffice Google restricted to corporate domain?** — defer; open login for now (same
+      endpoint and eligibility as school staff).
+
 ## Recent decisions (fintech-first discovery #21 — Aug 2026)
 
 Recorded from discovery issue #21. Details in `docs/prds/fintech-first.md` (BR-011,
