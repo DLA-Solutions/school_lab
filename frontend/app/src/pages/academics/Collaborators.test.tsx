@@ -26,6 +26,13 @@ const collaborator = (id: number, name: string, jobTitle: string, cpf: string): 
   job_position_id: id,
   job_title: jobTitle,
   hired_on: '2024-02-01',
+  zip_code: null,
+  street: null,
+  number: null,
+  complement: null,
+  neighborhood: null,
+  city: null,
+  state: null,
   classes: [],
 });
 
