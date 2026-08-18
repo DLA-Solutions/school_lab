@@ -176,6 +176,7 @@ pt-BR:
   activerecord:
     errors:
       messages:
+        record_invalid: "A validação falhou: %{errors}"
         invalid_cpf: "não é um CPF válido"
         requires_valid_cnpj: "só pode ser preenchido quando o CNPJ da escola for válido — é o documento sob o qual a escola assina"
         too_short: "deve ter ao menos 10 caracteres"
