@@ -21,6 +21,7 @@ const authWithImpersonation: AuthContextValue = {
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 };
@@ -30,6 +31,7 @@ const authWithoutImpersonation: AuthContextValue = {
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 };

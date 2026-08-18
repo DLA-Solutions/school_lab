@@ -37,6 +37,7 @@ const authValueFor = (memberships: typeof staffMembership[]): AuthContextValue =
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 });

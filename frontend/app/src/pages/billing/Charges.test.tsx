@@ -75,6 +75,7 @@ const authValue: AuthContextValue = {
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 };
