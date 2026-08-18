@@ -21,8 +21,10 @@ and permission keys; this folder owns **platform configuration**, **backoffice o
 
 - No `school_year` or `academic_period` entities in `web/` — academic PRDs stub one active year
   `[product decision]`.
-- Backoffice SPA exists at `/backoffice` but platform ops (module flags, tenant register) are
-  minimal beyond fintech-first school create.
+- Backoffice SPA exists at `/backoffice`; W3 is **partially implemented** — register, wizard, and
+  module PATCH API exist; module UI, tenant detail, school-year wizard step, and ops dashboard are
+  **E1** in [`backoffice-evolution.md`](backoffice-evolution.md). Platform ops (audit, search,
+  discarded restore) are **E2**; SaaS billing, impersonation, analytics, multi-unit are **E3 P2**.
 - No institutional calendar or staff roster admin beyond identity invites.
 - Product access / getting-started content scattered in competitor help articles — not modeled
   ([`DIV-integration-001`](../../ref/divergencias.md)).
@@ -115,6 +117,7 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 |----|----------|---------|
 | BC1 | [`school-year.md`](school-year.md) | School year, academic periods, holidays; one active year per school MVP |
 | BC2 | [`backoffice.md`](backoffice.md) | Tenant register, module flags, provisioning ops in `/backoffice` |
+| BC2b | [`backoffice-evolution.md`](backoffice-evolution.md) | E1–E3 gaps, platform ops tooling, P2 roadmap *(draft)* |
 | BC3 | [`calendar.md`](calendar.md) | Institutional events + staff personal events |
 | BC4 | [`staff-users.md`](staff-users.md) | Staff roster, menu visibility; defers auth/permissions to identity |
 | BC5 | [`onboarding.md`](onboarding.md) | Product access, getting-started, app download — **not** tenant provisioning |
@@ -263,7 +266,7 @@ sequenceDiagram
 |------|-------------|-------------|--------|
 | **W1** | school-year.md | `school_years`, `academic_periods`, holidays API; one active year enforcement | **API frozen (4C.1)** — see [`platform-and-admin.md`](../../api/v1/platform-and-admin.md) |
 | **W2** | calendar.md | Institutional + personal events CRUD (`calendar_events`) | Deferred — Phase 4C.1b |
-| **W3** | backoffice.md | Backoffice school register, module flags, provisioning dashboard | Deferred — Phase 4C.1b |
+| **W3** | backoffice.md | Backoffice school register, module flags, provisioning dashboard | **Partial** — register + wizard + PATCH modules; E1 closes UI gaps ([`backoffice-evolution.md`](backoffice-evolution.md)) |
 | **W4** | staff-users.md | Staff roster list, menu visibility map from permission payload | Deferred — Phase 4C.1b |
 | **W5** | onboarding.md | In-app getting started, store links, optional checklist UI | Deferred — Phase 4C.1b |
 | **Phase 2** | — | Multi-unit, help taxonomy, analytics | — |
@@ -271,6 +274,20 @@ sequenceDiagram
 W1 is a **hard dependency** for academic modeling and period closure implementation. W2–W5 wave
 ordering matches the frozen deferred table in [`platform-and-admin.md`](../../api/v1/platform-and-admin.md)
 § Deferred — Phase 4C.1b (W numbers ≠ BC numbers: BC2=backoffice, BC3=calendar).
+
+### Backoffice evolution waves (E1–E3)
+
+Follow-on delivery for BC2 gaps and P2 platform ops — detail in
+[`backoffice-evolution.md`](backoffice-evolution.md):
+
+| Wave | Focus | Feature slices | Status |
+|------|-------|----------------|--------|
+| **E1** | Complete BC2/W3 onboarding | module-flags-ui, school-year-provisioning, tenant-detail, operational-dashboard | draft PRD |
+| **E2** | Platform ops visibility | audit-viewer, advanced-search, discarded-schools; bulk invite resend + operator permissions (PRD UCs) | draft PRD |
+| **E3** | P2 commercial & scale | platform-billing, impersonation, analytics, multi-unit, help-taxonomy | draft PRD — blocked on open questions |
+
+E1 may parallelize after school detail blueprint is agreed. E2 depends on E1 tenant detail. E3
+requires modeling and closed decisions on billing model and impersonation policy.
 
 ---
 

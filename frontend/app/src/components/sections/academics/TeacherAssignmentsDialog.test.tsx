@@ -40,6 +40,13 @@ const teacher: Teacher = {
   job_position_id: 3,
   job_title: 'Professora',
   hired_on: '2024-02-01',
+  zip_code: null,
+  street: null,
+  number: null,
+  complement: null,
+  neighborhood: null,
+  city: null,
+  state: null,
   classes: [
     {
       id: fifthA.id,

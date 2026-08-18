@@ -42,6 +42,20 @@ export const importProvisioningCsv = async (
   return response.data;
 };
 
+export type ResendProvisioningInvitesResult = {
+  resent_count: number;
+};
+
+/** POST /api/v1/schools/:id/provisioning/resend_invites — bulk re-queue pending invites (UC-BOE08). */
+export const resendProvisioningInvites = async (schoolId: number) => {
+  const response = await request<{ data: ResendProvisioningInvitesResult }>(
+    `/api/v1/schools/${schoolId}/provisioning/resend_invites`,
+    { method: 'POST' },
+  );
+
+  return response.data;
+};
+
 /** POST /api/v1/schools/:school_id/people/memberships — invite staff during owner wizard. */
 export const inviteStaffMember = async (schoolId: number, payload: CreateStaffInvitePayload) => {
   const response = await request<{ data: CreatedMembership }>(

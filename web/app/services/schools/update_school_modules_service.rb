@@ -7,6 +7,14 @@ module Schools
       @modules = normalize_modules(modules)
     end
 
+    def self.module_map_for(school)
+      by_key = school.school_modules.reload.index_by(&:module_key)
+      SchoolLab::SchoolModuleKeys.keys.index_with do |module_key|
+        record = by_key[module_key]
+        record ? record.enabled : true
+      end
+    end
+
     def call
       if modules.blank?
         return ResponseService.failure(
@@ -31,7 +39,7 @@ module Schools
         end
       end
 
-      ResponseService.success(data: module_map)
+      ResponseService.success(data: self.class.module_map_for(school))
     rescue ActiveRecord::RecordInvalid => e
       ResponseService.failure(code: :validation_error, details: e.record.errors.to_hash)
     end
@@ -48,12 +56,5 @@ module Schools
       end
     end
 
-    def module_map
-      by_key = school.school_modules.reload.index_by(&:module_key)
-      SchoolLab::SchoolModuleKeys.keys.index_with do |module_key|
-        record = by_key[module_key]
-        record ? record.enabled : true
-      end
-    end
   end
 end

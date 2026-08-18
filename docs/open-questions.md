@@ -385,7 +385,29 @@ does not assume indefinite storage.
 ## GTM / business
 
 - [ ] Format of the partnership with the Sindicato (commercial, pricing)?
-- [ ] Platform billing model (per student, per school, per plan)?
+- [ ] **Platform billing model (DLA → school SaaS)** — per student, per school, flat plan, or
+      hybrid? Blocks E3 [`backoffice-platform-billing-p2.md`](prds/platform-and-admin/backoffice-platform-billing-p2.md)
+      and analytics MRR. Related: enterprise **multi-unit** pricing per group vs per campus
+      ([`backoffice-multi-unit-p2.md`](prds/platform-and-admin/backoffice-multi-unit-p2.md)).
+      See also [`backoffice-evolution.md`](prds/platform-and-admin/backoffice-evolution.md) BR-BOE08.
+
+## Platform & admin (backoffice evolution P2)
+
+Decisions blocking E3 slices in [`backoffice-evolution.md`](prds/platform-and-admin/backoffice-evolution.md).
+
+- [ ] **Impersonation policy** — who may impersonate (all backoffice vs subset); target roles
+      (director/secretary only); session TTL; mandatory banner text; whether guardian impersonation
+      is ever allowed (default **no** — LGPD); audit retention; legal basis for accessing children's
+      data during support. Blocks [`backoffice-impersonation-p2.md`](prds/platform-and-admin/backoffice-impersonation-p2.md)
+      (BR-BOE07).
+- [ ] **Impersonation token scope** — school SPA only vs API-wide; refresh behavior; concurrent
+      sessions per operator.
+- [ ] **Platform SaaS payment collection** — manual invoicing vs integrated gateway for DLA
+      receivables in first P2 ship.
+- [ ] **Help taxonomy persona list** — align with identity role templates before
+      [`backoffice-help-taxonomy-p2.md`](prds/platform-and-admin/backoffice-help-taxonomy-p2.md).
+- [ ] **Audit viewer PII display** — redact all `audited_changes` values vs show non-sensitive diffs
+      ([`backoffice-audit-viewer.md`](prds/platform-and-admin/backoffice-audit-viewer.md)).
 
 ## Competitive corpus (`docs/ref/`)
 

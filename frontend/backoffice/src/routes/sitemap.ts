@@ -37,6 +37,12 @@ const sitemap: MenuItem[] = [
     path: paths.users,
     icon: 'mingcute:user-3-line',
   },
+  {
+    id: 'audits',
+    subheader: 'nav.audits',
+    path: paths.audits,
+    icon: 'mingcute:history-line',
+  },
 ];
 
 export default sitemap;

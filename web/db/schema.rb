@@ -10,11 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-<<<<<<< HEAD
-ActiveRecord::Schema[8.1].define(version: 2026_08_17_170000) do
-=======
 ActiveRecord::Schema[8.1].define(version: 2026_08_17_211221) do
->>>>>>> be10004f123ac3884e8554937c52be11e2aac822
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"

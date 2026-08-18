@@ -1,8 +1,11 @@
-import { ChangeEvent, KeyboardEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
@@ -21,17 +24,20 @@ import {
 import { useTranslation } from 'providers/I18nContext';
 import { useAuth } from 'providers/AuthContext';
 import { ApiError } from 'services/api';
+import { listOperators } from 'services/operatorsApi';
 import {
   disableUser,
   enableUser,
   listUsers,
   UserListFilters,
 } from 'services/usersApi';
+import { PlatformOperator } from 'types/operator';
 import { PlatformUser, UserStatus } from 'types/user';
 
 const PAGE_SIZE = 25;
 const ALL_FILTER = 'all';
 type StatusFilter = UserStatus | typeof ALL_FILTER;
+type UsersTab = 'users' | 'operators';
 
 const STATUS_FILTER_LABELS: Record<StatusFilter, string> = {
   all: 'Todos',
@@ -62,14 +68,20 @@ const formatMembership = (membership: PlatformUser['memberships'][number]) => {
   return `${roleLabel} — ${membership.school_name}`;
 };
 
+const parseUsersTab = (value: string | null): UsersTab => (value === 'operators' ? 'operators' : 'users');
+
 /**
  * Platform user register — search, list, and disable/enable accounts for backoffice operators.
  */
 const Users = () => {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [activeTab, setActiveTab] = useState<UsersTab>(() => parseUsersTab(searchParams.get('tab')));
 
   const [users, setUsers] = useState<PlatformUser[]>([]);
+  const [operators, setOperators] = useState<PlatformOperator[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -94,39 +106,95 @@ const Users = () => {
 
   const hasActiveFilters = Boolean(searchQuery) || statusFilter !== ALL_FILTER;
 
-  const load = useCallback(async () => {
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        if (activeTab === 'operators') {
+          const response = await listOperators(page + 1);
+          if (!cancelled) {
+            setOperators(response.data);
+            setTotal(response.meta.total);
+            setUsers([]);
+          }
+        } else {
+          const response = await listUsers(page + 1, listFilters);
+          if (!cancelled) {
+            setUsers(response.data);
+            setTotal(response.meta.total);
+            setOperators([]);
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setUsers([]);
+          setOperators([]);
+          setTotal(0);
+
+          if (err instanceof ApiError && err.status === 403) {
+            setForbidden(true);
+          } else {
+            setError(
+              err instanceof ApiError
+                ? err.message
+                : activeTab === 'operators'
+                  ? 'Não foi possível carregar os operadores. Verifique sua conexão.'
+                  : 'Não foi possível carregar os usuários. Verifique sua conexão.',
+            );
+          }
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, listFilters, page]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery, statusFilter, activeTab]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    if (activeTab === 'operators') {
+      params.set('tab', 'operators');
+    }
+
+    setSearchParams(params, { replace: true });
+  }, [activeTab, setSearchParams]);
+
+  const reload = async () => {
     setLoading(true);
     setError('');
 
     try {
-      const response = await listUsers(page + 1, listFilters);
-      setUsers(response.data);
-      setTotal(response.meta.total);
-    } catch (err) {
-      setUsers([]);
-      setTotal(0);
-
-      if (err instanceof ApiError && err.status === 403) {
-        setForbidden(true);
+      if (activeTab === 'operators') {
+        const response = await listOperators(page + 1);
+        setOperators(response.data);
+        setTotal(response.meta.total);
       } else {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : 'Não foi possível carregar os usuários. Verifique sua conexão.',
-        );
+        const response = await listUsers(page + 1, listFilters);
+        setUsers(response.data);
+        setTotal(response.meta.total);
       }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a lista.');
     } finally {
       setLoading(false);
     }
-  }, [listFilters, page]);
-
-  useEffect(() => {
-    setPage(0);
-  }, [searchQuery, statusFilter]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  };
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
@@ -152,7 +220,7 @@ const Users = () => {
     try {
       await disableUser(pendingDisable.id);
       setPendingDisable(null);
-      load();
+      await reload();
     } catch (err) {
       setActionError(
         err instanceof ApiError ? err.message : 'Não foi possível desativar o usuário.',
@@ -171,7 +239,7 @@ const Users = () => {
     try {
       await enableUser(pendingEnable.id);
       setPendingEnable(null);
-      load();
+      await reload();
     } catch (err) {
       setActionError(
         err instanceof ApiError ? err.message : 'Não foi possível reativar o usuário.',
@@ -182,7 +250,46 @@ const Users = () => {
 
   const isCurrentUser = (row: PlatformUser) => row.id === currentUser?.id;
 
-  const columns: GridColDef<PlatformUser>[] = [
+  const operatorColumns: GridColDef<PlatformOperator>[] = [
+    { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 240 },
+    {
+      field: 'status',
+      headerName: 'Situação',
+      width: 140,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<PlatformOperator>) => {
+        const meta = STATUS_CHIP[row.status];
+
+        return <SemanticChip variant={meta.variant} label={meta.label} />;
+      },
+    },
+    {
+      field: 'platform_permissions',
+      headerName: t('backoffice.users.permissions'),
+      flex: 1,
+      minWidth: 260,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<PlatformOperator>) => {
+        if (row.platform_permissions.length === 0) {
+          return (
+            <Typography variant="body2" color="text.secondary">
+              {t('backoffice.users.noPermissions')}
+            </Typography>
+          );
+        }
+
+        return (
+          <Typography variant="body2" noWrap title={row.platform_permissions.join(', ')}>
+            {row.platform_permissions.join(', ')}
+          </Typography>
+        );
+      },
+    },
+  ];
+
+  const userColumns: GridColDef<PlatformUser>[] = [
     { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 240 },
     {
       field: 'memberships',
@@ -271,6 +378,10 @@ const Users = () => {
     },
   ];
 
+  const isOperatorsTab = activeTab === 'operators';
+  const rows = isOperatorsTab ? operators : users;
+  const columns = isOperatorsTab ? operatorColumns : userColumns;
+
   if (forbidden) {
     return (
       <Stack direction="column" gap={3.5}>
@@ -290,53 +401,75 @@ const Users = () => {
     <Stack direction="column" gap={3.5}>
       <PageHeader
         title={t('backoffice.users.title')}
-        subtitle="Desative ou reative contas em toda a plataforma."
+        subtitle={
+          isOperatorsTab
+            ? t('backoffice.users.operatorsSubtitle')
+            : 'Desative ou reative contas em toda a plataforma.'
+        }
         actions={
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <SearchField
-              value={searchInput}
-              onChange={handleSearchChange}
-              placeholder="Buscar por e-mail"
-              ariaLabel="Buscar usuários por e-mail"
-              onKeyDown={handleSearchKeyDown}
-            />
-            <TextField
-              id="user-status-filter"
-              label="Situação"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-              select
-              size="small"
-              variant="filled"
-              sx={{ width: 170 }}
-            >
-              {(Object.keys(STATUS_FILTER_LABELS) as StatusFilter[]).map((value) => (
-                <MenuItem key={value} value={value}>
-                  {STATUS_FILTER_LABELS[value]}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Stack>
+          !isOperatorsTab ? (
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <SearchField
+                value={searchInput}
+                onChange={handleSearchChange}
+                placeholder="Buscar por e-mail"
+                ariaLabel="Buscar usuários por e-mail"
+                onKeyDown={handleSearchKeyDown}
+              />
+              <TextField
+                id="user-status-filter"
+                label="Situação"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+                select
+                size="small"
+                variant="filled"
+                sx={{ width: 170 }}
+              >
+                {(Object.keys(STATUS_FILTER_LABELS) as StatusFilter[]).map((value) => (
+                  <MenuItem key={value} value={value}>
+                    {STATUS_FILTER_LABELS[value]}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+          ) : undefined
         }
       />
+
+      <Tabs
+        value={activeTab}
+        onChange={(_event, value: UsersTab) => setActiveTab(value)}
+      >
+        <Tab value="users" label={t('backoffice.users.tab.users')} />
+        <Tab value="operators" label={t('backoffice.users.tab.operators')} />
+      </Tabs>
 
       {error && <ErrorBanner message={error} />}
       {actionError && <ErrorBanner message={actionError} />}
 
       <SectionCard padding={0}>
-        {!loading && users.length === 0 && !error ? (
+        {!loading && rows.length === 0 && !error ? (
           <EmptyState
-            title={hasActiveFilters ? 'Nenhum usuário encontrado' : 'Nenhum usuário cadastrado'}
+            title={
+              isOperatorsTab
+                ? 'Nenhum operador cadastrado'
+                : hasActiveFilters
+                  ? 'Nenhum usuário encontrado'
+                  : 'Nenhum usuário cadastrado'
+            }
             description={
-              hasActiveFilters
-                ? 'Nenhum usuário corresponde à busca ou ao filtro selecionado.'
-                : 'Ainda não há usuários registrados na plataforma.'
+              isOperatorsTab
+                ? t('backoffice.users.operatorsSubtitle')
+                : hasActiveFilters
+                  ? 'Nenhum usuário corresponde à busca ou ao filtro selecionado.'
+                  : 'Ainda não há usuários registrados na plataforma.'
             }
           />
         ) : (
           <Box px={3.5} py={3.5} sx={{ height: 594, width: 1 }}>
             <DataTable
-              rows={users}
+              rows={rows}
               columns={columns}
               loading={loading}
               disableRowSelectionOnClick

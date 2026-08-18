@@ -6,6 +6,14 @@ module Api
       class ModulesController < Api::V1::BaseController
         rescue_from Pundit::NotAuthorizedError, with: :render_modules_forbidden
 
+        def show
+          school = policy_scope(School.kept).find(params[:id])
+          authorize school, :show?, policy_class: SchoolModulePolicy
+
+          module_map = ::Schools::UpdateSchoolModulesService.module_map_for(school)
+          render json: { data: SchoolModulesBlueprint.render_as_hash(module_map) }
+        end
+
         def update
           school = policy_scope(School.kept).find(params[:id])
           authorize school, :update?, policy_class: SchoolModulePolicy

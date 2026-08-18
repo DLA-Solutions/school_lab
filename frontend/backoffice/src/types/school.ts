@@ -1,4 +1,12 @@
 import { SchoolOnboardingMode, SchoolOnboardingStatus } from 'types/onboarding';
+import { SchoolModulesMap } from 'types/modules';
+import { SchoolYear } from 'types/schoolYear';
+
+/** Aggregate counts returned on backoffice tenant detail — no PII (BR-BOE03). */
+export interface SchoolAggregateCounts {
+  students_count: number;
+  staff_count: number;
+}
 
 /** Mirrors `SchoolBlueprint` (web/app/blueprints/school_blueprint.rb). */
 export interface School {
@@ -16,6 +24,15 @@ export interface School {
   signature_email?: string | null;
   /** Derived by the API: needs both the address above and a valid CNPJ. */
   signs_contracts?: boolean;
+  created_at?: string;
+  discarded_at?: string | null;
+}
+
+/** Extended show payload when `?include=modules,active_school_year,aggregate_counts`. */
+export interface SchoolDetail extends School {
+  modules?: SchoolModulesMap;
+  active_school_year?: SchoolYear | null;
+  aggregate_counts?: SchoolAggregateCounts;
 }
 
 /** Backoffice create sends onboarding fields; school-admin self-serve create omits them. */

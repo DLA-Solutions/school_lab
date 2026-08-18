@@ -7,6 +7,7 @@ export const handoffChecklistLabel = (item: string): string => {
     owner_active: 'Proprietário com acesso ativo',
     owner_invite: 'Convite do proprietário enviado',
     invalid_phase: 'Fase de onboarding inválida',
+    school_year: 'Ano letivo ativo configurado',
   };
 
   return labels[item as HandoffChecklistItem] ?? item;

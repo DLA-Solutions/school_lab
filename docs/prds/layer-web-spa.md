@@ -247,6 +247,28 @@ separate communication/documents navigation group.
 | **Guardian** (UI: **Responsável**) | **Current initiative:** Dashboard, Meus boletos, Boletins, Preceptoria, Meus pedidos, Imposto de renda. **Broader MVP:** Mensagens, Comunicados, Documentos | Responsáveis registry, Estudantes registry, Colaboradores, Notas entry, Aulas, Cargos, staff Boletos, Planos, Financeiro settings, Contrato, and staff Solicitações |
 | **Backoffice** | *(separate `frontend/backoffice` SPA)* Escolas, Provisionamento, Módulos | Every `/app/*` school, teacher, and guardian route |
 
+### Backoffice SPA routes (`frontend/backoffice`)
+
+The backoffice is **not** routed through `frontend/app`. Current staging routes and evolution
+targets ([`backoffice-evolution.md`](platform-and-admin/backoffice-evolution.md)):
+
+| Route | Status (Aug 2026) | Wave | Purpose |
+|-------|-------------------|------|---------|
+| `/` , `/dashboard` | Implemented | — | Operational dashboard (KPIs; E1 adds alert widgets) |
+| `/schools` | Implemented | E2 | Tenant list + advanced filters + Arquivadas tab |
+| `/schools/:id` | **Planned** | E1 | Tenant detail — modules, year, counts, quick links |
+| `/schools/:id/provisioning` | Implemented | E1 | Wizard (+ school year step) |
+| `/schools/:id/activation` | Implemented | — | Handoff checklist |
+| `/schools/:id/bank-credentials` | Implemented | — | Cora mTLS credentials |
+| `/users` | Implemented | E2 | Cross-tenant user list + **Operators tab** (platform permissions read-only) |
+| `/audits` | **Planned** | E2 | Platform audit viewer |
+| `/analytics` | **Planned** | E3 P2 | Cross-tenant KPI dashboard |
+| `/school-groups` | **Planned** | E3 P2 | Multi-unit group CRUD |
+| `/help-taxonomy` | **Planned** | E3 P2 | Help category/persona CMS (optional separate menu) |
+
+Implementation paths: `frontend/backoffice/src/routes/paths.ts`, `router.tsx`, `sitemap.ts`.
+Auth: backoffice JWT role only; school staff redirected to `/app` (AC-BO04).
+
 Items without an implemented destination stay hidden; the menu must not expose dead links.
 Sidebar, global search, dashboard cards, breadcrumbs, and direct-route guards all consume the same
 active audience. Frontend guards are a usability boundary only: the API independently enforces

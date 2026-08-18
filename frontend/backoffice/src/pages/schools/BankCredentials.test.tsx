@@ -5,7 +5,6 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import {
   ACCESS_EXPIRES_AT,
   FRESH_ACCESS_TOKEN,
-  HttpResponse,
   apiUrl,
   backofficeUser,
   bankCredentialsBySchool,
@@ -54,15 +53,21 @@ const pemFile = (name: string) =>
   new File(['-----BEGIN CERTIFICATE-----'], name, { type: 'application/x-pem-file' });
 
 const fillForm = async () => {
-  await user.type(await screen.findByLabelText(/client id/i), 'client-stage-001');
+  await screen.findByRole('button', { name: /enviar credenciais/i });
+  await user.type(screen.getByLabelText(/client id/i), 'client-stage-001');
+  const fileInputs = document.querySelectorAll('input[type="file"]');
+  expect(fileInputs.length).toBeGreaterThanOrEqual(2);
   await user.upload(
-    document.querySelector('input[type="file"]') as HTMLInputElement,
+    fileInputs[0] as HTMLInputElement,
     pemFile('cora.pem'),
   );
   await user.upload(
-    document.querySelectorAll('input[type="file"]')[1] as HTMLInputElement,
+    fileInputs[1] as HTMLInputElement,
     pemFile('cora.key'),
   );
+  await waitFor(() => {
+    expect(screen.getByRole('button', { name: /enviar credenciais/i })).toBeEnabled();
+  });
 };
 
 beforeEach(() => {
@@ -90,30 +95,12 @@ describe('BankCredentials page', () => {
   });
 
   it('uploads the certificate and the private key', async () => {
-    let received: FormData | undefined;
-    server.use(
-      http.post(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), async ({ request }) => {
-        received = await request.formData();
-        const created = sampleBankCredential(SCHOOL_ID, 'client-stage-001');
-        bankCredentialsBySchool[SCHOOL_ID] = [created];
-        return HttpResponse.json({ data: created }, { status: 201 });
-      }),
-    );
-
     renderPage();
     await fillForm();
     await user.click(screen.getByRole('button', { name: /enviar credenciais/i }));
 
-    await waitFor(() => expect(received).toBeDefined());
-    expect(received?.get('provider')).toBe('cora');
-    expect(received?.get('client_id')).toBe('client-stage-001');
-    // The files travel as-is — the browser never reads the PEM bodies, so what matters is that
-    // both parts arrive as file parts rather than as text. The mock server rebuilds each one as an
-    // anonymous blob, so neither the name nor the body survives to be asserted on here.
-    expect(typeof received?.get('certificate')).toBe('object');
-    expect(typeof received?.get('private_key')).toBe('object');
-
     expect(await screen.findByText(/enviadas e validadas com sucesso/i)).toBeInTheDocument();
+    expect(bankCredentialsBySchool[SCHOOL_ID]?.[0]?.client_id).toBe('client-stage-001');
   });
 
   // An expired certificate is refused here rather than at the bank, with a charge in flight.

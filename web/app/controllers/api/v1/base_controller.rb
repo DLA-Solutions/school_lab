@@ -179,8 +179,10 @@ module Api
           :not_implemented
         when :invalid_state_transition, :year_in_use, :active_year_exists, :invalid_closure_transition,
              :period_closed, :grade_launch_exists, :report_card_frozen, :publication_in_progress,
-             :generation_in_progress
+             :generation_in_progress, :not_discarded
           :conflict
+        when :rate_limited
+          :too_many_requests
         else
           :unprocessable_content
         end

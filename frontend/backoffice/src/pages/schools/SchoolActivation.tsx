@@ -21,13 +21,14 @@ import { listBankCredentials } from 'services/bankCredentialsApi';
 import { submitHandoff } from 'services/onboardingApi';
 import { listMemberships } from 'services/peopleApi';
 import { getSchool } from 'services/schoolsApi';
+import { getActiveSchoolYear } from 'services/schoolYearsApi';
 import { Membership } from 'types/auth';
 import { HandoffChecklistItem } from 'types/onboarding';
 import { School } from 'types/school';
 import { isBackofficeUser } from 'utils/onboarding/access';
 import { handoffChecklistLabel, parseHandoffChecklist } from 'utils/onboarding/checklist';
 
-const ACTIVATION_CHECKLIST: HandoffChecklistItem[] = ['owner_active', 'billing'];
+const ACTIVATION_CHECKLIST: HandoffChecklistItem[] = ['owner_active', 'billing', 'school_year'];
 
 const SchoolActivation = () => {
   const { t } = useTranslation();
@@ -40,6 +41,7 @@ const SchoolActivation = () => {
   const [school, setSchool] = useState<School | null>(null);
   const [ownerMembership, setOwnerMembership] = useState<Membership | null>(null);
   const [hasActiveCredentials, setHasActiveCredentials] = useState(false);
+  const [hasActiveSchoolYear, setHasActiveSchoolYear] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [billingWaived, setBillingWaived] = useState(false);
@@ -60,10 +62,11 @@ const SchoolActivation = () => {
       setLoadError('');
 
       try {
-        const [schoolData, membershipsResponse, credentials] = await Promise.all([
+        const [schoolData, membershipsResponse, credentials, activeYear] = await Promise.all([
           getSchool(schoolId),
           listMemberships(schoolId),
           listBankCredentials(schoolId),
+          getActiveSchoolYear(schoolId),
         ]);
 
         if (cancelled) {
@@ -73,6 +76,7 @@ const SchoolActivation = () => {
         setSchool(schoolData);
         setOwnerMembership(membershipsResponse.data.find((membership) => membership.is_owner === true) ?? null);
         setHasActiveCredentials(credentials.some((credential) => credential.active));
+        setHasActiveSchoolYear(activeYear?.status === 'active');
         setBillingWaived(Boolean(schoolData.billing_waived_at));
       } catch (error) {
         if (!cancelled) {
@@ -101,15 +105,20 @@ const SchoolActivation = () => {
     Boolean(school?.billing_waived_at) || hasActiveCredentials || billingWaived;
   const ownerActive = ownerMembership?.status === 'active';
   const operatorCanActivate = school?.onboarding_mode === 'white_glove';
-  const activationReady = ownerActive && billingReady;
+  const activationReady = ownerActive && billingReady && hasActiveSchoolYear;
 
   const localChecklist = useMemo(
     () =>
       ACTIVATION_CHECKLIST.map((key) => ({
         key,
-        complete: key === 'owner_active' ? ownerActive : billingReady,
+        complete:
+          key === 'owner_active'
+            ? ownerActive
+            : key === 'billing'
+              ? billingReady
+              : hasActiveSchoolYear,
       })),
-    [billingReady, ownerActive],
+    [billingReady, hasActiveSchoolYear, ownerActive],
   );
 
   const handleConfirmActivation = useCallback(async () => {

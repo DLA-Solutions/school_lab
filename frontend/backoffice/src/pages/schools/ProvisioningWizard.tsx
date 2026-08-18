@@ -27,10 +27,17 @@ import {
   importProvisioningCsv,
   inviteStaffMember,
   listRoleTemplates,
+  resendProvisioningInvites,
   submitHandoff,
 } from 'services/onboardingApi';
 import { listMemberships, resendMembershipInvite } from 'services/peopleApi';
 import { getSchool } from 'services/schoolsApi';
+import {
+  activateSchoolYear,
+  createSchoolYear,
+  getActiveSchoolYear,
+} from 'services/schoolYearsApi';
+import { PeriodTemplate, SchoolYear } from 'types/schoolYear';
 import { SchoolPaymentProvider } from 'types/bankCredential';
 import {
   ProvisioningImportResult,
@@ -43,7 +50,7 @@ import { isBackofficeUser } from 'utils/onboarding/access';
 import { handoffChecklistLabel, parseHandoffChecklist } from 'utils/onboarding/checklist';
 import { formatImportErrorReport } from 'utils/onboarding/importErrors';
 
-const STEPS = ['Boas-vindas', 'Cobrança', 'Pessoas', 'Importação CSV', 'Repasse'] as const;
+const STEPS = ['Boas-vindas', 'Cobrança', 'Ano letivo', 'Pessoas', 'Importação CSV', 'Repasse'] as const;
 
 const WIZARD_CONTAINER_SX = { maxWidth: 960, width: '100%', mx: 'auto' } as const;
 
@@ -168,6 +175,8 @@ const ProvisioningWizard = () => {
   const [sentInvites, setSentInvites] = useState<PendingInvite[]>([]);
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [resendingInviteId, setResendingInviteId] = useState<number | null>(null);
+  const [bulkResendingInvites, setBulkResendingInvites] = useState(false);
+  const [bulkResendSuccess, setBulkResendSuccess] = useState('');
   const [resentInviteIds, setResentInviteIds] = useState<Set<number>>(() => new Set());
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [previewResult, setPreviewResult] = useState<ProvisioningImportResult | null>(null);
@@ -176,6 +185,14 @@ const ProvisioningWizard = () => {
   const [bannerError, setBannerError] = useState('');
   const [checklistErrors, setChecklistErrors] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [activeSchoolYear, setActiveSchoolYear] = useState<SchoolYear | null>(null);
+  const [loadingSchoolYear, setLoadingSchoolYear] = useState(false);
+  const [yearName, setYearName] = useState('2026');
+  const [yearStartsOn, setYearStartsOn] = useState('2026-02-01');
+  const [yearEndsOn, setYearEndsOn] = useState('2026-12-15');
+  const [yearTemplate, setYearTemplate] = useState<PeriodTemplate>('trimester');
+  const [yearFieldErrors, setYearFieldErrors] = useState<Partial<Record<string, string>>>({});
+  const [yearSuccess, setYearSuccess] = useState(false);
 
   const readOnly = school?.onboarding_status !== undefined && READ_ONLY_STATUSES.has(school.onboarding_status);
 
@@ -252,13 +269,8 @@ const ProvisioningWizard = () => {
     };
   }, [backoffice, school, schoolId]);
 
-  const staffAssignableTemplates = useMemo(
-    () => roleTemplates.filter(isStaffAssignableTemplate),
-    [roleTemplates],
-  );
-
   useEffect(() => {
-    if (!backoffice || !Number.isFinite(schoolId) || !school || activeStep !== 2) {
+    if (!backoffice || !Number.isFinite(schoolId) || !school || activeStep !== 3) {
       return;
     }
 
@@ -316,20 +328,60 @@ const ProvisioningWizard = () => {
     };
   }, [activeStep, backoffice, school, schoolId]);
 
+  const staffAssignableTemplates = useMemo(
+    () => roleTemplates.filter(isStaffAssignableTemplate),
+    [roleTemplates],
+  );
+
+  useEffect(() => {
+    if (!backoffice || !Number.isFinite(schoolId) || !school || activeStep !== 2) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadSchoolYear = async () => {
+      setLoadingSchoolYear(true);
+
+      try {
+        const year = await getActiveSchoolYear(schoolId);
+        if (!cancelled) {
+          setActiveSchoolYear(year);
+        }
+      } catch {
+        if (!cancelled) {
+          setActiveSchoolYear(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingSchoolYear(false);
+        }
+      }
+    };
+
+    loadSchoolYear();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeStep, backoffice, school, schoolId]);
+
   const activeCredential = useMemo(
     () => bankCredentials.find((credential) => credential.active) ?? null,
     [bankCredentials],
   );
   const hasActiveCredentials = activeCredential !== null;
   const billingReady = billingWaived || hasActiveCredentials;
-  const handoffReady = billingReady;
+  const schoolYearReady = activeSchoolYear?.status === 'active';
+  const handoffReady = billingReady && schoolYearReady;
 
   const localChecklist = useMemo(
     () => [
       { key: 'billing', complete: billingReady },
+      { key: 'school_year', complete: schoolYearReady },
       { key: 'owner_invite', complete: true },
     ],
-    [billingReady],
+    [billingReady, schoolYearReady],
   );
 
   const goNext = () => {
@@ -354,6 +406,37 @@ const ProvisioningWizard = () => {
     setCredentialErrors([]);
     setCredentialUploadSuccess(false);
     setBannerError('');
+  };
+
+  const handleBulkResendInvites = async () => {
+    if (readOnly) {
+      return;
+    }
+
+    setBannerError('');
+    setBulkResendSuccess('');
+    setBulkResendingInvites(true);
+
+    try {
+      const result = await resendProvisioningInvites(schoolId);
+      const pendingIds = [
+        ...(ownerInvite ? [ownerInvite.id] : []),
+        ...sentInvites.map((invite) => invite.id),
+      ];
+
+      setResentInviteIds((current) => new Set([...current, ...pendingIds]));
+      setBulkResendSuccess(
+        t('backoffice.provisioning.bulkResendSuccess', { count: result.resent_count }),
+      );
+    } catch (error) {
+      setBannerError(
+        error instanceof ApiError
+          ? error.message
+          : 'Não foi possível reenviar os convites. Tente novamente.',
+      );
+    } finally {
+      setBulkResendingInvites(false);
+    }
   };
 
   const handleResendInvite = async (membershipId: number) => {
@@ -546,6 +629,53 @@ const ProvisioningWizard = () => {
             : 'Não foi possível importar o CSV. Tente novamente.',
         );
       }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreateSchoolYear = async () => {
+    if (readOnly || activeSchoolYear?.status === 'active') {
+      return;
+    }
+
+    const name = yearName.trim();
+    if (!name || !yearStartsOn || !yearEndsOn) {
+      return;
+    }
+
+    setBannerError('');
+    setYearSuccess(false);
+    setYearFieldErrors({});
+    setSubmitting(true);
+
+    try {
+      const draft = await createSchoolYear(schoolId, {
+        name,
+        starts_on: yearStartsOn,
+        ends_on: yearEndsOn,
+        period_template: yearTemplate,
+      });
+      await activateSchoolYear(schoolId, draft.id);
+      const active = await getActiveSchoolYear(schoolId);
+      setActiveSchoolYear(active);
+      setYearSuccess(true);
+      setChecklistErrors([]);
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'validation_error') {
+        const mapped: Partial<Record<string, string>> = {};
+        Object.entries(error.details).forEach(([key, value]) => {
+          if (Array.isArray(value) && typeof value[0] === 'string') {
+            mapped[key] = value[0];
+          }
+        });
+        setYearFieldErrors(mapped);
+      }
+      setBannerError(
+        error instanceof ApiError
+          ? error.message
+          : t('backoffice.provisioning.schoolYear.createActivate'),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -775,13 +905,30 @@ const ProvisioningWizard = () => {
           </Stack>
         );
 
-      case 2:
+      case 3:
         return (
           <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
               Convide membros da equipe administrativa. Esta etapa é opcional — você pode pular e
               importar famílias na próxima etapa.
             </Typography>
+
+            {(ownerInvite || sentInvites.length > 0) && !readOnly && (
+              <Button
+                variant="outlined"
+                onClick={handleBulkResendInvites}
+                disabled={submitting || bulkResendingInvites}
+                startIcon={
+                  bulkResendingInvites ? <CircularProgress size={16} color="inherit" /> : null
+                }
+              >
+                {t('backoffice.provisioning.bulkResendInvites')}
+              </Button>
+            )}
+
+            {bulkResendSuccess && (
+              <SuccessBanner variant="outlined" message={bulkResendSuccess} />
+            )}
 
             {ownerInvite && (
               <SectionCard>
@@ -924,7 +1071,116 @@ const ProvisioningWizard = () => {
           </Stack>
         );
 
-      case 3:
+      case 2:
+        return (
+          <Stack direction="column" gap={2}>
+            <Typography variant="body1" color="text.secondary">
+              {t('backoffice.provisioning.schoolYear.description')}
+            </Typography>
+
+            {loadingSchoolYear ? (
+              <Stack direction="column" alignItems="center" py={2}>
+                <CircularProgress size={24} />
+              </Stack>
+            ) : activeSchoolYear?.status === 'active' ? (
+              <SuccessBanner variant="outlined">
+                {t('backoffice.provisioning.schoolYear.activeSummary', {
+                  name: activeSchoolYear.name,
+                  starts: formatCredentialDate(activeSchoolYear.starts_on),
+                  ends: formatCredentialDate(activeSchoolYear.ends_on),
+                })}
+              </SuccessBanner>
+            ) : (
+              <Stack direction="column" gap={2}>
+                <TextField
+                  label={t('backoffice.provisioning.schoolYear.name')}
+                  value={yearName}
+                  onChange={(event) => {
+                    setYearName(event.target.value);
+                    setYearSuccess(false);
+                    setYearFieldErrors((current) => ({ ...current, name: undefined }));
+                    setBannerError('');
+                  }}
+                  error={Boolean(yearFieldErrors.name)}
+                  helperText={yearFieldErrors.name}
+                  disabled={submitting || readOnly}
+                  fullWidth
+                />
+                <TextField
+                  label={t('backoffice.provisioning.schoolYear.startsOn')}
+                  type="date"
+                  value={yearStartsOn}
+                  onChange={(event) => {
+                    setYearStartsOn(event.target.value);
+                    setYearSuccess(false);
+                    setYearFieldErrors((current) => ({ ...current, starts_on: undefined }));
+                    setBannerError('');
+                  }}
+                  error={Boolean(yearFieldErrors.starts_on)}
+                  helperText={yearFieldErrors.starts_on}
+                  disabled={submitting || readOnly}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+                <TextField
+                  label={t('backoffice.provisioning.schoolYear.endsOn')}
+                  type="date"
+                  value={yearEndsOn}
+                  onChange={(event) => {
+                    setYearEndsOn(event.target.value);
+                    setYearSuccess(false);
+                    setYearFieldErrors((current) => ({ ...current, ends_on: undefined }));
+                    setBannerError('');
+                  }}
+                  error={Boolean(yearFieldErrors.ends_on)}
+                  helperText={yearFieldErrors.ends_on}
+                  disabled={submitting || readOnly}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+                <TextField
+                  label={t('backoffice.provisioning.schoolYear.periodTemplate')}
+                  select
+                  value={yearTemplate}
+                  onChange={(event) => {
+                    setYearTemplate(event.target.value as PeriodTemplate);
+                    setYearSuccess(false);
+                  }}
+                  disabled={submitting || readOnly}
+                  fullWidth
+                >
+                  <MenuItem value="trimester">
+                    {t('backoffice.provisioning.schoolYear.template.trimester')}
+                  </MenuItem>
+                  <MenuItem value="bimester">
+                    {t('backoffice.provisioning.schoolYear.template.bimester')}
+                  </MenuItem>
+                </TextField>
+                <Button
+                  variant="contained"
+                  onClick={handleCreateSchoolYear}
+                  disabled={
+                    submitting ||
+                    readOnly ||
+                    !yearName.trim() ||
+                    !yearStartsOn ||
+                    !yearEndsOn
+                  }
+                  startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
+                >
+                  {t('backoffice.provisioning.schoolYear.createActivate')}
+                </Button>
+              </Stack>
+            )}
+
+            {yearSuccess && (
+              <SuccessBanner variant="outlined" message={t('backoffice.provisioning.schoolYear.success')} />
+            )}
+            {bannerError && <ErrorBanner message={bannerError} />}
+          </Stack>
+        );
+
+      case 4:
         return (
           <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
@@ -1001,7 +1257,7 @@ const ProvisioningWizard = () => {
           </Stack>
         );
 
-      case 4:
+      case 5:
         return (
           <Stack direction="column" gap={2}>
             <Typography variant="body1" color="text.secondary">
@@ -1059,7 +1315,8 @@ const ProvisioningWizard = () => {
             {bannerError && <ErrorBanner message={bannerError} />}
             {!handoffReady && (
               <Typography variant="body2" color="text.secondary">
-                Configure as credenciais Cora ou adie a cobrança na etapa de cobrança para continuar.
+                Configure as credenciais Cora ou adie a cobrança na etapa de cobrança, e crie o ano
+                letivo na etapa correspondente, para continuar.
               </Typography>
             )}
           </Stack>
@@ -1070,8 +1327,8 @@ const ProvisioningWizard = () => {
     }
   };
 
-  const isCsvStep = activeStep === 3;
-  const isHandoffStep = activeStep === 4;
+  const isCsvStep = activeStep === 4;
+  const isHandoffStep = activeStep === 5;
 
   const renderWizardFooter = () => {
     if (isHandoffStep) {

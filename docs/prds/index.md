@@ -94,6 +94,7 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`index.md`](platform-and-admin/index.md) | Integration, cross-domain contracts, competitive grounding (**13** `platform.*` canonicals) | validated |
 | [`school-year.md`](platform-and-admin/school-year.md) | BC1 — ano letivo, academic periods, holidays | validated |
 | [`backoffice.md`](platform-and-admin/backoffice.md) | BC2 — tenant register, module flags, provisioning dashboard | validated |
+| [`backoffice-evolution.md`](platform-and-admin/backoffice-evolution.md) | BC2 evolution — E1–E3 gaps, ops tooling, P2 roadmap | draft |
 | [`calendar.md`](platform-and-admin/calendar.md) | BC3 — institutional and personal events | validated |
 | [`staff-users.md`](platform-and-admin/staff-users.md) | BC4 — staff roster, menu visibility | validated |
 | [`onboarding.md`](platform-and-admin/onboarding.md) | BC5 — product access, app links, getting-started (not tenant provisioning) | validated |
@@ -112,6 +113,19 @@ Historical records and cross-cutting PRDs. **Normative billing scope** is
 | PRD | Parent domain | Status | Capabilities | Modeling | API |
 |-----|---------------|--------|--------------|----------|-----|
 | [`fintech-first/resend-boleto.md`](fintech-first/resend-boleto.md) | fintech-first / billing | absorbed | `billing.*` resend — merged into [`billing/boletos.md`](billing/boletos.md) | — | [`billing.md`](../api/v1/billing.md) |
+| [`platform-and-admin/school-module-flags.md`](platform-and-admin/school-module-flags.md) | backoffice / evolution E1 | approved | `platform.manage_backoffice_ops` | — | [`platform-and-admin.md`](../api/v1/platform-and-admin.md) |
+| [`platform-and-admin/backoffice-module-flags-ui.md`](platform-and-admin/backoffice-module-flags-ui.md) | backoffice-evolution E1 | draft | `platform.manage_backoffice_ops` | — | — |
+| [`platform-and-admin/backoffice-school-year-provisioning.md`](platform-and-admin/backoffice-school-year-provisioning.md) | backoffice-evolution E1 | draft | `platform.configure_school_year` | — | W1 frozen |
+| [`platform-and-admin/backoffice-tenant-detail.md`](platform-and-admin/backoffice-tenant-detail.md) | backoffice-evolution E1 | draft | `platform.manage_backoffice_ops` | — | — |
+| [`platform-and-admin/backoffice-operational-dashboard.md`](platform-and-admin/backoffice-operational-dashboard.md) | backoffice-evolution E1 | draft | `platform.manage_backoffice_ops` | — | — |
+| [`platform-and-admin/backoffice-audit-viewer.md`](platform-and-admin/backoffice-audit-viewer.md) | backoffice-evolution E2 | draft | `platform.manage_backoffice_ops` | — | draft |
+| [`platform-and-admin/backoffice-advanced-search.md`](platform-and-admin/backoffice-advanced-search.md) | backoffice-evolution E2 | draft | `platform.manage_backoffice_ops` | — | — |
+| [`platform-and-admin/backoffice-discarded-schools.md`](platform-and-admin/backoffice-discarded-schools.md) | backoffice-evolution E2 | draft | `platform.manage_backoffice_ops` | — | draft |
+| [`platform-and-admin/backoffice-platform-billing-p2.md`](platform-and-admin/backoffice-platform-billing-p2.md) | backoffice-evolution E3 | draft | TBD | TBD | draft |
+| [`platform-and-admin/backoffice-impersonation-p2.md`](platform-and-admin/backoffice-impersonation-p2.md) | backoffice-evolution E3 | draft | TBD | — | draft |
+| [`platform-and-admin/backoffice-analytics-p2.md`](platform-and-admin/backoffice-analytics-p2.md) | backoffice-evolution E3 | draft | `platform.view_analytics_dashboard` | — | draft |
+| [`platform-and-admin/backoffice-multi-unit-p2.md`](platform-and-admin/backoffice-multi-unit-p2.md) | backoffice-evolution E3 | draft | `platform.manage_multi_unit` | TBD | draft |
+| [`platform-and-admin/backoffice-help-taxonomy-p2.md`](platform-and-admin/backoffice-help-taxonomy-p2.md) | backoffice-evolution E3 | draft | `platform.configure_help_taxonomy` | TBD | draft |
 
 ## Layer PRDs
 

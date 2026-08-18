@@ -5683,14 +5683,191 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Partial match on name or CNPJ",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_after",
+            "in": "query",
+            "required": false,
+            "description": "ISO date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_before",
+            "in": "query",
+            "required": false,
+            "description": "ISO date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "discarded",
+            "in": "query",
+            "required": false,
+            "description": "When true, lists only discarded schools",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "schools filtered by onboarding status and mode"
           },
+          "422": {
+            "description": "invalid created_after date"
+          },
           "403": {
             "description": "forbidden for guardian"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/audits": {
+      "get": {
+        "summary": "List platform audits",
+        "tags": [
+          "Backoffice",
+          "Platform Audits"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "school_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "backoffice reads paginated audits newest first"
+          },
+          "422": {
+            "description": "invalid date_from"
+          },
+          "403": {
+            "description": "staff without backoffice role"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/operators": {
+      "get": {
+        "summary": "List platform operators",
+        "tags": [
+          "Backoffice",
+          "Platform"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "backoffice reads operator permissions"
+          },
+          "403": {
+            "description": "staff without backoffice role"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/provisioning/resend_invites": {
+      "post": {
+        "summary": "Resend pending provisioning invites",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "school_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pending invites re-queued"
+          },
+          "429": {
+            "description": "rate limited on repeated resend"
+          },
+          "403": {
+            "description": "forbidden outside provisioning school"
           }
         }
       }
@@ -5851,6 +6028,46 @@
         "responses": {
           "204": {
             "description": "school discarded"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{id}/restore": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Restore discarded school",
+        "tags": [
+          "Backoffice"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "discarded school restored"
+          },
+          "409": {
+            "description": "active school cannot be restored"
           }
         }
       }
