@@ -34,4 +34,17 @@ class UserBlueprint < Blueprinter::Base
   field :guardian_profiles do |user, _options|
     GuardianBlueprint.render_as_hash(user.guardians.kept)
   end
+
+  field :impersonation do |_user, _options|
+    session = Current.impersonation_session
+    next { active: false } unless session&.active?
+
+    {
+      active: true,
+      operator_email: Current.impersonation_operator&.email,
+      school_name: session.school.name,
+      session_id: session.id,
+      expires_at: session.expires_at.iso8601
+    }
+  end
 end

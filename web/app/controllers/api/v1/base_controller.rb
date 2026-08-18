@@ -58,7 +58,12 @@ module Api
         result = Auth::DecodeAccessTokenService.call(token: token)
         return render_error(result.error_code, status: :unauthorized) if result.failure?
 
-        Current.user = result.data
+        context = result.data
+        Current.user = context.user
+        Current.impersonation_session = context.impersonation_session
+        Current.impersonation_operator = context.impersonation_operator
+        Current.school = context.school
+        Current.membership = context.membership
       end
 
       def ensure_user_active!
@@ -179,7 +184,8 @@ module Api
           :not_implemented
         when :invalid_state_transition, :year_in_use, :active_year_exists, :invalid_closure_transition,
              :period_closed, :grade_launch_exists, :report_card_frozen, :publication_in_progress,
-             :generation_in_progress, :not_discarded
+             :generation_in_progress, :not_discarded, :group_has_schools, :school_already_in_group,
+             :subscription_exists
           :conflict
         when :rate_limited
           :too_many_requests

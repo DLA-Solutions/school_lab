@@ -17,6 +17,10 @@ class SchoolBlueprint < Blueprinter::Base
     school.signs_contracts?
   end
 
+  view :summary do
+    fields :name, :onboarding_status
+  end
+
   view :backoffice_detail do
     field :created_at
 

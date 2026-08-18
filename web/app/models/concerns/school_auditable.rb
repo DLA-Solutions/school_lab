@@ -19,7 +19,8 @@ module SchoolAuditable
 
   def assign_provisioning_audit_comment
     comment = SchoolLab::ProvisioningAuditMetadata.current_comment ||
-              SchoolLab::BackofficeAuditMetadata.current_comment
+              SchoolLab::BackofficeAuditMetadata.current_comment ||
+              SchoolLab::ImpersonationAuditMetadata.current_comment
     self.audit_comment = comment if comment.present?
   end
 end
