@@ -4,8 +4,9 @@ module Auth
   class ResolveLoginEligibilityService < ApplicationService
     STAFF_ROLES = %w[staff teacher school backoffice].freeze
 
-    def initialize(user:)
+    def initialize(user:, active_membership_only: false)
       @user = user
+      @active_membership_only = active_membership_only
     end
 
     def call
@@ -17,11 +18,11 @@ module Auth
 
     private
 
-    attr_reader :user
+    attr_reader :user, :active_membership_only
 
     def staff_eligible?
       user.memberships.kept.any? do |membership|
-        membership.role.in?(STAFF_ROLES) && (membership.active? || membership.invited?)
+        membership.role.in?(STAFF_ROLES) && membership_eligible?(membership)
       end
     end
 
@@ -31,9 +32,15 @@ module Auth
           user.memberships.kept.any? do |membership|
             membership.role == "guardian" &&
               membership.school_id == guardian.school_id &&
-              (membership.active? || membership.invited?)
+              membership_eligible?(membership)
           end
       end
+    end
+
+    def membership_eligible?(membership)
+      return membership.active? if active_membership_only
+
+      membership.active? || membership.invited?
     end
 
     def enrolled_child?(guardian)

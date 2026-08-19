@@ -86,7 +86,7 @@ describe('SignIn', () => {
     await user.click(screen.getByRole('button', { name: /entrar com google/i }));
 
     expect(
-      await screen.findByText(/não foi possível entrar com google/i),
+      await screen.findByText(/você não tem permissão para entrar/i),
     ).toBeInTheDocument();
   });
 

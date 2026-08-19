@@ -103,4 +103,44 @@ RSpec.describe Auth::ResolveLoginEligibilityService do
       expect(result.error_code).to eq(:user_disabled)
     end
   end
+
+  context "when active_membership_only is true" do
+    subject(:result) { described_class.call(user: user, active_membership_only: true) }
+
+    context "when staff membership is active" do
+      let(:user) { create(:user) }
+
+      before { create(:membership, :staff, user: user) }
+
+      it { is_expected.to be_success }
+    end
+
+    context "when staff membership is invited" do
+      let(:user) { create(:user) }
+
+      before { create(:membership, :staff, :invited, user: user) }
+
+      it "denies login generically" do
+        expect(result).to be_failure
+        expect(result.error_code).to eq(:access_denied)
+      end
+    end
+
+    context "when guardian membership is invited but child is enrolled" do
+      let(:user) { create(:user) }
+      let(:school) { create(:school) }
+      let(:guardian) { create(:guardian, school: school, user: user) }
+      let(:student) { create(:student, school: school, status: "active") }
+
+      before do
+        create(:membership, :invited, user: user, school: school, role: "guardian")
+        create(:student_guardian, school: school, student: student, guardian: guardian)
+      end
+
+      it "denies login generically" do
+        expect(result).to be_failure
+        expect(result.error_code).to eq(:access_denied)
+      end
+    end
+  end
 end

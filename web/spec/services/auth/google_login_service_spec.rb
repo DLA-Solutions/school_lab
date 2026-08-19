@@ -22,13 +22,15 @@ RSpec.describe Auth::GoogleLoginService do
   end
   let(:verifier) { instance_double(SchoolLab::Integrations::Google::IdTokenVerifier, verify: claims) }
 
-  before { create(:membership, :staff, user: user) }
+  context "when staff membership is active" do
+    before { create(:membership, :staff, user: user) }
 
-  it "issues tokens for an eligible user" do
-    expect(result).to be_success
-    expect(result.data[:access_token]).to be_present
-    expect(result.data[:refresh_token]).to be_present
-    expect(UserIdentity.find_by(provider: "google", provider_uid: "google-sub-123")).to be_present
+    it "issues tokens for an eligible user" do
+      expect(result).to be_success
+      expect(result.data[:access_token]).to be_present
+      expect(result.data[:refresh_token]).to be_present
+      expect(UserIdentity.find_by(provider: "google", provider_uid: "google-sub-123")).to be_present
+    end
   end
 
   context "when token verification fails" do
@@ -41,6 +43,16 @@ RSpec.describe Auth::GoogleLoginService do
     it "returns invalid_oauth_token" do
       expect(result).to be_failure
       expect(result.error_code).to eq(:invalid_oauth_token)
+    end
+  end
+
+  context "when staff membership is invited" do
+    before { create(:membership, :staff, :invited, user: user) }
+
+    it "denies login without linking google identity" do
+      expect(result).to be_failure
+      expect(result.error_code).to eq(:access_denied)
+      expect(UserIdentity.find_by(provider: "google", provider_uid: "google-sub-123")).to be_nil
     end
   end
 end
