@@ -6,7 +6,7 @@ import { SchoolModulesMap } from 'types/modules';
 import { PlatformOperator } from 'types/operator';
 import { SchoolGroup } from 'types/schoolGroup';
 import { School } from 'types/school';
-import { PlatformPlan, PlatformSubscription } from 'types/subscription';
+import { PlatformInvoice, PlatformPlan, PlatformSubscription } from 'types/subscription';
 import { SchoolYear } from 'types/schoolYear';
 import { PlatformUser } from 'types/user';
 import { API_BASE_URL } from 'services/api';
@@ -418,6 +418,12 @@ export const samplePlans: PlatformPlan[] = [
     key: 'starter',
     name: 'Starter',
     monthly_amount_cents: 29_900,
+    intervals: [
+      { billing_interval: 'month', amount_cents: 29_900, provider: 'iugu' },
+      { billing_interval: 'year', amount_cents: 299_000, provider: 'iugu' },
+      { billing_interval: 'month', amount_cents: 29_900, provider: 'manual' },
+      { billing_interval: 'year', amount_cents: 299_000, provider: 'manual' },
+    ],
     created_at: '2026-01-01T12:00:00Z',
     updated_at: '2026-01-01T12:00:00Z',
   },
@@ -426,6 +432,10 @@ export const samplePlans: PlatformPlan[] = [
     key: 'pro',
     name: 'Pro',
     monthly_amount_cents: 59_900,
+    intervals: [
+      { billing_interval: 'month', amount_cents: 59_900, provider: 'iugu' },
+      { billing_interval: 'year', amount_cents: 599_000, provider: 'iugu' },
+    ],
     created_at: '2026-01-01T12:00:00Z',
     updated_at: '2026-01-01T12:00:00Z',
   },
@@ -438,11 +448,51 @@ export const sampleSubscriptions: PlatformSubscription[] = [
     platform_plan_id: 1,
     status: 'active',
     trial_ends_at: null,
+    current_period_start: '2026-08-01T00:00:00Z',
     current_period_end: '2026-09-01T00:00:00Z',
+    billing_interval: 'month',
+    provider: 'iugu',
+    collection_method: 'automatic',
+    cancel_at_period_end: false,
+    canceled_at: null,
     created_at: '2026-01-15T12:00:00Z',
     updated_at: '2026-01-15T12:00:00Z',
     platform_plan: samplePlans[0],
     school: { id: 1, name: 'Escola Alpha', onboarding_status: 'active' },
+  },
+  {
+    id: 2,
+    school_id: 2,
+    platform_plan_id: 1,
+    status: 'active',
+    trial_ends_at: null,
+    current_period_start: '2026-08-11T00:00:00Z',
+    current_period_end: '2026-09-11T00:00:00Z',
+    billing_interval: 'year',
+    provider: 'manual',
+    collection_method: 'manual',
+    cancel_at_period_end: false,
+    canceled_at: null,
+    created_at: '2026-08-11T12:00:00Z',
+    updated_at: '2026-08-11T12:00:00Z',
+    platform_plan: samplePlans[0],
+    school: { id: 2, name: 'Escola Beta', onboarding_status: 'provisioning' },
+  },
+];
+
+export const samplePlatformInvoices: PlatformInvoice[] = [
+  {
+    id: 10,
+    status: 'open',
+    amount_cents: 29_900,
+    due_at: '2026-08-10T00:00:00Z',
+    paid_at: null,
+    hosted_invoice_url: 'https://faturas.iugu.com/example',
+    payment_method: null,
+    provider: 'iugu',
+    external_invoice_id: 'inv_support_only',
+    school_id: 1,
+    platform_subscription_id: 1,
   },
 ];
 
@@ -1586,7 +1636,14 @@ export const handlers = [
     }
 
     const body = (await request.json()) as {
-      subscription?: { school_id?: number; platform_plan_id?: number; status?: string };
+      subscription?: {
+        school_id?: number;
+        platform_plan_id?: number;
+        status?: string;
+        billing_interval?: string;
+        provider?: string;
+        trial?: boolean;
+      };
     };
 
     if (
@@ -1604,6 +1661,10 @@ export const handlers = [
       status: (body.subscription?.status as PlatformSubscription['status']) ?? 'active',
       trial_ends_at: null,
       current_period_end: null,
+      billing_interval: (body.subscription?.billing_interval as PlatformSubscription['billing_interval']) ?? 'month',
+      provider: (body.subscription?.provider as PlatformSubscription['provider']) ?? 'manual',
+      collection_method: body.subscription?.provider === 'iugu' ? 'automatic' : 'manual',
+      cancel_at_period_end: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       platform_plan: plan,
@@ -1647,6 +1708,81 @@ export const handlers = [
     }
 
     subscription.updated_at = new Date().toISOString();
+
+    return HttpResponse.json({ data: subscription });
+  }),
+
+  http.post(apiUrl('/api/v1/platform/subscriptions/:id/checkout'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const subscription = sampleSubscriptions.find((row) => String(row.id) === String(params.id));
+
+    if (!subscription) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({
+      data: {
+        checkout_url: 'https://faturas.iugu.com/example',
+        billing_portal_url: null,
+        subscription_id: subscription.id,
+      },
+    });
+  }),
+
+  http.get(apiUrl('/api/v1/platform/subscriptions/:id/invoices'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const rows = samplePlatformInvoices.filter(
+      (invoice) => String(invoice.platform_subscription_id) === String(params.id),
+    );
+
+    return paginated(rows, new URL(request.url));
+  }),
+
+  http.post(apiUrl('/api/v1/platform/subscriptions/:id/change_plan'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const subscription = sampleSubscriptions.find((row) => String(row.id) === String(params.id));
+
+    if (!subscription) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as { plan_key?: string; billing_interval?: string };
+    const plan = samplePlans.find((row) => row.key === body.plan_key);
+
+    if (plan) {
+      subscription.platform_plan_id = plan.id;
+      subscription.platform_plan = plan;
+    }
+
+    if (body.billing_interval === 'month' || body.billing_interval === 'year') {
+      subscription.billing_interval = body.billing_interval;
+    }
+
+    return HttpResponse.json({ data: subscription });
+  }),
+
+  http.post(apiUrl('/api/v1/platform/subscriptions/:id/cancel'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const subscription = sampleSubscriptions.find((row) => String(row.id) === String(params.id));
+
+    if (!subscription) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as { at_period_end?: boolean };
+    subscription.cancel_at_period_end = body.at_period_end !== false;
 
     return HttpResponse.json({ data: subscription });
   }),

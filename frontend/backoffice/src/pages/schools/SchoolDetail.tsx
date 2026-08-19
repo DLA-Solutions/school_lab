@@ -14,6 +14,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { EmptyState, ErrorBanner, PageHeader, SectionCard, SemanticChip } from 'design-system';
 import SchoolModulesSection from 'components/sections/schools/SchoolModulesSection';
+import SchoolPlatformBillingSection from 'components/sections/schools/SchoolPlatformBillingSection';
 import { useTranslation } from 'providers/I18nContext';
 import { useAuth } from 'providers/AuthContext';
 import paths from 'routes/paths';
@@ -92,9 +93,6 @@ const isImpersonationTarget = (membership: Membership) =>
   membership.role === 'staff' &&
   membership.role_template?.system_key != null &&
   IMPERSONATION_TEMPLATE_KEYS.has(membership.role_template.system_key);
-
-const formatCurrency = (cents: number) =>
-  (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 const SchoolDetail = () => {
   const { t } = useTranslation();
@@ -562,59 +560,7 @@ const SchoolDetail = () => {
         />
       </SectionCard>
 
-      <SectionCard title={t('backoffice.schoolDetail.billingTitle')} padding={3.5}>
-        {subscription ? (
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography variant="body2" color="text.secondary">
-                {t('backoffice.schoolDetail.billingPlan')}
-              </Typography>
-              <Typography variant="body1">
-                {subscription.platform_plan?.name ?? `#${subscription.platform_plan_id}`}
-              </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {t('backoffice.schoolDetail.billingStatus')}
-              </Typography>
-              <SemanticChip
-                variant={
-                  subscription.status === 'active'
-                    ? 'success'
-                    : subscription.status === 'trial'
-                      ? 'warning'
-                      : 'error'
-                }
-                label={t(`backoffice.subscriptions.status.${subscription.status}`)}
-              />
-            </Grid>
-            {subscription.platform_plan?.monthly_amount_cents != null && (
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {t('backoffice.schoolDetail.billingAmount')}
-                </Typography>
-                <Typography variant="body1">
-                  {formatCurrency(subscription.platform_plan.monthly_amount_cents)}
-                </Typography>
-              </Grid>
-            )}
-            {subscription.status === 'past_due' && subscription.current_period_end && (
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {t('backoffice.schoolDetail.billingDueDate')}
-                </Typography>
-                <Typography variant="body1" color="error.main">
-                  {formatDate(subscription.current_period_end)}
-                </Typography>
-              </Grid>
-            )}
-          </Grid>
-        ) : (
-          <Typography variant="body2" color="text.secondary">
-            {t('backoffice.schoolDetail.billingEmpty')}
-          </Typography>
-        )}
-      </SectionCard>
+      <SchoolPlatformBillingSection subscription={subscription} />
 
       {showProvisioningLinks && (
         <SectionCard title={t('backoffice.schoolDetail.quickLinksTitle')} padding={3.5}>
