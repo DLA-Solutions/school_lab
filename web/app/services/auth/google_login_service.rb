@@ -11,16 +11,23 @@ module Auth
 
     def call
       claims = verifier.verify(id_token)
-      link_result = Auth::LinkOrResolveIdentityService.call(
+      identity_service = Auth::LinkOrResolveIdentityService.new(
         provider: "google",
         provider_uid: claims.sub,
         email: claims.email,
         email_verified: claims.email_verified
       )
-      return link_result if link_result.failure?
+      resolve_result = identity_service.resolve_user
+      return resolve_result if resolve_result.failure?
 
-      eligibility = Auth::ResolveLoginEligibilityService.call(user: link_result.data[:user])
+      eligibility = Auth::ResolveLoginEligibilityService.call(
+        user: resolve_result.data[:user],
+        active_membership_only: true
+      )
       return eligibility if eligibility.failure?
+
+      link_result = identity_service.call
+      return link_result if link_result.failure?
 
       Auth::IssueTokensService.call(
         user: link_result.data[:user],

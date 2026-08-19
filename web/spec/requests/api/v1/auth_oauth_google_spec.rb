@@ -121,6 +121,18 @@ RSpec.describe "Api::V1::Auth OAuth Google", type: :request do
           expect(body.dig("error", "code")).to eq("user_disabled")
         end
       end
+
+      response "403", "invited staff membership" do
+        let(:user) { create(:user, email: "invited-staff@example.com") }
+        let!(:membership) { create(:membership, :staff, :invited, user: user) }
+        let(:payload) { { id_token: "valid-token" } }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("access_denied")
+          expect(UserIdentity.find_by(provider: "google", provider_uid: "google-sub-123")).to be_nil
+        end
+      end
     end
   end
 end

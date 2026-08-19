@@ -11,24 +11,18 @@ module Auth
     end
 
     def call
-      return ResponseService.failure(code: :access_denied) unless email_verified
+      resolve_result = resolve_user
+      return resolve_result if resolve_result.failure?
 
-      identity = UserIdentity.find_by(provider: provider, provider_uid: provider_uid)
-      if identity
-        return ResponseService.failure(code: :access_denied) unless identity.user.kept?
-        return ResponseService.failure(code: :access_denied) if identity.user.email != email
+      user = resolve_result.data[:user]
+      identity = resolve_result.data[:identity]
 
+      if identity&.persisted? && identity.provider_uid == provider_uid
         update_identity!(identity)
-        return ResponseService.success(data: { user: identity.user, identity: identity })
+        return ResponseService.success(data: { user: user, identity: identity })
       end
 
-      user = User.kept.find_by(email: email)
-      return ResponseService.failure(code: :access_denied) if user.blank?
-
-      existing = user.user_identities.find_by(provider: provider)
-      return ResponseService.failure(code: :access_denied) if existing.present? && existing.provider_uid != provider_uid
-
-      identity = existing || user.user_identities.build(provider: provider)
+      identity = identity || user.user_identities.build(provider: provider)
       identity.assign_attributes(
         provider_uid: provider_uid,
         email: email,
@@ -41,6 +35,26 @@ module Auth
       ResponseService.success(data: { user: user, identity: identity })
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
       ResponseService.failure(code: :access_denied)
+    end
+
+    def resolve_user
+      return ResponseService.failure(code: :access_denied) unless email_verified
+
+      identity = UserIdentity.find_by(provider: provider, provider_uid: provider_uid)
+      if identity
+        return ResponseService.failure(code: :access_denied) unless identity.user.kept?
+        return ResponseService.failure(code: :access_denied) if identity.user.email != email
+
+        return ResponseService.success(data: { user: identity.user, identity: identity })
+      end
+
+      user = User.kept.find_by(email: email)
+      return ResponseService.failure(code: :access_denied) if user.blank?
+
+      existing = user.user_identities.find_by(provider: provider)
+      return ResponseService.failure(code: :access_denied) if existing.present? && existing.provider_uid != provider_uid
+
+      ResponseService.success(data: { user: user, identity: existing })
     end
 
     private
