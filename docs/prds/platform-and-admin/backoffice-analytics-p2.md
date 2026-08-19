@@ -29,7 +29,8 @@
 2. Given module adoption query, when viewing chart/table, then percentages reflect enabled `school_modules` rows — no student counts by name.
    → NFR-003
 
-3. Given platform billing live, when MRR card renders, then value matches sum of active subscription amounts.
+3. Given platform billing live, when MRR card renders, then value matches billable subscriptions
+   (`active` + `trialing`; yearly `amount_cents / 12`).
    → dependency on billing slice
 
 4. Given date range filter last 30 days, when applied, then onboarding funnel reflects schools created in range only.

@@ -93,7 +93,7 @@ module Api
 
       def school_params
         params.require(:school).permit(
-          :name, :cnpj, :address, :saas_plan, :school_group_id, :onboarding_mode,
+          :name, :cnpj, :address, :school_group_id, :onboarding_mode,
           :signature_email
         )
       end
@@ -126,6 +126,7 @@ module Api
       def apply_index_filters(scope)
         scope = filter_onboarding(scope)
         scope = filter_search(scope)
+        scope = filter_saas_plan(scope)
         scope = filter_created_dates(scope)
         scope
       end
@@ -146,6 +147,15 @@ module Api
 
         sanitized = School.sanitize_sql_like(term)
         scope.where("schools.name ILIKE :term OR schools.cnpj ILIKE :term", term: "%#{sanitized}%")
+      end
+
+      def filter_saas_plan(scope)
+        key = params[:saas_plan].to_s.presence
+        return scope if key.blank?
+
+        scope.joins(:platform_subscription)
+             .joins("INNER JOIN platform_plans ON platform_plans.id = platform_subscriptions.platform_plan_id")
+             .where(platform_subscriptions: { discarded_at: nil }, platform_plans: { key: key })
       end
 
       def filter_created_dates(scope)

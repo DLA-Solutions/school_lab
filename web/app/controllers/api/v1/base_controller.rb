@@ -180,7 +180,7 @@ module Api
           :forbidden
         when :not_found
           :not_found
-        when :not_implemented
+        when :not_implemented, :portal_not_supported
           :not_implemented
         when :invalid_state_transition, :year_in_use, :active_year_exists, :invalid_closure_transition,
              :period_closed, :grade_launch_exists, :report_card_frozen, :publication_in_progress,

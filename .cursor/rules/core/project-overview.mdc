@@ -44,3 +44,4 @@ Do not implement `web/` or client feature code in the parent agent when a specia
 - Data is isolated per school (`school_id`); never leak data across schools.
 - Never send real email from tests or from staging/production smoke — rule `email-safety`.
 - When unsure about scope, check `docs/open-questions.md` before assuming.
+- **"Pode versionar"** (also "versione", "versionar") — atomic commits, push, open PR; see rule `git-atomic-commits` and skill `create-pull-request`.

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import {
   FRESH_ACCESS_TOKEN,
@@ -22,6 +23,8 @@ const backofficeAuth: AuthContextValue = {
   refreshUser: vi.fn(),
 };
 
+const user = userEvent.setup({ delay: null });
+
 const renderPage = () => {
   setAccessToken(FRESH_ACCESS_TOKEN, ACCESS_EXPIRES_AT);
 
@@ -35,11 +38,62 @@ const renderPage = () => {
 };
 
 describe('Subscriptions page', () => {
-  it('lists subscriptions with plan and school from the API', async () => {
+  it('lists subscriptions with plan, interval and school from the API', async () => {
     renderPage();
 
     expect(await screen.findByText(sampleSubscriptions[0]!.school!.name)).toBeInTheDocument();
-    expect(screen.getByText('Starter')).toBeInTheDocument();
-    expect(screen.getByText(/ativa/i)).toBeInTheDocument();
+    expect(screen.getAllByText('Starter').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/ativa/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/mensal/i)).toBeInTheDocument();
+  });
+
+  it('keeps manual status editing and hides it for Iugu rows', async () => {
+    renderPage();
+
+    expect(await screen.findByText('Escola Beta')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /editar/i })).toBeInTheDocument();
+
+    const sendButtons = screen.getAllByRole('button', { name: /enviar cobrança/i });
+    expect(sendButtons.length).toBeGreaterThan(0);
+  });
+
+  it('opens hosted checkout when sending an Iugu invoice', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: /enviar cobrança/i }));
+
+    expect(await screen.findByRole('dialog', { name: /cobrança gerada/i })).toBeInTheDocument();
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://faturas.iugu.com/example',
+      '_blank',
+      'noopener,noreferrer',
+    );
+    expect(screen.getByDisplayValue('https://faturas.iugu.com/example')).toBeInTheDocument();
+    openSpy.mockRestore();
+  });
+
+  it('lists overdue platform invoices without tuition copy', async () => {
+    renderPage();
+
+    await user.click((await screen.findAllByRole('button', { name: /ver faturas/i }))[0]!);
+
+    const dialog = await screen.findByRole('dialog', { name: /faturas da assinatura/i });
+    expect(within(dialog).getByText(/em atraso/i)).toBeInTheDocument();
+    expect(within(dialog).getByRole('link', { name: /abrir fatura/i })).toHaveAttribute(
+      'href',
+      'https://faturas.iugu.com/example',
+    );
+    expect(within(dialog).queryByText(/mensalidade/i)).not.toBeInTheDocument();
+  });
+
+  it('asks for interval when assigning a plan', async () => {
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: /nova assinatura/i }));
+
+    const dialog = await screen.findByRole('dialog', { name: /atribuir plano/i });
+    expect(within(dialog).getByLabelText(/periodicidade/i)).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/provedor/i)).toBeInTheDocument();
   });
 });

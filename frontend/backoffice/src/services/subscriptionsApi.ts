@@ -1,5 +1,8 @@
 import { Paginated } from 'types/academics';
 import {
+  ChangePlanPayload,
+  CheckoutSession,
+  PlatformInvoice,
   PlatformPlan,
   PlatformSubscription,
   SubscriptionListFilters,
@@ -54,6 +57,56 @@ export const updateSubscription = async (
     method: 'PATCH',
     body: { subscription: payload },
   });
+
+  return response.data;
+};
+
+export const createCheckoutSession = async (
+  id: number,
+  payload: { trial?: boolean } = {},
+): Promise<CheckoutSession> => {
+  const response = await request<{ data: CheckoutSession }>(`${SUBSCRIPTIONS_PATH}/${id}/checkout`, {
+    method: 'POST',
+    body: payload,
+  });
+
+  return response.data;
+};
+
+export const listSubscriptionInvoices = (id: number, page = 1) => {
+  const params = new URLSearchParams({ page: String(page) });
+
+  return request<Paginated<PlatformInvoice>>(
+    `${SUBSCRIPTIONS_PATH}/${id}/invoices?${params.toString()}`,
+  );
+};
+
+export const changeSubscriptionPlan = async (
+  id: number,
+  payload: ChangePlanPayload,
+): Promise<PlatformSubscription> => {
+  const response = await request<{ data: PlatformSubscription }>(
+    `${SUBSCRIPTIONS_PATH}/${id}/change_plan`,
+    {
+      method: 'POST',
+      body: payload,
+    },
+  );
+
+  return response.data;
+};
+
+export const cancelSubscription = async (
+  id: number,
+  atPeriodEnd = true,
+): Promise<PlatformSubscription> => {
+  const response = await request<{ data: PlatformSubscription }>(
+    `${SUBSCRIPTIONS_PATH}/${id}/cancel`,
+    {
+      method: 'POST',
+      body: { at_period_end: atPeriodEnd },
+    },
+  );
 
   return response.data;
 };

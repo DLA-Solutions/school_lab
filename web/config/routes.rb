@@ -40,7 +40,14 @@ Rails.application.routes.draw do
             delete "schools/:school_id", action: :unassign_school, as: :unassign_school
           end
         end
-        resources :subscriptions, only: %i[index show create update]
+        resources :subscriptions, only: %i[index show create update] do
+          member do
+            post :checkout
+            get :invoices
+            post :change_plan
+            post :cancel
+          end
+        end
         resources :plans, only: :index
         namespace :analytics do
           resource :overview, only: :show, controller: "overview"
@@ -73,6 +80,13 @@ Rails.application.routes.draw do
           end
 
           resource :dashboard, only: :show, controller: "dashboard"
+          resource :platform_subscription, only: :show, controller: "platform_subscriptions" do
+            post :checkout
+            post :change_plan
+            post :cancel
+            get :invoices
+          end
+          resources :platform_plans, only: :index
           resources :bank_credentials, only: %i[index create]
           namespace :people do
             resources :guardians do
@@ -325,5 +339,7 @@ Rails.application.routes.draw do
 
   post "webhooks/signatures/:token", to: "webhooks/signatures#create"
   post "webhooks/spedy/:token", to: "webhooks/spedy#create"
+  post "webhooks/platform_billing/:provider/:token", to: "webhooks/platform_billing#create",
+       as: :platform_billing_webhook
   post "webhooks/:provider/:token", to: "webhooks/providers#create", as: :provider_webhook
 end

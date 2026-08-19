@@ -380,6 +380,10 @@ does not assume indefinite storage.
   and phone on bank-slip issuance requests. Cora acts as a personal-data
   processor for this flow — contractual and privacy-policy implications remain
   open.
+- **Provider payload (school data sent to Iugu):** school CNPJ and director/owner
+  email on DLA→school subscription checkout. Iugu is a processor for that flow —
+  legal agreement open; see [`platform-subscription-billing.md`](prds/platform-and-admin/platform-subscription-billing.md)
+  BR-PSB16. Do not send guardian/student PII.
 - **Application logs:** structured billing logs redact CPF, email, phone, PEM
   material, bearer tokens, and client credentials via `Billing::PiiRedactor`.
   Request parameter filtering covers certificate and credential uploads.
@@ -393,10 +397,9 @@ does not assume indefinite storage.
 ## GTM / business
 
 - [ ] Format of the partnership with the Sindicato (commercial, pricing)?
-- [ ] **Platform billing model (DLA → school SaaS)** — per student, per school, flat plan, or
-      hybrid? **E3 MVP decided flat monthly plan** (see Platform & admin section); proration and
-      enterprise multi-unit pricing per group vs per campus remain open for post-E3.
-      See also [`backoffice-evolution.md`](prds/platform-and-admin/backoffice-evolution.md) BR-BOE08.
+- [ ] **Platform billing GTM (post-E3)** — per-student, hybrid, or enterprise multi-unit
+      (group vs campus) remain open. **This slice is not reopening** the E3/collection decision
+      (flat plan per school, month/year, Iugu). See Platform & admin section.
 
 ## Platform & admin (backoffice evolution P2)
 
@@ -404,8 +407,10 @@ Decisions blocking E3 slices in [`backoffice-evolution.md`](prds/platform-and-ad
 
 - [x] **Platform billing model (MVP E3)** — **flat monthly plan per school**; catalog keys
       `starter` / `pro` / `enterprise` with `monthly_amount_cents` on `platform_plans`;
-      `platform_subscriptions.status` is `active` | `trial` | `past_due`; **manual invoicing OK**
-      (no DLA receivables gateway in E3). See [`backoffice-platform-billing-p2.md`](prds/platform-and-admin/backoffice-platform-billing-p2.md).
+      collection epic adds `month` \| `year` intervals and status
+      `trialing | active | past_due | canceled | incomplete`. See
+      [`backoffice-platform-billing-p2.md`](prds/platform-and-admin/backoffice-platform-billing-p2.md)
+      and [`platform-subscription-billing.md`](prds/platform-and-admin/platform-subscription-billing.md).
 - [x] **Multi-unit groups (MVP E3)** — optional `schools.school_group_id`; group has `name` +
       `headquarters_cnpj`; operator access via `manage_multi_unit` platform permission. No
       cross-school academic roll-up in P2. See [`backoffice-multi-unit-p2.md`](prds/platform-and-admin/backoffice-multi-unit-p2.md).
@@ -416,13 +421,20 @@ Decisions blocking E3 slices in [`backoffice-evolution.md`](prds/platform-and-ad
 - [ ] **Impersonation token scope** — E3 MVP uses **API-wide** scoped JWT (same `/api/v1` as staff);
       no refresh token for impersonation sessions; concurrent sessions allowed per operator until
       explicit end or TTL. SPA-only restriction deferred.
-- [x] **Platform SaaS payment collection (MVP E3)** — **manual invoicing** for first P2 ship;
-      subscription state tracked in API; integrated gateway deferred.
+- [x] **Platform SaaS payment collection (this slice)** — **Iugu** is the first real collector
+      (`Gateways::PlatformSubscription`; adapters `iugu`, `manual`, `fake`; Stripe planned).
+      Manual E3 assignment remains for white-glove. See
+      [`platform-subscription-billing.md`](prds/platform-and-admin/platform-subscription-billing.md)
+      and [ADR 002](adr/002-platform-billing-gateway.md).
+- [ ] **Platform billing GTM (post-E3)** — per-student, hybrid, or enterprise multi-unit
+      (group vs campus) pricing remain open. This slice does **not** close them. E3/this epic
+      stay **flat plan per school** with month/year intervals.
 - [x] **Help taxonomy persona list (MVP E3)** — categories with persona tags
       `secretary` | `director` | `teacher` | `guardian` plus optional `module_key`. See
       [`backoffice-help-taxonomy-p2.md`](prds/platform-and-admin/backoffice-help-taxonomy-p2.md).
-- [x] **Analytics dashboard (MVP E3)** — **aggregate counts only**, no PII; MRR from active/trial
-      subscriptions; `view_analytics_dashboard` or interim `manage_backoffice_ops`. See
+- [x] **Analytics dashboard (MVP E3)** — **aggregate counts only**, no PII; MRR from billable
+      (`active` + `trialing`) subscriptions, yearly `amount_cents / 12` once yearly prices exist;
+      `view_analytics_dashboard` or interim `manage_backoffice_ops`. See
       [`backoffice-analytics-p2.md`](prds/platform-and-admin/backoffice-analytics-p2.md).
 - [ ] **Audit viewer PII display** — redact all `audited_changes` values vs show non-sensitive diffs
       ([`backoffice-audit-viewer.md`](prds/platform-and-admin/backoffice-audit-viewer.md)).

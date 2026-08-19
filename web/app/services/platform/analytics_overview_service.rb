@@ -60,7 +60,18 @@ module Platform
     end
 
     def mrr_cents
-      PlatformSubscription.kept.billable.joins(:platform_plan).sum("platform_plans.monthly_amount_cents")
+      rows = PlatformSubscription.kept.billable.joins(:platform_plan).includes(
+        platform_plan: :platform_plan_provider_prices
+      )
+      rows.sum do |subscription|
+        price = subscription.platform_plan.platform_plan_provider_prices.find do |row|
+          row.active? &&
+            row.provider == subscription.provider &&
+            row.billing_interval == (subscription.billing_interval.presence || "month")
+        end
+        amount = price&.amount_cents || subscription.platform_plan.monthly_amount_cents
+        subscription.billing_interval == "year" ? (amount / 12) : amount
+      end
     end
 
     def onboarding_funnel

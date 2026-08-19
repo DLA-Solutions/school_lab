@@ -42,6 +42,7 @@ export default {
   billingSettings: '/financeiro/configuracoes',
   serviceInvoices: '/nfse',
   contractTemplate: '/contrato',
+  platformSubscription: '/assinatura',
 
   signin: `/${rootPaths.authRoot}/signin`,
   // Top-level and public: these are the addresses the invitation and reset e-mails point at, and

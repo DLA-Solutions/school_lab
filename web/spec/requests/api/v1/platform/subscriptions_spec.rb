@@ -68,6 +68,7 @@ RSpec.describe "Api::V1::Platform::Subscriptions", type: :request do
           data = JSON.parse(response.body).fetch("data")
           expect(data.fetch("school_id")).to eq(school.id)
           expect(data.fetch("platform_plan_id")).to eq(starter_plan.id)
+          expect(data.fetch("provider")).to eq("manual")
         end
       end
 
@@ -143,12 +144,12 @@ RSpec.describe "Api::V1::Platform::Subscriptions", type: :request do
         let(:Authorization) { auth_headers_for(operator)["Authorization"] }
         let!(:record) { create(:platform_subscription, school: school, platform_plan: starter_plan) }
         let(:id) { record.id }
-        let(:subscription) { { subscription: { platform_plan_id: pro_plan.id, status: "trial" } } }
+        let(:subscription) { { subscription: { platform_plan_id: pro_plan.id, status: "trialing" } } }
 
         run_test! do |response|
           data = JSON.parse(response.body).fetch("data")
           expect(data.fetch("platform_plan_id")).to eq(pro_plan.id)
-          expect(data.fetch("status")).to eq("trial")
+          expect(data.fetch("status")).to eq("trialing")
         end
       end
 
@@ -162,6 +163,135 @@ RSpec.describe "Api::V1::Platform::Subscriptions", type: :request do
 
         run_test! do |response|
           expect(JSON.parse(response.body).dig("error", "code")).to eq("forbidden")
+        end
+      end
+    end
+  end
+
+  path "/api/v1/platform/subscriptions/{id}/checkout" do
+    parameter name: :id, in: :path, type: :integer
+
+    post "Create hosted checkout for a subscription" do
+      tags "Platform Subscriptions"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+
+      response "200", "checkout url" do
+        let(:Authorization) { auth_headers_for(operator)["Authorization"] }
+        let!(:record) do
+          ensure_platform_plan_prices(starter_plan)
+          create(:platform_subscription, school: school, platform_plan: starter_plan, provider: "fake",
+                                         collection_method: "send_invoice")
+        end
+        let(:id) { record.id }
+
+        run_test! do |response|
+          data = JSON.parse(response.body).fetch("data")
+          expect(data.fetch("checkout_url")).to be_present
+          expect(data.fetch("billing_portal_url")).to be_nil
+        end
+      end
+    end
+  end
+
+  path "/api/v1/platform/subscriptions/{id}/invoices" do
+    parameter name: :id, in: :path, type: :integer
+
+    get "List platform invoices" do
+      tags "Platform Invoices"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+
+      response "200", "invoices listed with external ids for operators" do
+        let(:Authorization) { auth_headers_for(operator)["Authorization"] }
+        let!(:record) { create(:platform_subscription, school: school, platform_plan: starter_plan) }
+        let!(:invoice) { create(:platform_invoice, platform_subscription: record, school: school) }
+        let(:id) { record.id }
+
+        run_test! do |response|
+          row = JSON.parse(response.body).fetch("data").first
+          expect(row.fetch("external_invoice_id")).to be_present
+        end
+      end
+
+      response "403", "staff forbidden" do
+        let(:Authorization) { auth_headers_for(staff_user)["Authorization"] }
+        let!(:record) { create(:platform_subscription, school: school, platform_plan: starter_plan) }
+        let(:id) { record.id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("backoffice_only")
+        end
+      end
+    end
+  end
+
+  path "/api/v1/platform/subscriptions/{id}/change_plan" do
+    parameter name: :id, in: :path, type: :integer
+
+    post "Change platform subscription plan" do
+      tags "Platform Subscriptions"
+      consumes "application/json"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+      parameter name: :body, in: :body, schema: {
+        type: :object,
+        properties: {
+          platform_plan_id: { type: :integer },
+          billing_interval: { type: :string }
+        }
+      }
+
+      response "200", "plan changed" do
+        let(:Authorization) { auth_headers_for(operator)["Authorization"] }
+        let!(:record) do
+          create(:platform_subscription, school: school, platform_plan: starter_plan, provider: "manual",
+                                         status: "active")
+        end
+        let(:id) { record.id }
+        let(:body) { { platform_plan_id: pro_plan.id, billing_interval: "year" } }
+
+        run_test! do |response|
+          data = JSON.parse(response.body).fetch("data")
+          expect(data.fetch("platform_plan_id")).to eq(pro_plan.id)
+          expect(data.fetch("billing_interval")).to eq("year")
+        end
+      end
+    end
+  end
+
+  path "/api/v1/platform/subscriptions/{id}/cancel" do
+    parameter name: :id, in: :path, type: :integer
+
+    post "Cancel platform subscription" do
+      tags "Platform Subscriptions"
+      consumes "application/json"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+      parameter name: :body, in: :body, schema: {
+        type: :object,
+        properties: {
+          at_period_end: { type: :boolean }
+        }
+      }
+
+      response "200", "canceled at period end" do
+        let(:Authorization) { auth_headers_for(operator)["Authorization"] }
+        let!(:record) do
+          create(:platform_subscription, school: school, platform_plan: starter_plan, provider: "manual",
+                                         status: "active")
+        end
+        let(:id) { record.id }
+        let(:body) { { at_period_end: true } }
+
+        run_test! do |response|
+          data = JSON.parse(response.body).fetch("data")
+          expect(data.fetch("cancel_at_period_end")).to eq(true)
+          expect(data.fetch("status")).to eq("active")
         end
       end
     end

@@ -90,6 +90,8 @@ pt-BR:
       backoffice_only: "Esta ação é restrita a operadores do backoffice."
       not_found: "Não encontrado."
       not_implemented: "Recurso ainda não implementado."
+      portal_not_supported: "O portal de cobrança hospedado não está disponível para este provedor."
+      subscription_exists: "Esta escola já possui uma assinatura da plataforma."
       report_card_not_ready: "Os pré-requisitos do boletim não foram atendidos."
       report_card_frozen: "Boletins publicados não podem ser alterados."
       publication_in_progress: "Já existe uma publicação em andamento."

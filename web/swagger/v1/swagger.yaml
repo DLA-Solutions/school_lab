@@ -166,7 +166,7 @@
             "description": "invalid oauth token"
           },
           "403": {
-            "description": "disabled user"
+            "description": "invited staff membership"
           }
         },
         "requestBody": {
@@ -1222,7 +1222,7 @@
             "description": "plans listed"
           },
           "403": {
-            "description": "missing permission"
+            "description": "school jwt is backoffice_only"
           }
         }
       }
@@ -1822,6 +1822,188 @@
             "bearer_auth": []
           }
         ]
+      }
+    },
+    "/api/v1/platform/subscriptions/{id}/cancel": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Cancel platform subscription",
+        "tags": [
+          "Platform Subscriptions"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "canceled at period end"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "at_period_end": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/subscriptions/{id}/change_plan": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Change platform subscription plan",
+        "tags": [
+          "Platform Subscriptions"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "plan changed"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "platform_plan_id": {
+                    "type": "integer"
+                  },
+                  "billing_interval": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/platform/subscriptions/{id}/checkout": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Create hosted checkout for a subscription",
+        "tags": [
+          "Platform Subscriptions"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "checkout url"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/subscriptions/{id}/invoices": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List platform invoices",
+        "tags": [
+          "Platform Invoices"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "invoices listed with external ids for operators"
+          },
+          "403": {
+            "description": "staff forbidden"
+          }
+        }
       }
     },
     "/api/v1/schools": {
@@ -11639,6 +11821,353 @@
         "responses": {
           "200": {
             "description": "returns the platform permission catalog"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/platform_plans": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List school-scoped platform plans",
+        "tags": [
+          "Platform Subscriptions"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "catalog listed without vendor identifiers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "key",
+                          "name",
+                          "intervals"
+                        ],
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "intervals": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "billing_interval",
+                                "amount_cents"
+                              ],
+                              "properties": {
+                                "billing_interval": {
+                                  "type": "string",
+                                  "enum": [
+                                    "month",
+                                    "year"
+                                  ]
+                                },
+                                "amount_cents": {
+                                  "type": "integer"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "forbidden without manage_school_settings"
+          },
+          "404": {
+            "description": "cross-school"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/platform_subscription": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show school platform subscription",
+        "tags": [
+          "Platform Subscriptions"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "null when none assigned"
+          },
+          "404": {
+            "description": "cross-school"
+          },
+          "403": {
+            "description": "teacher forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/platform_subscription/cancel": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Cancel school platform subscription",
+        "tags": [
+          "Platform Subscriptions"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "canceled at period end"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "at_period_end": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/platform_subscription/change_plan": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Change school platform subscription plan",
+        "tags": [
+          "Platform Subscriptions"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "plan changed"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan_key": {
+                    "type": "string"
+                  },
+                  "billing_interval": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/platform_subscription/checkout": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Checkout school platform subscription",
+        "tags": [
+          "Platform Subscriptions"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "checkout url returned"
+          },
+          "501": {
+            "description": "manual provider cannot collect"
+          },
+          "409": {
+            "description": "manual row blocks director checkout"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan_key": {
+                    "type": "string"
+                  },
+                  "billing_interval": {
+                    "type": "string"
+                  },
+                  "trial": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/platform_subscription/invoices": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List school platform invoices",
+        "tags": [
+          "Platform Invoices"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "invoices listed without vendor ids"
           }
         }
       }

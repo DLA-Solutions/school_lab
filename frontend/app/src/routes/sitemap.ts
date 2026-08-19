@@ -216,6 +216,15 @@ const sitemap: MenuItem[] = [
     requiredPermission: 'manage_billing',
   },
   {
+    id: 'platform-subscription',
+    subheader: 'nav.platformSubscription',
+    path: paths.platformSubscription,
+    icon: 'mingcute:vip-2-line',
+    active: true,
+    audience: 'staff',
+    requiredPermission: 'manage_school_settings',
+  },
+  {
     // Quem entra no sistema, e com qual papel. Fica por último no menu: é administração de
     // contas, consultada de vez em quando, e não parte do dia a dia das telas acima.
     id: 'users',

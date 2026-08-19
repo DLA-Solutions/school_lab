@@ -577,6 +577,34 @@ const hasFreshToken = (request: Request) =>
 
 const expiredToken = () => jsonError(401, 'unauthorized', 'Sessão expirada.');
 
+/** School-scoped SaaS catalog for GET /platform_plans. Distinct from tuition `/billing/plans`. */
+export const sampleSchoolPlatformPlans = [
+  {
+    key: 'starter',
+    name: 'Starter',
+    intervals: [
+      { billing_interval: 'month' as const, amount_cents: 19_900 },
+      { billing_interval: 'year' as const, amount_cents: 199_000 },
+    ],
+  },
+  {
+    key: 'pro',
+    name: 'Pro',
+    intervals: [
+      { billing_interval: 'month' as const, amount_cents: 59_900 },
+      { billing_interval: 'year' as const, amount_cents: 599_000 },
+    ],
+  },
+  {
+    key: 'enterprise',
+    name: 'Enterprise',
+    intervals: [
+      { billing_interval: 'month' as const, amount_cents: 99_900 },
+      { billing_interval: 'year' as const, amount_cents: 999_000 },
+    ],
+  },
+];
+
 export const handlers = [
   http.post(apiUrl('/api/v1/auth/login'), async ({ request }) => {
     const body = (await request.json()) as { email?: string; password?: string };
@@ -1612,6 +1640,129 @@ export const handlers = [
       return new HttpResponse(new Blob(['%PDF-nfse-guardian'], { type: 'application/pdf' }), {
         status: 200,
         headers: { 'Content-Type': 'application/pdf' },
+      });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/platform_plans'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: sampleSchoolPlatformPlans });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/platform_subscription'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: null });
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/platform_subscription/invoices'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return paginated([], new URL(request.url));
+    },
+  ),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/platform_subscription/checkout'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json(
+      {
+        data: {
+          checkout_url: 'https://faturas.iugu.com/example',
+          billing_portal_url: null,
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/platform_subscription/change_plan'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const body = (await request.json()) as { plan_key?: string; billing_interval?: string };
+
+      return HttpResponse.json({
+        data: {
+          id: 1,
+          status: 'active',
+          plan_key: body.plan_key ?? 'pro',
+          plan_name: body.plan_key === 'enterprise' ? 'Enterprise' : 'Pro',
+          billing_interval: body.billing_interval ?? 'month',
+          amount_cents: 59_900,
+          current_period_start: '2026-08-01T00:00:00Z',
+          current_period_end: '2026-09-01T00:00:00Z',
+          trial_ends_at: null,
+          cancel_at_period_end: false,
+          collection_method: 'automatic',
+          billing_portal_url: null,
+          open_invoice: null,
+        },
+      });
+    },
+  ),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/platform_subscription/cancel'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return HttpResponse.json({
+        data: {
+          id: 1,
+          status: 'active',
+          plan_key: 'starter',
+          plan_name: 'Starter',
+          billing_interval: 'month',
+          amount_cents: 19_900,
+          current_period_start: '2026-08-01T00:00:00Z',
+          current_period_end: '2026-09-01T00:00:00Z',
+          trial_ends_at: null,
+          cancel_at_period_end: true,
+          collection_method: 'automatic',
+          billing_portal_url: null,
+          open_invoice: null,
+        },
       });
     },
   ),

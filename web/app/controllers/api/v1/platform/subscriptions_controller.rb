@@ -14,7 +14,7 @@ module Api
 
           pagy, records = pagy(result.data)
           render json: {
-            data: PlatformSubscriptionBlueprint.render_as_hash(records),
+            data: PlatformSubscriptionBlueprint.render_as_hash(records, view: :backoffice),
             meta: { page: pagy.page, per_page: pagy.limit, total: pagy.count }
           }
         end
@@ -25,7 +25,7 @@ module Api
           authorize subscription
 
           render json: {
-            data: PlatformSubscriptionBlueprint.render_as_hash(subscription)
+            data: PlatformSubscriptionBlueprint.render_as_hash(subscription, view: :backoffice)
           }
         end
 
@@ -35,7 +35,7 @@ module Api
           result = ::Platform::CreateSubscriptionService.call(params: subscription_params)
           render_service_result(result, success_status: :created) do |subscription|
             render json: {
-              data: PlatformSubscriptionBlueprint.render_as_hash(subscription)
+              data: PlatformSubscriptionBlueprint.render_as_hash(subscription, view: :backoffice)
             }, status: :created
           end
         end
@@ -51,7 +51,71 @@ module Api
           )
           render_service_result(result) do |updated_subscription|
             render json: {
-              data: PlatformSubscriptionBlueprint.render_as_hash(updated_subscription)
+              data: PlatformSubscriptionBlueprint.render_as_hash(updated_subscription, view: :backoffice)
+            }
+          end
+        end
+
+        def checkout
+          subscription = PlatformSubscription.kept.find(params[:id])
+          authorize subscription, :checkout?
+
+          result = ::Platform::CreateCheckoutSessionService.call(
+            school: subscription.school,
+            subscription: subscription,
+            params: checkout_params.merge(platform_plan_id: subscription.platform_plan_id),
+            allow_existing: true
+          )
+          render_service_result(result) do |payload|
+            session = payload.fetch(:session)
+            render json: {
+              data: {
+                checkout_url: session.checkout_url,
+                billing_portal_url: session.billing_portal_url,
+                subscription_id: payload.fetch(:subscription).id
+              }
+            }
+          end
+        end
+
+        def invoices
+          subscription = PlatformSubscription.kept.find(params[:id])
+          authorize subscription, :invoices?
+
+          invoices = policy_scope(subscription.platform_invoices).order(created_at: :desc)
+          pagy, records = pagy(invoices)
+          render json: {
+            data: PlatformInvoiceBlueprint.render_as_hash(records, view: :backoffice),
+            meta: { page: pagy.page, per_page: pagy.limit, total: pagy.count }
+          }
+        end
+
+        def change_plan
+          subscription = PlatformSubscription.kept.find(params[:id])
+          authorize subscription, :change_plan?
+
+          result = ::Platform::ChangeSubscriptionPlanService.call(
+            subscription: subscription,
+            params: change_plan_params
+          )
+          render_service_result(result) do |updated|
+            render json: {
+              data: PlatformSubscriptionBlueprint.render_as_hash(updated, view: :backoffice)
+            }
+          end
+        end
+
+        def cancel
+          subscription = PlatformSubscription.kept.find(params[:id])
+          authorize subscription, :cancel?
+
+          result = ::Platform::CancelSubscriptionService.call(
+            subscription: subscription,
+            at_period_end: cancel_params.fetch(:at_period_end, true)
+          )
+          render_service_result(result) do |updated|
+            render json: {
+              data: PlatformSubscriptionBlueprint.render_as_hash(updated, view: :backoffice)
             }
           end
         end
@@ -69,10 +133,26 @@ module Api
           params.require(:subscription).permit(
             :school_id,
             :platform_plan_id,
+            :plan_key,
             :status,
             :trial_ends_at,
-            :current_period_end
+            :current_period_end,
+            :billing_interval,
+            :trial,
+            :provider
           )
+        end
+
+        def checkout_params
+          params.fetch(:checkout, params).permit(:trial, :plan_key, :billing_interval)
+        end
+
+        def change_plan_params
+          params.permit(:plan_key, :billing_interval, :platform_plan_id)
+        end
+
+        def cancel_params
+          params.permit(:at_period_end)
         end
 
         def render_platform_forbidden
