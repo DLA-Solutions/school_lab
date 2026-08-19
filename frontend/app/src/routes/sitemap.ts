@@ -71,17 +71,6 @@ const sitemap: MenuItem[] = [
     requiredPermission: 'manage_people',
   },
   {
-    // Quem entra no sistema, e com qual papel. Fica junto de Estudantes e Responsáveis porque a
-    // pergunta é a mesma — quem é essa pessoa para a escola — só que respondida em contas.
-    id: 'users',
-    subheader: 'nav.users',
-    path: paths.users,
-    icon: 'mingcute:user-setting-line',
-    active: true,
-    audience: 'staff',
-    requiredPermission: 'manage_people',
-  },
-  {
     id: 'guardians',
     subheader: 'nav.guardians',
     path: paths.guardians,
@@ -225,6 +214,17 @@ const sitemap: MenuItem[] = [
     active: true,
     audience: 'staff',
     requiredPermission: 'manage_billing',
+  },
+  {
+    // Quem entra no sistema, e com qual papel. Fica por último no menu: é administração de
+    // contas, consultada de vez em quando, e não parte do dia a dia das telas acima.
+    id: 'users',
+    subheader: 'nav.users',
+    path: paths.users,
+    icon: 'mingcute:user-setting-line',
+    active: true,
+    audience: 'staff',
+    requiredPermission: 'manage_people',
   },
 ];
 
