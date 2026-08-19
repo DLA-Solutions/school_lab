@@ -80,6 +80,8 @@ const Guardians = () => {
   const [detailsFor, setDetailsFor] = useState<Guardian | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [sendingAccessTo, setSendingAccessTo] = useState<number | null>(null);
+  // Sending access mails the family a link, so it asks first rather than firing on the click.
+  const [pendingAccess, setPendingAccess] = useState<Guardian | null>(null);
   const [accessSent, setAccessSent] = useState('');
 
   const load = useCallback(async () => {
@@ -148,8 +150,10 @@ const Guardians = () => {
     setPage(0);
   };
 
-  const handleSendAccess = async (record: Guardian) => {
-    if (!schoolId) {
+  const handleConfirmSendAccess = async () => {
+    const record = pendingAccess;
+
+    if (!schoolId || !record) {
       return;
     }
 
@@ -166,6 +170,7 @@ const Guardians = () => {
       setError(resolveApiErrorMessage(err, t, 'guardians.accessError'));
     } finally {
       setSendingAccessTo(null);
+      setPendingAccess(null);
     }
   };
 
@@ -275,7 +280,7 @@ const Guardians = () => {
                     size="small"
                     aria-label={t('guardians.sendAccessAria', { name: row.name })}
                     disabled={sendingAccessTo === row.id}
-                    onClick={() => handleSendAccess(row)}
+                    onClick={() => setPendingAccess(row)}
                   >
                     <IconifyIcon icon="mingcute:mail-send-line" />
                   </IconButton>
@@ -505,6 +510,26 @@ const Guardians = () => {
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+      <ConfirmDialog
+        open={Boolean(pendingAccess)}
+        title={t('guardians.sendAccessTitle')}
+        message={
+          pendingAccess?.email
+            ? t('guardians.sendAccessMessage', {
+                name: pendingAccess?.name ?? '',
+                email: pendingAccess.email,
+              })
+            : t('guardians.sendAccessNoEmail', { name: pendingAccess?.name ?? '' })
+        }
+        confirmLabel={
+          sendingAccessTo === pendingAccess?.id
+            ? t('guardians.sendingAccess')
+            : t('guardians.sendAccessConfirm')
+        }
+        cancelLabel={t('common.cancel')}
+        onConfirm={handleConfirmSendAccess}
+        onCancel={() => setPendingAccess(null)}
       />
     </Stack>
   );
