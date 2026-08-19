@@ -11,6 +11,7 @@ RSpec.describe "Api::V1::Platform::Analytics::Overview", type: :request do
   let!(:starter_plan) { PlatformPlan.find_or_create_by!(key: "starter") { |plan| plan.assign_attributes(name: "Starter", monthly_amount_cents: 29_900) } }
 
   before do
+    ensure_platform_plan_prices(starter_plan)
     Schools::SeedSchoolModulesService.call(school: school)
     create(:platform_subscription, school: school, platform_plan: starter_plan, status: "active")
     create(:school, onboarding_status: "provisioning")

@@ -8,10 +8,11 @@ RSpec.describe "Api::V1::Platform::Plans", type: :request do
 
   before do
     %w[starter pro enterprise].each do |key|
-      PlatformPlan.find_or_create_by!(key: key) do |plan|
-        plan.name = key.capitalize
-        plan.monthly_amount_cents = 29_900
+      plan = PlatformPlan.find_or_create_by!(key: key) do |row|
+        row.name = key.capitalize
+        row.monthly_amount_cents = 29_900
       end
+      ensure_platform_plan_prices(plan)
     end
   end
 
@@ -26,8 +27,12 @@ RSpec.describe "Api::V1::Platform::Plans", type: :request do
         let(:Authorization) { auth_headers_for(operator)["Authorization"] }
 
         run_test! do |response|
-          keys = JSON.parse(response.body).fetch("data").map { |row| row["key"] }
+          rows = JSON.parse(response.body).fetch("data")
+          keys = rows.map { |row| row["key"] }
           expect(keys).to include("starter", "pro", "enterprise")
+          starter = rows.find { |row| row["key"] == "starter" }
+          expect(starter.fetch("intervals")).to be_present
+          expect(starter.fetch("intervals").map { |row| row["billing_interval"] }).to include("month", "year")
         end
       end
 
@@ -38,6 +43,17 @@ RSpec.describe "Api::V1::Platform::Plans", type: :request do
 
         run_test! do |response|
           expect(JSON.parse(response.body).dig("error", "code")).to eq("forbidden")
+        end
+      end
+
+      response "403", "school jwt is backoffice_only" do
+        let(:school) { create(:school) }
+        let(:director) { create(:user) }
+        let!(:director_membership) { create_owner_membership(school, user: director) }
+        let(:Authorization) { auth_headers_for(director)["Authorization"] }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("backoffice_only")
         end
       end
     end
