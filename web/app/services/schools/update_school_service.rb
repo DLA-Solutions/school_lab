@@ -8,7 +8,7 @@ module Schools
     end
 
     def call
-      if school.update(params)
+      if school.update(params.to_h.symbolize_keys.except(:saas_plan))
         ResponseService.success(data: school)
       else
         ResponseService.failure(code: :validation_error, details: school.errors.to_hash)
