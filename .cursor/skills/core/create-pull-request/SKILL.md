@@ -1,6 +1,6 @@
 ---
 name: create-pull-request
-description: Create a GitHub pull request in DLA-Solutions/school_lab. Use when the user asks to open a PR, create a pull request, or submit changes for review.
+description: Create a GitHub pull request in DLA-Solutions/school_lab. Use when the user asks to open a PR, create a pull request, submit changes for review, or says "pode versionar" / "versione" / "versionar" (after atomic commits and push).
 ---
 
 # Create Pull Request
@@ -8,6 +8,16 @@ description: Create a GitHub pull request in DLA-Solutions/school_lab. Use when 
 Open PRs in `DLA-Solutions/school_lab` when the branch is ready for review. **Local CI is not required** before PR creation — essential CI runs at deploy time (skill `deploy-kamal`).
 
 Subagent **backend-ci** can run CI, fix failures, commit atomically, push, and open a PR when the user asks for that full pipeline. Use this skill directly when only the PR step is needed.
+
+## "Pode versionar" (ship branch)
+
+When the user says **"pode versionar"**, **"versione"**, or **"versionar"**, run the full ship pipeline — not PR-only:
+
+1. **Atomic commits** — rule `git-atomic-commits` (one logical change per commit).
+2. **Push** — `git push -u origin HEAD`.
+3. **Open PR** — this skill (`gh pr create`); return the PR URL.
+
+Step 3 is mandatory after steps 1–2 unless a PR already exists for the branch (then push only).
 
 ## Workflow
 

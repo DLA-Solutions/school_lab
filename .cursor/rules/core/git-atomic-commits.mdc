@@ -51,6 +51,16 @@ Extend backend-ci agent to commit fixes and open PRs.
 - **backend-ci** — one atomic commit per CI failure type; never leave CI fixes uncommitted.
 - **All agents** — follow this rule when the user asks to commit or when shipping work; do not squash unrelated changes to save time.
 
+## When user says "pode versionar"
+
+Portuguese trigger phrases — **"pode versionar"**, **"versione"**, **"versionar"** — mean **ship the current branch**, not a single commit only. Always run the full pipeline in order:
+
+1. **Atomic commits** — one logical change per commit (this rule); split unrelated work before committing.
+2. **Push** — `git push -u origin HEAD` on the current branch.
+3. **Open a PR** — skill `create-pull-request` (`gh pr create`); return the PR URL.
+
+Treat this as explicit permission to commit, push, and open a PR in one flow. Do not skip push or PR. If a PR already exists for the branch, push only — do not create a duplicate.
+
 ## When unsure
 
 If a diff mixes two prefixes (`fix/` vs `chore/` vs `feature/`), split into two commits or two branches — same test as branch naming (`git-branch-naming` rule).
