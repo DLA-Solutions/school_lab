@@ -23,7 +23,7 @@ const ptBR = {
 
   'auth.signin.orContinueWith': 'ou continue com',
   'auth.signin.googleAccessDenied':
-    'Não foi possível entrar com Google. Verifique se sua conta está cadastrada na escola.',
+    'Você não tem permissão para entrar. Procure a secretaria ou a direção do colégio para solicitar acesso.',
   'auth.signin.connectionError':
     'Não foi possível conectar à API. Verifique se o servidor está no ar.',
 

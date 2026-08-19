@@ -23,7 +23,7 @@ const enUS: Messages = {
 
   'auth.signin.orContinueWith': 'or continue with',
   'auth.signin.googleAccessDenied':
-    'Could not sign in with Google. Check that your account is registered with the school.',
+    'You do not have permission to sign in. Contact the school secretary or administration to request access.',
   'auth.signin.connectionError':
     'Could not connect to the API. Check that the server is running.',
 
