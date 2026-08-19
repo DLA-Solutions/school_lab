@@ -261,8 +261,25 @@ const Grades = () => {
             description={t('grades.empty.description')}
             headingLevel={2}
           />
+        ) : sheet.periods.length === 0 ? (
+          // The sheet only marks the periods of the class's own year. When that year has none set
+          // up there is nothing to mark, and saying so beats a grid with a single empty column.
+          <EmptyState
+            title={t('grades.noPeriods.title', { year: sheet.context.year })}
+            description={t('grades.noPeriods.description', { year: sheet.context.year })}
+            headingLevel={2}
+          />
         ) : (
           <Box px={3.5} py={3.5} sx={{ width: 1, overflowX: 'auto' }}>
+            {/* The class and subject are chosen in dropdowns above and the year is implied by the
+                class, so without this the teacher stares at a wall of numbers with nothing on
+                screen confirming whose year they belong to. */}
+            <Typography variant="subtitle2" mb={0.5}>
+              {t('grades.context', {
+                subject: sheet.context.subject_name,
+                schoolClass: sheet.context.school_class_label,
+              })}
+            </Typography>
             <Typography variant="caption" color="text.secondary" display="block" mb={2}>
               {t('grades.autosaveHint')}
             </Typography>

@@ -18,8 +18,8 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
             background: palette.background.default,
           },
         },
-        // Escondida em repouso para não riscar a tabela, mas revelada ao passar o mouse ou ao
-        // focar: com `visibility: hidden` fixo não havia como alcançar as linhas abaixo do corte.
+        // Hidden at rest so it does not draw a line across the table, revealed on hover or
+        // focus: pinned to `visibility: hidden` there was no way to reach the rows below the cut.
         '& .MuiDataGrid-scrollbar--vertical': {
           visibility: 'hidden',
         },
@@ -35,8 +35,8 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
         },
       };
     },
-    // Uma página traz 25 linhas numa caixa de altura fixa, então o corpo precisa rolar — com
-    // `overflowY: hidden` as linhas além do corte ficavam inalcançáveis, nem pela roda do mouse.
+    // A page holds 25 rows in a fixed-height box, so the body has to scroll — with
+    // `overflowY: hidden` the rows past the cut were unreachable, the mouse wheel included.
     virtualScroller: {
       overflowY: 'auto',
     },

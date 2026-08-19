@@ -69,9 +69,53 @@ RSpec.describe "Academics: the mark sheet", type: :request do
 
       expect(sheet["periods"].map { |row| row["closed"] }).to eq([ false, true ])
     end
+
+    # A wall of numbers with no heading is a mark filed under a year nobody checked. The sheet
+    # names the class, the subject and the year it is marking.
+    it "names what is being marked" do
+      expect(sheet["context"]).to include(
+        "school_class_id" => school_class.id,
+        "subject_id" => maths.id,
+        "subject_name" => "Matemática",
+        "year" => 2026
+      )
+      expect(sheet["context"]["school_class_label"]).to eq(school_class.full_name)
+    end
+
+    # The year a term belongs to comes from its dates, not from the free-text name a school
+    # happens to have typed.
+    it "finds the year's periods whatever the school named the year" do
+      school_year.update!(name: "Ano Letivo 2026")
+
+      expect(sheet["periods"].map { |row| row["name"] }).to eq([ "1º bimestre", "2º bimestre" ])
+    end
+
+    # Widening to every period the school has ever had is how a mark meant for this year ends up
+    # filed under a term of another one. An empty sheet is the honest answer.
+    it "offers no periods at all when the class's year has none" do
+      other_class = create(:school_class, school: school, year: 2027, name: "B")
+      get "#{base}/grades?school_class_id=#{other_class.id}&subject_id=#{maths.id}", headers: headers
+
+      expect(response.parsed_body["data"]["periods"]).to be_empty
+    end
   end
 
   describe "writing a cell" do
+    # The sheet only offers the class's own periods, but the endpoint takes an id and has to hold
+    # the same line on its own.
+    it "refuses a period that belongs to another year" do
+      other_year = create(:school_year, school: school, name: "2025",
+                                        starts_on: Date.new(2025, 2, 1), ends_on: Date.new(2025, 12, 15))
+      last_year = create(:academic_period, school: school, school_year: other_year,
+                                           name: "1º bimestre", sequence: 1,
+                                           starts_on: Date.new(2025, 2, 1), ends_on: Date.new(2025, 4, 30))
+
+      write(student: ana, period: last_year, score: 9)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(Grade.kept.find_by(student: ana, academic_period: last_year)).to be_nil
+    end
+
     it "records the mark" do
       write(student: ana, period: first_period, score: 9)
 

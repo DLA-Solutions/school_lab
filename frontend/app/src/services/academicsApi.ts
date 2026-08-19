@@ -265,7 +265,17 @@ export interface GradeSheetStudent {
   scores: Record<string, number | null>;
 }
 
+/** What the sheet is marking, so the screen can name it rather than showing a bare grid. */
+export interface GradeSheetContext {
+  school_class_id: number;
+  school_class_label: string;
+  subject_id: number;
+  subject_name: string;
+  year: number;
+}
+
 export interface GradeSheet {
+  context: GradeSheetContext;
   periods: GradeSheetPeriod[];
   students: GradeSheetStudent[];
 }
