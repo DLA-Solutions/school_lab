@@ -43,7 +43,8 @@ class School < ApplicationRecord
   has_many :school_years, dependent: :destroy
   has_many :academic_periods, dependent: :destroy
   has_many :school_modules, dependent: :destroy
-  has_one :platform_subscription, dependent: :destroy
+  has_one :platform_subscription, -> { kept }, dependent: :destroy
+  has_many :platform_invoices, dependent: :destroy
   has_many :document_signatories, dependent: :destroy
   has_many :report_card_configs, dependent: :destroy
   has_many :report_card_publish_batches, dependent: :destroy
