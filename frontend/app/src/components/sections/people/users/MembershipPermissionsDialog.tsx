@@ -195,8 +195,10 @@ const MembershipPermissionsDialog = ({
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Permissões da conta</DialogTitle>
       <DialogContent>
-        <Stack spacing={2} pt={0.5}>
-          <Stack spacing={0.5}>
+        {/* O tema empilha Stack na horizontal por padrão; aqui cada domínio é uma seção e cada
+            permissão uma linha, então a direção é dita a cada um deles. */}
+        <Stack direction="column" spacing={2} pt={0.5}>
+          <Stack direction="column" spacing={0.5}>
             <Typography variant="body2" color="text.secondary">
               {membership.email}
             </Typography>
@@ -213,7 +215,7 @@ const MembershipPermissionsDialog = ({
           {error && <ErrorBanner message={error} />}
 
           {loading ? (
-            <Stack alignItems="center" py={4}>
+            <Stack direction="column" alignItems="center" py={4}>
               <CircularProgress size={28} />
             </Stack>
           ) : (
@@ -222,7 +224,7 @@ const MembershipPermissionsDialog = ({
                 <Typography variant="subtitle2" color="text.secondary" pb={1}>
                   {permissionDomainLabel(domain)}
                 </Typography>
-                <Stack spacing={0.5} divider={<Divider flexItem />}>
+                <Stack direction="column" spacing={0.5} divider={<Divider flexItem />}>
                   {entries.map((definition) => {
                     const key = definition.key;
                     const disabled =
@@ -231,7 +233,7 @@ const MembershipPermissionsDialog = ({
                     const badge = sourceBadge(effectiveSource);
 
                     return (
-                      <Stack key={key} spacing={0.5}>
+                      <Stack key={key} direction="column" spacing={0.5}>
                         <FormControlLabel
                           sx={{ justifyContent: 'space-between', ml: 0, mr: 0 }}
                           labelPlacement="start"

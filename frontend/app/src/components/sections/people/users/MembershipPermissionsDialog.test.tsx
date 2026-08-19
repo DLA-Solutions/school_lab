@@ -26,7 +26,7 @@ describe('MembershipPermissionsDialog', () => {
       />,
     );
 
-    const billingToggle = await screen.findByRole('switch', { name: 'Financeiro' });
+    const billingToggle = await screen.findByRole('switch', { name: 'Gerenciar financeiro' });
     await user.click(billingToggle);
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
@@ -79,7 +79,7 @@ describe('MembershipPermissionsDialog', () => {
       />,
     );
 
-    const billingToggle = await screen.findByRole('switch', { name: 'Financeiro' });
+    const billingToggle = await screen.findByRole('switch', { name: 'Gerenciar financeiro' });
     await user.click(billingToggle);
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 

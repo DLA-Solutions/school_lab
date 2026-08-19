@@ -110,6 +110,8 @@ describe('visibleSitemap audience filtering', () => {
     expect(ids).toEqual([
       'dashboard',
       'my-charges',
+      'my-health-records',
+      'my-pickups',
       'my-preceptorship',
       'my-report-cards',
       'my-tax-declarations',

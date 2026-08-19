@@ -1,9 +1,12 @@
+// Cada permissão diz o que a pessoa passa a poder fazer, e não a área onde isso acontece — a
+// área já é o título do grupo. Sem isso, "Financeiro" aparecia duas vezes seguidas na tela de
+// permissões: uma como seção, outra como o próprio interruptor.
 const PERMISSION_LABELS: Record<string, string> = {
   manage_school_settings: 'Configurações da escola',
-  manage_billing: 'Financeiro',
-  manage_people: 'Pessoas',
+  manage_billing: 'Gerenciar financeiro',
+  manage_people: 'Gerenciar pessoas',
   manage_enrollment: 'Gerenciar matrículas',
-  manage_documents: 'Documentos',
+  manage_documents: 'Gerenciar documentos',
   approve_lesson_plans: 'Aprovar planos de aula',
   moderate_messages: 'Moderar mensagens',
   teach: 'Ensinar',
