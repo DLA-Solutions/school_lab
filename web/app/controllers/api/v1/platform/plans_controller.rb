@@ -9,7 +9,7 @@ module Api
         def index
           authorize :platform_plan, :index?, policy_class: PlatformPlanPolicy
 
-          plans = PlatformPlan.kept.order(:monthly_amount_cents)
+          plans = PlatformPlan.kept.includes(:platform_plan_provider_prices).order(:monthly_amount_cents)
           render json: { data: PlatformPlanBlueprint.render_as_hash(plans) }
         end
 

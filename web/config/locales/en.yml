@@ -88,6 +88,8 @@ en:
       backoffice_only: "This action is restricted to backoffice operators."
       not_found: "Not found."
       not_implemented: "Not implemented yet."
+      portal_not_supported: "Hosted billing portal is not available for this provider."
+      subscription_exists: "This school already has a platform subscription."
       report_card_not_ready: "Report card prerequisites are not met."
       report_card_frozen: "Published report card snapshots cannot be changed."
       publication_in_progress: "A publication is already in progress."
