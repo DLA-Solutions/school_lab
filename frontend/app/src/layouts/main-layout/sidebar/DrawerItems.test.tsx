@@ -107,6 +107,28 @@ describe('DrawerItems permission gating', () => {
     expect(screen.queryByRole('link', { name: 'Planos' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Contrato' })).not.toBeInTheDocument();
   });
+
+  it('shows School Lab subscription to manage_school_settings', () => {
+    const settingsMembership: Membership = {
+      ...ownerPendingMembership,
+      school_onboarding_status: 'active',
+      permissions: ['manage_school_settings'],
+      permission_sources: { manage_school_settings: 'owner' },
+    };
+
+    renderDrawer([settingsMembership]);
+    expect(screen.getByRole('link', { name: 'Assinatura School Lab' })).toHaveAttribute(
+      'href',
+      '/assinatura',
+    );
+    expect(screen.queryByRole('link', { name: 'Boletos' })).not.toBeInTheDocument();
+  });
+
+  it('hides School Lab subscription from manage_billing-only staff', () => {
+    renderDrawer([billingMembership]);
+    expect(screen.queryByRole('link', { name: 'Assinatura School Lab' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Boletos' })).toBeInTheDocument();
+  });
 });
 
 describe('DrawerItems guardian audience', () => {

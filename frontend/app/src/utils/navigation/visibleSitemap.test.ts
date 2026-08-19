@@ -101,6 +101,36 @@ describe('visibleSitemap module filtering', () => {
     expect(ids).not.toContain('charges');
     expect(ids).toContain('students');
   });
+
+  it('shows platform subscription nav for manage_school_settings even when billing is off', () => {
+    const membership = {
+      ...staffMembership,
+      permissions: ['manage_school_settings'],
+      enabled_modules: ['communication', 'academic', 'documents'] as SchoolModuleKey[],
+    };
+
+    const ids = visibleSitemap(membership).map((item) => item.id);
+
+    expect(ids).toContain('platform-subscription');
+    expect(ids).not.toContain('charges');
+    expect(ids).not.toContain('plans');
+    expect(routeModuleKeyForPath(paths.platformSubscription)).toBeNull();
+    expect(routeAudienceForPath(paths.platformSubscription)).toBe('staff');
+  });
+
+  it('hides platform subscription nav from tuition-only billing staff', () => {
+    const membership = {
+      ...staffMembership,
+      permissions: ['manage_billing'],
+      enabled_modules: ['communication', 'academic', 'billing', 'documents'] as SchoolModuleKey[],
+    };
+
+    const ids = visibleSitemap(membership).map((item) => item.id);
+
+    expect(ids).toContain('charges');
+    expect(ids).toContain('plans');
+    expect(ids).not.toContain('platform-subscription');
+  });
 });
 
 describe('visibleSitemap audience filtering', () => {
@@ -110,6 +140,8 @@ describe('visibleSitemap audience filtering', () => {
     expect(ids).toEqual([
       'dashboard',
       'my-charges',
+      'my-health-records',
+      'my-pickups',
       'my-preceptorship',
       'my-report-cards',
       'my-tax-declarations',

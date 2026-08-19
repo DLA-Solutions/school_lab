@@ -226,6 +226,15 @@ const sitemap: MenuItem[] = [
     audience: 'staff',
     requiredPermission: 'manage_billing',
   },
+  {
+    id: 'platform-subscription',
+    subheader: 'nav.platformSubscription',
+    path: paths.platformSubscription,
+    icon: 'mingcute:vip-2-line',
+    active: true,
+    audience: 'staff',
+    requiredPermission: 'manage_school_settings',
+  },
 ];
 
 /**

@@ -76,6 +76,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.billingSettings]: 'staff',
   [paths.serviceInvoices]: 'staff',
   [paths.contractTemplate]: 'staff',
+  [paths.platformSubscription]: 'staff',
 };
 
 export const menuItemModuleKey = (item: MenuItem): SchoolModuleKey | null =>

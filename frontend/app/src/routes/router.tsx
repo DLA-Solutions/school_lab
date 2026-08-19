@@ -46,6 +46,7 @@ const Plans = lazy(() => import('pages/billing/Plans'));
 const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
 const ServiceInvoices = lazy(() => import('pages/billing/ServiceInvoices'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
+const PlatformSubscriptionPage = lazy(() => import('pages/subscription/PlatformSubscription'));
 const MyTaxDeclarations = lazy(() => import('pages/billing/MyTaxDeclarations'));
 const MyCharges = lazy(() => import('pages/billing/MyCharges'));
 const MyHealthRecords = lazy(() => import('pages/people/MyHealthRecords'));
@@ -161,6 +162,10 @@ const router = createBrowserRouter(
             {
               path: paths.contractTemplate,
               element: <ContractTemplatePage />,
+            },
+            {
+              path: paths.platformSubscription,
+              element: <PlatformSubscriptionPage />,
             },
             {
               path: paths.myTaxDeclarations,
