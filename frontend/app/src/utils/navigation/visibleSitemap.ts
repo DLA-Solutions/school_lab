@@ -61,7 +61,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.myRequests]: 'guardian',
   [paths.guardians]: 'staff',
   [paths.students]: 'staff',
-  [paths.team]: 'staff',
+  [paths.users]: 'staff',
   [paths.collaborators]: 'staff',
   [paths.lessons]: 'staff',
   [paths.grades]: 'staff',

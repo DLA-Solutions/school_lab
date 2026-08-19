@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-import MembershipPermissionsDialog from 'components/sections/people/team/MembershipPermissionsDialog';
+import MembershipPermissionsDialog from 'components/sections/people/users/MembershipPermissionsDialog';
+import UserFormDialog from 'components/sections/people/users/UserFormDialog';
 import {
   DataTable,
   EmptyState,
@@ -15,14 +17,12 @@ import {
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
-import { listMemberships } from 'services/peopleApi';
+import { listMemberships, resendMembershipInvite } from 'services/peopleApi';
 import { TeamMembership } from 'types/people';
 
 const PAGE_SIZE = 25;
 
-const STAFF_ROLES = new Set(['staff', 'teacher']);
-
-const Team = () => {
+const Users = () => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
@@ -34,6 +34,9 @@ const Team = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [permissionsFor, setPermissionsFor] = useState<TeamMembership | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [resendingId, setResendingId] = useState<number | null>(null);
+  const [notice, setNotice] = useState('');
 
   const statusLabel = (status: string) => {
     switch (status) {
@@ -67,6 +70,8 @@ const Team = () => {
         return t('common.staffRole');
       case 'teacher':
         return t('common.teacherRole');
+      case 'guardian':
+        return t('users.role.guardian');
       default:
         return role;
     }
@@ -82,13 +87,14 @@ const Team = () => {
 
     try {
       const response = await listMemberships(schoolId, page + 1);
-      const staffOnly = response.data.filter((row) => STAFF_ROLES.has(row.role));
-      setMemberships(staffOnly);
+      // Toda conta, família inclusive: a pergunta desta tela é quem consegue entrar, e um
+      // responsável que não consegue é exatamente a linha que alguém vem procurar aqui.
+      setMemberships(response.data);
       setTotal(response.meta.total);
     } catch (err) {
       setMemberships([]);
       setTotal(0);
-      setError(err instanceof ApiError ? err.message : t('team.loadError'));
+      setError(err instanceof ApiError ? err.message : t('users.loadError'));
     } finally {
       setLoading(false);
     }
@@ -97,6 +103,28 @@ const Team = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleCreated = (created: TeamMembership) => {
+    setFormOpen(false);
+    setNotice(t('users.inviteSent', { email: created.email ?? '' }));
+    load();
+  };
+
+  // Um convite que se perdeu na caixa de spam é o motivo mais comum de alguém não conseguir
+  // entrar; reenviar é mais barato do que investigar.
+  const handleResend = async (membership: TeamMembership) => {
+    setResendingId(membership.id);
+    setError('');
+
+    try {
+      await resendMembershipInvite(schoolId!, membership.id);
+      setNotice(t('users.inviteSent', { email: membership.email ?? '' }));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('users.inviteError'));
+    } finally {
+      setResendingId(null);
+    }
+  };
 
   const handlePermissionsSaved = (updated: TeamMembership) => {
     setMemberships((current) => current.map((row) => (row.id === updated.id ? updated : row)));
@@ -144,33 +172,46 @@ const Team = () => {
       {
         field: 'actions',
         headerName: t('common.actions'),
-        width: 140,
+        width: 230,
         sortable: false,
         filterable: false,
         align: 'right',
         headerAlign: 'right',
-        renderCell: ({ row }: GridRenderCellParams<TeamMembership>) =>
-          isOwner && !row.is_owner ? (
-            <Button
-              size="small"
-              variant="outlined"
-              disabled={row.status === 'suspended'}
-              onClick={() => setPermissionsFor(row)}
-            >
-              {t('common.permissions')}
-            </Button>
-          ) : null,
+        renderCell: ({ row }: GridRenderCellParams<TeamMembership>) => (
+          <Stack direction="row" gap={1} justifyContent="flex-end" alignItems="center" height={1}>
+            {/* Reenviar só faz sentido enquanto o convite não foi aceito. */}
+            {row.status === 'invited' && (
+              <Button
+                size="small"
+                disabled={resendingId === row.id}
+                onClick={() => handleResend(row)}
+              >
+                {t('users.resendInvite')}
+              </Button>
+            )}
+            {isOwner && !row.is_owner && (
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={row.status === 'suspended'}
+                onClick={() => setPermissionsFor(row)}
+              >
+                {t('common.permissions')}
+              </Button>
+            )}
+          </Stack>
+        ),
       },
   ];
 
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title={t('team.title')} />
+        <PageHeader title={t('users.title')} />
         <SectionCard>
           <EmptyState
             title={t('common.noAccess.title')}
-            description={t('team.noAccess.description')}
+            description={t('users.noAccess.description')}
             headingLevel={2}
           />
         </SectionCard>
@@ -180,15 +221,23 @@ const Team = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader title={t('team.title')} />
+      <PageHeader
+        title={t('users.title')}
+        actions={
+          <Button variant="contained" size="small" onClick={() => setFormOpen(true)}>
+            {t('users.new')}
+          </Button>
+        }
+      />
 
       {error && <ErrorBanner message={error} />}
+      {notice && <Alert severity="success" onClose={() => setNotice('')}>{notice}</Alert>}
 
       <SectionCard padding={0}>
         {!loading && memberships.length === 0 && !error ? (
           <EmptyState
-            title={t('team.empty.title')}
-            description={t('team.empty.description')}
+            title={t('users.empty.title')}
+            description={t('users.empty.description')}
             headingLevel={2}
           />
         ) : (
@@ -209,6 +258,15 @@ const Team = () => {
         )}
       </SectionCard>
 
+      {schoolId && (
+        <UserFormDialog
+          open={formOpen}
+          schoolId={schoolId}
+          onClose={() => setFormOpen(false)}
+          onCreated={handleCreated}
+        />
+      )}
+
       {permissionsFor && schoolId && (
         <MembershipPermissionsDialog
           open
@@ -222,4 +280,4 @@ const Team = () => {
   );
 };
 
-export default Team;
+export default Users;

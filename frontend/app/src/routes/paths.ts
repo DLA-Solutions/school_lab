@@ -13,7 +13,8 @@ export default {
 
   guardians: `/${rootPaths.peopleRoot}/responsaveis`,
   students: `/${rootPaths.peopleRoot}/estudantes`,
-  team: `/${rootPaths.peopleRoot}/equipe`,
+  // Contas de acesso: quem entra no sistema e com qual papel — inclui a família.
+  users: `/${rootPaths.peopleRoot}/usuarios`,
 
   collaborators: `/${rootPaths.academicsRoot}/colaboradores`,
   lessons: `/${rootPaths.academicsRoot}/aulas`,

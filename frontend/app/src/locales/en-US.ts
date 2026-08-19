@@ -161,6 +161,7 @@ const enUS: Messages = {
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Students',
   'nav.guardians': 'Guardians',
+  'nav.users': 'Users',
   'nav.collaborators': 'Collaborators',
   'nav.lessons': 'Lessons',
   'lessons.new': 'New lesson',
@@ -919,13 +920,32 @@ const enUS: Messages = {
   'students.relationship.mother': 'Mother',
   'students.relationship.other': 'Guardian',
 
-  'team.title': 'Team',
-  'team.noAccess.description':
-    'The team listing is available only to users with an active school membership.',
-  'team.loadError': 'Could not load the team. Check your connection.',
-  'team.empty.title': 'No team members',
-  'team.empty.description':
-    'Invite collaborators during onboarding or ask the owner to add team accounts.',
+  'users.title': 'Users',
+  'users.noAccess.description':
+    'The user list is available only to users with an active school membership.',
+  'users.loadError': 'Could not load the users. Check your connection.',
+  'users.empty.title': 'No users yet',
+  'users.empty.description':
+    'Create access for the office, coordination, a teacher or a family.',
+  'users.new': 'New user',
+  'users.description':
+    'Access is created as an invitation: the person gets an e-mail and picks their own password.',
+  'users.accessType': 'Access type',
+  'users.role.staff': 'School staff',
+  'users.role.teacher': 'Teacher',
+  'users.role.guardian': 'Family',
+  'users.profile': 'Permission profile',
+  'users.profileHint': 'Decides what this person sees and does — office, coordination, direction.',
+  'users.guardianHint':
+    'A family picks no profile: a guardian sees their own children and nothing else. Link the students to them on the Guardians screen.',
+  'users.sendInvite': 'Send invitation',
+  'users.sending': 'Sending...',
+  'users.inviteSent': 'Invitation sent to {email}.',
+  'users.inviteError': 'Could not send the invitation.',
+  'users.resendInvite': 'Resend invitation',
+  'users.createError': 'Could not create the access.',
+  'users.error.emailRequired': "Fill in the e-mail of whoever will sign in.",
+  'users.error.templateRequired': 'Select the permission profile.',
 
   'collaborators.title': 'Collaborators',
   'collaborators.noAccess.description':

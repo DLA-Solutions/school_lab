@@ -25,7 +25,7 @@ export const RequireSchoolOwner = ({ children }: PropsWithChildren) => {
   }
 
   if (!school?.is_owner) {
-    return <Navigate to={paths.team} state={{ from: location.pathname }} replace />;
+    return <Navigate to={paths.users} state={{ from: location.pathname }} replace />;
   }
 
   return children;

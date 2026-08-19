@@ -16,7 +16,7 @@ import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { setAccessToken } from 'services/tokenStore';
 import { AuthUser, Membership } from 'types/auth';
-import Team from './Team';
+import Users from './Users';
 
 const MEMBERSHIPS_PATH = `/api/v1/schools/${SCHOOL_ID}/people/memberships`;
 
@@ -42,12 +42,12 @@ const renderPage = (membership: Membership) =>
   renderWithTheme(
     <MemoryRouter>
       <AuthContext.Provider value={authValueFor(membership)}>
-        <Team />
+        <Users />
       </AuthContext.Provider>
     </MemoryRouter>,
   );
 
-describe('Team page', () => {
+describe('Users page', () => {
   it('shows the permissions action to the school owner', async () => {
     setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
     renderPage({ ...ownerPendingMembership, school_onboarding_status: 'active' });
@@ -55,7 +55,8 @@ describe('Team page', () => {
     expect(await screen.findByText('admin@example.com')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Permissões' })).toBeInTheDocument();
     expect(screen.queryByText('director@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('guardian@example.com')).not.toBeInTheDocument();
+    // Toda conta, família inclusive: a pergunta desta tela é quem consegue entrar.
+    expect(screen.getByText('guardian@example.com')).toBeInTheDocument();
   });
 
   it('lists staff without the permissions action for a non-owner secretary', async () => {

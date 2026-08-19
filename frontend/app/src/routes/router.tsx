@@ -27,7 +27,7 @@ const GuardianAccess = lazy(() => import('pages/authentication/GuardianAccess'))
 const ForgotPassword = lazy(() => import('pages/authentication/ForgotPassword'));
 const ResetPassword = lazy(() => import('pages/authentication/ResetPassword'));
 const Guardians = lazy(() => import('pages/people/Guardians'));
-const Team = lazy(() => import('pages/people/Team'));
+const Users = lazy(() => import('pages/people/Users'));
 const Students = lazy(() => import('pages/people/Students'));
 const Collaborators = lazy(() => import('pages/academics/Collaborators'));
 const Grades = lazy(() => import('pages/academics/Grades'));
@@ -85,8 +85,8 @@ const router = createBrowserRouter(
               element: <Guardians />,
             },
             {
-              path: paths.team,
-              element: <Team />,
+              path: paths.users,
+              element: <Users />,
             },
             {
               path: paths.students,

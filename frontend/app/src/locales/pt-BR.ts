@@ -161,6 +161,7 @@ const ptBR = {
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Estudantes',
   'nav.guardians': 'Responsáveis',
+  'nav.users': 'Usuários',
   'nav.collaborators': 'Colaboradores',
   'nav.lessons': 'Aulas',
   'lessons.new': 'Nova aula',
@@ -924,13 +925,32 @@ const ptBR = {
   'students.relationship.mother': 'Mãe',
   'students.relationship.other': 'Responsável',
 
-  'team.title': 'Equipe',
-  'team.noAccess.description':
-    'A listagem da equipe está disponível apenas para usuários com vínculo ativo de escola.',
-  'team.loadError': 'Não foi possível carregar a equipe. Verifique sua conexão.',
-  'team.empty.title': 'Nenhum membro da equipe',
-  'team.empty.description':
-    'Convide colaboradores durante o onboarding ou peça ao proprietário para adicionar contas de equipe.',
+  'users.title': 'Usuários',
+  'users.noAccess.description':
+    'A listagem de usuários está disponível apenas para usuários com vínculo ativo de escola.',
+  'users.loadError': 'Não foi possível carregar os usuários. Verifique sua conexão.',
+  'users.empty.title': 'Nenhum usuário cadastrado',
+  'users.empty.description':
+    'Crie um acesso para a Secretaria, a Coordenação, um professor ou uma família.',
+  'users.new': 'Novo usuário',
+  'users.description':
+    'O acesso é criado como convite: a pessoa recebe um e-mail e escolhe a própria senha.',
+  'users.accessType': 'Tipo de acesso',
+  'users.role.staff': 'Equipe da escola',
+  'users.role.teacher': 'Professor',
+  'users.role.guardian': 'Família',
+  'users.profile': 'Perfil de permissões',
+  'users.profileHint': 'Define o que essa pessoa vê e faz — Secretaria, Coordenação, Direção.',
+  'users.guardianHint':
+    'Uma família não escolhe perfil: o responsável vê os próprios filhos e mais nada. Vincule os estudantes a ele na tela de Responsáveis.',
+  'users.sendInvite': 'Enviar convite',
+  'users.sending': 'Enviando...',
+  'users.inviteSent': 'Convite enviado para {email}.',
+  'users.inviteError': 'Não foi possível enviar o convite.',
+  'users.resendInvite': 'Reenviar convite',
+  'users.createError': 'Não foi possível criar o acesso.',
+  'users.error.emailRequired': 'Informe o e-mail de quem vai acessar.',
+  'users.error.templateRequired': 'Selecione o perfil de permissões.',
 
   'collaborators.title': 'Colaboradores',
   'collaborators.noAccess.description':
