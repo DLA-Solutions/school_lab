@@ -26,10 +26,10 @@
 1. Given schools "Escola Alpha" and "Escola Beta", when operator sets `q=Alpha`, then list shows only Alpha and URL contains `?q=Alpha`.
    → UC-BOE06
 
-2. Given schools with different `saas_plan` values, when filtering `saas_plan=partner`, then only matching schools appear.
-   → **Blocked until E3 platform billing** — `saas_plan` exists on `schools` today as a label field;
-   filter ships in E2 only if product confirms semantics before platform SaaS billing OQ closes;
-   otherwise defer to E3 with billing slice.
+2. Given schools with different platform plans, when filtering `saas_plan=starter` (legacy
+   query name), then only schools whose **kept** `platform_subscriptions` plan key matches appear
+   (not `schools.saas_plan` as source of truth).
+   → UC-BOE06 / BR-PSB14 — E3 catalog keys `starter` / `pro` / `enterprise`
 
 3. Given operator sets `created_after=2026-01-01`, when applying filter, then only schools created on or after that date appear.
    → UC-BOE06

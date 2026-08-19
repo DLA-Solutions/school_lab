@@ -1,7 +1,8 @@
 # Data Model — Platform & Admin (009)
 
-> PRDs: [`school-year.md`](../prds/platform-and-admin/school-year.md) and
-> [`calendar.md`](../prds/platform-and-admin/calendar.md)  
+> PRDs: [`school-year.md`](../prds/platform-and-admin/school-year.md),
+> [`calendar.md`](../prds/platform-and-admin/calendar.md),
+> [`platform-subscription-billing.md`](../prds/platform-and-admin/platform-subscription-billing.md)  
 > Executable schema: [`schema.dbml`](../database/schema.dbml)  
 > DER: [`der_009.png`](../database/der_009.png)
 
@@ -133,13 +134,87 @@ indefinite storage.
 | Table | Role |
 |-------|------|
 | `school_groups` | Optional network/holding container; `schools.school_group_id` nullable FK |
-| `platform_plans` | Seeded SaaS catalog (`starter` / `pro` / `enterprise`) with `monthly_amount_cents` |
-| `platform_subscriptions` | One kept subscription per school; status `active` \| `trial` \| `past_due` |
+| `platform_plans` | Seeded SaaS catalog (`starter` / `pro` / `enterprise`) with `monthly_amount_cents` (kept during dual-write) |
+| `platform_subscriptions` | One kept subscription per school (extended below) |
 | `platform_impersonation_sessions` | Short-lived support sessions; operator + target staff + school scope |
 | `help_taxonomy_categories` | Operator-maintained help structure; `persona_tags` jsonb + optional `module_key` |
 
-Platform-scoped tables have no `school_id` except subscriptions and impersonation sessions (which
-reference `school_id` for tenancy context). Cross-tenant analytics reads aggregate only.
+Platform-scoped tables have no `school_id` except subscriptions, invoices, and impersonation
+sessions (which reference `school_id` for tenancy context). Cross-tenant analytics reads
+aggregate only.
+
+## Platform subscription billing (gateway increment)
+
+PRD: [`platform-subscription-billing.md`](../prds/platform-and-admin/platform-subscription-billing.md).  
+ADR: [`002-platform-billing-gateway.md`](../adr/002-platform-billing-gateway.md).
+
+This increment is **DLA → school** recurring collection. It does not reuse
+`school_payment_providers` or Cora webhook ingress. Keep `platform_plans`. **Do not drop**
+`schools.saas_plan`; stop treating it as source of truth for list filters (join
+`platform_subscriptions`).
+
+### Entity groups
+
+| Table | Role |
+|-------|------|
+| `platform_plans` | Product catalog (`key`: `starter` \| `pro` \| `enterprise`). `monthly_amount_cents` remains until Phase 6 dual-write retirement. |
+| `platform_plan_provider_prices` | Maps `(platform_plan_id, provider, billing_interval)` to vendor plan identifiers and `amount_cents`. `billing_interval` ∈ `month \| year`. Unique on that triple. Iugu yearly = vendor `interval: 12`, `interval_type: months`. Seed identifiers (e.g. `starter_monthly`) via ops/rake — not in the request path. |
+| `platform_subscriptions` | One kept row per school. Extended columns: `billing_interval`, `provider` (`iugu` \| `manual` \| `fake`), `external_customer_id`, `external_subscription_id`, `current_period_start`, `cancel_at_period_end`, `canceled_at`, `collection_method` (`automatic` \| `send_invoice` \| `manual`). Status ∈ `trialing \| active \| past_due \| canceled \| incomplete` (E3 `trial` → `trialing`). |
+| `platform_invoices` | DLA invoices to a school. `school_id` + `platform_subscription_id` + `provider` + `external_invoice_id`. Status ∈ `draft \| open \| paid \| void \| uncollectible`. `amount_cents`, `due_at`, `paid_at`, `hosted_invoice_url`, `payment_method` (`credit_card` \| `bank_slip` \| `pix`). Unique `(provider, external_invoice_id)`. |
+| `platform_billing_settings` | **Singleton** deploy config: `active_provider`, `webhook_endpoint_token`. Iugu API credentials stay in ENV (`IUGU_API_TOKEN`, `IUGU_API_BASE_URL`) — never on this row or on `schools`. |
+| `webhook_events` | Reused. `school_id` nullable until reconcile matches `external_subscription_id`. `provider` includes `iugu`. Idempotent `(provider, provider_event_id)`. |
+
+```mermaid
+erDiagram
+  platform_plans ||--o{ platform_plan_provider_prices : prices
+  platform_plans ||--o{ platform_subscriptions : catalog
+  schools ||--o| platform_subscriptions : subscribes
+  platform_subscriptions ||--o{ platform_invoices : invoices
+  schools ||--o{ platform_invoices : billed
+```
+
+### Lifecycle
+
+```mermaid
+stateDiagram-v2
+  [*] --> incomplete: checkout started
+  [*] --> trialing: optional 14-day trial
+  incomplete --> active: first invoice paid
+  trialing --> active: trial ends, invoice paid
+  trialing --> past_due: trial invoice unpaid
+  active --> past_due: invoice overdue
+  past_due --> active: invoice paid
+  active --> canceled: period ended after cancel_at_period_end
+  past_due --> canceled: expire / operator cancel
+  incomplete --> canceled: abandoned checkout
+```
+
+- `provider: manual` never calls Iugu; status is operator-maintained (`active` / `trialing` /
+  `past_due` / `canceled`).
+- Checkout after `canceled` reuses or discards the kept row (service-owned).
+  `409 subscription_exists` if a non-canceled kept row already exists.
+- **Past due does not lock** the school product (banner only).
+- MRR: billable `active` + `trialing`; yearly contribution `amount_cents / 12`.
+- List filters that today read `schools.saas_plan` should join `platform_subscriptions`.
+
+### Auth and isolation
+
+- Operator collection `/api/v1/platform/subscriptions*` — backoffice + `manage_platform_billing`.
+- School-scoped `/api/v1/schools/:school_id/platform_subscription*` —
+  `manage_school_settings` on that school. Cross-school → `404`. Guardians/teachers → `403`/`404`.
+- School staff on operator collection → `403 backoffice_only`.
+- School JSON omits raw Iugu IDs; backoffice may include `provider` + `external_*_id`.
+
+### LGPD and retention
+
+Iugu receives **school** CNPJ (`schools.cnpj`) and a staff billing email (`users.email` of
+the checkout actor or owner/director) — processor. Do not send guardian or student PII.
+Checkout is `422` when CNPJ or email is missing. `platform_invoices.hosted_invoice_url` is not family data but is school-confidential.
+`webhook_events` follows the existing 180-day processed purge; unprocessed rows are retained.
+Retention of platform invoice rows pending legal validation — do not assume indefinite storage.
+
+Credentials: ENV only. `webhook_endpoint_token` is a URL secret (rotate by updating the
+singleton); it is not the Iugu API token.
 
 ## Out of scope
 
@@ -148,3 +223,5 @@ reference `school_id` for tenancy context). Cross-tenant analytics reads aggrega
 - Recurring events and automatic publication to communication.
 - Multi-unit roll-up years, transport routes.
 - Pre-aggregated analytics materialized views (E3 uses live aggregates).
+- Dropping `schools.saas_plan`.
+- NFS-e for DLA→school; Stripe columns; per-student SaaS pricing.

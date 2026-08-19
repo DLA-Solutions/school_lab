@@ -95,6 +95,7 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`school-year.md`](platform-and-admin/school-year.md) | BC1 — ano letivo, academic periods, holidays | validated |
 | [`backoffice.md`](platform-and-admin/backoffice.md) | BC2 — tenant register, module flags, provisioning dashboard | validated |
 | [`backoffice-evolution.md`](platform-and-admin/backoffice-evolution.md) | BC2 evolution — E1–E3 gaps, ops tooling, P2 roadmap | draft |
+| [`platform-subscription-billing.md`](platform-and-admin/platform-subscription-billing.md) | DLA→school SaaS collection (Iugu port, school checkout) | validated |
 | [`calendar.md`](platform-and-admin/calendar.md) | BC3 — institutional and personal events | validated |
 | [`staff-users.md`](platform-and-admin/staff-users.md) | BC4 — staff roster, menu visibility | validated |
 | [`onboarding.md`](platform-and-admin/onboarding.md) | BC5 — product access, app links, getting-started (not tenant provisioning) | validated |
@@ -121,7 +122,8 @@ Historical records and cross-cutting PRDs. **Normative billing scope** is
 | [`platform-and-admin/backoffice-audit-viewer.md`](platform-and-admin/backoffice-audit-viewer.md) | backoffice-evolution E2 | draft | `platform.manage_backoffice_ops` | — | draft |
 | [`platform-and-admin/backoffice-advanced-search.md`](platform-and-admin/backoffice-advanced-search.md) | backoffice-evolution E2 | draft | `platform.manage_backoffice_ops` | — | — |
 | [`platform-and-admin/backoffice-discarded-schools.md`](platform-and-admin/backoffice-discarded-schools.md) | backoffice-evolution E2 | draft | `platform.manage_backoffice_ops` | — | draft |
-| [`platform-and-admin/backoffice-platform-billing-p2.md`](platform-and-admin/backoffice-platform-billing-p2.md) | backoffice-evolution E3 | draft | TBD | TBD | draft |
+| [`platform-and-admin/backoffice-platform-billing-p2.md`](platform-and-admin/backoffice-platform-billing-p2.md) | backoffice-evolution E3 | implemented (manual) | `[product decision]` | [`009-platform-admin`](../modeling/009-platform-admin.md) | frozen collection section |
+| [`platform-and-admin/platform-subscription-billing.md`](platform-and-admin/platform-subscription-billing.md) | backoffice-evolution collection | validated | `[product decision]` | [`009-platform-admin`](../modeling/009-platform-admin.md) | [`platform-and-admin.md`](../api/v1/platform-and-admin.md) **frozen** |
 | [`platform-and-admin/backoffice-impersonation-p2.md`](platform-and-admin/backoffice-impersonation-p2.md) | backoffice-evolution E3 | draft | TBD | — | draft |
 | [`platform-and-admin/backoffice-analytics-p2.md`](platform-and-admin/backoffice-analytics-p2.md) | backoffice-evolution E3 | draft | `platform.view_analytics_dashboard` | — | draft |
 | [`platform-and-admin/backoffice-multi-unit-p2.md`](platform-and-admin/backoffice-multi-unit-p2.md) | backoffice-evolution E3 | draft | `platform.manage_multi_unit` | TBD | draft |
@@ -190,3 +192,8 @@ Platform BC1 school year API is **frozen** for engineering:
 
 **Next:** 4C.1b (Platform W2–W5 freeze) or parallel 4C.x freezes for other domains; then
 engineering W1 waves against frozen contracts.
+
+**Platform subscription billing (2026-08-19):** additional freeze in the same narrative —
+[`platform-and-admin.md`](../api/v1/platform-and-admin.md) § Platform subscription billing;
+PRD [`platform-subscription-billing.md`](platform-and-admin/platform-subscription-billing.md).
+Does not unfreeze W1.

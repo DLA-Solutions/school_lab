@@ -76,7 +76,9 @@ memberships. Authorization remains server-side through Pundit and family/school 
 - Manage the school's users (teachers, parents, staff) — Secretaria and Coordenação use
   **role templates**, not separate roles.
 - Manage classes, subjects, enrollments.
-- Track billing (boletos, delinquency).
+- Track billing (boletos, delinquency) — **school→guardian tuition**, not DLA invoices.
+- Director/owner with `manage_school_settings`: manage **School Lab assinatura**
+  (`/assinatura`) — DLA→school subscription; never mixed into `/boletos` or `/planos`.
 - Manage the digital document archive.
 - Send and receive messages with families (text + image).
 - Send push notifications to the school's users (parity with the current

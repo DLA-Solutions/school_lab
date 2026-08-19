@@ -95,8 +95,9 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 3. Data modeling — **005–008** and **009 Platform Wave 1** are validated with published DBML;
    identity/onboarding modeling and API narratives are **in progress** (domain PRDs validated).
 4. API contracts — **Platform W1 frozen** (Phase 4C.1 — school years, periods, holidays +
-   `school_year_id` cross-domain contract; see [`api/v1/platform-and-admin.md`](api/v1/platform-and-admin.md)).
-   Other domain APIs remain draft. The guardian-delivery work has approved scoped **narrative
+   `school_year_id` cross-domain contract) and **platform subscription billing frozen**
+   (2026-08-19 — see [`api/v1/platform-and-admin.md`](api/v1/platform-and-admin.md)
+   § Platform subscription billing). Other domain APIs remain draft. The guardian-delivery work has approved scoped **narrative
    targets** for report cards and annual tax declarations, but those are not executable/frozen
    OpenAPI until rswag request specs and generated YAML land. The billing partner slice is
    **implemented** in `web/` (historical baseline per
@@ -127,6 +128,8 @@ Current numbering and maturity follow [`product/domain-roadmap.md`](product/doma
 7. Billing — PRD **validated**; fintech-first modeling/API baseline **implemented**.
 8. Documents & digital archive — PRD and modeling **validated**; API **draft** (cross-domain `school_year_id` patched in 4C.1).
 9. Platform & admin — PRD and **009 Wave 1** modeling **validated**; API **W1 frozen (4C.1)**;
+   platform subscription billing **frozen** 2026-08-19
+   ([`platform-subscription-billing.md`](prds/platform-and-admin/platform-subscription-billing.md));
    W2–W5 deferred to 4C.1b.
 10. **Livro Ata (official minutes-record book), formal minutes & digital
    signature** — generation, signature collection, semantic search (phase 2,

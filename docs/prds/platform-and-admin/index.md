@@ -24,7 +24,8 @@ and permission keys; this folder owns **platform configuration**, **backoffice o
 - Backoffice SPA exists at `/backoffice`; W3 is **partially implemented** — register, wizard, and
   module PATCH API exist; module UI, tenant detail, school-year wizard step, and ops dashboard are
   **E1** in [`backoffice-evolution.md`](backoffice-evolution.md). Platform ops (audit, search,
-  discarded restore) are **E2**; SaaS billing, impersonation, analytics, multi-unit are **E3 P2**.
+  discarded restore) are **E2**; SaaS billing (E3 manual), impersonation, analytics, multi-unit are
+  **E3 P2**. Iugu collection: [`platform-subscription-billing.md`](platform-subscription-billing.md).
 - No institutional calendar or staff roster admin beyond identity invites.
 - Product access / getting-started content scattered in competitor help articles — not modeled
   ([`DIV-integration-001`](../../ref/divergencias.md)).
@@ -118,6 +119,7 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 | BC1 | [`school-year.md`](school-year.md) | School year, academic periods, holidays; one active year per school MVP |
 | BC2 | [`backoffice.md`](backoffice.md) | Tenant register, module flags, provisioning ops in `/backoffice` |
 | BC2b | [`backoffice-evolution.md`](backoffice-evolution.md) | E1–E3 gaps, platform ops tooling, P2 roadmap *(draft)* |
+| BC2c | [`platform-subscription-billing.md`](platform-subscription-billing.md) | DLA→school SaaS collection (Iugu + school `/assinatura`) — **follow-on epic**, not communication MVP |
 | BC3 | [`calendar.md`](calendar.md) | Institutional events + staff personal events |
 | BC4 | [`staff-users.md`](staff-users.md) | Staff roster, menu visibility; defers auth/permissions to identity |
 | BC5 | [`onboarding.md`](onboarding.md) | Product access, getting-started, app download — **not** tenant provisioning |
@@ -129,10 +131,10 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 | Multi-unit school groups | P2 | [`school-year.md`](school-year.md) — one `school_id` per campus |
 | Help center taxonomy (persona quick-starts) | P2 | [`DIV-integration-003`](../../ref/divergencias.md) |
 | Cross-module analytics dashboards | P2 | vision §6 |
-| Platform SaaS billing / subscription engine | P2 | [`open-questions.md`](../../open-questions.md) — commercial model open |
 | Real-time (Solid Cable) | P2 | [`mvp-scope.md`](../../product/mvp-scope.md) |
 | Transport module | P2 | taxonomy capture only |
 | `integrations.*` PRD folder | Post–Phase 3 | Taxonomy references only at Phase 3 gate |
+| Per-student / hybrid SaaS GTM | post-E3 | Flat plan per school is specified; see [`platform-subscription-billing.md`](platform-subscription-billing.md) |
 
 ---
 
@@ -284,10 +286,11 @@ Follow-on delivery for BC2 gaps and P2 platform ops — detail in
 |------|-------|----------------|--------|
 | **E1** | Complete BC2/W3 onboarding | module-flags-ui, school-year-provisioning, tenant-detail, operational-dashboard | draft PRD |
 | **E2** | Platform ops visibility | audit-viewer, advanced-search, discarded-schools; bulk invite resend + operator permissions (PRD UCs) | draft PRD |
-| **E3** | P2 commercial & scale | platform-billing, impersonation, analytics, multi-unit, help-taxonomy | draft PRD — blocked on open questions |
+| **E3** | P2 commercial & scale | platform-billing (manual shipped), impersonation, analytics, multi-unit, help-taxonomy | E3 P2 implemented (manual billing) |
+| **Collection** | Iugu + school checkout | [`platform-subscription-billing.md`](platform-subscription-billing.md) | PRD + API **frozen**; `web/` pending |
 
 E1 may parallelize after school detail blueprint is agreed. E2 depends on E1 tenant detail. E3
-requires modeling and closed decisions on billing model and impersonation policy.
+manual billing and impersonation policy are closed. Iugu collection is the follow-on epic.
 
 ---
 
@@ -299,9 +302,9 @@ requires modeling and closed decisions on billing model and impersonation policy
 | D2 | Platform owns year/period **boundaries**; academic owns **closure** | Documented — cross-link [`academic/periods.md`](../academic/periods.md) |
 | D3 | Multi-unit groups deferred — one tenant per campus | Documented — P2 `manage_multi_unit` |
 | D4 | `identity.provision_school` vs `platform.self_serve_onboarding` split | Documented — [`onboarding.md`](onboarding.md) |
-| D5 | Backoffice MVP: school register + module ops; platform billing deferred | Documented — [`open-questions.md`](../../open-questions.md) |
+| D5 | Backoffice MVP: school register + module ops; platform billing was P2 | E3 manual shipped; Iugu collection in [`platform-subscription-billing.md`](platform-subscription-billing.md) |
 | D6 | Help taxonomy persona model deferred | Documented — [`DIV-integration-003`](../../ref/divergencias.md) P2 |
-| D7 | New schools default to `trimester`; `bimester` and `custom` remain selectable | Decided — [`school-year.md`](school-year.md) BR-SY04 |
+| D8 | DLA→school billing is a sibling gateway port (Iugu first; Manual + Fake; Stripe later) | Decided — [ADR 002](../../adr/002-platform-billing-gateway.md) |
 
 ---
 
@@ -326,8 +329,9 @@ Domain-specific bullets:
 
 See [`docs/open-questions.md`](../../open-questions.md):
 
-- [ ] Backoffice in MVP: only school registration, or also platform billing? (partially decided — register + modules; SaaS billing P2)
-- [ ] Platform billing model (per student, per school, per plan)?
+- [x] Backoffice in MVP: school registration + modules; SaaS billing is P2 (E3 manual shipped).
+- [x] Platform billing model for this slice — flat plan per school, month/year, Iugu collection.
+      Per-student / hybrid GTM remains open ([`open-questions.md`](../../open-questions.md)).
 - [x] Default period template — `trimester` for new schools; `bimester` and `custom` remain selectable.
 - [ ] Calendar event sync to communication announcements — manual vs automatic
 - [x] Partner workshop deferred — documentation-phase sign-off Aug 2026 ([`open-questions.md`](../../open-questions.md)).
