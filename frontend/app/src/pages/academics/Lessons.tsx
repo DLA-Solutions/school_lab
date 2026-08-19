@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -33,6 +33,7 @@ import {
   listTeachingAssignments,
   removeTeachingAssignment,
 } from 'services/academicsApi';
+import paths from 'routes/paths';
 import { SchoolClass, Subject, TeachingAssignment } from 'types/academics';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
 
@@ -53,6 +54,7 @@ type LessonsTab = 'lessons' | 'classes' | 'subjects';
  */
 const Lessons = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
 
@@ -188,13 +190,32 @@ const Lessons = () => {
       {
         field: 'actions',
         headerName: t('common.actions'),
-        width: 90,
+        width: 130,
         sortable: false,
         filterable: false,
         align: 'right',
         headerAlign: 'right',
         renderCell: ({ row }: GridRenderCellParams<TeachingAssignment>) => (
-          <Stack direction="row" justifyContent="flex-end" height={1}>
+          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+            {/* A lesson runs the whole year, so it has no term of its own — the term is a
+                property of the mark. This is the way through to it: the mark sheet for this
+                class and subject, one column per term of the class's year. */}
+            <Tooltip title={t('lessons.enterGrades')}>
+              <IconButton
+                size="small"
+                aria-label={t('lessons.enterGradesAria', {
+                  subject: row.subject_name,
+                  schoolClass: row.school_class.label,
+                })}
+                onClick={() =>
+                  navigate(
+                    `${paths.grades}?school_class_id=${row.school_class_id}&subject_id=${row.subject_id}`,
+                  )
+                }
+              >
+                <IconifyIcon icon="mingcute:list-check-line" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title={t('common.delete')}>
               <IconButton
                 size="small"
@@ -211,7 +232,7 @@ const Lessons = () => {
         ),
       },
     ],
-    [t],
+    [navigate, t],
   );
 
   if (!school) {

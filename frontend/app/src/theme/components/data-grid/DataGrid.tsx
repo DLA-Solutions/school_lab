@@ -18,9 +18,15 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
             background: palette.background.default,
           },
         },
+        // Hidden at rest so it does not draw a line across the table, revealed on hover or
+        // focus: pinned to `visibility: hidden` there was no way to reach the rows below the cut.
         '& .MuiDataGrid-scrollbar--vertical': {
           visibility: 'hidden',
         },
+        '&:hover .MuiDataGrid-scrollbar--vertical, &:focus-within .MuiDataGrid-scrollbar--vertical':
+          {
+            visibility: 'visible',
+          },
         '& .MuiDataGrid-filler': {
           height: '0 !important',
         },
@@ -29,8 +35,10 @@ const DataGrid: Components<Omit<Theme, 'components'>>['MuiDataGrid'] = {
         },
       };
     },
+    // A page holds 25 rows in a fixed-height box, so the body has to scroll — with
+    // `overflowY: hidden` the rows past the cut were unreachable, the mouse wheel included.
     virtualScroller: {
-      overflowY: 'hidden',
+      overflowY: 'auto',
     },
     columnHeaderCheckbox: {
       width: '70px !important',

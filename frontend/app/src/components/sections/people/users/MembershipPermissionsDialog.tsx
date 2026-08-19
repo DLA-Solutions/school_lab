@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -26,7 +25,7 @@ import {
   buildOverridesPayload,
 } from 'utils/permissions/buildOverridesPayload';
 import { deriveOverrides } from 'utils/permissions/deriveOverrides';
-import { permissionDomainLabel, permissionLabel } from 'utils/permissions/permissionLabels';
+import { permissionLabel } from 'utils/permissions/permissionLabels';
 
 export interface MembershipPermissionsDialogProps {
   open: boolean;
@@ -134,7 +133,8 @@ const MembershipPermissionsDialog = ({
     };
   }, [open, schoolId, membership]);
 
-  const groupedDefinitions = useMemo(() => {
+  // Sem títulos de área, a ordem é o que mantém as permissões de uma mesma área juntas.
+  const orderedDefinitions = useMemo(() => {
     const groups = new Map<string, PermissionDefinition[]>();
 
     definitions.forEach((definition) => {
@@ -143,7 +143,7 @@ const MembershipPermissionsDialog = ({
       groups.set(definition.domain, current);
     });
 
-    return [...groups.entries()];
+    return [...groups.values()].flat();
   }, [definitions]);
 
   const handleToggle = (key: string, checked: boolean) => {
@@ -195,8 +195,10 @@ const MembershipPermissionsDialog = ({
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Permissões da conta</DialogTitle>
       <DialogContent>
-        <Stack spacing={2} pt={0.5}>
-          <Stack spacing={0.5}>
+        {/* O tema empilha Stack na horizontal por padrão; aqui cada domínio é uma seção e cada
+            permissão uma linha, então a direção é dita a cada um deles. */}
+        <Stack direction="column" spacing={2} pt={0.5}>
+          <Stack direction="column" spacing={0.5}>
             <Typography variant="body2" color="text.secondary">
               {membership.email}
             </Typography>
@@ -213,56 +215,46 @@ const MembershipPermissionsDialog = ({
           {error && <ErrorBanner message={error} />}
 
           {loading ? (
-            <Stack alignItems="center" py={4}>
+            <Stack direction="column" alignItems="center" py={4}>
               <CircularProgress size={28} />
             </Stack>
           ) : (
-            groupedDefinitions.map(([domain, entries]) => (
-              <Box key={domain}>
-                <Typography variant="subtitle2" color="text.secondary" pb={1}>
-                  {permissionDomainLabel(domain)}
-                </Typography>
-                <Stack spacing={0.5} divider={<Divider flexItem />}>
-                  {entries.map((definition) => {
-                    const key = definition.key;
-                    const disabled =
-                      key === 'teach' && isTeachGrantDisabled(membership, templateKeys);
-                    const effectiveSource = membership.permission_sources[key];
-                    const badge = sourceBadge(effectiveSource);
+            /* Uma lista só, sem título de domínio: o título dizia a área e o nome da permissão
+               dizia a área de novo, uma linha abaixo da outra. O nome basta — as permissões de
+               uma mesma área continuam vizinhas porque a ordem é a mesma. */
+            <Stack direction="column" spacing={0.5} divider={<Divider flexItem />}>
+              {orderedDefinitions.map((definition) => {
+                const key = definition.key;
+                const disabled = key === 'teach' && isTeachGrantDisabled(membership, templateKeys);
+                const effectiveSource = membership.permission_sources[key];
+                const badge = sourceBadge(effectiveSource);
 
-                    return (
-                      <Stack key={key} spacing={0.5}>
-                        <FormControlLabel
-                          sx={{ justifyContent: 'space-between', ml: 0, mr: 0 }}
-                          labelPlacement="start"
-                          control={
-                            <Switch
-                              checked={isChecked(key)}
-                              disabled={disabled}
-                              onChange={(event) => handleToggle(key, event.target.checked)}
-                              inputProps={{ 'aria-label': permissionLabel(key) }}
-                            />
-                          }
-                          label={
-                            <Typography variant="body2">{permissionLabel(key)}</Typography>
-                          }
+                return (
+                  <Stack key={key} direction="column" spacing={0.5}>
+                    <FormControlLabel
+                      sx={{ justifyContent: 'space-between', ml: 0, mr: 0 }}
+                      labelPlacement="start"
+                      control={
+                        <Switch
+                          checked={isChecked(key)}
+                          disabled={disabled}
+                          onChange={(event) => handleToggle(key, event.target.checked)}
                         />
-                        {(badge || formState[key] === 'deny') && (
-                          <Stack direction="row" spacing={1} pl={0.5}>
-                            {badge && (
-                              <Chip size="small" label={badge} variant="outlined" />
-                            )}
-                            {formState[key] === 'deny' && (
-                              <Chip size="small" label="Negado" color="warning" variant="outlined" />
-                            )}
-                          </Stack>
+                      }
+                      label={<Typography variant="body2">{permissionLabel(key)}</Typography>}
+                    />
+                    {(badge || formState[key] === 'deny') && (
+                      <Stack direction="row" spacing={1} pl={0.5}>
+                        {badge && <Chip size="small" label={badge} variant="outlined" />}
+                        {formState[key] === 'deny' && (
+                          <Chip size="small" label="Negado" color="warning" variant="outlined" />
                         )}
                       </Stack>
-                    );
-                  })}
-                </Stack>
-              </Box>
-            ))
+                    )}
+                  </Stack>
+                );
+              })}
+            </Stack>
           )}
         </Stack>
       </DialogContent>

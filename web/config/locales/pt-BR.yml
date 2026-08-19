@@ -76,6 +76,7 @@ pt-BR:
       guardian_inactive: "Este responsável está inativo. Reative-o antes de enviar o acesso."
       school_class_has_students: "Esta turma ainda tem estudantes matriculados. Mova-os para outra turma antes de excluí-la."
       not_your_lesson: "Você não leciona esta matéria nesta turma."
+      period_outside_class_year: "Este bimestre não pertence ao ano letivo da turma."
       not_your_student: "Você não leciona para a turma deste estudante."
       report_unsupported_characters: "O relatório traz caracteres que a fonte do PDF não desenha. Verifique os nomes cadastrados."
       invalid_reset_token: "Este link expirou ou já foi usado. Peça um novo."

@@ -19,6 +19,15 @@ class SchoolYear < ApplicationRecord
   validates :status, inclusion: { in: STATUSES }
   validate :ends_on_after_starts_on
 
+  # Which calendar year the term belongs to comes from `starts_on`, not from `name`: the name is
+  # free text ("2026", "Ano Letivo 2026"), so matching it against a class's `year` as a string
+  # breaks for any school that writes the name differently.
+  # Table-qualified because this is merged into queries that join `academic_periods`, which has a
+  # `starts_on` of its own.
+  scope :for_calendar_year, lambda { |year|
+    where("EXTRACT(YEAR FROM school_years.starts_on) = ?", year.to_i)
+  }
+
   scope :draft, -> { kept.where(status: "draft") }
   scope :active_status, -> { kept.where(status: "active") }
   scope :archived, -> { kept.where(status: "archived") }

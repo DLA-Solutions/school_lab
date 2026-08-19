@@ -192,6 +192,12 @@ describe('Guardians page access', () => {
       screen.getByRole('button', { name: /enviar acesso ao sistema para maria silva/i }),
     );
 
+    // The click only opens the confirmation; nothing is sent until it is confirmed.
+    const dialog = await screen.findByRole('dialog');
+    expect(called).toBe(0);
+
+    await user.click(within(dialog).getByRole('button', { name: /confirmar/i }));
+
     await waitFor(() => expect(called).toBe(1));
     expect(await screen.findByText(/enviamos o link de acesso/i)).toBeInTheDocument();
   });
