@@ -240,7 +240,7 @@ const ptBR = {
   'backoffice.subscriptions.interval.year': 'Anual',
   'backoffice.subscriptions.provider': 'Provedor',
   'backoffice.subscriptions.provider.manual': 'Manual',
-  'backoffice.subscriptions.provider.iugu': 'Iugu',
+  'backoffice.subscriptions.provider.asaas': 'Asaas',
   'backoffice.subscriptions.provider.fake': 'Fake',
   'backoffice.subscriptions.trial': 'Trial de 14 dias',
   'backoffice.subscriptions.filterSchoolId': 'ID da escola',
@@ -253,7 +253,7 @@ const ptBR = {
   'backoffice.subscriptions.viewInvoices': 'Ver faturas',
   'backoffice.subscriptions.checkoutTitle': 'Cobrança gerada',
   'backoffice.subscriptions.checkoutHelp':
-    'Abra a fatura hospedada ou envie o link para a escola. Não há portal do cliente na Iugu.',
+    'Abra a fatura hospedada ou envie o link para a escola. Não há portal do cliente no Asaas.',
   'backoffice.subscriptions.checkoutUrl': 'Link da fatura',
   'backoffice.subscriptions.openCheckout': 'Abrir fatura',
   'backoffice.subscriptions.checkoutError': 'Não foi possível gerar a cobrança.',

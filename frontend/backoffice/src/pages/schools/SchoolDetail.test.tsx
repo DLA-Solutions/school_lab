@@ -158,7 +158,7 @@ describe('SchoolDetail', () => {
               amount_cents: 29_900,
               due_at: '2026-08-10T00:00:00Z',
               paid_at: null,
-              hosted_invoice_url: 'https://faturas.iugu.com/example',
+              hosted_invoice_url: 'https://www.asaas.com/i/example',
               payment_method: null,
               platform_subscription_id: 1,
             },
@@ -186,14 +186,14 @@ describe('SchoolDetail', () => {
     expect(await screen.findByText(/assinatura inadimplente/i)).toBeInTheDocument();
     expect(await screen.findByRole('link', { name: /abrir fatura/i })).toHaveAttribute(
       'href',
-      'https://faturas.iugu.com/example',
+      'https://www.asaas.com/i/example',
     );
     expect(screen.getAllByText(/em atraso/i).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: /enviar cobrança/i }));
     await waitFor(() => {
       expect(openSpy).toHaveBeenCalledWith(
-        'https://faturas.iugu.com/example',
+        'https://www.asaas.com/i/example',
         '_blank',
         'noopener,noreferrer',
       );

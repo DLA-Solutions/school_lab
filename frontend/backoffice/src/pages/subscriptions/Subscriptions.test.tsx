@@ -47,7 +47,7 @@ describe('Subscriptions page', () => {
     expect(screen.getByText(/mensal/i)).toBeInTheDocument();
   });
 
-  it('keeps manual status editing and hides it for Iugu rows', async () => {
+  it('keeps manual status editing and hides it for Asaas rows', async () => {
     renderPage();
 
     expect(await screen.findByText('Escola Beta')).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe('Subscriptions page', () => {
     expect(sendButtons.length).toBeGreaterThan(0);
   });
 
-  it('opens hosted checkout when sending an Iugu invoice', async () => {
+  it('opens hosted checkout when sending an Asaas invoice', async () => {
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     renderPage();
 
@@ -65,11 +65,11 @@ describe('Subscriptions page', () => {
 
     expect(await screen.findByRole('dialog', { name: /cobrança gerada/i })).toBeInTheDocument();
     expect(openSpy).toHaveBeenCalledWith(
-      'https://faturas.iugu.com/example',
+      'https://www.asaas.com/i/example',
       '_blank',
       'noopener,noreferrer',
     );
-    expect(screen.getByDisplayValue('https://faturas.iugu.com/example')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('https://www.asaas.com/i/example')).toBeInTheDocument();
     openSpy.mockRestore();
   });
 
@@ -82,7 +82,7 @@ describe('Subscriptions page', () => {
     expect(within(dialog).getByText(/em atraso/i)).toBeInTheDocument();
     expect(within(dialog).getByRole('link', { name: /abrir fatura/i })).toHaveAttribute(
       'href',
-      'https://faturas.iugu.com/example',
+      'https://www.asaas.com/i/example',
     );
     expect(within(dialog).queryByText(/mensalidade/i)).not.toBeInTheDocument();
   });
