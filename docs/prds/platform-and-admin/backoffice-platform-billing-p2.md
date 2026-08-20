@@ -6,7 +6,7 @@
 > Wave: **E3 P2** (manual CRUD shipped); gateway collection is a follow-on epic, **not blocked**
 
 E3 shipped operator CRUD against a seeded plan catalog and `platform_subscriptions` with
-**manual** collection. Integrated collection (Iugu, school-director checkout) is specified in
+**manual** collection. Integrated collection (Asaas, school-director checkout) is specified in
 [`platform-subscription-billing.md`](platform-subscription-billing.md) and
 [ADR 002](../../adr/002-platform-billing-gateway.md). This slice remains the E3 operator
 bar; it is **no longer blocked** on the commercial model.
@@ -17,7 +17,7 @@ bar; it is **no longer blocked** on the commercial model.
 |-------|--------|
 | Actor | Backoffice user with `manage_platform_billing` |
 | Trigger and precondition | Seeded `platform_plans`; `platform_subscriptions` modeled |
-| Observable outcome | Assign subscription per school; view status (incl. overdue); MRR summary feeds analytics slice. Collection via Iugu is the sibling PRD, not this E3 bar. |
+| Observable outcome | Assign subscription per school; view status (incl. overdue); MRR summary feeds analytics slice. Collection via Asaas is the sibling PRD, not this E3 bar. |
 | Adversarial cases | Guardian portal never shows DLA invoices; school staff **403** on operator collection `/api/v1/platform/subscriptions`; school staff **may** use school-scoped routes in the collection epic |
 | Non-goals | (see section below) |
 
@@ -55,7 +55,7 @@ bar; it is **no longer blocked** on the commercial model.
 ## Harness notes
 
 - **Not blocked.** E3 manual path is in `web/`. Collection epic: modeling (this Phase 0) →
-  rails-implementer (port, Iugu, webhooks, school APIs) → frontend-implementer.
+  rails-implementer (port, Asaas, webhooks, school APIs) → frontend-implementer.
 - **API:** E3 `CRUD /api/v1/platform/subscriptions`, `GET /platform/plans`. Extensions
   (checkout, school-scoped routes, platform billing webhook) are frozen in
   [`platform-and-admin.md`](../../api/v1/platform-and-admin.md) § Platform subscription billing.

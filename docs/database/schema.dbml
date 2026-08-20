@@ -74,10 +74,10 @@ Table platform_plans {
 Table platform_plan_provider_prices {
   id integer [primary key, increment]
   platform_plan_id integer [not null]
-  provider varchar [not null, note: 'iugu | manual | fake']
-  billing_interval varchar [not null, note: 'month | year — Iugu yearly = interval 12 months']
+  provider varchar [not null, note: 'asaas | manual | fake']
+  billing_interval varchar [not null, note: 'month | year — Asaas yearly = interval 12 months']
   external_product_id varchar [note: 'Vendor product id when distinct from price']
-  external_price_id varchar [note: 'Iugu plan identifier (e.g. starter_monthly)']
+  external_price_id varchar [note: 'Asaas plan identifier (e.g. starter_monthly)']
   amount_cents integer [not null, note: 'Full interval amount (yearly is the year total, not monthly)']
   active boolean [not null, default: true]
   created_at timestamp
@@ -94,7 +94,7 @@ Table platform_subscriptions {
   platform_plan_id integer [not null]
   status varchar [not null, default: 'active', note: 'trialing | active | past_due | canceled | incomplete — E3 trial renamed to trialing']
   billing_interval varchar [note: 'month | year']
-  provider varchar [not null, default: 'manual', note: 'iugu | manual | fake — row keeps provider if deploy default changes']
+  provider varchar [not null, default: 'manual', note: 'asaas | manual | fake — row keeps provider if deploy default changes']
   external_customer_id varchar [note: 'Vendor customer id; omit from school SPA JSON']
   external_subscription_id varchar [note: 'Vendor subscription id; omit from school SPA JSON']
   trial_ends_at timestamp [note: 'Optional trial; product default 14 days when offered']
@@ -119,13 +119,13 @@ Table platform_invoices {
   id integer [primary key, increment]
   school_id integer [not null]
   platform_subscription_id integer [not null]
-  provider varchar [not null, note: 'iugu | manual | fake']
+  provider varchar [not null, note: 'asaas | manual | fake']
   external_invoice_id varchar [note: 'Vendor invoice id; omit from school SPA JSON']
   status varchar [not null, default: 'open', note: 'draft | open | paid | void | uncollectible']
   amount_cents integer [not null]
   due_at timestamp
   paid_at timestamp
-  hosted_invoice_url varchar [note: 'Iugu secure_url — pay_url for school SPA']
+  hosted_invoice_url varchar [note: 'Asaas secure_url — pay_url for school SPA']
   payment_method varchar [note: 'credit_card | bank_slip | pix']
   created_at timestamp
   updated_at timestamp
@@ -140,8 +140,8 @@ Table platform_invoices {
 
 Table platform_billing_settings {
   id integer [primary key, increment]
-  active_provider varchar [not null, default: 'manual', note: 'iugu | manual | fake — deploy default; does not rewrite existing subscription.provider']
-  webhook_endpoint_token varchar [not null, note: 'URL token for POST /webhooks/platform_billing/:provider/:token — not Iugu API credentials']
+  active_provider varchar [not null, default: 'manual', note: 'asaas | manual | fake — deploy default; does not rewrite existing subscription.provider']
+  webhook_endpoint_token varchar [not null, note: 'URL token for POST /webhooks/platform_billing/:provider/:token — not Asaas API credentials']
   created_at timestamp
   updated_at timestamp
 
@@ -149,7 +149,7 @@ Table platform_billing_settings {
     webhook_endpoint_token [unique]
   }
 
-  Note: 'Singleton application row (exactly one). Iugu API token and base URL live in ENV only (IUGU_API_TOKEN, IUGU_API_BASE_URL).'
+  Note: 'Singleton application row (exactly one). Asaas API token and base URL live in ENV only (ASAAS_API_TOKEN, ASAAS_API_BASE_URL).'
 }
 
 Table platform_impersonation_sessions {
@@ -834,7 +834,7 @@ Table payments {
 Table webhook_events {
   id integer [primary key, increment]
   school_id integer [note: 'Tenant that received the notification; nullable for platform billing until external_subscription_id is matched']
-  provider varchar [not null, note: 'cora | fake | iugu']
+  provider varchar [not null, note: 'cora | fake | asaas']
   provider_event_id varchar [not null, note: 'Idempotency key from provider — unique per provider']
   event_type varchar
   provider_resource_id varchar [note: 'Normalized invoice/resource id from the notification']

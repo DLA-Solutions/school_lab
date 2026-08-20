@@ -158,11 +158,11 @@ This increment is **DLA → school** recurring collection. It does not reuse
 | Table | Role |
 |-------|------|
 | `platform_plans` | Product catalog (`key`: `starter` \| `pro` \| `enterprise`). `monthly_amount_cents` remains until Phase 6 dual-write retirement. |
-| `platform_plan_provider_prices` | Maps `(platform_plan_id, provider, billing_interval)` to vendor plan identifiers and `amount_cents`. `billing_interval` ∈ `month \| year`. Unique on that triple. Iugu yearly = vendor `interval: 12`, `interval_type: months`. Seed identifiers (e.g. `starter_monthly`) via ops/rake — not in the request path. |
-| `platform_subscriptions` | One kept row per school. Extended columns: `billing_interval`, `provider` (`iugu` \| `manual` \| `fake`), `external_customer_id`, `external_subscription_id`, `current_period_start`, `cancel_at_period_end`, `canceled_at`, `collection_method` (`automatic` \| `send_invoice` \| `manual`). Status ∈ `trialing \| active \| past_due \| canceled \| incomplete` (E3 `trial` → `trialing`). |
+| `platform_plan_provider_prices` | Maps `(platform_plan_id, provider, billing_interval)` to vendor plan identifiers and `amount_cents`. `billing_interval` ∈ `month \| year`. Unique on that triple. Asaas yearly = vendor `interval: 12`, `interval_type: months`. Seed identifiers (e.g. `starter_monthly`) via ops/rake — not in the request path. |
+| `platform_subscriptions` | One kept row per school. Extended columns: `billing_interval`, `provider` (`asaas` \| `manual` \| `fake`), `external_customer_id`, `external_subscription_id`, `current_period_start`, `cancel_at_period_end`, `canceled_at`, `collection_method` (`automatic` \| `send_invoice` \| `manual`). Status ∈ `trialing \| active \| past_due \| canceled \| incomplete` (E3 `trial` → `trialing`). |
 | `platform_invoices` | DLA invoices to a school. `school_id` + `platform_subscription_id` + `provider` + `external_invoice_id`. Status ∈ `draft \| open \| paid \| void \| uncollectible`. `amount_cents`, `due_at`, `paid_at`, `hosted_invoice_url`, `payment_method` (`credit_card` \| `bank_slip` \| `pix`). Unique `(provider, external_invoice_id)`. |
-| `platform_billing_settings` | **Singleton** deploy config: `active_provider`, `webhook_endpoint_token`. Iugu API credentials stay in ENV (`IUGU_API_TOKEN`, `IUGU_API_BASE_URL`) — never on this row or on `schools`. |
-| `webhook_events` | Reused. `school_id` nullable until reconcile matches `external_subscription_id`. `provider` includes `iugu`. Idempotent `(provider, provider_event_id)`. |
+| `platform_billing_settings` | **Singleton** deploy config: `active_provider`, `webhook_endpoint_token`. Asaas API credentials stay in ENV (`ASAAS_API_TOKEN`, `ASAAS_API_BASE_URL`) — never on this row or on `schools`. |
+| `webhook_events` | Reused. `school_id` nullable until reconcile matches `external_subscription_id`. `provider` includes `asaas`. Idempotent `(provider, provider_event_id)`. |
 
 ```mermaid
 erDiagram
@@ -189,7 +189,7 @@ stateDiagram-v2
   incomplete --> canceled: abandoned checkout
 ```
 
-- `provider: manual` never calls Iugu; status is operator-maintained (`active` / `trialing` /
+- `provider: manual` never calls Asaas; status is operator-maintained (`active` / `trialing` /
   `past_due` / `canceled`).
 - Checkout after `canceled` reuses or discards the kept row (service-owned).
   `409 subscription_exists` if a non-canceled kept row already exists.
@@ -203,18 +203,18 @@ stateDiagram-v2
 - School-scoped `/api/v1/schools/:school_id/platform_subscription*` —
   `manage_school_settings` on that school. Cross-school → `404`. Guardians/teachers → `403`/`404`.
 - School staff on operator collection → `403 backoffice_only`.
-- School JSON omits raw Iugu IDs; backoffice may include `provider` + `external_*_id`.
+- School JSON omits raw Asaas IDs; backoffice may include `provider` + `external_*_id`.
 
 ### LGPD and retention
 
-Iugu receives **school** CNPJ (`schools.cnpj`) and a staff billing email (`users.email` of
+Asaas receives **school** CNPJ (`schools.cnpj`) and a staff billing email (`users.email` of
 the checkout actor or owner/director) — processor. Do not send guardian or student PII.
 Checkout is `422` when CNPJ or email is missing. `platform_invoices.hosted_invoice_url` is not family data but is school-confidential.
 `webhook_events` follows the existing 180-day processed purge; unprocessed rows are retained.
 Retention of platform invoice rows pending legal validation — do not assume indefinite storage.
 
 Credentials: ENV only. `webhook_endpoint_token` is a URL secret (rotate by updating the
-singleton); it is not the Iugu API token.
+singleton); it is not the Asaas API token.
 
 ## Out of scope
 

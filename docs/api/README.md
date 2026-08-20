@@ -191,7 +191,7 @@ POST /webhooks/platform_billing/:provider/:token
 `:token` is `platform_billing_settings.webhook_endpoint_token`. Frozen contract:
 [`v1/platform-and-admin.md`](v1/platform-and-admin.md) § Platform subscription billing.
 Platform authenticity is that URL token plus port `fetch_subscription` / `fetch_invoice`
-against the **DLA Iugu account** (Iugu payloads have a body). Do not apply the Cora
+against the **DLA Asaas account** (Asaas payloads have a body). Do not apply the Cora
 header-only / per-school / mTLS model to this ingress.
 
 **There is no HMAC signature on the Cora ingress, and that is deliberate.** Cora's Direct Integration
