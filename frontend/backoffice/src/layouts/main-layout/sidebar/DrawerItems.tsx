@@ -27,8 +27,8 @@ const DrawerItems = () => {
   return (
     <>
       <Stack
-        pt={5}
-        pb={4}
+        pt={4}
+        pb={2.5}
         px={3.5}
         position={'sticky'}
         top={0}
@@ -37,7 +37,7 @@ const DrawerItems = () => {
         justifyContent="flex-start"
         zIndex="appBar"
         width={1}
-        spacing={1}
+        spacing={0.75}
       >
         <ButtonBase
           component={RouterLink}
@@ -62,6 +62,7 @@ const DrawerItems = () => {
           variant="platform"
           label={t('nav.backoffice')}
           tooltip={t('shell.backofficeContextTooltip')}
+          compact
         />
       </Stack>
 
