@@ -80,7 +80,7 @@ module Gateways
           current_period_start: now,
           current_period_end: period_end_for(request.catalog_ref.billing_interval, now),
           trial_ends_at: request.trial ? now + request.trial_days.days : nil,
-          latest_invoice_url: "https://iugu.test/invoices/#{sub_id}"
+          latest_invoice_url: "https://asaas.test/invoices/#{sub_id}"
         )
         @subscriptions[sub_id] = remote
         persist_invoice_for(remote, request.catalog_ref)
@@ -207,7 +207,7 @@ module Gateways
           status: "open",
           amount_cents: catalog_ref.amount_cents.to_i,
           due_at: 5.days.from_now,
-          hosted_invoice_url: "https://iugu.test/invoices/#{invoice_id}"
+          hosted_invoice_url: "https://asaas.test/invoices/#{invoice_id}"
         )
         @invoices[invoice_id] = invoice
         @subscriptions[remote.external_subscription_id] = ValueObjects::RemoteSubscription.new(

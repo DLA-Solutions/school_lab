@@ -6,7 +6,7 @@ module Gateways
       ADAPTERS = {
         "manual" => Manual,
         "fake" => Fake,
-        "iugu" => Iugu::Adapter
+        "asaas" => Asaas::Adapter
       }.freeze
 
       class UnknownProviderError < Error; end

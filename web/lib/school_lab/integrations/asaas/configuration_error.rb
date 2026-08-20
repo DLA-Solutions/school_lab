@@ -2,8 +2,8 @@
 
 module SchoolLab
   module Integrations
-    module Iugu
-      class ProviderError < Error; end
+    module Asaas
+      class ConfigurationError < Error; end
     end
   end
 end

@@ -2,11 +2,11 @@
 
 module SchoolLab
   module Integrations
-    module Iugu
+    module Asaas
       class ValidationError < Error
         attr_reader :details
 
-        def initialize(message = "Provider validation error", details: nil)
+        def initialize(message, details: nil)
           super(message)
           @details = details
         end

@@ -1,18 +1,15 @@
 # frozen_string_literal: true
 
-require "base64"
-require "cgi"
 require "json"
 require "uri"
 
 module SchoolLab
   module Integrations
-    module Iugu
+    module Asaas
       class Client
-        def initialize(api_token: nil, api_urls: nil, api_base_url: nil)
+        def initialize(api_token: nil, api_base_url: nil)
           @api_token = api_token.presence || Configuration.api_token
-          base = api_base_url.presence || api_urls&.fetch(:api_base_url, nil) || Configuration.api_base_url
-          @api_urls = { api_base_url: base.to_s.chomp("/") }
+          @api_base_url = (api_base_url.presence || Configuration.api_base_url).to_s.chomp("/")
         end
 
         def get(path, params: nil)
@@ -27,61 +24,49 @@ module SchoolLab
           request(:put, path, body: body)
         end
 
+        def delete(path)
+          request(:delete, path)
+        end
+
         def create_customer(body:)
-          post("/v1/customers", body: body)
+          post("/v3/customers", body: body)
         end
 
         def update_customer(id:, body:)
-          put("/v1/customers/#{id}", body: body)
+          put("/v3/customers/#{id}", body: body)
         end
 
         def create_subscription(body:)
-          post("/v1/subscriptions", body: body)
+          post("/v3/subscriptions", body: body)
         end
 
         def fetch_subscription(id:)
-          get("/v1/subscriptions/#{id}")
+          get("/v3/subscriptions/#{id}")
         end
 
         def update_subscription(id:, body:)
-          put("/v1/subscriptions/#{id}", body: body)
+          put("/v3/subscriptions/#{id}", body: body)
         end
 
-        def change_plan(id:, plan_identifier:)
-          post("/v1/subscriptions/#{id}/change_plan/#{CGI.escape(plan_identifier)}")
+        def delete_subscription(id:)
+          delete("/v3/subscriptions/#{id}")
         end
 
-        def suspend_subscription(id:)
-          post("/v1/subscriptions/#{id}/suspend")
+        def list_subscription_payments(id:, params: {})
+          get("/v3/subscriptions/#{id}/payments", params: params)
         end
 
-        def activate_subscription(id:)
-          post("/v1/subscriptions/#{id}/activate")
+        def fetch_payment(id:)
+          get("/v3/payments/#{id}")
         end
 
-        def expire_subscription(id:)
-          request(:delete, "/v1/subscriptions/#{id}")
-        end
-
-        def fetch_invoice(id:)
-          get("/v1/invoices/#{id}")
-        end
-
-        def list_invoices(params: {})
-          get("/v1/invoices", params: params)
-        end
-
-        def fetch_plan(identifier)
-          get("/v1/plans/#{CGI.escape(identifier.to_s)}")
-        end
-
-        def create_plan(body)
-          post("/v1/plans", body: body)
+        def list_payments(params: {})
+          get("/v3/payments", params: params)
         end
 
         private
 
-        attr_reader :api_token, :api_urls
+        attr_reader :api_token, :api_base_url
 
         def request(method, path, body: nil, params: nil)
           payload = body.present? ? JSON.generate(body) : nil
@@ -95,15 +80,14 @@ module SchoolLab
 
         def connection
           @connection ||= SchoolLab::Http.build_connection(
-            base_url: api_urls.fetch(:api_base_url),
+            base_url: api_base_url,
             open_timeout: Configuration::CONNECT_TIMEOUT,
             read_timeout: Configuration::READ_TIMEOUT
           )
         end
 
         def headers(payload)
-          encoded = Base64.strict_encode64("#{api_token}:")
-          headers = { "Authorization" => "Basic #{encoded}" }
+          headers = { "access_token" => api_token }
           headers["Content-Type"] = "application/json" if payload
           headers
         end
@@ -121,13 +105,13 @@ module SchoolLab
           when 200, 201, 204
             parsed
           when 401, 403
-            raise AuthenticationError, "Iugu authentication failed"
+            raise AuthenticationError, "Asaas authentication failed"
           when 408, 429, 500..599
-            raise TransientError, "Iugu transient HTTP #{response.status}"
+            raise TransientError, "Asaas transient HTTP #{response.status}"
           when 400, 404, 422
-            raise ValidationError.new("Iugu rejected the request", details: parsed)
+            raise ValidationError.new("Asaas rejected the request", details: parsed)
           else
-            raise UnexpectedResponseError, "Unexpected Iugu status #{response.status}"
+            raise UnexpectedResponseError, "Unexpected Asaas status #{response.status}"
           end
         end
 

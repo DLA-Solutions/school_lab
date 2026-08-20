@@ -2,8 +2,8 @@
 
 module SchoolLab
   module Integrations
-    module Iugu
-      class TransientError < Error; end
+    module Asaas
+      class Error < StandardError; end
     end
   end
 end
