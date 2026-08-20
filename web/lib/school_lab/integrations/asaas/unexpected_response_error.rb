@@ -2,7 +2,7 @@
 
 module SchoolLab
   module Integrations
-    module Iugu
+    module Asaas
       class UnexpectedResponseError < Error; end
     end
   end

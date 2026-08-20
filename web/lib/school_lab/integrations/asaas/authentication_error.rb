@@ -2,8 +2,8 @@
 
 module SchoolLab
   module Integrations
-    module Iugu
-      class Error < StandardError; end
+    module Asaas
+      class AuthenticationError < Error; end
     end
   end
 end

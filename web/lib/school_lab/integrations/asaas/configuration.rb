@@ -2,11 +2,11 @@
 
 module SchoolLab
   module Integrations
-    module Iugu
+    module Asaas
       module Configuration
         CONNECT_TIMEOUT = 5
         READ_TIMEOUT = 15
-        DEFAULT_BASE_URL = "https://api.iugu.com"
+        DEFAULT_BASE_URL = "https://api.asaas.com"
 
         module_function
 
@@ -15,12 +15,12 @@ module SchoolLab
         end
 
         def api_base_url
-          (ENV["IUGU_API_BASE_URL"].presence || DEFAULT_BASE_URL).chomp("/")
+          (ENV["ASAAS_API_BASE_URL"].presence || DEFAULT_BASE_URL).chomp("/")
         end
 
         def api_token
-          token = ENV["IUGU_API_TOKEN"]
-          raise ConfigurationError, "IUGU_API_TOKEN is not configured" if token.blank?
+          token = ENV["ASAAS_API_TOKEN"]
+          raise ConfigurationError, "ASAAS_API_TOKEN is not configured" if token.blank?
 
           token
         end

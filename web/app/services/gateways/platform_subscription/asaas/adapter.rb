@@ -2,11 +2,11 @@
 
 module Gateways
   module PlatformSubscription
-    module Iugu
+    module Asaas
       class Adapter
         include Interface
 
-        PROVIDER = "iugu"
+        PROVIDER = "asaas"
 
         def initialize(client: nil)
           @client = client
@@ -46,15 +46,16 @@ module Gateways
             customer_id = request.existing_customer_id.presence
             customer_id = create_billing_account(request.account).external_id if customer_id.blank?
 
-            payload = client.create_subscription(
-              body: RequestPayload.subscription_from(request, customer_id: customer_id)
+            subscription_payload = client.create_subscription(
+              body: RequestPayload.subscription(request, customer_id: customer_id)
             )
-            ResponseParser.checkout_session(payload)
+            payment_payload = latest_subscription_payment(subscription_payload.fetch("id"))
+            ResponseParser.checkout_session(subscription_payload, payment_payload)
           end
         end
 
         def create_billing_portal_session(external_customer_id:)
-          raise NotSupportedError.new("Iugu has no hosted billing portal", error_code: :portal_not_supported)
+          raise NotSupportedError.new("Asaas has no hosted billing portal", error_code: :portal_not_supported)
         end
 
         def create_subscription(request)
@@ -72,28 +73,35 @@ module Gateways
 
         def fetch_subscription(external_subscription_id:)
           with_port_errors do
-            ResponseParser.subscription(client.fetch_subscription(id: external_subscription_id))
+            subscription_payload = client.fetch_subscription(id: external_subscription_id)
+            payment_payload = latest_subscription_payment(external_subscription_id)
+            ResponseParser.subscription(subscription_payload, latest_payment: payment_payload)
           end
         end
 
         def change_plan(external_subscription_id:, catalog_ref:)
           with_port_errors do
-            payload = client.change_plan(
+            payload = client.update_subscription(
               id: external_subscription_id,
-              plan_identifier: catalog_ref.external_price_id
+              body: RequestPayload.subscription_update(catalog_ref)
             )
-            ResponseParser.subscription(payload)
+            payment_payload = latest_subscription_payment(external_subscription_id)
+            ResponseParser.subscription(payload, latest_payment: payment_payload)
           end
         end
 
         def cancel_subscription(external_subscription_id:, at_period_end:)
           with_port_errors do
             payload = if at_period_end
-              client.suspend_subscription(id: external_subscription_id)
+              client.update_subscription(
+                id: external_subscription_id,
+                body: RequestPayload.inactivate_subscription
+              )
             else
-              client.expire_subscription(id: external_subscription_id)
+              client.delete_subscription(id: external_subscription_id)
             end
-            remote = ResponseParser.subscription(payload)
+            payment_payload = latest_subscription_payment(external_subscription_id) unless at_period_end
+            remote = ResponseParser.subscription(payload, latest_payment: payment_payload)
             ValueObjects::RemoteSubscription.new(
               external_subscription_id: remote.external_subscription_id,
               external_customer_id: remote.external_customer_id,
@@ -112,17 +120,16 @@ module Gateways
 
         def fetch_invoice(external_invoice_id:)
           with_port_errors do
-            ResponseParser.invoice(client.fetch_invoice(id: external_invoice_id))
+            ResponseParser.invoice(client.fetch_payment(id: external_invoice_id))
           end
         end
 
         def list_invoices(external_customer_id:, since: nil, limit: 100)
           with_port_errors do
-            params = { customer_id: external_customer_id, limit: limit }
-            params[:created_at_from] = since.iso8601 if since.present?
-            payload = client.list_invoices(params: params)
-            items = payload.is_a?(Hash) ? Array(payload["items"]) : Array(payload)
-            items.map { |row| ResponseParser.invoice(row) }
+            params = { customer: external_customer_id, limit: limit, offset: 0 }
+            params[:dateCreatedGe] = since.strftime("%Y-%m-%d") if since.present?
+            payload = client.list_payments(params: params)
+            ResponseParser.payment_list(payload).map { |row| ResponseParser.invoice(row) }
           end
         end
 
@@ -134,8 +141,8 @@ module Gateways
             boleto: true,
             pix: true,
             trial_periods: true,
-            proration_on_upgrade: true,
-            proration_on_downgrade: true,
+            proration_on_upgrade: false,
+            proration_on_downgrade: false,
             cancel_at_period_end: true,
             immediate_cancel: true,
             plan_change_mid_cycle: true,
@@ -146,12 +153,17 @@ module Gateways
         private
 
         def client
-          @client ||= SchoolLab::Integrations::Iugu::Client.new
+          @client ||= SchoolLab::Integrations::Asaas::Client.new
+        end
+
+        def latest_subscription_payment(subscription_id)
+          payload = client.list_subscription_payments(id: subscription_id, params: { limit: 1 })
+          ResponseParser.payment_list(payload).first
         end
 
         def with_port_errors
           yield
-        rescue SchoolLab::Integrations::Iugu::Error, SchoolLab::Http::ConnectionError => error
+        rescue SchoolLab::Integrations::Asaas::Error, SchoolLab::Http::ConnectionError => error
           ErrorMapper.map(error)
         end
       end

@@ -2,23 +2,23 @@
 
 module Gateways
   module PlatformSubscription
-    module Iugu
+    module Asaas
       module ErrorMapper
         module_function
 
         def map(error)
           case error
-          when SchoolLab::Integrations::Iugu::ConfigurationError
+          when SchoolLab::Integrations::Asaas::ConfigurationError
             raise AuthenticationError, error.message
-          when SchoolLab::Integrations::Iugu::ValidationError
+          when SchoolLab::Integrations::Asaas::ValidationError
             raise ValidationError.new(error.message, details: error.details)
-          when SchoolLab::Integrations::Iugu::AuthenticationError
+          when SchoolLab::Integrations::Asaas::AuthenticationError
             raise AuthenticationError, error.message
-          when SchoolLab::Integrations::Iugu::TransientError, SchoolLab::Http::ConnectionError
+          when SchoolLab::Integrations::Asaas::TransientError, SchoolLab::Http::ConnectionError
             raise TransientError, "Provider connection error"
-          when SchoolLab::Integrations::Iugu::UnexpectedResponseError
+          when SchoolLab::Integrations::Asaas::UnexpectedResponseError
             raise ProviderError, error.message
-          when SchoolLab::Integrations::Iugu::Error
+          when SchoolLab::Integrations::Asaas::Error
             raise ProviderError, error.message
           else
             raise error

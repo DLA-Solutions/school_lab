@@ -2,8 +2,8 @@
 
 module SchoolLab
   module Integrations
-    module Iugu
-      class ConfigurationError < Error; end
+    module Asaas
+      class TransientError < Error; end
     end
   end
 end
