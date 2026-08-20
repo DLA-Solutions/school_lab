@@ -4,7 +4,7 @@ export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled'
 
 export type BillingInterval = 'month' | 'year';
 
-export type SubscriptionProvider = 'iugu' | 'manual' | 'fake';
+export type SubscriptionProvider = 'asaas' | 'manual' | 'fake';
 
 export type CollectionMethod = 'automatic' | 'send_invoice' | 'manual';
 
@@ -115,7 +115,7 @@ export const SUBSCRIPTION_STATUSES: SubscriptionStatus[] = [
 
 export const BILLING_INTERVALS: BillingInterval[] = ['month', 'year'];
 
-export const ASSIGNABLE_PROVIDERS: SubscriptionProvider[] = ['manual', 'iugu'];
+export const ASSIGNABLE_PROVIDERS: SubscriptionProvider[] = ['manual', 'asaas'];
 
 export const amountForPlan = (
   plan: PlatformPlan | undefined,

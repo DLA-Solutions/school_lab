@@ -240,7 +240,7 @@ const enUS: Messages = {
   'backoffice.subscriptions.interval.year': 'Yearly',
   'backoffice.subscriptions.provider': 'Provider',
   'backoffice.subscriptions.provider.manual': 'Manual',
-  'backoffice.subscriptions.provider.iugu': 'Iugu',
+  'backoffice.subscriptions.provider.asaas': 'Asaas',
   'backoffice.subscriptions.provider.fake': 'Fake',
   'backoffice.subscriptions.trial': '14-day trial',
   'backoffice.subscriptions.filterSchoolId': 'School ID',
@@ -253,7 +253,7 @@ const enUS: Messages = {
   'backoffice.subscriptions.viewInvoices': 'View invoices',
   'backoffice.subscriptions.checkoutTitle': 'Invoice created',
   'backoffice.subscriptions.checkoutHelp':
-    'Open the hosted invoice or send the link to the school. Iugu has no customer portal.',
+    'Open the hosted invoice or send the link to the school. Asaas has no customer portal.',
   'backoffice.subscriptions.checkoutUrl': 'Invoice link',
   'backoffice.subscriptions.openCheckout': 'Open invoice',
   'backoffice.subscriptions.checkoutError': 'Could not create the checkout invoice.',
