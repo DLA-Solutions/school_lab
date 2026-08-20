@@ -70,9 +70,46 @@ describe('sidebar ListItem', () => {
       const activeColor = computedColor(labelIn(active.container), 'color');
 
       // Removing the dimming removed the only thing that distinguished the two states, so the
-      // active item is promoted to `text.primary` (or the brand purple on the dashboard root in
-      // dark) rather than sharing `text.secondary` with everything else.
+      // active item is promoted to brand purple in dark (label + icon) or text.primary + purple
+      // icon in light rather than sharing `text.secondary` with everything else.
       expect(activeColor).not.toBe(inactiveColor);
+    });
+
+    it('uses brand purple on the active label in dark for any destination', () => {
+      renderWithTheme(
+        <MemoryRouter>
+          <ListItem
+            id="students"
+            subheader="Estudantes"
+            path="/pessoas/estudantes"
+            icon="mingcute:school-line"
+            active={true}
+          />
+        </MemoryRouter>,
+        { mode: 'dark' },
+      );
+
+      expect(computedColor(label(), 'color')).toBe(paletteColor('primary.main'));
+    });
+
+    it('uses readable brand purple on the active label in light', () => {
+      renderWithTheme(
+        <MemoryRouter>
+          <ListItem
+            id="students"
+            subheader="Estudantes"
+            path="/pessoas/estudantes"
+            icon="mingcute:school-line"
+            active={true}
+          />
+        </MemoryRouter>,
+        { mode: 'light' },
+      );
+
+      expect(computedColor(label(), 'color')).toBe(paletteColor('primary.dark'));
+      expect(
+        contrastRatio(computedColor(label(), 'color'), paletteColor('background.default')),
+      ).toBeGreaterThanOrEqual(AA_TEXT);
     });
   });
 });

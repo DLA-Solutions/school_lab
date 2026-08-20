@@ -8,27 +8,34 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText, { listItemTextClasses } from '@mui/material/ListItemText';
 import IconifyIcon from 'components/base/IconifyIcon';
 
-// The current destination used to be signalled by dimming every *other* one with `opacity: 0.3`.
-// That put the label of every non-current nav item at 1.93:1 in dark and 1.59:1 in light — the
-// worst text result in the accessibility audit, on the control users touch most — and, because
-// opacity composites the whole box, it also dimmed the focus ring on that same control to 1.45:1.
-//
-// State is carried by colour instead. Inactive items keep the themed `text.secondary` at full
-// opacity (9.71:1 dark, 7.18:1 light) and active items are promoted to `text.primary` (18.83:1 /
-// 16.70:1), which is a stronger separation than the dimming ever gave. `aria-current` carries the
-// same state for assistive technology.
-const activeLabel = (theme: Theme, brandAccent: boolean) => {
+// State is carried by colour instead of dimming inactive items. Inactive labels stay at
+// `text.secondary` (9.71:1 dark, 7.18:1 light). Active items use brand purple on the icon in
+// both schemes; labels use `primary.main` in dark (5.05:1) and `primary.dark` in light (AA text
+// on the near-white backdrop). Light cannot use `primary.main` on text (3.56:1 — F9). A left
+// border and stronger selected background in light add emphasis beyond colour alone.
+const activeLabel = (theme: Theme) => {
   const palette = (theme.vars || theme).palette;
 
   return {
     color: palette.text.primary,
-    // The dashboard root is the one item wearing the brand purple. It holds 5.05:1 on the dark
-    // backdrop and stays; on the near-white light backdrop the same purple is 3.56:1, so light
-    // falls back to `text.primary` and keeps the accent on the icon, where the 3:1 threshold for
-    // graphical objects applies instead.
-    ...(brandAccent ? theme.applyStyles('dark', { color: palette.primary.main }) : {}),
+    fontWeight: 600,
+    ...theme.applyStyles('dark', { color: palette.primary.main }),
+    ...theme.applyStyles('light', { color: palette.primary.dark }),
   };
 };
+
+const activeButtonSx = (theme: Theme) => ({
+  borderLeft: '3px solid',
+  borderColor: (theme.vars || theme).palette.primary.main,
+  bgcolor: 'surface.alt',
+  '&.Mui-selected': { bgcolor: 'surface.alt' },
+  '&.Mui-selected:hover': { bgcolor: 'surface.alt' },
+  ...theme.applyStyles('light', {
+    bgcolor: 'action.selected',
+    '&.Mui-selected': { bgcolor: 'action.selected' },
+    '&.Mui-selected:hover': { bgcolor: 'action.selected' },
+  }),
+});
 
 interface SidebarListItemProps extends MenuItem {
   active?: boolean;
@@ -37,38 +44,27 @@ interface SidebarListItemProps extends MenuItem {
 const ListItem = ({ subheader, icon, path, active = false }: SidebarListItemProps) => {
   const { t } = useTranslation();
 
-  const brandAccent = active && path === '/';
-
   return (
     <ListItemButton
       component={Link}
       href={path}
       selected={active}
       aria-current={active ? 'page' : undefined}
-      sx={{
-        ...(active
-          ? {
-              bgcolor: 'surface.alt',
-              '&.Mui-selected': { bgcolor: 'surface.alt' },
-              '&.Mui-selected:hover': { bgcolor: 'surface.alt' },
+      sx={(theme) =>
+        active
+          ? activeButtonSx(theme)
+          : {
+              borderLeft: '3px solid transparent',
             }
-          : {}),
-      }}
+      }
     >
-      <ListItemIcon>
-        {icon && (
-          <IconifyIcon
-            icon={icon}
-            sx={{
-              color: brandAccent ? 'primary.main' : active ? 'text.primary' : null,
-            }}
-          />
-        )}
+      <ListItemIcon sx={{ color: active ? 'primary.main' : undefined }}>
+        {icon && <IconifyIcon icon={icon} />}
       </ListItemIcon>
       <ListItemText
         primary={t(subheader as MessageKey)}
         sx={(theme) => ({
-          [`& .${listItemTextClasses.primary}`]: active ? activeLabel(theme, brandAccent) : {},
+          [`& .${listItemTextClasses.primary}`]: active ? activeLabel(theme) : {},
         })}
       />
     </ListItemButton>
