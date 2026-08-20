@@ -407,7 +407,7 @@ Module PATCH (implemented):
 E3 P2 routes (`/platform/subscriptions`, `/platform/impersonations`, `/platform/analytics/overview`,
 `/platform/school_groups`, help taxonomy) are **implemented** for the E3 manual bar per
 [`open-questions.md`](../../open-questions.md) § Platform & admin. **Checkout, school-scoped
-subscription, invoices, and Iugu webhook** are specified in
+subscription, invoices, and Asaas webhook** are specified in
 [Platform subscription billing](#platform-subscription-billing-frozen--implementation-contract)
 below — **frozen** as the implementation contract (2026-08-19). W1 freeze above is unchanged.
 
@@ -427,8 +427,8 @@ Base: `/api/v1/platform`
 | `DELETE` | `/school_groups/:id/schools/:school_id` | `manage_multi_unit` | Unassign school from group |
 | `GET` | `/plans` | `manage_platform_billing` | List SaaS plans (`starter`, `pro`, `enterprise`); see frozen billing section for intervals |
 | `GET` | `/subscriptions` | `manage_platform_billing` | Paginated subscriptions — filters `status`, `school_id` |
-| `POST` | `/subscriptions` | `manage_platform_billing` | Assign plan to school — `409 subscription_exists`; body may include `provider: manual \| iugu` |
-| `PATCH` | `/subscriptions/:id` | `manage_platform_billing` | Manual/local fields only (`status`, `trial_ends_at`). Iugu plan/interval change uses `POST .../change_plan` — PATCH of those fields on Iugu rows → `409 invalid_state_transition` |
+| `POST` | `/subscriptions` | `manage_platform_billing` | Assign plan to school — `409 subscription_exists`; body may include `provider: manual \| asaas` |
+| `PATCH` | `/subscriptions/:id` | `manage_platform_billing` | Manual/local fields only (`status`, `trial_ends_at`). Asaas plan/interval change uses `POST .../change_plan` — PATCH of those fields on Asaas rows → `409 invalid_state_transition` |
 | `GET` | `/subscriptions/:id` | `manage_platform_billing` | Show subscription with plan + school summary |
 | `GET` | `/analytics/overview` | `view_analytics_dashboard` or `manage_backoffice_ops` | Aggregate KPIs — optional `date_from`, `date_to` |
 | `POST` | `/impersonations` | `manage_backoffice_ops` | Start impersonation — returns 15min scoped JWT |
@@ -498,7 +498,7 @@ Permission: `manage_platform_billing`. School JWTs → `403 backoffice_only`.
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/plans` | Catalog with intervals. Each plan includes `intervals[]` (`billing_interval`, `amount_cents`, optional `provider`). Keep `monthly_amount_cents` during dual-write; clients should prefer `amount_cents` for the selected interval. School JWT → `403 backoffice_only`; school SPA uses `GET /schools/:school_id/platform_plans`. |
-| `POST` | `/subscriptions` | Assign plan. Body: `school_id`, `platform_plan_id` or `plan_key`, `billing_interval` (`month` \| `year`), `provider` (`manual` \| `iugu`). Optional `trial` (boolean; 14 days when true). `provider: manual` skips collector. |
+| `POST` | `/subscriptions` | Assign plan. Body: `school_id`, `platform_plan_id` or `plan_key`, `billing_interval` (`month` \| `year`), `provider` (`manual` \| `asaas`). Optional `trial` (boolean; 14 days when true). `provider: manual` skips collector. |
 | `POST` | `/subscriptions/:id/checkout` | Ensure vendor customer + subscription; return hosted invoice URL. |
 | `GET` | `/subscriptions/:id/invoices` | Paginated platform invoices for that subscription. |
 | `POST` | `/subscriptions/:id/change_plan` | Optional operator path — same semantics as school `change_plan`. |
@@ -506,12 +506,12 @@ Permission: `manage_platform_billing`. School JWTs → `403 backoffice_only`.
 
 Existing `GET /subscriptions` and `GET /subscriptions/:id` remain. `PATCH /subscriptions/:id`
 updates **manual/local** fields only (`status`, `trial_ends_at` for `provider: manual`).
-Changing `platform_plan_id` or `billing_interval` on an Iugu row via PATCH →
+Changing `platform_plan_id` or `billing_interval` on an Asaas row via PATCH →
 `409 invalid_state_transition`; use `POST .../change_plan`. Show/list may include
 `provider`, `billing_interval`, `external_customer_id`, `external_subscription_id`,
 `current_period_start`, `cancel_at_period_end`, `canceled_at`, `collection_method` for operators.
 
-Iugu checkout requires `schools.cnpj` and a billing email (`users.email` of the director, or
+Asaas checkout requires `schools.cnpj` and a billing email (`users.email` of the director, or
 owner/director membership email for operator checkout) — `422 validation_error` if missing.
 
 #### POST `/subscriptions/:id/checkout` — request
@@ -527,24 +527,24 @@ owner/director membership email for operator checkout) — `422 validation_error
 ```json
 {
   "data": {
-    "checkout_url": "https://faturas.iugu.com/example",
+    "checkout_url": "https://faturas.asaas.com/example",
     "billing_portal_url": null,
     "subscription_id": 1
   }
 }
 ```
 
-`billing_portal_url` is always `null` while Iugu `hosted_billing_portal` is false.
+`billing_portal_url` is always `null` while Asaas `hosted_billing_portal` is false.
 Requesting a portal session returns `501 portal_not_supported`.
 
 ### School-scoped — `/api/v1/schools/:school_id`
 
 Permission: `manage_school_settings`. Guardian / teacher / secretary without that key → `403`.
-Wrong `school_id` → `404` (no existence leak). JSON **omits** raw Iugu IDs.
+Wrong `school_id` → `404` (no existence leak). JSON **omits** raw Asaas IDs.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/platform_plans` | School-scoped catalog for checkout. Each plan: `key`, `name`, `intervals[]` (`billing_interval` `month` \| `year`, `amount_cents`). No Iugu/external IDs. |
+| `GET` | `/platform_plans` | School-scoped catalog for checkout. Each plan: `key`, `name`, `intervals[]` (`billing_interval` `month` \| `year`, `amount_cents`). No Asaas/external IDs. |
 | `GET` | `/platform_subscription` | Current kept subscription + plan summary; `billing_portal_url: null`; open invoice `pay_url` when present |
 | `POST` | `/platform_subscription/checkout` | UC-PSB01 — body `plan_key`, `billing_interval`, optional `trial` |
 | `POST` | `/platform_subscription/change_plan` | UC-PSB03 — body `plan_key`, `billing_interval` |
@@ -568,7 +568,7 @@ Wrong `school_id` → `404` (no existence leak). JSON **omits** raw Iugu IDs.
 }
 ```
 
-JSON does **not** include Iugu or other external IDs. Guardian / teacher / secretary without
+JSON does **not** include Asaas or other external IDs. Guardian / teacher / secretary without
 `manage_school_settings` → `403`. Cross-school → `404`. School JWT on
 `GET /api/v1/platform/plans` remains `403 backoffice_only`.
 
@@ -594,7 +594,7 @@ JSON does **not** include Iugu or other external IDs. Guardian / teacher / secre
       "status": "open",
       "amount_cents": 19900,
       "due_at": "2026-08-10T00:00:00Z",
-      "hosted_invoice_url": "https://faturas.iugu.com/example",
+      "hosted_invoice_url": "https://faturas.asaas.com/example",
       "payment_method": null
     }
   }
@@ -620,7 +620,7 @@ may access.
 ```json
 {
   "data": {
-    "checkout_url": "https://faturas.iugu.com/example",
+    "checkout_url": "https://faturas.asaas.com/example",
     "billing_portal_url": null
   }
 }
@@ -654,7 +654,7 @@ may access.
       "amount_cents": 19900,
       "due_at": "2026-08-10T00:00:00Z",
       "paid_at": null,
-      "hosted_invoice_url": "https://faturas.iugu.com/example",
+      "hosted_invoice_url": "https://faturas.asaas.com/example",
       "payment_method": null
     }
   ],
@@ -672,7 +672,7 @@ POST /webhooks/platform_billing/:provider/:token
 
 | Param | Meaning |
 |-------|---------|
-| `:provider` | `iugu` (later `stripe` / `fake` for tests) |
+| `:provider` | `asaas` (later `stripe` / `fake` for tests) |
 | `:token` | `platform_billing_settings.webhook_endpoint_token` (seeded from `PLATFORM_BILLING_WEBHOOK_TOKEN`) |
 
 Unknown pair → `404`. **Do not** route these events to `POST /webhooks/:provider/:token`
@@ -680,7 +680,7 @@ Unknown pair → `404`. **Do not** route these events to `POST /webhooks/:provid
 
 Authenticity: secret URL token. Persist `webhook_events` (`school_id` nullable until
 `external_subscription_id` matches). Idempotent on `(provider, provider_event_id)`. Enqueue
-`Platform::ReconcileBillingEventJob`; parser `Webhooks::Parsers::IuguPlatformBilling` maps
+`Platform::ReconcileBillingEventJob`; parser `Webhooks::Parsers::AsaasPlatformBilling` maps
 vendor types to canonical `billing.*` events. Outcome is confirmed via port
 `fetch_subscription` / `fetch_invoice` (polling fallback).
 
@@ -696,7 +696,7 @@ Response: `202` accepted (or `204`) after enqueue; duplicate provider event → 
 | `409` | `subscription_exists` | Second non-canceled kept subscription |
 | `409` | `invalid_state_transition` | Checkout / change_plan / cancel not allowed in current status |
 | `422` | `validation_error` | Invalid `plan_key`, `billing_interval`, missing CNPJ, or missing billing email |
-| `501` | `portal_not_supported` | Port `create_billing_portal_session` (no Iugu customer portal) |
+| `501` | `portal_not_supported` | Port `create_billing_portal_session` (no Asaas customer portal) |
 | `501` | `not_implemented` | Frozen route not yet in `web/`, or school checkout while `active_provider` is `manual` |
 
 ---

@@ -13,7 +13,7 @@
 ## Objective
 
 Collect **DLA → school** SaaS subscription payments through a provider-agnostic gateway port,
-keeping the E3 **manual** assignment flow as a first-class adapter, shipping **Iugu** as the
+keeping the E3 **manual** assignment flow as a first-class adapter, shipping **Asaas** as the
 first real collector, and giving **backoffice operators** and **school directors** checkout,
 invoices, plan change, and cancel-at-period-end — without mixing this money with
 school→guardian tuition billing.
@@ -50,8 +50,8 @@ school-SIS tuition feature. Requirements below are `[product decision]` unless n
 | Capability | ID | Evidence |
 |------------|-----|----------|
 | Operator records SaaS plan per tenant | — (`[product decision]`) | DLA bills schools; distinct from school→guardian billing. Analog only: competitor ERP modules sold separately — not a `docs/ref/` AC source |
-| Hosted invoice checkout (no vendor customer portal) | — (`[product decision]`) | Iugu has no Stripe-like Customer Portal; checkout returns invoice `secure_url` |
-| Recurring month/year catalog | — (`[product decision]`) | Iugu annual plans use `interval: 12`, `interval_type: months` |
+| Hosted invoice checkout (no vendor customer portal) | — (`[product decision]`) | Asaas has no Stripe-like Customer Portal; checkout returns invoice `secure_url` |
+| Recurring month/year catalog | — (`[product decision]`) | Asaas annual plans use `interval: 12`, `interval_type: months` |
 
 Acceptance criteria without a corpus path are marked `[product decision]`.
 
@@ -61,7 +61,7 @@ Acceptance criteria without a corpus path are marked `[product decision]`.
 
 | Actor | Surfaces | Notes |
 |-------|----------|-------|
-| backoffice (DLA operator) | `frontend/backoffice`, `/api/v1/platform/*` | Assign plan (manual or Iugu), send checkout, list invoices, change plan, view overdue; permission `manage_platform_billing` |
+| backoffice (DLA operator) | `frontend/backoffice`, `/api/v1/platform/*` | Assign plan (manual or Asaas), send checkout, list invoices, change plan, view overdue; permission `manage_platform_billing` |
 | school director / owner | `frontend/app` `/assinatura`, `/api/v1/schools/:school_id/platform_plans`, `/platform_subscription*` | List catalog, checkout, pay open invoice, change plan, cancel at period end; permission `manage_school_settings` — **not** `manage_billing` (tuition) |
 | secretary / other staff | school SPA | No subscription mutations; `403` unless they hold `manage_school_settings` |
 | teacher | — | `403` on school-scoped platform subscription routes |
@@ -78,7 +78,7 @@ Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md).
 |---------|---------|-------|
 | `infantil` | yes | Same flat school plan |
 | `fundamental_medio` | yes | Same flat school plan |
-| `pj_financeiro` | yes | School CNPJ is the Iugu customer |
+| `pj_financeiro` | yes | School CNPJ is the Asaas customer |
 | `multi_unidade` | partial | One subscription per `school_id` (campus). Group-level / enterprise multi-unit pricing remains open post-E3 |
 
 ---
@@ -95,30 +95,30 @@ pricing are **not** in this slice.
 BR-PSB01 — Catalog intervals
 
 Keep `platform_plans` as the product catalog. Each plan may have provider prices for
-`billing_interval` ∈ `month | year`. Iugu yearly plans map to `interval: 12`,
+`billing_interval` ∈ `month | year`. Asaas yearly plans map to `interval: 12`,
 `interval_type: months`. API responses expose interval `amount_cents`;
 `platform_plans.monthly_amount_cents` remains until dual-write is retired (Phase 6).
 
 BR-PSB02 — Gateway port
 
-Collection goes through `Gateways::PlatformSubscription` (adapters `iugu`, `manual`, `fake`;
-Stripe planned). Do not call Iugu HTTP from create/update services. Do not extend
-`Gateways::BankSlip` or store Iugu tokens on school rows.
+Collection goes through `Gateways::PlatformSubscription` (adapters `asaas`, `manual`, `fake`;
+Stripe planned). Do not call Asaas HTTP from create/update services. Do not extend
+`Gateways::BankSlip` or store Asaas tokens on school rows.
 
 BR-PSB03 — Trial
 
 Trial is **optional**. Product default when offered: **14 days**. `provider: manual` skips
 collection (no hosted invoice). Trialing subscriptions are billable for MRR (BR-PSB12).
 
-BR-PSB04 — Payment methods (Iugu)
+BR-PSB04 — Payment methods (Asaas)
 
-Iugu checkout accepts `credit_card`, `bank_slip` (boleto), and `pix`. School Lab does not
+Asaas checkout accepts `credit_card`, `bank_slip` (boleto), and `pix`. School Lab does not
 restrict the method in this epic; the paid invoice records `payment_method`.
 
 BR-PSB05 — Plan change and proration
 
 Plan change uses the provider `change_plan` operation. **Proration follows the vendor
-default** (Iugu). This epic does not define a School Lab proration table.
+default** (Asaas). This epic does not define a School Lab proration table.
 
 BR-PSB06 — Past-due enforcement
 
@@ -128,7 +128,7 @@ school product access when status is `past_due`.
 BR-PSB07 — Manual coexistence
 
 Existing E3 CRUD remains for **manual** subscriptions (white-glove / partners). Operator may
-create with `provider: manual` or `iugu`. Switching deploy `active_provider` does not rewrite
+create with `provider: manual` or `asaas`. Switching deploy `active_provider` does not rewrite
 live rows that already have a `provider`.
 
 BR-PSB08 — Isolation
@@ -149,8 +149,8 @@ BR-PSB09 — Permissions
 
 BR-PSB10 — Credentials and webhook token
 
-Iugu API credentials: **ENV only** (`IUGU_API_TOKEN`, `IUGU_API_BASE_URL`, default base
-`https://api.iugu.com`). Webhook URL token: `platform_billing_settings.webhook_endpoint_token`
+Asaas API credentials: **ENV only** (`ASAAS_API_TOKEN`, `ASAAS_API_BASE_URL`, default base
+`https://api.asaas.com`). Webhook URL token: `platform_billing_settings.webhook_endpoint_token`
 (seeded from `PLATFORM_BILLING_WEBHOOK_TOKEN`). Never persist API tokens on `schools`.
 
 BR-PSB11 — Subscription status
@@ -168,7 +168,7 @@ to MRR. Analytics `mrr_cents` must use the interval price map, not solely
 
 BR-PSB13 — Hosted billing portal
 
-Iugu `hosted_billing_portal` is **false**. `create_billing_portal_session` returns
+Asaas `hosted_billing_portal` is **false**. `create_billing_portal_session` returns
 `501 portal_not_supported`. `billing_portal_url` in JSON is `null`. Checkout uses hosted
 invoice URL (`secure_url` / `pay_url`).
 
@@ -179,14 +179,14 @@ Deprecate **writes** to `schools.saas_plan` as source of truth. List filters sho
 
 BR-PSB15 — JSON vendor IDs
 
-School SPA JSON **does not** expose raw Iugu customer/subscription/invoice IDs. Backoffice
+School SPA JSON **does not** expose raw Asaas customer/subscription/invoice IDs. Backoffice
 **may** include `provider` and `external_*_id` for support.
 
-BR-PSB16 — Iugu customer identity
+BR-PSB16 — Asaas customer identity
 
 `create_billing_account` sends **existing** school data only — no new billing-contact column in this epic:
 
-- **CNPJ:** `schools.cnpj` (required for Iugu checkout). Missing/blank → `422 validation_error`.
+- **CNPJ:** `schools.cnpj` (required for Asaas checkout). Missing/blank → `422 validation_error`.
 - **Email:** `users.email` of the authenticated director performing checkout (or, for backoffice checkout, the school's owner/director membership email). Missing → `422 validation_error`.
 
 Do not send guardian or student PII. Legal processor agreement for this CNPJ/email remains an open item.
@@ -197,11 +197,11 @@ School-scoped `POST .../checkout` uses `Gateways::PlatformSubscription::Registry
 
 BR-PSB18 — PATCH vs change_plan
 
-`PATCH /api/v1/platform/subscriptions/:id` stays **local / manual**: status and trial fields for `provider: manual` rows. Iugu (and later Stripe) plan or interval changes **must** use `POST .../change_plan` (or school `change_plan`) so the port runs. PATCH on an Iugu row that attempts to change `platform_plan_id` or `billing_interval` → `409 invalid_state_transition`.
+`PATCH /api/v1/platform/subscriptions/:id` stays **local / manual**: status and trial fields for `provider: manual` rows. Asaas (and later Stripe) plan or interval changes **must** use `POST .../change_plan` (or school `change_plan`) so the port runs. PATCH on an Asaas row that attempts to change `platform_plan_id` or `billing_interval` → `409 invalid_state_transition`.
 
-BR-PSB19 — Manual row cannot self-serve onto Iugu in this epic
+BR-PSB19 — Manual row cannot self-serve onto Asaas in this epic
 
-Director checkout against a kept `provider: manual` subscription → `409 invalid_state_transition`. Converting white-glove manual to Iugu is an operator/ops action (out of school SPA for this epic).
+Director checkout against a kept `provider: manual` subscription → `409 invalid_state_transition`. Converting white-glove manual to Asaas is an operator/ops action (out of school SPA for this epic).
 
 ---
 
@@ -212,14 +212,14 @@ Director checkout against a kept `provider: manual` subscription → `409 invali
 Slice (E3 manual): [`backoffice-platform-billing-p2.md`](backoffice-platform-billing-p2.md).  
 This document extends collection.
 
-Input: `school_id`, `platform_plan_key`, `billing_interval`, `provider` (`manual` \| `iugu`).
+Input: `school_id`, `platform_plan_key`, `billing_interval`, `provider` (`manual` \| `asaas`).
 
 Flow
 
 1. Operator with `manage_platform_billing` lists plans (intervals + `amount_cents`).
 2. `POST /api/v1/platform/subscriptions` assigns a plan (`409 subscription_exists` if kept
    non-canceled row exists). `provider: manual` skips collector.
-3. For `provider: iugu`, operator may `POST /api/v1/platform/subscriptions/:id/checkout` to
+3. For `provider: asaas`, operator may `POST /api/v1/platform/subscriptions/:id/checkout` to
    obtain hosted invoice URL and send it to the school.
 4. Operator lists invoices on the subscription; overdue shows `past_due` + due date — no
    guardian PII.
@@ -236,10 +236,10 @@ Flow
 2. Client `GET /api/v1/schools/:school_id/platform_plans` for `plan_key` + interval prices
    (no vendor IDs). `GET /api/v1/platform/plans` with a school JWT remains `403 backoffice_only`.
 3. Client `GET /api/v1/schools/:school_id/platform_subscription`. When none exists, **`200` with `data: null`** (not 404).
-4. `POST .../platform_subscription/checkout` creates or resumes Iugu subscription and
+4. `POST .../platform_subscription/checkout` creates or resumes Asaas subscription and
    returns `checkout_url` (hosted invoice). `billing_portal_url` is `null`. Requires
    `active_provider` with hosted checkout (BR-PSB17); CNPJ + actor email present (BR-PSB16).
-5. Director pays on Iugu hosted page (card, boleto, or Pix).
+5. Director pays on Asaas hosted page (card, boleto, or Pix).
 6. Webhook + reconcile activate `trialing` or `active`.
 
 ### UC-BOE16 / UC-PSB02 — Pay platform invoice
@@ -271,7 +271,7 @@ Input: optional `at_period_end` (default **true**).
 Flow
 
 1. Director `POST .../platform_subscription/cancel` with `at_period_end: true`.
-2. Port `cancel_subscription` suspends/expires per Iugu; local flags
+2. Port `cancel_subscription` suspends/expires per Asaas; local flags
    `cancel_at_period_end` until `current_period_end`, then `canceled` / `canceled_at`.
 3. Immediate cancel is **not** the product default; if offered later, it is a separate AC.
 4. School product remains usable through period end (BR-PSB06).
@@ -288,7 +288,7 @@ Flow
 | Method | Path | Notes |
 |--------|------|-------|
 | `GET` | `/plans` | Intervals + `amount_cents` (keep `monthly_amount_cents` during dual-write) |
-| `GET/POST` | `/subscriptions` | Create with `provider: manual` or `iugu` |
+| `GET/POST` | `/subscriptions` | Create with `provider: manual` or `asaas` |
 | `GET/PATCH` | `/subscriptions/:id` | Show; PATCH is **manual/local only** (BR-PSB18) |
 | `POST` | `/subscriptions/:id/checkout` | Hosted invoice URL |
 | `POST` | `/subscriptions/:id/change_plan` | Operator plan/interval change via port |
@@ -299,8 +299,8 @@ Flow
 
 | Method | Path | Notes |
 |--------|------|-------|
-| `GET` | `/platform_plans` | Catalog: `key`, `name`, `intervals[]` (`billing_interval`, `amount_cents`). No Iugu/external IDs. School JWT on `GET /api/v1/platform/plans` remains `403 backoffice_only`. |
-| `GET` | `/platform_subscription` | Current subscription; no raw Iugu IDs |
+| `GET` | `/platform_plans` | Catalog: `key`, `name`, `intervals[]` (`billing_interval`, `amount_cents`). No Asaas/external IDs. School JWT on `GET /api/v1/platform/plans` remains `403 backoffice_only`. |
+| `GET` | `/platform_subscription` | Current subscription; no raw Asaas IDs |
 | `POST` | `/platform_subscription/checkout` | UC-PSB01 |
 | `POST` | `/platform_subscription/change_plan` | UC-PSB03 |
 | `POST` | `/platform_subscription/cancel` | UC-PSB04 |
@@ -326,7 +326,7 @@ Request/response examples live in the frozen API narrative.
 | 409 | `subscription_exists` | Second non-canceled kept subscription for the school |
 | 409 | `invalid_state_transition` | Change/cancel/checkout not allowed in current status |
 | 422 | `validation_error` | Invalid plan, interval, missing `schools.cnpj` or billing email |
-| 501 | `portal_not_supported` | Port `create_billing_portal_session` (Iugu cannot host a portal; no public SPA route) |
+| 501 | `portal_not_supported` | Port `create_billing_portal_session` (Asaas cannot host a portal; no public SPA route) |
 | 501 | `not_implemented` | Frozen route not yet in `web/`, **or** school checkout while `active_provider` is `manual` |
 
 ---
@@ -365,12 +365,12 @@ Canonical types consumed **only** by `Platform::ReconcileBillingEventService`:
 | `billing.invoice.paid` | Invoice paid |
 | `billing.invoice.payment_failed` | Invoice failed |
 
-Parser: `Webhooks::Parsers::IuguPlatformBilling`. Persist `WebhookEvent` idempotent on
+Parser: `Webhooks::Parsers::AsaasPlatformBilling`. Persist `WebhookEvent` idempotent on
 `(provider, provider_event_id)`. Job: `Platform::ReconcileBillingEventJob`. Polling fallback:
 `list_invoices` / `fetch_subscription`.
 
-Iugu parser inputs include `invoice.status_changed`, `invoice.released`, `invoice.created`,
-and subscription suspend/expire — mapped to the table above, **not** stored as raw Iugu
+Asaas parser inputs include `invoice.status_changed`, `invoice.released`, `invoice.created`,
+and subscription suspend/expire — mapped to the table above, **not** stored as raw Asaas
 names in services.
 
 ---
@@ -399,14 +399,14 @@ Cross-cutting catalog: [`docs/product/non-functional-requirements.md`](../../pro
   queries on invoices and subscriptions; operator collection is cross-tenant and audited.
 - [NFR-005](../../product/non-functional-requirements.md#nfr-005--observability-and-audit) —
   assign, plan change, cancel, and checkout audited (`associated_with: :school`).
-- **LGPD:** Iugu receives school CNPJ and billing email (processor). Guardian/student PII
+- **LGPD:** Asaas receives school CNPJ and billing email (processor). Guardian/student PII
   must not be sent. Webhook payloads stored on `webhook_events` follow the existing 180-day
   processed purge; legal sign-off remains in [`open-questions.md`](../../open-questions.md) § LGPD.
 - **Copy isolation:** school SPA `/assinatura` must never mix “boleto da mensalidade” with
   “assinatura School Lab” (pt-BR locale files only).
 - **Idempotency:** webhook ingest unique on `(provider, provider_event_id)`.
-- **No live Iugu in specs:** service specs inject `Fake`; lib specs WebMock `https://iugu.test`
-  only; never set `IUGU_API_TOKEN` in RSpec.
+- **No live Asaas in specs:** service specs inject `Fake`; lib specs WebMock `https://asaas.test`
+  only; never set `ASAAS_API_TOKEN` in RSpec.
 
 ---
 
@@ -442,7 +442,7 @@ AC-PSB04 — Cross-school isolation
 
 AC-PSB05 — Director checkout
 
-- [ ] Given director with `manage_school_settings` and Iugu price mapping for `pro` + `month`,
+- [ ] Given director with `manage_school_settings` and Asaas price mapping for `pro` + `month`,
       when `POST .../platform_subscription/checkout`, then `200/201` includes `checkout_url`
       and `billing_portal_url` is `null`.
 - Source: `[product decision]`
@@ -450,15 +450,15 @@ AC-PSB05 — Director checkout
 AC-PSB06 — Pay invoice
 
 - [ ] Given an `open` platform invoice with `hosted_invoice_url`, when the director opens
-      that URL and Iugu reports paid, then reconcile sets invoice `paid` and subscription
+      that URL and Asaas reports paid, then reconcile sets invoice `paid` and subscription
       `active` (or keeps `trialing` until trial ends).
 - Source: `[product decision]`
 
 AC-PSB07 — Change plan
 
-- [ ] Given an `active` Iugu subscription, when director `POST .../change_plan` to `enterprise`
+- [ ] Given an `active` Asaas subscription, when director `POST .../change_plan` to `enterprise`
       + `year`, then plan and interval update, audit stores prior and new `platform_plan_id`,
-      and proration is whatever Iugu applied (no local proration table).
+      and proration is whatever Asaas applied (no local proration table).
 - Source: `[product decision]`
 
 AC-PSB08 — Cancel at period end
@@ -476,13 +476,13 @@ AC-PSB09 — Past due banner, no lock
 
 AC-PSB10 — Manual skips collection
 
-- [ ] Given `provider: manual`, when operator creates a subscription, then no Iugu customer or
+- [ ] Given `provider: manual`, when operator creates a subscription, then no Asaas customer or
       invoice is created and checkout is not required.
 - Source: `[product decision]`
 
 AC-PSB11 — Portal not supported
 
-- [ ] Given Iugu adapter, when a service calls `create_billing_portal_session` (or any
+- [ ] Given Asaas adapter, when a service calls `create_billing_portal_session` (or any
       documented portal endpoint if one is added), then the API maps the port error to
       `501 portal_not_supported`. There is **no** school SPA portal URL in this epic.
 - Source: `[product decision]`
@@ -490,13 +490,13 @@ AC-PSB11 — Portal not supported
 AC-PSB16 — Customer identity
 
 - [ ] Given school S with blank `cnpj`, when director `POST .../checkout`, then `422 validation_error`.
-- [ ] Given school S with CNPJ and director email, when checkout succeeds, then Iugu customer
+- [ ] Given school S with CNPJ and director email, when checkout succeeds, then Asaas customer
       payload uses that CNPJ and email only (no guardian/student fields).
 - Source: `[product decision]`
 
 AC-PSB17 — Payment method recorded
 
-- [ ] Given a paid Iugu invoice settled by Pix (or card or boleto), when invoices are listed,
+- [ ] Given a paid Asaas invoice settled by Pix (or card or boleto), when invoices are listed,
       then `payment_method` is `pix` (or `credit_card` / `bank_slip`).
 - Source: `[product decision]`
 
@@ -536,7 +536,7 @@ AC-PSB14 — Yearly MRR
 AC-PSB15 — Trial default
 
 - [ ] Given checkout with `trial: true` and no custom duration, when the subscription is
-      created on Iugu, then trial length is **14 days**. Checkout with `trial: false` starts
+      created on Asaas, then trial length is **14 days**. Checkout with `trial: false` starts
       collection immediately.
 - Source: `[product decision]`
 
@@ -544,13 +544,13 @@ AC-PSB15 — Trial default
 
 ## Open items / pending decisions
 
-- [x] Integrated gateway for this slice — **Iugu** (see [`open-questions.md`](../../open-questions.md)
+- [x] Integrated gateway for this slice — **Asaas** (see [`open-questions.md`](../../open-questions.md)
       § Platform & admin). Stripe remains adapter #2, not this epic.
 - [x] E3 MVP commercial model — flat plan per school; this slice adds month/year intervals
       and collection. **Does not** close per-student / hybrid GTM.
-- [ ] Iugu `cancel_at_period_end` exact vendor API — verify during implementation
-      (Context7 / Iugu docs). Product intent is cancel at period end (UC-PSB04).
-- [ ] Legal processor agreement for school CNPJ/email sent to Iugu (related to existing
+- [ ] Asaas `cancel_at_period_end` exact vendor API — verify during implementation
+      (Context7 / Asaas docs). Product intent is cancel at period end (UC-PSB04).
+- [ ] Legal processor agreement for school CNPJ/email sent to Asaas (related to existing
       Cora processor item in [`open-questions.md`](../../open-questions.md) § LGPD).
       **Customer fields are decided:** `schools.cnpj` + director/owner `users.email` (BR-PSB16).
 - [ ] Platform invoice row retention window (legal); `webhook_events` follows existing 180-day
@@ -570,5 +570,5 @@ AC-PSB15 — Trial default
 - Mobile subscription UI
 - Platform régua / dunning automation for DLA invoices
 - Immediate cancel as the default (period-end is the default)
-- Converting a `provider: manual` row to Iugu via the school SPA (operator/ops only)
+- Converting a `provider: manual` row to Asaas via the school SPA (operator/ops only)
 - Custom School Lab proration rules

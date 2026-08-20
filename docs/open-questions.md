@@ -380,8 +380,8 @@ does not assume indefinite storage.
   and phone on bank-slip issuance requests. Cora acts as a personal-data
   processor for this flow — contractual and privacy-policy implications remain
   open.
-- **Provider payload (school data sent to Iugu):** school CNPJ and director/owner
-  email on DLA→school subscription checkout. Iugu is a processor for that flow —
+- **Provider payload (school data sent to Asaas):** school CNPJ and director/owner
+  email on DLA→school subscription checkout. Asaas is a processor for that flow —
   legal agreement open; see [`platform-subscription-billing.md`](prds/platform-and-admin/platform-subscription-billing.md)
   BR-PSB16. Do not send guardian/student PII.
 - **Application logs:** structured billing logs redact CPF, email, phone, PEM
@@ -399,7 +399,7 @@ does not assume indefinite storage.
 - [ ] Format of the partnership with the Sindicato (commercial, pricing)?
 - [ ] **Platform billing GTM (post-E3)** — per-student, hybrid, or enterprise multi-unit
       (group vs campus) remain open. **This slice is not reopening** the E3/collection decision
-      (flat plan per school, month/year, Iugu). See Platform & admin section.
+      (flat plan per school, month/year, Asaas). See Platform & admin section.
 
 ## Platform & admin (backoffice evolution P2)
 
@@ -421,8 +421,8 @@ Decisions blocking E3 slices in [`backoffice-evolution.md`](prds/platform-and-ad
 - [ ] **Impersonation token scope** — E3 MVP uses **API-wide** scoped JWT (same `/api/v1` as staff);
       no refresh token for impersonation sessions; concurrent sessions allowed per operator until
       explicit end or TTL. SPA-only restriction deferred.
-- [x] **Platform SaaS payment collection (this slice)** — **Iugu** is the first real collector
-      (`Gateways::PlatformSubscription`; adapters `iugu`, `manual`, `fake`; Stripe planned).
+- [x] **Platform SaaS payment collection (this slice)** — **Asaas** is the first real collector
+      (`Gateways::PlatformSubscription`; adapters `asaas`, `manual`, `fake`; Stripe planned).
       Manual E3 assignment remains for white-glove. See
       [`platform-subscription-billing.md`](prds/platform-and-admin/platform-subscription-billing.md)
       and [ADR 002](adr/002-platform-billing-gateway.md).
