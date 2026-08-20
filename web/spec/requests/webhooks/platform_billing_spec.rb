@@ -8,41 +8,43 @@ RSpec.describe "Webhooks::PlatformBilling", type: :request do
   let(:plan) { PlatformPlan.find_by(key: "starter") || create(:platform_plan, :starter) }
 
   before do
-    create(:platform_subscription, school: school, platform_plan: plan, provider: "iugu",
-                                   collection_method: "send_invoice", external_subscription_id: "SUB1")
+    create(:platform_subscription, school: school, platform_plan: plan, provider: "asaas",
+                                   collection_method: "send_invoice", external_subscription_id: "sub_1")
   end
 
-  it "accepts an Iugu invoice event and is idempotent" do
+  it "accepts an Asaas payment event and is idempotent" do
     payload = {
-      event: "invoice.status_changed",
-      data: { id: "INV1", status: "paid", subscription_id: "SUB1" }
+      id: "evt_1",
+      event: "PAYMENT_RECEIVED",
+      payment: { id: "pay_1", status: "RECEIVED", subscription: "sub_1" }
     }
 
-    post "/webhooks/platform_billing/iugu/#{settings.webhook_endpoint_token}",
+    post "/webhooks/platform_billing/asaas/#{settings.webhook_endpoint_token}",
          params: payload.to_json,
          headers: { "CONTENT_TYPE" => "application/json" }
     expect(response).to have_http_status(:accepted)
 
-    post "/webhooks/platform_billing/iugu/#{settings.webhook_endpoint_token}",
+    post "/webhooks/platform_billing/asaas/#{settings.webhook_endpoint_token}",
          params: payload.to_json,
          headers: { "CONTENT_TYPE" => "application/json" }
     expect(response).to have_http_status(:ok)
-    expect(WebhookEvent.where(provider: "iugu").count).to eq(1)
+    expect(WebhookEvent.where(provider: "asaas").count).to eq(1)
   end
 
   it "does not use the Cora webhook ingress" do
-    post "/webhooks/iugu/#{settings.webhook_endpoint_token}",
-         params: { event: "invoice.status_changed" }.to_json,
+    post "/webhooks/asaas/#{settings.webhook_endpoint_token}",
+         params: { event: "PAYMENT_RECEIVED" }.to_json,
          headers: { "CONTENT_TYPE" => "application/json" }
 
     expect(response).to have_http_status(:not_found)
   end
 
   it "returns 404 for an unknown token" do
-    post "/webhooks/platform_billing/iugu/not-the-token",
+    post "/webhooks/platform_billing/asaas/not-the-token",
          params: {
-           event: "invoice.created",
-           data: { id: "INV9", subscription_id: "SUB1" }
+           id: "evt_9",
+           event: "PAYMENT_CREATED",
+           payment: { id: "pay_9", subscription: "sub_1" }
          }.to_json,
          headers: { "CONTENT_TYPE" => "application/json" }
 

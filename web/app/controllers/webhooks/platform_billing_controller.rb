@@ -4,7 +4,7 @@ class Webhooks::PlatformBillingController < ActionController::API
   def create
     settings = PlatformBillingSetting.instance
     return head :not_found unless valid_token?(settings)
-    return head :not_found unless %w[iugu fake].include?(params[:provider].to_s)
+    return head :not_found unless %w[asaas fake].include?(params[:provider].to_s)
 
     parse_result = parser.parse(request)
     return head :bad_request if parse_result.failure?
@@ -33,7 +33,7 @@ class Webhooks::PlatformBillingController < ActionController::API
   def parser
     case params[:provider].to_s
     when "fake" then Webhooks::Parsers::FakePlatformBilling
-    else Webhooks::Parsers::IuguPlatformBilling
+    else Webhooks::Parsers::AsaasPlatformBilling
     end
   end
 end
