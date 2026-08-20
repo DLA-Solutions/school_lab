@@ -721,6 +721,9 @@ const ptBR = {
     'Veja o andamento das solicitações feitas à escola.',
 
   'membership.switchContext': 'Trocar perfil e escola',
+  'membership.switchContextHint': 'Clique para trocar perfil ou escola',
+  'membership.contextTooltip': 'Você está como {role} · {school}',
+  'membership.contextTooltipRoleOnly': 'Você está como {role}',
   'membership.switchSecondaryWithId': '{schoolName} · escola {schoolId}',
 
   'errors.schoolAccessDenied':
