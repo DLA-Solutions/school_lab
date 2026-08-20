@@ -1695,7 +1695,7 @@ export const handlers = [
     return HttpResponse.json(
       {
         data: {
-          checkout_url: 'https://faturas.iugu.com/example',
+          checkout_url: 'https://www.asaas.com/i/example',
           billing_portal_url: null,
         },
       },
