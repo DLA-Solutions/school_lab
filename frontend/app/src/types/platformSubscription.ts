@@ -2,7 +2,7 @@
  * School-scoped platform SaaS subscription (DLA → school).
  * Distinct from tuition billing (`/boletos`, `/planos`).
  * Mirrors `docs/api/v1/platform-and-admin.md` § Platform subscription billing.
- * JSON never includes raw Iugu customer/subscription/invoice ids.
+ * JSON never includes raw Asaas customer/subscription/invoice ids.
  */
 
 export type SchoolSubscriptionStatus =

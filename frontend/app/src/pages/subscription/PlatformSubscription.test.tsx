@@ -81,7 +81,7 @@ const activeSubscription: SchoolPlatformSubscription = {
     status: 'open',
     amount_cents: 19_900,
     due_at: '2026-08-10T00:00:00Z',
-    hosted_invoice_url: 'https://faturas.iugu.com/example',
+    hosted_invoice_url: 'https://www.asaas.com/i/example',
     payment_method: null,
   },
 };
@@ -92,7 +92,7 @@ const openInvoice: SchoolPlatformInvoice = {
   amount_cents: 19_900,
   due_at: '2026-08-10T00:00:00Z',
   paid_at: null,
-  hosted_invoice_url: 'https://faturas.iugu.com/example',
+  hosted_invoice_url: 'https://www.asaas.com/i/example',
   payment_method: null,
 };
 
@@ -129,7 +129,7 @@ describe('PlatformSubscription page', () => {
       http.post(apiUrl(`${subscriptionPath}/checkout`), async ({ request }) => {
         checkoutBody = await request.json();
         return HttpResponse.json(
-          { data: { checkout_url: 'https://faturas.iugu.com/example', billing_portal_url: null } },
+          { data: { checkout_url: 'https://www.asaas.com/i/example', billing_portal_url: null } },
           { status: 201 },
         );
       }),
@@ -150,7 +150,7 @@ describe('PlatformSubscription page', () => {
       expect(checkoutBody).toEqual({ plan_key: 'pro', billing_interval: 'year', trial: false });
     });
     expect(openSpy).toHaveBeenCalledWith(
-      'https://faturas.iugu.com/example',
+      'https://www.asaas.com/i/example',
       '_blank',
       'noopener,noreferrer',
     );
@@ -179,7 +179,7 @@ describe('PlatformSubscription page', () => {
 
     await user.click(screen.getAllByRole('button', { name: /pagar fatura/i })[0]!);
     expect(openSpy).toHaveBeenCalledWith(
-      'https://faturas.iugu.com/example',
+      'https://www.asaas.com/i/example',
       '_blank',
       'noopener,noreferrer',
     );
