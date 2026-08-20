@@ -6,8 +6,8 @@ RSpec.describe Platform::CreateSubscriptionService do
   let(:school) { create(:school) }
   let(:plan) { PlatformPlan.find_by(key: "starter") || create(:platform_plan, :starter) }
 
-  it "defaults provider to manual and never needs IUGU env" do
-    expect(ENV["IUGU_API_TOKEN"]).to be_blank
+  it "defaults provider to manual and never needs ASAAS env" do
+    expect(ENV["ASAAS_API_TOKEN"]).to be_blank
 
     result = described_class.call(params: { school_id: school.id, platform_plan_id: plan.id })
 

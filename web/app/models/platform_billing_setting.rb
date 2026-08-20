@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class PlatformBillingSetting < ApplicationRecord
-  PROVIDERS = %w[iugu manual fake].freeze
+  PROVIDERS = %w[asaas manual fake].freeze
 
   validates :active_provider, presence: true, inclusion: { in: PROVIDERS }
   validates :webhook_endpoint_token, presence: true, uniqueness: true

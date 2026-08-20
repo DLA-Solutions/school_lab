@@ -31,7 +31,7 @@ module Platform
       unless PlatformSubscription::PROVIDERS.include?(provider)
         return ResponseService.failure(
           code: :validation_error,
-          details: { provider: [ "must be iugu, manual, or fake" ] }
+          details: { provider: [ "must be asaas, manual, or fake" ] }
         )
       end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class PlatformPlanProviderPrice < ApplicationRecord
-  PROVIDERS = %w[iugu manual fake].freeze
+  PROVIDERS = %w[asaas manual fake].freeze
   INTERVALS = %w[month year].freeze
 
   belongs_to :platform_plan

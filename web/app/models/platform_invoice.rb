@@ -3,7 +3,7 @@
 class PlatformInvoice < ApplicationRecord
   STATUSES = %w[draft open paid void uncollectible].freeze
   PAYMENT_METHODS = %w[credit_card bank_slip pix].freeze
-  PROVIDERS = %w[iugu manual fake].freeze
+  PROVIDERS = %w[asaas manual fake].freeze
 
   belongs_to :school
   belongs_to :platform_subscription

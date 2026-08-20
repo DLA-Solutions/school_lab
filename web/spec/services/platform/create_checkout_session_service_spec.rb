@@ -11,12 +11,12 @@ RSpec.describe Platform::CreateCheckoutSessionService do
   let(:settings) { PlatformBillingSetting.instance }
 
   before do
-    settings.update!(active_provider: "iugu")
+    settings.update!(active_provider: "asaas")
     ensure_platform_plan_prices(plan)
   end
 
-  it "returns checkout_url using the Fake adapter and does not read IUGU_API_TOKEN" do
-    expect(ENV["IUGU_API_TOKEN"]).to be_blank
+  it "returns checkout_url using the Fake adapter and does not read ASAAS_API_TOKEN" do
+    expect(ENV["ASAAS_API_TOKEN"]).to be_blank
 
     result = described_class.call(
       school: school,
@@ -28,7 +28,7 @@ RSpec.describe Platform::CreateCheckoutSessionService do
     expect(result).to be_success
     expect(result.data[:session].checkout_url).to be_present
     expect(result.data[:session].billing_portal_url).to be_nil
-    expect(result.data[:subscription].provider).to eq("iugu")
+    expect(result.data[:subscription].provider).to eq("asaas")
     expect(result.data[:subscription].external_subscription_id).to be_present
   end
 

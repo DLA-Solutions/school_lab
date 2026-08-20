@@ -2,7 +2,7 @@
 
 module PlatformBillingSpecHelpers
   def ensure_platform_plan_prices(plan)
-    %w[manual iugu fake].each do |provider|
+    %w[manual asaas fake].each do |provider|
       %w[month year].each do |interval|
         suffix = interval == "year" ? "yearly" : "monthly"
         amount = interval == "year" ? plan.monthly_amount_cents * 12 : plan.monthly_amount_cents

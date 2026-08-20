@@ -31,9 +31,9 @@ RSpec.describe Platform::ListSchoolPlatformPlansService do
 
   it "uses active-provider prices and omits vendor identifiers" do
     starter.platform_plan_provider_prices.find_by!(provider: "fake", billing_interval: "month")
-      .update!(amount_cents: 12_345, external_price_id: "iugu_starter_monthly")
+      .update!(amount_cents: 12_345, external_price_id: "asaas_starter_monthly")
     starter.platform_plan_provider_prices.find_by!(provider: "fake", billing_interval: "year")
-      .update!(amount_cents: 123_450, external_price_id: "iugu_starter_yearly")
+      .update!(amount_cents: 123_450, external_price_id: "asaas_starter_yearly")
 
     intervals = described_class.intervals_for(starter.reload)
 

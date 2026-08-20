@@ -13,7 +13,7 @@ RSpec.describe Platform::AnalyticsOverviewService do
       school: school,
       platform_plan: starter,
       status: "active",
-      provider: "iugu",
+      provider: "asaas",
       billing_interval: "year",
       collection_method: "send_invoice"
     )
