@@ -45,7 +45,7 @@ const ActiveContextBadge = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '100%' }}>
+    <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
       <ContextBadge
         variant={variant}
         label={label}

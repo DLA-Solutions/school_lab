@@ -35,6 +35,7 @@ const DrawerItems = () => {
   return (
     <>
       <Stack
+        direction="column"
         pt={4}
         pb={2.5}
         px={3.5}
@@ -51,20 +52,14 @@ const DrawerItems = () => {
           component={RouterLink}
           to={paths.dashboard}
           disableRipple
-          sx={{ width: 1, justifyContent: 'flex-start' }}
+          sx={{
+            display: 'flex',
+            width: 1,
+            alignSelf: 'stretch',
+            justifyContent: 'flex-start',
+          }}
         >
-          <BrandLogo
-            variant="lockup"
-            sx={{
-              width: 1,
-              maxWidth: 1,
-              height: 'auto',
-              '& img': {
-                width: '100%',
-                height: 'auto',
-              },
-            }}
-          />
+          <BrandLogo variant="lockup" height={36} sx={{ maxWidth: 1 }} />
         </ButtonBase>
         <ActiveContextBadge />
       </Stack>
