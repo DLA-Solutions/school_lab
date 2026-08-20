@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { MenuItem } from 'routes/sitemap';
 import { useTranslation } from 'providers/I18nContext';
 import type { MessageKey } from 'locales';
@@ -31,22 +30,30 @@ const activeLabel = (theme: Theme, brandAccent: boolean) => {
   };
 };
 
-const ListItem = ({ subheader, icon, path, active }: MenuItem) => {
+interface SidebarListItemProps extends MenuItem {
+  active?: boolean;
+}
+
+const ListItem = ({ subheader, icon, path, active = false }: SidebarListItemProps) => {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
 
-  const handleClick = () => {
-    setOpen(!open);
-  };
-
-  const brandAccent = !!active && path === '/';
+  const brandAccent = active && path === '/';
 
   return (
     <ListItemButton
       component={Link}
       href={path}
-      onClick={handleClick}
+      selected={active}
       aria-current={active ? 'page' : undefined}
+      sx={{
+        ...(active
+          ? {
+              bgcolor: 'surface.alt',
+              '&.Mui-selected': { bgcolor: 'surface.alt' },
+              '&.Mui-selected:hover': { bgcolor: 'surface.alt' },
+            }
+          : {}),
+      }}
     >
       <ListItemIcon>
         {icon && (
