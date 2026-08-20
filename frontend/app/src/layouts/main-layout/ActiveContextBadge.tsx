@@ -45,13 +45,14 @@ const ActiveContextBadge = () => {
   };
 
   return (
-    <Box width={1}>
+    <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
       <ContextBadge
         variant={variant}
         label={label}
         secondaryLabel={secondaryLabel}
         tooltip={canSwitch ? t('membership.switchContextHint') : tooltip}
         onClick={canSwitch ? handleOpen : undefined}
+        compact
       />
 
       {canSwitch && (

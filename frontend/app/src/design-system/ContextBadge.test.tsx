@@ -20,6 +20,19 @@ describe('ContextBadge', () => {
     expect(screen.getByText('Escola Modelo')).toBeInTheDocument();
   });
 
+  it('renders role and school on one line in compact mode', () => {
+    renderWithTheme(
+      <ContextBadge
+        variant="staff"
+        label="Secretaria"
+        secondaryLabel="Escola Modelo"
+        compact
+      />,
+    );
+
+    expect(screen.getByText('Secretaria · Escola Modelo')).toBeInTheDocument();
+  });
+
   it('calls onClick when the badge is interactive', () => {
     const onClick = vi.fn();
 

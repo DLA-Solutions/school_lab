@@ -140,17 +140,36 @@ describe('DrawerItems permission gating', () => {
 });
 
 describe('DrawerItems context badge', () => {
+  it('stacks the logo above the context badge in a column header', () => {
+    const { container } = renderDrawer([staffMembership]);
+
+    const headerStack = container.querySelector('.MuiStack-root');
+    expect(headerStack).toBeTruthy();
+    expect(headerStack).toHaveStyle({ flexDirection: 'column' });
+
+    const logoLink = container.querySelector('a[href="/"]');
+    const badge = screen.getByText(
+      `${staffMembership.role_template?.name ?? ''} · ${staffMembership.school_name ?? ''}`,
+    );
+
+    expect(logoLink).toBeTruthy();
+    expect(logoLink!.compareDocumentPosition(badge)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
   it('shows the active staff role and school in the sidebar header', () => {
     renderDrawer([staffMembership]);
 
-    expect(screen.getByText(staffMembership.role_template?.name ?? '')).toBeInTheDocument();
-    expect(screen.getByText(staffMembership.school_name ?? '')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `${staffMembership.role_template?.name ?? ''} · ${staffMembership.school_name ?? ''}`,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('shows Responsável in the guardian context', () => {
     renderDrawer([guardianMembership]);
 
-    expect(screen.getByText('Responsável')).toBeInTheDocument();
+    expect(screen.getByText(/Responsável · /)).toBeInTheDocument();
   });
 });
 

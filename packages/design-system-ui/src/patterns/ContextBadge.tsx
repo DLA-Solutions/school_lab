@@ -14,6 +14,8 @@ export interface ContextBadgeProps {
   secondaryLabel?: string;
   tooltip?: string;
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  /** Sidebar-style badge: fit-content, single-line role · school, softer staff/platform styling. */
+  compact?: boolean;
 }
 
 const VARIANT_ICON: Record<ContextBadgeVariant, string> = {
@@ -23,8 +25,19 @@ const VARIANT_ICON: Record<ContextBadgeVariant, string> = {
   guardian: 'mingcute:group-2-line',
 };
 
-const badgeSurfaceSx = (variant: ContextBadgeVariant) => {
+const badgeSurfaceSx = (variant: ContextBadgeVariant, compact?: boolean) => {
   if (variant === 'staff' || variant === 'platform') {
+    if (compact) {
+      return (theme: Theme) => ({
+        color: theme.palette.text.secondary,
+        borderColor: theme.palette.divider,
+        bgcolor: 'transparent',
+        '& .context-badge-icon': {
+          color: theme.palette.text.secondary,
+        },
+      });
+    }
+
     return (theme: Theme) => ({
       color: theme.palette.text.secondary,
       borderColor: theme.palette.divider,
@@ -47,23 +60,38 @@ const badgeSurfaceSx = (variant: ContextBadgeVariant) => {
   });
 };
 
-const ContextBadge = ({ variant, label, secondaryLabel, tooltip, onClick }: ContextBadgeProps) => {
+const ContextBadge = ({
+  variant,
+  label,
+  secondaryLabel,
+  tooltip,
+  onClick,
+  compact = false,
+}: ContextBadgeProps) => {
+  const displayLabel = compact && secondaryLabel ? `${label} · ${secondaryLabel}` : label;
+
   const content = (
-    <Stack spacing={0.5} alignItems="flex-start" width={1}>
+    <Stack
+      spacing={compact ? 0 : 0.5}
+      alignItems="flex-start"
+      width={compact ? 'fit-content' : 1}
+      sx={{ maxWidth: '100%' }}
+    >
       <Box
         component={onClick ? ButtonBase : 'div'}
         onClick={onClick}
         disableRipple={!onClick}
-        aria-label={onClick ? tooltip ?? label : undefined}
+        aria-label={onClick ? (tooltip ?? displayLabel) : undefined}
         sx={(theme) => ({
-          width: 1,
+          width: compact ? 'fit-content' : 1,
+          maxWidth: '100%',
           justifyContent: 'flex-start',
           textAlign: 'left',
-          borderRadius: 999,
-          px: 1.25,
-          py: 0.5,
+          borderRadius: compact ? 1 : 999,
+          px: compact ? 1 : 1.25,
+          py: compact ? 0.25 : 0.5,
           border: '1px solid',
-          ...badgeSurfaceSx(variant)(theme),
+          ...badgeSurfaceSx(variant, compact)(theme),
           ...(onClick
             ? {
                 cursor: 'pointer',
@@ -77,20 +105,20 @@ const ContextBadge = ({ variant, label, secondaryLabel, tooltip, onClick }: Cont
             : {}),
         })}
       >
-        <Stack direction="row" spacing={0.75} alignItems="center" width={1}>
+        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0, maxWidth: '100%' }}>
           <IconifyIcon
             icon={VARIANT_ICON[variant]}
             className="context-badge-icon"
-            sx={{ fontSize: 16, flexShrink: 0 }}
+            sx={{ fontSize: compact ? 14 : 16, flexShrink: 0 }}
           />
           <Typography
             variant="caption"
-            fontWeight={600}
+            fontWeight={compact ? 500 : 600}
             lineHeight={1.3}
             noWrap
-            sx={{ flex: 1, minWidth: 0 }}
+            sx={{ minWidth: 0 }}
           >
-            {label}
+            {displayLabel}
           </Typography>
           {onClick && (
             <IconifyIcon
@@ -101,7 +129,7 @@ const ContextBadge = ({ variant, label, secondaryLabel, tooltip, onClick }: Cont
         </Stack>
       </Box>
 
-      {secondaryLabel && (
+      {secondaryLabel && !compact && (
         <Typography
           variant="caption"
           color="text.secondary"
@@ -117,7 +145,9 @@ const ContextBadge = ({ variant, label, secondaryLabel, tooltip, onClick }: Cont
   if (tooltip && !onClick) {
     return (
       <Tooltip title={tooltip} placement="bottom-start">
-        <Box width={1}>{content}</Box>
+        <Box width={compact ? 'fit-content' : 1} sx={{ maxWidth: '100%' }}>
+          {content}
+        </Box>
       </Tooltip>
     );
   }
