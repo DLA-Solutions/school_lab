@@ -10,6 +10,9 @@ export type { SearchFieldProps } from './src/patterns/SearchField';
 export { default as SemanticChip } from './src/patterns/SemanticChip';
 export type { SemanticChipProps, SemanticChipVariant } from './src/patterns/SemanticChip';
 
+export { default as ContextBadge } from './src/patterns/ContextBadge';
+export type { ContextBadgeProps, ContextBadgeVariant } from './src/patterns/ContextBadge';
+
 export { default as EmptyState } from './src/patterns/EmptyState';
 export type { EmptyStateProps } from './src/patterns/EmptyState';
 

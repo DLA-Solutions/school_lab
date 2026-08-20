@@ -139,6 +139,21 @@ describe('DrawerItems permission gating', () => {
   });
 });
 
+describe('DrawerItems context badge', () => {
+  it('shows the active staff role and school in the sidebar header', () => {
+    renderDrawer([staffMembership]);
+
+    expect(screen.getByText(staffMembership.role_template?.name ?? '')).toBeInTheDocument();
+    expect(screen.getByText(staffMembership.school_name ?? '')).toBeInTheDocument();
+  });
+
+  it('shows Responsável in the guardian context', () => {
+    renderDrawer([guardianMembership]);
+
+    expect(screen.getByText('Responsável')).toBeInTheDocument();
+  });
+});
+
 describe('DrawerItems guardian audience', () => {
   it('shows only guardian destinations for an active Responsável context', () => {
     renderDrawer([guardianMembership]);

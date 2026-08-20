@@ -4,8 +4,7 @@ import paths from 'routes/paths';
 import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
 import ButtonBase from '@mui/material/ButtonBase';
-import Typography from '@mui/material/Typography';
-import { BrandLogo } from 'design-system';
+import { BrandLogo, ContextBadge } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import ListItem from './list-items/ListItem';
 
@@ -38,7 +37,7 @@ const DrawerItems = () => {
         justifyContent="flex-start"
         zIndex="appBar"
         width={1}
-        spacing={0.5}
+        spacing={1}
       >
         <ButtonBase
           component={RouterLink}
@@ -59,9 +58,11 @@ const DrawerItems = () => {
             }}
           />
         </ButtonBase>
-        <Typography variant="caption" color="text.secondary" px={0.5}>
-          {t('nav.backoffice')}
-        </Typography>
+        <ContextBadge
+          variant="platform"
+          label={t('nav.backoffice')}
+          tooltip={t('shell.backofficeContextTooltip')}
+        />
       </Stack>
 
       <List component="nav" sx={{ px: 2.5, pb: 12 }}>

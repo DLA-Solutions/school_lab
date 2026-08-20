@@ -18,6 +18,7 @@ const enUS: Messages = {
   'nav.language': 'Language',
 
   'shell.notificationsComingSoon': 'Coming soon',
+  'shell.backofficeContextTooltip': 'You are on the DLA platform (Backoffice)',
 
   'backoffice.dashboard.title': 'Dashboard',
   'backoffice.dashboard.subtitle': 'Platform-wide onboarding overview.',

@@ -1,6 +1,7 @@
 import { Link as RouterLink } from 'react-router';
 import paths from 'routes/paths';
 import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import ButtonBase from '@mui/material/ButtonBase';
@@ -9,7 +10,7 @@ import IconifyIcon from 'components/base/IconifyIcon';
 import LanguageSelect from './LanguageSelect';
 import ProfileMenu from './ProfileMenu';
 import { useTranslation } from 'providers/I18nContext';
-import { BrandLogo, ThemeToggle } from 'design-system';
+import { BrandLogo, ContextBadge, ThemeToggle } from 'design-system';
 
 interface TopbarProps {
   isClosing: boolean;
@@ -41,14 +42,23 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
           </IconButton>
         </Toolbar>
 
-        <ButtonBase
-          component={RouterLink}
-          to={paths.schools}
-          disableRipple
-          sx={{ display: { xs: 'block', lg: 'none' } }}
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          sx={{ display: { xs: 'flex', lg: 'none' }, minWidth: 0 }}
         >
-          <BrandLogo variant="mark" height={28} />
-        </ButtonBase>
+          <ButtonBase component={RouterLink} to={paths.schools} disableRipple>
+            <BrandLogo variant="mark" height={28} />
+          </ButtonBase>
+          <Box sx={{ display: { xs: 'none', sm: 'block' }, minWidth: 0, maxWidth: 220, flex: 1 }}>
+            <ContextBadge
+              variant="platform"
+              label={t('nav.backoffice')}
+              tooltip={t('shell.backofficeContextTooltip')}
+            />
+          </Box>
+        </Stack>
       </Stack>
 
       <Stack spacing={1} alignItems="center">

@@ -9,6 +9,9 @@ import ListSubheader from '@mui/material/ListSubheader';
 import ButtonBase from '@mui/material/ButtonBase';
 import { BrandLogo } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
+import ActiveContextBadge from '../ActiveContextBadge';
+import GlobalSearch from './GlobalSearch';
+import ListItem from './list-items/ListItem';
 import { useActiveMembership } from 'providers/ActiveMembershipContext';
 import { visibleSitemap } from 'utils/navigation/visibleSitemap';
 import {
@@ -17,8 +20,6 @@ import {
   groupMenuItemsBySection,
   isNavRouteActive,
 } from 'utils/navigation/navSections';
-import GlobalSearch from './GlobalSearch';
-import ListItem from './list-items/ListItem';
 
 const DrawerItems = () => {
   const location = useLocation();
@@ -44,6 +45,7 @@ const DrawerItems = () => {
         justifyContent="flex-start"
         zIndex="appBar"
         width={1}
+        spacing={1}
       >
         <ButtonBase
           component={RouterLink}
@@ -64,6 +66,7 @@ const DrawerItems = () => {
             }}
           />
         </ButtonBase>
+        <ActiveContextBadge />
       </Stack>
 
       <Box px={3.5} pb={3} pt={1}>
