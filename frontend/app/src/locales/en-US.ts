@@ -435,6 +435,10 @@ const enUS: Messages = {
   'nav.contract': 'Contract',
   'nav.schools': 'Schools',
   'nav.language': 'Language',
+  'nav.section.family': 'Family portal',
+  'nav.section.billing': 'Billing',
+  'nav.section.settings': 'Settings',
+  'nav.section.accounts': 'User accounts',
 
   'bankCredentials.title': 'Bank credentials',
   'bankCredentials.cora': 'Cora integration (boleto)',

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import paths from 'routes/paths';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { activeMembershipValueFor } from 'test/activeMembership';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
@@ -56,9 +57,13 @@ const authValueFor = (memberships: Membership[]): AuthContextValue => ({
   refreshUser: vi.fn(),
 });
 
-const renderDrawer = (memberships: Membership[], selectedId?: number) =>
+const renderDrawer = (
+  memberships: Membership[],
+  selectedId?: number,
+  initialEntry = paths.dashboard,
+) =>
   renderWithTheme(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <AuthContext.Provider value={authValueFor(memberships)}>
         <ActiveMembershipContext.Provider
           value={activeMembershipValueFor(memberships, selectedId ?? memberships[0]?.id ?? null)}
@@ -95,6 +100,7 @@ describe('DrawerItems permission gating', () => {
   it('shows billing routes to a user with manage_billing', () => {
     renderDrawer([billingMembership]);
 
+    expect(screen.getByText('Financeiro')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Boletos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Planos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Contrato' })).toBeInTheDocument();
@@ -117,11 +123,13 @@ describe('DrawerItems permission gating', () => {
     };
 
     renderDrawer([settingsMembership]);
+    expect(screen.getByText('Configurações')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Assinatura School Lab' })).toHaveAttribute(
       'href',
       '/assinatura',
     );
     expect(screen.queryByRole('link', { name: 'Boletos' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Financeiro')).not.toBeInTheDocument();
   });
 
   it('hides School Lab subscription from manage_billing-only staff', () => {
@@ -135,6 +143,8 @@ describe('DrawerItems guardian audience', () => {
   it('shows only guardian destinations for an active Responsável context', () => {
     renderDrawer([guardianMembership]);
 
+    expect(screen.getByText('Portal da família')).toBeInTheDocument();
+    expect(screen.queryByText('Configurações')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Meus boletos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Preceptoria' })).toBeInTheDocument();
@@ -166,5 +176,22 @@ describe('DrawerItems guardian audience', () => {
 
     expect(screen.queryByRole('link', { name: 'Estudantes' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Meus pedidos' })).toBeInTheDocument();
+  });
+});
+
+describe('DrawerItems active route', () => {
+  it('highlights only the current destination in the sidebar', () => {
+    renderDrawer([billingMembership], billingMembership.id, paths.charges);
+
+    expect(screen.getByRole('link', { name: 'Boletos' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Planos' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('shows Contas de acesso section for manage_people staff', () => {
+    renderDrawer([staffMembership]);
+
+    expect(screen.getByText('Contas de acesso')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Usuários' })).toBeInTheDocument();
   });
 });
