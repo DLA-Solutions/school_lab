@@ -26,8 +26,10 @@ const DrawerItems = () => {
   const activeMembership = useActiveMembership();
   const navItems = useMemo(() => visibleSitemap(activeMembership), [activeMembership]);
   const groupedItems = useMemo(() => groupMenuItemsBySection(navItems), [navItems]);
-
-  let renderedSectionCount = 0;
+  const visibleSections = useMemo(
+    () => NAV_SECTION_ORDER.filter((section) => groupedItems[section].length > 0),
+    [groupedItems],
+  );
 
   return (
     <>
@@ -69,16 +71,10 @@ const DrawerItems = () => {
       </Box>
 
       <List component="nav" sx={{ px: 2.5, pb: 3 }}>
-        {NAV_SECTION_ORDER.map((section) => {
+        {visibleSections.map((section, sectionIndex) => {
           const items = groupedItems[section];
-
-          if (items.length === 0) {
-            return null;
-          }
-
-          const showDivider = renderedSectionCount > 0;
+          const showDivider = sectionIndex > 0;
           const labelKey = NAV_SECTION_LABEL_KEYS[section];
-          renderedSectionCount += 1;
 
           return (
             <Fragment key={section}>
