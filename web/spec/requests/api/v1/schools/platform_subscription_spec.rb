@@ -118,7 +118,7 @@ RSpec.describe "Api::V1::Schools::PlatformSubscriptions", type: :request do
       parameter name: "Authorization", in: :header, type: :string
 
       response "200", "invoices listed without vendor ids" do
-        let!(:subscription) { create(:platform_subscription, school: school, platform_plan: plan, provider: "iugu") }
+        let!(:subscription) { create(:platform_subscription, school: school, platform_plan: plan, provider: "asaas") }
         let!(:invoice) { create(:platform_invoice, platform_subscription: subscription, school: school) }
 
         run_test! do |response|
