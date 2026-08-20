@@ -7,7 +7,7 @@ FactoryBot.define do
     monthly_amount_cents { 29_900 }
 
     after(:create) do |plan|
-      %w[manual iugu fake].each do |provider|
+      %w[manual asaas fake].each do |provider|
         {
           "month" => plan.monthly_amount_cents,
           "year" => plan.monthly_amount_cents * 12
@@ -97,11 +97,11 @@ FactoryBot.define do
   factory :platform_invoice do
     platform_subscription
     school { platform_subscription.school }
-    provider { "iugu" }
+    provider { "asaas" }
     status { "open" }
     amount_cents { 29_900 }
     sequence(:external_invoice_id) { |n| "inv-#{n}-#{SecureRandom.hex(4)}" }
-    hosted_invoice_url { "https://faturas.iugu.com/example" }
+    hosted_invoice_url { "https://asaas.test/i/example" }
   end
 
   factory :platform_billing_setting do

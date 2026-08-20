@@ -7,8 +7,8 @@ RSpec.describe Platform::UpdateSubscriptionService do
   let(:starter) { PlatformPlan.find_by(key: "starter") || create(:platform_plan, :starter) }
   let(:pro) { PlatformPlan.find_by(key: "pro") || create(:platform_plan, :pro) }
 
-  it "rejects plan changes on an Iugu row" do
-    subscription = create(:platform_subscription, school: school, platform_plan: starter, provider: "iugu",
+  it "rejects plan changes on an Asaas row" do
+    subscription = create(:platform_subscription, school: school, platform_plan: starter, provider: "asaas",
                                                   collection_method: "send_invoice")
 
     result = described_class.call(subscription: subscription, params: { platform_plan_id: pro.id })

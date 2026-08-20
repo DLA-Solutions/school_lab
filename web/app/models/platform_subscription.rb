@@ -4,7 +4,7 @@ class PlatformSubscription < ApplicationRecord
   include Discard::Model
 
   STATUSES = %w[trialing active past_due canceled incomplete].freeze
-  PROVIDERS = %w[iugu manual fake].freeze
+  PROVIDERS = %w[asaas manual fake].freeze
   INTERVALS = %w[month year].freeze
   COLLECTION_METHODS = %w[automatic send_invoice manual].freeze
   BILLABLE_STATUSES = %w[active trialing].freeze
