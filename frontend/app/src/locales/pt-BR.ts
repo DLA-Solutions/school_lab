@@ -891,12 +891,19 @@ const ptBR = {
   'guardians.searchPlaceholder': 'Buscar por nome ou CPF',
   'guardians.searchAria': 'Buscar responsáveis',
   'guardians.activateError': 'Não foi possível ativar o responsável.',
-  'guardians.deleteTitle': 'Excluir responsável',
+  'guardians.deleteTitle': 'Inativar responsável',
+  // "Excluir" prometia mais do que a ação faz: o registro é inativado, não apagado, e pode ser
+  // reativado pelo filtro de inativos. E não se diz que some da listagem — os filtros "Inativos"
+  // e "Todos" continuam mostrando a pessoa.
   'guardians.deleteMessage':
-    'Excluir {name}? Ele deixa de aparecer na listagem, mas o histórico de cobranças é preservado.',
-  'guardians.deleteError': 'Não foi possível excluir o responsável. Tente novamente.',
+    'Deseja inativar essa pessoa? {name} sai da listagem de ativos, e o histórico de cobranças é preservado.',
+  'guardians.deleteError': 'Não foi possível inativar o responsável. Tente novamente.',
+  'guardians.deactivate': 'Inativar',
+  'guardians.deactivating': 'Inativando...',
+  'guardians.deactivateActionAria': 'Inativar {name}',
   'guardians.sendAccess': 'Enviar acesso ao sistema',
   'guardians.sendAccessAria': 'Enviar acesso ao sistema para {name}',
+  'guardians.sendAccessInactive': 'Reative o responsável antes de enviar o acesso',
   'guardians.sendAccessTitle': 'Enviar acesso ao sistema',
   'guardians.sendAccessMessage': 'Enviar o link de acesso ao sistema para {name} ({email})?',
   'guardians.sendAccessNoEmail': 'Enviar o link de acesso ao sistema para {name}?',
