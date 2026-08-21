@@ -185,8 +185,11 @@
   width: 100%;
   height: 100%;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 480ms ease-out;
+  transition:
+    opacity 320ms ease-out,
+    visibility 0ms linear 320ms;
 }
 
 .cap-poster {
@@ -196,6 +199,8 @@
   right: clamp(-2%, 8vw, 12%);
   width: min(48vw, 52rem);
   max-width: 100%;
+  aspect-ratio: 1.15;
+  overflow: hidden;
   transform: translateY(-48%);
   opacity: 0.96;
   transition: opacity 320ms ease-out;
@@ -205,16 +210,23 @@
 .cap-poster img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% 46%;
   filter: drop-shadow(0 2.5rem 4rem rgb(1 5 14 / 55%));
 }
 
 .scene-ready .scene-stage__canvas {
   opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 320ms ease-out,
+    visibility 0ms linear;
 }
 
 .scene-ready .cap-poster {
   opacity: 0;
+  pointer-events: none;
 }
 
 .scene-fallback .cap-poster,
@@ -225,6 +237,7 @@
 .scene-fallback .scene-stage__canvas,
 .scene-static .scene-stage__canvas {
   opacity: 0;
+  visibility: hidden;
 }
 
 html[data-scroll-chapter='silhouette'] .scene-stage,
