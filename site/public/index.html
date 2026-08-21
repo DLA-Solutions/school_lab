@@ -18,7 +18,13 @@
       as="fetch"
       crossorigin
     />
-    <link rel="preload" href="./assets/scholar-premium-cap-poster.webp" as="image" type="image/webp" />
+    <link
+      rel="preload"
+      href="./assets/scholar-premium-cap-poster-mobile.webp"
+      as="image"
+      type="image/webp"
+      media="(max-width: 64rem)"
+    />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
@@ -45,8 +51,8 @@
     />
 
     <title>Scholar Premium — Gestão à altura do legado da sua escola</title>
-    <script type="module" crossorigin src="./assets/index-B-qe13J1.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DR0dNbPt.css">
+    <script type="module" crossorigin src="./assets/index-Bfmmpnn-.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Bmgc6krM.css">
   </head>
   <body>
     <a class="skip-link" href="#main-content">Ir para o conteúdo principal</a>
@@ -75,6 +81,21 @@
           fetchpriority="high"
         />
       </picture>
+      <div class="cap-loader" aria-hidden="true">
+        <div class="cap-loader__stage">
+          <div class="cap-loader__aura"></div>
+          <div class="cap-loader__ring cap-loader__ring--outer"></div>
+          <div class="cap-loader__ring cap-loader__ring--inner"></div>
+          <div class="cap-loader__orbit">
+            <span class="cap-loader__arc"></span>
+          </div>
+          <div class="cap-loader__core"></div>
+        </div>
+        <p class="cap-loader__kicker">
+          <span class="cap-loader__kicker-line" aria-hidden="true"></span>
+          Legado em movimento
+        </p>
+      </div>
       <canvas
         class="scene-stage__canvas"
         id="hero-canvas"
