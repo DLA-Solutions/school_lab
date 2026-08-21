@@ -1,14 +1,14 @@
 # Scholar Premium — Frame 01 hero POC
 
-Isolated implementation of the `Arrival / legacy` hero. It does not replace the production
-placeholder in `site/public`.
+Isolated implementation of the `Arrival / legacy` hero. It does not replace the production site
+in `site/`.
 
 ## Stack and assets
 
 - Vite + TypeScript + Three.js, with native CSS and `requestAnimationFrame`.
 - Self-hosted Inter and Cormorant Garamond font files supplied by Fontsource packages on desktop;
   constrained viewports use robust system serif/sans fallbacks to avoid font-driven LCP shifts.
-- Optimized official lockup derivative sourced from `site/public/brand-lockup.png`.
+- Optimized official lockup derivative sourced from the production site asset set.
 - Repository-owned runtime copy of the supplied model at
   `public/assets/scholar-premium-graduation-cap.glb`.
 - CSS poster is the intentional mobile, coarse-pointer, reduced-motion, and constrained-context

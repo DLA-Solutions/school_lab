@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-label="Placeholder  captura de boletins pendente">
-  <rect width="960" height="600" fill="#f4eddf"/>
-  <rect x="40" y="40" width="880" height="520" fill="#ffffff" stroke="#d6aa55" stroke-width="2"/>
-  <text x="480" y="270" text-anchor="middle" font-family="Georgia, serif" font-size="32" fill="#071326">Boletins</text>
-  <text x="480" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#6b5a3a">PLACEHOLDER  captura autêntica pendente</text>
-</svg>

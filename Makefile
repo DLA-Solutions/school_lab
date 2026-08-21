@@ -131,9 +131,10 @@ design-system-docs-dev:
 # --- Site static landing ---
 
 site-serve:
-	npx serve site/public
+	npx serve site/dist
 
 site-build:
+	cd site && npm ci && npm run build
 	docker build -f site/Dockerfile .
 
 # --- Local CI (path filters match .github/workflows/ci.yml) ---
