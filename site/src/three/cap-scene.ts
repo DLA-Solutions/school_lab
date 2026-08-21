@@ -136,8 +136,8 @@ export const CAP_KEYFRAMES: CapKeyframe[] = [
 /** One keyframe per visible narrative frame (01–03, 05–06). */
 const KEYFRAME_PROGRESS = [0, 0.25, 0.5, 0.75, 1];
 
-/** Radians per millisecond — one full Y turn in ~120s; secondary to pointer orbit. */
-const IDLE_SPIN_Y_PER_MS = 0.000052;
+/** Radians per millisecond — one full Y turn in ~70s; secondary to pointer orbit. */
+const IDLE_SPIN_Y_PER_MS = 0.00009;
 
 /** Pointer orbit bounds (normalized device coords, -1..1). Rotation dominates; position is subtle depth. */
 const POINTER_PARALLAX = {
