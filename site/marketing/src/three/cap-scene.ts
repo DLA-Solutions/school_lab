@@ -190,6 +190,7 @@ interface SceneStateSnapshot {
   renderScheduled: boolean;
   environmentReady: boolean;
   contactShadowEnabled: boolean;
+  revealedAt: number | null;
 }
 
 declare global {
@@ -334,6 +335,7 @@ export async function createCapScene(
     renderScheduled: false,
     environmentReady: Boolean(scene.environment),
     contactShadowEnabled: renderer.shadowMap.enabled && contactShadow.receiveShadow,
+    revealedAt: null,
   };
   window.__scholarSceneState = { snapshot: () => ({ ...sceneState }) };
 
@@ -342,6 +344,8 @@ export async function createCapScene(
   let disposed = false;
   let contextAvailable = true;
   let arrivalStartedAt = 0;
+  let renderedFrameCount = 0;
+  let sceneRevealed = false;
   let baseScale = 1;
   let scrollProgress = 0;
   let targetScrollProgress = 0;
@@ -438,6 +442,17 @@ export async function createCapScene(
     metrics.record(time, renderStartedAt, performance.now());
     sceneState.totalRenderCount += 1;
     sceneState.lastRenderAt = performance.now();
+    renderedFrameCount += 1;
+
+    if (!sceneRevealed && renderedFrameCount >= 2) {
+      sceneRevealed = true;
+      sceneState.revealedAt = performance.now();
+      document.documentElement.classList.remove('scene-fallback');
+      document.documentElement.classList.remove('scene-static');
+      document.documentElement.classList.add('scene-ready');
+    } else if (!sceneRevealed) {
+      scheduleRender();
+    }
 
     if (arrivalProgress >= 1 && sceneState.arrivalSettledAt === null) {
       sceneState.arrivalSettledAt = performance.now();
@@ -527,9 +542,12 @@ export async function createCapScene(
   const onContextRestored = (): void => {
     contextAvailable = true;
     if (model) {
+      renderedFrameCount = 0;
+      sceneRevealed = false;
+      sceneState.revealedAt = null;
       document.documentElement.classList.remove('scene-fallback');
-      document.documentElement.classList.remove('scene-static');
-      document.documentElement.classList.add('scene-ready');
+      document.documentElement.classList.add('scene-static');
+      document.documentElement.classList.remove('scene-ready');
       scheduleRender();
     }
   };
@@ -602,13 +620,10 @@ export async function createCapScene(
     model.rotation.copy(baseRotation);
     scene.add(model);
 
-    arrivalStartedAt = performance.now();
-    sceneState.modelReadyAt = arrivalStartedAt;
+    arrivalStartedAt = performance.now() - 1200;
+    sceneState.modelReadyAt = performance.now();
     sceneState.arrivalStartedAt = arrivalStartedAt;
     resize();
-    document.documentElement.classList.remove('scene-fallback');
-    document.documentElement.classList.remove('scene-static');
-    document.documentElement.classList.add('scene-ready');
     scheduleRender();
   } catch (error) {
     console.warn('O objeto 3D não pôde ser carregado; exibindo a composição estática.', error);

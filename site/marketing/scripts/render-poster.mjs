@@ -12,6 +12,7 @@ const assetsDirectory = join(projectDirectory, 'public', 'assets');
 const distDirectory = join(projectDirectory, 'dist');
 const chromeExecutable = findChromeExecutable();
 const previewPort = await findAvailablePort();
+const midnightBackground = '#050b18';
 
 await mkdir(assetsDirectory, { recursive: true });
 
@@ -50,12 +51,58 @@ try {
   });
 
   try {
-    const context = await browser.newContext({
+    const desktopBuffer = await captureCapPoster(browser, previewUrl, {
       viewport: { width: 1440, height: 900 },
       deviceScaleFactor: 1,
     });
-    const page = await context.newPage();
-    await page.goto(previewUrl, { waitUntil: 'load' });
+    const mobileBuffer = await captureCapPoster(browser, previewUrl, {
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+    });
+
+    await writePosterVariants(desktopBuffer, mobileBuffer);
+    console.log('Cap-only posters rendered from live 3D canvas crop.');
+  } finally {
+    await browser.close();
+  }
+} catch (error) {
+  console.warn('3D poster capture failed; writing placeholder posters.', error);
+  await generatePlaceholderPosters();
+} finally {
+  previewProcess.kill('SIGTERM');
+}
+
+async function captureCapPoster(browser, url, { viewport, deviceScaleFactor }) {
+  const context = await browser.newContext({ viewport, deviceScaleFactor });
+  const page = await context.newPage();
+
+  await page.addInitScript(() => {
+    const originalMatchMedia = window.matchMedia.bind(window);
+    window.matchMedia = (query) => {
+      if (
+        query.includes('pointer: fine') ||
+        query.includes('min-width: 64rem') ||
+        query.includes('prefers-reduced-motion: reduce')
+      ) {
+        return {
+          matches: query.includes('prefers-reduced-motion: reduce') ? false : true,
+          media: query,
+          onchange: null,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+          dispatchEvent: () => false,
+        };
+      }
+
+      return originalMatchMedia(query);
+    };
+  });
+
+  try {
+    await page.goto(url, { waitUntil: 'load' });
+    await page.mouse.move(720, 420);
+    await page.mouse.move(760, 440);
+    await page.waitForTimeout(1800);
 
     await page.waitForFunction(
       () =>
@@ -76,32 +123,70 @@ try {
       }
     }
 
-    await page.waitForTimeout(1500);
-    const stage = page.locator('.scene-stage');
-    const desktopBuffer = await stage.screenshot({ type: 'png' });
+    await page.waitForTimeout(800);
 
-    await writePosterVariants(desktopBuffer);
-    await context.close();
-    console.log('Posters rendered from live 3D scene stage.');
+    const crop = await page.evaluate(() => {
+      const poster = document.querySelector('.cap-poster');
+      const canvas = document.querySelector('.scene-stage__canvas');
+      if (!(poster instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
+        return null;
+      }
+
+      const posterRect = poster.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      if (posterRect.width < 8 || posterRect.height < 8) {
+        return null;
+      }
+
+      return {
+        left: posterRect.left - canvasRect.left,
+        top: posterRect.top - canvasRect.top,
+        width: posterRect.width,
+        height: posterRect.height,
+        canvasWidth: canvasRect.width,
+        canvasHeight: canvasRect.height,
+      };
+    });
+
+    if (!crop) {
+      throw new Error('Cap poster crop bounds were unavailable.');
+    }
+
+    const canvasBuffer = await page.locator('.scene-stage__canvas').screenshot({ type: 'png' });
+    return cropCanvasToCapPoster(canvasBuffer, crop);
   } finally {
-    await browser.close();
+    await context.close();
   }
-} catch (error) {
-  console.warn('3D poster capture failed; writing placeholder posters.', error);
-  await generatePlaceholderPosters();
-} finally {
-  previewProcess.kill('SIGTERM');
 }
 
-async function writePosterVariants(desktopBuffer) {
-  const desktopWebp = await sharp(desktopBuffer).webp({ quality: 88 }).toBuffer();
-  const desktopPng = await sharp(desktopBuffer).png().toBuffer();
-  const mobileWebp = await sharp(desktopBuffer)
-    .resize({ width: 780, height: 680, fit: 'cover', position: 'right' })
-    .webp({ quality: 86 })
+async function cropCanvasToCapPoster(canvasBuffer, crop) {
+  const metadata = await sharp(canvasBuffer).metadata();
+  const scaleX = metadata.width / crop.canvasWidth;
+  const scaleY = metadata.height / crop.canvasHeight;
+
+  const left = Math.max(0, Math.round(crop.left * scaleX));
+  const top = Math.max(0, Math.round(crop.top * scaleY));
+  const width = Math.min(metadata.width - left, Math.round(crop.width * scaleX));
+  const height = Math.min(metadata.height - top, Math.round(crop.height * scaleY));
+
+  if (width < 8 || height < 8) {
+    throw new Error('Cap poster crop dimensions were too small.');
+  }
+
+  return sharp(canvasBuffer)
+    .extract({ left, top, width, height })
+    .flatten({ background: midnightBackground })
+    .png()
     .toBuffer();
+}
+
+async function writePosterVariants(desktopBuffer, mobileBuffer = desktopBuffer) {
+  const desktopMeta = await sharp(desktopBuffer).metadata();
+  const desktopWebp = await sharp(desktopBuffer).webp({ quality: 88 }).toBuffer();
+  const desktopPng = desktopBuffer;
+  const mobileWebp = await sharp(mobileBuffer).webp({ quality: 86 }).toBuffer();
   const ogWebp = await sharp(desktopBuffer)
-    .resize({ width: 1200, height: 630, fit: 'cover', position: 'right' })
+    .resize({ width: 1200, height: 630, fit: 'cover', position: 'centre' })
     .webp({ quality: 90 })
     .toBuffer();
 
@@ -112,18 +197,20 @@ async function writePosterVariants(desktopBuffer) {
     writeFile(join(assetsDirectory, 'scholar-premium-cap-poster-mobile.webp'), mobileWebp),
     writeFile(join(assetsDirectory, 'scholar-premium-og.webp'), ogWebp),
   ]);
+
+  return desktopMeta;
 }
 
 async function generatePlaceholderPosters() {
   const lockupPath = join(assetsDirectory, 'scholar-premium-lockup.png');
   const base = existsSync(lockupPath)
-    ? sharp(lockupPath).resize(1200, 1000, { fit: 'contain', background: '#050b18' })
+    ? sharp(lockupPath).resize(920, 800, { fit: 'contain', background: midnightBackground })
     : sharp({
         create: {
-          width: 1200,
-          height: 1000,
+          width: 920,
+          height: 800,
           channels: 3,
-          background: '#050b18',
+          background: midnightBackground,
         },
       });
 

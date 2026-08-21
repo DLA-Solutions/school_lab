@@ -1,6 +1,6 @@
 {
   "index.html": {
-    "file": "assets/index-h1eEltk9.js",
+    "file": "assets/index-Bfmmpnn-.js",
     "name": "index",
     "src": "index.html",
     "isEntry": true,
@@ -9,7 +9,7 @@
       "src/scroll/scroll-narrative.ts"
     ],
     "css": [
-      "assets/index-B9S2PbhB.css"
+      "assets/index-Bmgc6krM.css"
     ],
     "assets": [
       "assets/inter-latin-400-normal-C38fXH4l.woff2",
@@ -61,7 +61,7 @@
     "isDynamicEntry": true
   },
   "src/three/cap-scene.ts": {
-    "file": "assets/cap-scene-DF59J7SB.js",
+    "file": "assets/cap-scene-Dshb5eD5.js",
     "name": "cap-scene",
     "src": "src/three/cap-scene.ts",
     "isDynamicEntry": true
