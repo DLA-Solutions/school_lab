@@ -1,5 +1,4 @@
 import { type SxProps, useTheme } from '@mui/material';
-import { fontFamily } from 'theme/typography';
 import { useMemo } from 'react';
 import useChartTheme from 'design-system/hooks/useChartTheme';
 import * as echarts from 'echarts/core';
@@ -68,7 +67,7 @@ const StudentsByClassChart = ({ chartRef, data, ...rest }: StudentsByClassChartP
             text: String(total),
             fill: chartTheme.strongTextColor,
             fontSize: theme.typography.h3.fontSize,
-            fontFamily: fontFamily.workSans,
+            fontFamily: theme.typography.fontFamily,
             fontWeight: 500,
             letterSpacing: 1,
           },

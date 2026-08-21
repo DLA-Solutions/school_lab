@@ -9,6 +9,7 @@ import ThemeModeProvider from 'providers/ThemeModeProvider';
 import I18nProvider from 'providers/I18nProvider';
 import ChunkLoadErrorBoundary from 'components/ChunkLoadErrorBoundary';
 import { installChunkLoadRecovery } from 'utils/chunkLoadRecovery';
+import './fonts';
 import './index.css';
 
 installChunkLoadRecovery();
