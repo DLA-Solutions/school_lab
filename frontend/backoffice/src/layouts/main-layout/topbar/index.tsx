@@ -45,7 +45,7 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
           component={RouterLink}
           to={paths.schools}
           disableRipple
-          sx={{ display: { xs: 'block', lg: 'none' } }}
+          sx={{ display: { xs: 'inline-flex', lg: 'none' } }}
         >
           <BrandLogo variant="mark" height={28} />
         </ButtonBase>

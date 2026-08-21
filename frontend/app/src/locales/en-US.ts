@@ -741,6 +741,9 @@ const enUS: Messages = {
     'See the status of requests you have made to the school.',
 
   'membership.switchContext': 'Switch profile and school',
+  'membership.switchContextHint': 'Click to switch profile or school',
+  'membership.contextTooltip': 'You are signed in as {role} · {school}',
+  'membership.contextTooltipRoleOnly': 'You are signed in as {role}',
   'membership.switchSecondaryWithId': '{schoolName} · school {schoolId}',
 
   'errors.schoolAccessDenied':

@@ -9,6 +9,9 @@ import ListSubheader from '@mui/material/ListSubheader';
 import ButtonBase from '@mui/material/ButtonBase';
 import { BrandLogo } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
+import ActiveContextBadge from '../ActiveContextBadge';
+import GlobalSearch from './GlobalSearch';
+import ListItem from './list-items/ListItem';
 import { useActiveMembership } from 'providers/ActiveMembershipContext';
 import { visibleSitemap } from 'utils/navigation/visibleSitemap';
 import {
@@ -17,8 +20,6 @@ import {
   groupMenuItemsBySection,
   isNavRouteActive,
 } from 'utils/navigation/navSections';
-import GlobalSearch from './GlobalSearch';
-import ListItem from './list-items/ListItem';
 
 const DrawerItems = () => {
   const location = useLocation();
@@ -34,36 +35,34 @@ const DrawerItems = () => {
   return (
     <>
       <Stack
-        pt={5}
-        pb={4}
+        direction="column"
+        pt={4}
+        pb={2.5}
         px={3.5}
         position={'sticky'}
         top={0}
         bgcolor="background.default"
-        alignItems="flex-start"
+        alignItems="center"
         justifyContent="flex-start"
         zIndex="appBar"
         width={1}
+        spacing={0.75}
       >
         <ButtonBase
           component={RouterLink}
           to={paths.dashboard}
           disableRipple
-          sx={{ width: 1, justifyContent: 'flex-start' }}
+          sx={{
+            display: 'flex',
+            width: 1,
+            justifyContent: 'center',
+          }}
         >
-          <BrandLogo
-            variant="lockup"
-            sx={{
-              width: 1,
-              maxWidth: 1,
-              height: 'auto',
-              '& img': {
-                width: '100%',
-                height: 'auto',
-              },
-            }}
-          />
+          <BrandLogo variant="lockup" height={46} sx={{ maxWidth: 1 }} />
         </ButtonBase>
+        <Box sx={{ alignSelf: 'flex-start' }}>
+          <ActiveContextBadge />
+        </Box>
       </Stack>
 
       <Box px={3.5} pb={3} pt={1}>

@@ -1,6 +1,5 @@
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { fontFamily } from 'theme/typography';
 import { DocSection } from '../components/DocLayout';
 import CodeBlock from '../components/CodeBlock';
 import SpecTable from '../components/SpecTable';
@@ -54,14 +53,14 @@ const TypographyPage = () => (
   <DocSection
     id="typography"
     title="Typography"
-    description="One scale, two families, and the variant-to-element mapping that keeps the document outline honest."
+    description="One scale, one family, and the variant-to-element mapping that keeps the document outline honest."
   >
     <Typography variant="body1" paragraph>
-      Mona Sans is the default family for the whole app. Work Sans is the exception, opted into per
-      call through <code>fontFamily.workSans</code> for dashboard section titles and chart legends,
-      where the lighter face reads better at weight 400. Neither is set through CSS on raw
-      elements: the MUI variants <em>are</em> the scale, so a size that is not in the table below
-      does not exist.
+      Inter is the single project font family, self-hosted via <code>@fontsource/inter</code> and set
+      as the MUI theme default through <code>fontFamily.inter</code> in{' '}
+      <code>theme/typography.ts</code>. Neither family nor size is
+      set through CSS on raw elements: the MUI variants <em>are</em> the scale, so a size that is
+      not in the table below does not exist.
     </Typography>
 
     <SpecTable headers={['Variant', 'Size / weight', 'Renders as', 'Use for']} rows={scale} />
@@ -81,25 +80,24 @@ const TypographyPage = () => (
     </Stack>
 
     <Typography variant="h6" gutterBottom>
-      Work Sans
+      Section titles
     </Typography>
     <Typography variant="body2" color="text.secondary" mb={2}>
-      Section titles in the dashboard pair <code>h6</code> with weight 400 and Work Sans. The
-      pattern components already do this, so a page that uses <code>PageHeader</code> and{' '}
-      <code>SectionCard</code> never sets a family by hand.
+      Section titles pair <code>h6</code> with weight 400 for a softer card header.{' '}
+      <code>PageHeader</code> and <code>SectionCard</code> already do this — pages should not set a
+      family or weight by hand.
     </Typography>
     <Stack direction="column" spacing={2} mb={2}>
-      <Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
-        Website Visitors — h6, weight 400, Work Sans
+      <Typography variant="h6" fontWeight={400}>
+        Website Visitors — h6, weight 400, Inter
       </Typography>
-      <Typography variant="body1" fontFamily={fontFamily.workSans} color="text.secondary">
-        body1 in Work Sans — chart legends and figure labels
+      <Typography variant="body2" color="text.secondary">
+        body2 in Inter — chart legends and figure labels inherit the theme
       </Typography>
     </Stack>
     <CodeBlock
-      code={`import { fontFamily } from 'theme/typography';
-
-<Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
+      code={`// PageHeader / SectionCard — no fontFamily override needed
+<Typography variant="h6" fontWeight={400}>
   {t('dashboard.visitors')}
 </Typography>`}
     />
@@ -147,6 +145,12 @@ const TypographyPage = () => (
           shares a row with a control.
         </Typography>
       </li>
+      <li>
+        <Typography variant="body2">
+          For ECharts labels, use <code>theme.typography.fontFamily</code> so canvas text matches
+          the shell.
+        </Typography>
+      </li>
     </ul>
 
     <Typography variant="h6" gutterBottom>
@@ -167,8 +171,8 @@ const TypographyPage = () => (
       </li>
       <li>
         <Typography variant="body2">
-          Apply Work Sans to body copy. It marks dashboard titles and figures, and stops meaning
-          anything if it is everywhere.
+          Override <code>fontFamily</code> on individual components — one family keeps dense admin UI
+          readable and consistent.
         </Typography>
       </li>
     </ul>

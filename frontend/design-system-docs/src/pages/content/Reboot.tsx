@@ -17,7 +17,7 @@ const baselineRows = [
   [
     <code key="v">body</code>,
     'margin: 0, body1 typography, text.primary',
-    'Mona Sans metrics and colour inherited by everything',
+    'Inter metrics and colour inherited by everything',
   ],
   [
     <code key="v">body</code>,
@@ -46,7 +46,7 @@ const overrideRows = [
   [
     <code key="v">body</code>,
     'font-variant-ligatures: none',
-    'Mona Sans ligatures distort numerals in dense tables',
+    'Disables ligatures so numerals stay aligned in dense tables',
   ],
   [
     <code key="v">body</code>,

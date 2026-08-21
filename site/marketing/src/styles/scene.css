@@ -1,0 +1,392 @@
+.scene-stage {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(
+    165deg,
+    var(--midnight) 0%,
+    color-mix(in srgb, var(--midnight) calc((1 - var(--scene-progress)) * 100%), var(--ivory))
+      100%
+  );
+  pointer-events: none;
+  transition: background 120ms linear;
+}
+
+.scene-backdrop {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  opacity: calc(0.68 + var(--scene-arrival-strength) * 0.32);
+  transition: opacity 180ms linear;
+}
+
+.scene-backdrop::before {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 72% 62% at 22% 48%, transparent 42%, rgb(2 6 14 / 38%) 100%),
+    radial-gradient(ellipse 105% 92% at 50% 50%, transparent 18%, rgb(1 4 10 / 62%) 100%);
+  opacity: 0.88;
+  pointer-events: none;
+  content: '';
+  animation: scene-vignette-breathe 22s ease-in-out infinite;
+}
+
+.scene-backdrop__layer {
+  position: absolute;
+  inset: -22%;
+  will-change: transform;
+}
+
+.scene-backdrop__layer--depth-far {
+  background:
+    radial-gradient(ellipse 115% 88% at 14% 82%, rgb(2 6 16 / 96%), transparent 52%),
+    radial-gradient(ellipse 88% 68% at 86% 16%, rgb(14 36 64 / 88%), transparent 56%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgb(5 14 30 / 72%), transparent 68%);
+  filter: blur(1.5px);
+  animation: scene-depth-drift-far 22s ease-in-out infinite;
+}
+
+.scene-backdrop__layer--depth-mid {
+  background:
+    radial-gradient(ellipse 72% 58% at 74% 38%, rgb(22 50 86 / 84%), transparent 62%),
+    radial-gradient(ellipse 54% 46% at 22% 64%, rgb(10 24 48 / 76%), transparent 64%),
+    radial-gradient(ellipse 38% 32% at 58% 72%, rgb(18 40 72 / 58%), transparent 70%);
+  filter: blur(0.75px);
+  animation: scene-depth-drift-mid 17s ease-in-out infinite;
+}
+
+.scene-backdrop__layer--depth-near {
+  background:
+    radial-gradient(ellipse 62% 52% at 80% 40%, rgb(28 58 96 / 78%), transparent 58%),
+    radial-gradient(ellipse 46% 40% at 36% 80%, rgb(6 16 34 / 68%), transparent 64%),
+    radial-gradient(ellipse 30% 26% at 62% 56%, rgb(32 68 108 / 42%), transparent 72%);
+  animation: scene-depth-drift-near 13s ease-in-out infinite;
+}
+
+.scene-backdrop__layer--light {
+  background:
+    radial-gradient(
+      ellipse 58% 72% at 74% 34%,
+      rgb(214 170 85 / calc(0.16 + var(--scene-arrival-strength) * 0.2)),
+      transparent 66%
+    ),
+    radial-gradient(
+      ellipse 42% 36% at 56% 50%,
+      rgb(240 212 155 / calc(0.1 + var(--scene-arrival-strength) * 0.14)),
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse 28% 22% at 82% 42%,
+      rgb(255 228 175 / calc(0.06 + var(--scene-arrival-strength) * 0.08)),
+      transparent 70%
+    );
+  mix-blend-mode: screen;
+  animation: scene-light-sweep 18s ease-in-out infinite;
+}
+
+.scene-backdrop__layer--grain {
+  inset: 0;
+  z-index: 3;
+  opacity: calc(0.048 + var(--scene-arrival-strength) * 0.058);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  mix-blend-mode: soft-light;
+  animation: scene-grain-drift 7s steps(8) infinite;
+}
+
+@keyframes scene-depth-drift-far {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  40% {
+    transform: translate3d(-4.5%, 3%, 0) scale(1.1);
+  }
+
+  70% {
+    transform: translate3d(3.2%, -2.4%, 0) scale(1.06);
+  }
+}
+
+@keyframes scene-depth-drift-mid {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  35% {
+    transform: translate3d(5.5%, -3.6%, 0) scale(1.12);
+  }
+
+  65% {
+    transform: translate3d(-4%, 2.8%, 0) scale(1.08);
+  }
+}
+
+@keyframes scene-depth-drift-near {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  45% {
+    transform: translate3d(-7%, 4.5%, 0) scale(1.16);
+  }
+
+  80% {
+    transform: translate3d(5%, -3%, 0) scale(1.07);
+  }
+}
+
+@keyframes scene-light-sweep {
+  0%,
+  100% {
+    transform: translate3d(3%, 0, 0) rotate(0deg);
+    opacity: calc(0.7 + var(--scene-arrival-strength) * 0.3);
+  }
+
+  50% {
+    transform: translate3d(-8%, 4%, 0) rotate(2.5deg);
+    opacity: calc(0.95 + var(--scene-arrival-strength) * 0.05);
+  }
+}
+
+@keyframes scene-vignette-breathe {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes scene-grain-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-8%, -6%, 0);
+  }
+}
+
+.scene-stage__canvas {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 480ms ease-out;
+}
+
+.cap-poster {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: clamp(-2%, 8vw, 12%);
+  width: min(48vw, 52rem);
+  max-width: 100%;
+  transform: translateY(-48%);
+  opacity: 0.96;
+  transition: opacity 320ms ease-out;
+  pointer-events: none;
+}
+
+.cap-poster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2.5rem 4rem rgb(1 5 14 / 55%));
+}
+
+.scene-ready .scene-stage__canvas {
+  opacity: 1;
+}
+
+.scene-ready .cap-poster {
+  opacity: 0;
+}
+
+.scene-fallback .cap-poster,
+.scene-static .cap-poster {
+  opacity: 1;
+}
+
+.scene-fallback .scene-stage__canvas,
+.scene-static .scene-stage__canvas {
+  opacity: 0;
+}
+
+html[data-scroll-chapter='silhouette'] .scene-stage,
+html[data-scroll-chapter='return'] .scene-stage {
+  opacity: 0.35;
+}
+
+@media (max-width: 64rem) {
+  .scene-backdrop {
+    opacity: calc(0.78 + var(--scene-arrival-strength) * 0.22);
+  }
+
+  .scene-backdrop::before {
+    animation: none;
+    opacity: 0.92;
+  }
+
+  .scene-backdrop__layer {
+    animation: none;
+    will-change: auto;
+    filter: none;
+  }
+
+  .scene-backdrop__layer--depth-far {
+    background:
+      radial-gradient(ellipse 115% 88% at 14% 82%, rgb(2 6 16 / 96%), transparent 50%),
+      radial-gradient(ellipse 88% 68% at 86% 16%, rgb(14 36 64 / 90%), transparent 54%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgb(5 14 30 / 78%), transparent 66%);
+  }
+
+  .scene-backdrop__layer--depth-mid {
+    background:
+      radial-gradient(ellipse 72% 58% at 74% 38%, rgb(22 50 86 / 88%), transparent 60%),
+      radial-gradient(ellipse 54% 46% at 22% 64%, rgb(10 24 48 / 80%), transparent 62%);
+  }
+
+  .scene-backdrop__layer--depth-near {
+    background:
+      radial-gradient(ellipse 62% 52% at 80% 40%, rgb(28 58 96 / 82%), transparent 56%),
+      radial-gradient(ellipse 46% 40% at 36% 80%, rgb(6 16 34 / 72%), transparent 62%);
+  }
+
+  .scene-backdrop__layer--light {
+    background:
+      radial-gradient(
+        ellipse 58% 72% at 74% 34%,
+        rgb(214 170 85 / calc(0.2 + var(--scene-arrival-strength) * 0.16)),
+        transparent 64%
+      ),
+      radial-gradient(
+        ellipse 42% 36% at 56% 50%,
+        rgb(240 212 155 / calc(0.12 + var(--scene-arrival-strength) * 0.1)),
+        transparent 62%
+      );
+  }
+
+  .scene-backdrop__layer--grain {
+    opacity: 0.055;
+    animation: none;
+  }
+
+  .cap-poster {
+    top: 48%;
+    right: -8%;
+    width: min(54vw, 34rem);
+    transform: translateY(-50%);
+    opacity: 0.62;
+  }
+}
+
+@media (max-width: 48rem) {
+  .cap-poster {
+    top: 34%;
+    right: -18%;
+    width: min(64vw, 30rem);
+    opacity: 0.58;
+  }
+}
+
+@media (max-width: 37.5rem) {
+  .cap-poster {
+    top: 22%;
+    right: -32%;
+    width: 96%;
+    max-width: none;
+    transform: translateY(-50%);
+    opacity: 0.48;
+  }
+}
+
+@media (max-width: 21.25rem) {
+  .cap-poster {
+    top: 24%;
+    right: -30%;
+    width: 94%;
+    max-width: none;
+    opacity: 0.42;
+  }
+}
+
+@media (max-height: 32rem) and (orientation: landscape) {
+  .cap-poster {
+    top: 44%;
+    right: -10%;
+    width: min(52vw, 26rem);
+    opacity: 0.65;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-backdrop::before {
+    animation: none;
+    opacity: 0.9;
+  }
+
+  .scene-backdrop__layer {
+    animation: none;
+    will-change: auto;
+    filter: none;
+  }
+
+  .scene-backdrop {
+    opacity: calc(0.78 + var(--scene-arrival-strength) * 0.22);
+  }
+
+  .scene-backdrop__layer--depth-far {
+    background:
+      radial-gradient(ellipse 115% 88% at 14% 82%, rgb(2 6 16 / 96%), transparent 50%),
+      radial-gradient(ellipse 88% 68% at 86% 16%, rgb(14 36 64 / 90%), transparent 54%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgb(5 14 30 / 78%), transparent 66%);
+  }
+
+  .scene-backdrop__layer--depth-mid {
+    background:
+      radial-gradient(ellipse 72% 58% at 74% 38%, rgb(22 50 86 / 88%), transparent 60%),
+      radial-gradient(ellipse 54% 46% at 22% 64%, rgb(10 24 48 / 80%), transparent 62%);
+  }
+
+  .scene-backdrop__layer--depth-near {
+    background:
+      radial-gradient(ellipse 62% 52% at 80% 40%, rgb(28 58 96 / 82%), transparent 56%),
+      radial-gradient(ellipse 46% 40% at 36% 80%, rgb(6 16 34 / 72%), transparent 62%);
+  }
+
+  .scene-backdrop__layer--light {
+    background:
+      radial-gradient(
+        ellipse 58% 72% at 74% 34%,
+        rgb(214 170 85 / calc(0.18 + var(--scene-arrival-strength) * 0.14)),
+        transparent 64%
+      ),
+      radial-gradient(
+        ellipse 42% 36% at 56% 50%,
+        rgb(240 212 155 / calc(0.11 + var(--scene-arrival-strength) * 0.09)),
+        transparent 62%
+      );
+  }
+
+  html[data-scroll-chapter='pull-back'] .cap-poster,
+  html[data-scroll-chapter='side'] .cap-poster,
+  html[data-scroll-chapter='silhouette'] .cap-poster,
+  html[data-scroll-chapter='return'] .cap-poster {
+    content: normal;
+  }
+}

@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { fontFamily } from 'theme/typography';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -39,7 +38,7 @@ const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
   return (
     <SectionCard padding={3.5}>
       <Stack sx={{ height: 500 }} direction="column">
-      <Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
+      <Typography variant="h6" fontWeight={400}>
         {t('dashboard.studentsByClass.title')}
       </Typography>
 
@@ -70,17 +69,12 @@ const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
                     flexShrink={0}
                     sx={{ bgcolor: colorForIndex(chartTheme.seriesColors, index) }}
                   />
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    fontFamily={fontFamily.workSans}
-                    noWrap
-                  >
+                  <Typography variant="body2" color="text.secondary" noWrap>
                     {item.label}
                   </Typography>
                 </Stack>
 
-                <Typography variant="body2" color="text.primary" fontFamily={fontFamily.workSans}>
+                <Typography variant="body2" color="text.primary">
                   {`${item.students} (${Math.round((item.students / total) * 100)}%)`}
                 </Typography>
               </Stack>

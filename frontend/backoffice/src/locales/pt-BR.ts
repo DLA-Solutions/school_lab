@@ -18,6 +18,7 @@ const ptBR = {
   'nav.language': 'Idioma',
 
   'shell.notificationsComingSoon': 'Em breve',
+  'shell.backofficeContextTooltip': 'Você está na plataforma DLA (Backoffice)',
 
   'backoffice.dashboard.title': 'Dashboard',
   'backoffice.dashboard.subtitle': 'Visão geral do onboarding na plataforma.',

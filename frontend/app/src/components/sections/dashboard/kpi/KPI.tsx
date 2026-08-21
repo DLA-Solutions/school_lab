@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import { fontFamily } from 'theme/typography';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Skeleton from '@mui/material/Skeleton';
@@ -32,7 +31,7 @@ const KPI = (props: KPIProps) => {
         <Stack justifyContent="space-between">
           <Stack alignItems="center" gap={1}>
             <IconifyIcon icon={icon} color="primary.main" fontSize="h5.fontSize" />
-            <Typography variant="subtitle2" color="text.secondary" fontFamily={fontFamily.workSans}>
+            <Typography variant="subtitle2" color="text.secondary">
               {title}
             </Typography>
           </Stack>
