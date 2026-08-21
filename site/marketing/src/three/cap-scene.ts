@@ -620,8 +620,8 @@ export async function createCapScene(
     model.rotation.copy(baseRotation);
     scene.add(model);
 
-    arrivalStartedAt = performance.now();
-    sceneState.modelReadyAt = arrivalStartedAt;
+    arrivalStartedAt = performance.now() - 1200;
+    sceneState.modelReadyAt = performance.now();
     sceneState.arrivalStartedAt = arrivalStartedAt;
     resize();
     scheduleRender();
