@@ -1,0 +1,776 @@
+{
+  "schemaVersion": 1,
+  "runs": [
+    {
+      "generatedAt": "2026-08-21T11:31:48.135Z",
+      "passed": false,
+      "mobileLcp": {
+        "metric": "Repeated mobile LCP",
+        "samples": [
+          2488.1125,
+          2495.1108,
+          2494.9072
+        ],
+        "median": "2494.9072 ms",
+        "worst": "2495.1108 ms",
+        "target": "≤ 2.5 s",
+        "stable": true,
+        "passed": true
+      },
+      "mobileCls": {
+        "metric": "Repeated mobile CLS",
+        "samples": [
+          0,
+          0,
+          0
+        ],
+        "observed": 0,
+        "target": "≤ 0.1",
+        "passed": true
+      },
+      "desktopSceneFrameWorkload": {
+        "metric": "Desktop scene renderer.render CPU workload",
+        "sampleCount": 600,
+        "recordingDurationMs": 10001.900000095367,
+        "gpuRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "observed": 0.5,
+        "target": "≤ 20 ms",
+        "passed": true,
+        "method": "Nearest-rank p95 of main-thread CPU duration measured immediately around renderer.render during 10 seconds of bounded trusted pointer input. This measures CPU submission workload, not GPU completion."
+      },
+      "activeSceneRenderCadence": {
+        "metric": "Active scene interpolation cadence",
+        "sampleCount": 599,
+        "minimumMs": 14.600000000000364,
+        "medianMs": 16.69999999999891,
+        "p95Ms": 18.299999999999272,
+        "maximumMs": 18.700000000000728,
+        "meanMs": 16.66310517529214,
+        "recordingDurationMs": 10001.900000095367,
+        "target": "≤ 20 ms",
+        "passed": true,
+        "gating": true,
+        "method": "Nearest-rank p95 between consecutive renders within active interpolation bursts; inactive event-driven gaps reset the interval chain and are excluded."
+      },
+      "globalHeadlessScheduler": {
+        "metric": "Global headless rAF scheduler diagnostic",
+        "sampleCount": 599,
+        "minimumMs": 14.600000000000364,
+        "medianMs": 16.69999999999891,
+        "p95Ms": 18.299999999999272,
+        "maximumMs": 18.700000000000728,
+        "meanMs": 16.66310517529214,
+        "recordingDurationMs": 10001.900000095367,
+        "gating": false
+      },
+      "automaticArrival": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "input": "No pointer or keyboard input before scene readiness and settlement.",
+        "finiteWindowTargetMs": 5000,
+        "screenshots": {
+          "static": "evidence/desktop-auto-static-chrome.png",
+          "arrival": "evidence/desktop-auto-arrival-chrome.png",
+          "settled": "evidence/desktop-auto-settled-chrome.png"
+        },
+        "initial": {
+          "at": 248.80000019073486,
+          "rootClasses": [
+            "scene-static"
+          ],
+          "canvasOpacity": "0",
+          "posterOpacity": "0.96",
+          "sceneState": null
+        },
+        "arrived": {
+          "at": 9311.200000286102,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "0.0574069",
+          "posterOpacity": "0.91474",
+          "sceneState": {
+            "initialisedAt": 2789.800000190735,
+            "modelReadyAt": 6952.800000190735,
+            "arrivalStartedAt": 6952.800000190735,
+            "arrivalSettledAt": null,
+            "scrollProgress": 0,
+            "totalRenderCount": 3,
+            "lastRenderAt": 9310.800000190735,
+            "renderScheduled": true,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "settled": {
+          "at": 9790.800000190735,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "1",
+          "posterOpacity": "0",
+          "sceneState": {
+            "initialisedAt": 2789.800000190735,
+            "modelReadyAt": 6952.800000190735,
+            "arrivalStartedAt": 6952.800000190735,
+            "arrivalSettledAt": 9312.099999904633,
+            "scrollProgress": 0,
+            "totalRenderCount": 4,
+            "lastRenderAt": 9312.099999904633,
+            "renderScheduled": false,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "afterQuietWindow": {
+          "at": 11144.400000095367,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "1",
+          "posterOpacity": "0",
+          "sceneState": {
+            "initialisedAt": 2789.800000190735,
+            "modelReadyAt": 6952.800000190735,
+            "arrivalStartedAt": 6952.800000190735,
+            "arrivalSettledAt": 9312.099999904633,
+            "scrollProgress": 0,
+            "totalRenderCount": 4,
+            "lastRenderAt": 9312.099999904633,
+            "renderScheduled": false,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "timing": {
+          "loadAt": 222.30000019073486,
+          "rootStateTimeline": [
+            {
+              "at": 215.09999990463257,
+              "classes": [
+                "scene-static"
+              ]
+            },
+            {
+              "at": 222.30000019073486,
+              "classes": [
+                "scene-static"
+              ]
+            },
+            {
+              "at": 6953.700000286102,
+              "classes": [
+                "scene-ready"
+              ]
+            },
+            {
+              "at": 6956.599999904633,
+              "classes": [
+                "scene-ready",
+                "lenis"
+              ]
+            }
+          ],
+          "initialisedAfterLoadMs": 2567.5,
+          "modelReadyAfterLoadMs": 6730.5,
+          "settledAfterLoadMs": 9089.799999713898
+        },
+        "visualStateChanged": true,
+        "renderLoopStopped": true
+      },
+      "labInteractionLatency": {
+        "supported": true,
+        "status": "measured",
+        "label": "Lab interaction-latency proxy from trusted Playwright mouse/keyboard input and PerformanceEventTiming; not field INP.",
+        "input": "Trusted Playwright mouse click followed by keyboard Tab.",
+        "durationThresholdMs": 16,
+        "sampleCount": 5,
+        "duration": {
+          "sampleCount": 5,
+          "minimumMs": 64,
+          "medianMs": 64,
+          "p95Ms": 72,
+          "maximumMs": 72,
+          "meanMs": 67.2
+        },
+        "inputDelay": {
+          "sampleCount": 5,
+          "minimumMs": 0,
+          "medianMs": 0.5,
+          "p95Ms": 3.5,
+          "maximumMs": 3.5,
+          "meanMs": 1.5800000190734864
+        },
+        "entries": [
+          {
+            "name": "pointerdown",
+            "startTime": 5840.199999809265,
+            "duration": 64,
+            "processingStart": 5840.699999809265,
+            "processingEnd": 5840.900000095367,
+            "interactionId": 1603
+          },
+          {
+            "name": "pointerup",
+            "startTime": 5840.199999809265,
+            "duration": 64,
+            "processingStart": 5843.699999809265,
+            "processingEnd": 5843.699999809265,
+            "interactionId": 1603
+          },
+          {
+            "name": "click",
+            "startTime": 5840.199999809265,
+            "duration": 64,
+            "processingStart": 5843.699999809265,
+            "processingEnd": 5843.699999809265,
+            "interactionId": 1603
+          },
+          {
+            "name": "keydown",
+            "startTime": 5846.400000095367,
+            "duration": 72,
+            "processingStart": 5846.800000190735,
+            "processingEnd": 5847.099999904633,
+            "interactionId": 1610
+          },
+          {
+            "name": "keyup",
+            "startTime": 5852.199999809265,
+            "duration": 72,
+            "processingStart": 5852.199999809265,
+            "processingEnd": 5852.199999809265,
+            "interactionId": 1610
+          }
+        ],
+        "target": "Diagnostic only; field INP remains unmeasured."
+      },
+      "lazySceneChunk": {
+        "file": "assets/cap-scene-DAL0saq2.js",
+        "bytes": 612184,
+        "kibibytes": 597.8359375,
+        "isDynamicEntry": true,
+        "source": "src/three/cap-scene.ts"
+      }
+    },
+    {
+      "generatedAt": "2026-08-21T11:34:37.285Z",
+      "passed": true,
+      "mobileLcp": {
+        "metric": "Repeated mobile LCP",
+        "samples": [
+          2412.1393,
+          2419.3847,
+          2497.9176
+        ],
+        "median": "2419.3847 ms",
+        "worst": "2497.9176 ms",
+        "target": "≤ 2.5 s",
+        "stable": true,
+        "passed": true
+      },
+      "mobileCls": {
+        "metric": "Repeated mobile CLS",
+        "samples": [
+          0,
+          0,
+          0
+        ],
+        "observed": 0,
+        "target": "≤ 0.1",
+        "passed": true
+      },
+      "desktopSceneFrameWorkload": {
+        "metric": "Desktop scene renderer.render CPU workload",
+        "sampleCount": 600,
+        "recordingDurationMs": 10002.400000095367,
+        "gpuRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "observed": 0.39999961853027344,
+        "target": "≤ 20 ms",
+        "passed": true,
+        "method": "Nearest-rank p95 of main-thread CPU duration measured immediately around renderer.render during 10 seconds of bounded trusted pointer input. This measures CPU submission workload, not GPU completion."
+      },
+      "activeSceneRenderCadence": {
+        "metric": "Active scene interpolation cadence",
+        "sampleCount": 599,
+        "minimumMs": 14.599999999999454,
+        "medianMs": 16.69999999999891,
+        "p95Ms": 18.299999999999272,
+        "maximumMs": 18.700000000000728,
+        "meanMs": 16.666110183639404,
+        "recordingDurationMs": 10002.400000095367,
+        "target": "≤ 20 ms",
+        "passed": true,
+        "gating": true,
+        "method": "Nearest-rank p95 between consecutive renders within active interpolation bursts; inactive event-driven gaps reset the interval chain and are excluded."
+      },
+      "globalHeadlessScheduler": {
+        "metric": "Global headless rAF scheduler diagnostic",
+        "sampleCount": 599,
+        "minimumMs": 14.599999999999454,
+        "medianMs": 16.69999999999891,
+        "p95Ms": 18.299999999999272,
+        "maximumMs": 18.700000000000728,
+        "meanMs": 16.666110183639404,
+        "recordingDurationMs": 10002.400000095367,
+        "gating": false
+      },
+      "automaticArrival": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "input": "No pointer or keyboard input before scene readiness and settlement.",
+        "finiteWindowTargetMs": 12000,
+        "screenshots": {
+          "static": "evidence/desktop-auto-static-chrome.png",
+          "arrival": "evidence/desktop-auto-arrival-chrome.png",
+          "settled": "evidence/desktop-auto-settled-chrome.png"
+        },
+        "initial": {
+          "at": 252.2999997138977,
+          "rootClasses": [
+            "scene-static"
+          ],
+          "canvasOpacity": "0",
+          "posterOpacity": "1",
+          "sceneState": null
+        },
+        "arrived": {
+          "at": 6767.5,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "0.0518622",
+          "posterOpacity": "0.922926",
+          "sceneState": {
+            "initialisedAt": 2278.8999996185303,
+            "modelReadyAt": 4844.099999904633,
+            "arrivalStartedAt": 4844.099999904633,
+            "arrivalSettledAt": null,
+            "scrollProgress": 0,
+            "totalRenderCount": 3,
+            "lastRenderAt": 6767,
+            "renderScheduled": true,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "settled": {
+          "at": 7358.39999961853,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "1",
+          "posterOpacity": "0",
+          "sceneState": {
+            "initialisedAt": 2278.8999996185303,
+            "modelReadyAt": 4844.099999904633,
+            "arrivalStartedAt": 4844.099999904633,
+            "arrivalSettledAt": 6768.099999904633,
+            "scrollProgress": 0,
+            "totalRenderCount": 4,
+            "lastRenderAt": 6768.099999904633,
+            "renderScheduled": false,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "afterQuietWindow": {
+          "at": 8559,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "1",
+          "posterOpacity": "0",
+          "sceneState": {
+            "initialisedAt": 2278.8999996185303,
+            "modelReadyAt": 4844.099999904633,
+            "arrivalStartedAt": 4844.099999904633,
+            "arrivalSettledAt": 6768.099999904633,
+            "scrollProgress": 0,
+            "totalRenderCount": 4,
+            "lastRenderAt": 6768.099999904633,
+            "renderScheduled": false,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "timing": {
+          "loadAt": 122.5,
+          "rootStateTimeline": [
+            {
+              "at": 109.2999997138977,
+              "classes": [
+                "scene-static"
+              ]
+            },
+            {
+              "at": 122.5,
+              "classes": [
+                "scene-static"
+              ]
+            },
+            {
+              "at": 4844.39999961853,
+              "classes": [
+                "scene-ready"
+              ]
+            },
+            {
+              "at": 4846.5,
+              "classes": [
+                "scene-ready",
+                "lenis"
+              ]
+            }
+          ],
+          "initialisedAfterLoadMs": 2156.3999996185303,
+          "modelReadyAfterLoadMs": 4721.599999904633,
+          "settledAfterLoadMs": 6645.599999904633
+        },
+        "visualStateChanged": true,
+        "renderLoopStopped": true
+      },
+      "labInteractionLatency": {
+        "supported": true,
+        "status": "measured",
+        "label": "Lab interaction-latency proxy from trusted Playwright mouse/keyboard input and PerformanceEventTiming; not field INP.",
+        "input": "Trusted Playwright mouse click followed by keyboard Tab.",
+        "durationThresholdMs": 16,
+        "sampleCount": 5,
+        "duration": {
+          "sampleCount": 5,
+          "minimumMs": 40,
+          "medianMs": 48,
+          "p95Ms": 48,
+          "maximumMs": 48,
+          "meanMs": 46.4
+        },
+        "inputDelay": {
+          "sampleCount": 5,
+          "minimumMs": 0.09999990463256836,
+          "medianMs": 0.7000002861022949,
+          "p95Ms": 3.9000000953674316,
+          "maximumMs": 3.9000000953674316,
+          "meanMs": 1.7200001716613769
+        },
+        "entries": [
+          {
+            "name": "pointerdown",
+            "startTime": 1378.0999999046326,
+            "duration": 48,
+            "processingStart": 1378.8000001907349,
+            "processingEnd": 1379.0999999046326,
+            "interactionId": 2126
+          },
+          {
+            "name": "pointerup",
+            "startTime": 1378.1999998092651,
+            "duration": 48,
+            "processingStart": 1382,
+            "processingEnd": 1382.0999999046326,
+            "interactionId": 2126
+          },
+          {
+            "name": "click",
+            "startTime": 1378.1999998092651,
+            "duration": 48,
+            "processingStart": 1382.0999999046326,
+            "processingEnd": 1382.0999999046326,
+            "interactionId": 2126
+          },
+          {
+            "name": "keydown",
+            "startTime": 1384.1999998092651,
+            "duration": 40,
+            "processingStart": 1384.3000001907349,
+            "processingEnd": 1384.5,
+            "interactionId": 2133
+          },
+          {
+            "name": "keyup",
+            "startTime": 1399.4000000953674,
+            "duration": 48,
+            "processingStart": 1399.5,
+            "processingEnd": 1399.5999999046326,
+            "interactionId": 2133
+          }
+        ],
+        "target": "Diagnostic only; field INP remains unmeasured."
+      },
+      "lazySceneChunk": {
+        "file": "assets/cap-scene-Bm6uSa47.js",
+        "bytes": 612230,
+        "kibibytes": 597.880859375,
+        "isDynamicEntry": true,
+        "source": "src/three/cap-scene.ts"
+      }
+    },
+    {
+      "generatedAt": "2026-08-21T11:37:03.708Z",
+      "passed": true,
+      "mobileLcp": {
+        "metric": "Repeated mobile LCP",
+        "samples": [
+          2484.6892000000003,
+          2490.0072999999998,
+          2488.2231
+        ],
+        "median": "2488.2231 ms",
+        "worst": "2490.0072999999998 ms",
+        "target": "≤ 2.5 s",
+        "stable": true,
+        "passed": true
+      },
+      "mobileCls": {
+        "metric": "Repeated mobile CLS",
+        "samples": [
+          0,
+          0,
+          0
+        ],
+        "observed": 0,
+        "target": "≤ 0.1",
+        "passed": true
+      },
+      "desktopSceneFrameWorkload": {
+        "metric": "Desktop scene renderer.render CPU workload",
+        "sampleCount": 600,
+        "recordingDurationMs": 10001.300000190735,
+        "gpuRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "observed": 0.40000009536743164,
+        "target": "≤ 20 ms",
+        "passed": true,
+        "method": "Nearest-rank p95 of main-thread CPU duration measured immediately around renderer.render during 10 seconds of bounded trusted pointer input. This measures CPU submission workload, not GPU completion."
+      },
+      "activeSceneRenderCadence": {
+        "metric": "Active scene interpolation cadence",
+        "sampleCount": 599,
+        "minimumMs": 15.599999999999454,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 17.399999999999636,
+        "maximumMs": 17.799999999999272,
+        "meanMs": 16.66694490818032,
+        "recordingDurationMs": 10001.300000190735,
+        "target": "≤ 20 ms",
+        "passed": true,
+        "gating": true,
+        "method": "Nearest-rank p95 between consecutive renders within active interpolation bursts; inactive event-driven gaps reset the interval chain and are excluded."
+      },
+      "globalHeadlessScheduler": {
+        "metric": "Global headless rAF scheduler diagnostic",
+        "sampleCount": 599,
+        "minimumMs": 15.599999999999454,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 17.399999999999636,
+        "maximumMs": 17.799999999999272,
+        "meanMs": 16.66694490818032,
+        "recordingDurationMs": 10001.300000190735,
+        "gating": false
+      },
+      "automaticArrival": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "input": "No pointer or keyboard input before scene readiness and settlement.",
+        "finiteWindowTargetMs": 12000,
+        "screenshots": {
+          "static": "evidence/desktop-auto-static-chrome.png",
+          "arrival": "evidence/desktop-auto-arrival-chrome.png",
+          "settled": "evidence/desktop-auto-settled-chrome.png"
+        },
+        "initial": {
+          "at": 183,
+          "rootClasses": [
+            "scene-static"
+          ],
+          "canvasOpacity": "0",
+          "posterOpacity": "0.966668",
+          "sceneState": null
+        },
+        "arrived": {
+          "at": 6653.800000190735,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "0.0575692",
+          "posterOpacity": "0.9145",
+          "sceneState": {
+            "initialisedAt": 1909.9000000953674,
+            "modelReadyAt": 4798.699999809265,
+            "arrivalStartedAt": 4798.699999809265,
+            "arrivalSettledAt": null,
+            "scrollProgress": 0,
+            "totalRenderCount": 3,
+            "lastRenderAt": 6653.5,
+            "renderScheduled": true,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "settled": {
+          "at": 7076,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "1",
+          "posterOpacity": "0",
+          "sceneState": {
+            "initialisedAt": 1909.9000000953674,
+            "modelReadyAt": 4798.699999809265,
+            "arrivalStartedAt": 4798.699999809265,
+            "arrivalSettledAt": 6654.400000095367,
+            "scrollProgress": 0,
+            "totalRenderCount": 4,
+            "lastRenderAt": 6654.400000095367,
+            "renderScheduled": false,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "afterQuietWindow": {
+          "at": 8268.300000190735,
+          "rootClasses": [
+            "scene-ready",
+            "lenis"
+          ],
+          "canvasOpacity": "1",
+          "posterOpacity": "0",
+          "sceneState": {
+            "initialisedAt": 1909.9000000953674,
+            "modelReadyAt": 4798.699999809265,
+            "arrivalStartedAt": 4798.699999809265,
+            "arrivalSettledAt": 6654.400000095367,
+            "scrollProgress": 0,
+            "totalRenderCount": 4,
+            "lastRenderAt": 6654.400000095367,
+            "renderScheduled": false,
+            "environmentReady": true,
+            "contactShadowEnabled": true
+          }
+        },
+        "timing": {
+          "loadAt": 136.80000019073486,
+          "rootStateTimeline": [
+            {
+              "at": 125.59999990463257,
+              "classes": [
+                "scene-static"
+              ]
+            },
+            {
+              "at": 136.80000019073486,
+              "classes": [
+                "scene-static"
+              ]
+            },
+            {
+              "at": 4798.900000095367,
+              "classes": [
+                "scene-ready"
+              ]
+            },
+            {
+              "at": 4803.199999809265,
+              "classes": [
+                "scene-ready",
+                "lenis"
+              ]
+            }
+          ],
+          "initialisedAfterLoadMs": 1773.0999999046326,
+          "modelReadyAfterLoadMs": 4661.89999961853,
+          "settledAfterLoadMs": 6517.599999904633
+        },
+        "visualStateChanged": true,
+        "renderLoopStopped": true
+      },
+      "labInteractionLatency": {
+        "supported": true,
+        "status": "measured",
+        "label": "Lab interaction-latency proxy from trusted Playwright mouse/keyboard input and PerformanceEventTiming; not field INP.",
+        "input": "Trusted Playwright mouse click followed by keyboard Tab.",
+        "durationThresholdMs": 16,
+        "sampleCount": 5,
+        "duration": {
+          "sampleCount": 5,
+          "minimumMs": 48,
+          "medianMs": 48,
+          "p95Ms": 56,
+          "maximumMs": 56,
+          "meanMs": 49.6
+        },
+        "inputDelay": {
+          "sampleCount": 5,
+          "minimumMs": 0.09999990463256836,
+          "medianMs": 0.6999998092651367,
+          "p95Ms": 4.199999809265137,
+          "maximumMs": 4.199999809265137,
+          "meanMs": 1.8399998664855957
+        },
+        "entries": [
+          {
+            "name": "pointerdown",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1415.2999997138977,
+            "processingEnd": 1415.6999998092651,
+            "interactionId": 6182
+          },
+          {
+            "name": "pointerup",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1418.6999998092651,
+            "processingEnd": 1418.6999998092651,
+            "interactionId": 6182
+          },
+          {
+            "name": "click",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1418.7999997138977,
+            "processingEnd": 1418.7999997138977,
+            "interactionId": 6182
+          },
+          {
+            "name": "keydown",
+            "startTime": 1419.4000000953674,
+            "duration": 48,
+            "processingStart": 1419.5,
+            "processingEnd": 1419.6999998092651,
+            "interactionId": 6189
+          },
+          {
+            "name": "keyup",
+            "startTime": 1426.5,
+            "duration": 56,
+            "processingStart": 1426.5999999046326,
+            "processingEnd": 1426.5999999046326,
+            "interactionId": 6189
+          }
+        ],
+        "target": "Diagnostic only; field INP remains unmeasured."
+      },
+      "lazySceneChunk": {
+        "file": "assets/cap-scene-Bm6uSa47.js",
+        "bytes": 612230,
+        "kibibytes": 597.880859375,
+        "isDynamicEntry": true,
+        "source": "src/three/cap-scene.ts"
+      }
+    }
+  ]
+}
