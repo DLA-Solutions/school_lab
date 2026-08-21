@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { fontFamily } from '../typography';
 
 export interface SectionCardProps {
   title?: string;
@@ -27,7 +26,7 @@ const SectionCard = ({ title, headerActions, children, padding = 3.5 }: SectionC
           justifyContent="space-between"
         >
           {title && (
-            <Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
+            <Typography variant="h6" fontWeight={400}>
               {title}
             </Typography>
           )}

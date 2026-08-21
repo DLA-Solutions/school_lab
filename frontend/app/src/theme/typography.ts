@@ -1,12 +1,11 @@
 import type { TypographyVariantsOptions } from '@mui/material/styles';
 
 export const fontFamily = {
-  monaSans: ['Mona Sans', 'sans-serif'].join(','),
-  workSans: ['Work Sans', 'sans-serif'].join(','),
+  inter: ['Inter', 'sans-serif'].join(','),
 };
 
 const typography: TypographyVariantsOptions = {
-  fontFamily: fontFamily.monaSans,
+  fontFamily: fontFamily.inter,
   h1: {
     fontSize: '3rem',
     fontWeight: 700,

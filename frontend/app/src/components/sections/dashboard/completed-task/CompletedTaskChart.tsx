@@ -1,5 +1,4 @@
 import { SxProps, useTheme } from '@mui/material';
-import { fontFamily } from 'theme/typography';
 import useChartTheme from 'design-system/hooks/useChartTheme';
 import { useMemo } from 'react';
 import { graphic } from 'echarts';
@@ -48,7 +47,7 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
           margin: 10,
           color: chartTheme.axisColor,
           fontSize: theme.typography.caption.fontSize,
-          fontFamily: fontFamily.monaSans,
+          fontFamily: theme.typography.fontFamily,
         },
       },
       yAxis: {
@@ -56,7 +55,7 @@ const CompletedTaskChart = ({ data, ...rest }: CompletedTaskChartProps) => {
         axisLabel: {
           color: chartTheme.axisColor,
           fontSize: theme.typography.caption.fontSize,
-          fontFamily: fontFamily.monaSans,
+          fontFamily: theme.typography.fontFamily,
         },
         splitLine: {
           show: false,
