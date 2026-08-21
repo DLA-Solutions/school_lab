@@ -1,7 +1,21 @@
 const canvas = document.querySelector<HTMLCanvasElement>('#hero-canvas');
 const sceneStage = document.querySelector<HTMLElement>('.scene-stage');
+const capPosterImage = document.querySelector<HTMLImageElement>('.cap-poster img');
 
 document.documentElement.classList.add('scene-static');
+
+if (capPosterImage) {
+  const markPosterDecoded = (): void => {
+    capPosterImage.classList.add('is-decoded');
+  };
+
+  if (capPosterImage.complete && capPosterImage.naturalWidth > 0) {
+    markPosterDecoded();
+  } else {
+    capPosterImage.addEventListener('load', markPosterDecoded, { once: true });
+    capPosterImage.addEventListener('error', markPosterDecoded, { once: true });
+  }
+}
 
 let teardownScroll: (() => void) | undefined;
 
