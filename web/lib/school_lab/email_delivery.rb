@@ -31,5 +31,19 @@ module SchoolLab
     def from_address
       ENV.fetch("MAIL_FROM", "contato@scholarpremium.com.br")
     end
+
+    DEFAULT_MARKETING_DEMO_REQUEST_RECIPIENTS = %w[
+      contato@diegonovais.com.br
+      luizcalaca@gmail.com
+    ].freeze
+
+    def marketing_demo_request_recipients
+      raw = ENV.fetch(
+        "MARKETING_DEMO_REQUEST_RECIPIENTS",
+        DEFAULT_MARKETING_DEMO_REQUEST_RECIPIENTS.join(",")
+      )
+
+      raw.split(",").filter_map { |address| address.strip.presence }
+    end
   end
 end

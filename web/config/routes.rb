@@ -57,6 +57,10 @@ Rails.application.routes.draw do
           resources :categories
         end
       end
+      namespace :marketing do
+        resource :demo_request, only: :create, controller: "demo_requests"
+      end
+
       namespace :me do
         resources :device_tokens, only: :create
         resources :memberships, only: [] do

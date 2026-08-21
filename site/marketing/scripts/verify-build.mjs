@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const distDirectory = fileURLToPath(new URL('../dist/', import.meta.url));
 const indexPath = join(distDirectory, 'index.html');
+const demoPagePath = join(distDirectory, 'agendar-demonstracao/index.html');
 const failures = [];
 
 await access(indexPath).catch(() => {
@@ -75,10 +76,9 @@ if (failures.length === 0) {
     'decorative canvas is hidden and non-focusable',
   );
   check(
-    html.includes(
-      'mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium',
-    ) && visibleText.includes('Agendar demonstração'),
-    'demo CTA keeps the provisional email destination and subject',
+    (html.match(/href="\.\/agendar-demonstracao\/"/g) ?? []).length === 2 &&
+      visibleText.includes('Agendar demonstração'),
+    'demo CTAs link to the dedicated scheduling page',
   );
   check(
     html.includes(
@@ -108,8 +108,8 @@ if (failures.length === 0) {
     'Open Graph metadata is present',
   );
   check(
-    !/\/api\/v1\b/.test(outputText),
-    'built output contains no API dependency',
+    !/\/api\/v1\b/.test(html),
+    'home page contains no API dependency',
   );
   check(
     !/googletagmanager|google-analytics|gtag\s*\(|mixpanel|segment\.com|amplitude\/analytics/i.test(
@@ -200,6 +200,18 @@ if (failures.length === 0) {
       .then(() => check(true, `${poster} is included in the build`))
       .catch(() => check(false, `${poster} is included in the build`));
   }
+
+  await access(demoPagePath)
+    .then(async () => {
+      const demoHtml = await readFile(demoPagePath, 'utf8');
+      check(
+        demoHtml.includes('Agendar demonstração') &&
+          demoHtml.includes('name="website"') &&
+          demoHtml.includes('href="../"'),
+        'dedicated demo request page is included in the build',
+      );
+    })
+    .catch(() => check(false, 'dedicated demo request page is included in the build'));
 }
 
 if (failures.length > 0) {
