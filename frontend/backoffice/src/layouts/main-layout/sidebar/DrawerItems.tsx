@@ -1,6 +1,7 @@
 import { topListData } from 'data/sidebarListData';
 import { Link as RouterLink, useLocation } from 'react-router';
 import paths from 'routes/paths';
+import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
 import ButtonBase from '@mui/material/ButtonBase';
@@ -34,7 +35,7 @@ const DrawerItems = () => {
         position={'sticky'}
         top={0}
         bgcolor="background.default"
-        alignItems="flex-start"
+        alignItems="center"
         justifyContent="flex-start"
         zIndex="appBar"
         width={1}
@@ -47,18 +48,19 @@ const DrawerItems = () => {
           sx={{
             display: 'flex',
             width: 1,
-            alignSelf: 'stretch',
-            justifyContent: 'flex-start',
+            justifyContent: 'center',
           }}
         >
-          <BrandLogo variant="lockup" height={36} sx={{ maxWidth: 1 }} />
+          <BrandLogo variant="lockup" height={46} sx={{ maxWidth: 1 }} />
         </ButtonBase>
-        <ContextBadge
-          variant="platform"
-          label={t('nav.backoffice')}
-          tooltip={t('shell.backofficeContextTooltip')}
-          compact
-        />
+        <Box sx={{ alignSelf: 'flex-start' }}>
+          <ContextBadge
+            variant="platform"
+            label={t('nav.backoffice')}
+            tooltip={t('shell.backofficeContextTooltip')}
+            compact
+          />
+        </Box>
       </Stack>
 
       <List component="nav" sx={{ px: 2.5, pb: 12 }}>

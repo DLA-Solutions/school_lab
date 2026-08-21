@@ -42,7 +42,7 @@ const DrawerItems = () => {
         position={'sticky'}
         top={0}
         bgcolor="background.default"
-        alignItems="flex-start"
+        alignItems="center"
         justifyContent="flex-start"
         zIndex="appBar"
         width={1}
@@ -55,13 +55,14 @@ const DrawerItems = () => {
           sx={{
             display: 'flex',
             width: 1,
-            alignSelf: 'stretch',
-            justifyContent: 'flex-start',
+            justifyContent: 'center',
           }}
         >
-          <BrandLogo variant="lockup" height={36} sx={{ maxWidth: 1 }} />
+          <BrandLogo variant="lockup" height={46} sx={{ maxWidth: 1 }} />
         </ButtonBase>
-        <ActiveContextBadge />
+        <Box sx={{ alignSelf: 'flex-start' }}>
+          <ActiveContextBadge />
+        </Box>
       </Stack>
 
       <Box px={3.5} pb={3} pt={1}>
