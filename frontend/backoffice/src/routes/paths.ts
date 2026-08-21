@@ -16,4 +16,5 @@ export default {
   schoolDetail: (schoolId: number) => `/schools/${schoolId}`,
   schoolActivation: (schoolId: number) => `/schools/${schoolId}/activation`,
   bankCredentials: (schoolId: number) => `/schools/${schoolId}/bank-credentials`,
+  signatureCredentials: (schoolId: number) => `/schools/${schoolId}/signature-credentials`,
 };

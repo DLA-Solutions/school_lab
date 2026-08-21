@@ -134,6 +134,7 @@ const enUS: Messages = {
   'backoffice.schoolDetail.link.provisioning': 'Provisioning wizard',
   'backoffice.schoolDetail.link.activation': 'Activation',
   'backoffice.schoolDetail.link.bankCredentials': 'Bank credentials',
+  'backoffice.schoolDetail.link.signatureCredentials': 'E-signature',
   'backoffice.schoolDetail.status.provisioning': 'Provisioning',
   'backoffice.schoolDetail.status.pendingHandoff': 'Pending handoff',
   'backoffice.schoolDetail.status.active': 'Active',

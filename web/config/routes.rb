@@ -88,6 +88,7 @@ Rails.application.routes.draw do
           end
           resources :platform_plans, only: :index
           resources :bank_credentials, only: %i[index create]
+          resources :signature_credentials, only: %i[index create]
           namespace :people do
             resources :guardians do
               collection do

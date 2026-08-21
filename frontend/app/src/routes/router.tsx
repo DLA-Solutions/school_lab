@@ -15,6 +15,7 @@ import {
   RequireOwnerOnboardingComplete,
   RequireRouteAudience,
   RequireRouteModule,
+  RequireSchoolOwner,
 } from './guards';
 
 // Vite `base` uses a trailing slash (/app/); React Router `basename` must not — otherwise
@@ -47,6 +48,7 @@ const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
 const ServiceInvoices = lazy(() => import('pages/billing/ServiceInvoices'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
 const PlatformSubscriptionPage = lazy(() => import('pages/subscription/PlatformSubscription'));
+const SignatureCredentialsPage = lazy(() => import('pages/settings/SignatureCredentials'));
 const MyTaxDeclarations = lazy(() => import('pages/billing/MyTaxDeclarations'));
 const MyCharges = lazy(() => import('pages/billing/MyCharges'));
 const MyHealthRecords = lazy(() => import('pages/people/MyHealthRecords'));
@@ -166,6 +168,16 @@ const router = createBrowserRouter(
             {
               path: paths.platformSubscription,
               element: <PlatformSubscriptionPage />,
+            },
+            {
+              // Owner-only: the token creates documents in the school's name, so the guard is
+              // here as well as on the nav entry — a hidden link is not an access rule.
+              path: paths.signatureCredentials,
+              element: (
+                <RequireSchoolOwner>
+                  <SignatureCredentialsPage />
+                </RequireSchoolOwner>
+              ),
             },
             {
               path: paths.myTaxDeclarations,

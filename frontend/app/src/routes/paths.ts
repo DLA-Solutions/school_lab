@@ -42,6 +42,7 @@ export default {
   billingSettings: '/financeiro/configuracoes',
   serviceInvoices: '/nfse',
   contractTemplate: '/contrato',
+  signatureCredentials: '/assinatura-eletronica',
   platformSubscription: '/assinatura',
 
   signin: `/${rootPaths.authRoot}/signin`,

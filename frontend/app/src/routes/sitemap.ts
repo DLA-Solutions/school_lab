@@ -22,6 +22,12 @@ export interface MenuItem {
   /** When set, the item is hidden unless the current membership includes this permission key. */
   requiredPermission?: string;
   /**
+   * When set, the item is hidden from everyone but the school's owner. Stronger than a permission
+   * key: an owner-only entry is one the school's other staff must not reach even when they hold
+   * every permission there is.
+   */
+  ownerOnly?: boolean;
+  /**
    * Which profile context may see this entry. Defaults to `staff` when omitted.
    * Permission keys narrow staff/teacher access; they never turn a staff route into a guardian route.
    */
@@ -216,6 +222,17 @@ const sitemap: MenuItem[] = [
     audience: 'staff',
     requiredPermission: 'manage_billing',
     section: 'billing',
+  },
+  {
+    // The Autentique token creates documents in the school's name, so it sits with the owner —
+    // the same person who signs for the school — rather than with staff at large.
+    id: 'signature-credentials',
+    subheader: 'nav.signatureCredentials',
+    path: paths.signatureCredentials,
+    icon: 'mingcute:quill-pen-line',
+    audience: 'staff',
+    ownerOnly: true,
+    section: 'settings',
   },
   {
     id: 'platform-subscription',

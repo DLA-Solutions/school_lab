@@ -593,6 +593,14 @@ const SchoolDetail = () => {
             >
               {t('backoffice.schoolDetail.link.bankCredentials')}
             </Button>
+            <Button
+              component={RouterLink}
+              to={paths.signatureCredentials(school.id)}
+              variant="outlined"
+              size="small"
+            >
+              {t('backoffice.schoolDetail.link.signatureCredentials')}
+            </Button>
           </Stack>
         </SectionCard>
       )}

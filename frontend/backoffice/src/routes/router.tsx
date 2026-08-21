@@ -22,6 +22,7 @@ const ProvisioningWizard = lazy(() => import('pages/schools/ProvisioningWizard')
 const SchoolDetail = lazy(() => import('pages/schools/SchoolDetail'));
 const SchoolActivation = lazy(() => import('pages/schools/SchoolActivation'));
 const BankCredentials = lazy(() => import('pages/schools/BankCredentials'));
+const SignatureCredentials = lazy(() => import('pages/schools/SignatureCredentials'));
 
 const router = createBrowserRouter(
   [
@@ -91,6 +92,10 @@ const router = createBrowserRouter(
             {
               path: 'schools/:schoolId/bank-credentials',
               element: <BankCredentials />,
+            },
+            {
+              path: 'schools/:schoolId/signature-credentials',
+              element: <SignatureCredentials />,
             },
             {
               path: 'schools/:schoolId',

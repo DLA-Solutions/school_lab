@@ -134,6 +134,7 @@ const ptBR = {
   'backoffice.schoolDetail.link.provisioning': 'Assistente de provisionamento',
   'backoffice.schoolDetail.link.activation': 'Ativação',
   'backoffice.schoolDetail.link.bankCredentials': 'Credenciais bancárias',
+  'backoffice.schoolDetail.link.signatureCredentials': 'Assinatura eletrônica',
   'backoffice.schoolDetail.status.provisioning': 'Em provisionamento',
   'backoffice.schoolDetail.status.pendingHandoff': 'Aguardando repasse',
   'backoffice.schoolDetail.status.active': 'Ativa',
