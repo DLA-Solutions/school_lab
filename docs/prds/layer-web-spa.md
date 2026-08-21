@@ -29,8 +29,8 @@ Mobile parity follows only after each web/API contract is stable
 remains the English technical role in routes, JSON, code, and tests.
 
 The SPA was generated from the DashdarkX template, kept frozen as `frontend/base` (MIT,
-ThemeWagon). The visual essence — dark admin shell, purple gradient primary (`#CB3CFF`), Mona Sans
-/ Work Sans typography, MUI-on-Emotion overrides — is preserved per `docs/web-stack.md` §14.
+ThemeWagon). The visual essence — dark admin shell, purple gradient primary (`#CB3CFF`), Inter
+typography, MUI-on-Emotion overrides — is preserved per `docs/web-stack.md` §14.
 
 The design system has three layers today:
 
