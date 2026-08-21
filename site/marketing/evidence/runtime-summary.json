@@ -1,0 +1,1978 @@
+{
+  "schemaVersion": 4,
+  "generatedAt": "2026-08-21T11:37:03.708Z",
+  "environment": {
+    "browser": "151.0.7922.170",
+    "operatingSystem": "darwin 25.5.0",
+    "node": "v24.18.0",
+    "previewUrl": "http://127.0.0.1:56006/",
+    "headless": true,
+    "chromeGpuRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+    "chromeCaptureFlags": [
+      "--use-angle=swiftshader",
+      "--enable-unsafe-swiftshader"
+    ],
+    "performanceGpuRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+    "performanceChromeFlags": "Default Chrome GPU selection; renderer recorded from WebGL.",
+    "lighthouseGpuMode": "SwiftShader forced through Chrome flags"
+  },
+  "measurementSchedule": [
+    "Chrome screenshots and runtime checks",
+    "Dedicated fresh Chrome SwiftShader scene timing",
+    "Firefox engine smoke",
+    "WebKit engine smoke",
+    "Three sequential mobile Lighthouse samples",
+    "One desktop Lighthouse sample"
+  ],
+  "captures": {
+    "mobile320": {
+      "screenshot": "evidence/mobile-320-chrome.png",
+      "mode": "default",
+      "viewport": {
+        "width": 320,
+        "height": 720
+      },
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "headline": {
+        "x": 20,
+        "y": 169.8,
+        "width": 280,
+        "height": 133.44,
+        "right": 300,
+        "bottom": 303.23,
+        "fullyInViewport": true
+      },
+      "supportingCopy": {
+        "x": 20,
+        "y": 332.03,
+        "width": 280,
+        "height": 65.38,
+        "right": 300,
+        "bottom": 397.41,
+        "fullyInViewport": true
+      },
+      "evidence": {
+        "x": 20,
+        "y": 548.17,
+        "width": 280,
+        "height": 47.28,
+        "right": 300,
+        "bottom": 595.45,
+        "fullyInViewport": true
+      },
+      "textBounds": {
+        "h1": {
+          "x": 20,
+          "y": 169.8,
+          "width": 280,
+          "height": 133.44,
+          "right": 300,
+          "bottom": 303.23,
+          "fullyInViewport": true
+        },
+        ".frame__lead": {
+          "x": 20,
+          "y": 332.03,
+          "width": 280,
+          "height": 65.38,
+          "right": 300,
+          "bottom": 397.41,
+          "fullyInViewport": true
+        },
+        ".frame__evidence": {
+          "x": 20,
+          "y": 548.17,
+          "width": 280,
+          "height": 47.28,
+          "right": 300,
+          "bottom": 595.45,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:first-child": {
+          "x": 20,
+          "y": 562.77,
+          "width": 130.28,
+          "height": 12.75,
+          "right": 150.28,
+          "bottom": 575.52,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:last-child": {
+          "x": 20,
+          "y": 582.7,
+          "width": 225.44,
+          "height": 12.75,
+          "right": 245.44,
+          "bottom": 595.45,
+          "fullyInViewport": true
+        },
+        ".frame__signature": {
+          "x": 20,
+          "y": 603.45,
+          "width": 280,
+          "height": 11,
+          "right": 300,
+          "bottom": 614.45,
+          "fullyInViewport": true
+        }
+      },
+      "ctas": {
+        "primary": {
+          "x": 20,
+          "y": 426.2,
+          "width": 280,
+          "height": 44.19,
+          "right": 300,
+          "bottom": 470.39,
+          "fullyInViewport": true
+        },
+        "secondary": {
+          "x": 20,
+          "y": 483.98,
+          "width": 280,
+          "height": 44.19,
+          "right": 300,
+          "bottom": 528.17,
+          "fullyInViewport": true
+        }
+      },
+      "fontSizes": {
+        "headline": "34.4px",
+        "supportingCopy": "11.84px",
+        "buttons": "12.48px"
+      },
+      "rootClasses": [
+        "scene-static",
+        "lenis"
+      ],
+      "reducedMotion": false,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "visibleHeaderFragments": [],
+      "thread": {
+        "present": true,
+        "threadDraw": "0"
+      },
+      "frameSections": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "gpuRenderer": "not initialized (intentional static mode)",
+      "noHorizontalOverflow": true,
+      "focusOrder": [
+        {
+          "text": "Ir para o conteúdo principal",
+          "href": "#main-content",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Scholar Premium — página inicial",
+          "href": "./",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Agendar demonstração",
+          "href": "mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Acessar plataforma",
+          "href": "https://scholarpremium.com.br/app/authentication/signin",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        }
+      ],
+      "focusStates": null,
+      "contextRestoration": null,
+      "frameTiming": null,
+      "labInteractionLatency": null,
+      "apiRequests": [],
+      "sceneAssetRequests": [],
+      "consoleErrors": []
+    },
+    "mobile": {
+      "screenshot": "evidence/mobile-chrome.png",
+      "mode": "default",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "headline": {
+        "x": 20,
+        "y": 212.63,
+        "width": 350,
+        "height": 152.31,
+        "right": 370,
+        "bottom": 364.94,
+        "fullyInViewport": true
+      },
+      "supportingCopy": {
+        "x": 20,
+        "y": 397,
+        "width": 350,
+        "height": 106.63,
+        "right": 370,
+        "bottom": 503.63,
+        "fullyInViewport": true
+      },
+      "evidence": {
+        "x": 20,
+        "y": 657.66,
+        "width": 350,
+        "height": 53.81,
+        "right": 370,
+        "bottom": 711.47,
+        "fullyInViewport": true
+      },
+      "textBounds": {
+        "h1": {
+          "x": 20,
+          "y": 212.63,
+          "width": 350,
+          "height": 152.31,
+          "right": 370,
+          "bottom": 364.94,
+          "fullyInViewport": true
+        },
+        ".frame__lead": {
+          "x": 20,
+          "y": 397,
+          "width": 350,
+          "height": 106.63,
+          "right": 370,
+          "bottom": 503.63,
+          "fullyInViewport": true
+        },
+        ".frame__evidence": {
+          "x": 20,
+          "y": 657.66,
+          "width": 350,
+          "height": 53.81,
+          "right": 370,
+          "bottom": 711.47,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:first-child": {
+          "x": 20,
+          "y": 672.25,
+          "width": 156.75,
+          "height": 16.02,
+          "right": 176.75,
+          "bottom": 688.27,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:last-child": {
+          "x": 20,
+          "y": 695.45,
+          "width": 272.78,
+          "height": 16.02,
+          "right": 292.78,
+          "bottom": 711.47,
+          "fullyInViewport": true
+        },
+        ".frame__signature": {
+          "x": 20,
+          "y": 753.66,
+          "width": 350,
+          "height": 13,
+          "right": 370,
+          "bottom": 766.66,
+          "fullyInViewport": true
+        }
+      },
+      "ctas": {
+        "primary": {
+          "x": 20,
+          "y": 535.69,
+          "width": 350,
+          "height": 44.19,
+          "right": 370,
+          "bottom": 579.88,
+          "fullyInViewport": true
+        },
+        "secondary": {
+          "x": 20,
+          "y": 593.47,
+          "width": 350,
+          "height": 44.19,
+          "right": 370,
+          "bottom": 637.66,
+          "fullyInViewport": true
+        }
+      },
+      "fontSizes": {
+        "headline": "40.95px",
+        "supportingCopy": "15.68px",
+        "buttons": "12.48px"
+      },
+      "rootClasses": [
+        "scene-static",
+        "lenis"
+      ],
+      "reducedMotion": false,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "visibleHeaderFragments": [],
+      "thread": {
+        "present": true,
+        "threadDraw": "0"
+      },
+      "frameSections": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "gpuRenderer": "not initialized (intentional static mode)",
+      "noHorizontalOverflow": true,
+      "focusOrder": [
+        {
+          "text": "Ir para o conteúdo principal",
+          "href": "#main-content",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Scholar Premium — página inicial",
+          "href": "./",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Agendar demonstração",
+          "href": "mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Acessar plataforma",
+          "href": "https://scholarpremium.com.br/app/authentication/signin",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        }
+      ],
+      "focusStates": {
+        "primary": {
+          "screenshot": "evidence/focus-primary-cta-chrome.png",
+          "computed": {
+            "outlineStyle": "solid",
+            "outlineWidth": "4px",
+            "outlineColor": "rgb(255, 247, 230)",
+            "outlineOffset": "4px",
+            "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+          }
+        },
+        "secondary": {
+          "screenshot": "evidence/focus-secondary-cta-chrome.png",
+          "computed": {
+            "outlineStyle": "solid",
+            "outlineWidth": "4px",
+            "outlineColor": "rgb(255, 247, 230)",
+            "outlineOffset": "4px",
+            "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+          }
+        }
+      },
+      "contextRestoration": null,
+      "frameTiming": null,
+      "labInteractionLatency": null,
+      "apiRequests": [],
+      "sceneAssetRequests": [],
+      "consoleErrors": []
+    },
+    "tablet": {
+      "screenshot": "evidence/tablet-chrome.png",
+      "mode": "default",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "scrollWidth": 768,
+      "clientWidth": 768,
+      "headline": {
+        "x": 34.55,
+        "y": 247.02,
+        "width": 317.48,
+        "height": 235.47,
+        "right": 352.03,
+        "bottom": 482.48,
+        "fullyInViewport": true
+      },
+      "supportingCopy": {
+        "x": 34.55,
+        "y": 516.67,
+        "width": 656,
+        "height": 53.31,
+        "right": 690.55,
+        "bottom": 569.98,
+        "fullyInViewport": true
+      },
+      "evidence": {
+        "x": 34.55,
+        "y": 674.56,
+        "width": 656,
+        "height": 30.61,
+        "right": 690.55,
+        "bottom": 705.17,
+        "fullyInViewport": true
+      },
+      "textBounds": {
+        "h1": {
+          "x": 34.55,
+          "y": 247.02,
+          "width": 317.48,
+          "height": 235.47,
+          "right": 352.03,
+          "bottom": 482.48,
+          "fullyInViewport": true
+        },
+        ".frame__lead": {
+          "x": 34.55,
+          "y": 516.67,
+          "width": 656,
+          "height": 53.31,
+          "right": 690.55,
+          "bottom": 569.98,
+          "fullyInViewport": true
+        },
+        ".frame__evidence": {
+          "x": 34.55,
+          "y": 674.56,
+          "width": 656,
+          "height": 30.61,
+          "right": 690.55,
+          "bottom": 705.17,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:first-child": {
+          "x": 34.55,
+          "y": 689.16,
+          "width": 156.67,
+          "height": 16.02,
+          "right": 191.22,
+          "bottom": 705.17,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:last-child": {
+          "x": 210.41,
+          "y": 689.16,
+          "width": 272.88,
+          "height": 16.02,
+          "right": 483.28,
+          "bottom": 705.17,
+          "fullyInViewport": true
+        },
+        ".frame__signature": {
+          "x": 34.55,
+          "y": 750.17,
+          "width": 698.91,
+          "height": 14,
+          "right": 733.45,
+          "bottom": 764.17,
+          "fullyInViewport": true
+        }
+      },
+      "ctas": {
+        "primary": {
+          "x": 34.55,
+          "y": 604.17,
+          "width": 206.5,
+          "height": 50.39,
+          "right": 241.05,
+          "bottom": 654.56,
+          "fullyInViewport": true
+        },
+        "secondary": {
+          "x": 254.64,
+          "y": 604.17,
+          "width": 180.3,
+          "height": 50.39,
+          "right": 434.94,
+          "bottom": 654.56,
+          "fullyInViewport": true
+        }
+      },
+      "fontSizes": {
+        "headline": "51.2px",
+        "supportingCopy": "15.68px",
+        "buttons": "13.44px"
+      },
+      "rootClasses": [
+        "scene-static",
+        "lenis"
+      ],
+      "reducedMotion": false,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "visibleHeaderFragments": [],
+      "thread": {
+        "present": true,
+        "threadDraw": "0"
+      },
+      "frameSections": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "gpuRenderer": "not initialized (intentional static mode)",
+      "noHorizontalOverflow": true,
+      "focusOrder": [
+        {
+          "text": "Ir para o conteúdo principal",
+          "href": "#main-content",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Scholar Premium — página inicial",
+          "href": "./",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Agendar demonstração",
+          "href": "mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Acessar plataforma",
+          "href": "https://scholarpremium.com.br/app/authentication/signin",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        }
+      ],
+      "focusStates": null,
+      "contextRestoration": null,
+      "frameTiming": null,
+      "labInteractionLatency": null,
+      "apiRequests": [],
+      "sceneAssetRequests": [],
+      "consoleErrors": []
+    },
+    "automaticArrival": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "input": "No pointer or keyboard input before scene readiness and settlement.",
+      "finiteWindowTargetMs": 12000,
+      "screenshots": {
+        "static": "evidence/desktop-auto-static-chrome.png",
+        "arrival": "evidence/desktop-auto-arrival-chrome.png",
+        "settled": "evidence/desktop-auto-settled-chrome.png"
+      },
+      "initial": {
+        "at": 183,
+        "rootClasses": [
+          "scene-static"
+        ],
+        "canvasOpacity": "0",
+        "posterOpacity": "0.966668",
+        "sceneState": null
+      },
+      "arrived": {
+        "at": 6653.800000190735,
+        "rootClasses": [
+          "scene-ready",
+          "lenis"
+        ],
+        "canvasOpacity": "0.0575692",
+        "posterOpacity": "0.9145",
+        "sceneState": {
+          "initialisedAt": 1909.9000000953674,
+          "modelReadyAt": 4798.699999809265,
+          "arrivalStartedAt": 4798.699999809265,
+          "arrivalSettledAt": null,
+          "scrollProgress": 0,
+          "totalRenderCount": 3,
+          "lastRenderAt": 6653.5,
+          "renderScheduled": true,
+          "environmentReady": true,
+          "contactShadowEnabled": true
+        }
+      },
+      "settled": {
+        "at": 7076,
+        "rootClasses": [
+          "scene-ready",
+          "lenis"
+        ],
+        "canvasOpacity": "1",
+        "posterOpacity": "0",
+        "sceneState": {
+          "initialisedAt": 1909.9000000953674,
+          "modelReadyAt": 4798.699999809265,
+          "arrivalStartedAt": 4798.699999809265,
+          "arrivalSettledAt": 6654.400000095367,
+          "scrollProgress": 0,
+          "totalRenderCount": 4,
+          "lastRenderAt": 6654.400000095367,
+          "renderScheduled": false,
+          "environmentReady": true,
+          "contactShadowEnabled": true
+        }
+      },
+      "afterQuietWindow": {
+        "at": 8268.300000190735,
+        "rootClasses": [
+          "scene-ready",
+          "lenis"
+        ],
+        "canvasOpacity": "1",
+        "posterOpacity": "0",
+        "sceneState": {
+          "initialisedAt": 1909.9000000953674,
+          "modelReadyAt": 4798.699999809265,
+          "arrivalStartedAt": 4798.699999809265,
+          "arrivalSettledAt": 6654.400000095367,
+          "scrollProgress": 0,
+          "totalRenderCount": 4,
+          "lastRenderAt": 6654.400000095367,
+          "renderScheduled": false,
+          "environmentReady": true,
+          "contactShadowEnabled": true
+        }
+      },
+      "timing": {
+        "loadAt": 136.80000019073486,
+        "rootStateTimeline": [
+          {
+            "at": 125.59999990463257,
+            "classes": [
+              "scene-static"
+            ]
+          },
+          {
+            "at": 136.80000019073486,
+            "classes": [
+              "scene-static"
+            ]
+          },
+          {
+            "at": 4798.900000095367,
+            "classes": [
+              "scene-ready"
+            ]
+          },
+          {
+            "at": 4803.199999809265,
+            "classes": [
+              "scene-ready",
+              "lenis"
+            ]
+          }
+        ],
+        "initialisedAfterLoadMs": 1773.0999999046326,
+        "modelReadyAfterLoadMs": 4661.89999961853,
+        "settledAfterLoadMs": 6517.599999904633
+      },
+      "visualStateChanged": true,
+      "renderLoopStopped": true
+    },
+    "desktop": {
+      "screenshot": "evidence/desktop-chrome.png",
+      "mode": "default",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "headline": {
+        "x": 64.8,
+        "y": 172.19,
+        "width": 482.19,
+        "height": 357.66,
+        "right": 546.98,
+        "bottom": 529.84,
+        "fullyInViewport": true
+      },
+      "supportingCopy": {
+        "x": 64.8,
+        "y": 564.03,
+        "width": 561.59,
+        "height": 80.77,
+        "right": 626.39,
+        "bottom": 644.8,
+        "fullyInViewport": true
+      },
+      "evidence": {
+        "x": 64.8,
+        "y": 749.38,
+        "width": 561.59,
+        "height": 30.61,
+        "right": 626.39,
+        "bottom": 779.98,
+        "fullyInViewport": true
+      },
+      "textBounds": {
+        "h1": {
+          "x": 64.8,
+          "y": 172.19,
+          "width": 482.19,
+          "height": 357.66,
+          "right": 546.98,
+          "bottom": 529.84,
+          "fullyInViewport": true
+        },
+        ".frame__lead": {
+          "x": 64.8,
+          "y": 564.03,
+          "width": 561.59,
+          "height": 80.77,
+          "right": 626.39,
+          "bottom": 644.8,
+          "fullyInViewport": true
+        },
+        ".frame__evidence": {
+          "x": 64.8,
+          "y": 749.38,
+          "width": 561.59,
+          "height": 30.61,
+          "right": 626.39,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:first-child": {
+          "x": 64.8,
+          "y": 763.97,
+          "width": 156.67,
+          "height": 16.02,
+          "right": 221.47,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:last-child": {
+          "x": 240.66,
+          "y": 763.97,
+          "width": 272.88,
+          "height": 16.02,
+          "right": 513.53,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__signature": {
+          "x": 64.8,
+          "y": 824.98,
+          "width": 561.59,
+          "height": 14,
+          "right": 626.39,
+          "bottom": 838.98,
+          "fullyInViewport": true
+        }
+      },
+      "ctas": {
+        "primary": {
+          "x": 64.8,
+          "y": 678.98,
+          "width": 206.5,
+          "height": 50.39,
+          "right": 271.3,
+          "bottom": 729.38,
+          "fullyInViewport": true
+        },
+        "secondary": {
+          "x": 284.89,
+          "y": 678.98,
+          "width": 180.3,
+          "height": 50.39,
+          "right": 465.19,
+          "bottom": 729.38,
+          "fullyInViewport": true
+        }
+      },
+      "fontSizes": {
+        "headline": "77.76px",
+        "supportingCopy": "15.84px",
+        "buttons": "13.44px"
+      },
+      "rootClasses": [
+        "scene-ready",
+        "lenis"
+      ],
+      "reducedMotion": false,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "visibleHeaderFragments": [],
+      "thread": {
+        "present": true,
+        "threadDraw": "0"
+      },
+      "frameSections": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "gpuRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "noHorizontalOverflow": true,
+      "focusOrder": [
+        {
+          "text": "Ir para o conteúdo principal",
+          "href": "#main-content",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Scholar Premium — página inicial",
+          "href": "./",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Agendar demonstração",
+          "href": "mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Acessar plataforma",
+          "href": "https://scholarpremium.com.br/app/authentication/signin",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        }
+      ],
+      "focusStates": null,
+      "contextRestoration": {
+        "supported": true,
+        "duringLoss": [
+          "lenis",
+          "scene-fallback"
+        ],
+        "afterRestoration": [
+          "lenis",
+          "scene-ready"
+        ],
+        "staleFallback": false
+      },
+      "frameTiming": {
+        "pointerInput": {
+          "targetDurationMs": 10000,
+          "observedDurationMs": 10002.192209,
+          "trusted": true,
+          "pointerMoves": 38,
+          "path": "Bounded four-arc path inside the desktop viewport."
+        },
+        "scene": {
+          "label": "Main-thread CPU duration around renderer.render and rAF timestamp intervals between consecutive renders in active interpolation bursts.",
+          "recordingDurationMs": 10001.300000190735,
+          "gpuRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+          "renderCpuDuration": {
+            "sampleCount": 600,
+            "minimumMs": 0,
+            "medianMs": 0.19999980926513672,
+            "p95Ms": 0.40000009536743164,
+            "maximumMs": 1,
+            "meanMs": 0.2201666760444641
+          },
+          "activeRenderInterval": {
+            "sampleCount": 599,
+            "minimumMs": 15.599999999999454,
+            "medianMs": 16.699999999999818,
+            "p95Ms": 17.399999999999636,
+            "maximumMs": 17.799999999999272,
+            "meanMs": 16.66694490818032
+          },
+          "percentileCalculation": "Nearest-rank percentile: sort ascending and select index max(0, ceil(p × n) - 1)."
+        },
+        "globalScheduler": {
+          "label": "Global headless requestAnimationFrame scheduler cadence during the same measurement window; non-gating diagnostic.",
+          "recordingDurationMs": 10001.300000190735,
+          "cadence": {
+            "sampleCount": 599,
+            "minimumMs": 15.599999999999454,
+            "medianMs": 16.699999999999818,
+            "p95Ms": 17.399999999999636,
+            "maximumMs": 17.799999999999272,
+            "meanMs": 16.66694490818032
+          },
+          "percentileCalculation": "Nearest-rank percentile: sort ascending and select index max(0, ceil(p × n) - 1)."
+        }
+      },
+      "labInteractionLatency": {
+        "supported": true,
+        "status": "measured",
+        "label": "Lab interaction-latency proxy from trusted Playwright mouse/keyboard input and PerformanceEventTiming; not field INP.",
+        "input": "Trusted Playwright mouse click followed by keyboard Tab.",
+        "durationThresholdMs": 16,
+        "sampleCount": 5,
+        "duration": {
+          "sampleCount": 5,
+          "minimumMs": 48,
+          "medianMs": 48,
+          "p95Ms": 56,
+          "maximumMs": 56,
+          "meanMs": 49.6
+        },
+        "inputDelay": {
+          "sampleCount": 5,
+          "minimumMs": 0.09999990463256836,
+          "medianMs": 0.6999998092651367,
+          "p95Ms": 4.199999809265137,
+          "maximumMs": 4.199999809265137,
+          "meanMs": 1.8399998664855957
+        },
+        "entries": [
+          {
+            "name": "pointerdown",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1415.2999997138977,
+            "processingEnd": 1415.6999998092651,
+            "interactionId": 6182
+          },
+          {
+            "name": "pointerup",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1418.6999998092651,
+            "processingEnd": 1418.6999998092651,
+            "interactionId": 6182
+          },
+          {
+            "name": "click",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1418.7999997138977,
+            "processingEnd": 1418.7999997138977,
+            "interactionId": 6182
+          },
+          {
+            "name": "keydown",
+            "startTime": 1419.4000000953674,
+            "duration": 48,
+            "processingStart": 1419.5,
+            "processingEnd": 1419.6999998092651,
+            "interactionId": 6189
+          },
+          {
+            "name": "keyup",
+            "startTime": 1426.5,
+            "duration": 56,
+            "processingStart": 1426.5999999046326,
+            "processingEnd": 1426.5999999046326,
+            "interactionId": 6189
+          }
+        ],
+        "target": "Diagnostic only; field INP remains unmeasured."
+      },
+      "apiRequests": [],
+      "sceneAssetRequests": [
+        "http://127.0.0.1:56006/assets/cap-scene-Bm6uSa47.js",
+        "http://127.0.0.1:56006/assets/scholar-premium-graduation-cap.glb"
+      ],
+      "consoleErrors": [],
+      "performanceCapture": "evidence/desktop-performance-chrome.png"
+    },
+    "desktopWide": {
+      "screenshot": "evidence/desktop-1920-chrome.png",
+      "mode": "default",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "scrollWidth": 1920,
+      "clientWidth": 1920,
+      "headline": {
+        "x": 86.39,
+        "y": 195.42,
+        "width": 627.22,
+        "height": 568.14,
+        "right": 713.61,
+        "bottom": 763.56,
+        "fullyInViewport": true
+      },
+      "supportingCopy": {
+        "x": 86.39,
+        "y": 804.59,
+        "width": 627.22,
+        "height": 91.78,
+        "right": 713.61,
+        "bottom": 896.38,
+        "fullyInViewport": true
+      },
+      "evidence": {
+        "x": 86.39,
+        "y": 1007.8,
+        "width": 627.22,
+        "height": 30.61,
+        "right": 713.61,
+        "bottom": 1038.41,
+        "fullyInViewport": true
+      },
+      "textBounds": {
+        "h1": {
+          "x": 86.39,
+          "y": 195.42,
+          "width": 627.22,
+          "height": 568.14,
+          "right": 713.61,
+          "bottom": 763.56,
+          "fullyInViewport": true
+        },
+        ".frame__lead": {
+          "x": 86.39,
+          "y": 804.59,
+          "width": 627.22,
+          "height": 91.78,
+          "right": 713.61,
+          "bottom": 896.38,
+          "fullyInViewport": true
+        },
+        ".frame__evidence": {
+          "x": 86.39,
+          "y": 1007.8,
+          "width": 627.22,
+          "height": 30.61,
+          "right": 713.61,
+          "bottom": 1038.41,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:first-child": {
+          "x": 86.39,
+          "y": 1022.39,
+          "width": 156.67,
+          "height": 16.02,
+          "right": 243.06,
+          "bottom": 1038.41,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:last-child": {
+          "x": 262.25,
+          "y": 1022.39,
+          "width": 272.88,
+          "height": 16.02,
+          "right": 535.13,
+          "bottom": 1038.41,
+          "fullyInViewport": true
+        },
+        ".frame__signature": {
+          "x": 86.39,
+          "y": 1092.41,
+          "width": 627.22,
+          "height": 14,
+          "right": 713.61,
+          "bottom": 1106.41,
+          "fullyInViewport": false
+        }
+      },
+      "ctas": {
+        "primary": {
+          "x": 86.39,
+          "y": 937.41,
+          "width": 206.5,
+          "height": 50.39,
+          "right": 292.89,
+          "bottom": 987.8,
+          "fullyInViewport": true
+        },
+        "secondary": {
+          "x": 306.48,
+          "y": 937.41,
+          "width": 180.3,
+          "height": 50.39,
+          "right": 486.78,
+          "bottom": 987.8,
+          "fullyInViewport": true
+        }
+      },
+      "fontSizes": {
+        "headline": "103.68px",
+        "supportingCopy": "18px",
+        "buttons": "13.44px"
+      },
+      "rootClasses": [
+        "scene-static"
+      ],
+      "reducedMotion": false,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "visibleHeaderFragments": [],
+      "thread": {
+        "present": true,
+        "threadDraw": "0"
+      },
+      "frameSections": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "gpuRenderer": "not initialized (intentional static mode)",
+      "noHorizontalOverflow": true,
+      "focusOrder": [
+        {
+          "text": "Ir para o conteúdo principal",
+          "href": "#main-content",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Scholar Premium — página inicial",
+          "href": "./",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Agendar demonstração",
+          "href": "mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Acessar plataforma",
+          "href": "https://scholarpremium.com.br/app/authentication/signin",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        }
+      ],
+      "focusStates": null,
+      "contextRestoration": null,
+      "frameTiming": null,
+      "labInteractionLatency": null,
+      "apiRequests": [],
+      "sceneAssetRequests": [
+        "http://127.0.0.1:56006/assets/cap-scene-Bm6uSa47.js",
+        "http://127.0.0.1:56006/assets/scholar-premium-graduation-cap.glb"
+      ],
+      "consoleErrors": []
+    },
+    "reducedMotion": {
+      "screenshot": "evidence/reduced-motion-chrome.png",
+      "mode": "prefers-reduced-motion: reduce",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "headline": {
+        "x": 64.8,
+        "y": 172.19,
+        "width": 482.19,
+        "height": 357.66,
+        "right": 546.98,
+        "bottom": 529.84,
+        "fullyInViewport": true
+      },
+      "supportingCopy": {
+        "x": 64.8,
+        "y": 564.03,
+        "width": 561.59,
+        "height": 80.77,
+        "right": 626.39,
+        "bottom": 644.8,
+        "fullyInViewport": true
+      },
+      "evidence": {
+        "x": 64.8,
+        "y": 749.38,
+        "width": 561.59,
+        "height": 30.61,
+        "right": 626.39,
+        "bottom": 779.98,
+        "fullyInViewport": true
+      },
+      "textBounds": {
+        "h1": {
+          "x": 64.8,
+          "y": 172.19,
+          "width": 482.19,
+          "height": 357.66,
+          "right": 546.98,
+          "bottom": 529.84,
+          "fullyInViewport": true
+        },
+        ".frame__lead": {
+          "x": 64.8,
+          "y": 564.03,
+          "width": 561.59,
+          "height": 80.77,
+          "right": 626.39,
+          "bottom": 644.8,
+          "fullyInViewport": true
+        },
+        ".frame__evidence": {
+          "x": 64.8,
+          "y": 749.38,
+          "width": 561.59,
+          "height": 30.61,
+          "right": 626.39,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:first-child": {
+          "x": 64.8,
+          "y": 763.97,
+          "width": 156.67,
+          "height": 16.02,
+          "right": 221.47,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:last-child": {
+          "x": 240.66,
+          "y": 763.97,
+          "width": 272.88,
+          "height": 16.02,
+          "right": 513.53,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__signature": {
+          "x": 64.8,
+          "y": 824.98,
+          "width": 561.59,
+          "height": 14,
+          "right": 626.39,
+          "bottom": 838.98,
+          "fullyInViewport": true
+        }
+      },
+      "ctas": {
+        "primary": {
+          "x": 64.8,
+          "y": 678.98,
+          "width": 206.5,
+          "height": 50.39,
+          "right": 271.3,
+          "bottom": 729.38,
+          "fullyInViewport": true
+        },
+        "secondary": {
+          "x": 284.89,
+          "y": 678.98,
+          "width": 180.3,
+          "height": 50.39,
+          "right": 465.19,
+          "bottom": 729.38,
+          "fullyInViewport": true
+        }
+      },
+      "fontSizes": {
+        "headline": "77.76px",
+        "supportingCopy": "15.84px",
+        "buttons": "13.44px"
+      },
+      "rootClasses": [
+        "scene-static"
+      ],
+      "reducedMotion": true,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "visibleHeaderFragments": [],
+      "thread": {
+        "present": true,
+        "threadDraw": "0"
+      },
+      "frameSections": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "gpuRenderer": "not initialized (intentional static mode)",
+      "noHorizontalOverflow": true,
+      "focusOrder": [
+        {
+          "text": "Ir para o conteúdo principal",
+          "href": "#main-content",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Scholar Premium — página inicial",
+          "href": "./",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Agendar demonstração",
+          "href": "mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Acessar plataforma",
+          "href": "https://scholarpremium.com.br/app/authentication/signin",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        }
+      ],
+      "focusStates": null,
+      "contextRestoration": null,
+      "frameTiming": null,
+      "labInteractionLatency": null,
+      "apiRequests": [],
+      "sceneAssetRequests": [],
+      "consoleErrors": []
+    },
+    "fallback": {
+      "screenshot": "evidence/fallback-chrome.png",
+      "mode": "GLB request blocked; CSS fallback",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "headline": {
+        "x": 64.8,
+        "y": 172.19,
+        "width": 482.19,
+        "height": 357.66,
+        "right": 546.98,
+        "bottom": 529.84,
+        "fullyInViewport": true
+      },
+      "supportingCopy": {
+        "x": 64.8,
+        "y": 564.03,
+        "width": 561.59,
+        "height": 80.77,
+        "right": 626.39,
+        "bottom": 644.8,
+        "fullyInViewport": true
+      },
+      "evidence": {
+        "x": 64.8,
+        "y": 749.38,
+        "width": 561.59,
+        "height": 30.61,
+        "right": 626.39,
+        "bottom": 779.98,
+        "fullyInViewport": true
+      },
+      "textBounds": {
+        "h1": {
+          "x": 64.8,
+          "y": 172.19,
+          "width": 482.19,
+          "height": 357.66,
+          "right": 546.98,
+          "bottom": 529.84,
+          "fullyInViewport": true
+        },
+        ".frame__lead": {
+          "x": 64.8,
+          "y": 564.03,
+          "width": 561.59,
+          "height": 80.77,
+          "right": 626.39,
+          "bottom": 644.8,
+          "fullyInViewport": true
+        },
+        ".frame__evidence": {
+          "x": 64.8,
+          "y": 749.38,
+          "width": 561.59,
+          "height": 30.61,
+          "right": 626.39,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:first-child": {
+          "x": 64.8,
+          "y": 763.97,
+          "width": 156.67,
+          "height": 16.02,
+          "right": 221.47,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__evidence span:last-child": {
+          "x": 240.66,
+          "y": 763.97,
+          "width": 272.88,
+          "height": 16.02,
+          "right": 513.53,
+          "bottom": 779.98,
+          "fullyInViewport": true
+        },
+        ".frame__signature": {
+          "x": 64.8,
+          "y": 824.98,
+          "width": 561.59,
+          "height": 14,
+          "right": 626.39,
+          "bottom": 838.98,
+          "fullyInViewport": true
+        }
+      },
+      "ctas": {
+        "primary": {
+          "x": 64.8,
+          "y": 678.98,
+          "width": 206.5,
+          "height": 50.39,
+          "right": 271.3,
+          "bottom": 729.38,
+          "fullyInViewport": true
+        },
+        "secondary": {
+          "x": 284.89,
+          "y": 678.98,
+          "width": 180.3,
+          "height": 50.39,
+          "right": 465.19,
+          "bottom": 729.38,
+          "fullyInViewport": true
+        }
+      },
+      "fontSizes": {
+        "headline": "77.76px",
+        "supportingCopy": "15.84px",
+        "buttons": "13.44px"
+      },
+      "rootClasses": [
+        "scene-fallback",
+        "lenis"
+      ],
+      "reducedMotion": false,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "visibleHeaderFragments": [],
+      "thread": {
+        "present": true,
+        "threadDraw": "0"
+      },
+      "frameSections": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "gpuRenderer": "not initialized (intentional static mode)",
+      "noHorizontalOverflow": true,
+      "focusOrder": [
+        {
+          "text": "Ir para o conteúdo principal",
+          "href": "#main-content",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Scholar Premium — página inicial",
+          "href": "./",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Agendar demonstração",
+          "href": "mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        },
+        {
+          "text": "Acessar plataforma",
+          "href": "https://scholarpremium.com.br/app/authentication/signin",
+          "outlineStyle": "solid",
+          "outlineWidth": "4px",
+          "outlineColor": "rgb(255, 247, 230)",
+          "boxShadow": "rgb(5, 11, 24) 0px 0px 0px 3px, rgb(240, 212, 155) 0px 0px 0px 7px, rgb(122, 82, 0) 0px 0px 0px 10px"
+        }
+      ],
+      "focusStates": null,
+      "contextRestoration": null,
+      "frameTiming": null,
+      "labInteractionLatency": null,
+      "apiRequests": [],
+      "sceneAssetRequests": [
+        "http://127.0.0.1:56006/assets/cap-scene-Bm6uSa47.js",
+        "http://127.0.0.1:56006/assets/scholar-premium-graduation-cap.glb"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    }
+  },
+  "engineSmoke": {
+    "firefox": {
+      "available": true,
+      "engine": "Firefox",
+      "version": "153.0",
+      "screenshot": "evidence/firefox-engine.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "headline": {
+        "left": 20,
+        "right": 370,
+        "top": 213.61666870117188,
+        "bottom": 365.93333435058594
+      },
+      "primaryCta": {
+        "left": 20,
+        "right": 370,
+        "top": 536.6666870117188,
+        "bottom": 581.8666839599609
+      },
+      "secondaryCta": {
+        "left": 20,
+        "right": 370,
+        "top": 595.4666748046875,
+        "bottom": 640.6666870117188
+      },
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "noHorizontalOverflow": true
+    },
+    "webkit": {
+      "available": true,
+      "engine": "WebKit",
+      "version": "26.5",
+      "screenshot": "evidence/webkit-engine.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "headline": {
+        "left": 20,
+        "right": 370,
+        "top": 212.625,
+        "bottom": 364.875
+      },
+      "primaryCta": {
+        "left": 20,
+        "right": 370,
+        "top": 535.5625,
+        "bottom": 579.75
+      },
+      "secondaryCta": {
+        "left": 20,
+        "right": 370,
+        "top": 593.34375,
+        "bottom": 637.53125
+      },
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "platformTarget": "https://scholarpremium.com.br/app/authentication/signin",
+      "noHorizontalOverflow": true
+    }
+  },
+  "lighthouse": {
+    "mobile": {
+      "profile": "390×844, DPR 2, simulated throttling, 4× CPU slowdown",
+      "samples": [
+        {
+          "sample": 1,
+          "report": "evidence/lighthouse-mobile-1.json",
+          "profile": "390×844, DPR 2, simulated throttling, 4× CPU slowdown",
+          "scores": {
+            "performance": 0.95,
+            "accessibility": 0.96,
+            "best-practices": 1,
+            "seo": 0.92
+          },
+          "metrics": {
+            "firstContentfulPaintMs": 1157.6115,
+            "largestContentfulPaintMs": 2484.6892000000003,
+            "cumulativeLayoutShift": 0,
+            "totalBlockingTimeMs": 0,
+            "speedIndexMs": 4357.086124050789
+          }
+        },
+        {
+          "sample": 2,
+          "report": "evidence/lighthouse-mobile-2.json",
+          "profile": "390×844, DPR 2, simulated throttling, 4× CPU slowdown",
+          "scores": {
+            "performance": 0.94,
+            "accessibility": 0.96,
+            "best-practices": 1,
+            "seo": 0.92
+          },
+          "metrics": {
+            "firstContentfulPaintMs": 1437.5109499999999,
+            "largestContentfulPaintMs": 2490.0072999999998,
+            "cumulativeLayoutShift": 0,
+            "totalBlockingTimeMs": 0,
+            "speedIndexMs": 4734.821540646466
+          }
+        },
+        {
+          "sample": 3,
+          "report": "evidence/lighthouse-mobile-3.json",
+          "profile": "390×844, DPR 2, simulated throttling, 4× CPU slowdown",
+          "scores": {
+            "performance": 0.95,
+            "accessibility": 0.96,
+            "best-practices": 1,
+            "seo": 0.92
+          },
+          "metrics": {
+            "firstContentfulPaintMs": 1141.528875,
+            "largestContentfulPaintMs": 2488.2231,
+            "cumulativeLayoutShift": 0,
+            "totalBlockingTimeMs": 0,
+            "speedIndexMs": 4491.717639607619
+          }
+        }
+      ],
+      "summary": {
+        "lcpMs": {
+          "values": [
+            2484.6892000000003,
+            2490.0072999999998,
+            2488.2231
+          ],
+          "median": 2488.2231,
+          "worst": 2490.0072999999998,
+          "best": 2484.6892000000003,
+          "spread": 5.318099999999504,
+          "target": "≤ 2500 ms",
+          "allSamplesPass": true,
+          "stable": true
+        },
+        "tbtMs": {
+          "values": [
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "worst": 0
+        },
+        "cls": {
+          "values": [
+            0,
+            0,
+            0
+          ],
+          "median": 0,
+          "worst": 0,
+          "target": "≤ 0.1"
+        },
+        "performanceApproved": true
+      }
+    },
+    "desktop": {
+      "sample": 1,
+      "report": "evidence/lighthouse-desktop-1.json",
+      "profile": "Lighthouse desktop preset",
+      "scores": {
+        "performance": 0.51,
+        "accessibility": 0.96,
+        "best-practices": 1,
+        "seo": 0.92
+      },
+      "metrics": {
+        "firstContentfulPaintMs": 464.13390000000004,
+        "largestContentfulPaintMs": 2107.8451999999997,
+        "cumulativeLayoutShift": 0.007105207895543296,
+        "totalBlockingTimeMs": 4056.5774,
+        "speedIndexMs": 4042.8283250794884
+      }
+    }
+  },
+  "bundle": {
+    "lazySceneChunk": {
+      "file": "assets/cap-scene-Bm6uSa47.js",
+      "bytes": 612230,
+      "kibibytes": 597.880859375,
+      "isDynamicEntry": true,
+      "source": "src/three/cap-scene.ts"
+    }
+  },
+  "verification": {
+    "corePassed": true,
+    "coreChecks": [
+      {
+        "name": "320×720 text boxes remain inside the viewport",
+        "passed": true
+      },
+      {
+        "name": "390×844 text boxes remain inside the viewport",
+        "passed": true
+      },
+      {
+        "name": "390×844 CTAs are fully inside the first viewport",
+        "passed": true
+      },
+      {
+        "name": "768×900 CTAs are fully inside the first viewport",
+        "passed": true
+      },
+      {
+        "name": "1920×1080 content and CTAs are fully inside the first viewport",
+        "passed": true
+      },
+      {
+        "name": "desktop scene starts automatically and visibly after load",
+        "passed": true
+      },
+      {
+        "name": "automatic arrival settles without an endless render loop",
+        "passed": true
+      },
+      {
+        "name": "all captures have no horizontal overflow",
+        "passed": true
+      },
+      {
+        "name": "focus order and outlines are robust",
+        "passed": true
+      },
+      {
+        "name": "both CTA focus states have persisted multi-ring evidence",
+        "passed": true
+      },
+      {
+        "name": "constrained viewports avoid Three.js and GLB requests",
+        "passed": true
+      },
+      {
+        "name": "platform CTA bypasses the isolated preview fallback",
+        "passed": true
+      },
+      {
+        "name": "header has no indistinct fragment destinations",
+        "passed": true
+      },
+      {
+        "name": "reduced motion keeps thread present without scroll-linked animation dependency",
+        "passed": true
+      },
+      {
+        "name": "all six narrative frames are present in the DOM",
+        "passed": true
+      },
+      {
+        "name": "fallback remains stable when the model is blocked",
+        "passed": true
+      },
+      {
+        "name": "context restoration clears stale fallback state",
+        "passed": true
+      },
+      {
+        "name": "no API requests are observed",
+        "passed": true
+      }
+    ],
+    "performancePassed": true,
+    "performanceTargets": {
+      "mobileLcp": {
+        "metric": "Repeated mobile LCP",
+        "samples": [
+          2484.6892000000003,
+          2490.0072999999998,
+          2488.2231
+        ],
+        "median": "2488.2231 ms",
+        "worst": "2490.0072999999998 ms",
+        "target": "≤ 2.5 s",
+        "stable": true,
+        "passed": true
+      },
+      "mobileCls": {
+        "metric": "Repeated mobile CLS",
+        "samples": [
+          0,
+          0,
+          0
+        ],
+        "observed": 0,
+        "target": "≤ 0.1",
+        "passed": true
+      },
+      "mobileTbt": {
+        "metric": "Mobile TBT diagnostic",
+        "samples": [
+          0,
+          0,
+          0
+        ],
+        "median": "0 ms",
+        "worst": "0 ms",
+        "target": "reported diagnostic; no POC AC threshold"
+      },
+      "desktopSceneFrameWorkload": {
+        "metric": "Desktop scene renderer.render CPU workload",
+        "sampleCount": 600,
+        "recordingDurationMs": 10001.300000190735,
+        "gpuRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)",
+        "observed": 0.40000009536743164,
+        "target": "≤ 20 ms",
+        "passed": true,
+        "method": "Nearest-rank p95 of main-thread CPU duration measured immediately around renderer.render during 10 seconds of bounded trusted pointer input. This measures CPU submission workload, not GPU completion."
+      },
+      "activeSceneRenderCadence": {
+        "metric": "Active scene interpolation cadence",
+        "sampleCount": 599,
+        "minimumMs": 15.599999999999454,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 17.399999999999636,
+        "maximumMs": 17.799999999999272,
+        "meanMs": 16.66694490818032,
+        "recordingDurationMs": 10001.300000190735,
+        "target": "≤ 20 ms",
+        "passed": true,
+        "gating": true,
+        "method": "Nearest-rank p95 between consecutive renders within active interpolation bursts; inactive event-driven gaps reset the interval chain and are excluded."
+      },
+      "globalHeadlessScheduler": {
+        "metric": "Global headless rAF scheduler diagnostic",
+        "sampleCount": 599,
+        "minimumMs": 15.599999999999454,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 17.399999999999636,
+        "maximumMs": 17.799999999999272,
+        "meanMs": 16.66694490818032,
+        "recordingDurationMs": 10001.300000190735,
+        "gating": false
+      },
+      "labInteractionLatency": {
+        "metric": "Lab interaction-latency proxy",
+        "supported": true,
+        "status": "measured",
+        "label": "Lab interaction-latency proxy from trusted Playwright mouse/keyboard input and PerformanceEventTiming; not field INP.",
+        "input": "Trusted Playwright mouse click followed by keyboard Tab.",
+        "durationThresholdMs": 16,
+        "sampleCount": 5,
+        "duration": {
+          "sampleCount": 5,
+          "minimumMs": 48,
+          "medianMs": 48,
+          "p95Ms": 56,
+          "maximumMs": 56,
+          "meanMs": 49.6
+        },
+        "inputDelay": {
+          "sampleCount": 5,
+          "minimumMs": 0.09999990463256836,
+          "medianMs": 0.6999998092651367,
+          "p95Ms": 4.199999809265137,
+          "maximumMs": 4.199999809265137,
+          "meanMs": 1.8399998664855957
+        },
+        "entries": [
+          {
+            "name": "pointerdown",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1415.2999997138977,
+            "processingEnd": 1415.6999998092651,
+            "interactionId": 6182
+          },
+          {
+            "name": "pointerup",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1418.6999998092651,
+            "processingEnd": 1418.6999998092651,
+            "interactionId": 6182
+          },
+          {
+            "name": "click",
+            "startTime": 1414.5999999046326,
+            "duration": 48,
+            "processingStart": 1418.7999997138977,
+            "processingEnd": 1418.7999997138977,
+            "interactionId": 6182
+          },
+          {
+            "name": "keydown",
+            "startTime": 1419.4000000953674,
+            "duration": 48,
+            "processingStart": 1419.5,
+            "processingEnd": 1419.6999998092651,
+            "interactionId": 6189
+          },
+          {
+            "name": "keyup",
+            "startTime": 1426.5,
+            "duration": 56,
+            "processingStart": 1426.5999999046326,
+            "processingEnd": 1426.5999999046326,
+            "interactionId": 6189
+          }
+        ],
+        "target": "Diagnostic only; field INP remains unmeasured.",
+        "gating": false,
+        "fieldInpMeasured": false
+      }
+    }
+  },
+  "residualGaps": [
+    "Physical Safari, iOS Safari, and Android Chrome were not exercised by this harness.",
+    "Headless SwiftShader evidence does not replace physical-device GPU and frame-time review.",
+    "Lighthouse mobile throttling is simulated and must be identified as such in review.",
+    "The scene workload is a main-thread CPU submission measurement around renderer.render, not GPU completion time or a DevTools trace.",
+    "Global headless requestAnimationFrame cadence is retained as a non-gating scheduler diagnostic.",
+    "The lab interaction measurement uses trusted Playwright input and Event Timing when supported; it is not field INP."
+  ]
+}
