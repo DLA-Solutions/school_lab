@@ -1,15 +1,13 @@
 {
-  "index.html": {
-    "file": "assets/index-Bfmmpnn-.js",
-    "name": "index",
-    "src": "index.html",
-    "isEntry": true,
-    "dynamicImports": [
-      "src/three/cap-scene.ts",
-      "src/scroll/scroll-narrative.ts"
-    ],
+  "_styles-Bmgc6krM.css": {
+    "file": "assets/styles-Bmgc6krM.css",
+    "src": "_styles-Bmgc6krM.css"
+  },
+  "_styles-EY2wJLdI.js": {
+    "file": "assets/styles-EY2wJLdI.js",
+    "name": "styles",
     "css": [
-      "assets/index-Bmgc6krM.css"
+      "assets/styles-Bmgc6krM.css"
     ],
     "assets": [
       "assets/inter-latin-400-normal-C38fXH4l.woff2",
@@ -20,6 +18,31 @@
       "assets/cormorant-garamond-latin-500-normal-zIXX3Q-H.woff",
       "assets/cormorant-garamond-latin-600-normal-Co1r35X9.woff2",
       "assets/cormorant-garamond-latin-600-normal-2CBVLo0M.woff"
+    ]
+  },
+  "agendar-demonstracao/index.html": {
+    "file": "assets/demo-DEP8BxHg.js",
+    "name": "demo",
+    "src": "agendar-demonstracao/index.html",
+    "isEntry": true,
+    "imports": [
+      "_styles-EY2wJLdI.js"
+    ],
+    "css": [
+      "assets/demo-BfRLOfzA.css"
+    ]
+  },
+  "index.html": {
+    "file": "assets/main-lpgxztoL.js",
+    "name": "main",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_styles-EY2wJLdI.js"
+    ],
+    "dynamicImports": [
+      "src/three/cap-scene.ts",
+      "src/scroll/scroll-narrative.ts"
     ]
   },
   "node_modules/@fontsource/cormorant-garamond/files/cormorant-garamond-latin-500-normal.woff": {
