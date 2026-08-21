@@ -3,6 +3,19 @@
 How `site/`, `frontend/app/`, `frontend/backoffice/`, and `web/` reach production and staging.
 Deploys are manual, run from a developer machine with Kamal 2.
 
+## Branch policy
+
+Deploy **only from `main`**, and only **after** the change is merged via PR. Branch from
+`main`, use atomic commits, open a PR, merge — then:
+
+```bash
+git checkout main
+git pull origin main
+```
+
+Do not deploy from feature branches or to validate an open PR on staging. Cursor rule:
+`.cursor/rules/core/deploy-from-main.mdc`.
+
 ## Topology
 
 Two VPS. Only the app server is exposed to the internet. Four Kamal services share one
