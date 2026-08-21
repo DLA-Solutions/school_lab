@@ -23,8 +23,7 @@ export const copy = {
       'Uma plataforma para reunir a operação acadêmica, financeira, documental e a relação com as famílias — pensada para escolas particulares brasileiras.',
     ctaPrimary: 'Agendar demonstração',
     ctaSecondary: 'Acessar plataforma',
-    ctaPrimaryHref:
-      'mailto:contato@diegonovais.com.br?subject=Agendar%20demonstra%C3%A7%C3%A3o%20%E2%80%94%20Scholar%20Premium',
+    ctaPrimaryHref: './agendar-demonstracao/',
     ctaSecondaryHref: 'https://scholarpremium.com.br/app/authentication/signin',
     signature: 'Scholar Premium, by DLA Solutions',
   },

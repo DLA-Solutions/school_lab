@@ -15,6 +15,7 @@ env:
     CORA_TOKEN_URL: https://matls-clients.api.cora.com.br/token
     CORS_ORIGINS: https://scholarpremium.com.br,https://www.scholarpremium.com.br
     APP_HOST: scholarpremium.com.br
+    MARKETING_DEMO_REQUEST_RECIPIENTS: contato@diegonovais.com.br,luizcalaca@gmail.com
 
 volumes:
   - "scholarpremium_storage:/rails/storage"

@@ -5,6 +5,9 @@
 # Adding a language means adding its file here and to `config/initializers/locale.rb`; nothing in
 # the application negotiates a locale per request, so a second one needs that written first.
 en:
+  time:
+    formats:
+      long: "%B %d, %Y %H:%M"
   billing:
     settings:
       default_service_description: "School tuition"
@@ -44,6 +47,17 @@ en:
         body: "You were invited to access %{school} on Scholar Premium. Set your password to activate your account."
         cta: "Activate access"
         footer: "This link is valid for 7 days. If you were not expecting this invitation, please ignore this e-mail."
+  marketing:
+    mailer:
+      demo_request:
+        subject: "Demo requested — %{name}"
+        greeting: "Hello,"
+        intro: "Someone requested a demo from the Scholar Premium marketing site."
+        name_label: "Name"
+        email_label: "E-mail"
+        phone_label: "Phone (WhatsApp)"
+        submitted_at_label: "Submitted at"
+        source: "Source: Scholar Premium marketing site"
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."
