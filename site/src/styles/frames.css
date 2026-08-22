@@ -229,6 +229,13 @@ h1 span + span,
 
 .frame--05 {
   background: var(--ink);
+  min-height: auto;
+}
+
+.frame--05 .frame__inner,
+.frame--06 .frame__inner {
+  padding-top: clamp(3rem, 6vh, 5rem);
+  padding-bottom: clamp(2rem, 4vh, 3rem);
 }
 
 .privacy-points {
@@ -261,15 +268,14 @@ h1 span + span,
 
 .frame--06 {
   background: var(--midnight);
+  min-height: auto;
 }
 
 .frame__inner--closing {
   display: flex;
-  min-height: 70vh;
-  min-height: 70svh;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 /* Tablet portrait — keep copy left, clear cap zone */
