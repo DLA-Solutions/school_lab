@@ -8,14 +8,13 @@ import {
   HemisphereLight,
   MathUtils,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
-  PCFSoftShadowMap,
   PerspectiveCamera,
-  PlaneGeometry,
   PointLight,
   PMREMGenerator,
   Scene,
-  ShadowMaterial,
+  SphereGeometry,
   SRGBColorSpace,
   Texture,
   Vector2,
@@ -23,8 +22,8 @@ import {
   WebGLRenderer,
   type Material,
   type Object3D,
+  type WebGLRenderTarget,
 } from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export interface CapKeyframe {
@@ -52,14 +51,14 @@ export const CAP_KEYFRAMES: CapKeyframe[] = [
     cameraX: 0,
     cameraY: 0.08,
     fov: 32,
-    rotationX: -0.16,
-    rotationY: -0.34,
-    rotationZ: 0.045,
+    rotationX: 0.16,
+    rotationY: -0.98,
+    rotationZ: 0.06,
     modelX: 0.42,
     modelY: -0.18,
     scale: 1,
     keyIntensity: 4.6,
-    fillIntensity: 1.55,
+    fillIntensity: 0.95,
     rimIntensity: 58,
     exposure: 1.22,
   },
@@ -69,14 +68,14 @@ export const CAP_KEYFRAMES: CapKeyframe[] = [
     cameraX: 0.15,
     cameraY: 0.2,
     fov: 34,
-    rotationX: -0.12,
-    rotationY: -0.22,
-    rotationZ: 0.03,
+    rotationX: 0.12,
+    rotationY: -0.82,
+    rotationZ: 0.04,
     modelX: 0.55,
     modelY: -0.12,
     scale: 0.92,
     keyIntensity: 4.2,
-    fillIntensity: 1.7,
+    fillIntensity: 1.05,
     rimIntensity: 48,
     exposure: 1.18,
   },
@@ -86,14 +85,14 @@ export const CAP_KEYFRAMES: CapKeyframe[] = [
     cameraX: 0.85,
     cameraY: 0.05,
     fov: 33,
-    rotationX: -0.08,
-    rotationY: 0.42,
+    rotationX: 0.1,
+    rotationY: 0.88,
     rotationZ: 0.02,
     modelX: 1.1,
     modelY: -0.22,
     scale: 0.88,
     keyIntensity: 3.8,
-    fillIntensity: 1.85,
+    fillIntensity: 1.1,
     rimIntensity: 42,
     exposure: 1.14,
   },
@@ -103,14 +102,14 @@ export const CAP_KEYFRAMES: CapKeyframe[] = [
     cameraX: 0.2,
     cameraY: 0.1,
     fov: 36,
-    rotationX: -0.05,
-    rotationY: 0.55,
+    rotationX: 0.06,
+    rotationY: 1.02,
     rotationZ: 0,
     modelX: 1.25,
     modelY: -0.28,
     scale: 0.78,
     keyIntensity: 1.2,
-    fillIntensity: 0.85,
+    fillIntensity: 0.55,
     rimIntensity: 18,
     exposure: 0.72,
   },
@@ -120,14 +119,14 @@ export const CAP_KEYFRAMES: CapKeyframe[] = [
     cameraX: 0,
     cameraY: 0.06,
     fov: 32,
-    rotationX: -0.14,
-    rotationY: -0.28,
-    rotationZ: 0.04,
+    rotationX: 0.14,
+    rotationY: -0.92,
+    rotationZ: 0.05,
     modelX: 0.45,
     modelY: -0.16,
     scale: 0.95,
     keyIntensity: 4.4,
-    fillIntensity: 1.5,
+    fillIntensity: 0.9,
     rimIntensity: 52,
     exposure: 1.16,
   },
@@ -136,24 +135,24 @@ export const CAP_KEYFRAMES: CapKeyframe[] = [
 /** One keyframe per visible narrative frame (01–03, 05–06). */
 const KEYFRAME_PROGRESS = [0, 0.25, 0.5, 0.75, 1];
 
-/** Radians per millisecond — one full Y turn in ~70s; secondary to pointer orbit. */
-const IDLE_SPIN_Y_PER_MS = 0.00009;
+/** Radians per millisecond — one full Y turn in ~16s. */
+const IDLE_SPIN_Y_PER_MS = 0.0004;
 
-/** Pointer orbit bounds (normalized device coords, -1..1). Rotation dominates; position is subtle depth. */
+/** Pointer orbit bounds (normalized device coords, -1..1). Yaw is the main mouse response. */
 const POINTER_PARALLAX = {
-  rotationX: 0.36,
-  rotationY: 0.48,
-  rotationZ: 0.1,
-  positionX: 0.03,
-  positionY: 0.02,
-  cameraX: 0.015,
-  cameraY: 0.01,
-  rimX: 0.38,
-  rimY: 0.22,
+  rotationX: 0.18,
+  rotationY: 0.78,
+  rotationZ: 0.08,
+  positionX: 0.06,
+  positionY: 0.04,
+  cameraX: 0.1,
+  cameraY: 0.06,
+  rimX: 0.55,
+  rimY: 0.32,
 } as const;
 
 /** Pointer follow smoothing — higher = more responsive orbit feel. */
-const POINTER_LERP = 0.13;
+const POINTER_LERP = 0.2;
 
 interface SampleStatistics {
   sampleCount: number;
@@ -245,6 +244,11 @@ export function interpolateCapState(progress: number): CapKeyframe {
   };
 }
 
+function ultrawideFrameShift(): number {
+  const aspect = window.innerWidth / Math.max(window.innerHeight, 1);
+  return Math.min(1.35, Math.max(0, aspect - 1.78) * 1.25);
+}
+
 export async function createCapScene(
   sceneCanvas: HTMLCanvasElement,
   sceneContainer: HTMLElement,
@@ -276,50 +280,25 @@ export async function createCapScene(
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.22;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = PCFSoftShadowMap;
+  renderer.shadowMap.enabled = false;
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(32, 1, 0.1, 100);
   camera.position.set(0, 0.08, 6.7);
 
-  const pmremGenerator = new PMREMGenerator(renderer);
-  pmremGenerator.compileEquirectangularShader();
-  const roomEnvironment = new RoomEnvironment();
-  const environmentMap = pmremGenerator.fromScene(roomEnvironment, 0.045).texture;
+  const environmentTarget = createStudioEnvironment(renderer);
+  const environmentMap = environmentTarget.texture;
   scene.environment = environmentMap;
-  roomEnvironment.dispose();
-  pmremGenerator.dispose();
 
-  const ambientLight = new HemisphereLight(0x6683aa, 0x01040b, 0.38);
+  const ambientLight = new HemisphereLight(0x4d6580, 0x01040b, 0.16);
   const goldKeyLight = new DirectionalLight(0xffd791, 4.6);
   goldKeyLight.position.set(4.2, 5.2, 4.5);
-  goldKeyLight.castShadow = true;
-  goldKeyLight.shadow.mapSize.set(1024, 1024);
-  goldKeyLight.shadow.camera.near = 0.5;
-  goldKeyLight.shadow.camera.far = 14;
-  goldKeyLight.shadow.camera.left = -3.5;
-  goldKeyLight.shadow.camera.right = 3.5;
-  goldKeyLight.shadow.camera.top = 3.5;
-  goldKeyLight.shadow.camera.bottom = -3.5;
-  goldKeyLight.shadow.bias = -0.0007;
-  goldKeyLight.shadow.normalBias = 0.035;
 
-  const coolFillLight = new DirectionalLight(0x5277aa, 1.55);
-  coolFillLight.position.set(-4.5, -1.8, 3.8);
+  const coolFillLight = new DirectionalLight(0x5277aa, 1.15);
+  coolFillLight.position.set(-5.2, 2.4, 4.6);
   const goldRimLight = new PointLight(0xffbf58, 58, 12, 1.65);
   goldRimLight.position.set(3.6, 2.4, -2.8);
   scene.add(ambientLight, goldKeyLight, coolFillLight, goldRimLight);
-
-  const shadowMaterial = new ShadowMaterial({
-    color: new Color(0x00030a),
-    opacity: 0.32,
-  });
-  const contactShadow = new Mesh(new PlaneGeometry(6.2, 4.2), shadowMaterial);
-  contactShadow.rotation.x = -Math.PI / 2;
-  contactShadow.position.set(0.35, -1.22, 0.15);
-  contactShadow.receiveShadow = true;
-  scene.add(contactShadow);
 
   const metrics = createSceneMetrics(readGpuRenderer(renderer));
   window.__scholarSceneMetrics = metrics.controller;
@@ -334,7 +313,7 @@ export async function createCapScene(
     lastRenderAt: null,
     renderScheduled: false,
     environmentReady: Boolean(scene.environment),
-    contactShadowEnabled: renderer.shadowMap.enabled && contactShadow.receiveShadow,
+    contactShadowEnabled: false,
     revealedAt: null,
   };
   window.__scholarSceneState = { snapshot: () => ({ ...sceneState }) };
@@ -351,7 +330,7 @@ export async function createCapScene(
   let targetScrollProgress = 0;
   const pointerTarget = new Vector2();
   const pointerCurrent = new Vector2();
-  const baseRotation = new Euler(-0.16, -0.34, 0.045);
+  const baseRotation = new Euler(0.16, -0.98, 0.06);
 
   const applyState = (
     state: CapKeyframe,
@@ -368,8 +347,11 @@ export async function createCapScene(
     const pointerX = enablePointerParallax ? pointerCurrent.x : 0;
     const pointerY = enablePointerParallax ? pointerCurrent.y : 0;
 
+    const frameShift = ultrawideFrameShift();
+    const framedX = state.modelX + frameShift;
+
     model.position.set(
-      state.modelX + pointerX * POINTER_PARALLAX.positionX,
+      framedX + pointerX * POINTER_PARALLAX.positionX,
       state.modelY + pointerY * POINTER_PARALLAX.positionY,
       0,
     );
@@ -381,13 +363,13 @@ export async function createCapScene(
     );
 
     camera.position.set(
-      state.cameraX + pointerX * POINTER_PARALLAX.cameraX,
+      state.cameraX + pointerX * POINTER_PARALLAX.cameraX - frameShift * 0.22,
       state.cameraY + pointerY * POINTER_PARALLAX.cameraY,
       state.cameraZ,
     );
     camera.fov = state.fov;
     camera.updateProjectionMatrix();
-    camera.lookAt(state.modelX * 0.4, state.modelY * 0.5, 0);
+    camera.lookAt(framedX * 0.42, state.modelY * 0.5, 0);
 
     goldKeyLight.intensity = state.keyIntensity;
     coolFillLight.intensity = state.fillIntensity;
@@ -425,13 +407,7 @@ export async function createCapScene(
     const state = interpolateCapState(scrollProgress);
     applyState(state, arrivalEase, idleSpinY, enablePointerParallax);
 
-    const pointerDelta = pointerCurrent.distanceTo(pointerTarget);
-    const scrollDelta = Math.abs(targetScrollProgress - scrollProgress);
-    const keepRendering =
-      !reduce ||
-      arrivalProgress < 1 ||
-      pointerDelta > 0.001 ||
-      scrollDelta > 0.0008;
+    const keepRendering = !reduce;
 
     if (keepRendering) {
       scheduleRender();
@@ -581,7 +557,7 @@ export async function createCapScene(
     });
 
     renderer.dispose();
-    environmentMap.dispose();
+    environmentTarget.dispose();
   };
 
   window.addEventListener('resize', resize, { passive: true });
@@ -620,7 +596,7 @@ export async function createCapScene(
     model.rotation.copy(baseRotation);
     scene.add(model);
 
-    arrivalStartedAt = performance.now() - 1200;
+    arrivalStartedAt = performance.now();
     sceneState.modelReadyAt = performance.now();
     sceneState.arrivalStartedAt = arrivalStartedAt;
     resize();
@@ -647,7 +623,7 @@ function prepareModel(root: Object3D): void {
       return;
     }
 
-    object.castShadow = true;
+    object.castShadow = false;
     object.receiveShadow = false;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
 
@@ -659,20 +635,20 @@ function prepareModel(root: Object3D): void {
 
         if (namedGold || baseColorGold) {
           material.color.set(0xd9a94f);
-          material.metalness = 0.96;
-          material.roughness = 0.24;
-          material.envMapIntensity = 1.2;
+          material.metalness = 0.92;
+          material.roughness = 0.28;
+          material.envMapIntensity = 0.86;
         } else if (material.map) {
           material.color.set(0xffffff);
           material.metalness = 0;
-          material.roughness = 0.62;
-          material.envMapIntensity = 0.88;
+          material.roughness = 0.9;
+          material.envMapIntensity = 0;
           applyTextureSurfaceProfile(material);
         } else {
           material.color.set(0x071326);
           material.metalness = 0;
-          material.roughness = 0.62;
-          material.envMapIntensity = 0.78;
+          material.roughness = 0.9;
+          material.envMapIntensity = 0;
         }
 
         material.needsUpdate = true;
@@ -703,23 +679,57 @@ float scholarGoldMask(vec3 color) {
         `#include <map_fragment>
 float scholarSurfaceGold = scholarGoldMask(diffuseColor.rgb);
 diffuseColor.rgb = mix(
-  diffuseColor.rgb * vec3(0.42, 0.58, 0.84),
-  diffuseColor.rgb * vec3(1.08, 0.97, 0.76),
+  diffuseColor.rgb * vec3(0.52, 0.6, 0.72),
+  diffuseColor.rgb * vec3(1.06, 0.96, 0.74),
   scholarSurfaceGold
 );`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
-roughnessFactor = mix(0.64, 0.24, scholarGoldMask(diffuseColor.rgb));`,
+roughnessFactor = mix(0.9, 0.28, scholarGoldMask(diffuseColor.rgb));`,
       )
       .replace(
         '#include <metalnessmap_fragment>',
         `#include <metalnessmap_fragment>
-metalnessFactor = mix(0.0, 0.96, scholarGoldMask(diffuseColor.rgb));`,
+metalnessFactor = mix(0.0, 0.9, scholarGoldMask(diffuseColor.rgb));`,
       );
   };
-  material.customProgramCacheKey = () => 'scholar-premium-cap-surface-v2';
+  material.customProgramCacheKey = () => 'scholar-premium-cap-surface-v4';
+}
+
+function createStudioEnvironment(renderer: WebGLRenderer): WebGLRenderTarget {
+  const pmremGenerator = new PMREMGenerator(renderer);
+  pmremGenerator.compileEquirectangularShader();
+
+  const envScene = new Scene();
+  envScene.background = new Color(0x02050c);
+
+  const sphereGeometry = new SphereGeometry(1, 24, 16);
+  const lights = [
+    { color: 0xffd791, radius: 5.2, position: [9, 11, 7.5] as const },
+    { color: 0x3a587c, radius: 7, position: [-11, 4, 6] as const },
+    { color: 0xffbf58, radius: 2.4, position: [6.5, 3.2, -9] as const },
+  ];
+  const lightMeshes = lights.map((light) => {
+    const mesh = new Mesh(sphereGeometry, new MeshBasicMaterial({ color: light.color }));
+    mesh.position.set(light.position[0], light.position[1], light.position[2]);
+    mesh.scale.setScalar(light.radius);
+    envScene.add(mesh);
+    return mesh;
+  });
+
+  const environmentTarget = pmremGenerator.fromScene(envScene, 0.04);
+
+  lightMeshes.forEach((mesh) => {
+    if (mesh.material instanceof MeshBasicMaterial) {
+      mesh.material.dispose();
+    }
+  });
+  sphereGeometry.dispose();
+  pmremGenerator.dispose();
+
+  return environmentTarget;
 }
 
 function disposeMaterial(material: Material): void {

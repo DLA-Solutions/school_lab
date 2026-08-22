@@ -8,14 +8,13 @@ import {
   HemisphereLight,
   MathUtils,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
-  PCFSoftShadowMap,
   PerspectiveCamera,
-  PlaneGeometry,
   PointLight,
   PMREMGenerator,
   Scene,
-  ShadowMaterial,
+  SphereGeometry,
   SRGBColorSpace,
   Texture,
   Vector2,
@@ -23,8 +22,8 @@ import {
   WebGLRenderer,
   type Material,
   type Object3D,
+  type WebGLRenderTarget,
 } from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 interface SampleStatistics {
@@ -107,50 +106,25 @@ export async function initialiseHeroScene(
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.22;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = PCFSoftShadowMap;
+  renderer.shadowMap.enabled = false;
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(32, 1, 0.1, 100);
   camera.position.set(0, 0.08, 6.7);
 
-  const pmremGenerator = new PMREMGenerator(renderer);
-  pmremGenerator.compileEquirectangularShader();
-  const roomEnvironment = new RoomEnvironment();
-  const environmentMap = pmremGenerator.fromScene(roomEnvironment, 0.045).texture;
+  const environmentTarget = createStudioEnvironment(renderer);
+  const environmentMap = environmentTarget.texture;
   scene.environment = environmentMap;
-  roomEnvironment.dispose();
-  pmremGenerator.dispose();
 
-  const ambientLight = new HemisphereLight(0x6683aa, 0x01040b, 0.38);
+  const ambientLight = new HemisphereLight(0x4d6580, 0x01040b, 0.16);
   const goldKeyLight = new DirectionalLight(0xffd791, 4.6);
   goldKeyLight.position.set(4.2, 5.2, 4.5);
-  goldKeyLight.castShadow = true;
-  goldKeyLight.shadow.mapSize.set(1024, 1024);
-  goldKeyLight.shadow.camera.near = 0.5;
-  goldKeyLight.shadow.camera.far = 14;
-  goldKeyLight.shadow.camera.left = -3.5;
-  goldKeyLight.shadow.camera.right = 3.5;
-  goldKeyLight.shadow.camera.top = 3.5;
-  goldKeyLight.shadow.camera.bottom = -3.5;
-  goldKeyLight.shadow.bias = -0.0007;
-  goldKeyLight.shadow.normalBias = 0.035;
 
-  const coolFillLight = new DirectionalLight(0x5277aa, 1.55);
-  coolFillLight.position.set(-4.5, -1.8, 3.8);
+  const coolFillLight = new DirectionalLight(0x5277aa, 1.15);
+  coolFillLight.position.set(-5.2, 2.4, 4.6);
   const goldRimLight = new PointLight(0xffbf58, 58, 12, 1.65);
   goldRimLight.position.set(3.6, 2.4, -2.8);
   scene.add(ambientLight, goldKeyLight, coolFillLight, goldRimLight);
-
-  const shadowMaterial = new ShadowMaterial({
-    color: new Color(0x00030a),
-    opacity: 0.32,
-  });
-  const contactShadow = new Mesh(new PlaneGeometry(6.2, 4.2), shadowMaterial);
-  contactShadow.rotation.x = -Math.PI / 2;
-  contactShadow.position.set(0.35, -1.22, 0.15);
-  contactShadow.receiveShadow = true;
-  scene.add(contactShadow);
 
   const metrics = createSceneMetrics(readGpuRenderer(renderer));
   window.__scholarSceneMetrics = metrics.controller;
@@ -163,8 +137,7 @@ export async function initialiseHeroScene(
     lastRenderAt: null,
     renderScheduled: false,
     environmentReady: Boolean(scene.environment),
-    contactShadowEnabled:
-      renderer.shadowMap.enabled && contactShadow.receiveShadow,
+    contactShadowEnabled: false,
     materialProfiles: {
       fabric: 0,
       gold: 0,
@@ -361,7 +334,7 @@ export async function initialiseHeroScene(
     });
 
     renderer.dispose();
-    environmentMap.dispose();
+    environmentTarget.dispose();
   };
 
   window.addEventListener('resize', resize, { passive: true });
@@ -440,22 +413,22 @@ function prepareModel(root: Object3D): SceneStateSnapshot['materialProfiles'] {
         if (namedGold || baseColorGold) {
           profiles.gold += 1;
           material.color.set(0xd9a94f);
-          material.metalness = 0.96;
-          material.roughness = 0.24;
-          material.envMapIntensity = 1.2;
+          material.metalness = 0.92;
+          material.roughness = 0.28;
+          material.envMapIntensity = 0.86;
         } else if (material.map) {
           profiles.texturedComposite += 1;
           material.color.set(0xffffff);
           material.metalness = 0;
-          material.roughness = 0.62;
-          material.envMapIntensity = 0.88;
+          material.roughness = 0.86;
+          material.envMapIntensity = 0.22;
           applyTextureSurfaceProfile(material);
         } else {
           profiles.fabric += 1;
           material.color.set(0x071326);
           material.metalness = 0;
-          material.roughness = 0.62;
-          material.envMapIntensity = 0.78;
+          material.roughness = 0.86;
+          material.envMapIntensity = 0.18;
         }
 
         material.needsUpdate = true;
@@ -488,23 +461,57 @@ float scholarGoldMask(vec3 color) {
         `#include <map_fragment>
 float scholarSurfaceGold = scholarGoldMask(diffuseColor.rgb);
 diffuseColor.rgb = mix(
-  diffuseColor.rgb * vec3(0.42, 0.58, 0.84),
-  diffuseColor.rgb * vec3(1.08, 0.97, 0.76),
+  diffuseColor.rgb * vec3(0.78, 0.84, 0.96),
+  diffuseColor.rgb * vec3(1.06, 0.96, 0.74),
   scholarSurfaceGold
 );`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
-roughnessFactor = mix(0.64, 0.24, scholarGoldMask(diffuseColor.rgb));`,
+roughnessFactor = mix(0.86, 0.28, scholarGoldMask(diffuseColor.rgb));`,
       )
       .replace(
         '#include <metalnessmap_fragment>',
         `#include <metalnessmap_fragment>
-metalnessFactor = mix(0.0, 0.96, scholarGoldMask(diffuseColor.rgb));`,
+metalnessFactor = mix(0.0, 0.9, scholarGoldMask(diffuseColor.rgb));`,
       );
   };
-  material.customProgramCacheKey = () => 'scholar-premium-cap-surface-v1';
+  material.customProgramCacheKey = () => 'scholar-premium-cap-surface-v3';
+}
+
+function createStudioEnvironment(renderer: WebGLRenderer): WebGLRenderTarget {
+  const pmremGenerator = new PMREMGenerator(renderer);
+  pmremGenerator.compileEquirectangularShader();
+
+  const envScene = new Scene();
+  envScene.background = new Color(0x02050c);
+
+  const sphereGeometry = new SphereGeometry(1, 24, 16);
+  const lights = [
+    { color: 0xffd791, radius: 5.2, position: [9, 11, 7.5] as const },
+    { color: 0x3a587c, radius: 7, position: [-11, 4, 6] as const },
+    { color: 0xffbf58, radius: 2.4, position: [6.5, 3.2, -9] as const },
+  ];
+  const lightMeshes = lights.map((light) => {
+    const mesh = new Mesh(sphereGeometry, new MeshBasicMaterial({ color: light.color }));
+    mesh.position.set(light.position[0], light.position[1], light.position[2]);
+    mesh.scale.setScalar(light.radius);
+    envScene.add(mesh);
+    return mesh;
+  });
+
+  const environmentTarget = pmremGenerator.fromScene(envScene, 0.04);
+
+  lightMeshes.forEach((mesh) => {
+    if (mesh.material instanceof MeshBasicMaterial) {
+      mesh.material.dispose();
+    }
+  });
+  sphereGeometry.dispose();
+  pmremGenerator.dispose();
+
+  return environmentTarget;
 }
 
 function disposeMaterial(material: Material): void {

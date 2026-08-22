@@ -46,7 +46,6 @@
     radial-gradient(ellipse 115% 88% at 14% 82%, rgb(2 6 16 / 96%), transparent 52%),
     radial-gradient(ellipse 88% 68% at 86% 16%, rgb(14 36 64 / 88%), transparent 56%),
     radial-gradient(ellipse 60% 50% at 50% 100%, rgb(5 14 30 / 72%), transparent 68%);
-  filter: blur(1.5px);
   animation: scene-depth-drift-far 22s ease-in-out infinite;
 }
 
@@ -55,7 +54,6 @@
     radial-gradient(ellipse 72% 58% at 74% 38%, rgb(22 50 86 / 84%), transparent 62%),
     radial-gradient(ellipse 54% 46% at 22% 64%, rgb(10 24 48 / 76%), transparent 64%),
     radial-gradient(ellipse 38% 32% at 58% 72%, rgb(18 40 72 / 58%), transparent 70%);
-  filter: blur(0.75px);
   animation: scene-depth-drift-mid 17s ease-in-out infinite;
 }
 
@@ -96,6 +94,38 @@
   background-size: 160px 160px;
   mix-blend-mode: soft-light;
   animation: scene-grain-drift 7s steps(8) infinite;
+}
+
+@media (min-aspect-ratio: 2/1) {
+  .scene-backdrop__layer {
+    inset: -8% -42%;
+  }
+
+  .scene-backdrop__layer--grain {
+    inset: 0;
+    opacity: 0.032;
+    background-size: 320px 320px;
+  }
+
+  .scene-backdrop__layer--light {
+    background:
+      radial-gradient(
+        ellipse 48% 78% at 78% 38%,
+        rgb(214 170 85 / calc(0.12 + var(--scene-arrival-strength) * 0.14)),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 32% 40% at 70% 52%,
+        rgb(240 212 155 / calc(0.07 + var(--scene-arrival-strength) * 0.1)),
+        transparent 68%
+      );
+  }
+
+  .cap-poster,
+  .cap-loader {
+    right: 6vw;
+    width: min(32vw, 46rem);
+  }
 }
 
 @keyframes scene-depth-drift-far {
@@ -206,18 +236,8 @@
 }
 
 .cap-poster {
-  overflow: hidden;
-  background:
-    radial-gradient(
-      ellipse 68% 72% at 58% 46%,
-      rgb(28 58 96 / calc(0.28 + var(--scene-arrival-strength) * 0.16)),
-      transparent 72%
-    ),
-    radial-gradient(
-      ellipse 52% 48% at 62% 52%,
-      rgb(214 170 85 / calc(0.1 + var(--scene-arrival-strength) * 0.08)),
-      transparent 68%
-    );
+  overflow: visible;
+  background: none;
   opacity: 1;
   transition: opacity 420ms ease-out;
 }
@@ -440,6 +460,7 @@
 }
 
 .scene-ready .cap-poster {
+  display: none;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
