@@ -5,7 +5,7 @@ description: Deploy site, school SPA, backoffice SPA, or web API to staging or p
 
 # Deploy with Kamal
 
-Deploy one layer or the full stack to **staging** or **production**. Runbook: `docs/guidelines/process/deployment.md`. Guardrails: `.cursor/rules/core/deployment.mdc`.
+Deploy one layer or the full stack to **staging** or **production**. Runbook: `docs/guidelines/process/deployment.md`. Guardrails: `.cursor/rules/core/deployment.mdc`. First-time machine setup: skill `setup-deploy`.
 
 ## Parse the request
 
