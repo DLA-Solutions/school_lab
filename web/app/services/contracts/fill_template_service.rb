@@ -79,8 +79,15 @@ module Contracts
         "aluno.turma" => escape(cohort_label(student)),
         "contrato.valor" => escape(formatted_amount),
         # The table price the school publishes, before anything agreed for this family. The
-        # punctuality figures are all measured against it.
+        # punctuality figures are all measured against what is left after the plan discount below,
+        # not against this — the two discounts are cumulative, not alternatives.
         "contrato.valor.tabela" => escape(money(table_amount_cents)),
+        # The other band this contract carries, e.g. a sibling rate — "Desconto irmãos (2º filho)"
+        # at 5%, or "Desconto irmãos (3º filho ou mais)" at 10%, capped there for a 4th and beyond.
+        # Blank when the contract carries none, which the sentence around it is written to survive.
+        "contrato.desconto.nome" => escape(plan_discount&.name),
+        "contrato.desconto.percentual" => escape(plan_discount_percent_label),
+        "contrato.desconto.valor" => escape(money(plan_discount_amount_cents)),
         "contrato.pontualidade.percentual" => escape(punctuality_percent_label),
         "contrato.pontualidade.dia" => escape(punctuality_day),
         "contrato.pontualidade.desconto" => escape(money(punctuality_discount_cents)),
@@ -159,14 +166,34 @@ module Contracts
       student.school_class&.full_name.to_s
     end
 
-    # What this family agreed to pay, which is the table price unless something else was negotiated.
+    # What this family agreed to pay: the table price, less the plan discount (e.g. a sibling
+    # band) when the contract carries one. Same figure `Billing::ContractTuitionAmounts` charges
+    # by, so the contract and the boleto never disagree about what "the tuition" is.
     def formatted_amount
-      money(contract.negotiated_amount_cents || table_amount_cents)
+      money(tuition_amounts.total_amount_cents)
     end
 
     # The school's published price for the plan, before anything agreed for this family.
     def table_amount_cents
       contract.billing_plan&.base_amount_cents || 0
+    end
+
+    def tuition_amounts
+      @tuition_amounts ||= Billing::ContractTuitionAmounts.for(contract)
+    end
+
+    def plan_discount
+      contract.plan_discount
+    end
+
+    def plan_discount_percent_label
+      percent_label(plan_discount&.percent)
+    end
+
+    def plan_discount_amount_cents
+      return 0 unless tuition_amounts.plan_discount_applied
+
+      tuition_amounts.discount_amount_cents
     end
 
     def billing_settings
@@ -177,12 +204,16 @@ module Contracts
       billing_settings&.early_payment_discount_percent
     end
 
+    def punctuality_percent_label
+      percent_label(punctuality_percent)
+    end
+
     # "10%" rather than "10.0%": the percentage is stored with two decimals, and a contract reads
     # the round number as a round number.
-    def punctuality_percent_label
-      return "" if punctuality_percent.blank?
+    def percent_label(percent)
+      return "" if percent.blank?
 
-      formatted = punctuality_percent.to_d.frac.zero? ? punctuality_percent.to_i : punctuality_percent
+      formatted = percent.to_d.frac.zero? ? percent.to_i : percent
       "#{formatted}%".tr(".", ",")
     end
 
@@ -190,15 +221,16 @@ module Contracts
       billing_settings&.early_payment_discount_day
     end
 
-    # Rounded to the cent the family actually pays, so the two figures in the contract add up.
+    # Measured against what the family already owes after the plan discount, not the table price —
+    # a sibling band and the punctuality discount stack, they do not compete for the same base.
     def punctuality_discount_cents
       return 0 if punctuality_percent.blank?
 
-      (table_amount_cents * punctuality_percent.to_d / 100).round
+      (tuition_amounts.total_amount_cents * punctuality_percent.to_d / 100).round
     end
 
     def punctuality_amount_cents
-      table_amount_cents - punctuality_discount_cents
+      tuition_amounts.total_amount_cents - punctuality_discount_cents
     end
 
     def money(cents)

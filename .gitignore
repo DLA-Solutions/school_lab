@@ -25,3 +25,5 @@ docker-compose.override.yml
 
 frontend/node_modules/*
 app/node_modules/*
+
+cora_boletos.csv
