@@ -18,6 +18,7 @@ const SchoolGroups = lazy(() => import('pages/school-groups/SchoolGroups'));
 const Subscriptions = lazy(() => import('pages/subscriptions/Subscriptions'));
 const Analytics = lazy(() => import('pages/analytics/Analytics'));
 const HelpTaxonomy = lazy(() => import('pages/help-taxonomy/HelpTaxonomy'));
+const Profile = lazy(() => import('pages/profile/Profile'));
 const ProvisioningWizard = lazy(() => import('pages/schools/ProvisioningWizard'));
 const SchoolDetail = lazy(() => import('pages/schools/SchoolDetail'));
 const SchoolActivation = lazy(() => import('pages/schools/SchoolActivation'));
@@ -80,6 +81,10 @@ const router = createBrowserRouter(
             {
               path: paths.helpTaxonomy.slice(1),
               element: <HelpTaxonomy />,
+            },
+            {
+              path: paths.profile.slice(1),
+              element: <Profile />,
             },
             {
               path: 'schools/:schoolId/provisioning',

@@ -10,6 +10,7 @@ export default {
   subscriptions: '/subscriptions',
   analytics: '/analytics',
   helpTaxonomy: '/help-taxonomy',
+  profile: '/profile',
   schoolsWithOnboardingStatus: (status: SchoolOnboardingStatus) =>
     `/schools?onboarding_status=${status}`,
   provisioningWizard: (schoolId: number) => `/schools/${schoolId}/provisioning`,

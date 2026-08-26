@@ -329,6 +329,29 @@ const ptBR = {
   'backoffice.helpTaxonomy.noAccess.title': 'Sem acesso a esta área',
   'backoffice.helpTaxonomy.noAccess.description': 'Taxonomia de ajuda exige configure_help_taxonomy.',
 
+  'shell.profile.myAccount': 'Minha conta',
+
+  'backoffice.profile.title': 'Minha conta',
+  'backoffice.profile.subtitle': 'Seus dados de cadastro e a senha de acesso ao backoffice.',
+  'backoffice.profile.details.title': 'Dados de cadastro',
+  'backoffice.profile.details.email': 'E-mail',
+  'backoffice.profile.details.status': 'Situação',
+  'backoffice.profile.details.role': 'Perfil de acesso',
+  'backoffice.profile.details.userId': 'Código do usuário',
+  'backoffice.profile.password.title': 'Alterar senha',
+  'backoffice.profile.password.description':
+    'Ao alterar a senha, sua sessão é encerrada em todos os dispositivos e você precisa entrar novamente com a nova senha.',
+  'backoffice.profile.password.current': 'Senha atual',
+  'backoffice.profile.password.new': 'Nova senha',
+  'backoffice.profile.password.confirm': 'Confirmar nova senha',
+  'backoffice.profile.password.submit': 'Alterar senha',
+  'backoffice.profile.password.saving': 'Alterando...',
+  'backoffice.profile.password.success': 'Senha alterada. Entre novamente com a nova senha.',
+  'backoffice.profile.password.error': 'Não foi possível alterar a senha.',
+  'backoffice.profile.password.wrongCurrent': 'A senha atual está incorreta.',
+  'backoffice.profile.password.mismatch': 'A confirmação não confere com a nova senha.',
+  'backoffice.profile.password.tooShort': 'A nova senha precisa ter ao menos {min} caracteres.',
+
   'error404.title': 'Página não encontrada',
   'error404.description':
     'A página que você está buscando não existe ou foi movida.',

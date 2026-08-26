@@ -28,3 +28,29 @@ export const fetchCurrentUser = async (): Promise<AuthUser | null> => {
 /** POST /api/v1/auth/logout — revokes the refresh token and clears the cookie. */
 export const logout = () =>
   request<null>('/api/v1/auth/logout', { method: 'POST', retryOnUnauthorized: false });
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
+/**
+ * PUT /api/v1/auth/password — the signed-in user changing their own password.
+ *
+ * The API revokes every refresh token on success, so the caller must treat a resolved promise
+ * as the end of the session and send the user back to the login screen.
+ */
+export const changePassword = ({
+  currentPassword,
+  password,
+  passwordConfirmation,
+}: ChangePasswordPayload) =>
+  request<null>('/api/v1/auth/password', {
+    method: 'PUT',
+    body: {
+      current_password: currentPassword,
+      password,
+      password_confirmation: passwordConfirmation,
+    },
+  });
