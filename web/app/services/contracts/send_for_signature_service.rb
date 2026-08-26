@@ -3,7 +3,10 @@
 module Contracts
   # Renders the agreement and hands it to the e-signature provider, addressed to every party: the
   # student's guardians — both, or the single one on file — and the school itself, which signs as
-  # a legal entity under its CNPJ once it has an address to sign from.
+  # a legal entity under its CNPJ. The school is required to sign, not merely invited to: a
+  # contract cannot go out until the school has configured the CNPJ and signature e-mail that
+  # make it a party able to sign, so no agreement leaves with the school as a bystander on its own
+  # document.
   #
   # The contract is only recorded as sent once the provider has accepted it: a row claiming to be
   # awaiting signature when nothing left the building is worse than an error.
@@ -15,6 +18,7 @@ module Contracts
 
     def call
       return already_sent if contract.provider_document_id.present?
+      return school_signer_not_configured unless contract.school.signs_contracts?
 
       signers = contract.signers
       return no_guardians if signers.empty?
@@ -71,12 +75,11 @@ module Contracts
       failure(:validation_error, e.message)
     end
 
-    # The school is a party to its own contracts, not a bystander copied on them. It signs under
-    # the CNPJ it is registered with, from the address on its record; a school with neither
-    # configured is left out, and the contract goes out as it did before.
+    # The school is a party to its own contracts, not a bystander copied on them: it signs under
+    # the CNPJ it is registered with, at the address holding its signature e-mail — `call` refuses
+    # to send a contract before that is configured, so this always has something to build from.
     def school_signer
       school = contract.school
-      return nil unless school.signs_contracts?
 
       Gateways::Signature::ValueObjects::Signer.new(
         name: school.name,
@@ -86,7 +89,7 @@ module Contracts
     end
 
     def build_request(rendered, signers)
-      parties = guardian_signers(rendered, signers) + [ school_signer ].compact
+      parties = guardian_signers(rendered, signers) + [ school_signer ]
 
       Gateways::Signature::ValueObjects::SignatureRequest.new(
         name: "Contrato #{contract.student.name} — #{contract.school.name}",
@@ -122,6 +125,10 @@ module Contracts
 
     def already_sent
       failure(:invalid_state_transition, I18n.t("api.errors.contract_already_sent"))
+    end
+
+    def school_signer_not_configured
+      failure(:validation_error, I18n.t("api.errors.school_signer_not_configured"))
     end
 
     def no_guardians

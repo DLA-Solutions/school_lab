@@ -3,7 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Manual activation, contract payer and one-off charges", type: :request do
-  let(:school) { create(:school) }
+  # Configured to sign its own contracts, since sending one now requires it.
+  let(:school) { create(:school, cnpj: "66.154.330/0001-40", signature_email: "colegio@example.com") }
   let(:staff_user) { create(:user) }
   let!(:staff_membership) { create(:membership, :school_admin, user: staff_user, school: school) }
   let(:headers) { auth_headers_for(staff_user) }

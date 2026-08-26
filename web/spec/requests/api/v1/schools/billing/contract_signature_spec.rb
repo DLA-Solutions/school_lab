@@ -3,7 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Contract signature lifecycle", type: :request do
-  let(:school) { create(:school) }
+  # The school must be configured to sign its own contracts before any of them can be sent.
+  let(:school) { create(:school, cnpj: "66.154.330/0001-40", signature_email: "colegio@example.com") }
   let(:staff_user) { create(:user) }
   let!(:staff_membership) { create(:membership, :school_admin, user: staff_user, school: school) }
   let(:billing_plan) { create(:billing_plan, school: school) }

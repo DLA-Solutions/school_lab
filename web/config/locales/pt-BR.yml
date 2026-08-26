@@ -123,6 +123,7 @@ pt-BR:
       guardian_cpf_not_found: "Nenhum responsável cadastrado com o CPF %{cpf}. Cadastre-o antes de matricular o estudante."
       duplicate_guardian_cpf: "O mesmo CPF foi informado para pai e mãe."
       contract_without_guardians: "Este contrato não tem responsável vinculado ao aluno. Vincule ao menos um antes de enviar para assinatura."
+      school_signer_not_configured: "Esta escola não tem CNPJ e e-mail de assinatura configurados. Preencha-os nas configurações da escola antes de enviar contratos para assinatura — a escola também precisa assinar todo contrato."
       contract_pdf_unsupported_characters: "O contrato contém caracteres que a fonte do PDF não suporta. Fale com o suporte."
       contract_template_missing: "Nenhum modelo de contrato configurado para esta escola."
       contract_already_sent: "Este contrato já foi enviado para assinatura."

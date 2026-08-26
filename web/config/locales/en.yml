@@ -122,6 +122,7 @@ en:
       guardian_cpf_not_found: "No guardian registered with CPF %{cpf}. Register them before enrolling the student."
       duplicate_guardian_cpf: "The same CPF was given for both father and mother."
       contract_without_guardians: "This contract has no guardian linked to the student. Link at least one before sending it for signature."
+      school_signer_not_configured: "This school has no CNPJ and signature e-mail configured. Set them in the school's settings before sending contracts for signature — the school itself must sign every contract."
       contract_pdf_unsupported_characters: "The contract contains characters the PDF font cannot render. Contact support."
       contract_template_missing: "No contract template configured for this school."
       contract_already_sent: "This contract has already been sent for signature."
