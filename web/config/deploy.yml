@@ -49,6 +49,7 @@ env:
     RAILS_MAX_THREADS: 3
     JOB_CONCURRENCY: 1
     MAIL_FROM: contato@scholarpremium.com.br
+    MARKETING_DEMO_REQUEST_RECIPIENTS: contato@diegonovais.com.br,luizcalaca@gmail.com
   secret:
     - RAILS_MASTER_KEY
     - JWT_SECRET_KEY

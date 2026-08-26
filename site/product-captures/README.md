@@ -19,4 +19,4 @@ Authentic, privacy-safe screenshots of the Scholar Premium web product belong he
 | Portal família | Em desenvolvimento | `portal-familia.webp` |
 | Preceptoria | Produto web em evolução | `preceptoria.webp` |
 
-Until authentic captures exist, placeholders are clearly marked in the SVG assets and in Frame 04 copy.
+Until authentic captures exist, placeholders are clearly marked in the SVG assets. Frame 04 markup is temporarily removed from `index.html` — restore it when WebP captures are ready.

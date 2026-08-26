@@ -6,6 +6,9 @@
 # Qual idioma responde a cada requisição vem do `Accept-Language`, resolvido em
 # `Api::V1::BaseController`.
 pt-BR:
+  time:
+    formats:
+      long: "%d/%m/%Y %H:%M"
   billing:
     settings:
       default_service_description: "Mensalidade escolar"
@@ -45,6 +48,17 @@ pt-BR:
         body: "Você foi convidado(a) para acessar %{school} no Scholar Premium. Defina sua senha para ativar o acesso."
         cta: "Ativar acesso"
         footer: "Este link é válido por 7 dias. Se você não esperava este convite, ignore este e-mail."
+  marketing:
+    mailer:
+      demo_request:
+        subject: "Demonstração solicitada — %{name}"
+        greeting: "Olá,"
+        intro: "Alguém pediu uma demonstração pelo site do Scholar Premium."
+        name_label: "Nome"
+        email_label: "E-mail"
+        phone_label: "Telefone (WhatsApp)"
+        submitted_at_label: "Enviado em"
+        source: "Origem: site de marketing Scholar Premium"
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."

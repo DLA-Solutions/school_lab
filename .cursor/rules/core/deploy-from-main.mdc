@@ -1,0 +1,44 @@
+---
+description: Deploy only from main after PR merge — branch policy for Kamal deploys
+alwaysApply: true
+---
+
+# Deploy from main only
+
+Deploy staging or production **only from `main`**, after the change is merged. How to run Kamal: rule `deployment` and skill **`deploy-kamal`**.
+
+## Implementation flow (before deploy)
+
+1. Branch from `main` — naming per rule `git-branch-naming`.
+2. Atomic commits on the feature branch — rule `git-atomic-commits`.
+3. Open a PR to `main`; wait for merge.
+
+Deploy is **never** a substitute for review or merge.
+
+## When deploy is allowed
+
+- Current branch is **`main`**.
+- The change is **merged** into `main` (PR closed/merged, not open).
+- Local `main` matches **`origin/main`** after pull (no unpushed local-only commits on `main`).
+
+## When deploy is forbidden
+
+- Any feature, fix, chore, or docs branch (`feature/*`, `fix/*`, etc.).
+- Open PR not yet merged — including “deploy to test on staging before merge”.
+- Local commits on `main` not pushed to `origin/main`.
+- Cherry-picks or hotfix branches until merged to `main`.
+
+## Pre-deploy (required)
+
+```bash
+git checkout main
+git pull origin main
+```
+
+Then run Kamal from the service directory per skill **`deploy-kamal`**.
+
+## Agents
+
+- **Parent agents**, **`deploy-kamal`**, **`backend-ci`**, and any deploy automation — **must not** deploy from a non-`main` branch.
+- If the user asks to deploy while on a feature branch or with an open PR, explain the policy and offer: finish PR → merge → checkout `main` → pull → deploy.
+- **`backend-ci`** opens PRs; it does not deploy. Deploy happens only after merge to `main`.

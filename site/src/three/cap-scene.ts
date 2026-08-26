@@ -26,6 +26,134 @@ import {
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+export interface CapKeyframe {
+  cameraZ: number;
+  cameraX: number;
+  cameraY: number;
+  fov: number;
+  rotationX: number;
+  rotationY: number;
+  rotationZ: number;
+  modelX: number;
+  modelY: number;
+  scale: number;
+  keyIntensity: number;
+  fillIntensity: number;
+  rimIntensity: number;
+  exposure: number;
+  chapter: string;
+}
+
+export const CAP_KEYFRAMES: CapKeyframe[] = [
+  {
+    chapter: 'arrival',
+    cameraZ: 6.7,
+    cameraX: 0,
+    cameraY: 0.08,
+    fov: 32,
+    rotationX: 0.16,
+    rotationY: -0.98,
+    rotationZ: 0.06,
+    modelX: 0.42,
+    modelY: -0.18,
+    scale: 1,
+    keyIntensity: 4.6,
+    fillIntensity: 0.95,
+    rimIntensity: 58,
+    exposure: 1.22,
+  },
+  {
+    chapter: 'pull-back',
+    cameraZ: 8.4,
+    cameraX: 0.15,
+    cameraY: 0.2,
+    fov: 34,
+    rotationX: 0.12,
+    rotationY: -0.82,
+    rotationZ: 0.04,
+    modelX: 0.55,
+    modelY: -0.12,
+    scale: 0.92,
+    keyIntensity: 4.2,
+    fillIntensity: 1.05,
+    rimIntensity: 48,
+    exposure: 1.18,
+  },
+  {
+    chapter: 'side',
+    cameraZ: 7.2,
+    cameraX: 0.85,
+    cameraY: 0.05,
+    fov: 33,
+    rotationX: 0.1,
+    rotationY: 0.88,
+    rotationZ: 0.02,
+    modelX: 1.1,
+    modelY: -0.22,
+    scale: 0.88,
+    keyIntensity: 3.8,
+    fillIntensity: 1.1,
+    rimIntensity: 42,
+    exposure: 1.14,
+  },
+  {
+    chapter: 'silhouette',
+    cameraZ: 8.6,
+    cameraX: 0.2,
+    cameraY: 0.1,
+    fov: 36,
+    rotationX: 0.06,
+    rotationY: 1.02,
+    rotationZ: 0,
+    modelX: 1.25,
+    modelY: -0.28,
+    scale: 0.78,
+    keyIntensity: 1.2,
+    fillIntensity: 0.55,
+    rimIntensity: 18,
+    exposure: 0.72,
+  },
+  {
+    chapter: 'return',
+    cameraZ: 6.9,
+    cameraX: 0,
+    cameraY: 0.06,
+    fov: 32,
+    rotationX: 0.14,
+    rotationY: -0.92,
+    rotationZ: 0.05,
+    modelX: 0.45,
+    modelY: -0.16,
+    scale: 0.95,
+    keyIntensity: 4.4,
+    fillIntensity: 0.9,
+    rimIntensity: 52,
+    exposure: 1.16,
+  },
+];
+
+/** One keyframe per visible narrative frame (01–03, 05–06). */
+const KEYFRAME_PROGRESS = [0, 0.25, 0.5, 0.75, 1];
+
+/** Radians per millisecond — one full Y turn in ~16s. */
+const IDLE_SPIN_Y_PER_MS = 0.0004;
+
+/** Pointer orbit bounds (normalized device coords, -1..1). Yaw is the main mouse response. */
+const POINTER_PARALLAX = {
+  rotationX: 0.18,
+  rotationY: 0.78,
+  rotationZ: 0.08,
+  positionX: 0.06,
+  positionY: 0.04,
+  cameraX: 0.1,
+  cameraY: 0.06,
+  rimX: 0.55,
+  rimY: 0.32,
+} as const;
+
+/** Pointer follow smoothing — higher = more responsive orbit feel. */
+const POINTER_LERP = 0.2;
+
 interface SampleStatistics {
   sampleCount: number;
   minimumMs: number | null;
@@ -55,16 +183,13 @@ interface SceneStateSnapshot {
   modelReadyAt: number | null;
   arrivalStartedAt: number | null;
   arrivalSettledAt: number | null;
+  scrollProgress: number;
   totalRenderCount: number;
   lastRenderAt: number | null;
   renderScheduled: boolean;
   environmentReady: boolean;
   contactShadowEnabled: boolean;
-  materialProfiles: {
-    fabric: number;
-    gold: number;
-    texturedComposite: number;
-  };
+  revealedAt: number | null;
 }
 
 declare global {
@@ -74,16 +199,65 @@ declare global {
   }
 }
 
-export async function initialiseHeroScene(
+export interface CapSceneController {
+  setScrollProgress: (progress: number) => void;
+  dispose: () => void;
+}
+
+export function interpolateCapState(progress: number): CapKeyframe {
+  const clamped = MathUtils.clamp(progress, 0, 1);
+  let segment = 0;
+
+  for (let index = 0; index < KEYFRAME_PROGRESS.length - 1; index += 1) {
+    if (clamped >= KEYFRAME_PROGRESS[index] && clamped <= KEYFRAME_PROGRESS[index + 1]) {
+      segment = index;
+      break;
+    }
+    if (index === KEYFRAME_PROGRESS.length - 2) {
+      segment = index;
+    }
+  }
+
+  const start = KEYFRAME_PROGRESS[segment];
+  const end = KEYFRAME_PROGRESS[segment + 1];
+  const localT = end === start ? 1 : (clamped - start) / (end - start);
+  const eased = 1 - Math.pow(1 - localT, 2);
+  const from = CAP_KEYFRAMES[segment];
+  const to = CAP_KEYFRAMES[segment + 1] ?? from;
+
+  return {
+    chapter: eased < 0.5 ? from.chapter : to.chapter,
+    cameraZ: MathUtils.lerp(from.cameraZ, to.cameraZ, eased),
+    cameraX: MathUtils.lerp(from.cameraX, to.cameraX, eased),
+    cameraY: MathUtils.lerp(from.cameraY, to.cameraY, eased),
+    fov: MathUtils.lerp(from.fov, to.fov, eased),
+    rotationX: MathUtils.lerp(from.rotationX, to.rotationX, eased),
+    rotationY: MathUtils.lerp(from.rotationY, to.rotationY, eased),
+    rotationZ: MathUtils.lerp(from.rotationZ, to.rotationZ, eased),
+    modelX: MathUtils.lerp(from.modelX, to.modelX, eased),
+    modelY: MathUtils.lerp(from.modelY, to.modelY, eased),
+    scale: MathUtils.lerp(from.scale, to.scale, eased),
+    keyIntensity: MathUtils.lerp(from.keyIntensity, to.keyIntensity, eased),
+    fillIntensity: MathUtils.lerp(from.fillIntensity, to.fillIntensity, eased),
+    rimIntensity: MathUtils.lerp(from.rimIntensity, to.rimIntensity, eased),
+    exposure: MathUtils.lerp(from.exposure, to.exposure, eased),
+  };
+}
+
+function ultrawideFrameShift(): number {
+  const aspect = window.innerWidth / Math.max(window.innerHeight, 1);
+  return Math.min(1.35, Math.max(0, aspect - 1.78) * 1.25);
+}
+
+export async function createCapScene(
   sceneCanvas: HTMLCanvasElement,
   sceneContainer: HTMLElement,
-): Promise<void> {
+): Promise<CapSceneController | null> {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const finePointer = window.matchMedia('(pointer: fine)');
 
   if (!supportsWebGL()) {
     showFallback();
-    return;
+    return null;
   }
 
   let renderer: WebGLRenderer;
@@ -98,11 +272,11 @@ export async function initialiseHeroScene(
   } catch (error) {
     console.warn('A experiência 3D não pôde ser iniciada.', error);
     showFallback();
-    return;
+    return null;
   }
 
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.22;
@@ -128,21 +302,19 @@ export async function initialiseHeroScene(
 
   const metrics = createSceneMetrics(readGpuRenderer(renderer));
   window.__scholarSceneMetrics = metrics.controller;
+
   const sceneState: SceneStateSnapshot = {
     initialisedAt: performance.now(),
     modelReadyAt: null,
     arrivalStartedAt: null,
     arrivalSettledAt: null,
+    scrollProgress: 0,
     totalRenderCount: 0,
     lastRenderAt: null,
     renderScheduled: false,
     environmentReady: Boolean(scene.environment),
     contactShadowEnabled: false,
-    materialProfiles: {
-      fabric: 0,
-      gold: 0,
-      texturedComposite: 0,
-    },
+    revealedAt: null,
   };
   window.__scholarSceneState = { snapshot: () => ({ ...sceneState }) };
 
@@ -151,48 +323,92 @@ export async function initialiseHeroScene(
   let disposed = false;
   let contextAvailable = true;
   let arrivalStartedAt = 0;
+  let renderedFrameCount = 0;
+  let sceneRevealed = false;
   let baseScale = 1;
+  let scrollProgress = 0;
+  let targetScrollProgress = 0;
   const pointerTarget = new Vector2();
   const pointerCurrent = new Vector2();
-  const baseRotation = new Euler(-0.16, -0.34, 0.045);
+  const baseRotation = new Euler(0.16, -0.98, 0.06);
+
+  const applyState = (
+    state: CapKeyframe,
+    arrivalEase: number,
+    idleSpinY: number,
+    enablePointerParallax: boolean,
+  ): void => {
+    if (!model) {
+      return;
+    }
+
+    const responsiveScale = window.innerWidth <= 768 ? 0.9 : 1;
+    const arrivalScale = reducedMotion.matches ? 1 : 0.93 + 0.07 * arrivalEase;
+    const pointerX = enablePointerParallax ? pointerCurrent.x : 0;
+    const pointerY = enablePointerParallax ? pointerCurrent.y : 0;
+
+    const frameShift = ultrawideFrameShift();
+    const framedX = state.modelX + frameShift;
+
+    model.position.set(
+      framedX + pointerX * POINTER_PARALLAX.positionX,
+      state.modelY + pointerY * POINTER_PARALLAX.positionY,
+      0,
+    );
+    model.scale.setScalar(baseScale * responsiveScale * state.scale * arrivalScale);
+    model.rotation.set(
+      state.rotationX + pointerY * POINTER_PARALLAX.rotationX,
+      state.rotationY + idleSpinY + pointerX * POINTER_PARALLAX.rotationY,
+      state.rotationZ + pointerX * pointerY * POINTER_PARALLAX.rotationZ,
+    );
+
+    camera.position.set(
+      state.cameraX + pointerX * POINTER_PARALLAX.cameraX - frameShift * 0.22,
+      state.cameraY + pointerY * POINTER_PARALLAX.cameraY,
+      state.cameraZ,
+    );
+    camera.fov = state.fov;
+    camera.updateProjectionMatrix();
+    camera.lookAt(framedX * 0.42, state.modelY * 0.5, 0);
+
+    goldKeyLight.intensity = state.keyIntensity;
+    coolFillLight.intensity = state.fillIntensity;
+    goldRimLight.intensity = state.rimIntensity;
+    renderer.toneMappingExposure = state.exposure;
+
+    goldRimLight.position.x = 3.6 + pointerX * POINTER_PARALLAX.rimX;
+    goldRimLight.position.y = 2.4 + pointerY * POINTER_PARALLAX.rimY;
+
+    document.documentElement.dataset.scrollChapter = state.chapter;
+  };
 
   const render = (time: number): void => {
     animationFrame = null;
     sceneState.renderScheduled = false;
 
-    if (
-      disposed ||
-      !model ||
-      !contextAvailable ||
-      document.visibilityState !== 'visible'
-    ) {
+    if (disposed || !model || !contextAvailable || document.visibilityState !== 'visible') {
       metrics.markInactive();
       return;
     }
 
     const reduce = reducedMotion.matches;
-    const arrivalProgress = reduce ? 1 : Math.min((time - arrivalStartedAt) / 1350, 1);
+    const arrivalProgress = reduce ? 1 : Math.min((time - arrivalStartedAt) / 1200, 1);
     const arrivalEase = 1 - Math.pow(1 - arrivalProgress, 3);
+    const enablePointerParallax = !reduce && finePointer.matches;
+    const idleSpinY = reduce ? 0 : time * IDLE_SPIN_Y_PER_MS;
 
-    pointerCurrent.lerp(pointerTarget, reduce ? 1 : 0.075);
+    scrollProgress = reduce
+      ? targetScrollProgress
+      : MathUtils.lerp(scrollProgress, targetScrollProgress, 0.12);
 
-    const responsiveScale = window.innerWidth <= 768 ? 0.9 : 1;
-    const settledScale = baseScale * responsiveScale;
-    model.scale.setScalar(settledScale * (reduce ? 1 : 0.93 + 0.07 * arrivalEase));
-    model.rotation.set(
-      baseRotation.x + pointerCurrent.y * 0.025,
-      baseRotation.y - (1 - arrivalEase) * 0.16 + pointerCurrent.x * 0.04,
-      baseRotation.z,
-    );
+    pointerCurrent.lerp(pointerTarget, reduce ? 1 : POINTER_LERP);
+    sceneState.scrollProgress = scrollProgress;
 
-    camera.position.x = pointerCurrent.x * 0.11;
-    camera.position.y = 0.12 + pointerCurrent.y * 0.07;
-    camera.lookAt(0, 0, 0);
-    goldRimLight.position.x = 3.6 + pointerCurrent.x * 0.38;
-    goldRimLight.position.y = 2.4 + pointerCurrent.y * 0.22;
+    const state = interpolateCapState(scrollProgress);
+    applyState(state, arrivalEase, idleSpinY, enablePointerParallax);
 
-    const pointerDelta = pointerCurrent.distanceTo(pointerTarget);
-    const keepRendering = !reduce && (arrivalProgress < 1 || pointerDelta > 0.001);
+    const keepRendering = !reduce;
+
     if (keepRendering) {
       scheduleRender();
     }
@@ -202,45 +418,47 @@ export async function initialiseHeroScene(
     metrics.record(time, renderStartedAt, performance.now());
     sceneState.totalRenderCount += 1;
     sceneState.lastRenderAt = performance.now();
+    renderedFrameCount += 1;
+
+    if (!sceneRevealed && renderedFrameCount >= 2) {
+      sceneRevealed = true;
+      sceneState.revealedAt = performance.now();
+      document.documentElement.classList.remove('scene-fallback');
+      document.documentElement.classList.remove('scene-static');
+      document.documentElement.classList.add('scene-ready');
+    } else if (!sceneRevealed) {
+      scheduleRender();
+    }
+
+    if (arrivalProgress >= 1 && sceneState.arrivalSettledAt === null) {
+      sceneState.arrivalSettledAt = performance.now();
+    }
 
     if (!keepRendering) {
-      if (arrivalProgress >= 1 && sceneState.arrivalSettledAt === null) {
-        sceneState.arrivalSettledAt = performance.now();
-      }
       metrics.markInactive();
     }
   };
 
   const scheduleRender = (): void => {
-    if (
-      animationFrame === null &&
-      !disposed &&
-      document.visibilityState === 'visible'
-    ) {
+    if (animationFrame === null && !disposed && document.visibilityState === 'visible') {
       animationFrame = window.requestAnimationFrame(render);
       sceneState.renderScheduled = true;
     }
   };
 
   const resize = (): void => {
-    const width = Math.max(1, sceneContainer.clientWidth);
-    const height = Math.max(1, sceneContainer.clientHeight);
-    const renderScale = 0.64;
+    const width = Math.max(1, sceneContainer.clientWidth || window.innerWidth);
+    const height = Math.max(1, sceneContainer.clientHeight || window.innerHeight);
+    const renderScale = 0.68;
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
     renderer.setSize(
       Math.max(1, Math.round(width * renderScale)),
       Math.max(1, Math.round(height * renderScale)),
       false,
     );
     camera.aspect = width / height;
-    camera.fov = window.innerWidth <= 768 ? 35 : 32;
     camera.updateProjectionMatrix();
-
-    if (model) {
-      model.position.set(window.innerWidth <= 768 ? 0.2 : 0.42, -0.18, 0);
-    }
-
     scheduleRender();
   };
 
@@ -256,6 +474,8 @@ export async function initialiseHeroScene(
     sceneState.arrivalSettledAt = null;
     scheduleRender();
   };
+
+  const finePointer = window.matchMedia('(pointer: fine)');
 
   const updateMotionPreference = (): void => {
     pointerTarget.set(0, 0);
@@ -298,9 +518,12 @@ export async function initialiseHeroScene(
   const onContextRestored = (): void => {
     contextAvailable = true;
     if (model) {
+      renderedFrameCount = 0;
+      sceneRevealed = false;
+      sceneState.revealedAt = null;
       document.documentElement.classList.remove('scene-fallback');
-      document.documentElement.classList.remove('scene-static');
-      document.documentElement.classList.add('scene-ready');
+      document.documentElement.classList.add('scene-static');
+      document.documentElement.classList.remove('scene-ready');
       scheduleRender();
     }
   };
@@ -356,11 +579,11 @@ export async function initialiseHeroScene(
     const gltf = await loader.loadAsync(assetUrl);
 
     if (disposed) {
-      return;
+      return null;
     }
 
     const loadedModel = gltf.scene;
-    sceneState.materialProfiles = prepareModel(loadedModel);
+    prepareModel(loadedModel);
 
     const bounds = new Box3().setFromObject(loadedModel);
     const size = bounds.getSize(new Vector3());
@@ -370,37 +593,37 @@ export async function initialiseHeroScene(
     model = new Group();
     model.add(loadedModel);
     baseScale = 3.15 / Math.max(size.x, size.y, size.z);
-    model.scale.setScalar(baseScale);
     model.rotation.copy(baseRotation);
     scene.add(model);
 
     arrivalStartedAt = performance.now();
-    sceneState.modelReadyAt = arrivalStartedAt;
+    sceneState.modelReadyAt = performance.now();
     sceneState.arrivalStartedAt = arrivalStartedAt;
     resize();
-    document.documentElement.classList.remove('scene-fallback');
-    document.documentElement.classList.remove('scene-static');
-    document.documentElement.classList.add('scene-ready');
     scheduleRender();
   } catch (error) {
     console.warn('O objeto 3D não pôde ser carregado; exibindo a composição estática.', error);
     showFallback();
+    return null;
   }
+
+  return {
+    setScrollProgress: (progress: number) => {
+      targetScrollProgress = MathUtils.clamp(progress, 0, 1);
+      sceneState.arrivalSettledAt = null;
+      scheduleRender();
+    },
+    dispose,
+  };
 }
 
-function prepareModel(root: Object3D): SceneStateSnapshot['materialProfiles'] {
-  const profiles = {
-    fabric: 0,
-    gold: 0,
-    texturedComposite: 0,
-  };
-
+function prepareModel(root: Object3D): void {
   root.traverse((object) => {
     if (!(object instanceof Mesh)) {
       return;
     }
 
-    object.castShadow = true;
+    object.castShadow = false;
     object.receiveShadow = false;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
 
@@ -411,32 +634,27 @@ function prepareModel(root: Object3D): SceneStateSnapshot['materialProfiles'] {
         const baseColorGold = isWarmGold(material.color);
 
         if (namedGold || baseColorGold) {
-          profiles.gold += 1;
           material.color.set(0xd9a94f);
           material.metalness = 0.92;
           material.roughness = 0.28;
           material.envMapIntensity = 0.86;
         } else if (material.map) {
-          profiles.texturedComposite += 1;
           material.color.set(0xffffff);
           material.metalness = 0;
-          material.roughness = 0.86;
-          material.envMapIntensity = 0.22;
+          material.roughness = 0.9;
+          material.envMapIntensity = 0;
           applyTextureSurfaceProfile(material);
         } else {
-          profiles.fabric += 1;
           material.color.set(0x071326);
           material.metalness = 0;
-          material.roughness = 0.86;
-          material.envMapIntensity = 0.18;
+          material.roughness = 0.9;
+          material.envMapIntensity = 0;
         }
 
         material.needsUpdate = true;
       }
     });
   });
-
-  return profiles;
 }
 
 function isWarmGold(color: Color): boolean {
@@ -461,7 +679,7 @@ float scholarGoldMask(vec3 color) {
         `#include <map_fragment>
 float scholarSurfaceGold = scholarGoldMask(diffuseColor.rgb);
 diffuseColor.rgb = mix(
-  diffuseColor.rgb * vec3(0.78, 0.84, 0.96),
+  diffuseColor.rgb * vec3(0.52, 0.6, 0.72),
   diffuseColor.rgb * vec3(1.06, 0.96, 0.74),
   scholarSurfaceGold
 );`,
@@ -469,7 +687,7 @@ diffuseColor.rgb = mix(
       .replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
-roughnessFactor = mix(0.86, 0.28, scholarGoldMask(diffuseColor.rgb));`,
+roughnessFactor = mix(0.9, 0.28, scholarGoldMask(diffuseColor.rgb));`,
       )
       .replace(
         '#include <metalnessmap_fragment>',
@@ -477,7 +695,7 @@ roughnessFactor = mix(0.86, 0.28, scholarGoldMask(diffuseColor.rgb));`,
 metalnessFactor = mix(0.0, 0.9, scholarGoldMask(diffuseColor.rgb));`,
       );
   };
-  material.customProgramCacheKey = () => 'scholar-premium-cap-surface-v3';
+  material.customProgramCacheKey = () => 'scholar-premium-cap-surface-v4';
 }
 
 function createStudioEnvironment(renderer: WebGLRenderer): WebGLRenderTarget {
@@ -598,9 +816,7 @@ function createSceneMetrics(gpuRenderer: string): {
 
       renderCpuDurations.push(endedAt - startedAt);
       if (previousActiveFrameTimestamp !== null) {
-        activeRenderIntervals.push(
-          frameTimestamp - previousActiveFrameTimestamp,
-        );
+        activeRenderIntervals.push(frameTimestamp - previousActiveFrameTimestamp);
       }
       previousActiveFrameTimestamp = frameTimestamp;
       recordingStoppedAt = endedAt;
