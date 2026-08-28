@@ -593,7 +593,10 @@ const enUS: Messages = {
     'Required to issue boletos. Sent to the bank as late-payment interest.',
   'billingSettings.earlyPaymentDiscountPercent': 'Early payment discount',
   'billingSettings.earlyPaymentDiscountPercentHelp':
-    'Optional. Valid until the day before the due date (bank default). Leave blank to disable.',
+    'Optional. On the boleto, the bank applies the discount until the day before due (Cora default). Leave blank to disable.',
+  'billingSettings.earlyPaymentDiscountDay': 'Discount deadline day',
+  'billingSettings.earlyPaymentDiscountDayHelp':
+    'Calendar day of the month (1–28) by which payment earns the discount. This is not the due date: a charge can fall due on the 10th and still reward payment by the 5th. Leave blank together with the percent to disable.',
   'billingSettings.fineOff': 'No fine',
   'billingSettings.finePercent': 'Percent fine',
   'billingSettings.fineFixed': 'Fixed fine amount',
