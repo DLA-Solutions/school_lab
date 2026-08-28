@@ -45,6 +45,7 @@ const renderPage = (membership: Membership) =>
         <Users />
       </AuthContext.Provider>
     </MemoryRouter>,
+    { memberships: [membership], activeMembershipId: membership.id },
   );
 
 describe('Users page', () => {
@@ -53,7 +54,7 @@ describe('Users page', () => {
     renderPage({ ...ownerPendingMembership, school_onboarding_status: 'active' });
 
     expect(await screen.findByText('admin@example.com')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Permissões' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Permissões' }).length).toBeGreaterThan(0);
     expect(screen.queryByText('director@example.com')).toBeInTheDocument();
     // Toda conta, família inclusive: a pergunta desta tela é quem consegue entrar.
     expect(screen.getByText('guardian@example.com')).toBeInTheDocument();
@@ -71,7 +72,9 @@ describe('Users page', () => {
     setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
     renderPage({ ...ownerPendingMembership, school_onboarding_status: 'active' });
 
-    await user.click(await screen.findByRole('button', { name: 'Permissões' }));
+    await screen.findByText('admin@example.com');
+    const permissionsButtons = await screen.findAllByRole('button', { name: 'Permissões' });
+    await user.click(permissionsButtons[0]!);
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Permissões da conta')).toBeInTheDocument();
