@@ -79,7 +79,7 @@ module Signatures
     end
 
     def finish(contract, type, status)
-      contract.mark_signed!
+      ::Contracts::MarkSignedService.call(contract: contract)
 
       log(event: "signature.webhook_finished_event", contract_id: contract.id, type: type,
           status: status)
