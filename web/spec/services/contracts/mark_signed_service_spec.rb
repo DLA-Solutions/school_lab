@@ -34,4 +34,15 @@ RSpec.describe Contracts::MarkSignedService do
 
     expect(contract.reload.signed_at).to eq(first_signed_at)
   end
+
+  it "marks the contract signed without enqueueing when auto provision is disabled" do
+    allow(SchoolLab::Features).to receive(:auto_provision_guardian_access?).and_return(false)
+
+    expect do
+      described_class.call(contract: contract)
+    end.not_to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
+
+    expect(contract.reload).to be_signed
+    expect(contract.signed_at).to be_present
+  end
 end
