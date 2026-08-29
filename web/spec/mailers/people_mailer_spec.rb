@@ -24,15 +24,18 @@ RSpec.describe PeopleMailer do
       ENV["SCHOOL_SPA_URL"] = original_spa_url
     end
 
-    it "renders pt-BR content with the invite link" do
-      body = [ mail.text_part&.decoded, mail.html_part&.decoded ].compact.join("\n")
+    it "builds the Postmark template payload with the invite link" do
+      model = template_model_for(mail)
 
       expect(mail.to).to eq([ "director@example.com" ])
       expect(mail.subject).to include("Escola Exemplo")
-      expect(body).to include("Escola Exemplo")
-      expect(body).to include("token=invite-token-abc")
-      expect(body).to include("email=director%40example.com")
-      expect(body).to include("https://scholarpremium.com.br/app/invite/accept")
+      expect(template_alias_for(mail)).to eq(Gateways::Email::Templates::MEMBERSHIP_INVITE)
+      expect(template_tag_for(mail)).to eq("people-membership-invite")
+      expect(model[:school_name]).to eq("Escola Exemplo")
+      expect(model[:cta_url]).to include("token=invite-token-abc")
+      expect(model[:cta_url]).to include("email=director%40example.com")
+      expect(model[:cta_url]).to include("https://scholarpremium.com.br/app/invite/accept")
+      expect(model[:expiry_days]).to eq(Gateways::Email::Templates::MEMBERSHIP_INVITE_EXPIRY_DAYS)
     end
   end
 end

@@ -34,8 +34,8 @@ Rails.application.configure do
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
 
-  # Specs must never use Postmark or Letter Opener. Assert on ActionMailer::Base.deliveries.
-  config.action_mailer.delivery_method = :test
+  # Specs route through Gateways::Email::Fake — never Postmark or Letter Opener.
+  config.action_mailer.delivery_method = :email_gateway
 
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "example.com" }

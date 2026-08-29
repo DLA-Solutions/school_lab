@@ -64,11 +64,11 @@ Rails.application.configure do
   }
 
   if ENV["POSTMARK_API_TOKEN"].present?
-    config.action_mailer.delivery_method = :postmark
-    config.action_mailer.postmark_settings = { api_token: ENV.fetch("POSTMARK_API_TOKEN") }
+    config.action_mailer.delivery_method = :email_gateway
     config.action_mailer.raise_delivery_errors = true
   else
-    config.action_mailer.delivery_method = :test
+    config.action_mailer.delivery_method = :email_gateway
+    config.action_mailer.perform_deliveries = false
   end
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to

@@ -27,7 +27,7 @@ adapter owns port mapping and error translation.
 | Platform subscription (DLA → school) | `Gateways::PlatformSubscription` | Specified (ADR 002) | `asaas`, `manual`, `fake` (Stripe planned) |
 | Card (checkout, capture, refund) | *Future sibling port* | Not started | — |
 | FCM push | TBD | Decided (FCM) | Not yet extracted |
-| Email | — | Open | Mailer + provider config |
+| Email (transactional templates) | `Gateways::Email` | Active (Postmark) | `postmark`, `fake` |
 | S3 | — | Active Storage | `config/storage.yml` |
 
 All **school→guardian boleto** code uses `Gateways::BankSlip`. DLA→school SaaS collection
@@ -313,11 +313,41 @@ Webhook: **`POST /webhooks/platform_billing/:provider/:token`** — never Cora's
 Manual adapter implements the same interface with no HTTP (E3 white-glove). Fake is for
 service specs — inject it; do not set `ASAAS_*` there.
 
+## Email port
+
+Transactional mail uses Postmark **templates** (Mustache). HTML reference artifacts for
+manual upload live in `postmark-templates/README.md`.
+
+```
+app/services/gateways/email/
+  interface.rb           # send_template(message)
+  registry.rb            # Fake in dev/test; Postmark when token present
+  fake.rb                # logs payload — never calls API
+  templates.rb           # alias constants (sp-auth-password-reset, …)
+  value_objects.rb       # TemplateMessage, DeliveryResult
+  error.rb               # base error
+  transient_error.rb     # retryable (5xx, timeout)
+  validation_error.rb    # bad payload / inactive recipient
+  provider_error.rb      # unmapped Postmark errors
+  postmark/
+    adapter.rb           # deliver_with_template via postmark gem
+```
+
+Action Mailer uses `SchoolLab::EmailGatewayDeliveryMethod` (`:email_gateway`) to route
+`deliver_later` through the registry. Mailers set `X-Template-Alias` and `X-Template-Model`
+headers via `ApplicationMailer#template_mail`.
+
+| Adapter | When |
+|---------|------|
+| `Fake` | `SchoolLab::EmailDelivery.local_delivery_enabled?` or no `POSTMARK_API_TOKEN` |
+| `Postmark::Adapter` | Staging/production with token set |
+
+**Testing:** mailer specs assert template headers; adapter specs stub `Postmark::ApiClient`.
+Never allow-list `api.postmarkapp.com` in CI. See `mailers.md`.
+
 ## When not to add a gateway
 
 - Active Storage S3 — use Rails configuration.
-- Simple `deliver_later` email — mailer + provider env vars until multiple providers
-  force abstraction.
 - One-off scripts — not product code paths.
 
 Extract a gateway on the **second provider** or when test doubles become painful — not
