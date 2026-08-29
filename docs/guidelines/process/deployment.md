@@ -185,6 +185,7 @@ Per-environment values live in `config/deploy.production.yml` and `config/deploy
 | Cora | production API | sandbox API |
 | Active Storage volume | `scholarpremium_storage` | `scholarpremium_staging_storage` |
 | `WEB_CONCURRENCY` | 2 | 1 |
+| `AUTO_PROVISION_GUARDIAN_ACCESS` | off (omitted) | `true` — auto-mails guardian portal access when a contract is signed |
 
 **Always pass `-d`.** `require_destination: true` makes a bare `kamal deploy` fail
 instead of quietly targeting production. It also matters for secrets: Kamal 2 reads

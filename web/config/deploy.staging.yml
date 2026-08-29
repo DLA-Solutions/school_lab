@@ -17,6 +17,7 @@ env:
     APP_HOST: staging.scholarpremium.com.br
     WEB_CONCURRENCY: 1
     EXPOSE_API_DOCS: "true"
+    AUTO_PROVISION_GUARDIAN_ACCESS: "true"
     SEED_DEMO_DATA: "true"
     SEED_SCHOOL_NAME: "Colégio Demo Staging"
     MARKETING_DEMO_REQUEST_RECIPIENTS: contato@diegonovais.com.br,luizcalaca@gmail.com
