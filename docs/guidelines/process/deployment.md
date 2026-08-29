@@ -412,6 +412,12 @@ touching production. `/backoffice/` must return the backoffice SPA (not the site
 Smoke is read-only — do not POST invite, password reset, or other mailer-triggering
 routes on staging or production (see `docs/guidelines/web/mailers.md`).
 
+Cursor posts a channel message when a deploy finishes via the `discord-deploy` MCP.
+Configure `DISCORD_BOT_TOKEN` + `DISCORD_DEPLOY_CHANNEL_ID` in `.cursor/mcp.env` (channel
+ID is copied with Developer Mode; no channel edit required). An incoming webhook is
+optional. Skill `deploy-kamal` calls `notify_deploy` after smoke on success, and also
+on failure. This is School Lab / Scholar Premium only — not a general Discord bot.
+
 ## API documentation (staging only)
 
 Staging exposes Swagger UI at `https://staging.scholarpremium.com.br/api-docs`, protected
