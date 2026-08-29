@@ -6,7 +6,7 @@ description: Runs local CI for web/ or the full monorepo (path filters match Git
 # Run Local CI
 
 **Preferred entrypoint:** `bin/ci` at the repo root — path filters match `.github/workflows/ci.yml`
-(only runs surfaces changed vs `origin/main`).
+(only runs surfaces changed vs `origin/staging`).
 
 `web/bin/backend-ci` remains for **web/** only (lint, security, RSpec, OpenAPI, optional Docker).
 

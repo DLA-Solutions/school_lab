@@ -65,7 +65,8 @@ Rules:
 - Never change `.github/workflows/` to mask failures.
 - OpenAPI drift: `bundle exec rake swagger:build` in `web/` and commit `swagger/v1/swagger.yaml`.
 - RuboCop: `bundle exec rubocop -a` on changed files when auto-correct is safe.
-- For unrelated red on `main`, merge/rebase latest `main` before concluding the failure is out of scope.
+- For unrelated red on `staging`, merge/rebase latest `staging` before concluding the failure is out of scope.
+- Open PRs against **`staging`** (`gh pr create --base staging`). Promotion to production is a separate fast-forward PR `staging` → `main`.
 
 ## PR creation
 

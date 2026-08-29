@@ -37,8 +37,15 @@ Examples:
 - One concern per branch — split unrelated changes into separate branches/PRs.
 - Prefer these prefixes over ad-hoc names (`cursor/…`, `feat/…`). Legacy branches may exist; use the table for new work.
 
+## Reserved long-lived branches
+
+`main` (production) and `staging` (QA) are environment branches, not work branches. Never
+create `feature/staging` or treat them as a prefix. Feature PRs target **`staging`**.
+Promote with a fast-forward PR `staging` → `main`. See rule `deploy-environment-branches`.
+
 ## When creating branches
 
 1. Pick the prefix that best matches the **primary** change.
 2. If the change spans types (e.g. feature + docs), choose the dominant type or split into two branches.
-3. Use the `branch-naming` skill when unsure which prefix fits.
+3. Branch from **`staging`** (from `main` only for a production hotfix).
+4. Use the `branch-naming` skill when unsure which prefix fits.
