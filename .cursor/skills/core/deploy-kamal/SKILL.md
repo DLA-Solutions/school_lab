@@ -152,6 +152,22 @@ ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
 
 Smoke is **read-only**. Do not POST invite, password reset, guardian access, school create/handoff, or any other mailer-triggering route. Do not run `rails runner` mailers or `deliver_now` on the host. See rule `email-safety`.
 
+## Discord notify (mandatory after the requested deploy finishes)
+
+Post to the **School Lab** Discord channel via the `discord-deploy` MCP. Do this once the user's requested deploy has a final result — after smoke on success, or as soon as `kamal deploy` fails. Do not skip on failure.
+
+1. Discover the tool: `GetDynamicTools` with pattern `notify_deploy` (namespace is typically `discord-deploy`).
+2. Call `notify_deploy` with:
+   - `layer`: `site` | `frontend` | `backoffice` | `web` | `all` (use `all` only for a full-stack run)
+   - `destination`: `staging` | `production`
+   - `status`: `success` | `failure`
+   - `smoke_ok`: `true` / `false` when smoke ran; omit if it did not
+   - `git_sha` / `git_branch` when known
+   - `note`: short extra context (migrations, rollback, error summary) — **never** secrets, webhook URLs, PATs, or `.kamal/` values
+3. If the MCP is disconnected, tell the user to set `DISCORD_BOT_TOKEN` + `DISCORD_DEPLOY_CHANNEL_ID` in `.cursor/mcp.env` (channel ID is copied with Developer Mode; they do not need to edit the channel). A webhook URL is optional and only if someone with Manage Webhooks can create one. See `.cursor/mcp.env.example`. Restart Cursor after changing env. Do not treat a Discord outage as a deploy failure.
+
+This MCP only notifies this project. Do not send other Discord messages through it.
+
 ## Rollback (single layer)
 
 ```bash
