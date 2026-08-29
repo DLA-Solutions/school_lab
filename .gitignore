@@ -15,6 +15,7 @@ docker-compose.override.yml
 # Cursor MCP secrets (copy from .cursor/mcp.env.example)
 .cursor/mcp.env
 .cursor/bin/
+.cursor/mcp/**/node_modules/
 .cursor/backend-ci.stamp
 .corpus-raw/
 
