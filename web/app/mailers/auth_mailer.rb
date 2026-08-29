@@ -4,12 +4,18 @@
 # why it sits apart from `PeopleMailer`.
 class AuthMailer < ApplicationMailer
   def password_reset
-    @user = params[:user]
-    @reset_url = SchoolLab::SchoolSpa.password_reset_url(token: params[:raw_token])
+    user = params[:user]
+    cta_url = SchoolLab::SchoolSpa.password_reset_url(token: params[:raw_token])
 
-    mail(
-      to: @user.email,
-      subject: I18n.t("auth.mailer.password_reset.subject")
+    template_mail(
+      template_alias: Gateways::Email::Templates::PASSWORD_RESET,
+      to: user.email,
+      subject: I18n.t("auth.mailer.password_reset.subject"),
+      tag: "auth-password-reset",
+      template_model: {
+        cta_url: cta_url,
+        expiry_hours: Gateways::Email::Templates::PASSWORD_RESET_EXPIRY_HOURS
+      }
     )
   end
 end

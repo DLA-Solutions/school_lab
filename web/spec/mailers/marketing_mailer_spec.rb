@@ -21,16 +21,20 @@ RSpec.describe MarketingMailer do
       ENV["MARKETING_DEMO_REQUEST_RECIPIENTS"] = original_recipients
     end
 
-    it "renders pt-BR content with reply-to and configured recipients" do
-      body = [ mail.text_part&.decoded, mail.html_part&.decoded ].compact.join("\n")
+    it "builds the Postmark template payload with reply-to and configured recipients" do
+      model = template_model_for(mail)
 
       expect(mail.to).to eq(%w[sales@example.com ops@example.com])
       expect(mail.reply_to).to eq([ "maria@example.com" ])
       expect(mail.subject).to include("Maria Silva")
-      expect(body).to include("Maria Silva")
-      expect(body).to include("maria@example.com")
-      expect(body).to include("+55 11 99999-0000")
-      expect(body).to include("Scholar Premium")
+      expect(template_alias_for(mail)).to eq(Gateways::Email::Templates::DEMO_REQUEST)
+      expect(template_tag_for(mail)).to eq("marketing-demo-request")
+      expect(model).to include(
+        name: "Maria Silva",
+        email: "maria@example.com",
+        phone: "+55 11 99999-0000"
+      )
+      expect(model[:submitted_at]).to be_present
     end
   end
 end
