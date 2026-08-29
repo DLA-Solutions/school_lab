@@ -128,19 +128,30 @@ const Collaborators = () => {
   };
 
   const columns: GridColDef<Teacher>[] = [
-      { field: 'name', headerName: t('common.name'), width: 170 },
-      { field: 'job_title', headerName: t('common.position'), width: 160 },
-      { field: 'cpf', headerName: 'CPF', width: 140, renderCell: renderCpf },
+      // O nome ocupa a sobra da largura: nomes completos são longos e quebrá-los em duas linhas
+      // fazia cada linha da tabela ter uma altura diferente da vizinha.
+      { field: 'name', headerName: t('common.name'), flex: 1.6, minWidth: 260 },
+      { field: 'job_title', headerName: t('common.position'), flex: 1, minWidth: 170 },
+      { field: 'cpf', headerName: 'CPF', width: 150, renderCell: renderCpf },
       {
+        // Última coluna e encostada na borda: as ações são o fim da linha, não uma coluna de
+        // dados solta no meio da largura.
         field: 'actions',
         headerName: t('common.actions'),
-        width: 250,
+        width: 230,
         sortable: false,
         filterable: false,
         align: 'right',
         headerAlign: 'right',
         renderCell: ({ row }: GridRenderCellParams<Teacher>) => (
-          <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            justifyContent="flex-end"
+            alignItems="center"
+            width={1}
+            height={1}
+          >
             <Tooltip title={t('collaborators.details')}>
               <IconButton
                 size="small"
@@ -283,7 +294,10 @@ const Collaborators = () => {
               columns={columns}
               loading={loading}
               disableRowSelectionOnClick
-              getRowHeight={() => 'auto'}
+              // Altura fixa e generosa: com `auto` a altura seguia o nome que quebrasse, e as
+              // linhas ficavam com espaçamentos diferentes entre si.
+              rowHeight={64}
+              columnHeaderHeight={56}
               paginationMode="server"
               rowCount={total}
               pageSizeOptions={[PAGE_SIZE]}

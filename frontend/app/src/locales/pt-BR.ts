@@ -20,6 +20,13 @@ const ptBR = {
   'common.status': 'Situação',
   'common.actions': 'Ações',
   'common.connectionError': 'Verifique sua conexão.',
+
+  'auth.signin.orContinueWith': 'ou continue com',
+  'auth.signin.googleAccessDenied':
+    'Você não tem permissão para entrar. Procure a secretaria ou a direção do colégio para solicitar acesso.',
+  'auth.signin.connectionError':
+    'Não foi possível conectar à API. Verifique se o servidor está no ar.',
+
   'common.range': '{from}-{to} de {count}',
   'common.edit': 'Editar',
   'common.delete': 'Excluir',
@@ -154,10 +161,13 @@ const ptBR = {
   'nav.dashboard': 'Dashboard',
   'nav.students': 'Estudantes',
   'nav.guardians': 'Responsáveis',
+  'nav.users': 'Usuários',
   'nav.collaborators': 'Colaboradores',
   'nav.lessons': 'Aulas',
   'lessons.new': 'Nova aula',
   'lessons.teacher': 'Professor',
+  'lessons.enterGrades': 'Lançar notas',
+  'lessons.enterGradesAria': 'Lançar notas de {subject} para {schoolClass}',
   'lessons.searchPlaceholder': 'Buscar professor, matéria ou turma',
   'lessons.searchAria': 'Buscar aulas',
   'lessons.loadError': 'Não foi possível carregar as aulas. Verifique sua conexão.',
@@ -181,6 +191,10 @@ const ptBR = {
     'Cada nota é salva sozinha, logo depois de digitada. Deixe em branco para uma nota ainda não dada.',
   'grades.closed': 'Fechado',
   'grades.cellAria': 'Nota de {student} no {period}',
+  'grades.context': 'Lançando notas de {subject} · {schoolClass}',
+  'grades.noPeriods.title': 'Nenhum bimestre cadastrado para {year}',
+  'grades.noPeriods.description':
+    'As notas são lançadas por bimestre. Cadastre os bimestres do ano letivo de {year} para poder lançar.',
   'nav.preceptorship': 'Preceptoria',
   'nav.myPreceptorship': 'Preceptoria',
   'preceptorship.loadError': 'Não foi possível carregar os relatórios.',
@@ -416,10 +430,39 @@ const ptBR = {
   'nav.jobPositions': 'Cargos',
   'nav.charges': 'Boletos',
   'nav.plans': 'Planos',
-  'nav.billingSettings': 'Financeiro',
+  'nav.platformSubscription': 'Assinatura School Lab',
+  'nav.billingSettings': 'Configurações financeiras',
   'nav.contract': 'Contrato',
+  'nav.signatureCredentials': 'Assinatura eletrônica',
+  'signature.title': 'Integração Autentique (contratos)',
+  'signature.status.active': 'Ativa',
+  'signature.status.missing': 'Não configurada',
+  'signature.empty':
+    'Esta escola ainda não tem token da Autentique. Sem ele, nenhum contrato pode ser enviado para assinatura.',
+  'signature.register': 'Registrar token',
+  'signature.replace': 'Substituir token',
+  'signature.saving': 'Registrando...',
+  'signature.saved': 'Token registrado com sucesso.',
+  'signature.hint':
+    'O token é guardado criptografado e nunca devolvido pela API. Registrar de novo substitui o token em uso, que é como se faz a rotação.',
+  'signature.webhookInstructions':
+    'Cadastre na Autentique (Configurações → Webhooks), formato JSON — URL: {url} · Segredo: {secret}. Anote agora: este segredo não é exibido de novo.',
+  'signature.field.apiToken': 'Token da API da Autentique',
+  'signature.field.provider': 'Provedor',
+  'signature.field.webhookUrl': 'URL do webhook',
+  'signature.field.webhookSecret': 'Segredo do webhook',
+  'signature.secret.set': 'Configurado',
+  'signature.secret.missing': 'Ausente — os callbacks da Autentique serão recusados com 401',
+  'signature.loadError': 'Não foi possível carregar a configuração de assinatura.',
+  'signature.saveError': 'Não foi possível registrar o token. Verifique sua conexão.',
+  'signature.noAccess.description':
+    'A assinatura eletrônica é administrada pelo dono da escola.',
   'nav.schools': 'Escolas',
   'nav.language': 'Idioma',
+  'nav.section.family': 'Portal da família',
+  'nav.section.billing': 'Financeiro',
+  'nav.section.settings': 'Configurações',
+  'nav.section.accounts': 'Contas de acesso',
 
   'bankCredentials.title': 'Credenciais bancárias',
   'bankCredentials.cora': 'Integração Cora (boleto)',
@@ -553,7 +596,10 @@ const ptBR = {
     'Obrigatória para emitir boletos. Enviada ao banco como juros de mora.',
   'billingSettings.earlyPaymentDiscountPercent': 'Desconto por pontualidade',
   'billingSettings.earlyPaymentDiscountPercentHelp':
-    'Opcional. Válido até o dia anterior ao vencimento (regra padrão do banco). Deixe em branco para desativar.',
+    'Opcional. No boleto, o banco aplica o desconto até o dia anterior ao vencimento (padrão Cora). Deixe em branco para desativar.',
+  'billingSettings.earlyPaymentDiscountDay': 'Dia limite do desconto',
+  'billingSettings.earlyPaymentDiscountDayHelp':
+    'Dia do calendário (1–28) até o qual o pagamento ganha o desconto. Não é o vencimento: a cobrança pode vencer no dia 10 e o desconto valer até o dia 5. Deixe em branco junto com o percentual para desativar.',
   'billingSettings.fineOff': 'Sem multa',
   'billingSettings.finePercent': 'Multa em percentual',
   'billingSettings.fineFixed': 'Multa em valor fixo',
@@ -702,6 +748,9 @@ const ptBR = {
     'Veja o andamento das solicitações feitas à escola.',
 
   'membership.switchContext': 'Trocar perfil e escola',
+  'membership.switchContextHint': 'Clique para trocar perfil ou escola',
+  'membership.contextTooltip': 'Você está como {role} · {school}',
+  'membership.contextTooltipRoleOnly': 'Você está como {role}',
   'membership.switchSecondaryWithId': '{schoolName} · escola {schoolId}',
 
   'errors.schoolAccessDenied':
@@ -845,12 +894,24 @@ const ptBR = {
   'guardians.searchPlaceholder': 'Buscar por nome ou CPF',
   'guardians.searchAria': 'Buscar responsáveis',
   'guardians.activateError': 'Não foi possível ativar o responsável.',
-  'guardians.deleteTitle': 'Excluir responsável',
+  'guardians.deleteTitle': 'Inativar responsável',
+  // "Excluir" prometia mais do que a ação faz: o registro é inativado, não apagado, e pode ser
+  // reativado pelo filtro de inativos. E não se diz que some da listagem — os filtros "Inativos"
+  // e "Todos" continuam mostrando a pessoa.
   'guardians.deleteMessage':
-    'Excluir {name}? Ele deixa de aparecer na listagem, mas o histórico de cobranças é preservado.',
-  'guardians.deleteError': 'Não foi possível excluir o responsável. Tente novamente.',
+    'Deseja inativar essa pessoa? {name} sai da listagem de ativos, e o histórico de cobranças é preservado.',
+  'guardians.deleteError': 'Não foi possível inativar o responsável. Tente novamente.',
+  'guardians.deactivate': 'Inativar',
+  'guardians.deactivating': 'Inativando...',
+  'guardians.deactivateActionAria': 'Inativar {name}',
   'guardians.sendAccess': 'Enviar acesso ao sistema',
   'guardians.sendAccessAria': 'Enviar acesso ao sistema para {name}',
+  'guardians.sendAccessInactive': 'Reative o responsável antes de enviar o acesso',
+  'guardians.sendAccessTitle': 'Enviar acesso ao sistema',
+  'guardians.sendAccessMessage': 'Enviar o link de acesso ao sistema para {name} ({email})?',
+  'guardians.sendAccessNoEmail': 'Enviar o link de acesso ao sistema para {name}?',
+  'guardians.sendingAccess': 'Enviando...',
+  'guardians.sendAccessConfirm': 'Confirmar',
   'guardians.accessSent': 'Enviamos o link de acesso para {email}. Ele vale por 7 dias.',
   'guardians.accessError': 'Não foi possível enviar o acesso. Verifique sua conexão.',
   'guardians.charges.title': 'Boletos do responsável',
@@ -917,13 +978,32 @@ const ptBR = {
   'students.relationship.mother': 'Mãe',
   'students.relationship.other': 'Responsável',
 
-  'team.title': 'Equipe',
-  'team.noAccess.description':
-    'A listagem da equipe está disponível apenas para usuários com vínculo ativo de escola.',
-  'team.loadError': 'Não foi possível carregar a equipe. Verifique sua conexão.',
-  'team.empty.title': 'Nenhum membro da equipe',
-  'team.empty.description':
-    'Convide colaboradores durante o onboarding ou peça ao proprietário para adicionar contas de equipe.',
+  'users.title': 'Usuários',
+  'users.noAccess.description':
+    'A listagem de usuários está disponível apenas para usuários com vínculo ativo de escola.',
+  'users.loadError': 'Não foi possível carregar os usuários. Verifique sua conexão.',
+  'users.empty.title': 'Nenhum usuário cadastrado',
+  'users.empty.description':
+    'Crie um acesso para a Secretaria, a Coordenação, um professor ou uma família.',
+  'users.new': 'Novo usuário',
+  'users.description':
+    'O acesso é criado como convite: a pessoa recebe um e-mail e escolhe a própria senha.',
+  'users.accessType': 'Tipo de acesso',
+  'users.role.staff': 'Equipe da escola',
+  'users.role.teacher': 'Professor',
+  'users.role.guardian': 'Família',
+  'users.profile': 'Perfil de permissões',
+  'users.profileHint': 'Define o que essa pessoa vê e faz — Secretaria, Coordenação, Direção.',
+  'users.guardianHint':
+    'Uma família não escolhe perfil: o responsável vê os próprios filhos e mais nada. Vincule os estudantes a ele na tela de Responsáveis.',
+  'users.sendInvite': 'Enviar convite',
+  'users.sending': 'Enviando...',
+  'users.inviteSent': 'Convite enviado para {email}.',
+  'users.inviteError': 'Não foi possível enviar o convite.',
+  'users.resendInvite': 'Reenviar convite',
+  'users.createError': 'Não foi possível criar o acesso.',
+  'users.error.emailRequired': 'Informe o e-mail de quem vai acessar.',
+  'users.error.templateRequired': 'Selecione o perfil de permissões.',
 
   'collaborators.title': 'Colaboradores',
   'collaborators.noAccess.description':
@@ -1020,6 +1100,69 @@ const ptBR = {
 
   'impersonation.banner.title': 'Modo suporte DLA',
   'impersonation.banner.detail': 'Operador {operator} · Escola {school}',
+
+  'platformSubscription.title': 'Assinatura School Lab',
+  'platformSubscription.subtitle':
+    'Plano e faturas da plataforma DLA. Isto não é a mensalidade das famílias.',
+  'platformSubscription.noAccess.description':
+    'A assinatura School Lab é gerenciada pela direção (configurações da escola).',
+  'platformSubscription.loadError': 'Não foi possível carregar a assinatura School Lab.',
+  'platformSubscription.empty.title': 'Nenhuma assinatura School Lab',
+  'platformSubscription.empty.description':
+    'Escolha um plano da plataforma e gere a fatura hospedada para pagar.',
+  'platformSubscription.plansLoadError':
+    'Não foi possível carregar os planos da assinatura School Lab.',
+  'platformSubscription.plansEmpty.title': 'Nenhum plano disponível',
+  'platformSubscription.plansEmpty.description':
+    'Não há planos da assinatura School Lab para escolher agora.',
+  'platformSubscription.plan': 'Plano',
+  'platformSubscription.interval': 'Periodicidade',
+  'platformSubscription.interval.month': 'Mensal',
+  'platformSubscription.interval.year': 'Anual',
+  'platformSubscription.status': 'Status',
+  'platformSubscription.status.trialing': 'Em trial',
+  'platformSubscription.status.active': 'Ativa',
+  'platformSubscription.status.past_due': 'Inadimplente',
+  'platformSubscription.status.canceled': 'Cancelada',
+  'platformSubscription.status.incomplete': 'Incompleta',
+  'platformSubscription.amount': 'Valor',
+  'platformSubscription.period': 'Próximo período',
+  'platformSubscription.trialEnds': 'Trial até',
+  'platformSubscription.cancelScheduled':
+    'O cancelamento está agendado para o fim do período. A escola continua com acesso até lá.',
+  'platformSubscription.pastDueBanner':
+    'Há uma fatura da assinatura School Lab em atraso. O acesso à escola não é bloqueado.',
+  'platformSubscription.manualNotice':
+    'Esta assinatura é gerenciada pela DLA (cobrança manual). Não é possível pagar ou trocar o plano por aqui.',
+  'platformSubscription.checkout': 'Gerar fatura',
+  'platformSubscription.checkoutError': 'Não foi possível gerar a fatura da assinatura.',
+  'platformSubscription.payInvoice': 'Pagar fatura',
+  'platformSubscription.openInvoice': 'Abrir fatura',
+  'platformSubscription.trial': 'Começar com trial de 14 dias',
+  'platformSubscription.changePlan': 'Trocar plano',
+  'platformSubscription.changePlanTitle': 'Trocar plano da assinatura',
+  'platformSubscription.changePlanError': 'Não foi possível trocar o plano.',
+  'platformSubscription.cancelAtPeriodEnd': 'Cancelar no fim do período',
+  'platformSubscription.cancelTitle': 'Cancelar assinatura School Lab',
+  'platformSubscription.cancelMessage':
+    'A assinatura School Lab permanece ativa até o fim do período atual. A cobrança das famílias não é afetada.',
+  'platformSubscription.cancelConfirm': 'Confirmar cancelamento',
+  'platformSubscription.cancelError': 'Não foi possível cancelar a assinatura.',
+  'platformSubscription.invoices': 'Faturas da assinatura',
+  'platformSubscription.invoicesEmpty': 'Nenhuma fatura da assinatura School Lab.',
+  'platformSubscription.invoicesLoadError': 'Não foi possível carregar as faturas.',
+  'platformSubscription.invoiceStatus.draft': 'Rascunho',
+  'platformSubscription.invoiceStatus.open': 'Em aberto',
+  'platformSubscription.invoiceStatus.paid': 'Paga',
+  'platformSubscription.invoiceStatus.void': 'Anulada',
+  'platformSubscription.invoiceStatus.uncollectible': 'Incobrável',
+  'platformSubscription.invoiceDue': 'Vencimento',
+  'platformSubscription.invoicePaidAt': 'Pago em',
+  'platformSubscription.paymentMethod': 'Meio',
+  'platformSubscription.paymentMethod.credit_card': 'Cartão',
+  'platformSubscription.paymentMethod.bank_slip': 'Boleto',
+  'platformSubscription.paymentMethod.pix': 'Pix',
+  'platformSubscription.overdue': 'Em atraso',
 
   'error404.title': 'Página não encontrada',
   'error404.description': 'A página que você está buscando não existe ou foi movida.',

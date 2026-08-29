@@ -78,14 +78,16 @@ RSpec.describe "The school as a party to its own contracts" do
     expect(dispatched_request.copy_emails).to eq([ "secretaria@exemplo.com" ])
   end
 
+  # The school signing is not optional: a contract with no school party to sign it must not go
+  # out at all, rather than leave silently as an agreement between the guardians alone.
   context "when the school has no address to sign from" do
     before { school.update!(signature_email: nil) }
 
-    it "sends the contract to the guardians alone, as before" do
-      request = dispatched_request
+    it "refuses to send the contract" do
+      result = Contracts::SendForSignatureService.call(contract: contract)
 
-      expect(request.signers.map(&:email)).to eq([ mother.email ])
-      expect(request.copy_emails).to eq([ "colegionsrgo@gmail.com" ])
+      expect(result).to be_failure
+      expect(contract.reload.provider_document_id).to be_nil
     end
   end
 

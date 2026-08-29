@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
+import paths from 'routes/paths';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { activeMembershipValueFor } from 'test/activeMembership';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
@@ -51,13 +52,18 @@ const authValueFor = (memberships: Membership[]): AuthContextValue => ({
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 });
 
-const renderDrawer = (memberships: Membership[], selectedId?: number) =>
+const renderDrawer = (
+  memberships: Membership[],
+  selectedId?: number,
+  initialEntry = paths.dashboard,
+) =>
   renderWithTheme(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <AuthContext.Provider value={authValueFor(memberships)}>
         <ActiveMembershipContext.Provider
           value={activeMembershipValueFor(memberships, selectedId ?? memberships[0]?.id ?? null)}
@@ -94,6 +100,7 @@ describe('DrawerItems permission gating', () => {
   it('shows billing routes to a user with manage_billing', () => {
     renderDrawer([billingMembership]);
 
+    expect(screen.getByText('Financeiro')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Boletos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Planos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Contrato' })).toBeInTheDocument();
@@ -106,12 +113,72 @@ describe('DrawerItems permission gating', () => {
     expect(screen.queryByRole('link', { name: 'Planos' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Contrato' })).not.toBeInTheDocument();
   });
+
+  it('shows School Lab subscription to manage_school_settings', () => {
+    const settingsMembership: Membership = {
+      ...ownerPendingMembership,
+      school_onboarding_status: 'active',
+      permissions: ['manage_school_settings'],
+      permission_sources: { manage_school_settings: 'owner' },
+    };
+
+    renderDrawer([settingsMembership]);
+    expect(screen.getByText('Configurações')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Assinatura School Lab' })).toHaveAttribute(
+      'href',
+      '/assinatura',
+    );
+    expect(screen.queryByRole('link', { name: 'Boletos' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Financeiro')).not.toBeInTheDocument();
+  });
+
+  it('hides School Lab subscription from manage_billing-only staff', () => {
+    renderDrawer([billingMembership]);
+    expect(screen.queryByRole('link', { name: 'Assinatura School Lab' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Boletos' })).toBeInTheDocument();
+  });
+});
+
+describe('DrawerItems context badge', () => {
+  it('stacks the logo above the context badge in a column header', () => {
+    const { container } = renderDrawer([staffMembership]);
+
+    const headerStack = container.querySelector('.MuiStack-root');
+    expect(headerStack).toBeTruthy();
+    expect(headerStack).toHaveStyle({ flexDirection: 'column' });
+
+    const logoLink = container.querySelector('a[href="/"]');
+    const badge = screen.getByText(
+      `${staffMembership.role_template?.name ?? ''} · ${staffMembership.school_name ?? ''}`,
+    );
+
+    expect(logoLink).toBeTruthy();
+    expect(logoLink!.compareDocumentPosition(badge)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('shows the active staff role and school in the sidebar header', () => {
+    renderDrawer([staffMembership]);
+
+    expect(
+      screen.getByText(
+        `${staffMembership.role_template?.name ?? ''} · ${staffMembership.school_name ?? ''}`,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('shows Responsável in the guardian context', () => {
+    renderDrawer([guardianMembership]);
+
+    expect(screen.getByText(/Responsável · /)).toBeInTheDocument();
+  });
 });
 
 describe('DrawerItems guardian audience', () => {
   it('shows only guardian destinations for an active Responsável context', () => {
     renderDrawer([guardianMembership]);
 
+    expect(screen.getByText('Portal da família')).toBeInTheDocument();
+    expect(screen.queryByText('Configurações')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Meus boletos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Preceptoria' })).toBeInTheDocument();
@@ -143,5 +210,22 @@ describe('DrawerItems guardian audience', () => {
 
     expect(screen.queryByRole('link', { name: 'Estudantes' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Meus pedidos' })).toBeInTheDocument();
+  });
+});
+
+describe('DrawerItems active route', () => {
+  it('highlights only the current destination in the sidebar', () => {
+    renderDrawer([billingMembership], billingMembership.id, paths.charges);
+
+    expect(screen.getByRole('link', { name: 'Boletos' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Planos' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('shows Contas de acesso section for manage_people staff', () => {
+    renderDrawer([staffMembership]);
+
+    expect(screen.getByText('Contas de acesso')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Usuários' })).toBeInTheDocument();
   });
 });

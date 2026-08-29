@@ -15,6 +15,7 @@ import {
   RequireOwnerOnboardingComplete,
   RequireRouteAudience,
   RequireRouteModule,
+  RequireSchoolOwner,
 } from './guards';
 
 // Vite `base` uses a trailing slash (/app/); React Router `basename` must not — otherwise
@@ -27,7 +28,7 @@ const GuardianAccess = lazy(() => import('pages/authentication/GuardianAccess'))
 const ForgotPassword = lazy(() => import('pages/authentication/ForgotPassword'));
 const ResetPassword = lazy(() => import('pages/authentication/ResetPassword'));
 const Guardians = lazy(() => import('pages/people/Guardians'));
-const Team = lazy(() => import('pages/people/Team'));
+const Users = lazy(() => import('pages/people/Users'));
 const Students = lazy(() => import('pages/people/Students'));
 const Collaborators = lazy(() => import('pages/academics/Collaborators'));
 const Grades = lazy(() => import('pages/academics/Grades'));
@@ -46,6 +47,8 @@ const Plans = lazy(() => import('pages/billing/Plans'));
 const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
 const ServiceInvoices = lazy(() => import('pages/billing/ServiceInvoices'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
+const PlatformSubscriptionPage = lazy(() => import('pages/subscription/PlatformSubscription'));
+const SignatureCredentialsPage = lazy(() => import('pages/settings/SignatureCredentials'));
 const MyTaxDeclarations = lazy(() => import('pages/billing/MyTaxDeclarations'));
 const MyCharges = lazy(() => import('pages/billing/MyCharges'));
 const MyHealthRecords = lazy(() => import('pages/people/MyHealthRecords'));
@@ -85,8 +88,8 @@ const router = createBrowserRouter(
               element: <Guardians />,
             },
             {
-              path: paths.team,
-              element: <Team />,
+              path: paths.users,
+              element: <Users />,
             },
             {
               path: paths.students,
@@ -161,6 +164,20 @@ const router = createBrowserRouter(
             {
               path: paths.contractTemplate,
               element: <ContractTemplatePage />,
+            },
+            {
+              path: paths.platformSubscription,
+              element: <PlatformSubscriptionPage />,
+            },
+            {
+              // Owner-only: the token creates documents in the school's name, so the guard is
+              // here as well as on the nav entry — a hidden link is not an access rule.
+              path: paths.signatureCredentials,
+              element: (
+                <RequireSchoolOwner>
+                  <SignatureCredentialsPage />
+                </RequireSchoolOwner>
+              ),
             },
             {
               path: paths.myTaxDeclarations,

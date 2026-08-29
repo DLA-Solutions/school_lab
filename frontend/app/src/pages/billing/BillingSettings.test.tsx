@@ -21,6 +21,7 @@ const settings: BillingSettings = {
   notification_schedule: { reminders: [{ days_before_due: 3 }] },
   interest_rate_percent: 1.0,
   early_payment_discount_percent: null,
+  early_payment_discount_day: null,
   fine_type: null,
   fine_rate_percent: null,
   fine_amount_cents: null,
@@ -40,6 +41,7 @@ const authValue: AuthContextValue = {
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 };
@@ -93,6 +95,26 @@ describe('BillingSettingsPage', () => {
     expect(screen.getByLabelText(/taxa de mora mensal/i)).toHaveValue('1');
   });
 
+  it('loads the early payment discount day into the form', async () => {
+    authenticate();
+    server.use(
+      http.get(apiUrl(PATH), () =>
+        HttpResponse.json({
+          data: { ...settings, early_payment_discount_day: 5 },
+        }),
+      ),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
+        HttpResponse.json({ data: [] }),
+      ),
+    );
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/dia limite do desconto/i)).toHaveValue(5),
+    );
+  });
+
   it('saves updated settings', async () => {
     authenticate();
     let patched = false;
@@ -106,10 +128,12 @@ describe('BillingSettingsPage', () => {
         patched = true;
         const body = (await request.json()) as { billing_settings: Record<string, unknown> };
         expect(body.billing_settings.early_payment_discount_percent).toBe(5);
+        expect(body.billing_settings.early_payment_discount_day).toBe(5);
         return HttpResponse.json({
           data: {
             ...settings,
             early_payment_discount_percent: 5,
+            early_payment_discount_day: 5,
           },
         });
       }),
@@ -123,6 +147,8 @@ describe('BillingSettingsPage', () => {
 
     await user.clear(screen.getByLabelText(/desconto por pontualidade/i));
     await user.type(screen.getByLabelText(/desconto por pontualidade/i), '5');
+    await user.clear(screen.getByLabelText(/dia limite do desconto/i));
+    await user.type(screen.getByLabelText(/dia limite do desconto/i), '5');
     await user.click(screen.getByRole('button', { name: /^salvar$/i }));
 
     await waitFor(() => expect(patched).toBe(true));
@@ -155,5 +181,41 @@ describe('BillingSettingsPage', () => {
     await user.click(screen.getByRole('button', { name: /^salvar$/i }));
 
     await waitFor(() => expect(screen.getByText(/revise os campos/i)).toBeInTheDocument());
+  });
+
+  it('highlights the discount day when the API returns a field error', async () => {
+    authenticate();
+
+    server.use(
+      http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
+        HttpResponse.json({ data: [] }),
+      ),
+      http.patch(apiUrl(PATH), () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'validation_error',
+              message: 'Dados inválidos.',
+              details: { early_payment_discount_day: ['não pode ficar em branco'] },
+            },
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/desconto por pontualidade/i)).toBeInTheDocument(),
+    );
+
+    await user.type(screen.getByLabelText(/desconto por pontualidade/i), '5');
+    await user.click(screen.getByRole('button', { name: /^salvar$/i }));
+
+    await waitFor(() => expect(screen.getByText(/revise os campos/i)).toBeInTheDocument());
+    expect(screen.getByLabelText(/dia limite do desconto/i)).toBeInvalid();
+    expect(screen.getByText(/não pode ficar em branco/i)).toBeInTheDocument();
   });
 });

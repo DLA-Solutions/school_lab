@@ -18,7 +18,7 @@ Full orchestrator docs: `.cursor/agents/rails-implementer.md`, `.cursor/agents/f
 | `frontend/app/**`, `frontend/backoffice/**`, `packages/design-tokens/**`, `frontend/design-system-docs/**`, `mobile/**` | **frontend-implementer** | review skills only (`review-web-ui`, `review-mobile`) |
 | `docs/**` (PRDs, modeling, DBML) | **prd-reviewer** / **doc-consistency-checker** | — |
 | `site/**` | Parent or general-purpose | No dedicated orchestrator |
-| Cross-surface deploy | Skill `deploy-kamal` | Coordinate rails + frontend orchestrators when multiple surfaces change |
+| Cross-surface deploy | Skill `deploy-kamal` | Coordinate rails + frontend orchestrators when multiple surfaces change; **must** call `discord-deploy` `notify_deploy` when deploy finishes |
 
 ## Mandatory rules
 

@@ -12,7 +12,13 @@ class PlanDiscount < ApplicationRecord
     { name: "Desconto 20%", percent: 20 },
     { name: "Desconto 30%", percent: 30 },
     { name: "Desconto 40%", percent: 40 },
-    { name: "Bolsa integral", percent: 100 }
+    { name: "Bolsa integral", percent: 100 },
+    # Cumulative with the punctuality discount, not a substitute for it — a family that pays early
+    # still earns that discount on top of whichever of these it qualifies for. The rate climbs with
+    # each additional sibling enrolled but tops out at the 3rd: a 4th sibling and beyond stay at
+    # 10%, they do not keep stacking their own band on top of this one.
+    { name: "Desconto irmãos (2º filho)", percent: 5 },
+    { name: "Desconto irmãos (3º filho ou mais)", percent: 10 }
   ].freeze
 
   belongs_to :school

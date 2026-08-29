@@ -61,7 +61,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.myRequests]: 'guardian',
   [paths.guardians]: 'staff',
   [paths.students]: 'staff',
-  [paths.team]: 'staff',
+  [paths.users]: 'staff',
   [paths.collaborators]: 'staff',
   [paths.lessons]: 'staff',
   [paths.grades]: 'staff',
@@ -76,6 +76,8 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.billingSettings]: 'staff',
   [paths.serviceInvoices]: 'staff',
   [paths.contractTemplate]: 'staff',
+  [paths.signatureCredentials]: 'staff',
+  [paths.platformSubscription]: 'staff',
 };
 
 export const menuItemModuleKey = (item: MenuItem): SchoolModuleKey | null =>
@@ -108,6 +110,12 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
 
     const moduleKey = menuItemModuleKey(item);
     if (moduleKey && !isModuleEnabledForMembership(membership, moduleKey)) {
+      return false;
+    }
+
+    // Stronger than a permission key, and checked before one: an owner-only entry stays hidden
+    // from the school's other staff however many permissions they hold.
+    if (item.ownerOnly && membership?.is_owner !== true) {
       return false;
     }
 

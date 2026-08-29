@@ -6,6 +6,9 @@
 # Qual idioma responde a cada requisição vem do `Accept-Language`, resolvido em
 # `Api::V1::BaseController`.
 pt-BR:
+  time:
+    formats:
+      long: "%d/%m/%Y %H:%M"
   billing:
     settings:
       default_service_description: "Mensalidade escolar"
@@ -45,6 +48,17 @@ pt-BR:
         body: "Você foi convidado(a) para acessar %{school} no Scholar Premium. Defina sua senha para ativar o acesso."
         cta: "Ativar acesso"
         footer: "Este link é válido por 7 dias. Se você não esperava este convite, ignore este e-mail."
+  marketing:
+    mailer:
+      demo_request:
+        subject: "Demonstração solicitada — %{name}"
+        greeting: "Olá,"
+        intro: "Alguém pediu uma demonstração pelo site do Scholar Premium."
+        name_label: "Nome"
+        email_label: "E-mail"
+        phone_label: "Telefone (WhatsApp)"
+        submitted_at_label: "Enviado em"
+        source: "Origem: site de marketing Scholar Premium"
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."
@@ -76,16 +90,22 @@ pt-BR:
       guardian_inactive: "Este responsável está inativo. Reative-o antes de enviar o acesso."
       school_class_has_students: "Esta turma ainda tem estudantes matriculados. Mova-os para outra turma antes de excluí-la."
       not_your_lesson: "Você não leciona esta matéria nesta turma."
+      period_outside_class_year: "Este bimestre não pertence ao ano letivo da turma."
       not_your_student: "Você não leciona para a turma deste estudante."
       report_unsupported_characters: "O relatório traz caracteres que a fonte do PDF não desenha. Verifique os nomes cadastrados."
       invalid_reset_token: "Este link expirou ou já foi usado. Peça um novo."
       invalid_credentials: "E-mail ou senha inválidos."
+      invalid_oauth_token: "Token de login do Google inválido."
+      access_denied: "Acesso negado."
+      user_disabled: "Esta conta está desativada."
       invalid_invite_token: "Este convite é inválido ou expirou."
       forbidden: "Acesso negado."
       module_disabled: "Este módulo está desativado para esta escola."
       backoffice_only: "Esta ação é restrita a operadores do backoffice."
       not_found: "Não encontrado."
       not_implemented: "Recurso ainda não implementado."
+      portal_not_supported: "O portal de cobrança hospedado não está disponível para este provedor."
+      subscription_exists: "Esta escola já possui uma assinatura da plataforma."
       report_card_not_ready: "Os pré-requisitos do boletim não foram atendidos."
       report_card_frozen: "Boletins publicados não podem ser alterados."
       publication_in_progress: "Já existe uma publicação em andamento."
@@ -103,6 +123,7 @@ pt-BR:
       guardian_cpf_not_found: "Nenhum responsável cadastrado com o CPF %{cpf}. Cadastre-o antes de matricular o estudante."
       duplicate_guardian_cpf: "O mesmo CPF foi informado para pai e mãe."
       contract_without_guardians: "Este contrato não tem responsável vinculado ao aluno. Vincule ao menos um antes de enviar para assinatura."
+      school_signer_not_configured: "Esta escola não tem CNPJ e e-mail de assinatura configurados. Preencha-os nas configurações da escola antes de enviar contratos para assinatura — a escola também precisa assinar todo contrato."
       contract_pdf_unsupported_characters: "O contrato contém caracteres que a fonte do PDF não suporta. Fale com o suporte."
       contract_template_missing: "Nenhum modelo de contrato configurado para esta escola."
       contract_already_sent: "Este contrato já foi enviado para assinatura."
@@ -173,6 +194,7 @@ pt-BR:
   activerecord:
     errors:
       messages:
+        record_invalid: "A validação falhou: %{errors}"
         invalid_cpf: "não é um CPF válido"
         requires_valid_cnpj: "só pode ser preenchido quando o CNPJ da escola for válido — é o documento sob o qual a escola assina"
         too_short: "deve ter ao menos 10 caracteres"

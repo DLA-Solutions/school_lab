@@ -260,7 +260,7 @@ RSpec.describe "Preceptoria: what the teacher writes", type: :request do
   end
 
   describe "assignment-narrowed access for teachers" do
-    let(:other_class) { create(:school_class, school: school, name: "B", year: 2026) }
+    let(:other_class) { create(:school_class, school: school, name: "B", shift: "vespertino", year: 2026) }
     let!(:bruno) { create(:teacher, school: school, email: "bruno@example.com", name: "Bruno Lima") }
     let(:bruno_user) { create(:user, email: "bruno@example.com") }
     let!(:bruno_membership) { create(:membership, user: bruno_user, school: school, role: "teacher") }

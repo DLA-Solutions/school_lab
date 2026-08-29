@@ -6,6 +6,7 @@ class PlatformPlan < ApplicationRecord
   KEYS = %w[starter pro enterprise].freeze
 
   has_many :platform_subscriptions, dependent: :restrict_with_error
+  has_many :platform_plan_provider_prices, dependent: :destroy
 
   validates :key, presence: true, inclusion: { in: KEYS }, uniqueness: { conditions: -> { kept } }
   validates :name, presence: true

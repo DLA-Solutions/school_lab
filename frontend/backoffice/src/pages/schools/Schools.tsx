@@ -637,6 +637,16 @@ const Schools = () => {
                 <IconifyIcon icon="mingcute:bank-card-line" />
               </IconButton>
             </Tooltip>
+            <Tooltip title="Assinatura eletrônica">
+              <IconButton
+                size="small"
+                aria-label={`Assinatura eletrônica de ${row.name}`}
+                component={RouterLink}
+                to={paths.signatureCredentials(row.id)}
+              >
+                <IconifyIcon icon="mingcute:quill-pen-line" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Editar">
               <IconButton
                 size="small"

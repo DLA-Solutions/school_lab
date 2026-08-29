@@ -60,6 +60,8 @@ export default defineConfig({
       '@mui/x-data-grid',
       '@emotion/react',
       '@emotion/styled',
+      // `@school-lab/design-system-ui` is linked from `packages/` with no `node_modules` of its own.
+      '@iconify/react',
     ],
     alias: {
       'design-system': path.resolve(__dirname, '../app/src/design-system'),
@@ -71,5 +73,8 @@ export default defineConfig({
   },
   server: {
     port: 5174,
+    fs: {
+      allow: [path.resolve(__dirname, '../..')],
+    },
   },
 });

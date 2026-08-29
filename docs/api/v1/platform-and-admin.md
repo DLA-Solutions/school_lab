@@ -390,7 +390,7 @@ Module PATCH (implemented):
 
 | Method | Path | Permission | Description |
 |--------|------|------------|-------------|
-| `GET` | `/schools` | `manage_backoffice_ops` | Extended filters: `q`, `saas_plan`, `created_after`, `created_before`, `discarded`, `onboarding_status` |
+| `GET` | `/schools` | `manage_backoffice_ops` | Extended filters: `q`, `saas_plan` (**legacy param name** — filter via `platform_subscriptions` / plan `key`, not `schools.saas_plan` column), `created_after`, `created_before`, `discarded`, `onboarding_status` |
 | `GET` | `/platform/audits` | `manage_backoffice_ops` | Cross-tenant audit log — paginated; filters `school_id`, `action`, `date_from`, `date_to` |
 | `POST` | `/schools/:id/restore` | `manage_backoffice_ops` | Undiscard school (BR-BOE06) |
 | `POST` | `/schools/:id/provisioning/resend_invites` | `provision_school` | Optional bulk invite resend (rate limited) |
@@ -405,8 +405,11 @@ Module PATCH (implemented):
 | `429` | `rate_limited` | Invite resend throttled |
 
 E3 P2 routes (`/platform/subscriptions`, `/platform/impersonations`, `/platform/analytics/overview`,
-`/platform/school_groups`, help taxonomy) are **implemented** per MVP decisions in
-[`open-questions.md`](../../open-questions.md) § Platform & admin.
+`/platform/school_groups`, help taxonomy) are **implemented** for the E3 manual bar per
+[`open-questions.md`](../../open-questions.md) § Platform & admin. **Checkout, school-scoped
+subscription, invoices, and Asaas webhook** are specified in
+[Platform subscription billing](#platform-subscription-billing-frozen--implementation-contract)
+below — **frozen** as the implementation contract (2026-08-19). W1 freeze above is unchanged.
 
 ### E3 — Multi-unit, billing, analytics, impersonation, help taxonomy (P2)
 
@@ -422,10 +425,10 @@ Base: `/api/v1/platform`
 | `GET` | `/school_groups/:id/schools` | `manage_multi_unit` | List member schools (summary) |
 | `POST` | `/school_groups/:id/assign_school` | `manage_multi_unit` | Body `{ school_id }` — `409 school_already_in_group` when assigned elsewhere |
 | `DELETE` | `/school_groups/:id/schools/:school_id` | `manage_multi_unit` | Unassign school from group |
-| `GET` | `/plans` | `manage_platform_billing` | List SaaS plans (`starter`, `pro`, `enterprise`) |
+| `GET` | `/plans` | `manage_platform_billing` | List SaaS plans (`starter`, `pro`, `enterprise`); see frozen billing section for intervals |
 | `GET` | `/subscriptions` | `manage_platform_billing` | Paginated subscriptions — filters `status`, `school_id` |
-| `POST` | `/subscriptions` | `manage_platform_billing` | Assign plan to school — `409 subscription_exists` |
-| `PATCH` | `/subscriptions/:id` | `manage_platform_billing` | Update status/plan — plan change audited |
+| `POST` | `/subscriptions` | `manage_platform_billing` | Assign plan to school — `409 subscription_exists`; body may include `provider: manual \| asaas` |
+| `PATCH` | `/subscriptions/:id` | `manage_platform_billing` | Manual/local fields only (`status`, `trial_ends_at`). Asaas plan/interval change uses `POST .../change_plan` — PATCH of those fields on Asaas rows → `409 invalid_state_transition` |
 | `GET` | `/subscriptions/:id` | `manage_platform_billing` | Show subscription with plan + school summary |
 | `GET` | `/analytics/overview` | `view_analytics_dashboard` or `manage_backoffice_ops` | Aggregate KPIs — optional `date_from`, `date_to` |
 | `POST` | `/impersonations` | `manage_backoffice_ops` | Start impersonation — returns 15min scoped JWT |
@@ -474,10 +477,236 @@ Audited actions during impersonation attribute to operator with `impersonating: 
 
 ---
 
+## Platform subscription billing (frozen — implementation contract)
+
+> **API status: frozen (platform-subscription-billing — 2026-08-19)**  
+> PRD: [`platform-subscription-billing.md`](../../prds/platform-and-admin/platform-subscription-billing.md)  
+> ADR: [`002-platform-billing-gateway.md`](../../adr/002-platform-billing-gateway.md)  
+> Modeling: [`009-platform-admin.md`](../../modeling/009-platform-admin.md)
+
+Engineering implements against this section. Paths not yet in `web/` return `501` /
+`not_implemented` until the collection epic ships. This freeze does **not** unfreeze W1.
+
+**Boundary:** school→guardian Cora billing stays on `POST /webhooks/:provider/:token` and
+`/api/v1/schools/:school_id/billing/*`. Platform SaaS never uses that webhook or
+`school_payment_providers`.
+
+### Backoffice extensions — `/api/v1/platform`
+
+Permission: `manage_platform_billing`. School JWTs → `403 backoffice_only`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/plans` | Catalog with intervals. Each plan includes `intervals[]` (`billing_interval`, `amount_cents`, optional `provider`). Keep `monthly_amount_cents` during dual-write; clients should prefer `amount_cents` for the selected interval. School JWT → `403 backoffice_only`; school SPA uses `GET /schools/:school_id/platform_plans`. |
+| `POST` | `/subscriptions` | Assign plan. Body: `school_id`, `platform_plan_id` or `plan_key`, `billing_interval` (`month` \| `year`), `provider` (`manual` \| `asaas`). Optional `trial` (boolean; 14 days when true). `provider: manual` skips collector. |
+| `POST` | `/subscriptions/:id/checkout` | Ensure vendor customer + subscription; return hosted invoice URL. |
+| `GET` | `/subscriptions/:id/invoices` | Paginated platform invoices for that subscription. |
+| `POST` | `/subscriptions/:id/change_plan` | Optional operator path — same semantics as school `change_plan`. |
+| `POST` | `/subscriptions/:id/cancel` | Optional operator path — default `at_period_end: true`. |
+
+Existing `GET /subscriptions` and `GET /subscriptions/:id` remain. `PATCH /subscriptions/:id`
+updates **manual/local** fields only (`status`, `trial_ends_at` for `provider: manual`).
+Changing `platform_plan_id` or `billing_interval` on an Asaas row via PATCH →
+`409 invalid_state_transition`; use `POST .../change_plan`. Show/list may include
+`provider`, `billing_interval`, `external_customer_id`, `external_subscription_id`,
+`current_period_start`, `cancel_at_period_end`, `canceled_at`, `collection_method` for operators.
+
+Asaas checkout requires `schools.cnpj` and a billing email (`users.email` of the director, or
+owner/director membership email for operator checkout) — `422 validation_error` if missing.
+
+#### POST `/subscriptions/:id/checkout` — request
+
+```json
+{
+  "trial": true
+}
+```
+
+#### POST `/subscriptions/:id/checkout` — response `200`
+
+```json
+{
+  "data": {
+    "checkout_url": "https://faturas.asaas.com/example",
+    "billing_portal_url": null,
+    "subscription_id": 1
+  }
+}
+```
+
+`billing_portal_url` is always `null` while Asaas `hosted_billing_portal` is false.
+Requesting a portal session returns `501 portal_not_supported`.
+
+### School-scoped — `/api/v1/schools/:school_id`
+
+Permission: `manage_school_settings`. Guardian / teacher / secretary without that key → `403`.
+Wrong `school_id` → `404` (no existence leak). JSON **omits** raw Asaas IDs.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/platform_plans` | School-scoped catalog for checkout. Each plan: `key`, `name`, `intervals[]` (`billing_interval` `month` \| `year`, `amount_cents`). No Asaas/external IDs. |
+| `GET` | `/platform_subscription` | Current kept subscription + plan summary; `billing_portal_url: null`; open invoice `pay_url` when present |
+| `POST` | `/platform_subscription/checkout` | UC-PSB01 — body `plan_key`, `billing_interval`, optional `trial` |
+| `POST` | `/platform_subscription/change_plan` | UC-PSB03 — body `plan_key`, `billing_interval` |
+| `POST` | `/platform_subscription/cancel` | UC-PSB04 — body `{ "at_period_end": true }` (default true) |
+| `GET` | `/platform_subscription/invoices` | Paginated invoices; each open row includes `hosted_invoice_url` |
+
+#### GET `/platform_plans` — response `200`
+
+```json
+{
+  "data": [
+    {
+      "key": "starter",
+      "name": "Starter",
+      "intervals": [
+        { "billing_interval": "month", "amount_cents": 19900 },
+        { "billing_interval": "year", "amount_cents": 238800 }
+      ]
+    }
+  ]
+}
+```
+
+JSON does **not** include Asaas or other external IDs. Guardian / teacher / secretary without
+`manage_school_settings` → `403`. Cross-school → `404`. School JWT on
+`GET /api/v1/platform/plans` remains `403 backoffice_only`.
+
+#### GET `/platform_subscription` — response `200`
+
+```json
+{
+  "data": {
+    "id": 1,
+    "status": "active",
+    "plan_key": "starter",
+    "plan_name": "Starter",
+    "billing_interval": "month",
+    "amount_cents": 19900,
+    "current_period_start": "2026-08-01T00:00:00Z",
+    "current_period_end": "2026-09-01T00:00:00Z",
+    "trial_ends_at": null,
+    "cancel_at_period_end": false,
+    "collection_method": "automatic",
+    "billing_portal_url": null,
+    "open_invoice": {
+      "id": 10,
+      "status": "open",
+      "amount_cents": 19900,
+      "due_at": "2026-08-10T00:00:00Z",
+      "hosted_invoice_url": "https://faturas.asaas.com/example",
+      "payment_method": null
+    }
+  }
+}
+```
+
+No current subscription: **`200` with `"data": null`** so the SPA can render empty checkout.
+Cross-school remains `404`. Do not use `404` for “no subscription yet” on a school the caller
+may access.
+
+#### POST `/platform_subscription/checkout` — request
+
+```json
+{
+  "plan_key": "pro",
+  "billing_interval": "year",
+  "trial": false
+}
+```
+
+#### POST `/platform_subscription/checkout` — response `201`
+
+```json
+{
+  "data": {
+    "checkout_url": "https://faturas.asaas.com/example",
+    "billing_portal_url": null
+  }
+}
+```
+
+#### POST `/platform_subscription/change_plan` — request
+
+```json
+{
+  "plan_key": "enterprise",
+  "billing_interval": "month"
+}
+```
+
+#### POST `/platform_subscription/cancel` — request
+
+```json
+{
+  "at_period_end": true
+}
+```
+
+#### GET `/platform_subscription/invoices` — response `200`
+
+```json
+{
+  "data": [
+    {
+      "id": 10,
+      "status": "open",
+      "amount_cents": 19900,
+      "due_at": "2026-08-10T00:00:00Z",
+      "paid_at": null,
+      "hosted_invoice_url": "https://faturas.asaas.com/example",
+      "payment_method": null
+    }
+  ],
+  "meta": { "page": 1, "per_page": 25, "count": 1 }
+}
+```
+
+School invoice JSON does **not** include `external_invoice_id`. Backoffice invoice list **may**.
+
+### Webhook — no JWT
+
+```
+POST /webhooks/platform_billing/:provider/:token
+```
+
+| Param | Meaning |
+|-------|---------|
+| `:provider` | `asaas` (later `stripe` / `fake` for tests) |
+| `:token` | `platform_billing_settings.webhook_endpoint_token` (seeded from `PLATFORM_BILLING_WEBHOOK_TOKEN`) |
+
+Unknown pair → `404`. **Do not** route these events to `POST /webhooks/:provider/:token`
+(Cora / `SchoolPaymentProvider`).
+
+Authenticity: secret URL token. Persist `webhook_events` (`school_id` nullable until
+`external_subscription_id` matches). Idempotent on `(provider, provider_event_id)`. Enqueue
+`Platform::ReconcileBillingEventJob`; parser `Webhooks::Parsers::AsaasPlatformBilling` maps
+vendor types to canonical `billing.*` events. Outcome is confirmed via port
+`fetch_subscription` / `fetch_invoice` (polling fallback).
+
+Response: `202` accepted (or `204`) after enqueue; duplicate provider event → `200` no-op.
+
+### Error catalog (this freeze)
+
+| HTTP | `error.code` | When |
+|------|--------------|------|
+| `403` | `backoffice_only` | School JWT on `/api/v1/platform/plans` or `/api/v1/platform/subscriptions*` |
+| `403` | `forbidden` | Missing `manage_platform_billing` or `manage_school_settings` |
+| `404` | `not_found` | Unknown id, unknown webhook token, or cross-school |
+| `409` | `subscription_exists` | Second non-canceled kept subscription |
+| `409` | `invalid_state_transition` | Checkout / change_plan / cancel not allowed in current status |
+| `422` | `validation_error` | Invalid `plan_key`, `billing_interval`, missing CNPJ, or missing billing email |
+| `501` | `portal_not_supported` | Port `create_billing_portal_session` (no Asaas customer portal) |
+| `501` | `not_implemented` | Frozen route not yet in `web/`, or school checkout while `active_provider` is `manual` |
+
+---
+
 ## OpenAPI tags
 
 `Platform`, `School Years`, `Academic Periods`, `Holidays`
 
 W2+ tags (`Calendar`, `Backoffice`) apply after Phase 4C.1b freeze. E1/E2 backoffice tags:
-`Backoffice`, `Platform Audits`, `School Modules`.
+`Backoffice`, `Platform Audits`, `School Modules`. Collection epic: `Platform Subscriptions`,
+`Platform Invoices`. Platform billing webhook stays **out of public OpenAPI** (same policy as
+Cora ingress in [`docs/api/README.md`](../README.md)).
 

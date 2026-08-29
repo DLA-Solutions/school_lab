@@ -5,11 +5,16 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import {
   ACCESS_EXPIRES_AT,
   FRESH_ACCESS_TOKEN,
+  apiUrl,
   backofficeOpsUser,
   backofficeUser,
+  http,
   modulesBySchool,
+  paginated,
   resetModulesBySchool,
   sampleSchools,
+  sampleSubscriptions,
+  server,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
@@ -138,6 +143,61 @@ describe('SchoolDetail', () => {
     });
 
     expect(await screen.findByTestId('active-impersonation')).toBeInTheDocument();
+    openSpy.mockRestore();
+  });
+
+  it('shows platform invoices, overdue state, and send-checkout for a collector subscription', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    server.use(
+      http.get(apiUrl('/api/v1/platform/subscriptions/:id/invoices'), ({ request }) =>
+        paginated(
+          [
+            {
+              id: 10,
+              status: 'open',
+              amount_cents: 29_900,
+              due_at: '2026-08-10T00:00:00Z',
+              paid_at: null,
+              hosted_invoice_url: 'https://www.asaas.com/i/example',
+              payment_method: null,
+              platform_subscription_id: 1,
+            },
+          ],
+          new URL(request.url),
+        ),
+      ),
+      http.get(apiUrl('/api/v1/platform/subscriptions'), ({ request }) => {
+        const url = new URL(request.url);
+        return paginated(
+          [
+            {
+              ...sampleSubscriptions[0]!,
+              school_id: SCHOOL_ID,
+              status: 'past_due',
+            },
+          ],
+          url,
+        );
+      }),
+    );
+
+    renderDetail();
+
+    expect(await screen.findByText(/assinatura inadimplente/i)).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /abrir fatura/i })).toHaveAttribute(
+      'href',
+      'https://www.asaas.com/i/example',
+    );
+    expect(screen.getAllByText(/em atraso/i).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole('button', { name: /enviar cobrança/i }));
+    await waitFor(() => {
+      expect(openSpy).toHaveBeenCalledWith(
+        'https://www.asaas.com/i/example',
+        '_blank',
+        'noopener,noreferrer',
+      );
+    });
     openSpy.mockRestore();
   });
 });

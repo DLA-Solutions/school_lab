@@ -27,7 +27,7 @@ module Contracts
       return document if document.is_a?(ResponseService)
 
       if document.status == "signed"
-        contract.mark_signed!
+        MarkSignedService.call(contract: contract)
         # The address is derived from the document id and does not expire, so caching it saves a
         # provider round-trip every time the listing is drawn.
         record_signed_file(document.signed_file_url)

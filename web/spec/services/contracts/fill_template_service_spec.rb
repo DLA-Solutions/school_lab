@@ -147,6 +147,29 @@ RSpec.describe Contracts::FillTemplateService do
         expect(html).to include("[][]")
       end
     end
+
+    # A sibling band and the punctuality discount are cumulative: the contract states the tuition
+    # net of the plan discount, and punctuality is measured against that, not the table price.
+    context "when the contract also carries a plan discount" do
+      it "stacks the punctuality discount on top of the plan discount" do
+        grant_punctuality_discount
+        discount = create(:plan_discount, school: school, name: "Desconto irmãos (2º filho)", percent: 5)
+        school.create_contract_template!(
+          body_html: "<p>{{contrato.desconto.nome}}|{{contrato.desconto.percentual}}|" \
+                     "{{contrato.desconto.valor}}|{{contrato.valor}}|{{contrato.pontualidade.desconto}}|" \
+                     "{{contrato.pontualidade.valor}}</p>"
+        )
+        contract = create(:contract, school: school, student: student, billing_plan: plan, plan_discount: discount)
+
+        html = described_class.call(contract: contract).data.fetch(:html)
+
+        # 124_915 * 0.95 = 118_669,25 -> R$ 1.186,69 (plan discount); punctuality then takes 10%
+        # of that, not of the table price: 118_669 * 0.10 = R$ 118,67, leaving R$ 1.068,02.
+        expect(html).to include(
+          "Desconto irmãos (2º filho)|5%|R$ 62,46|R$ 1.186,69|R$ 118,67|R$ 1.068,02"
+        )
+      end
+    end
   end
 
   # The file is uploaded to Autentique as HTML and converted there, so how it is set is decided

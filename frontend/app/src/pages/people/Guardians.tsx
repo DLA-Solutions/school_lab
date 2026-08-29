@@ -80,6 +80,8 @@ const Guardians = () => {
   const [detailsFor, setDetailsFor] = useState<Guardian | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [sendingAccessTo, setSendingAccessTo] = useState<number | null>(null);
+  // Sending access mails the family a link, so it asks first rather than firing on the click.
+  const [pendingAccess, setPendingAccess] = useState<Guardian | null>(null);
   const [accessSent, setAccessSent] = useState('');
 
   const load = useCallback(async () => {
@@ -148,8 +150,10 @@ const Guardians = () => {
     setPage(0);
   };
 
-  const handleSendAccess = async (record: Guardian) => {
-    if (!schoolId) {
+  const handleConfirmSendAccess = async () => {
+    const record = pendingAccess;
+
+    if (!schoolId || !record) {
       return;
     }
 
@@ -166,6 +170,7 @@ const Guardians = () => {
       setError(resolveApiErrorMessage(err, t, 'guardians.accessError'));
     } finally {
       setSendingAccessTo(null);
+      setPendingAccess(null);
     }
   };
 
@@ -234,8 +239,9 @@ const Guardians = () => {
     {
       field: 'actions',
       headerName: t('common.actions'),
-      // Seven buttons on an active row. Sized to fit them all: a cell too narrow clips the ones
-      // on the left, which reads as the actions having disappeared rather than as an overflow.
+      // Seven buttons on every row, active or not. Sized to fit them all: a cell too narrow
+      // clips the ones on the left, which reads as the actions having disappeared rather than as
+      // an overflow.
       width: 320,
       sortable: false,
       filterable: false,
@@ -243,9 +249,91 @@ const Guardians = () => {
       headerAlign: 'right',
       renderCell: ({ row }: GridRenderCellParams<Guardian>) => (
         <Stack direction="row" spacing={0.5} justifyContent="flex-end" height={1}>
-          {/* An inactive record offers only the way back; editing or deleting it makes no sense
-              until it is on the books again. */}
-          {!row.active ? (
+          {/* The same actions whether the record is active or not. An inactive guardian is still
+              a person the school has history with — their charges, contracts and documents are
+              exactly what someone goes looking for after they leave, and a row that offered only
+              "Ativar" made reactivating the record the price of reading it. */}
+          <Tooltip title={t('guardians.details.tooltip')}>
+            <IconButton
+              size="small"
+              aria-label={t('guardians.details.aria', { name: row.name })}
+              onClick={() => setDetailsFor(row)}
+            >
+              <IconifyIcon icon="mingcute:information-line" />
+            </IconButton>
+          </Tooltip>
+          {/* Gives the family a way in: an invitation if they have never set a password, a
+              reset if they have. Either way it ends at a screen where they choose one.
+
+              The API refuses this one for an inactive guardian, so rather than offering a button
+              that always fails, it is shown disabled and the tooltip says what to do first. */}
+          <Tooltip
+            title={row.active ? t('guardians.sendAccess') : t('guardians.sendAccessInactive')}
+          >
+            {/* A disabled button gives no events, so the tooltip needs a wrapper to hang on. */}
+            <span>
+              <IconButton
+                size="small"
+                aria-label={t('guardians.sendAccessAria', { name: row.name })}
+                disabled={sendingAccessTo === row.id || !row.active}
+                onClick={() => setPendingAccess(row)}
+              >
+                <IconifyIcon icon="mingcute:mail-send-line" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          {/* "Is this family up to date" — the main charges listing answers it badly, being
+              ordered by date across every family at once. */}
+          <Tooltip title={t('guardians.charges.tooltip')}>
+            <IconButton
+              size="small"
+              aria-label={t('guardians.charges.aria', { name: row.name })}
+              onClick={() => setChargesFor(row)}
+            >
+              <IconifyIcon icon="mingcute:receive-money-line" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('common.contracts')}>
+            <IconButton
+              size="small"
+              aria-label={`${t('common.contracts')} ${row.name}`}
+              onClick={() => setContractsFor(row)}
+            >
+              <IconifyIcon icon="mingcute:contacts-2-line" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('common.personalDocuments')}>
+            <IconButton
+              size="small"
+              aria-label={`${t('common.personalDocuments')} ${row.name}`}
+              onClick={() => setDocumentsFor(row)}
+            >
+              <IconifyIcon icon="mingcute:file-certificate-line" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('common.edit')}>
+            <IconButton
+              size="small"
+              aria-label={`${t('common.edit')} ${row.name}`}
+              onClick={() => handleEdit(row)}
+            >
+              <IconifyIcon icon="mingcute:edit-2-line" />
+            </IconButton>
+          </Tooltip>
+          {/* The two sides of one switch, so the slot is never empty: an active record offers the
+              way out, an inactive one the way back. The record is discarded, not deleted — it
+              comes back through the "Inativos" and "Todos" filters. */}
+          {row.active ? (
+            <Tooltip title={t('guardians.deactivate')}>
+              <IconButton
+                size="small"
+                aria-label={t('guardians.deactivateActionAria', { name: row.name })}
+                onClick={() => setPendingDelete(row)}
+              >
+                <IconifyIcon icon="mingcute:user-remove-2-line" />
+              </IconButton>
+            </Tooltip>
+          ) : (
             <Tooltip title={t('common.activate')}>
               <IconButton
                 size="small"
@@ -255,80 +343,6 @@ const Guardians = () => {
                 <IconifyIcon icon="mingcute:refresh-2-line" />
               </IconButton>
             </Tooltip>
-          ) : (
-            <>
-              <Tooltip title={t('guardians.details.tooltip')}>
-                <IconButton
-                  size="small"
-                  aria-label={t('guardians.details.aria', { name: row.name })}
-                  onClick={() => setDetailsFor(row)}
-                >
-                  <IconifyIcon icon="mingcute:information-line" />
-                </IconButton>
-              </Tooltip>
-              {/* Gives the family a way in: an invitation if they have never set a password, a
-                  reset if they have. Either way it ends at a screen where they choose one. */}
-              <Tooltip title={t('guardians.sendAccess')}>
-                {/* A disabled button gives no events, so the tooltip needs a wrapper to hang on. */}
-                <span>
-                  <IconButton
-                    size="small"
-                    aria-label={t('guardians.sendAccessAria', { name: row.name })}
-                    disabled={sendingAccessTo === row.id}
-                    onClick={() => handleSendAccess(row)}
-                  >
-                    <IconifyIcon icon="mingcute:mail-send-line" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              {/* "Is this family up to date" — the main charges listing answers it badly, being
-                  ordered by date across every family at once. */}
-              <Tooltip title={t('guardians.charges.tooltip')}>
-                <IconButton
-                  size="small"
-                  aria-label={t('guardians.charges.aria', { name: row.name })}
-                  onClick={() => setChargesFor(row)}
-                >
-                  <IconifyIcon icon="mingcute:receive-money-line" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={t('common.contracts')}>
-                <IconButton
-                  size="small"
-                  aria-label={`${t('common.contracts')} ${row.name}`}
-                  onClick={() => setContractsFor(row)}
-                >
-                  <IconifyIcon icon="mingcute:contacts-2-line" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={t('common.personalDocuments')}>
-                <IconButton
-                  size="small"
-                  aria-label={`${t('common.personalDocuments')} ${row.name}`}
-                  onClick={() => setDocumentsFor(row)}
-                >
-                  <IconifyIcon icon="mingcute:file-certificate-line" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={t('common.edit')}>
-                <IconButton
-                  size="small"
-                  aria-label={`${t('common.edit')} ${row.name}`}
-                  onClick={() => handleEdit(row)}
-                >
-                  <IconifyIcon icon="mingcute:edit-2-line" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={t('common.delete')}>
-                <IconButton
-                  size="small"
-                  aria-label={`${t('common.delete')} ${row.name}`}
-                  onClick={() => setPendingDelete(row)}
-                >
-                  <IconifyIcon icon="mingcute:delete-2-line" />
-                </IconButton>
-              </Tooltip>
-            </>
           )}
         </Stack>
       ),
@@ -500,11 +514,31 @@ const Guardians = () => {
         open={Boolean(pendingDelete)}
         title={t('guardians.deleteTitle')}
         message={t('guardians.deleteMessage', { name: pendingDelete?.name ?? '' })}
-        confirmLabel={deleting ? t('common.deleting') : t('common.delete')}
+        confirmLabel={deleting ? t('guardians.deactivating') : t('guardians.deactivate')}
         cancelLabel={t('common.cancel')}
         destructive
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+      <ConfirmDialog
+        open={Boolean(pendingAccess)}
+        title={t('guardians.sendAccessTitle')}
+        message={
+          pendingAccess?.email
+            ? t('guardians.sendAccessMessage', {
+                name: pendingAccess?.name ?? '',
+                email: pendingAccess.email,
+              })
+            : t('guardians.sendAccessNoEmail', { name: pendingAccess?.name ?? '' })
+        }
+        confirmLabel={
+          sendingAccessTo === pendingAccess?.id
+            ? t('guardians.sendingAccess')
+            : t('guardians.sendAccessConfirm')
+        }
+        cancelLabel={t('common.cancel')}
+        onConfirm={handleConfirmSendAccess}
+        onCancel={() => setPendingAccess(null)}
       />
     </Stack>
   );

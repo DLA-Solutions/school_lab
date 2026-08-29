@@ -116,6 +116,7 @@ const authValueFor = (membership: Membership): AuthContextValue => ({
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 });
@@ -127,6 +128,7 @@ const renderDashboard = (membership: Membership) =>
         <Dashboard />
       </AuthContext.Provider>
     </MemoryRouter>,
+    { memberships: [membership], activeMembershipId: membership.id },
   );
 
 describe('Dashboard permission gating', () => {

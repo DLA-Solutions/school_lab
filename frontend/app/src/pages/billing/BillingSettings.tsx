@@ -34,6 +34,16 @@ const parseOptionalPercent = (value: string): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const parseOptionalDay = (value: string): number | null => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 const BillingSettingsPage = () => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
@@ -49,6 +59,7 @@ const BillingSettingsPage = () => {
   const [serviceDescription, setServiceDescription] = useState('');
   const [interestRatePercent, setInterestRatePercent] = useState('');
   const [earlyPaymentDiscountPercent, setEarlyPaymentDiscountPercent] = useState('');
+  const [earlyPaymentDiscountDay, setEarlyPaymentDiscountDay] = useState('');
   const [fineMode, setFineMode] = useState<FineMode>('off');
   const [fineRatePercent, setFineRatePercent] = useState('');
   const [fineAmount, setFineAmount] = useState('');
@@ -62,6 +73,11 @@ const BillingSettingsPage = () => {
     setEarlyPaymentDiscountPercent(
       settings.early_payment_discount_percent != null
         ? String(settings.early_payment_discount_percent)
+        : '',
+    );
+    setEarlyPaymentDiscountDay(
+      settings.early_payment_discount_day != null
+        ? String(settings.early_payment_discount_day)
         : '',
     );
     setFineMode(settings.fine_type ?? 'off');
@@ -109,11 +125,16 @@ const BillingSettingsPage = () => {
     setFieldErrors({});
     setSaved(false);
 
+    const earlyPaymentPercent = parseOptionalPercent(earlyPaymentDiscountPercent);
+    const earlyPaymentDay = parseOptionalDay(earlyPaymentDiscountDay);
+
     const payload: BillingSettingsPayload = {
       overdue_grace_days: Number(overdueGraceDays),
       service_description: serviceDescription.trim(),
       interest_rate_percent: parseOptionalPercent(interestRatePercent),
-      early_payment_discount_percent: parseOptionalPercent(earlyPaymentDiscountPercent),
+      early_payment_discount_percent: earlyPaymentPercent,
+      // Pair: blank percent disables the discount — send day as null too.
+      early_payment_discount_day: earlyPaymentPercent == null ? null : earlyPaymentDay,
       fine_type: fineMode === 'off' ? '' : fineMode,
       fine_rate_percent: fineMode === 'percent' ? parseOptionalPercent(fineRatePercent) : null,
       fine_amount_cents:
@@ -196,16 +217,39 @@ const BillingSettingsPage = () => {
       </SectionCard>
 
       <SectionCard title={t('billingSettings.sections.earlyPayment')}>
-        <TextField
-          label={t('billingSettings.earlyPaymentDiscountPercent')}
-          value={earlyPaymentDiscountPercent}
-          onChange={(event) => setEarlyPaymentDiscountPercent(event.target.value)}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">%</InputAdornment>,
-          }}
-          helperText={t('billingSettings.earlyPaymentDiscountPercentHelp')}
-          error={Boolean(fieldErrors.early_payment_discount_percent)}
-        />
+        <Stack spacing={2}>
+          <TextField
+            label={t('billingSettings.earlyPaymentDiscountPercent')}
+            value={earlyPaymentDiscountPercent}
+            onChange={(event) => setEarlyPaymentDiscountPercent(event.target.value)}
+            InputProps={{
+              endAdornment: <InputAdornment position="end">%</InputAdornment>,
+            }}
+            helperText={
+              fieldErrors.early_payment_discount_percent ||
+              t('billingSettings.earlyPaymentDiscountPercentHelp')
+            }
+            error={Boolean(
+              fieldErrors.early_payment_discount_percent ||
+                fieldErrors.early_payment_discount_day,
+            )}
+          />
+          <TextField
+            label={t('billingSettings.earlyPaymentDiscountDay')}
+            type="number"
+            inputProps={{ min: 1, max: 28 }}
+            value={earlyPaymentDiscountDay}
+            onChange={(event) => setEarlyPaymentDiscountDay(event.target.value)}
+            helperText={
+              fieldErrors.early_payment_discount_day ||
+              t('billingSettings.earlyPaymentDiscountDayHelp')
+            }
+            error={Boolean(
+              fieldErrors.early_payment_discount_day ||
+                fieldErrors.early_payment_discount_percent,
+            )}
+          />
+        </Stack>
       </SectionCard>
 
       <SectionCard title={t('billingSettings.sections.fine')}>

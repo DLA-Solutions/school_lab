@@ -26,6 +26,7 @@ class School < ApplicationRecord
   has_one :tax_declaration_setting, dependent: :destroy
   has_many :contracts, dependent: :destroy
   has_many :charges, dependent: :destroy
+  has_many :charge_issuances, dependent: :destroy
   has_many :service_invoices, dependent: :destroy
   has_many :payments, dependent: :destroy
   has_many :school_transactions, dependent: :destroy
@@ -42,7 +43,8 @@ class School < ApplicationRecord
   has_many :school_years, dependent: :destroy
   has_many :academic_periods, dependent: :destroy
   has_many :school_modules, dependent: :destroy
-  has_one :platform_subscription, dependent: :destroy
+  has_one :platform_subscription, -> { kept }, dependent: :destroy
+  has_many :platform_invoices, dependent: :destroy
   has_many :document_signatories, dependent: :destroy
   has_many :report_card_configs, dependent: :destroy
   has_many :report_card_publish_batches, dependent: :destroy

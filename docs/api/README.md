@@ -181,7 +181,20 @@ POST /webhooks/:provider/:token
 `:provider` is the provider key (`cora`, `fake`) and `:token` is the per-school
 `school_payment_providers.webhook_endpoint_token`. An unknown pair returns `404`.
 
-**There is no HMAC signature, and that is deliberate.** Cora's Direct Integration
+**Platform SaaS (DLA → school)** uses a separate ingress so events are never resolved
+as a school's Cora account:
+
+```
+POST /webhooks/platform_billing/:provider/:token
+```
+
+`:token` is `platform_billing_settings.webhook_endpoint_token`. Frozen contract:
+[`v1/platform-and-admin.md`](v1/platform-and-admin.md) § Platform subscription billing.
+Platform authenticity is that URL token plus port `fetch_subscription` / `fetch_invoice`
+against the **DLA Asaas account** (Asaas payloads have a body). Do not apply the Cora
+header-only / per-school / mTLS model to this ingress.
+
+**There is no HMAC signature on the Cora ingress, and that is deliberate.** Cora's Direct Integration
 notification has **no request body and no signature header** — it carries only event
 headers (`Webhook-Event-Id`, `Webhook-Event-Type`, `Webhook-Resource-Id`), so there is
 nothing to compute a signature over. Authenticity rests on two controls:
@@ -201,6 +214,7 @@ Do not "restore" HMAC verification here assuming it was left out by mistake.
 | `auth`, `me` | Fintech-first / identity | [`v1/fintech-first.md`](v1/fintech-first.md), [`v1/identity-onboarding.md`](v1/identity-onboarding.md) |
 | `schools` (onboarding, handoff, invites) | Identity & onboarding | [`v1/identity-onboarding.md`](v1/identity-onboarding.md) |
 | `schools/:id/school_years/*` (W1 **frozen** 4C.1) | Platform & admin | [`v1/platform-and-admin.md`](v1/platform-and-admin.md) |
+| `schools/:id/platform_plans`, `schools/:id/platform_subscription*` (**frozen** collection) | Platform SaaS billing | [`v1/platform-and-admin.md`](v1/platform-and-admin.md) § Platform subscription billing |
 | `schools/:id/calendar_events`, backoffice (W2–W5) | Platform & admin — **deferred 4C.1b** | [`v1/platform-and-admin.md`](v1/platform-and-admin.md) |
 | `schools/:id/people/*`, enrollments, classes | Students & enrollments | [`v1/students-and-enrollments.md`](v1/students-and-enrollments.md) |
 | `schools/:id/billing/*` | Billing (baseline shipped) | [`v1/billing.md`](v1/billing.md) extends [`v1/fintech-first.md`](v1/fintech-first.md) |

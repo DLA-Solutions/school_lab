@@ -18,6 +18,7 @@ import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { setAccessToken } from 'services/tokenStore';
 import paths from 'routes/paths';
+import { daysUntil } from 'utils/ops/expiringCredentials';
 import Dashboard from './Dashboard';
 
 const SCHOOLS_PATH = '/api/v1/schools';
@@ -102,6 +103,9 @@ describe('Dashboard page', () => {
   });
 
   it('falls back to composed alerts when operational summary is unavailable', async () => {
+    const expiresAt = '2026-09-01T12:00:00Z';
+    const expectedDays = daysUntil(expiresAt);
+
     server.use(
       http.get(apiUrl(OPS_PATH), () => jsonError(404, 'not_found', 'Recurso não encontrado.')),
     );
@@ -109,14 +113,14 @@ describe('Dashboard page', () => {
     bankCredentialsBySchool[1] = [
       {
         ...sampleBankCredential(1, 'client-expiring'),
-        certificate_expires_at: '2026-09-01T12:00:00Z',
+        certificate_expires_at: expiresAt,
       },
     ];
 
     renderPage();
 
     expect(await screen.findByText('Escola Alpha')).toBeInTheDocument();
-    expect(screen.getByText(/14 dias restantes/i)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`${expectedDays} dias restantes`, 'i'))).toBeInTheDocument();
     expect(screen.getByText('Escola Gama')).toBeInTheDocument();
   });
 

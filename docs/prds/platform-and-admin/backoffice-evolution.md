@@ -63,7 +63,7 @@ Non-goals, harness notes) linked from [Delivery waves](#delivery-waves-e1-e2-e3)
 | Discarded schools restore | BR-BOE06 | **Net-new** | **Net-new** | **E2** |
 | Bulk invite resend | UC-BOE08 | Optional endpoint | **Missing** | **E2** |
 | Operator permissions (read-only) | UC-BOE09 | Exists in identity | **Missing UI** | **E2** |
-| Platform SaaS billing | BR-BOE08 | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
+| Platform SaaS billing | BR-BOE08 | **Implemented (E3 manual)** | **Implemented (E3 operator UI)** | **E3 P2**; Asaas collection in [`platform-subscription-billing.md`](platform-subscription-billing.md) |
 | Impersonation | BR-BOE07 | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
 | Cross-tenant analytics | BR-BOE10 | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
 | Multi-unit groups | BR-BOE09 | **Implemented (E3)** | **Implemented (E3)** | **E3 P2** |
@@ -90,9 +90,10 @@ tier UX, not feature-parity target.
 
 | Actor | Surfaces | Notes |
 |-------|----------|-------|
-| backoffice (DLA operator) | `frontend/backoffice` SPA, `/api/v1/schools` + future `/api/v1/platform/*` | Register tenants, provisioning, module ops, platform ops |
-| school staff | `frontend/app` | No backoffice access — redirect to `/app` (AC-BO04) |
-| guardian / teacher | `frontend/app`, mobile | No backoffice access |
+| backoffice (DLA operator) | `frontend/backoffice` SPA, `/api/v1/schools` + `/api/v1/platform/*` | Register tenants, provisioning, module ops, platform ops, SaaS subscriptions |
+| school staff (director) | `frontend/app` `/assinatura` | Platform subscription checkout/invoices — `manage_school_settings`; **403** on `/api/v1/platform/subscriptions` |
+| school staff (other) | `frontend/app` | No backoffice access — redirect to `/app` (AC-BO04) |
+| guardian / teacher | `frontend/app`, mobile | No backoffice access; no DLA invoices |
 
 Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md).
 
@@ -150,10 +151,15 @@ BR-BOE07 — E3 P2
 operator action, displays a persistent banner in the school SPA, and writes a mandatory audit
 trail. Policy details blocked on open questions — see [Open items](#open-items--pending-decisions).
 
-BR-BOE08 — E3 P2
+BR-BOE08 — E3 P2; collection epic
 
 **Platform SaaS billing** — DLA subscription plans, per-school subscription state, and platform
-invoicing to schools. Commercial model not finalized — see [`open-questions.md`](../../open-questions.md).
+invoicing to schools. **This slice (locked):** flat plan per school (`starter` / `pro` /
+`enterprise`) with `month` and `year` intervals; optional 14-day trial; Asaas collection
+(`credit_card`, `bank_slip`, `pix`) plus **manual** coexistence; banner/`past_due` UI with
+**no hard lock**; NFS-e DLA→school out of scope. Per-student / hybrid GTM remains open
+post-E3. Detail: [`platform-subscription-billing.md`](platform-subscription-billing.md),
+[ADR 002](../../adr/002-platform-billing-gateway.md).
 
 BR-BOE09 — E3 P2
 
@@ -236,7 +242,9 @@ Slice: [`backoffice-advanced-search.md`](backoffice-advanced-search.md)
 
 Flow
 
-1. Operator applies filters on schools list (`q`, `saas_plan`, `created_after`, onboarding status).
+1. Operator applies filters on schools list (`q`, subscription plan via
+   `platform_subscriptions` join — not `schools.saas_plan` as source of truth,
+   `created_after`, onboarding status).
 2. Query string synced with URL for shareable views.
 
 ### UC-BOE07 — Restore discarded school
@@ -269,7 +277,29 @@ Flow
 
 ### UC-BOE10 — Manage platform SaaS subscriptions (P2)
 
-Slice: [`backoffice-platform-billing-p2.md`](backoffice-platform-billing-p2.md)
+Slice (E3 manual): [`backoffice-platform-billing-p2.md`](backoffice-platform-billing-p2.md).  
+Collection (Asaas + school director): [`platform-subscription-billing.md`](platform-subscription-billing.md).
+
+### UC-BOE15 — School director checkout
+
+Director with `manage_school_settings` starts hosted-invoice checkout for the school's
+platform subscription. Slice: [`platform-subscription-billing.md`](platform-subscription-billing.md)
+UC-PSB01.
+
+### UC-BOE16 — Pay platform invoice
+
+Director opens `hosted_invoice_url` for an open DLA invoice (not tuition boleto).
+Slice: [`platform-subscription-billing.md`](platform-subscription-billing.md) UC-PSB02.
+
+### UC-BOE17 — Change platform plan
+
+Director or operator changes plan/interval; proration is vendor default.
+Slice: [`platform-subscription-billing.md`](platform-subscription-billing.md) UC-PSB03.
+
+### UC-BOE18 — Cancel platform subscription at period end
+
+Director cancels at period end; school product is not hard-locked.
+Slice: [`platform-subscription-billing.md`](platform-subscription-billing.md) UC-PSB04.
 
 ### UC-BOE11 — Impersonate school staff for support (P2)
 
@@ -318,14 +348,14 @@ routes under `/api/v1/platform/` *(draft until E3)*.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/schools` | Query params: `q`, `saas_plan`, `created_after`, `created_before`, `discarded` |
+| `GET` | `/schools` | Query params: `q`, `saas_plan` (legacy name — join `platform_subscriptions` / plan `key`), `created_after`, `created_before`, `discarded` |
 | `GET` | `/platform/audits` | Cross-tenant audit log (paginated, filtered) |
 | `GET` | `/schools/discarded` | Alias or `discarded=true` on index |
 | `POST` | `/schools/:id/restore` | Undiscard school |
 | `POST` | `/schools/:id/provisioning/resend_invites` | Optional bulk invite resend |
 | `GET` | `/platform/operators` | Read-only backoffice users + platform permissions — **extends `/users` UI**; no `/operators` route |
 
-### E3 P2 — draft
+### E3 P2 — implemented (manual billing) + collection freeze
 
 | Method | Path | Purpose |
 |--------|------|---------|
@@ -333,10 +363,17 @@ routes under `/api/v1/platform/` *(draft until E3)*.
 | `DELETE` | `/platform/impersonations/:id` | End session |
 | `GET` | `/platform/analytics/overview` | Cross-tenant KPIs |
 | `CRUD` | `/platform/school_groups` | Multi-unit groups |
-| `CRUD` | `/platform/subscriptions` | SaaS billing |
+| `CRUD` | `/platform/subscriptions` | E3 manual SaaS billing |
+| `POST` | `/platform/subscriptions/:id/checkout` | Collection — hosted invoice |
+| `GET` | `/platform/subscriptions/:id/invoices` | Collection |
+| `POST` | `/platform/subscriptions/:id/change_plan` | Collection — port `change_plan` |
+| `POST` | `/platform/subscriptions/:id/cancel` | Collection — default at period end |
+| `GET/POST` | `/schools/:school_id/platform_subscription*` | School director (`manage_school_settings`) |
+| `POST` | `/webhooks/platform_billing/:provider/:token` | Asaas — **not** Cora `/webhooks/:provider/:token` |
 | `CRUD` | `/platform/help_taxonomy/*` | Help categories and persona links |
 
-Detail: [`platform-and-admin.md`](../../api/v1/platform-and-admin.md) § Backoffice E1/E2.
+Detail: [`platform-and-admin.md`](../../api/v1/platform-and-admin.md) § Backoffice E1/E2 and
+§ Platform subscription billing (frozen).
 
 School-scoped domain APIs remain under `/api/v1/schools/:school_id/` with `provision_school`
 elevation during provisioning.
@@ -356,7 +393,10 @@ elevation during provisioning.
 | 422 | `no_active_school_year` | Downstream when year required |
 | 429 | `rate_limited` | Bulk invite resend throttled |
 
-P2 impersonation and billing errors documented in slice files when contracts freeze.
+P2 impersonation errors remain in the impersonation slice. Platform subscription billing
+errors (`backoffice_only`, `subscription_exists`, `portal_not_supported`,
+`invalid_state_transition`) are frozen in [`platform-and-admin.md`](../../api/v1/platform-and-admin.md)
+§ Platform subscription billing.
 
 ---
 
@@ -369,8 +409,10 @@ P2 impersonation and billing errors documented in slice files when contracts fre
 | DER | [`der_009.png`](../../database/der_009.png) *(when published)* |
 
 E3 P2 adds `school_groups`, `platform_plans`, `platform_subscriptions`,
-`platform_impersonation_sessions`, `help_taxonomy_categories` — see [`schema.dbml`](../../database/schema.dbml)
-and modeling increment in [`009-platform-admin.md`](../../modeling/009-platform-admin.md).
+`platform_impersonation_sessions`, `help_taxonomy_categories`. The collection epic extends
+subscriptions and adds `platform_plan_provider_prices`, `platform_invoices`, and
+`platform_billing_settings` — see [`schema.dbml`](../../database/schema.dbml)
+and [`009-platform-admin.md`](../../modeling/009-platform-admin.md).
 
 ---
 
@@ -382,6 +424,7 @@ and modeling increment in [`009-platform-admin.md`](../../modeling/009-platform-
 | `SchoolYearActivated` | Provisioning activate | Academic, billing scoping |
 | `SchoolRestored` | POST restore | Tenant list caches |
 | `ImpersonationStarted` / `Ended` | P2 | Audit, session middleware |
+| `billing.subscription.*` / `billing.invoice.*` | Collection webhook reconcile | `Platform::ReconcileBillingEventService` only |
 
 ---
 
@@ -391,8 +434,13 @@ and modeling increment in [`009-platform-admin.md`](../../modeling/009-platform-
 |-----|-----|
 | `manage_backoffice_ops` | Module toggles, tenant list/detail, audits, discarded restore |
 | `provision_school` | On-behalf-of provisioning, first school year in wizard |
+| `manage_platform_billing` | Operator SaaS subscriptions (`/api/v1/platform/subscriptions`) |
+| `manage_school_settings` | School-scoped platform subscription (director); **not** `manage_billing` (tuition) |
 
-Backoffice role (`memberships.role = backoffice`, `school_id: null`) required for all routes.
+Backoffice role (`memberships.role = backoffice`, `school_id: null`) required for
+**`/api/v1/platform/*` and `/api/v1/schools` operator** routes. School-scoped
+`/api/v1/schools/:school_id/platform_subscription*` is **staff** with
+`manage_school_settings` (not backoffice).
 Operator permissions read-only UI does not grant write in E2.
 
 ---
@@ -473,6 +521,12 @@ AC-BOE10 — Platform billing P2 (E3)
   `POST /api/v1/platform/subscriptions` creates subscription and tenant detail shows status (incl.
   `past_due` due date via `current_period_end`). Plan catalog is read-only seeded MVP (no plan CRUD).
 - Slice: [`backoffice-platform-billing-p2.md`](backoffice-platform-billing-p2.md)
+- Collection (Asaas, school checkout, invoices): [`platform-subscription-billing.md`](platform-subscription-billing.md)
+  AC-PSB01–19 — **not** marked done until that epic ships.
+
+AC-BOE15 — School director checkout / pay / change / cancel
+
+- [ ] Covered by AC-PSB05–08 in [`platform-subscription-billing.md`](platform-subscription-billing.md).
 
 AC-BOE11 — Impersonation P2 (E3)
 
@@ -507,17 +561,19 @@ AC-BOE14 — Help taxonomy CMS P2 (E3)
 |------|------|--------|------------|
 | **E1** | Close BC2/W3 — operator completes onboarding end-to-end | module-flags-ui, school-year-provisioning, tenant-detail, operational-dashboard | W1 school year API; PATCH modules |
 | **E2** | Platform ops — visibility and recovery | audit-viewer, advanced-search, discarded-schools; UC-BOE08/09 in PRD | E1 tenant detail |
-| **E3** | P2 — commercial and scale | platform-billing, impersonation, analytics, multi-unit, help-taxonomy | Modeling + open questions |
+| **E3** | P2 — commercial and scale | platform-billing (manual shipped), impersonation, analytics, multi-unit, help-taxonomy | Modeling + closed E3 billing/impersonation decisions |
+| **Collection epic** | Asaas + school `/assinatura` | [`platform-subscription-billing.md`](platform-subscription-billing.md) | E3 manual subscriptions |
 
-E1 slices may parallelize after blueprint detail is agreed. E2 follows E1. E3 is sequential per
-dependency graph in plan (multi-unit → billing → analytics; impersonation parallel after billing
-policy).
+E1 slices may parallelize after blueprint detail is agreed. E2 follows E1. E3 P2 **manual**
+billing is shipped; Asaas collection is the follow-on epic (not blocked on commercial model).
 
 ---
 
 ## Open items / pending decisions
 
-- [x] Platform billing model (MVP E3) — flat monthly plan; see [`open-questions.md`](../../open-questions.md) § Platform & admin
+- [x] Platform billing model (MVP E3) — flat monthly plan; collection epic adds month/year + Asaas
+      — [`platform-subscription-billing.md`](platform-subscription-billing.md); post-E3 GTM still open
+      in [`open-questions.md`](../../open-questions.md) § Platform & admin
 - [x] Impersonation policy (MVP E3) — `manage_backoffice_ops`, director/secretary, 15min TTL, no guardian
 - [ ] Audit route prefix: `/platform/audits` vs nested under schools — prefer `/platform/audits`
 - [ ] **Audit viewer PII display** — E2 sign-off blocked until redaction policy decided
@@ -533,7 +589,7 @@ policy).
 - Mirroring academic, communication, or billing **domain screens** in backoffice — operators use
   provisioning handoff and module flags only.
 - Help center **content authoring** (articles) — taxonomy CMS is P2; full CMS out of scope.
-- Platform régua automation, NFS-e, transport module.
+- Platform régua automation, NFS-e **for DLA→school**, transport module.
 - Migrating tenant routes to `/api/v1/backoffice/` namespace.
 - Write access for operator permission management in E2 (read-only MVP).
 
@@ -547,4 +603,6 @@ policy).
 | [`school-module-flags.md`](school-module-flags.md) | PATCH modules slice (approved) |
 | [`school-year.md`](school-year.md) | Year create/activate contract |
 | [`layer-web-spa.md`](../layer-web-spa.md) | Backoffice route expansion |
-| [`platform-and-admin.md`](../../api/v1/platform-and-admin.md) | API narrative E1/E2 |
+| [`platform-and-admin.md`](../../api/v1/platform-and-admin.md) | API narrative E1/E2; **frozen** platform subscription billing section |
+| [`platform-subscription-billing.md`](platform-subscription-billing.md) | Asaas collection, school-director UCs, webhook ingress |
+| [ADR 002](../../adr/002-platform-billing-gateway.md) | `Gateways::PlatformSubscription` port |

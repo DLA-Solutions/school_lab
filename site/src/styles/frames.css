@@ -1,0 +1,447 @@
+.narrative-scroll {
+  position: relative;
+}
+
+.frame {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.frame__inner {
+  max-width: 52rem;
+  padding:
+    clamp(7rem, 14vh, 10rem)
+    calc(var(--space-inline) + var(--space-safe-right))
+    clamp(3rem, 6vh, 5rem)
+    calc(var(--space-inline) + var(--space-safe-left));
+  pointer-events: auto;
+}
+
+.frame__inner--hero {
+  max-width: 50rem;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: calc(clamp(7rem, 14vh, 10rem) + var(--space-safe-top));
+}
+
+.frame__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0 0 clamp(1.3rem, 2.8vh, 2.2rem);
+  color: var(--gold-light);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.frame__kicker::before {
+  width: 2.8rem;
+  height: 1px;
+  background: var(--gold);
+  content: '';
+}
+
+h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(3.2rem, 5.4vw, 6.8rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+h1 span,
+.frame__headline--editorial span {
+  display: block;
+}
+
+h1 span + span,
+.frame__headline--editorial span + span {
+  margin-top: 0.2em;
+  color: #ddd6ca;
+}
+
+.frame__lead {
+  max-width: 41rem;
+  margin: clamp(1.8rem, 3.8vh, 3rem) 0 0;
+  color: var(--ivory-muted);
+  font-size: clamp(0.98rem, 1.1vw, 1.125rem);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.frame__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: clamp(1.8rem, 3.8vh, 2.8rem);
+}
+
+.frame__signature {
+  margin: clamp(2rem, 5vh, 4rem) 0 0;
+  color: rgb(200 197 188 / 58%);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.frame__headline {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(2.4rem, 4.2vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.frame--02 {
+  color: var(--ivory);
+}
+
+.frame--02 .frame__headline--editorial span + span {
+  color: var(--ivory);
+}
+
+.frame--02 .trust-statements__item h3 {
+  color: var(--gold-light);
+}
+
+.frame--02 .trust-statements__item p {
+  color: rgb(244 237 223 / 92%);
+}
+
+.frame--02 .frame__inner {
+  max-width: 44rem;
+}
+
+@media (min-width: 64rem) {
+  .frame--02 .frame__inner {
+    margin-left: auto;
+  }
+}
+
+.trust-statements {
+  display: grid;
+  gap: clamp(1.5rem, 3vh, 2.5rem);
+  margin: clamp(2.5rem, 5vh, 4rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trust-statements__item h3 {
+  margin: 0 0 0.5rem;
+  color: var(--gold-light);
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 500;
+}
+
+.trust-statements__item p {
+  margin: 0;
+  color: var(--ivory-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.frame--03 {
+  color: var(--ivory);
+}
+
+.frame--03 .frame__headline {
+  color: var(--ivory);
+}
+
+.frame--03 .pillars__item h3 {
+  color: var(--gold-light);
+}
+
+.frame--03 .pillars__item p {
+  color: rgb(244 237 223 / 92%);
+}
+
+.frame--03 .pillars__status {
+  border-color: rgb(214 170 85 / 48%);
+  background: rgb(5 11 24 / 42%);
+  color: var(--gold-light);
+}
+
+.frame--03 .frame__inner {
+  max-width: 56rem;
+}
+
+.pillars {
+  display: grid;
+  gap: clamp(2rem, 4vh, 3.5rem);
+  margin: clamp(2.5rem, 5vh, 4rem) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: pillar;
+}
+
+.pillars__item {
+  position: relative;
+  padding-left: clamp(1.5rem, 3vw, 2.5rem);
+  border-left: 2px solid var(--gold);
+}
+
+.pillars__thread-role {
+  margin: 0 0 0.35rem;
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pillars__item h3 {
+  margin: 0 0 0.65rem;
+  font-family: var(--serif);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 500;
+}
+
+.pillars__item p {
+  margin: 0;
+  color: var(--ivory-muted);
+  line-height: 1.65;
+}
+
+.pillars__status {
+  display: inline-block;
+  margin-top: 0.85rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--line);
+  color: var(--gold-light);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.frame--05 {
+  background: var(--ink);
+  min-height: auto;
+}
+
+.frame--05 .frame__inner,
+.frame--06 .frame__inner {
+  padding-top: clamp(3rem, 6vh, 5rem);
+  padding-bottom: clamp(2rem, 4vh, 3rem);
+}
+
+.privacy-points {
+  display: grid;
+  gap: 1.75rem;
+  margin: 2.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.privacy-points h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.privacy-points p {
+  margin: 0;
+  color: var(--ivory-muted);
+  line-height: 1.6;
+}
+
+.privacy-disclaimer {
+  margin: 2.5rem 0 0;
+  color: rgb(200 197 188 / 58%);
+  font-size: 0.75rem;
+}
+
+.frame--06 {
+  background: var(--midnight);
+  min-height: auto;
+}
+
+.frame__inner--closing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+/* Tablet portrait — keep copy left, clear cap zone */
+@media (max-width: 64rem) {
+  .frame--02 .frame__inner,
+  .frame--03 .frame__inner {
+    max-width: min(36rem, 72vw);
+    background: linear-gradient(
+      90deg,
+      rgb(5 11 24 / 78%) 0%,
+      rgb(5 11 24 / 52%) 72%,
+      transparent 100%
+    );
+  }
+
+  .frame--02 .frame__headline,
+  .frame--02 .trust-statements__item h3,
+  .frame--02 .trust-statements__item p,
+  .frame--03 .frame__headline,
+  .frame--03 .pillars__item h3,
+  .frame--03 .pillars__item p,
+  .frame--03 .pillars__thread-role,
+  .frame--03 .pillars__status {
+    text-shadow:
+      0 1px 14px rgb(5 11 24 / 88%),
+      0 0 1px rgb(5 11 24 / 92%);
+  }
+
+  .frame--05 .frame__inner,
+  .frame--06 .frame__inner {
+    max-width: 40rem;
+  }
+
+  .frame__headline {
+    font-size: clamp(2rem, 5.5vw, 3.25rem);
+  }
+
+  .trust-statements__item p,
+  .pillars__item p,
+  .privacy-points p {
+    font-size: clamp(0.94rem, 1.05vw, 1rem);
+  }
+}
+
+@media (max-width: 37.5rem) {
+  :root {
+    --serif: Georgia, 'Times New Roman', serif;
+    --sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .frame__inner--hero {
+    justify-content: flex-start;
+    padding-top: calc(clamp(10rem, 22vh, 11rem) + var(--space-safe-top));
+  }
+
+  h1 {
+    max-width: 14ch;
+    font-size: clamp(2.5rem, 10.5vw, 3rem);
+    line-height: 0.96;
+  }
+
+  .frame__headline {
+    font-size: clamp(1.85rem, 8.2vw, 2.5rem);
+    line-height: 1;
+  }
+
+  .frame__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .frame--06 .frame__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .button {
+    width: 100%;
+    min-height: 2.75rem;
+    font-size: 0.78rem;
+  }
+
+  .pillars__item {
+    padding-left: 1.25rem;
+  }
+
+  .pillars__status {
+    display: block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 21.25rem) {
+  .frame__inner--hero {
+    padding-top: calc(8.5rem + var(--space-safe-top));
+  }
+
+  h1 {
+    font-size: 2.15rem;
+    line-height: 0.98;
+  }
+
+  .frame__lead {
+    font-size: 0.74rem;
+    line-height: 1.45;
+  }
+
+  .frame__signature {
+    font-size: 0.56rem;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Landscape phones — compress hero vertical rhythm */
+@media (max-height: 32rem) and (orientation: landscape) {
+  .frame__inner--hero {
+    min-height: auto;
+    padding-top: calc(6.5rem + var(--space-safe-top));
+    padding-bottom: 2rem;
+    justify-content: flex-start;
+  }
+
+  h1 {
+    font-size: clamp(1.85rem, 5.5vw, 2.35rem);
+    max-width: 18ch;
+  }
+
+  .frame__lead {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .frame__actions {
+    margin-top: 1.25rem;
+    flex-direction: row;
+    width: auto;
+  }
+
+  .frame__actions .button {
+    width: auto;
+    min-width: 10rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .frame--01 .frame__inner--hero {
+    width: 48%;
+  }
+
+  .frame--02 .frame__inner,
+  .frame--03 .frame__inner {
+    width: 46%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame--02 .trust-statements__item p,
+  .frame--03 .pillars__item p {
+    color: var(--ivory);
+  }
+
+  .frame--03 .pillars__status {
+    border-color: var(--gold);
+    background: rgb(5 11 24 / 58%);
+    color: var(--gold-light);
+  }
+}

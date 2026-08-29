@@ -38,3 +38,39 @@ export const listRoleTemplates = (schoolId: number) =>
   request<Paginated<RoleTemplateDetail>>(
     `/api/v1/schools/${schoolId}/role_templates?page=1&per_page=50`,
   );
+
+/** Papéis que uma conta pode ter. `staff` e `teacher` exigem um perfil de permissões. */
+export type MembershipRoleInput = 'staff' | 'teacher' | 'guardian';
+
+export interface CreateMembershipInput {
+  email: string;
+  role: MembershipRoleInput;
+  /** Obrigatório para equipe e professor; ignorado para família. */
+  role_template_id?: number | null;
+  display_title?: string | null;
+}
+
+/**
+ * POST .../people/memberships — cria a conta já convidada.
+ *
+ * A conta nasce em "convidado": o acesso é aceito por quem recebe o e-mail, e não por quem
+ * cadastra. A escola não escolhe a senha de ninguém.
+ */
+export const createMembership = async (schoolId: number, input: CreateMembershipInput) => {
+  const response = await request<{ data: TeamMembership }>(
+    membershipsPath(schoolId),
+    { method: 'POST', body: { membership: input } },
+  );
+
+  return response.data;
+};
+
+/** POST .../people/memberships/:id/invite — reenvia o convite que se perdeu. */
+export const resendMembershipInvite = async (schoolId: number, membershipId: number) => {
+  const response = await request<{ data: TeamMembership }>(
+    `${membershipsPath(schoolId)}/${membershipId}/invite`,
+    { method: 'POST', body: {} },
+  );
+
+  return response.data;
+};

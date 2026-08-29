@@ -21,22 +21,19 @@ namespace :signature do
 
     school = School.kept.find(school_id)
 
-    config = SchoolSignatureProvider.find_or_initialize_by(school: school, provider: "autentique")
-    config.assign_attributes(api_token: token, active: true, uploaded_at: Time.current)
+    # The same service the backoffice screen calls, so a registration done from a terminal and one
+    # done from the admin cannot mean different things.
+    result = Backoffice::RegisterSignatureCredentialsService.call(
+      school: school,
+      actor: nil,
+      provider: "autentique",
+      api_token: token,
+      webhook_secret: ENV["AUTENTIQUE_WEBHOOK_SECRET"].presence
+    )
 
-    # Autentique signs each callback with HMAC-SHA256 over the raw body, and the verifier refuses
-    # everything when there is no secret to compare against — so a school registered without one
-    # answers 401 to every delivery and never learns that a family signed. Generated here, and
-    # printed once so it can be pasted into the webhook's settings.
-    config.webhook_secret = ENV["AUTENTIQUE_WEBHOOK_SECRET"].presence ||
-                            config.webhook_secret.presence ||
-                            SecureRandom.hex(32)
+    abort "Could not register: #{result.details.inspect}" unless result.success?
 
-    # One active provider per school is a partial unique index; anything else the school had
-    # registered stands down rather than colliding.
-    SchoolSignatureProvider.where(school: school).where.not(id: config.id).update_all(active: false)
-
-    config.save!
+    config = result.data
 
     puts "Autentique registered for #{school.name} (school #{school.id})."
     puts "Webhook URL:    /webhooks/signatures/#{config.webhook_endpoint_token}"

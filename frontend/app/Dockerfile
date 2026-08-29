@@ -12,7 +12,10 @@ COPY frontend/app/ .
 ARG VITE_BASE_PATH=/app/
 ARG VITE_API_BASE_URL=
 ENV VITE_BASE_PATH=$VITE_BASE_PATH VITE_API_BASE_URL=$VITE_API_BASE_URL
-RUN npm run build
+# OAuth Web client ID is a build-time public value — injected via Kamal builder secret
+# GOOGLE_OAUTH_CLIENT_ID (same as API GOOGLE_OAUTH_CLIENT_ID).
+RUN --mount=type=secret,id=GOOGLE_OAUTH_CLIENT_ID,env=VITE_GOOGLE_OAUTH_CLIENT_ID \
+  npm run build
 
 # Serve stage
 FROM nginx:alpine

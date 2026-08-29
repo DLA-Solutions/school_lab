@@ -4,6 +4,7 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
+import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -11,7 +12,9 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
 import IconifyIcon from 'components/base/IconifyIcon';
+import GoogleSignInButton from 'components/auth/GoogleSignInButton';
 import { ErrorBanner } from 'design-system';
+import { useTranslation } from 'providers/I18nContext';
 import { useAuth } from 'providers/AuthContext';
 import { ApiError } from 'services/api';
 import { applyPostLoginDestination, postLoginDestination } from 'utils/auth/postLogin';
@@ -27,7 +30,8 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,6 +42,16 @@ const SignIn = () => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
     setError('');
+  };
+
+  const resolveAuthError = (err: unknown) => {
+    if (err instanceof ApiError) {
+      if (err.code === 'access_denied') {
+        return t('auth.signin.googleAccessDenied');
+      }
+      return err.message;
+    }
+    return t('auth.signin.connectionError');
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -55,14 +69,25 @@ const SignIn = () => {
       const user = await login({ ...credentials, rememberMe });
       applyPostLoginDestination(postLoginDestination(user, returnTo), navigate);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError('Não foi possível conectar à API. Verifique se o servidor está no ar.');
-      }
+      setError(resolveAuthError(err));
       setSubmitting(false);
     }
   };
+
+  const handleGoogleCredential = async (idToken: string) => {
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const user = await loginWithGoogle(idToken, rememberMe);
+      applyPostLoginDestination(postLoginDestination(user, returnTo), navigate);
+    } catch (err) {
+      setError(resolveAuthError(err));
+      setSubmitting(false);
+    }
+  };
+
+  const showGoogleSignIn = Boolean(import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID?.trim());
 
   return (
     <>
@@ -141,6 +166,17 @@ const SignIn = () => {
         >
           {submitting ? 'Entrando...' : 'Submit'}
         </Button>
+
+        {showGoogleSignIn && (
+          <>
+            <Divider>
+              <Typography variant="body2" color="text.secondary">
+                {t('auth.signin.orContinueWith')}
+              </Typography>
+            </Divider>
+            <GoogleSignInButton onCredential={handleGoogleCredential} disabled={submitting} />
+          </>
+        )}
 
         {/* The two ways in for someone who cannot sign in: a family who has never set a password,
             and anybody who has forgotten theirs. */}

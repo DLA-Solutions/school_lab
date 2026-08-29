@@ -426,6 +426,10 @@ RSpec.describe "Api::V1::Schools", type: :request do
         end
       end
     end
+  end
+
+  path "/api/v1/schools/{id}/restore" do
+    parameter name: :id, in: :path, type: :string
 
     post "Restore discarded school" do
       tags "Backoffice"

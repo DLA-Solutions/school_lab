@@ -18,10 +18,12 @@ const SchoolGroups = lazy(() => import('pages/school-groups/SchoolGroups'));
 const Subscriptions = lazy(() => import('pages/subscriptions/Subscriptions'));
 const Analytics = lazy(() => import('pages/analytics/Analytics'));
 const HelpTaxonomy = lazy(() => import('pages/help-taxonomy/HelpTaxonomy'));
+const Profile = lazy(() => import('pages/profile/Profile'));
 const ProvisioningWizard = lazy(() => import('pages/schools/ProvisioningWizard'));
 const SchoolDetail = lazy(() => import('pages/schools/SchoolDetail'));
 const SchoolActivation = lazy(() => import('pages/schools/SchoolActivation'));
 const BankCredentials = lazy(() => import('pages/schools/BankCredentials'));
+const SignatureCredentials = lazy(() => import('pages/schools/SignatureCredentials'));
 
 const router = createBrowserRouter(
   [
@@ -81,6 +83,10 @@ const router = createBrowserRouter(
               element: <HelpTaxonomy />,
             },
             {
+              path: paths.profile.slice(1),
+              element: <Profile />,
+            },
+            {
               path: 'schools/:schoolId/provisioning',
               element: <ProvisioningWizard />,
             },
@@ -91,6 +97,10 @@ const router = createBrowserRouter(
             {
               path: 'schools/:schoolId/bank-credentials',
               element: <BankCredentials />,
+            },
+            {
+              path: 'schools/:schoolId/signature-credentials',
+              element: <SignatureCredentials />,
             },
             {
               path: 'schools/:schoolId',

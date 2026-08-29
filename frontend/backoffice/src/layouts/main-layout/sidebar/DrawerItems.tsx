@@ -1,11 +1,11 @@
 import { topListData } from 'data/sidebarListData';
 import { Link as RouterLink, useLocation } from 'react-router';
 import paths from 'routes/paths';
+import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
 import ButtonBase from '@mui/material/ButtonBase';
-import Typography from '@mui/material/Typography';
-import { BrandLogo } from 'design-system';
+import { BrandLogo, ContextBadge } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import ListItem from './list-items/ListItem';
 
@@ -28,40 +28,39 @@ const DrawerItems = () => {
   return (
     <>
       <Stack
-        pt={5}
-        pb={4}
+        direction="column"
+        pt={4}
+        pb={2.5}
         px={3.5}
         position={'sticky'}
         top={0}
         bgcolor="background.default"
-        alignItems="flex-start"
+        alignItems="center"
         justifyContent="flex-start"
         zIndex="appBar"
         width={1}
-        spacing={0.5}
+        spacing={0.75}
       >
         <ButtonBase
           component={RouterLink}
           to={paths.dashboard}
           disableRipple
-          sx={{ width: 1, justifyContent: 'flex-start' }}
+          sx={{
+            display: 'flex',
+            width: 1,
+            justifyContent: 'center',
+          }}
         >
-          <BrandLogo
-            variant="lockup"
-            sx={{
-              width: 1,
-              maxWidth: 1,
-              height: 'auto',
-              '& img': {
-                width: '100%',
-                height: 'auto',
-              },
-            }}
-          />
+          <BrandLogo variant="lockup" height={46} sx={{ maxWidth: 1 }} />
         </ButtonBase>
-        <Typography variant="caption" color="text.secondary" px={0.5}>
-          {t('nav.backoffice')}
-        </Typography>
+        <Box sx={{ alignSelf: 'flex-start' }}>
+          <ContextBadge
+            variant="platform"
+            label={t('nav.backoffice')}
+            tooltip={t('shell.backofficeContextTooltip')}
+            compact
+          />
+        </Box>
       </Stack>
 
       <List component="nav" sx={{ px: 2.5, pb: 12 }}>

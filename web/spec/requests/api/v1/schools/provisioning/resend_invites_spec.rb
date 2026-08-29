@@ -34,7 +34,9 @@ RSpec.describe "Api::V1::Schools::Provisioning::ResendInvites", type: :request d
         let(:school_id) { school.id }
 
         before do
-          Rails.cache.write("provisioning_resend_invites:#{school.id}", true, expires_in: 5.minutes)
+          allow(Rails.cache).to receive(:read)
+            .with("provisioning_resend_invites:#{school.id}")
+            .and_return(true)
         end
 
         run_test! do |response|

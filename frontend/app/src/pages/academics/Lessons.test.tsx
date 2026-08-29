@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server, staffMembership } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
@@ -80,6 +80,7 @@ const authValue: AuthContextValue = {
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 };
@@ -96,7 +97,44 @@ const renderPage = () => {
   );
 };
 
+/** Prints where the router currently is, so a navigation can be asserted on. */
+const Where = () => {
+  const location = useLocation();
+
+  return <div data-testid="where">{`${location.pathname}${location.search}`}</div>;
+};
+
+const renderPageWithLocation = () => {
+  setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
+
+  return renderWithTheme(
+    <MemoryRouter>
+      <AuthContext.Provider value={authValue}>
+        <Lessons />
+        <Where />
+      </AuthContext.Provider>
+    </MemoryRouter>,
+  );
+};
+
 describe('Lessons page', () => {
+  // A lesson runs the whole year and so has no term of its own — the term belongs to the mark.
+  // This is the way through to it, carrying the class and the subject so the sheet opens on the
+  // right one rather than asking the teacher to pick them again.
+  it('opens the mark sheet for the lesson', async () => {
+    stub();
+    renderPageWithLocation();
+    await screen.findByText('Carla Nogueira');
+
+    await user.click(
+      screen.getByRole('button', { name: /lançar notas de matemática para .*5º ano A/i }),
+    );
+
+    expect(screen.getByTestId('where')).toHaveTextContent(
+      '/academico/notas?school_class_id=4&subject_id=1',
+    );
+  });
+
   // A lesson is a teacher, a subject and a cohort — the three together are the unit.
   it('gives a row per teacher, subject and cohort', async () => {
     stub();

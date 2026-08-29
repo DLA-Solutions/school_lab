@@ -173,7 +173,10 @@ module Contracts
     end
 
     def formatted_amount
-      cents = contract.negotiated_amount_cents || contract.billing_plan&.base_amount_cents || 0
+      # Same figure `Billing::ContractTuitionAmounts` charges by — net of the plan discount (e.g.
+      # a sibling band) when the contract carries one, so this fallback PDF never quotes a
+      # different tuition than the boleto it is billed on.
+      cents = Billing::ContractTuitionAmounts.for(contract).total_amount_cents
 
       # Written both ways, as a contract normally states an amount.
       "#{humanized_currency(cents)} (#{cents / 100} reais e #{cents % 100} centavos)"

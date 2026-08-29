@@ -8,6 +8,8 @@ alwaysApply: false
 
 Full runbook: `docs/guidelines/process/deployment.md`. Executable workflow: skill **`deploy-kamal`**.
 
+**Branch policy:** deploy only from **`main`**, after the PR is merged and `main` is up to date with `origin/main`. Feature branches and open PRs must not deploy — see rule **`deploy-from-main`** (implementation flow cross-references `git-branch-naming` and `git-atomic-commits`).
+
 ## Services
 
 | Layer | Directory | Kamal service | Host path |
@@ -20,6 +22,8 @@ Full runbook: `docs/guidelines/process/deployment.md`. Executable workflow: skil
 Always pass `-d staging` or `-d production` (`require_destination: true`).
 
 Post-deploy smoke is read-only (`GET /`, `/app/`, `/backoffice/`, `/up`). Never trigger transactional email on staging or production (rule `email-safety`).
+
+**Discord notify (mandatory):** after the deploy has a final result, call `notify_deploy` via the `discord-deploy` MCP (success or failure). See skill **`deploy-kamal`** § Discord notify. Do not skip on failure; a Discord outage is not a deploy failure.
 
 ## Guardrails
 

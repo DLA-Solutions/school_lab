@@ -15,7 +15,7 @@ Gateways wrap **third-party payment APIs** behind a small Ruby interface so bill
 services stay provider-agnostic and tests use fakes. Business rules remain in services —
 gateways only translate request/response and raise typed errors.
 
-**Outbound HTTP** (REST calls to Cora, future FCM, card providers) follows the three-layer
+**Outbound HTTP** (REST calls to Cora, Asaas, future FCM, card providers) follows the three-layer
 stack in [`integrations.md`](integrations.md): `SchoolLab::Http` →
 `SchoolLab::Integrations::<Vendor>` → gateway adapter. Vendor clients live in `lib/`; the
 adapter owns port mapping and error translation.
@@ -24,13 +24,15 @@ adapter owns port mapping and error translation.
 |-------------|------|--------|----------|
 | Bank slip (boleto + embedded Pix) | `Gateways::BankSlip` | Active (Cora) | `cora`, `fake` |
 | Service invoice (NFS-e) | `Gateways::ServiceInvoice` | Active (Spedy) | `spedy`, `fake` |
+| Platform subscription (DLA → school) | `Gateways::PlatformSubscription` | Specified (ADR 002) | `asaas`, `manual`, `fake` (Stripe planned) |
 | Card (checkout, capture, refund) | *Future sibling port* | Not started | — |
 | FCM push | TBD | Decided (FCM) | Not yet extracted |
 | Email | — | Open | Mailer + provider config |
 | S3 | — | Active Storage | `config/storage.yml` |
 
-All billing code uses `Gateways::BankSlip`; the legacy `Gateways::Psp` namespace no longer
-exists in the tree.
+All **school→guardian boleto** code uses `Gateways::BankSlip`. DLA→school SaaS collection
+uses `Gateways::PlatformSubscription` ([ADR 002](../../adr/002-platform-billing-gateway.md)).
+The legacy `Gateways::Psp` namespace no longer exists in the tree.
 
 ## Layout
 
@@ -265,12 +267,51 @@ authorization, capture, installments, refund, and chargeback do not fit `issue` 
 `app/services/gateways/card/`.
 
 **Shared across instruments:** `charges`, `payments`, `school_payment_providers`
-(keyed by `instrument`), `webhook_events`, webhook ingress route, and the error
-taxonomy pattern (base + `TransientError`).
+(keyed by `instrument`), `webhook_events` for **Cora**, webhook ingress
+`POST /webhooks/:provider/:token`, and the error taxonomy pattern (base + `TransientError`).
 
 **Deliberately absent until card ships:** transaction/refund/chargeback tables,
 installment plans, MDR, settlement date, PCI scope documentation, and per-charge payment
 method routing beyond what `payments.payment_method` records after the fact.
+
+### Platform subscription (sibling port — DLA → school)
+
+Not an extension of `BankSlip::Interface` and **not** keyed by `school_payment_providers`.
+DLA is merchant of record; the school is the customer. See
+[ADR 002](../../adr/002-platform-billing-gateway.md).
+
+Layout (mirror Cora):
+
+```
+app/services/gateways/platform_subscription/
+  interface.rb  registry.rb  fake.rb  manual.rb  capabilities.rb
+  value_objects.rb  status_normalizer.rb  errors...
+  asaas/adapter.rb  error_mapper.rb  request_payload.rb  response_parser.rb
+
+lib/school_lab/integrations/asaas/
+  client.rb  configuration.rb  error.rb
+```
+
+`Registry.current` reads `platform_billing_settings.active_provider` (or ENV). Existing
+subscription rows keep `provider`. Credentials: `ASAAS_API_TOKEN`, `ASAAS_API_BASE_URL`
+(default `https://api.asaas.com`) in ENV only.
+
+Interface operations: `create_billing_account`, `update_billing_account`,
+`create_checkout_session`, `create_billing_portal_session`, `create_subscription`,
+`fetch_subscription`, `change_plan`, `cancel_subscription`, `fetch_invoice`,
+`list_invoices`, `capabilities`.
+
+Asaas capabilities: `hosted_checkout: true` (invoice URL), `hosted_billing_portal: false`,
+`credit_card` / `bank_slip` / `pix: true`, `trial_periods: true`, `plan_change_mid_cycle: true`.
+`create_billing_portal_session` → port error mapped to `501 portal_not_supported`.
+
+Webhook: **`POST /webhooks/platform_billing/:provider/:token`** — never Cora's
+`POST /webhooks/:provider/:token`. Shared examples:
+`spec/support/shared_examples/platform_subscription_adapter.rb`. Lib specs WebMock
+`https://asaas.test` only.
+
+Manual adapter implements the same interface with no HTTP (E3 white-glove). Fake is for
+service specs — inject it; do not set `ASAAS_*` there.
 
 ## When not to add a gateway
 

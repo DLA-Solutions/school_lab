@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Autentique signature webhook", type: :request do
+  include ActiveJob::TestHelper
+
   let(:school) { create(:school) }
   let(:secret) { "webhook-secret" }
   let!(:config) do
@@ -10,8 +12,13 @@ RSpec.describe "Autentique signature webhook", type: :request do
   end
   let(:school_class) { create(:school_class, school: school) }
   let(:student) { create(:student, school: school, school_class: school_class) }
+  let(:payer) { create(:guardian, school: school, email: "payer@example.com") }
+  let!(:student_guardian_link) do
+    create(:student_guardian, school: school, student: student, guardian: payer)
+  end
   let(:contract) do
-    create(:contract, school: school, student: student, signature_status: "pending_signature",
+    create(:contract, school: school, student: student, payer_guardian: payer,
+                      signature_status: "pending_signature",
                       signature_provider: "fake", provider_document_id: "doc-abc-123")
   end
 
@@ -52,7 +59,10 @@ RSpec.describe "Autentique signature webhook", type: :request do
   end
 
   it "marks the contract signed when every signer is done" do
-    deliver(finished_event, signature: sign(finished_event))
+    expect do
+      deliver(finished_event, signature: sign(finished_event))
+    end.to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
+      .with(contract.id, school.id)
 
     expect(response).to have_http_status(:ok)
     expect(contract.reload.signature_status).to eq("signed")
@@ -158,7 +168,9 @@ RSpec.describe "Autentique signature webhook", type: :request do
     2.times { deliver(finished_event, signature: sign(finished_event)) }
     first_signed_at = contract.reload.signed_at
 
-    deliver(finished_event, signature: sign(finished_event))
+    expect do
+      deliver(finished_event, signature: sign(finished_event))
+    end.not_to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
 
     expect(response).to have_http_status(:ok)
     expect(contract.reload.signed_at).to eq(first_signed_at)

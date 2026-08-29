@@ -3,7 +3,9 @@
 require "rails_helper"
 
 RSpec.describe "Contract signature lifecycle", type: :request do
-  let(:school) { create(:school) }
+  include ActiveJob::TestHelper
+  # The school must be configured to sign its own contracts before any of them can be sent.
+  let(:school) { create(:school, cnpj: "66.154.330/0001-40", signature_email: "colegio@example.com") }
   let(:staff_user) { create(:user) }
   let!(:staff_membership) { create(:membership, :school_admin, user: staff_user, school: school) }
   let(:billing_plan) { create(:billing_plan, school: school) }
@@ -111,7 +113,10 @@ RSpec.describe "Contract signature lifecycle", type: :request do
     end
 
     it "marks the contract signed and records when" do
-      post "#{base_path}/#{contract.id}/sign", headers: headers, as: :json
+      expect do
+        post "#{base_path}/#{contract.id}/sign", headers: headers, as: :json
+      end.to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
+        .with(contract.id, school.id)
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body.dig("data", "signature_status")).to eq("signed")
@@ -122,7 +127,9 @@ RSpec.describe "Contract signature lifecycle", type: :request do
       post "#{base_path}/#{contract.id}/sign", headers: headers, as: :json
       first_signed_at = contract.reload.signed_at
 
-      post "#{base_path}/#{contract.id}/sign", headers: headers, as: :json
+      expect do
+        post "#{base_path}/#{contract.id}/sign", headers: headers, as: :json
+      end.not_to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
 
       expect(response).to have_http_status(:ok)
       expect(contract.reload.signed_at).to eq(first_signed_at)

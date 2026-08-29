@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_20_010008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -248,7 +248,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["school_id", "status"], name: "index_charges_on_school_id_and_status"
     t.index ["school_id"], name: "index_charges_on_school_id"
     t.check_constraint "discount_amount_cents >= 0", name: "charges_discount_amount_cents_non_negative"
-    t.check_constraint "kind::text = ANY (ARRAY['tuition'::character varying, 'one_off'::character varying]::text[])", name: "charges_kind_allowed"
+    t.check_constraint "kind::text = ANY (ARRAY['tuition'::character varying::text, 'one_off'::character varying::text])", name: "charges_kind_allowed"
     t.check_constraint "late_fee_amount_cents >= 0", name: "charges_late_fee_amount_cents_non_negative"
     t.check_constraint "original_amount_cents >= 0", name: "charges_original_amount_cents_non_negative"
     t.check_constraint "total_amount_cents >= 0", name: "charges_total_amount_cents_non_negative"
@@ -328,7 +328,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["signature_provider", "provider_document_id"], name: "index_contracts_on_provider_document", unique: true, where: "(provider_document_id IS NOT NULL)"
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
-    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying, 'cancelled'::character varying]::text[])", name: "contracts_signature_status_valid"
+    t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying::text, 'signed'::character varying::text, 'cancelled'::character varying::text])", name: "contracts_signature_status_valid"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -544,8 +544,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["school_id"], name: "index_guardian_requests_on_school_id"
     t.index ["student_id"], name: "index_guardian_requests_on_student_id"
     t.index ["subject_id"], name: "index_guardian_requests_on_subject_id"
-    t.check_constraint "kind::text = ANY (ARRAY['declaration'::character varying, 'second_call'::character varying]::text[])", name: "guardian_requests_kind"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'in_progress'::character varying, 'fulfilled'::character varying, 'rejected'::character varying]::text[])", name: "guardian_requests_status"
+    t.check_constraint "kind::text = ANY (ARRAY['declaration'::character varying::text, 'second_call'::character varying::text])", name: "guardian_requests_kind"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'in_progress'::character varying::text, 'fulfilled'::character varying::text, 'rejected'::character varying::text])", name: "guardian_requests_status"
   end
 
   create_table "guardians", force: :cascade do |t|
@@ -681,6 +681,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.check_constraint "percent >= 0::numeric AND percent <= 100::numeric", name: "plan_discounts_percent_range"
   end
 
+  create_table "platform_billing_settings", force: :cascade do |t|
+    t.string "active_provider", default: "manual", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "webhook_endpoint_token", null: false
+    t.index "(true)", name: "index_platform_billing_settings_singleton", unique: true
+    t.index ["webhook_endpoint_token"], name: "index_platform_billing_settings_on_webhook_endpoint_token", unique: true
+  end
+
   create_table "platform_impersonation_sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "ended_at"
@@ -698,6 +707,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["target_user_id"], name: "index_platform_impersonation_sessions_on_target_user_id"
   end
 
+  create_table "platform_invoices", force: :cascade do |t|
+    t.integer "amount_cents", null: false
+    t.datetime "created_at", null: false
+    t.datetime "due_at"
+    t.string "external_invoice_id"
+    t.string "hosted_invoice_url"
+    t.datetime "paid_at"
+    t.string "payment_method"
+    t.bigint "platform_subscription_id", null: false
+    t.string "provider", null: false
+    t.bigint "school_id", null: false
+    t.string "status", default: "open", null: false
+    t.datetime "updated_at", null: false
+    t.index ["platform_subscription_id"], name: "index_platform_invoices_on_platform_subscription_id"
+    t.index ["provider", "external_invoice_id"], name: "index_platform_invoices_on_provider_and_external_id", unique: true, where: "(external_invoice_id IS NOT NULL)"
+    t.index ["school_id", "status"], name: "index_platform_invoices_on_school_id_and_status"
+    t.index ["school_id"], name: "index_platform_invoices_on_school_id"
+  end
+
+  create_table "platform_plan_provider_prices", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.integer "amount_cents", null: false
+    t.string "billing_interval", null: false
+    t.datetime "created_at", null: false
+    t.string "external_price_id"
+    t.string "external_product_id"
+    t.bigint "platform_plan_id", null: false
+    t.string "provider", null: false
+    t.datetime "updated_at", null: false
+    t.index ["platform_plan_id", "provider", "billing_interval"], name: "index_platform_plan_prices_on_plan_provider_interval", unique: true
+    t.index ["platform_plan_id"], name: "index_platform_plan_provider_prices_on_platform_plan_id"
+  end
+
   create_table "platform_plans", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -709,15 +751,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
   end
 
   create_table "platform_subscriptions", force: :cascade do |t|
+    t.string "billing_interval"
+    t.boolean "cancel_at_period_end", default: false, null: false
+    t.datetime "canceled_at"
+    t.string "collection_method", default: "manual", null: false
     t.datetime "created_at", null: false
     t.datetime "current_period_end"
+    t.datetime "current_period_start"
     t.datetime "discarded_at"
+    t.string "external_customer_id"
+    t.string "external_subscription_id"
     t.bigint "platform_plan_id", null: false
+    t.string "provider", default: "manual", null: false
     t.bigint "school_id", null: false
     t.string "status", default: "active", null: false
     t.datetime "trial_ends_at"
     t.datetime "updated_at", null: false
     t.index ["platform_plan_id"], name: "index_platform_subscriptions_on_platform_plan_id"
+    t.index ["provider", "external_subscription_id"], name: "index_platform_subscriptions_on_provider_and_external_id", unique: true, where: "(external_subscription_id IS NOT NULL)"
+    t.index ["provider"], name: "index_platform_subscriptions_on_provider"
     t.index ["school_id"], name: "index_platform_subscriptions_on_school_id", unique: true, where: "(discarded_at IS NULL)"
     t.index ["status"], name: "index_platform_subscriptions_on_status"
   end
@@ -741,7 +793,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["school_id"], name: "index_preceptorship_reports_on_school_id"
     t.index ["student_id"], name: "index_preceptorship_reports_on_student_id"
     t.index ["teacher_id"], name: "index_preceptorship_reports_on_teacher_id"
-    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'published'::character varying]::text[])", name: "preceptorship_reports_status"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'published'::character varying::text])", name: "preceptorship_reports_status"
   end
 
   create_table "provisioning_imports", force: :cascade do |t|
@@ -889,7 +941,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.check_constraint "early_payment_discount_day IS NULL OR early_payment_discount_day >= 1 AND early_payment_discount_day <= 28", name: "school_billing_settings_early_payment_discount_day_range"
     t.check_constraint "early_payment_discount_percent IS NULL OR early_payment_discount_percent > 0::numeric AND early_payment_discount_percent <= 100::numeric", name: "school_billing_settings_early_payment_discount_percent_range"
     t.check_constraint "fine_type IS NOT NULL OR fine_rate_percent IS NULL AND fine_amount_cents IS NULL", name: "school_billing_settings_fine_off_requires_null_values"
-    t.check_constraint "fine_type IS NULL OR (fine_type::text = ANY (ARRAY['percent'::character varying, 'fixed'::character varying]::text[]))", name: "school_billing_settings_fine_type_allowed"
+    t.check_constraint "fine_type IS NULL OR (fine_type::text = ANY (ARRAY['percent'::character varying::text, 'fixed'::character varying::text]))", name: "school_billing_settings_fine_type_allowed"
     t.check_constraint "fine_type IS NULL OR fine_type::text <> 'fixed'::text OR fine_amount_cents > 0 AND fine_rate_percent IS NULL", name: "school_billing_settings_fine_fixed_shape"
     t.check_constraint "fine_type IS NULL OR fine_type::text <> 'percent'::text OR fine_rate_percent > 0::numeric AND fine_rate_percent <= 100::numeric AND fine_amount_cents IS NULL", name: "school_billing_settings_fine_percent_shape"
     t.check_constraint "interest_rate_percent IS NULL OR interest_rate_percent > 0::numeric AND interest_rate_percent <= 100::numeric", name: "school_billing_settings_interest_rate_percent_range"
@@ -909,7 +961,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index "school_id, year, grade_level, shift, lower((name)::text)", name: "index_school_classes_on_school_year_grade_shift_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["discarded_by_id"], name: "index_school_classes_on_discarded_by_id"
     t.index ["school_id"], name: "index_school_classes_on_school_id"
-    t.check_constraint "shift::text = ANY (ARRAY['matutino'::character varying, 'vespertino'::character varying]::text[])", name: "school_classes_shift_allowed"
+    t.check_constraint "shift::text = ANY (ARRAY['matutino'::character varying::text, 'vespertino'::character varying::text])", name: "school_classes_shift_allowed"
   end
 
   create_table "school_fiscal_settings", force: :cascade do |t|
@@ -1020,7 +1072,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["school_id"], name: "index_school_signature_providers_on_school_id"
     t.index ["uploaded_by_id"], name: "index_school_signature_providers_on_uploaded_by_id"
     t.index ["webhook_endpoint_token"], name: "index_school_signature_providers_on_webhook_token", unique: true
-    t.check_constraint "provider::text = ANY (ARRAY['autentique'::character varying, 'fake'::character varying]::text[])", name: "school_signature_providers_provider_allowed"
+    t.check_constraint "provider::text = ANY (ARRAY['autentique'::character varying::text, 'fake'::character varying::text])", name: "school_signature_providers_provider_allowed"
   end
 
   create_table "school_transactions", force: :cascade do |t|
@@ -1039,7 +1091,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["school_id", "occurred_on"], name: "index_school_transactions_on_school_id_and_occurred_on"
     t.index ["school_id"], name: "index_school_transactions_on_school_id"
     t.check_constraint "amount_cents >= 0", name: "school_transactions_amount_cents_non_negative"
-    t.check_constraint "kind::text = ANY (ARRAY['income'::character varying, 'expense'::character varying]::text[])", name: "school_transactions_kind_allowed"
+    t.check_constraint "kind::text = ANY (ARRAY['income'::character varying::text, 'expense'::character varying::text])", name: "school_transactions_kind_allowed"
   end
 
   create_table "school_years", force: :cascade do |t|
@@ -1297,10 +1349,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["guardian_id", "student_id"], name: "index_student_guardians_on_guardian_id_and_student_id_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["guardian_id"], name: "index_student_guardians_on_guardian_id"
     t.index ["school_id"], name: "index_student_guardians_on_school_id"
-    t.index ["student_id", "relationship"], name: "index_student_guardians_on_student_and_parent_kept", unique: true, where: "((discarded_at IS NULL) AND ((relationship)::text = ANY ((ARRAY['father'::character varying, 'mother'::character varying])::text[])))"
+    t.index ["student_id", "relationship"], name: "index_student_guardians_on_student_and_parent_kept", unique: true, where: "((discarded_at IS NULL) AND ((relationship)::text = ANY (ARRAY[('father'::character varying)::text, ('mother'::character varying)::text])))"
     t.index ["student_id"], name: "index_student_guardians_on_student_id"
     t.check_constraint "financial_percentage IS NULL OR financial_percentage >= 0::numeric AND financial_percentage <= 100::numeric", name: "student_guardians_financial_percentage_range"
-    t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying, 'mother'::character varying, 'other'::character varying]::text[])", name: "student_guardians_relationship_valid"
+    t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying::text, 'mother'::character varying::text, 'other'::character varying::text])", name: "student_guardians_relationship_valid"
   end
 
   create_table "student_health_records", force: :cascade do |t|
@@ -1513,6 +1565,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
     t.index ["teacher_id"], name: "index_teaching_assignments_on_teacher_id"
   end
 
+  create_table "user_identities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.boolean "email_verified", default: false, null: false
+    t.datetime "last_used_at"
+    t.datetime "linked_at", null: false
+    t.string "provider", null: false
+    t.string "provider_uid", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["provider", "provider_uid"], name: "index_user_identities_on_provider_and_provider_uid", unique: true
+    t.index ["user_id", "provider"], name: "index_user_identities_on_user_id_and_provider", unique: true
+    t.index ["user_id"], name: "index_user_identities_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
@@ -1667,6 +1734,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
   add_foreign_key "platform_impersonation_sessions", "schools"
   add_foreign_key "platform_impersonation_sessions", "users", column: "operator_user_id"
   add_foreign_key "platform_impersonation_sessions", "users", column: "target_user_id"
+  add_foreign_key "platform_invoices", "platform_subscriptions"
+  add_foreign_key "platform_invoices", "schools"
+  add_foreign_key "platform_plan_provider_prices", "platform_plans"
   add_foreign_key "platform_subscriptions", "platform_plans"
   add_foreign_key "platform_subscriptions", "schools"
   add_foreign_key "preceptorship_reports", "academic_periods"
@@ -1772,6 +1842,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_193112) do
   add_foreign_key "teaching_assignments", "subjects"
   add_foreign_key "teaching_assignments", "teachers"
   add_foreign_key "teaching_assignments", "users", column: "discarded_by_id"
+  add_foreign_key "user_identities", "users"
   add_foreign_key "users", "users", column: "disabled_by_id"
   add_foreign_key "webhook_events", "schools"
 end

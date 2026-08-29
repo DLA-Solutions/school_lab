@@ -2,7 +2,8 @@
 
 namespace :export do
   desc "Emit the people register of one school as portable SQL. " \
-       "Usage: rake export:people_sql SCHOOL_ID=1 TARGET_SCHOOL_ID=7 [OUT=tmp/people.sql]"
+       "Usage: rake export:people_sql SCHOOL_ID=1 [TARGET_SCHOOL_ID=7] " \
+       "[ONLY=guardians,teachers,job_positions] [OUT=tmp/people.sql]"
   #
   # Portable meaning: no primary keys travel. Production assigns its own ids and the rows find
   # each other by natural key — a collaborator by CPF, a post by name. Copying local ids would
@@ -13,24 +14,44 @@ namespace :export do
   # duplicates, which is what makes it safe to fix the export and try again.
   task people_sql: :environment do
     school = School.kept.find(ENV.fetch("SCHOOL_ID"))
-    target = ENV.fetch("TARGET_SCHOOL_ID")
     out = ENV.fetch("OUT", "tmp/people.sql")
+    only = ENV["ONLY"].to_s.split(",").map(&:strip).reject(&:blank?)
+    only = %w[job_positions teachers guardians] if only.empty?
 
     quoted = ->(value) { ActiveRecord::Base.connection.quote(value) }
-    school_id = quoted.call(Integer(target))
+
+    # The school is resolved by CNPJ rather than by id. Production numbers its rows on its own,
+    # and a literal id taken from here would silently hang 126 families off whichever school
+    # happens to occupy that number there. `TARGET_SCHOOL_ID` overrides it for a school whose
+    # CNPJ is not on file yet.
+    if ENV["TARGET_SCHOOL_ID"].present?
+      school_id = quoted.call(Integer(ENV["TARGET_SCHOOL_ID"]))
+      target = "school #{ENV['TARGET_SCHOOL_ID']}"
+    else
+      abort("School #{school.id} has no CNPJ; pass TARGET_SCHOOL_ID=<id>.") if school.cnpj.blank?
+
+      school_id = "(SELECT id FROM schools WHERE cnpj = #{quoted.call(school.cnpj)} " \
+                  "AND discarded_at IS NULL)"
+      target = "the school with CNPJ #{school.cnpj}"
+    end
 
     lines = []
-    lines << "-- Register of #{school.name} (local school #{school.id}) for school #{target}."
+    lines << "-- Register of #{school.name} (local school #{school.id}) for #{target}."
+    lines << "-- Sections: #{only.join(', ')}."
     lines << "-- Generated #{Time.current.iso8601}. Idempotent: matched on CPF and post name."
     lines << "BEGIN;"
 
     school.job_positions.kept.order(:name).each do |position|
+      next unless only.include?("job_positions")
+
       lines << "INSERT INTO job_positions (school_id, name, created_at, updated_at) " \
                "VALUES (#{school_id}, #{quoted.call(position.name)}, NOW(), NOW()) " \
                "ON CONFLICT (school_id, name) WHERE discarded_at IS NULL DO NOTHING;"
     end
 
     school.teachers.kept.order(:name).each do |teacher|
+      next unless only.include?("teachers")
+
       columns = %w[name cpf email phone hired_on zip_code street number complement neighborhood
                    city state]
       values = columns.map { |column| quoted.call(teacher[column]) }
@@ -48,6 +69,8 @@ namespace :export do
     end
 
     school.guardians.kept.order(:name).each do |guardian|
+      next unless only.include?("guardians")
+
       columns = %w[name cpf email phone zip_code street number complement neighborhood city state]
       values = columns.map { |column| quoted.call(guardian[column]) }
       # Only what this side actually knows is written over: a blank here must not erase an
@@ -67,14 +90,15 @@ namespace :export do
     File.write(out, "#{lines.join("\n")}\n")
 
     puts "Wrote #{out}"
-    puts "  job_positions: #{school.job_positions.kept.count}"
-    puts "  teachers:      #{school.teachers.kept.count}"
-    puts "  guardians:     #{school.guardians.kept.count}"
+    puts "  job_positions: #{only.include?('job_positions') ? school.job_positions.kept.count : 0}"
+    puts "  teachers:      #{only.include?('teachers') ? school.teachers.kept.count : 0}"
+    puts "  guardians:     #{only.include?('guardians') ? school.guardians.kept.count : 0}"
 
-    accounts = TeacherBankAccount.where(school_id: school.id).count
-    return if accounts.zero?
+    accounts = only.include?("teachers") ? TeacherBankAccount.where(school_id: school.id).count : 0
 
-    puts "  ! #{accounts} bank account(s) NOT exported: pix keys and account numbers are " \
-         "encrypted, and the ciphertext only reads back where the same key is configured."
+    if accounts.positive?
+      puts "  ! #{accounts} bank account(s) NOT exported: pix keys and account numbers are " \
+           "encrypted, and the ciphertext only reads back where the same key is configured."
+    end
   end
 end

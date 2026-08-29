@@ -5,6 +5,9 @@
 # Adding a language means adding its file here and to `config/initializers/locale.rb`; nothing in
 # the application negotiates a locale per request, so a second one needs that written first.
 en:
+  time:
+    formats:
+      long: "%B %d, %Y %H:%M"
   billing:
     settings:
       default_service_description: "School tuition"
@@ -44,6 +47,17 @@ en:
         body: "You were invited to access %{school} on Scholar Premium. Set your password to activate your account."
         cta: "Activate access"
         footer: "This link is valid for 7 days. If you were not expecting this invitation, please ignore this e-mail."
+  marketing:
+    mailer:
+      demo_request:
+        subject: "Demo requested — %{name}"
+        greeting: "Hello,"
+        intro: "Someone requested a demo from the Scholar Premium marketing site."
+        name_label: "Name"
+        email_label: "E-mail"
+        phone_label: "Phone (WhatsApp)"
+        submitted_at_label: "Submitted at"
+        source: "Source: Scholar Premium marketing site"
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."
@@ -75,16 +89,22 @@ en:
       guardian_inactive: "This guardian is inactive. Reactivate them before sending access."
       school_class_has_students: "This class still has students enrolled. Move them to another class before deleting it."
       not_your_lesson: "You do not teach this subject in this class."
+      period_outside_class_year: "This term does not belong to the year the class is taught in."
       not_your_student: "You do not teach this student's class."
       report_unsupported_characters: "The report contains characters the PDF font cannot draw. Check the names on file."
       invalid_reset_token: "This link has expired or was already used. Request a new one."
       invalid_credentials: "Invalid e-mail or password."
+      invalid_oauth_token: "Invalid Google sign-in token."
+      access_denied: "Access denied."
+      user_disabled: "This account is disabled."
       invalid_invite_token: "This invite link is invalid or has expired."
       forbidden: "Access denied."
       module_disabled: "This module is disabled for this school."
       backoffice_only: "This action is restricted to backoffice operators."
       not_found: "Not found."
       not_implemented: "Not implemented yet."
+      portal_not_supported: "Hosted billing portal is not available for this provider."
+      subscription_exists: "This school already has a platform subscription."
       report_card_not_ready: "Report card prerequisites are not met."
       report_card_frozen: "Published report card snapshots cannot be changed."
       publication_in_progress: "A publication is already in progress."
@@ -102,6 +122,7 @@ en:
       guardian_cpf_not_found: "No guardian registered with CPF %{cpf}. Register them before enrolling the student."
       duplicate_guardian_cpf: "The same CPF was given for both father and mother."
       contract_without_guardians: "This contract has no guardian linked to the student. Link at least one before sending it for signature."
+      school_signer_not_configured: "This school has no CNPJ and signature e-mail configured. Set them in the school's settings before sending contracts for signature — the school itself must sign every contract."
       contract_pdf_unsupported_characters: "The contract contains characters the PDF font cannot render. Contact support."
       contract_template_missing: "No contract template configured for this school."
       contract_already_sent: "This contract has already been sent for signature."
@@ -172,6 +193,7 @@ en:
   activerecord:
     errors:
       messages:
+        record_invalid: "Validation failed: %{errors}"
         invalid_cpf: "is not a valid CPF"
         requires_valid_cnpj: "can only be set once the school's CNPJ is valid — it is the document the school signs under"
         too_short: "must be at least 10 characters"

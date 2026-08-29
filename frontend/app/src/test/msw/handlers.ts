@@ -33,6 +33,9 @@ export const ACCESS_EXPIRES_AT = '2026-08-04T23:20:00Z';
 
 export const VALID_CREDENTIALS = { email: 'maria@example.com', password: 'correct-horse' };
 
+/** A valid Google ID token accepted by the default OAuth handler. */
+export const VALID_GOOGLE_ID_TOKEN = 'valid-google-id-token';
+
 export const SECRETARY_TEMPLATE_ID = 101;
 export const DIRECTOR_TEMPLATE_ID = 102;
 
@@ -402,6 +405,22 @@ export const supportedCitiesFixture = [
 
 export const fiscalCredentialsBySchool: Record<number, unknown[]> = {};
 
+export const bankCredentialsBySchool: Record<
+  number,
+  Array<{
+    id: number;
+    school_id: number;
+    instrument: string;
+    provider: string;
+    active: boolean;
+    client_id: string;
+    certificate_fingerprint: string;
+    certificate_expires_at: string;
+    uploaded_at: string;
+    uploaded_by_id: number;
+  }>
+> = {};
+
 export const serviceInvoicesFixture = [
   {
     id: 501,
@@ -574,12 +593,54 @@ const hasFreshToken = (request: Request) =>
 
 const expiredToken = () => jsonError(401, 'unauthorized', 'Sessão expirada.');
 
+/** School-scoped SaaS catalog for GET /platform_plans. Distinct from tuition `/billing/plans`. */
+export const sampleSchoolPlatformPlans = [
+  {
+    key: 'starter',
+    name: 'Starter',
+    intervals: [
+      { billing_interval: 'month' as const, amount_cents: 19_900 },
+      { billing_interval: 'year' as const, amount_cents: 199_000 },
+    ],
+  },
+  {
+    key: 'pro',
+    name: 'Pro',
+    intervals: [
+      { billing_interval: 'month' as const, amount_cents: 59_900 },
+      { billing_interval: 'year' as const, amount_cents: 599_000 },
+    ],
+  },
+  {
+    key: 'enterprise',
+    name: 'Enterprise',
+    intervals: [
+      { billing_interval: 'month' as const, amount_cents: 99_900 },
+      { billing_interval: 'year' as const, amount_cents: 999_000 },
+    ],
+  },
+];
+
 export const handlers = [
   http.post(apiUrl('/api/v1/auth/login'), async ({ request }) => {
     const body = (await request.json()) as { email?: string; password?: string };
 
     if (body.email !== VALID_CREDENTIALS.email || body.password !== VALID_CREDENTIALS.password) {
       return jsonError(401, 'invalid_credentials', 'E-mail ou senha inválidos.');
+    }
+
+    return HttpResponse.json({
+      access_token: FRESH_ACCESS_TOKEN,
+      access_expires_at: ACCESS_EXPIRES_AT,
+      user: currentUser,
+    });
+  }),
+
+  http.post(apiUrl('/api/v1/auth/oauth/google'), async ({ request }) => {
+    const body = (await request.json()) as { id_token?: string };
+
+    if (body.id_token !== VALID_GOOGLE_ID_TOKEN) {
+      return jsonError(403, 'access_denied', 'Acesso negado.');
     }
 
     return HttpResponse.json({
@@ -1477,6 +1538,47 @@ export const handlers = [
     return HttpResponse.json({ data: fiscalCredentialsBySchool[schoolId] ?? [] });
   }),
 
+  http.get(apiUrl('/api/v1/schools/:schoolId/bank_credentials'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const schoolId = Number(params.schoolId);
+
+    return HttpResponse.json({ data: bankCredentialsBySchool[schoolId] ?? [] });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/bank_credentials'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const schoolId = Number(params.schoolId);
+    const created = {
+      id: 701,
+      school_id: schoolId,
+      instrument: 'bank_slip',
+      provider: 'cora',
+      active: true,
+      client_id: 'client-stage-001',
+      certificate_fingerprint: 'SHA256:AB:CD:EF:12:34',
+      certificate_expires_at: '2027-12-31T23:59:59Z',
+      uploaded_at: '2026-08-10T12:00:00Z',
+      uploaded_by_id: 1,
+    };
+    bankCredentialsBySchool[schoolId] = [created];
+
+    return HttpResponse.json({ data: created }, { status: 201 });
+  }),
+
   http.post(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials'), ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
@@ -1595,6 +1697,129 @@ export const handlers = [
       return new HttpResponse(new Blob(['%PDF-nfse-guardian'], { type: 'application/pdf' }), {
         status: 200,
         headers: { 'Content-Type': 'application/pdf' },
+      });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/platform_plans'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: sampleSchoolPlatformPlans });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/platform_subscription'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: null });
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/platform_subscription/invoices'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return paginated([], new URL(request.url));
+    },
+  ),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/platform_subscription/checkout'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json(
+      {
+        data: {
+          checkout_url: 'https://www.asaas.com/i/example',
+          billing_portal_url: null,
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/platform_subscription/change_plan'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const body = (await request.json()) as { plan_key?: string; billing_interval?: string };
+
+      return HttpResponse.json({
+        data: {
+          id: 1,
+          status: 'active',
+          plan_key: body.plan_key ?? 'pro',
+          plan_name: body.plan_key === 'enterprise' ? 'Enterprise' : 'Pro',
+          billing_interval: body.billing_interval ?? 'month',
+          amount_cents: 59_900,
+          current_period_start: '2026-08-01T00:00:00Z',
+          current_period_end: '2026-09-01T00:00:00Z',
+          trial_ends_at: null,
+          cancel_at_period_end: false,
+          collection_method: 'automatic',
+          billing_portal_url: null,
+          open_invoice: null,
+        },
+      });
+    },
+  ),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/platform_subscription/cancel'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return HttpResponse.json({
+        data: {
+          id: 1,
+          status: 'active',
+          plan_key: 'starter',
+          plan_name: 'Starter',
+          billing_interval: 'month',
+          amount_cents: 19_900,
+          current_period_start: '2026-08-01T00:00:00Z',
+          current_period_end: '2026-09-01T00:00:00Z',
+          trial_ends_at: null,
+          cancel_at_period_end: true,
+          collection_method: 'automatic',
+          billing_portal_url: null,
+          open_invoice: null,
+        },
       });
     },
   ),

@@ -25,6 +25,13 @@ const schoolClass = {
 };
 
 const sheet = {
+  context: {
+    school_class_id: 4,
+    school_class_label: 'Ensino Fundamental I 5º ano A · Matutino — 2026',
+    subject_id: 7,
+    subject_name: 'Matemática',
+    year: 2026,
+  },
   periods: [
     { id: 11, name: '1º bimestre', sequence: 1, closed: false },
     { id: 12, name: '2º bimestre', sequence: 2, closed: true },
@@ -72,6 +79,7 @@ const authValue: AuthContextValue = {
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 };
@@ -167,6 +175,32 @@ describe('Grades page', () => {
       ),
     );
     expect(saved).toHaveLength(0);
+  });
+
+  // The class and the subject are picked in dropdowns and the year is implied by the class, so
+  // without a heading the teacher marks a wall of numbers with nothing confirming whose year it is.
+  it('names the class, the subject and the year being marked', async () => {
+    stub();
+    renderPage(chosen);
+
+    // The class label the API words already carries the year, so one heading names all three.
+    const heading = await screen.findByText(/lançando notas de matemática/i);
+    expect(heading).toHaveTextContent('Ensino Fundamental I 5º ano A · Matutino — 2026');
+  });
+
+  // A sheet that widened to every term the school ever had is how a mark meant for this year gets
+  // filed under a term of another one. With none set up for the year, it says so.
+  it('says the year has no terms instead of showing an empty grid', async () => {
+    stub();
+    server.use(
+      http.get(apiUrl(`${BASE}/grades`), () =>
+        HttpResponse.json({ data: { ...sheet, periods: [] } }),
+      ),
+    );
+
+    renderPage(chosen);
+
+    expect(await screen.findByText(/nenhum bimestre cadastrado para 2026/i)).toBeInTheDocument();
   });
 
   // The API refuses a lesson the teacher is not assigned to, and says which.

@@ -61,7 +61,7 @@ module Schools
     end
 
     def build_school
-      attributes = params.except(:onboarding_mode)
+      attributes = params.except(:onboarding_mode, :saas_plan)
       school = School.new(attributes)
 
       if owner_email.present?

@@ -26,7 +26,34 @@ Routes for the Identity & Onboarding domain. Billing routes remain in
 
 | Method | Path | Description |
 |--------|------|-------------|
+| `POST` | `/api/v1/auth/oauth/google` | Google ID token → tokens (same response as login) |
 | `POST` | `/api/v1/auth/invite/accept` | Set password from invite token; does not activate membership alone |
+
+### `POST /api/v1/auth/oauth/google`
+
+Request:
+
+```json
+{
+  "id_token": "eyJ...",
+  "remember_me": true,
+  "client": "web"
+}
+```
+
+Response `200`: same shape as `POST /auth/login` — access JWT in JSON; refresh in httpOnly
+cookie when `client: web`, or in JSON body when `client: mobile`.
+
+Errors:
+
+| HTTP | `error.code` | When |
+|------|--------------|------|
+| `401` | `invalid_oauth_token` | Bad signature, wrong audience, expired token, unverified email, JWKS unreachable |
+| `403` | `access_denied` | Unknown email, no eligible membership, identity conflict — generic message |
+| `403` | `user_disabled` | `users.status = disabled`, discarded, or Devise locked |
+
+No auto-registration (BR-GO01). Eligibility mirrors password login staff/guardian rules
+(BR-GO05–BR-GO07).
 
 ### `POST /api/v1/auth/invite/accept`
 

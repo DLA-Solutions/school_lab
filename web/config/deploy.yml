@@ -49,6 +49,7 @@ env:
     RAILS_MAX_THREADS: 3
     JOB_CONCURRENCY: 1
     MAIL_FROM: contato@scholarpremium.com.br
+    MARKETING_DEMO_REQUEST_RECIPIENTS: contato@diegonovais.com.br,luizcalaca@gmail.com
   secret:
     - RAILS_MASTER_KEY
     - JWT_SECRET_KEY
@@ -56,6 +57,7 @@ env:
     - CABLE_DATABASE_URL
     - REDIS_URL
     - POSTMARK_API_TOKEN
+    - GOOGLE_OAUTH_CLIENT_ID
 
 # Bridge fingerprinted assets between versions so in-flight requests don't 404.
 asset_path: /rails/public/assets

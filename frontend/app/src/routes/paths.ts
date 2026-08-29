@@ -13,7 +13,8 @@ export default {
 
   guardians: `/${rootPaths.peopleRoot}/responsaveis`,
   students: `/${rootPaths.peopleRoot}/estudantes`,
-  team: `/${rootPaths.peopleRoot}/equipe`,
+  // Contas de acesso: quem entra no sistema e com qual papel — inclui a família.
+  users: `/${rootPaths.peopleRoot}/usuarios`,
 
   collaborators: `/${rootPaths.academicsRoot}/colaboradores`,
   lessons: `/${rootPaths.academicsRoot}/aulas`,
@@ -41,6 +42,8 @@ export default {
   billingSettings: '/financeiro/configuracoes',
   serviceInvoices: '/nfse',
   contractTemplate: '/contrato',
+  signatureCredentials: '/assinatura-eletronica',
+  platformSubscription: '/assinatura',
 
   signin: `/${rootPaths.authRoot}/signin`,
   // Top-level and public: these are the addresses the invitation and reset e-mails point at, and

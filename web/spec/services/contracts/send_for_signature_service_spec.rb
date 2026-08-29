@@ -3,7 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Contracts::SendForSignatureService do
-  let(:school) { create(:school) }
+  # The school must be a party able to sign its own contracts before any of them can be sent.
+  let(:school) { create(:school, cnpj: "66.154.330/0001-40", signature_email: "colegio@example.com") }
   let!(:config) { create(:school_signature_provider, school: school) }
   let(:school_class) { create(:school_class, school: school) }
   let(:student) { create(:student, school: school, school_class: school_class, name: "Pedro Silva") }
@@ -26,7 +27,7 @@ RSpec.describe Contracts::SendForSignatureService do
   end
 
   describe "who receives it" do
-    it "sends to both guardians when the student has two" do
+    it "sends to both guardians and the school when the student has two" do
       link(mother, "mother")
       link(father, "father")
 
@@ -34,17 +35,17 @@ RSpec.describe Contracts::SendForSignatureService do
 
       expect(result).to be_success
       expect(result.data[:signer_links].map(&:email))
-        .to match_array(%w[maria@example.com joao@example.com])
+        .to match_array(%w[maria@example.com joao@example.com colegio@example.com])
     end
 
-    # Not every child has both parents on file.
-    it "sends to the single guardian when that is all there is" do
+    # Not every child has both parents on file, but the school always signs alongside whoever is.
+    it "sends to the single guardian and the school when that is all there is" do
       link(mother, "mother")
 
       result = described_class.call(contract: contract)
 
       expect(result).to be_success
-      expect(result.data[:signer_links].map(&:email)).to eq([ "maria@example.com" ])
+      expect(result.data[:signer_links].map(&:email)).to eq([ "maria@example.com", "colegio@example.com" ])
     end
 
     it "refuses when the student has no guardian" do

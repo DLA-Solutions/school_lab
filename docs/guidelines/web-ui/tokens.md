@@ -37,7 +37,7 @@ Do **not** use `palette.info` for surfaces in new code.
 
 - Spacing unit: `8px` (`theme.spacing(1)`)
 - Default `borderRadius`: `4px`; Paper uses `12px` (3 × radius)
-- Fonts: Mona Sans (default), Work Sans (dashboard labels via `fontFamily.workSans`)
+- Fonts: Inter (self-hosted via `@fontsource/inter`; default `fontFamily.inter` in theme)
 
 ## Adding a token
 

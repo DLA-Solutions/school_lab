@@ -1,0 +1,18 @@
+<p>
+  <%= t("marketing.mailer.demo_request.greeting") %>
+</p>
+
+<p>
+  <%= t("marketing.mailer.demo_request.intro") %>
+</p>
+
+<ul>
+  <li><%= t("marketing.mailer.demo_request.name_label") %>: <%= @name %></li>
+  <li><%= t("marketing.mailer.demo_request.email_label") %>: <%= @email %></li>
+  <li><%= t("marketing.mailer.demo_request.phone_label") %>: <%= @phone %></li>
+  <li><%= t("marketing.mailer.demo_request.submitted_at_label") %>: <%= l(@submitted_at, format: :long) %></li>
+</ul>
+
+<p>
+  <%= t("marketing.mailer.demo_request.source") %>
+</p>

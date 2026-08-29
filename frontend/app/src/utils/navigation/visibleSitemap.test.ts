@@ -39,6 +39,39 @@ describe('visibleSitemap module filtering', () => {
     expect(routeAudienceForPath(paths.reportCards)).toBe('staff');
   });
 
+  // Stronger than a permission key: the Autentique token creates documents in the school's name,
+  // so it stays with the owner however many permissions the rest of the staff hold.
+  describe('owner-only entries', () => {
+    const everyPermission = {
+      ...staffMembership,
+      permissions: [
+        'manage_billing',
+        'manage_people',
+        'manage_school_settings',
+        'manage_academics',
+      ],
+    };
+
+    it('shows the signature entry to the school owner', () => {
+      const ids = visibleSitemap({ ...everyPermission, is_owner: true }).map((item) => item.id);
+
+      expect(ids).toContain('signature-credentials');
+    });
+
+    it('hides it from staff who are not the owner, whatever they may do', () => {
+      const ids = visibleSitemap({ ...everyPermission, is_owner: false }).map((item) => item.id);
+
+      expect(ids).not.toContain('signature-credentials');
+    });
+
+    // A legacy payload with no flag is not an owner; the route guard refuses either way.
+    it('hides it when the payload does not say', () => {
+      const ids = visibleSitemap({ ...everyPermission, is_owner: null }).map((item) => item.id);
+
+      expect(ids).not.toContain('signature-credentials');
+    });
+  });
+
   it('hides billing menu items when billing module is disabled', () => {
     const membership = {
       ...billingStaff,
@@ -101,6 +134,36 @@ describe('visibleSitemap module filtering', () => {
     expect(ids).not.toContain('charges');
     expect(ids).toContain('students');
   });
+
+  it('shows platform subscription nav for manage_school_settings even when billing is off', () => {
+    const membership = {
+      ...staffMembership,
+      permissions: ['manage_school_settings'],
+      enabled_modules: ['communication', 'academic', 'documents'] as SchoolModuleKey[],
+    };
+
+    const ids = visibleSitemap(membership).map((item) => item.id);
+
+    expect(ids).toContain('platform-subscription');
+    expect(ids).not.toContain('charges');
+    expect(ids).not.toContain('plans');
+    expect(routeModuleKeyForPath(paths.platformSubscription)).toBeNull();
+    expect(routeAudienceForPath(paths.platformSubscription)).toBe('staff');
+  });
+
+  it('hides platform subscription nav from tuition-only billing staff', () => {
+    const membership = {
+      ...staffMembership,
+      permissions: ['manage_billing'],
+      enabled_modules: ['communication', 'academic', 'billing', 'documents'] as SchoolModuleKey[],
+    };
+
+    const ids = visibleSitemap(membership).map((item) => item.id);
+
+    expect(ids).toContain('charges');
+    expect(ids).toContain('plans');
+    expect(ids).not.toContain('platform-subscription');
+  });
 });
 
 describe('visibleSitemap audience filtering', () => {
@@ -110,6 +173,8 @@ describe('visibleSitemap audience filtering', () => {
     expect(ids).toEqual([
       'dashboard',
       'my-charges',
+      'my-health-records',
+      'my-pickups',
       'my-preceptorship',
       'my-report-cards',
       'my-tax-declarations',

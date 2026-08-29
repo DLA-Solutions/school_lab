@@ -30,7 +30,8 @@ When adding a new Portuguese identifier, confirm with the team and update this t
 | Enrollment | `enrollment` | Matrícula |
 | Billing / charge | `charge` | Cobrança |
 | Membership (user ↔ school role) | `membership` | Vínculo |
-| Billing plan | `billing_plan` | Plano de cobrança |
+| Billing plan (tuition) | `billing_plan` | Plano de cobrança |
+| Platform subscription (DLA → school) | `platform_subscription` | Assinatura |
 | Contract (student billing) | `contract` | Contrato |
 | Enrollment contract | `enrollment_contract` | Contrato de matrícula |
 | Contract signature status | `signature_status` | Status da assinatura |

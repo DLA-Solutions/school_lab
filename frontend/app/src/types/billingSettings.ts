@@ -9,6 +9,7 @@ export interface BillingSettings {
   };
   interest_rate_percent: number | null;
   early_payment_discount_percent: number | null;
+  early_payment_discount_day: number | null;
   fine_type: FineType;
   fine_rate_percent: number | null;
   fine_amount_cents: number | null;
@@ -24,6 +25,7 @@ export interface BillingSettingsPayload {
   service_description?: string;
   interest_rate_percent?: number | null;
   early_payment_discount_percent?: number | null;
+  early_payment_discount_day?: number | null;
   fine_type?: FineType | '';
   fine_rate_percent?: number | null;
   fine_amount_cents?: number | null;

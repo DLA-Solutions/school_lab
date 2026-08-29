@@ -33,7 +33,7 @@ Table schools {
   cnpj varchar
   address varchar
   timezone varchar [not null, default: 'America/Sao_Paulo', note: 'IANA timezone used for school-local dates and calendar display']
-  saas_plan varchar
+  saas_plan varchar [note: 'Deprecated as source of truth — prefer platform_subscriptions; do not drop in the collection epic']
   onboarding_status varchar [not null, default: 'pending_handoff', note: 'provisioning | pending_handoff | active — see 004-school-onboarding.md']
   onboarding_mode varchar [not null, note: 'self_serve | white_glove — set at create; immutable after active']
   billing_waived_at timestamp [note: 'Handoff when billing setup skipped']
@@ -61,7 +61,7 @@ Table platform_plans {
   id integer [primary key, increment]
   key varchar [not null, note: 'starter | pro | enterprise']
   name varchar [not null]
-  monthly_amount_cents integer [not null]
+  monthly_amount_cents integer [not null, note: 'Kept during dual-write; API prefers interval amount_cents from platform_plan_provider_prices']
   discarded_at timestamp [note: 'Discard gem — null = kept']
   created_at timestamp
   updated_at timestamp
@@ -71,21 +71,85 @@ Table platform_plans {
   }
 }
 
+Table platform_plan_provider_prices {
+  id integer [primary key, increment]
+  platform_plan_id integer [not null]
+  provider varchar [not null, note: 'asaas | manual | fake']
+  billing_interval varchar [not null, note: 'month | year — Asaas yearly = interval 12 months']
+  external_product_id varchar [note: 'Vendor product id when distinct from price']
+  external_price_id varchar [note: 'Asaas plan identifier (e.g. starter_monthly)']
+  amount_cents integer [not null, note: 'Full interval amount (yearly is the year total, not monthly)']
+  active boolean [not null, default: true]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (platform_plan_id, provider, billing_interval) [unique]
+  }
+}
+
 Table platform_subscriptions {
   id integer [primary key, increment]
   school_id integer [not null]
   platform_plan_id integer [not null]
-  status varchar [not null, default: 'active', note: 'active | trial | past_due']
-  trial_ends_at timestamp
+  status varchar [not null, default: 'active', note: 'trialing | active | past_due | canceled | incomplete — E3 trial renamed to trialing']
+  billing_interval varchar [note: 'month | year']
+  provider varchar [not null, default: 'manual', note: 'asaas | manual | fake — row keeps provider if deploy default changes']
+  external_customer_id varchar [note: 'Vendor customer id; omit from school SPA JSON']
+  external_subscription_id varchar [note: 'Vendor subscription id; omit from school SPA JSON']
+  trial_ends_at timestamp [note: 'Optional trial; product default 14 days when offered']
+  current_period_start timestamp
   current_period_end timestamp
+  cancel_at_period_end boolean [not null, default: false]
+  canceled_at timestamp
+  collection_method varchar [not null, default: 'manual', note: 'automatic | send_invoice | manual']
   discarded_at timestamp [note: 'Discard gem — null = kept']
   created_at timestamp
   updated_at timestamp
 
   indexes {
-    school_id [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL — one active subscription per school']
+    school_id [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL — one kept subscription per school']
     status
+    provider
+    (provider, external_subscription_id) [unique, note: 'DB migration: UNIQUE WHERE external_subscription_id IS NOT NULL']
   }
+}
+
+Table platform_invoices {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  platform_subscription_id integer [not null]
+  provider varchar [not null, note: 'asaas | manual | fake']
+  external_invoice_id varchar [note: 'Vendor invoice id; omit from school SPA JSON']
+  status varchar [not null, default: 'open', note: 'draft | open | paid | void | uncollectible']
+  amount_cents integer [not null]
+  due_at timestamp
+  paid_at timestamp
+  hosted_invoice_url varchar [note: 'Asaas secure_url — pay_url for school SPA']
+  payment_method varchar [note: 'credit_card | bank_slip | pix']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    school_id
+    (school_id, status)
+    platform_subscription_id
+    (provider, external_invoice_id) [unique, note: 'DB migration: UNIQUE WHERE external_invoice_id IS NOT NULL']
+  }
+}
+
+Table platform_billing_settings {
+  id integer [primary key, increment]
+  active_provider varchar [not null, default: 'manual', note: 'asaas | manual | fake — deploy default; does not rewrite existing subscription.provider']
+  webhook_endpoint_token varchar [not null, note: 'URL token for POST /webhooks/platform_billing/:provider/:token — not Asaas API credentials']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    webhook_endpoint_token [unique]
+  }
+
+  Note: 'Singleton application row (exactly one). Asaas API token and base URL live in ENV only (ASAAS_API_TOKEN, ASAAS_API_BASE_URL).'
 }
 
 Table platform_impersonation_sessions {
@@ -180,6 +244,25 @@ Table refresh_tokens {
   expires_at timestamp [not null]
   revoked_at timestamp [note: 'No Discard — revoke + purge after expires_at']
   created_at timestamp
+}
+
+Table user_identities {
+  id integer [primary key, increment]
+  user_id integer [not null]
+  provider varchar [not null, note: 'google — model validates; extensible later']
+  provider_uid varchar [not null, note: 'Google sub — stable subject id']
+  email varchar [not null, note: 'Snapshot at link; LGPD contact data']
+  email_verified boolean [not null, default: false]
+  linked_at timestamp [not null]
+  last_used_at timestamp
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+    (provider, provider_uid) [unique]
+    (user_id, provider) [unique]
+    user_id
+  }
 }
 
 Table device_tokens {
@@ -750,8 +833,8 @@ Table payments {
 
 Table webhook_events {
   id integer [primary key, increment]
-  school_id integer [note: 'Tenant that received the notification']
-  provider varchar [not null, note: 'cora | fake']
+  school_id integer [note: 'Tenant that received the notification; nullable for platform billing until external_subscription_id is matched']
+  provider varchar [not null, note: 'cora | fake | asaas']
   provider_event_id varchar [not null, note: 'Idempotency key from provider — unique per provider']
   event_type varchar
   provider_resource_id varchar [note: 'Normalized invoice/resource id from the notification']
@@ -1546,8 +1629,11 @@ Table guardian_requests {
 Ref: schools.school_group_id > school_groups.id
 Ref: schools.discarded_by_id > users.id
 
+Ref: platform_plan_provider_prices.platform_plan_id > platform_plans.id
 Ref: platform_subscriptions.school_id > schools.id
 Ref: platform_subscriptions.platform_plan_id > platform_plans.id
+Ref: platform_invoices.school_id > schools.id
+Ref: platform_invoices.platform_subscription_id > platform_subscriptions.id
 Ref: platform_impersonation_sessions.operator_user_id > users.id
 Ref: platform_impersonation_sessions.target_user_id > users.id
 Ref: platform_impersonation_sessions.school_id > schools.id
@@ -1714,6 +1800,7 @@ Ref: guardian_requests.resolved_by_id > users.id
 Ref: guardian_requests.requested_by_id > users.id
 
 Ref: refresh_tokens.user_id > users.id
+Ref: user_identities.user_id > users.id
 Ref: device_tokens.user_id > users.id
 Ref: users.disabled_by_id > users.id
 

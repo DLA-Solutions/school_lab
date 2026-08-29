@@ -49,6 +49,7 @@ const authValue: AuthContextValue = {
   status: 'authenticated',
   isAuthenticated: true,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 };
@@ -191,8 +192,32 @@ describe('Guardians page access', () => {
       screen.getByRole('button', { name: /enviar acesso ao sistema para maria silva/i }),
     );
 
+    // The click only opens the confirmation; nothing is sent until it is confirmed.
+    const dialog = await screen.findByRole('dialog');
+    expect(called).toBe(0);
+
+    await user.click(within(dialog).getByRole('button', { name: /confirmar/i }));
+
     await waitFor(() => expect(called).toBe(1));
     expect(await screen.findByText(/enviamos o link de acesso/i)).toBeInTheDocument();
+  });
+});
+
+// The action discards the record rather than deleting it — it can be brought back through the
+// inactive filter — so the confirmation asks what it actually does.
+describe('Guardians page deactivation', () => {
+  it('asks to deactivate rather than to delete', async () => {
+    setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
+    recordQueries();
+
+    renderPage();
+    await screen.findByText('Maria Silva');
+
+    await user.click(screen.getByRole('button', { name: /inativar maria silva/i }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/deseja inativar essa pessoa\?/i)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: /^inativar$/i })).toBeInTheDocument();
   });
 });
 
@@ -212,12 +237,67 @@ describe('Guardians page row actions', () => {
       /contratos maria silva/i,
       /documentos pessoais maria silva/i,
       /editar maria silva/i,
-      /excluir maria silva/i,
+      /inativar maria silva/i,
     ];
 
     actions.forEach((name) => {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     });
+  });
+
+  // An inactive guardian is still a person the school has history with: their charges, contracts
+  // and documents are exactly what someone goes looking for after they leave. A row offering only
+  // "Ativar" made reactivating the record the price of reading it.
+  it('offers the same actions on an inactive guardian', async () => {
+    setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
+    server.use(
+      http.get(apiUrl(GUARDIANS_PATH), () =>
+        HttpResponse.json({
+          data: [{ ...maria, active: false }],
+          meta: { page: 1, per_page: 25, total: 1 },
+        }),
+      ),
+    );
+
+    renderPage();
+    await screen.findByText('Maria Silva');
+
+    const actions = [
+      /ver detalhes de maria silva/i,
+      /ver boletos de maria silva/i,
+      /contratos maria silva/i,
+      /documentos pessoais maria silva/i,
+      /editar maria silva/i,
+      // The way back stands where "Inativar" stands on an active row, so the slot is never empty.
+      /ativar maria silva/i,
+    ];
+
+    actions.forEach((name) => {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: /inativar maria silva/i })).not.toBeInTheDocument();
+  });
+
+  // The API refuses to send access to an inactive guardian, so the button is offered but disabled
+  // rather than failing after the click.
+  it('offers send-access disabled until the guardian is reactivated', async () => {
+    setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
+    server.use(
+      http.get(apiUrl(GUARDIANS_PATH), () =>
+        HttpResponse.json({
+          data: [{ ...maria, active: false }],
+          meta: { page: 1, per_page: 25, total: 1 },
+        }),
+      ),
+    );
+
+    renderPage();
+    await screen.findByText('Maria Silva');
+
+    expect(
+      screen.getByRole('button', { name: /enviar acesso ao sistema para maria silva/i }),
+    ).toBeDisabled();
   });
 });
 

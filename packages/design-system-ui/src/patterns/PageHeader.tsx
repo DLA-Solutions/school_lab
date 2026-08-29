@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { fontFamily } from '../typography';
 
 export interface PageHeaderProps {
   title: string;
@@ -18,7 +17,7 @@ const PageHeader = ({ title, subtitle, actions }: PageHeaderProps) => {
       justifyContent="space-between"
     >
       <Stack spacing={0.5}>
-        <Typography variant="h6" fontWeight={400} fontFamily={fontFamily.workSans}>
+        <Typography variant="h6" fontWeight={400}>
           {title}
         </Typography>
         {subtitle && (

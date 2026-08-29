@@ -194,11 +194,13 @@ module Api
             contract = policy_scope(Contract).find(params[:id])
             authorize contract, :update?
 
-            if contract.mark_signed!
+            result = ::Contracts::MarkSignedService.call(contract: contract)
+
+            if result.success?
               render json: { data: ContractBlueprint.render_as_hash(contract) }
             else
               render_error(:validation_error, status: :unprocessable_content,
-                                              details: contract.errors.to_hash)
+                                              details: result.details)
             end
           end
 

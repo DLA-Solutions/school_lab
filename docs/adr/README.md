@@ -9,6 +9,7 @@ high-level source of truth; ADRs capture **why** a decision was made and **what 
 | ADR | Title | Status |
 |-----|-------|--------|
 | [001](001-monorepo-surfaces.md) | Monorepo surfaces: `mobile/`, `frontend/app`, `frontend/backoffice`, `web/` | Accepted |
+| [002](002-platform-billing-gateway.md) | Platform billing gateway port (`Gateways::PlatformSubscription`; Asaas first) | Accepted |
 
 ## Format
 

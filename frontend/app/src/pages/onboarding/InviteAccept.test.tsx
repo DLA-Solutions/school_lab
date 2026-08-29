@@ -27,6 +27,7 @@ const guestAuth: AuthContextValue = {
   status: 'unauthenticated',
   isAuthenticated: false,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
   refreshUser: vi.fn(),
 };
@@ -115,6 +116,7 @@ describe('InviteAccept', () => {
       status: 'authenticated',
       isAuthenticated: true,
       login,
+      loginWithGoogle: vi.fn(),
       logout: vi.fn(),
       refreshUser,
     });

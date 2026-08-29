@@ -1,11 +1,18 @@
 ---
 name: deploy-kamal
-description: Deploy site, school SPA, backoffice SPA, or web API to staging or production with Kamal 2. Use when the user asks to deploy site, frontend, SPA, backoffice, API, or web to staging or production, run kamal deploy, cut over path routing, or fix kamal-proxy deploy errors.
+description: Deploy site, school SPA, backoffice SPA, or web API to staging or production with Kamal 2. Use when the user asks to deploy site, frontend, SPA, backoffice, API, or web to staging or production, run kamal deploy, cut over path routing, or fix kamal-proxy deploy errors. Always finish with Discord notify_deploy via discord-deploy MCP (success or failure).
 ---
 
 # Deploy with Kamal
 
-Deploy one layer or the full stack to **staging** or **production**. Runbook: `docs/guidelines/process/deployment.md`. Guardrails: `.cursor/rules/core/deployment.mdc`.
+Deploy one layer or the full stack to **staging** or **production**. Runbook: `docs/guidelines/process/deployment.md`. Guardrails: `.cursor/rules/core/deployment.mdc`. First-time machine setup: skill `setup-deploy`.
+
+## Workflow (end-to-end)
+
+1. Pre-deploy checks (CI, secrets, branch policy — `main` only).
+2. `kamal deploy -d <staging|production>` from the service directory.
+3. Post-deploy smoke (read-only) on success.
+4. **Discord `notify_deploy`** — mandatory last step; success or failure. Never skip.
 
 ## Parse the request
 
@@ -152,6 +159,52 @@ ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
 
 Smoke is **read-only**. Do not POST invite, password reset, guardian access, school create/handoff, or any other mailer-triggering route. Do not run `rails runner` mailers or `deliver_now` on the host. See rule `email-safety`.
 
+## Discord notify (mandatory — do not end deploy without this)
+
+Post to the **School Lab** Discord channel via the `discord-deploy` MCP. This is the **last step** of every deploy task. Do it once the user's requested deploy has a final result — after smoke on success, or as soon as `kamal deploy` fails. **Do not skip on failure.** A deploy task is incomplete until Discord is notified (or the user is told MCP is misconfigured).
+
+### Steps
+
+1. Capture context before notifying:
+   ```bash
+   git rev-parse --short HEAD
+   git branch --show-current
+   ```
+2. Discover the tool: `GetDynamicTools` with `namespace: "discord-deploy"` or pattern `notify_deploy`.
+3. Call `CallDynamicTool`:
+   - `namespace`: `discord-deploy`
+   - `toolName`: `notify_deploy`
+   - `arguments`:
+     - `layer`: `site` | `frontend` | `backoffice` | `web` | `all` (use `all` only for a full-stack run)
+     - `destination`: `staging` | `production`
+     - `status`: `success` | `failure`
+     - `smoke_ok`: `true` / `false` when smoke ran; omit if it did not
+     - `git_sha` / `git_branch` from step 1 when available
+     - `note`: short extra context (migrations, rollback, error summary) — **never** secrets, webhook URLs, PATs, or `.kamal/` values
+
+### Example (staging API deploy, smoke passed)
+
+```json
+{
+  "namespace": "discord-deploy",
+  "toolName": "notify_deploy",
+  "arguments": {
+    "layer": "web",
+    "destination": "staging",
+    "status": "success",
+    "smoke_ok": true,
+    "git_sha": "16fc469",
+    "git_branch": "main"
+  }
+}
+```
+
+### MCP not available
+
+If `discord-deploy` is missing or disconnected, tell the user to set `DISCORD_BOT_TOKEN` + `DISCORD_DEPLOY_CHANNEL_ID` in `.cursor/mcp.env` (channel ID via Developer Mode → Copy Channel ID; no channel edit permission needed). Webhook URL is optional when someone with Manage Webhooks can create one. See `.cursor/mcp.env.example`. Restart Cursor after changing env. **Do not treat a Discord outage as a deploy failure**, but do report that notify was skipped and why.
+
+This MCP only notifies this project. Do not send other Discord messages through it.
+
 ## Rollback (single layer)
 
 ```bash
@@ -168,6 +221,7 @@ Database migrations are **not** rolled back with the container. Coordinate API r
 
 ## Do not
 
+- Finish a deploy task without calling `notify_deploy` (unless MCP is misconfigured — then tell the user).
 - Run `kamal deploy` without `-d` (blocked by config, but never omit intentionally).
 - Run `kamal proxy remove` — removes the entire kamal-proxy container.
 - Set `proxy.ssl: true` on `web/` or `frontend/` deploy configs.

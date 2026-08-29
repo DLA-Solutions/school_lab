@@ -8,6 +8,19 @@
 # cannot show that.
 class GradeSheetBlueprint < Blueprinter::Base
   view :default do
+    # What is being marked, named on the sheet itself. The screen picks a class and a subject from
+    # dropdowns and then shows a wall of numbers; without this a teacher has no confirmation on
+    # screen of which class, which subject and — above all — which year they are marking.
+    field :context do |sheet|
+      {
+        school_class_id: sheet[:school_class].id,
+        school_class_label: sheet[:school_class].full_name,
+        subject_id: sheet[:subject].id,
+        subject_name: sheet[:subject].name,
+        year: sheet[:year]
+      }
+    end
+
     field :periods do |sheet|
       sheet[:periods].map do |period|
         {
