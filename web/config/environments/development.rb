@@ -31,9 +31,9 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Preview mail locally. Never Postmark/SMTP — even if POSTMARK_API_TOKEN is in .env.
-  # :letter_opener_web writes to tmp/letter_opener without Launchy (Solid Queue / API-only).
-  config.action_mailer.delivery_method = :letter_opener_web
+  # Template mail routes through Gateways::Email::Fake (logs payload). Never Postmark/SMTP —
+  # even if POSTMARK_API_TOKEN is in .env. HTML lives in Postmark templates.
+  config.action_mailer.delivery_method = :email_gateway
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
 

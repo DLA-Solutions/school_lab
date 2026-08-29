@@ -61,7 +61,7 @@ RSpec.describe SchoolLab::EmailDelivery do
     end
   end
 
-  it "uses the :test delivery method in the test environment" do
-    expect(ActionMailer::Base.delivery_method).to eq(:test)
+  it "uses the :email_gateway delivery method in the test environment" do
+    expect(ActionMailer::Base.delivery_method).to eq(:email_gateway)
   end
 end
