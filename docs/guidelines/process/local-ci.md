@@ -37,7 +37,7 @@ Bypass: not needed (hooks are no-ops).
 Path filters match the archived GitHub workflow (`ci.yml.archived`).
 
 ```bash
-bin/ci                 # fast path for surfaces changed vs origin/main (default)
+bin/ci                 # fast path for surfaces changed vs origin/staging (default)
 bin/ci --full          # full web gate: all RuboCop, Brakeman, bundler-audit, full RSpec
 CI_FULL=1 bin/ci       # same as --full
 bin/ci --since REF     # REF..HEAD (manual scoped runs)
@@ -64,9 +64,10 @@ On success, writes `.cursor/ci.stamp` (optional bookkeeping; not required for PR
 
 ## CD — manual deploy
 
-Deploys are **not** automated. Run essential CI before deploy — see `deployment.md` and skill `deploy-kamal`.
+Deploys are **not** automated. Run essential CI before deploy — see `deployment.md` and skill `deploy-kamal`. Staging deploys from branch `staging`; production from `main`.
 
 ```bash
+bin/require-deploy-branch staging          # or production
 cd web && kamal deploy -d staging          # or production
 cd frontend/app && kamal deploy -d staging
 cd frontend/backoffice && kamal deploy -d staging
