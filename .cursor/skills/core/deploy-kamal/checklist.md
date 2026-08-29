@@ -40,3 +40,4 @@
 - [ ] Smoke stayed read-only — no invite, password reset, or other mailer-triggering requests
 - [ ] `kamal-proxy ls` shows four services with expected path prefixes
 - [ ] API migration run if schema changed (`kamal app exec ... db:migrate`)
+- [ ] Discord `notify_deploy` posted for this School Lab deploy (success or failure)
