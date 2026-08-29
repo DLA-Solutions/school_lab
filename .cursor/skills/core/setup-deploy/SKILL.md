@@ -145,4 +145,16 @@ cd web && kamal app details -d staging
 
 **OK when:** each reaches the server without auth errors (empty app list OK before first `kamal setup`).
 
-**Ready for deploy** → skill **`deploy-kamal`** (`kamal setup` / `kamal deploy -d staging` per service dir).
+### 10. Discord deploy MCP (for Cursor agents)
+
+Deploy agents post to the School Lab Discord channel after every deploy via the `discord-deploy` MCP.
+
+```bash
+cp .cursor/mcp.env.example .cursor/mcp.env   # if not already present
+# Set DISCORD_BOT_TOKEN + DISCORD_DEPLOY_CHANNEL_ID (see comments in mcp.env.example)
+# Restart Cursor; verify GetDynamicTools finds discord-deploy / notify_deploy
+```
+
+**OK when:** `discord-deploy` MCP is connected in Cursor (or webhook/bot env is filled and Cursor was restarted).
+
+**Ready for deploy** → skill **`deploy-kamal`** (`kamal setup` / `kamal deploy -d staging` per service dir; always finish with `notify_deploy`).
