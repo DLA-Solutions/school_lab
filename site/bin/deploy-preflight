@@ -3,13 +3,17 @@
 # Subset of web/bin/deploy-preflight for the static site service.
 # Read-only — it changes nothing locally or on the servers.
 #
-#   bin/deploy-preflight
+#   bin/deploy-preflight [staging|production]
 #
-# See docs/guidelines/process/deployment.md.
+# Optional destination runs bin/require-deploy-branch. See
+# docs/guidelines/process/git-and-deploy-flow.md.
 
 set -uo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
+
+DEST="${1:-}"
+REPO_ROOT="$(cd .. && pwd)"
 
 APP_SERVER="deploy@77.42.33.33"
 DOMAINS=(scholarpremium.com.br www.scholarpremium.com.br staging.scholarpremium.com.br)
@@ -21,6 +25,21 @@ ok()   { printf '  \033[32mok\033[0m    %s\n' "$1"; }
 bad()  { printf '  \033[31mFALHA\033[0m %s\n' "$1"; failures=$((failures + 1)); }
 warn() { printf '  \033[33maviso\033[0m %s\n' "$1"; warnings=$((warnings + 1)); }
 section() { printf '\n\033[1m%s\033[0m\n' "$1"; }
+
+section "Branch vs destino"
+
+if [ -n "$DEST" ]; then
+  if ! "$REPO_ROOT/bin/require-deploy-branch" "$DEST"; then
+    failures=$((failures + 1))
+  fi
+else
+  branch=$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || printf 'unknown')
+  if [ "$branch" = "staging" ] || [ "$branch" = "main" ]; then
+    ok "branch $branch (passe staging ou production para validar o destino)"
+  else
+    warn "branch $branch — deploy so e permitido de staging (QA) ou main (producao)"
+  fi
+fi
 
 section "Ferramentas locais"
 

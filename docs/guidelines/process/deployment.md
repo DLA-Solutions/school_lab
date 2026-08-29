@@ -5,16 +5,32 @@ Deploys are manual, run from a developer machine with Kamal 2.
 
 ## Branch policy
 
-Deploy **only from `main`**, and only **after** the change is merged via PR. Branch from
-`main`, use atomic commits, open a PR, merge — then:
+Two long-lived branches, one per environment. One-pager:
+[`git-and-deploy-flow.md`](git-and-deploy-flow.md). ADR:
+[`003-environment-branches.md`](../../adr/003-environment-branches.md).
+
+| Deploy | Git branch | After |
+|--------|------------|--------|
+| `kamal deploy -d staging` | `staging` (in sync with `origin/staging`) | Feature PR merged to `staging` |
+| `kamal deploy -d production` | `main` (in sync with `origin/main`) | Fast-forward `origin/staging` onto `main` after QA |
 
 ```bash
+# Staging
+git checkout staging
+git pull origin staging
+bin/require-deploy-branch staging
+
+# Production (only after QA on staging)
+git fetch origin
 git checkout main
-git pull origin main
+git merge --ff-only origin/staging
+git push origin main
+bin/require-deploy-branch production
 ```
 
-Do not deploy from feature branches or to validate an open PR on staging. Cursor rule:
-`.cursor/rules/core/deploy-from-main.mdc`.
+Do not deploy from `feature/*`, `fix/*`, `chore/*`, or `docs/*`. Do not deploy an open
+PR by checking out the feature branch. Cursor rule:
+`.cursor/rules/core/deploy-environment-branches.mdc`.
 
 ## Topology
 
@@ -384,6 +400,9 @@ image). Site and both SPAs only need `.kamal/secrets-common` (registry credentia
 from `.kamal/secrets-common.example`.
 
 ## Day-to-day
+
+Confirm the Git branch matches the destination (`bin/require-deploy-branch staging` or
+`production`) before the first `kamal deploy` below.
 
 ```bash
 # Deploy staging (site → school SPA → backoffice SPA → API)

@@ -57,9 +57,9 @@ Portuguese trigger phrases — **"pode versionar"**, **"versione"**, **"versiona
 
 1. **Atomic commits** — one logical change per commit (this rule); split unrelated work before committing.
 2. **Push** — `git push -u origin HEAD` on the current branch.
-3. **Open a PR** — skill `create-pull-request` (`gh pr create`); return the PR URL.
+3. **Open a PR against `staging`** — skill `create-pull-request` (`gh pr create --base staging`); return the PR URL.
 
-Treat this as explicit permission to commit, push, and open a PR in one flow. Do not skip push or PR. If a PR already exists for the branch, push only — do not create a duplicate.
+Treat this as explicit permission to commit, push, and open a PR in one flow. Do not skip push or PR. If a PR already exists for the branch, push only — do not create a duplicate. Promotion to production is a local fast-forward of `staging` onto `main`, not a GitHub squash/rebase merge.
 
 ## When unsure
 

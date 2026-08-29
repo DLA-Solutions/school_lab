@@ -9,7 +9,7 @@ Deploy one layer or the full stack to **staging** or **production**. Runbook: `d
 
 ## Workflow (end-to-end)
 
-1. Pre-deploy checks (CI, secrets, branch policy — `main` only).
+1. Pre-deploy checks (CI, secrets, branch vs destination — `bin/require-deploy-branch`).
 2. `kamal deploy -d <staging|production>` from the service directory.
 3. Post-deploy smoke (read-only) on success.
 4. **Discord `notify_deploy`** — mandatory last step; success or failure. Never skip.
@@ -33,7 +33,23 @@ Default to **staging** when the destination is ambiguous. Confirm before **produ
 
 ## Before deploy (always)
 
-0. **Essential CI (mandatory before deploy)** — local CI is **not** run on commit, push, or PR; deploy is the quality gate.
+0. **Branch vs destination (mandatory)** — refuse to deploy on mismatch. From repo root:
+
+   ```bash
+   bin/require-deploy-branch staging      # required for -d staging
+   bin/require-deploy-branch production   # required for -d production
+   ```
+
+   | Flag | Required Git branch | Must match |
+   |------|---------------------|------------|
+   | `-d staging` | `staging` | `origin/staging` |
+   | `-d production` | `main` | `origin/main` |
+
+   Feature branches never deploy. Production never deploys from `staging` — fast-forward
+   `origin/staging` onto `main` first (rule `deploy-environment-branches`). If the user is on the wrong
+   branch, stop and tell them to merge/checkout/pull; do not run `kamal deploy`.
+
+1. **Essential CI (mandatory before deploy)** — local CI is **not** run on commit, push, or PR; deploy is the quality gate.
 
    | Layer | Command (from repo root unless noted) |
    |-------|----------------------------------------|
@@ -45,23 +61,23 @@ Default to **staging** when the destination is ambiguous. Confirm before **produ
 
    Stop deploy if any command exits non-zero. `bin/ci --full` from repo root is an alternative when deploying the full stack.
 
-1. **Working directory** — run Kamal from the service directory (`cd site`, `cd frontend/app`, `cd frontend/backoffice`, or `cd web`). Use `bin/kamal` in `site/`, `frontend/app/`, and `frontend/backoffice/` if present.
-2. **Registry token** — in the same shell:
+2. **Working directory** — run Kamal from the service directory (`cd site`, `cd frontend/app`, `cd frontend/backoffice`, or `cd web`). Use `bin/kamal` in `site/`, `frontend/app/`, and `frontend/backoffice/` if present.
+3. **Registry token** — in the same shell:
    ```bash
    export KAMAL_REGISTRY_PASSWORD='...'   # classic PAT: write:packages + read:packages
    ```
-3. **Secrets file** — must exist in that service dir:
+4. **Secrets file** — must exist in that service dir:
    ```bash
    test -f .kamal/secrets-common || cp .kamal/secrets-common.example .kamal/secrets-common
    ```
    For **web** only, also need `.kamal/secrets.staging` or `.kamal/secrets.production` (copy from `.example`).
-4. **Verify Kamal resolves secrets**:
+5. **Verify Kamal resolves secrets**:
    ```bash
    kamal secrets print -d <staging|production>
    ```
    `KAMAL_REGISTRY_USERNAME` and `KAMAL_REGISTRY_PASSWORD` must be non-empty.
-5. **Docker** — `docker info` must succeed locally (Kamal builds on the deploy machine).
-6. **Preflight (API, recommended)** — `cd web && bin/deploy-preflight` before first deploy or when secrets changed.
+6. **Docker** — `docker info` must succeed locally (Kamal builds on the deploy machine).
+7. **Preflight (API, recommended)** — `cd web && bin/deploy-preflight [staging|production]` before first deploy or when secrets changed. Pass the destination so the script also checks the Git branch.
 
 Exit early with clear instructions if any check fails — do not run `kamal deploy` blind.
 
@@ -223,6 +239,7 @@ Database migrations are **not** rolled back with the container. Coordinate API r
 
 - Finish a deploy task without calling `notify_deploy` (unless MCP is misconfigured — then tell the user).
 - Run `kamal deploy` without `-d` (blocked by config, but never omit intentionally).
+- Run `kamal deploy -d staging` except from branch `staging`, or `-d production` except from `main`.
 - Run `kamal proxy remove` — removes the entire kamal-proxy container.
 - Set `proxy.ssl: true` on `web/` or `frontend/` deploy configs.
 - Commit secret files under `.kamal/`.

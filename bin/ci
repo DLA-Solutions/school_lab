@@ -2,7 +2,7 @@
 #
 # Monorepo local CI — path filters match .github/workflows/ci.yml.
 #
-#   bin/ci                 # default: fast path for changed surfaces vs origin/main
+#   bin/ci                 # default: fast path for changed surfaces vs origin/staging
 #   bin/ci --full          # full web lint/security/tests; CI_FULL=1 same
 #   bin/ci --fast          # explicit fast (default)
 #   bin/ci --all           # every surface (web, frontend, backoffice)
@@ -26,7 +26,7 @@ FULL_EXPLICIT=0
 FAST_EXPLICIT=0
 RUN_ALL=0
 FORCE_DOCKER=0
-BASE_REF="origin/main"
+BASE_REF=""
 FORCE_WEB=0
 FORCE_SITE=0
 FORCE_FRONTEND=0
@@ -38,7 +38,7 @@ usage() {
   cat <<'EOF'
 Usage: bin/ci [OPTIONS]
 
-  (no flags)     Run CI for surfaces changed vs --base (default: origin/main).
+  (no flags)     Run CI for surfaces changed vs --base (default: origin/staging).
   --fast         Fast path (default): scoped web lint/tests; skip security scans and Docker.
   --full         Full backend gate: all RuboCop, Brakeman, bundler-audit, full RSpec. CI_FULL=1 same.
   --all          Run web + frontend + backoffice (not site — no PR job in GitHub).
@@ -47,7 +47,7 @@ Usage: bin/ci [OPTIONS]
   --backoffice   Force backoffice SPA checks.
   --site         Note site changes (no automated PR checks; optional docker hint).
   --docker       Build web production image when web surface runs.
-  --base REF     Merge base for change detection (default: origin/main).
+  --base REF     Merge base for change detection (default: origin/staging).
   --since REF    Diff REF..HEAD (manual scoped runs).
   --no-stamp     Do not write .cursor/ci.stamp on success.
   -h, --help     Show this help.
@@ -114,6 +114,9 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+if [ -z "$BASE_REF" ]; then
+  BASE_REF="$(ci_default_base_ref "$REPO_ROOT")"
+fi
 
 if [ "$FAST_EXPLICIT" -eq 1 ]; then
   FAST_MODE=1

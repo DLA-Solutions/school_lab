@@ -8,7 +8,7 @@ alwaysApply: false
 
 Full runbook: `docs/guidelines/process/deployment.md`. Executable workflow: skill **`deploy-kamal`**.
 
-**Branch policy:** deploy only from **`main`**, after the PR is merged and `main` is up to date with `origin/main`. Feature branches and open PRs must not deploy — see rule **`deploy-from-main`** (implementation flow cross-references `git-branch-naming` and `git-atomic-commits`).
+**Branch policy:** `-d staging` only from **`staging`**; `-d production` only from **`main`**. Feature branches and open PRs must not deploy — see rule **`deploy-environment-branches`**. One-pager: `docs/guidelines/process/git-and-deploy-flow.md`.
 
 ## Services
 

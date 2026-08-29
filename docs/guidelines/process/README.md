@@ -46,7 +46,10 @@ anchor docs  ──▶  domain PRD  ──▶  data modeling  ──▶  impleme
 
 ## Branching
 
-- `<prefix>/<short-kebab-slug>` with prefix `feature|fix|refactor|chore|docs`.
+- Long-lived: `staging` (QA environment) and `main` (production). Feature PRs target
+  `staging`. One-pager: [`git-and-deploy-flow.md`](git-and-deploy-flow.md). ADR:
+  [`003-environment-branches.md`](../../adr/003-environment-branches.md).
+- Work branches: `<prefix>/<short-kebab-slug>` with prefix `feature|fix|refactor|chore|docs`.
 - Rule: `rules/core/git-branch-naming`. Skill: `branch-naming`.
 
 ## Design principles
@@ -64,5 +67,6 @@ anchor docs  ──▶  domain PRD  ──▶  data modeling  ──▶  impleme
 - Kamal 2 topology, destinations, secrets, first deploy, rollback:
   [`deployment.md`](deployment.md).
 - Deploys are manual and always take an explicit destination (`-d production|staging`).
+  Staging deploys from branch `staging`; production from `main`.
 - Local CI (`bin/ci`, deploy gate); GitHub Actions disabled:
   [`local-ci.md`](local-ci.md).

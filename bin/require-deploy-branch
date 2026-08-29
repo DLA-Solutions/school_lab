@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+#
+# Refuse a Kamal destination unless the current Git branch is the environment branch
+# and it matches origin. Run from anywhere inside the repo:
+#
+#   bin/require-deploy-branch staging
+#   bin/require-deploy-branch production
+#
+# See docs/guidelines/process/git-and-deploy-flow.md
+
+set -euo pipefail
+
+dest="${1:-}"
+
+if [ "$dest" != "staging" ] && [ "$dest" != "production" ]; then
+  printf 'Usage: bin/require-deploy-branch <staging|production>\n' >&2
+  exit 2
+fi
+
+root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$root"
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  printf '  \033[31mFALHA\033[0m nao e um repositorio git\n' >&2
+  exit 1
+fi
+
+if [ "$dest" = "staging" ]; then
+  expected="staging"
+  remote_ref="origin/staging"
+else
+  expected="main"
+  remote_ref="origin/main"
+fi
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$branch" != "$expected" ]; then
+  printf '  \033[31mFALHA\033[0m kamal -d %s exige a branch %s (atual: %s)\n' "$dest" "$expected" "$branch" >&2
+  printf '         faca o merge no PR, checkout %s, git pull --ff-only, e tente de novo.\n' "$expected" >&2
+  exit 1
+fi
+
+if ! git rev-parse --verify "$remote_ref" >/dev/null 2>&1; then
+  printf '  \033[31mFALHA\033[0m %s nao existe — git fetch origin %s\n' "$remote_ref" "$expected" >&2
+  exit 1
+fi
+
+local_sha="$(git rev-parse HEAD)"
+remote_sha="$(git rev-parse "$remote_ref")"
+
+if [ "$local_sha" != "$remote_sha" ]; then
+  printf '  \033[31mFALHA\033[0m %s local (%s) difere de %s (%s)\n' "$expected" "${local_sha:0:7}" "$remote_ref" "${remote_sha:0:7}" >&2
+  printf '         git pull --ff-only origin %s\n' "$expected" >&2
+  exit 1
+fi
+
+printf '  \033[32mok\033[0m    branch %s alinhada com %s para -d %s\n' "$branch" "$remote_ref" "$dest"
