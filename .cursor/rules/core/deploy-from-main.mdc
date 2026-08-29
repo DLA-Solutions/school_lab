@@ -42,3 +42,4 @@ Then run Kamal from the service directory per skill **`deploy-kamal`**.
 - **Parent agents**, **`deploy-kamal`**, **`backend-ci`**, and any deploy automation — **must not** deploy from a non-`main` branch.
 - If the user asks to deploy while on a feature branch or with an open PR, explain the policy and offer: finish PR → merge → checkout `main` → pull → deploy.
 - **`backend-ci`** opens PRs; it does not deploy. Deploy happens only after merge to `main`.
+- **Deploy agents** — after `kamal deploy` finishes (success or failure), **must** post to Discord via `discord-deploy` MCP `notify_deploy`. See skill **`deploy-kamal`** § Discord notify. Never end a deploy task without this step.
