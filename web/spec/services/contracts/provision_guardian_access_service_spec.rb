@@ -36,7 +36,7 @@ RSpec.describe Contracts::ProvisionGuardianAccessService do
 
   it "skips when the payer already has an active guardian membership" do
     described_class.call(contract: contract)
-    membership = school.memberships.guardian.last
+    membership = school.memberships.where(role: "guardian").last
     membership.user.update!(password: "SenhaAtual123!", password_confirmation: "SenhaAtual123!")
     membership.update!(status: "active")
     ActionMailer::Base.deliveries.clear
