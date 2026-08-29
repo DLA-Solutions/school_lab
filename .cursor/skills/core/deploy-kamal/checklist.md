@@ -26,10 +26,11 @@
 ## Before each deploy
 
 - [ ] Essential CI passed for this layer (see deploy-kamal skill — e.g. `web/bin/backend-ci --full` for API)
+- [ ] `bin/require-deploy-branch staging` or `production` (from repo root; must match `-d`)
 - [ ] Correct service directory (`site/`, `frontend/app/`, `frontend/backoffice/`, or `web/`)
 - [ ] Correct destination: `-d staging` or `-d production`
 - [ ] `kamal secrets print -d <dest>` shows non-empty registry secrets
-- [ ] For production: staging smoke-tested first
+- [ ] For production: staging QA passed, then `git merge --ff-only origin/staging` on `main` and push
 
 ## After deploy
 

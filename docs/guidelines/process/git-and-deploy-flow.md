@@ -78,7 +78,7 @@ Novo fluxo Git (a partir de agora)
 
 main = produção. staging = ambiente de teste.
 Não fazemos deploy a partir de feature/*.
-Não subimos produção “porque o código já está na staging” — precisa do PR para a main.
+Não subimos produção “porque o código já está na staging” — precisa do fast-forward para a main.
 
 Dúvidas: docs/guidelines/process/git-and-deploy-flow.md
 ```
