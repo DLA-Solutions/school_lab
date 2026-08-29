@@ -68,11 +68,17 @@ Use HEREDOC for the body. Return the PR URL.
 If a PR already exists for the branch, push only — do not create a duplicate.
 
 Default base is **`staging`** (QA). Do not open feature PRs against `main`. Production
-promotion is a separate fast-forward PR:
+promotion is a local fast-forward, not a GitHub squash/rebase merge:
 
 ```bash
-gh pr create --base main --head staging --title "Promote staging to production"
+git fetch origin
+git checkout main
+git merge --ff-only origin/staging
+git push origin main
 ```
+
+An optional PR `--base main --head staging` can exist for review visibility. After the
+FF push, GitHub marks it merged. Never click Squash or Rebase and merge on that PR.
 
 ## Branch naming
 

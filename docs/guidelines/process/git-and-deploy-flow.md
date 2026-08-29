@@ -14,7 +14,7 @@ Feature work never deploys. Merge first, then deploy from the environment branch
 
 ```
 feature/meu-trabalho  →  PR para staging  →  merge  →  deploy staging  →  QA
-staging               →  PR para main     →  merge fast-forward       →  deploy production
+staging               →  git merge --ff-only na main →  push main      →  deploy production
 ```
 
 ## Everyday work
@@ -28,8 +28,19 @@ git push -u origin HEAD
 gh pr create --base staging
 ```
 
-After merge and QA sign-off, someone opens `staging` → `main` (**fast-forward only**) and
-deploys production from `main`.
+After merge and QA sign-off, promote with a **local fast-forward** so production keeps the
+same SHA that was tested (GitHub’s merge/squash/rebase buttons all create a new SHA):
+
+```bash
+git fetch origin
+git checkout main
+git merge --ff-only origin/staging
+git push origin main
+# then: bin/require-deploy-branch production && kamal deploy -d production
+```
+
+A PR `staging` → `main` is optional (review visibility). After the FF push, GitHub closes
+it as merged. Do not click Squash or Rebase and merge on that PR.
 
 ## Do not
 
@@ -60,8 +71,10 @@ Novo fluxo Git (a partir de agora)
 • Trabalho novo nasce da branch staging e o PR aponta para staging (não para main).
 • Depois do merge, subimos só staging (kamal deploy -d staging) e testamos em
   https://staging.scholarpremium.com.br
-• Quando estiver aprovado, abrimos um PR staging → main (só fast-forward) e aí
-  sim subimos produção (kamal deploy -d production) a partir da main.
+• Quando estiver aprovado, na máquina:
+  git checkout main && git merge --ff-only origin/staging && git push origin main
+  e só então kamal deploy -d production.
+  (Não usar Squash / Rebase and merge no GitHub — isso muda o SHA testado.)
 
 main = produção. staging = ambiente de teste.
 Não fazemos deploy a partir de feature/*.

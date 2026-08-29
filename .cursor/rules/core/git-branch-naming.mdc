@@ -41,7 +41,8 @@ Examples:
 
 `main` (production) and `staging` (QA) are environment branches, not work branches. Never
 create `feature/staging` or treat them as a prefix. Feature PRs target **`staging`**.
-Promote with a fast-forward PR `staging` → `main`. See rule `deploy-environment-branches`.
+Promote with a fast-forward of `staging` onto `main` (`git merge --ff-only origin/staging`
+on `main`, then push). See rule `deploy-environment-branches`.
 
 ## When creating branches
 

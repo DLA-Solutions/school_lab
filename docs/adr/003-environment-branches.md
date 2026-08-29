@@ -33,8 +33,10 @@ staging    →  PR →  main     →  kamal deploy -d production
 - Open feature/fix/chore/docs PRs against **`staging`** (GitHub default branch).
 - Deploy **staging** only from branch `staging`, in sync with `origin/staging`.
 - Deploy **production** only from branch `main`, in sync with `origin/main`.
-- Promote `staging` → `main` with a **fast-forward** PR so production deploys the same SHA
-  that passed QA.
+- Promote `staging` → `main` with a **local fast-forward** (`git merge --ff-only origin/staging`
+  on `main`, then `git push origin main`) so production deploys the same SHA that passed QA.
+  GitHub’s squash / rebase / merge-commit buttons all create a new SHA — do not use them
+  for promotion. An optional PR `staging` → `main` can exist for review; the FF push closes it.
 - Do not deploy from `feature/*`, `fix/*`, `chore/*`, or `docs/*`.
 - Hotfix that cannot wait for unrelated work on `staging`: branch from `main`, PR to
   `main`, deploy production, then merge `main` back into `staging`.

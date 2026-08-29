@@ -12,7 +12,7 @@ Two long-lived branches, one per environment. One-pager:
 | Deploy | Git branch | After |
 |--------|------------|--------|
 | `kamal deploy -d staging` | `staging` (in sync with `origin/staging`) | Feature PR merged to `staging` |
-| `kamal deploy -d production` | `main` (in sync with `origin/main`) | Fast-forward PR `staging` → `main` |
+| `kamal deploy -d production` | `main` (in sync with `origin/main`) | Fast-forward `origin/staging` onto `main` after QA |
 
 ```bash
 # Staging
@@ -20,9 +20,11 @@ git checkout staging
 git pull origin staging
 bin/require-deploy-branch staging
 
-# Production (only after QA on staging and a fast-forward promote)
+# Production (only after QA on staging)
+git fetch origin
 git checkout main
-git pull origin main
+git merge --ff-only origin/staging
+git push origin main
 bin/require-deploy-branch production
 ```
 

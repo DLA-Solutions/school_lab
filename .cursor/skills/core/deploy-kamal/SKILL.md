@@ -45,8 +45,8 @@ Default to **staging** when the destination is ambiguous. Confirm before **produ
    | `-d staging` | `staging` | `origin/staging` |
    | `-d production` | `main` | `origin/main` |
 
-   Feature branches never deploy. Production never deploys from `staging` — promote with a
-   fast-forward PR first (rule `deploy-environment-branches`). If the user is on the wrong
+   Feature branches never deploy. Production never deploys from `staging` — fast-forward
+   `origin/staging` onto `main` first (rule `deploy-environment-branches`). If the user is on the wrong
    branch, stop and tell them to merge/checkout/pull; do not run `kamal deploy`.
 
 1. **Essential CI (mandatory before deploy)** — local CI is **not** run on commit, push, or PR; deploy is the quality gate.

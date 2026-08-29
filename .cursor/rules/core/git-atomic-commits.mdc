@@ -59,7 +59,7 @@ Portuguese trigger phrases — **"pode versionar"**, **"versione"**, **"versiona
 2. **Push** — `git push -u origin HEAD` on the current branch.
 3. **Open a PR against `staging`** — skill `create-pull-request` (`gh pr create --base staging`); return the PR URL.
 
-Treat this as explicit permission to commit, push, and open a PR in one flow. Do not skip push or PR. If a PR already exists for the branch, push only — do not create a duplicate. Promotion to production is a separate fast-forward PR `staging` → `main`.
+Treat this as explicit permission to commit, push, and open a PR in one flow. Do not skip push or PR. If a PR already exists for the branch, push only — do not create a duplicate. Promotion to production is a local fast-forward of `staging` onto `main`, not a GitHub squash/rebase merge.
 
 ## When unsure
 

@@ -15,8 +15,9 @@ Kamal: rule `deployment` and skill **`deploy-kamal`**. One-pager:
 2. Atomic commits on the feature branch — rule `git-atomic-commits`.
 3. Open a PR targeting **`staging`**; wait for merge.
 4. Deploy staging: checkout `staging`, pull, `bin/require-deploy-branch staging`, then Kamal `-d staging`.
-5. After QA: open a **fast-forward** PR `staging` → `main`; merge; checkout `main`; pull;
-   `bin/require-deploy-branch production`; Kamal `-d production`.
+5. After QA: on `main`, `git merge --ff-only origin/staging` and `git push origin main`
+   (optional review PR `staging` → `main`; do not squash/rebase-merge it). Then checkout
+   `main`; pull; `bin/require-deploy-branch production`; Kamal `-d production`.
 
 Deploy is **never** a substitute for review or merge. Do not deploy a feature branch to
 “try it on staging”.
@@ -34,7 +35,8 @@ Deploy is **never** a substitute for review or merge. Do not deploy a feature br
 - Open PR not yet merged to the environment branch.
 - `-d staging` while on `main`, or `-d production` while on `staging`.
 - Local environment branch not fast-forwarded to its `origin/*` counterpart.
-- Merge-commit promotion `staging` → `main` (use fast-forward so production SHA = QA SHA).
+- Merge-commit, squash, or rebase promotion of `staging` → `main` (use local
+  `git merge --ff-only` so production SHA = QA SHA).
 
 ## Hotfix
 
@@ -48,7 +50,7 @@ PR to `main`, deploy production, then merge `main` into `staging`.
 git checkout staging && git pull origin staging
 bin/require-deploy-branch staging
 
-# Production
+# Production (after promoting with git merge --ff-only origin/staging)
 git checkout main && git pull origin main
 bin/require-deploy-branch production
 ```
