@@ -6,6 +6,10 @@
     "github": {
       "command": "bash",
       "args": ["${workspaceFolder}/.cursor/scripts/run-github-mcp.sh"]
+    },
+    "discord-deploy": {
+      "command": "bash",
+      "args": ["${workspaceFolder}/.cursor/scripts/run-discord-mcp.sh"]
     }
   }
 }

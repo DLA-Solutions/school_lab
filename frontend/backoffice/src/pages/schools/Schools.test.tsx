@@ -260,11 +260,13 @@ describe('Schools page', () => {
       within(dialog).getByLabelText(/e-mail de assinatura/i),
       'colegionsrgo@gmail.com',
     );
+    await user.type(within(dialog).getByLabelText(/^endereço/i), 'Rua das Flores, 100');
     await user.click(within(dialog).getByRole('button', { name: /salvar/i }));
 
     await waitFor(() => expect(received).toBeDefined());
     expect(received?.school.signature_email).toBe('colegionsrgo@gmail.com');
-  });
+    expect(received?.school.address).toBe('Rua das Flores, 100');
+  }, 30000);
 
   it('links every school to its bank credentials', async () => {
     server.use(http.get(apiUrl(SCHOOLS_PATH), () => HttpResponse.json(page(sampleSchools))));

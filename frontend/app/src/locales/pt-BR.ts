@@ -608,7 +608,10 @@ const ptBR = {
     'Obrigatória para emitir boletos. Enviada ao banco como juros de mora.',
   'billingSettings.earlyPaymentDiscountPercent': 'Desconto por pontualidade',
   'billingSettings.earlyPaymentDiscountPercentHelp':
-    'Opcional. Válido até o dia anterior ao vencimento (regra padrão do banco). Deixe em branco para desativar.',
+    'Opcional. No boleto, o banco aplica o desconto até o dia anterior ao vencimento (padrão Cora). Deixe em branco para desativar.',
+  'billingSettings.earlyPaymentDiscountDay': 'Dia limite do desconto',
+  'billingSettings.earlyPaymentDiscountDayHelp':
+    'Dia do calendário (1–28) até o qual o pagamento ganha o desconto. Não é o vencimento: a cobrança pode vencer no dia 10 e o desconto valer até o dia 5. Deixe em branco junto com o percentual para desativar.',
   'billingSettings.fineOff': 'Sem multa',
   'billingSettings.finePercent': 'Multa em percentual',
   'billingSettings.fineFixed': 'Multa em valor fixo',

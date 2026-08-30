@@ -405,6 +405,22 @@ export const supportedCitiesFixture = [
 
 export const fiscalCredentialsBySchool: Record<number, unknown[]> = {};
 
+export const bankCredentialsBySchool: Record<
+  number,
+  Array<{
+    id: number;
+    school_id: number;
+    instrument: string;
+    provider: string;
+    active: boolean;
+    client_id: string;
+    certificate_fingerprint: string;
+    certificate_expires_at: string;
+    uploaded_at: string;
+    uploaded_by_id: number;
+  }>
+> = {};
+
 export const serviceInvoicesFixture = [
   {
     id: 501,
@@ -1538,6 +1554,47 @@ export const handlers = [
 
     const schoolId = Number(params.schoolId);
     return HttpResponse.json({ data: fiscalCredentialsBySchool[schoolId] ?? [] });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/bank_credentials'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const schoolId = Number(params.schoolId);
+
+    return HttpResponse.json({ data: bankCredentialsBySchool[schoolId] ?? [] });
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/bank_credentials'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const schoolId = Number(params.schoolId);
+    const created = {
+      id: 701,
+      school_id: schoolId,
+      instrument: 'bank_slip',
+      provider: 'cora',
+      active: true,
+      client_id: 'client-stage-001',
+      certificate_fingerprint: 'SHA256:AB:CD:EF:12:34',
+      certificate_expires_at: '2027-12-31T23:59:59Z',
+      uploaded_at: '2026-08-10T12:00:00Z',
+      uploaded_by_id: 1,
+    };
+    bankCredentialsBySchool[schoolId] = [created];
+
+    return HttpResponse.json({ data: created }, { status: 201 });
   }),
 
   http.post(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials'), ({ request, params }) => {

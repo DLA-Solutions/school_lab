@@ -3,6 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Signatures::ReconcilePendingContractsJob do
+  include ActiveJob::TestHelper
   let(:school) { create(:school) }
   let!(:config) { create(:school_signature_provider, school: school) }
   let(:school_class) { create(:school_class, school: school) }
@@ -28,7 +29,10 @@ RSpec.describe Signatures::ReconcilePendingContractsJob do
     contract = pending_contract
     stub_status("signed")
 
-    described_class.perform_now
+    expect do
+      described_class.perform_now
+    end.to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
+      .with(contract.id, school.id)
 
     expect(contract.reload).to be_signed
     expect(contract.signed_at).to be_present
@@ -65,7 +69,9 @@ RSpec.describe Signatures::ReconcilePendingContractsJob do
     described_class.perform_now
     first = contract.reload.signed_at
 
-    described_class.perform_now
+    expect do
+      described_class.perform_now
+    end.not_to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
 
     expect(contract.reload.signed_at).to eq(first)
   end

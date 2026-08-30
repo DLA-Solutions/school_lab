@@ -265,8 +265,26 @@ EOF
   printf '%s\n' $rspec_specs
 }
 
+load_local_postgres_env() {
+  local env_file="$WEB_ROOT/.env"
+  [ -f "$env_file" ] || return 0
+
+  local line key val
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      POSTGRES_HOST=*|POSTGRES_PORT=*|POSTGRES_USER=*|POSTGRES_PASSWORD=*)
+        key="${line%%=*}"
+        val="${line#*=}"
+        export "$key=$val"
+        ;;
+    esac
+  done < "$env_file"
+}
+
+load_local_postgres_env
+
 export RAILS_ENV=test
-export POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
+export POSTGRES_HOST="${POSTGRES_HOST:-127.0.0.1}"
 export POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 export POSTGRES_USER="${POSTGRES_USER:-school_lab}"
 export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-school_lab}"

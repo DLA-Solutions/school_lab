@@ -61,11 +61,12 @@ describe('BankCredentialsCard', () => {
   });
 
   it('uploads the certificate and the private key', async () => {
-    let received: FormData | undefined;
+    let received: string | undefined;
     server.use(
       http.get(apiUrl(PATH), () => HttpResponse.json({ data: [] })),
       http.post(apiUrl(PATH), async ({ request }) => {
-        received = await request.formData();
+        // `request.formData()` throws under this test environment — read the multipart body as text.
+        received = new TextDecoder('latin1').decode(await request.arrayBuffer());
         return HttpResponse.json({ data: credential }, { status: 201 });
       }),
     );
@@ -75,10 +76,12 @@ describe('BankCredentialsCard', () => {
     await user.click(screen.getByRole('button', { name: /enviar credenciais/i }));
 
     await waitFor(() => expect(received).toBeDefined());
-    expect(received?.get('provider')).toBe('cora');
-    expect(received?.get('client_id')).toBe('client-stage-001');
-    expect(typeof received?.get('certificate')).toBe('object');
-    expect(typeof received?.get('private_key')).toBe('object');
+    expect(received).toContain('name="provider"');
+    expect(received).toContain('cora');
+    expect(received).toContain('name="client_id"');
+    expect(received).toContain('client-stage-001');
+    expect(received).toContain('name="certificate"');
+    expect(received).toContain('name="private_key"');
   });
 
   // An expired certificate is refused here rather than at the bank, with a charge in flight.
