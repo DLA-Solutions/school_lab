@@ -793,6 +793,24 @@ export const handlers = [
     return HttpResponse.json({ data: school });
   }),
 
+  http.put(apiUrl('/api/v1/schools/:schoolId'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    const schoolId = Number(params.schoolId);
+    const school = sampleSchools.find((row) => row.id === schoolId);
+
+    if (!school) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as { school?: { cnpj?: string | null; signature_email?: string | null } };
+    Object.assign(school, body.school);
+
+    return HttpResponse.json({ data: school });
+  }),
+
   http.post(apiUrl('/api/v1/schools/:schoolId/provisioning/import'), async ({ request }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();

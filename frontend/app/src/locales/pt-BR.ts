@@ -457,6 +457,18 @@ const ptBR = {
   'signature.saveError': 'Não foi possível registrar o token. Verifique sua conexão.',
   'signature.noAccess.description':
     'A assinatura eletrônica é administrada pelo dono da escola.',
+  'signature.school.title': 'Dados da escola para assinatura',
+  'signature.school.status.active': 'Pronta para assinar',
+  'signature.school.status.missing': 'Incompleto',
+  'signature.school.hint':
+    'A escola só pode enviar contratos para assinatura com CNPJ válido e e-mail de assinatura preenchidos — a escola também precisa assinar todo contrato.',
+  'signature.school.field.cnpj': 'CNPJ',
+  'signature.school.field.signatureEmail': 'E-mail de assinatura',
+  'signature.school.save': 'Salvar',
+  'signature.school.saving': 'Salvando...',
+  'signature.school.saved': 'Dados salvos com sucesso.',
+  'signature.school.loadError': 'Não foi possível carregar os dados da escola.',
+  'signature.school.saveError': 'Não foi possível salvar. Verifique sua conexão.',
   'nav.schools': 'Escolas',
   'nav.language': 'Idioma',
   'nav.section.family': 'Portal da família',
