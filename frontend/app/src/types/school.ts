@@ -10,6 +10,9 @@ export interface School {
   school_group_id: number | null;
   onboarding_status?: SchoolOnboardingStatus;
   onboarding_mode?: SchoolOnboardingMode;
+  signature_email?: string | null;
+  /** Whether the school has both a valid CNPJ and a signature e-mail — required to sign contracts. */
+  signs_contracts?: boolean;
 }
 
 /** Backoffice create sends onboarding fields; school-admin self-serve create omits them. */

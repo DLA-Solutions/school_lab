@@ -24,7 +24,9 @@ import {
   listSignatureCredentials,
   registerSignatureCredentials,
 } from 'services/signatureCredentialsApi';
+import { getSchool, updateSchoolSigner } from 'services/schoolsApi';
 import { RegisteredSignatureProvider, SchoolSignatureProvider } from 'types/signatureCredential';
+import { School } from 'types/school';
 
 /** What the API calls each field, in the words the form uses. */
 const FIELD_KEYS = {
@@ -35,6 +37,16 @@ const FIELD_KEYS = {
 type FieldKey = keyof typeof FIELD_KEYS;
 
 const isFieldKey = (field: string): field is FieldKey => field in FIELD_KEYS;
+
+/** Same idea as FIELD_KEYS, for the school-signer form (cnpj / signature_email). */
+const SIGNER_FIELD_KEYS = {
+  cnpj: 'signature.school.field.cnpj',
+  signature_email: 'signature.school.field.signatureEmail',
+} as const;
+
+type SignerFieldKey = keyof typeof SIGNER_FIELD_KEYS;
+
+const isSignerFieldKey = (field: string): field is SignerFieldKey => field in SIGNER_FIELD_KEYS;
 
 /**
  * The school's own Autentique registration.
@@ -63,11 +75,32 @@ const SignatureCredentials = () => {
   // Held after a successful registration: the secret comes back once and cannot be read again.
   const [registered, setRegistered] = useState<RegisteredSignatureProvider | null>(null);
 
+  const [schoolRecord, setSchoolRecord] = useState<School | null>(null);
+  const [schoolLoading, setSchoolLoading] = useState(true);
+  const [schoolLoadError, setSchoolLoadError] = useState('');
+
+  const [cnpj, setCnpj] = useState('');
+  const [signatureEmail, setSignatureEmail] = useState('');
+  const [signerSubmitting, setSignerSubmitting] = useState(false);
+  const [signerErrors, setSignerErrors] = useState<string[]>([]);
+  const [signerSaved, setSignerSaved] = useState(false);
+
   const toMessages = useCallback(
     (details: Record<string, unknown>) =>
       Object.entries(details).flatMap(([field, messages]) =>
         (Array.isArray(messages) ? messages : []).map(
           (message) => `${isFieldKey(field) ? t(FIELD_KEYS[field]) : field}: ${message}`,
+        ),
+      ),
+    [t],
+  );
+
+  const toSignerMessages = useCallback(
+    (details: Record<string, unknown>) =>
+      Object.entries(details).flatMap(([field, messages]) =>
+        (Array.isArray(messages) ? messages : []).map(
+          (message) =>
+            `${isSignerFieldKey(field) ? t(SIGNER_FIELD_KEYS[field]) : field}: ${message}`,
         ),
       ),
     [t],
@@ -95,6 +128,66 @@ const SignatureCredentials = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const loadSchool = useCallback(async () => {
+    if (!schoolId) {
+      setSchoolLoading(false);
+      return;
+    }
+
+    setSchoolLoading(true);
+    setSchoolLoadError('');
+
+    try {
+      const record = await getSchool(schoolId);
+      setSchoolRecord(record);
+      setCnpj(record.cnpj ?? '');
+      setSignatureEmail(record.signature_email ?? '');
+    } catch (err) {
+      setSchoolRecord(null);
+      setSchoolLoadError(resolveApiErrorMessage(err, t, 'signature.school.loadError'));
+    } finally {
+      setSchoolLoading(false);
+    }
+  }, [schoolId, t]);
+
+  useEffect(() => {
+    loadSchool();
+  }, [loadSchool]);
+
+  const canSubmitSigner = Boolean(schoolId) && !signerSubmitting;
+
+  const handleSignerSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!canSubmitSigner || !schoolId) {
+      return;
+    }
+
+    setSignerSubmitting(true);
+    setSignerErrors([]);
+    setSignerSaved(false);
+
+    try {
+      const updated = await updateSchoolSigner(schoolId, {
+        cnpj: cnpj.trim() || null,
+        signature_email: signatureEmail.trim() || null,
+      });
+      setSchoolRecord(updated);
+      setCnpj(updated.cnpj ?? '');
+      setSignatureEmail(updated.signature_email ?? '');
+      setSignerSaved(true);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const messages = toSignerMessages(err.details);
+        setSignerErrors(messages.length > 0 ? messages : [err.message]);
+      } else {
+        setSignerErrors([t('signature.school.saveError')]);
+      }
+    } finally {
+      setSignerSubmitting(false);
+    }
+  };
 
   const activeCredential = useMemo(
     () => credentials.find((credential) => credential.active) ?? null,
@@ -150,6 +243,89 @@ const SignatureCredentials = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader title={t('nav.signatureCredentials')} />
+
+      {schoolLoadError && (
+        <ErrorBanner
+          message={schoolLoadError}
+          onRetry={loadSchool}
+          retryLabel={t('common.tryAgain')}
+        />
+      )}
+
+      <SectionCard>
+        {schoolLoading ? (
+          <Stack alignItems="center" py={6}>
+            <CircularProgress />
+          </Stack>
+        ) : (
+          <Stack component="form" onSubmit={handleSignerSubmit} direction="column" gap={2.5} noValidate>
+            <Stack direction="row" gap={1.5} alignItems="center" flexWrap="wrap">
+              <Typography variant="subtitle1">{t('signature.school.title')}</Typography>
+              {schoolRecord?.signs_contracts ? (
+                <Chip size="small" color="success" label={t('signature.school.status.active')} />
+              ) : (
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={t('signature.school.status.missing')}
+                />
+              )}
+            </Stack>
+
+            <InfoBanner message={t('signature.school.hint')} />
+
+            {signerSaved && <SuccessBanner message={t('signature.school.saved')} />}
+
+            {signerErrors.length > 0 && (
+              <Stack direction="column" gap={1}>
+                {signerErrors.map((message) => (
+                  <ErrorBanner key={message} message={message} />
+                ))}
+              </Stack>
+            )}
+
+            <TextField
+              id="signature-school-cnpj"
+              label={t('signature.school.field.cnpj')}
+              value={cnpj}
+              onChange={(event) => {
+                setCnpj(event.target.value);
+                setSignerErrors([]);
+                setSignerSaved(false);
+              }}
+              disabled={signerSubmitting}
+              variant="filled"
+              fullWidth
+            />
+
+            <TextField
+              id="signature-school-email"
+              label={t('signature.school.field.signatureEmail')}
+              type="email"
+              value={signatureEmail}
+              onChange={(event) => {
+                setSignatureEmail(event.target.value);
+                setSignerErrors([]);
+                setSignerSaved(false);
+              }}
+              disabled={signerSubmitting}
+              variant="filled"
+              fullWidth
+            />
+
+            <Stack direction="row" justifyContent="flex-end">
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!canSubmitSigner}
+                startIcon={signerSubmitting ? <CircularProgress size={16} color="inherit" /> : null}
+              >
+                {signerSubmitting ? t('signature.school.saving') : t('signature.school.save')}
+              </Button>
+            </Stack>
+          </Stack>
+        )}
+      </SectionCard>
 
       {loadError && (
         <ErrorBanner message={loadError} onRetry={load} retryLabel={t('common.tryAgain')} />
