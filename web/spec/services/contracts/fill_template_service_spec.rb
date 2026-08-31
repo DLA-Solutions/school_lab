@@ -149,11 +149,10 @@ RSpec.describe Contracts::FillTemplateService do
       end
     end
 
-    # A sibling band is an "other discount": the family already has a benefit, so that figure
-    # (not the table price) is the reward for paying on time, and a late payment costs 10% more
-    # than it — the same rule a negotiated amount follows below.
+    # A sibling band and the punctuality discount are cumulative: the contract states the tuition
+    # net of the plan discount, and punctuality is measured against that, not the table price.
     context "when the contract also carries a plan discount" do
-      it "runs punctuality the other way: the plan discount result is the on-time price, and being late costs 10% more" do
+      it "stacks the punctuality discount on top of the plan discount" do
         grant_punctuality_discount
         discount = create(:plan_discount, school: school, name: "Desconto irmãos (2º filho)", percent: 5)
         school.create_contract_template!(
@@ -165,20 +164,18 @@ RSpec.describe Contracts::FillTemplateService do
 
         html = described_class.call(contract: contract).data.fetch(:html)
 
-        # 124_915 * 0.95 = 118_669,25 -> R$ 1.186,69 (plan discount) is the on-time price;
-        # being late costs 10% more: 118_669 * 0.10 = R$ 118,67 on top, i.e. R$ 1.305,36 owed
-        # in full, R$ 1.186,69 if paid by the day.
+        # 124_915 * 0.95 = 118_669,25 -> R$ 1.186,69 (plan discount); punctuality then takes 10%
+        # of that, not of the table price: 118_669 * 0.10 = R$ 118,67, leaving R$ 1.068,02.
         expect(html).to include(
-          "Desconto irmãos (2º filho)|5%|R$ 62,46|R$ 1.305,36|R$ 118,67|R$ 1.186,69"
+          "Desconto irmãos (2º filho)|5%|R$ 62,46|R$ 1.186,69|R$ 118,67|R$ 1.068,02"
         )
       end
     end
 
-    # A negotiated amount (a one-off override, not a sibling band) is an "other discount" too:
-    # whatever the school agreed with the family is what is owed on time, and being late costs
-    # 10% more than it — never a further discount off the table price.
+    # A negotiated amount (a one-off override, not a sibling band) stacks the same way: punctuality
+    # is measured against what the family was actually negotiated to pay, not the table price.
     context "when the contract carries a negotiated amount instead of a plan discount" do
-      it "runs punctuality the other way: the negotiated amount is the on-time price, and being late costs 10% more" do
+      it "stacks the punctuality discount on top of the negotiated amount" do
         grant_punctuality_discount
         school.create_contract_template!(
           body_html: "<p>{{contrato.valor}}|{{contrato.pontualidade.desconto}}|" \
@@ -189,9 +186,9 @@ RSpec.describe Contracts::FillTemplateService do
 
         html = described_class.call(contract: contract).data.fetch(:html)
 
-        # The negotiated R$ 874,30 is what is owed on time; being late costs 10% more on top:
-        # 87_430 * 0.10 = R$ 87,43, so R$ 961,73 is owed in full.
-        expect(html).to include("R$ 961,73|R$ 87,43|R$ 874,30")
+        # Punctuality takes 10% of the negotiated R$ 874,30, not of the table price (R$ 1.249,15):
+        # 87_430 * 0.10 = R$ 87,43, leaving R$ 786,87.
+        expect(html).to include("R$ 874,30|R$ 87,43|R$ 786,87")
       end
     end
   end

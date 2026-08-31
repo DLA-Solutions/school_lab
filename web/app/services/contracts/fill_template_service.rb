@@ -79,8 +79,8 @@ module Contracts
         "aluno.turma" => escape(cohort_label(student)),
         "contrato.valor" => escape(formatted_amount),
         # The table price the school publishes, before anything agreed for this family. Punctuality
-        # is never measured against this directly — see `other_discount_given?` for what it runs
-        # against instead once the family has a plan or negotiated discount.
+        # is measured against `contrato.valor` (already net of any plan or negotiated discount),
+        # never against this — the discounts stack rather than compete.
         "contrato.valor.tabela" => escape(money(table_amount_cents)),
         # The other band this contract carries, e.g. a sibling rate — "Desconto irmãos (2º filho)"
         # at 5%, or "Desconto irmãos (3º filho ou mais)" at 10%, capped there for a 4th and beyond.
@@ -223,19 +223,12 @@ module Contracts
       billing_settings&.early_payment_discount_day
     end
 
-    # `total_amount_cents` already resolves to the one figure that matters here: the plan discount
-    # result, the negotiated amount, or (absent both) the table price.
+    # `total_amount_cents` already resolves to the one figure punctuality reacts to: the plan
+    # discount result, the negotiated amount, or (absent both) the table price. Punctuality always
+    # stacks a further 10% off this — a family with a 20% negotiated discount pays that negotiated
+    # price in full, or 10% less than it for paying by the day; there is no other case.
     def punctuality_reference_cents
       tuition_amounts.total_amount_cents
-    end
-
-    # Whether this family has a discount other than punctuality — a sibling band or a manually
-    # negotiated amount. It decides which way the single punctuality rule runs: with nothing else
-    # negotiated, the plan's own price is what is owed, and paying by the day earns 10% off it.
-    # With something else already negotiated, that figure IS the reward for paying on time — the
-    # 10% is what a late family pays on top of it, not what an on-time family saves from it.
-    def other_discount_given?
-      tuition_amounts.plan_discount_applied || contract.negotiated_amount_cents.present?
     end
 
     def punctuality_discount_cents
@@ -244,21 +237,13 @@ module Contracts
       (punctuality_reference_cents * punctuality_percent.to_d / 100).round
     end
 
-    # What is owed in full — the negotiated/plan figure itself when there is no other discount to
-    # react to, or that figure plus the punctuality discount when there is, since it was already
-    # the discounted (on-time) price.
+    # What is owed in full: whatever this family's tuition already is, before punctuality.
     def full_amount_cents
-      return punctuality_reference_cents unless other_discount_given? && punctuality_percent.present?
-
-      punctuality_reference_cents + punctuality_discount_cents
+      punctuality_reference_cents
     end
 
-    # What an on-time family pays — the negotiated/plan figure minus the punctuality discount when
-    # there is nothing else negotiated, or that figure as-is when there is, since it already is
-    # the on-time price.
+    # What an on-time family pays: the tuition above, less the punctuality discount.
     def punctuality_amount_cents
-      return punctuality_reference_cents if other_discount_given?
-
       punctuality_reference_cents - punctuality_discount_cents
     end
 
