@@ -20,7 +20,8 @@ RSpec.describe Contracts::FillTemplateService do
 
   def render_with(body_html)
     school.create_contract_template!(body_html: body_html)
-    contract = create(:contract, school: school, student: student, billing_plan: plan)
+    contract = create(:contract, school: school, student: student, billing_plan: plan,
+                                  negotiated_amount_cents: nil)
 
     described_class.call(contract: contract).data.fetch(:html)
   end
@@ -168,6 +169,26 @@ RSpec.describe Contracts::FillTemplateService do
         expect(html).to include(
           "Desconto irmãos (2º filho)|5%|R$ 62,46|R$ 1.186,69|R$ 118,67|R$ 1.068,02"
         )
+      end
+    end
+
+    # A negotiated amount (a one-off override, not a sibling band) stacks the same way: punctuality
+    # is measured against what the family was actually negotiated to pay, not the table price.
+    context "when the contract carries a negotiated amount instead of a plan discount" do
+      it "stacks the punctuality discount on top of the negotiated amount" do
+        grant_punctuality_discount
+        school.create_contract_template!(
+          body_html: "<p>{{contrato.valor}}|{{contrato.pontualidade.desconto}}|" \
+                     "{{contrato.pontualidade.valor}}</p>"
+        )
+        contract = create(:contract, school: school, student: student, billing_plan: plan,
+                                      plan_discount: nil, negotiated_amount_cents: 87_430)
+
+        html = described_class.call(contract: contract).data.fetch(:html)
+
+        # Punctuality takes 10% of the negotiated R$ 874,30, not of the table price (R$ 1.249,15):
+        # 87_430 * 0.10 = R$ 87,43, leaving R$ 786,87.
+        expect(html).to include("R$ 874,30|R$ 87,43|R$ 786,87")
       end
     end
   end

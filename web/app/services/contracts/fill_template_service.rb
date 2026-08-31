@@ -221,14 +221,12 @@ module Contracts
       billing_settings&.early_payment_discount_day
     end
 
-    # A plan discount (a sibling band) and the punctuality discount stack: punctuality is measured
-    # against what the plan discount already left, not the table price. A contract with no plan
-    # discount has nothing to stack on, so it falls back to the table price, same as always — a
-    # manually negotiated amount is a one-off override, not a second cumulative band.
+    # Punctuality stacks on whatever this family already pays — a plan discount (sibling band) or
+    # a manually negotiated amount — never on the raw table price. `total_amount_cents` already
+    # resolves to the right one of those (falling back to the table price itself when neither
+    # applies), so there is nothing left to branch on here.
     def punctuality_base_cents
-      return tuition_amounts.total_amount_cents if tuition_amounts.plan_discount_applied
-
-      table_amount_cents
+      tuition_amounts.total_amount_cents
     end
 
     def punctuality_discount_cents
