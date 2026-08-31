@@ -39,6 +39,7 @@ copy is **not** rendered from ERB.
 | `sp-people-membership-invite` | `PeopleMailer#membership_invite` |
 | `sp-billing-collection-reminder` | `BillingMailer#collection_reminder` |
 | `sp-marketing-demo-request` | `MarketingMailer#demo_request` |
+| `sp-marketing-demo-confirmation` | `MarketingMailer#demo_request_confirmation` |
 
 Upload procedure and test JSON payloads: `postmark-templates/README.md`.
 

@@ -28,6 +28,7 @@ Logo URL used in artifacts: `https://scholarpremium.com.br/assets/brand/logo_loc
 | `sp-people-membership-invite` | `PeopleMailer#membership_invite` | `people-membership-invite` | `Convite para {{school_name}} — Scholar Premium` |
 | `sp-billing-collection-reminder` | `BillingMailer#collection_reminder` | `billing-collection-reminder` | `Cobrança em aberto — {{amount}}` |
 | `sp-marketing-demo-request` | `MarketingMailer#demo_request` | `marketing-demo-request` | `Demonstração solicitada — {{name}}` |
+| `sp-marketing-demo-confirmation` | `MarketingMailer#demo_request_confirmation` | `marketing-demo-confirmation` | `Recebemos sua solicitação — Scholar Premium` |
 
 Subjects avoid guardian PII where possible (billing uses amount only). Copy lives in the
 template HTML; Rails passes **dynamic variables only**.
@@ -97,6 +98,18 @@ Minimal payload (Pix only):
   "pix_code": "",
   "has_boleto": false,
   "has_pix": false
+}
+```
+
+### `sp-marketing-demo-confirmation`
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `name` | string | Requester name |
+
+```json
+{
+  "name": "Maria Silva"
 }
 ```
 
