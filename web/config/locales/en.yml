@@ -58,6 +58,8 @@ en:
         phone_label: "Phone (WhatsApp)"
         submitted_at_label: "Submitted at"
         source: "Source: Scholar Premium marketing site"
+      demo_request_confirmation:
+        subject: "We received your request — Scholar Premium"
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."

@@ -59,6 +59,8 @@ pt-BR:
         phone_label: "Telefone (WhatsApp)"
         submitted_at_label: "Enviado em"
         source: "Origem: site de marketing Scholar Premium"
+      demo_request_confirmation:
+        subject: "Recebemos sua solicitação — Scholar Premium"
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."
