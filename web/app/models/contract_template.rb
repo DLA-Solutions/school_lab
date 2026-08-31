@@ -16,17 +16,23 @@ class ContractTemplate < ApplicationRecord
     "aluno.rg" => "RG do aluno",
     "aluno.nascimento" => "Data de nascimento do aluno",
     "aluno.turma" => "Turma e ano letivo",
-    "contrato.valor" => "Mensalidade acordada com a família, já com o desconto do plano (ex.: irmãos) quando houver",
+    # Full value owed: the table price itself when the family has no other discount, or that
+    # other discount (plano ou negociado) widened back out by 10% when it has one — see
+    # `contrato.pontualidade.valor` below for why the direction flips.
+    "contrato.valor" => "Mensalidade cheia (valor devido se não houver pagamento pontual)",
     "contrato.valor.tabela" => "Mensalidade de tabela do plano, antes de qualquer desconto",
     "contrato.desconto.nome" => "Nome do desconto do plano aplicado ao contrato (ex.: desconto irmãos), vazio quando não há",
     "contrato.desconto.percentual" => "Percentual do desconto do plano (ex.: 5% para o 2º filho, 10% do 3º em diante)",
     "contrato.desconto.valor" => "Valor abatido pelo desconto do plano",
     "contrato.pontualidade.percentual" => "Percentual do desconto pontualidade (ex.: 10%)",
     "contrato.pontualidade.dia" => "Dia limite para o desconto pontualidade",
-    # Cumulative with `contrato.desconto`, not an alternative to it: measured against
-    # `contrato.valor` (already net of the plan discount), not against the table price.
-    "contrato.pontualidade.desconto" => "Valor abatido pelo desconto pontualidade, somado ao desconto do plano quando houver",
-    "contrato.pontualidade.valor" => "Mensalidade já com o desconto pontualidade somado ao do plano",
+    # The gap between `contrato.valor` and `contrato.pontualidade.valor`, whichever way it runs.
+    "contrato.pontualidade.desconto" => "Diferença entre a mensalidade cheia e a mensalidade paga em dia",
+    # A family with no other discount pays the table price minus 10% for paying on time. A family
+    # that already has another discount (plano ou negociado) has that figure AS the on-time price
+    # — punctuality does not stack a second discount on top of it; being late costs 10% more than
+    # it instead, which is what `contrato.valor` above states.
+    "contrato.pontualidade.valor" => "Mensalidade paga em dia: valor de tabela menos 10%, ou o desconto já negociado quando houver um",
     "contrato.vencimento" => "Dia de vencimento",
     "contrato.inicio" => "Início da vigência",
     "responsaveis" => "Bloco com os dados de todos os responsáveis (um ou dois)",

@@ -78,9 +78,9 @@ module Contracts
         "aluno.nascimento" => escape(format_date(student.birth_date)),
         "aluno.turma" => escape(cohort_label(student)),
         "contrato.valor" => escape(formatted_amount),
-        # The table price the school publishes, before anything agreed for this family. The
-        # punctuality figures are all measured against what is left after the plan discount below,
-        # not against this — the two discounts are cumulative, not alternatives.
+        # The table price the school publishes, before anything agreed for this family. Punctuality
+        # is never measured against this directly — see `other_discount_given?` for what it runs
+        # against instead once the family has a plan or negotiated discount.
         "contrato.valor.tabela" => escape(money(table_amount_cents)),
         # The other band this contract carries, e.g. a sibling rate — "Desconto irmãos (2º filho)"
         # at 5%, or "Desconto irmãos (3º filho ou mais)" at 10%, capped there for a 4th and beyond.
@@ -167,10 +167,12 @@ module Contracts
     end
 
     # What this family agreed to pay: the table price, less the plan discount (e.g. a sibling
-    # band) when the contract carries one. Same figure `Billing::ContractTuitionAmounts` charges
-    # by, so the contract and the boleto never disagree about what "the tuition" is.
+    # band) when the contract carries one, and further widened back out to what a late family
+    # owes when that other discount is the reason the reference figure is discounted at all. Same
+    # figure `Billing::ContractTuitionAmounts` charges by (before that widening), so the contract
+    # and the boleto never disagree about what "the tuition" is.
     def formatted_amount
-      money(tuition_amounts.total_amount_cents)
+      money(full_amount_cents)
     end
 
     # The school's published price for the plan, before anything agreed for this family.
@@ -221,22 +223,43 @@ module Contracts
       billing_settings&.early_payment_discount_day
     end
 
-    # Punctuality stacks on whatever this family already pays — a plan discount (sibling band) or
-    # a manually negotiated amount — never on the raw table price. `total_amount_cents` already
-    # resolves to the right one of those (falling back to the table price itself when neither
-    # applies), so there is nothing left to branch on here.
-    def punctuality_base_cents
+    # `total_amount_cents` already resolves to the one figure that matters here: the plan discount
+    # result, the negotiated amount, or (absent both) the table price.
+    def punctuality_reference_cents
       tuition_amounts.total_amount_cents
+    end
+
+    # Whether this family has a discount other than punctuality — a sibling band or a manually
+    # negotiated amount. It decides which way the single punctuality rule runs: with nothing else
+    # negotiated, the plan's own price is what is owed, and paying by the day earns 10% off it.
+    # With something else already negotiated, that figure IS the reward for paying on time — the
+    # 10% is what a late family pays on top of it, not what an on-time family saves from it.
+    def other_discount_given?
+      tuition_amounts.plan_discount_applied || contract.negotiated_amount_cents.present?
     end
 
     def punctuality_discount_cents
       return 0 if punctuality_percent.blank?
 
-      (punctuality_base_cents * punctuality_percent.to_d / 100).round
+      (punctuality_reference_cents * punctuality_percent.to_d / 100).round
     end
 
+    # What is owed in full — the negotiated/plan figure itself when there is no other discount to
+    # react to, or that figure plus the punctuality discount when there is, since it was already
+    # the discounted (on-time) price.
+    def full_amount_cents
+      return punctuality_reference_cents unless other_discount_given? && punctuality_percent.present?
+
+      punctuality_reference_cents + punctuality_discount_cents
+    end
+
+    # What an on-time family pays — the negotiated/plan figure minus the punctuality discount when
+    # there is nothing else negotiated, or that figure as-is when there is, since it already is
+    # the on-time price.
     def punctuality_amount_cents
-      punctuality_base_cents - punctuality_discount_cents
+      return punctuality_reference_cents if other_discount_given?
+
+      punctuality_reference_cents - punctuality_discount_cents
     end
 
     def money(cents)
