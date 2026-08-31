@@ -1,9 +1,23 @@
 # Shared path filters for local CI — mirrors archived .github/workflows/ci.yml.archived.
 # Source from bin/ci and git hooks.
 
+ci_default_base_ref() {
+  local repo_root="$1"
+
+  if git -C "$repo_root" rev-parse --verify origin/staging >/dev/null 2>&1; then
+    printf '%s' origin/staging
+  else
+    printf '%s' origin/main
+  fi
+}
+
 ci_resolve_base_ref() {
   local repo_root="$1"
-  local base_ref="${2:-origin/main}"
+  local base_ref="${2:-}"
+
+  if [ -z "$base_ref" ]; then
+    base_ref="$(ci_default_base_ref "$repo_root")"
+  fi
 
   if git -C "$repo_root" rev-parse --verify "$base_ref" >/dev/null 2>&1; then
     printf '%s' "$base_ref"
@@ -15,15 +29,17 @@ ci_resolve_base_ref() {
     return 0
   fi
 
-  git -C "$repo_root" merge-base HEAD origin/main 2>/dev/null || git -C "$repo_root" rev-parse HEAD~1
+  git -C "$repo_root" merge-base HEAD origin/staging 2>/dev/null \
+    || git -C "$repo_root" merge-base HEAD origin/main 2>/dev/null \
+    || git -C "$repo_root" rev-parse HEAD~1
 }
 
-# three_dot: BASE...HEAD (default for branch vs main)
+# three_dot: BASE...HEAD (default for branch vs origin/staging)
 # two_dot:   BASE..HEAD (commits being pushed)
 # staged:    git index vs HEAD (pre-commit)
 ci_changed_files() {
   local repo_root="$1"
-  local base_ref="${2:-origin/main}"
+  local base_ref="${2:-}"
   local diff_mode="${3:-three_dot}"
 
   case "$diff_mode" in
@@ -89,7 +105,7 @@ EOF
 
 ci_detect_surfaces() {
   local repo_root="$1"
-  local base_ref="${2:-origin/main}"
+  local base_ref="${2:-}"
   local diff_mode="${3:-three_dot}"
   local changed
 
@@ -102,7 +118,7 @@ ci_pr_gate_excluded_path() {
   local file="$1"
 
   case "$file" in
-    .github/workflows/* | bin/ci | bin/ci-fast | bin/lib/ci-surfaces.sh | bin/install-git-hooks | .githooks/*)
+    .github/workflows/* | bin/ci | bin/ci-fast | bin/lib/ci-surfaces.sh | bin/install-git-hooks | bin/require-deploy-branch | .githooks/*)
       return 0
       ;;
     .cursor/* | docs/*)
@@ -132,7 +148,7 @@ EOF
 # so infra churn on a web branch does not require frontend/backoffice/site checks.
 ci_detect_pr_surfaces() {
   local repo_root="$1"
-  local base_ref="${2:-origin/main}"
+  local base_ref="${2:-}"
   local diff_mode="${3:-three_dot}"
   local changed filtered
 

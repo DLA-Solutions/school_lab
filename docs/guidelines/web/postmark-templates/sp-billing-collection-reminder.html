@@ -1,0 +1,44 @@
+<!-- Postmark preheader: Cobrança de {{amount}} com vencimento em {{due_date}} -->
+<h1 style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #082366; line-height: 1.3;">
+  Cobrança em aberto
+</h1>
+
+<p style="margin: 0 0 16px; color: #171923;">
+  Olá, {{guardian_name}}.
+</p>
+
+<p style="margin: 0 0 24px; color: #4A5568;">
+  Identificamos uma cobrança de <strong style="color: #171923;">{{amount}}</strong> com vencimento em
+  <strong style="color: #171923;">{{due_date}}</strong> ainda em aberto.
+</p>
+
+{{#has_boleto}}
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 20px;">
+  <tr>
+    <td align="center" style="border-radius: 8px; background-color: #E5A417;">
+      <a href="{{boleto_url}}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 16px; font-weight: 600; color: #082366; text-decoration: none; border-radius: 8px;">
+        Pagar boleto
+      </a>
+    </td>
+  </tr>
+</table>
+{{/has_boleto}}
+
+{{#has_pix}}
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0 0 24px; background-color: #F7FAFC; border: 1px solid #D9E1FA; border-radius: 8px;">
+  <tr>
+    <td style="padding: 16px 20px;">
+      <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #082366;">
+        Pix copia e cola
+      </p>
+      <p style="margin: 0; font-size: 13px; color: #4A5568; word-break: break-all; font-family: 'Courier New', Courier, monospace; line-height: 1.5;">
+        {{pix_code}}
+      </p>
+    </td>
+  </tr>
+</table>
+{{/has_pix}}
+
+<p style="margin: 0; color: #7E89AC; font-size: 14px;">
+  Se você já pagou, desconsidere este e-mail.
+</p>

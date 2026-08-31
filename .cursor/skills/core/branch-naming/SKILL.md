@@ -30,10 +30,13 @@ When two types apply, use the **dominant** change or split into separate branche
 ## Creating a branch
 
 ```bash
-git checkout main
-git pull
+git checkout staging
+git pull origin staging
 git checkout -b <prefix>/<slug>
 ```
+
+`main` and `staging` are reserved environment branches. Production hotfixes branch from
+`main` and PR to `main`, then merge `main` back into `staging`.
 
 ## Validation checklist
 

@@ -15,7 +15,7 @@ When the user says **"pode versionar"**, **"versione"**, or **"versionar"**, run
 
 1. **Atomic commits** — rule `git-atomic-commits` (one logical change per commit).
 2. **Push** — `git push -u origin HEAD`.
-3. **Open PR** — this skill (`gh pr create`); return the PR URL.
+3. **Open PR** — this skill (`gh pr create --base staging`); return the PR URL.
 
 Step 3 is mandatory after steps 1–2 unless a PR already exists for the branch (then push only).
 
@@ -26,7 +26,7 @@ Copy and track:
 ```
 - [ ] 1. git status / diff / log (parallel)
 - [ ] 2. Push branch if needed (git push -u origin HEAD)
-- [ ] 3. gh pr create
+- [ ] 3. gh pr create --base staging
 ```
 
 Optional: run `bin/ci` or `web/bin/backend-ci` manually when validating changes before review.
@@ -52,7 +52,7 @@ Requires `git_write` + network permissions.
 ### 3. Create PR
 
 ```bash
-gh pr create --title "..." --body "$(cat <<'EOF'
+gh pr create --base staging --title "..." --body "$(cat <<'EOF'
 ## Summary
 - ...
 
@@ -66,6 +66,19 @@ EOF
 Use HEREDOC for the body. Return the PR URL.
 
 If a PR already exists for the branch, push only — do not create a duplicate.
+
+Default base is **`staging`** (QA). Do not open feature PRs against `main`. Production
+promotion is a local fast-forward, not a GitHub squash/rebase merge:
+
+```bash
+git fetch origin
+git checkout main
+git merge --ff-only origin/staging
+git push origin main
+```
+
+An optional PR `--base main --head staging` can exist for review visibility. After the
+FF push, GitHub marks it merged. Never click Squash or Rebase and merge on that PR.
 
 ## Branch naming
 
