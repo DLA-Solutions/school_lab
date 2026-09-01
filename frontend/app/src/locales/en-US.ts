@@ -228,6 +228,7 @@ const enUS: Messages = {
   'myPreceptorship.pdfError': 'Could not download the PDF.',
   'myPreceptorship.by': 'by {teacher}',
   'myPreceptorship.download': 'Download PDF',
+  'myPreceptorship.listSection.title': 'Your reports',
   'myPreceptorship.empty.title': 'No reports yet',
   'myPreceptorship.empty.description':
     'When the school publishes a preceptorship report, it appears here.',
@@ -282,6 +283,7 @@ const enUS: Messages = {
   'myReportCards.version': 'Version {version}',
   'myReportCards.viewDetail': 'View details',
   'myReportCards.downloadPdf': 'Download PDF',
+  'myReportCards.listSection.title': 'Your report cards',
   'myReportCards.empty.title': 'No report cards yet',
   'myReportCards.empty.description':
     'When the school releases a report card for your family, it appears here.',

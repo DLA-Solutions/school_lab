@@ -157,6 +157,45 @@ describe('Preceptorship, as the family reads it', () => {
     renderPage();
 
     expect(await screen.findByText(/nenhum relatório ainda/i)).toBeInTheDocument();
+    expect(screen.getByText('Preceptoria')).toBeInTheDocument();
+    expect(screen.getByText('Seus relatórios')).toBeInTheDocument();
+    expect(
+      screen.getByText(/quando a escola publicar um relatório de preceptoria/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText('∅')).not.toBeInTheDocument();
+
+    const title = screen.getByText(/nenhum relatório ainda/i);
+    const copyStack = title.closest('.MuiStack-root');
+    expect(copyStack).toHaveStyle({ flexDirection: 'column' });
+    expect(copyStack?.parentElement).toHaveStyle({ flexDirection: 'column' });
+  });
+
+  it('shows a spinner until the list arrives, not the empty state', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    server.use(
+      http.get(apiUrl(BASE), async () => {
+        await gate;
+        return HttpResponse.json({
+          data: [],
+          meta: { page: 1, per_page: 25, total: 0 },
+        });
+      }),
+    );
+
+    renderPage();
+
+    expect(await screen.findByRole('progressbar')).toBeInTheDocument();
+    expect(screen.queryByText(/nenhum relatório ainda/i)).not.toBeInTheDocument();
+
+    release();
+
+    expect(await screen.findByText(/nenhum relatório ainda/i)).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 });
 

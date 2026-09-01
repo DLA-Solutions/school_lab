@@ -160,7 +160,7 @@ const MyReportCards = () => {
 
       {error && <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />}
 
-      <SectionCard>
+      <SectionCard title={t('myReportCards.listSection.title')}>
         {students.length > 1 && (
           <Box mb={2}>
             <TextField

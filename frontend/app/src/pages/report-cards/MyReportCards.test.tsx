@@ -92,5 +92,17 @@ describe('MyReportCards', () => {
     renderPage();
 
     expect(await screen.findByText(/nenhum boletim ainda/i)).toBeInTheDocument();
+    expect(screen.getByText('Boletins')).toBeInTheDocument();
+    expect(screen.getByText('Seus boletins')).toBeInTheDocument();
+    expect(
+      screen.getByText(/quando a escola liberar um boletim para a sua família/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText('∅')).not.toBeInTheDocument();
+
+    const title = screen.getByText(/nenhum boletim ainda/i);
+    const copyStack = title.closest('.MuiStack-root');
+    expect(copyStack).toHaveStyle({ flexDirection: 'column' });
+    expect(copyStack?.parentElement).toHaveStyle({ flexDirection: 'column' });
   });
 });

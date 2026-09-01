@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -25,7 +26,7 @@ const MyPreceptorship = () => {
   const schoolId = school?.school_id ?? null;
 
   const [reports, setReports] = useState<PreceptorshipReport[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -87,12 +88,16 @@ const MyPreceptorship = () => {
 
       {error && <ErrorBanner message={error} />}
 
-      <SectionCard>
-        {!loading && reports.length === 0 ? (
+      <SectionCard title={t('myPreceptorship.listSection.title')}>
+        {loading ? (
+          <Stack alignItems="center" py={6}>
+            <CircularProgress />
+          </Stack>
+        ) : reports.length === 0 ? (
           <EmptyState
             title={t('myPreceptorship.empty.title')}
             description={t('myPreceptorship.empty.description')}
-            headingLevel={2}
+            headingLevel={3}
           />
         ) : (
           <Stack direction="column" divider={<Divider />}>

@@ -228,6 +228,7 @@ const ptBR = {
   'myPreceptorship.pdfError': 'Não foi possível baixar o PDF.',
   'myPreceptorship.by': 'por {teacher}',
   'myPreceptorship.download': 'Baixar PDF',
+  'myPreceptorship.listSection.title': 'Seus relatórios',
   'myPreceptorship.empty.title': 'Nenhum relatório ainda',
   'myPreceptorship.empty.description':
     'Quando a escola publicar um relatório de preceptoria, ele aparece aqui.',
@@ -281,6 +282,7 @@ const ptBR = {
   'myReportCards.version': 'Versão {version}',
   'myReportCards.viewDetail': 'Ver detalhes',
   'myReportCards.downloadPdf': 'Baixar PDF',
+  'myReportCards.listSection.title': 'Seus boletins',
   'myReportCards.empty.title': 'Nenhum boletim ainda',
   'myReportCards.empty.description':
     'Quando a escola liberar um boletim para a sua família, ele aparece aqui.',
