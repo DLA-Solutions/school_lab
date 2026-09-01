@@ -210,6 +210,11 @@ en:
           attributes:
             cpf:
               taken: "is already registered for another guardian in this school"
+        authorized_pickup:
+          attributes:
+            cpf:
+              taken: "This person is already registered as authorized."
+              invalid: "is not a valid CPF"
         teacher_bank_account:
           attributes:
             base:

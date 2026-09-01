@@ -211,6 +211,11 @@ pt-BR:
           attributes:
             cpf:
               taken: "já cadastrado para outro responsável nesta escola"
+        authorized_pickup:
+          attributes:
+            cpf:
+              taken: "Esta pessoa já está cadastrada como autorizada."
+              invalid: "não é um CPF válido"
         teacher_bank_account:
           attributes:
             base:
