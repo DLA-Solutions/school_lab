@@ -127,6 +127,7 @@ const enUS: Messages = {
   'pickups.saveError': 'This person could not be authorised.',
   'pickups.nameRequired': 'Enter the name.',
   'pickups.cpfRequired': 'Enter the CPF.',
+  'pickups.cpfInvalid': 'Invalid CPF.',
   'pickups.empty.title': 'Nobody authorised yet',
   'pickups.empty.guardian': 'Authorise below who may collect the student from school.',
   'pickups.empty.school': 'The family has not authorised anybody through the portal yet.',

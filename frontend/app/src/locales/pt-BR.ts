@@ -127,6 +127,7 @@ const ptBR = {
   'pickups.saveError': 'Não foi possível autorizar esta pessoa.',
   'pickups.nameRequired': 'Informe o nome.',
   'pickups.cpfRequired': 'Informe o CPF.',
+  'pickups.cpfInvalid': 'CPF inválido.',
   'pickups.empty.title': 'Ninguém autorizado ainda',
   'pickups.empty.guardian': 'Autorize abaixo quem pode buscar o estudante na escola.',
   'pickups.empty.school': 'A família ainda não autorizou ninguém pelo portal.',
