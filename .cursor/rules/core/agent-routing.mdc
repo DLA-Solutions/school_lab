@@ -18,7 +18,7 @@ Full orchestrator docs: `.cursor/agents/rails-implementer.md`, `.cursor/agents/f
 | `frontend/app/**`, `frontend/backoffice/**`, `packages/design-tokens/**`, `frontend/design-system-docs/**`, `mobile/**` | **frontend-implementer** | review skills only (`review-web-ui`, `review-mobile`) |
 | `docs/**` (PRDs, modeling, DBML) | **prd-reviewer** / **doc-consistency-checker** | — |
 | `site/**` | Parent or general-purpose | No dedicated orchestrator |
-| Cross-surface deploy | Skill `deploy-kamal` | Coordinate rails + frontend orchestrators when multiple surfaces change; **must** call `discord-deploy` `notify_deploy` when deploy finishes |
+| Cross-surface deploy | Skill `deploy-kamal` | Coordinate rails + frontend orchestrators when multiple surfaces change; **must** call `discord-deploy` `notify_deploy` when deploy finishes; after **successful staging**, skill `jira-task-lifecycle` → Ready to QA |
 
 ## Mandatory rules
 
@@ -78,5 +78,6 @@ Before writing code, ask:
 2. Is this `web/`, client, docs, or mixed?
 3. If mixed — sequential or parallel per table above?
 4. Delegate via `Task` with a **complete** prompt (PRD path, surface, acceptance criteria).
+5. If the user named a `DLA-N` Jira issue (or asked to pick one): skill **`jira-task-lifecycle`** Start phase (assign to implementer, **In Progress**) **before** delegating implementation.
 
 If unsure, delegate to the orchestrator for the **primary** path being edited; it will coordinate the other side.

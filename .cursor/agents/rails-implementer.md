@@ -80,6 +80,7 @@ State transition (AASM):
 - Vendor integration review: skill `review-vendor-integration`
 - DBML publish: skill `publish-dbdocs` after schema changes
 - Design principles: `docs/guidelines/process/design-principles.md`
+- Jira ticket named (`DLA-N`): skill `jira-task-lifecycle` Start phase (assign + In Progress) before coding if the parent has not already claimed it
 
 ## Verification
 
