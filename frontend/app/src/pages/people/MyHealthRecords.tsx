@@ -135,6 +135,13 @@ const MyHealthRecords = () => {
           schoolId={schoolId}
           studentId={openFor.id}
           studentName={openFor.name}
+          onSaved={(record) => {
+            setChildren((current) =>
+              current.map((row) =>
+                row.student.id === openFor.id ? { ...row, filled: record.filled } : row,
+              ),
+            );
+          }}
           onClose={() => {
             setOpenFor(null);
             // A sheet just filled in should stop reading as blank behind the dialog.

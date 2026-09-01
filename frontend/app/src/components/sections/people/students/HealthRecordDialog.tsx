@@ -8,7 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { ErrorBanner } from 'design-system';
+import { ErrorBanner, SuccessBanner } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { ApiError } from 'services/api';
 import { StudentHealthRecord, getHealthRecord, saveHealthRecord } from 'services/healthRecordsApi';
@@ -23,6 +23,7 @@ export interface HealthRecordDialogProps {
   /** Reaches the sheet through the guardian portal rather than the school's register. */
   asGuardian?: boolean;
   onClose: () => void;
+  onSaved?: (record: StudentHealthRecord) => void;
 }
 
 /**
@@ -39,6 +40,7 @@ const HealthRecordDialog = ({
   studentName,
   asGuardian = false,
   onClose,
+  onSaved,
 }: HealthRecordDialogProps) => {
   const { t, locale } = useTranslation();
 
@@ -83,6 +85,7 @@ const HealthRecordDialog = ({
       setRecord(data);
       setContent(data.content);
       setSaved(true);
+      onSaved?.(data);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('health.saveError'));
     } finally {
@@ -117,6 +120,8 @@ const HealthRecordDialog = ({
             <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />
           )}
 
+          {saved && <SuccessBanner message={t('health.saved')} />}
+
           <Typography variant="body2" color="text.secondary">
             {t('health.description')}
           </Typography>
@@ -148,7 +153,7 @@ const HealthRecordDialog = ({
               />
 
               <Typography variant="caption" color="text.secondary">
-                {saved ? t('health.saved') : writtenBy}
+                {writtenBy}
               </Typography>
             </>
           )}

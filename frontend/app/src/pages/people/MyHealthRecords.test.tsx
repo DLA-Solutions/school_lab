@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   ACCESS_EXPIRES_AT,
@@ -116,5 +116,42 @@ describe('MyHealthRecords', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Não foi possível carregar seus filhos.',
     );
+  });
+
+  it('updates the filled chip after saving without closing the dialog', async () => {
+    stubChildren([child(1, 'Mariana Sales')]);
+    stubSheet(1, false);
+    server.use(
+      http.patch(apiUrl(sheetPath(1)), () =>
+        HttpResponse.json({
+          data: {
+            id: 1,
+            student_id: 1,
+            student_name: 'Mariana Sales',
+            content: 'Asma',
+            content_updated_at: '2026-08-17T12:00:00Z',
+            updated_by_name: 'carol@example.com',
+            filled: true,
+          },
+        }),
+      ),
+    );
+
+    renderWithTheme(<MyHealthRecords />);
+
+    expect(await screen.findByText('Não preenchida')).toBeInTheDocument();
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Ficha de saúde de Mariana Sales' }),
+    );
+
+    await user.type(await screen.findByLabelText(/Informações de saúde/), 'Asma');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Preenchida')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Não preenchida')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Ficha salva.');
   });
 });
