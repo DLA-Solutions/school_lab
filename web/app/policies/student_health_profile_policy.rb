@@ -1,34 +1,22 @@
 # frozen_string_literal: true
 
-# Health records are written by whoever answers for the child and read by the school. Only the
-# family may create, edit, or withdraw them — staff need the list but must not change it.
-class StudentHealthRecordPolicy < ApplicationPolicy
-  def index?
+# The health profile is written by whoever answers for the child and read by the school. Only the
+# family may keep it current — staff need it at the gate but must not add facts on their behalf.
+class StudentHealthProfilePolicy < ApplicationPolicy
+  def show?
     return staff_with?(:manage_people) && same_school? if Current.membership&.staff_member?
 
     guardian_of_the_student?
   end
 
-  def show?
-    index?
-  end
-
-  def create?
-    guardian_of_the_student?
-  end
-
   def update?
-    create?
-  end
-
-  def destroy?
-    create?
+    guardian_of_the_student?
   end
 
   private
 
   def student
-    record.is_a?(StudentHealthRecord) ? record.student : record
+    record.is_a?(StudentHealthProfile) ? record.student : record
   end
 
   def same_school?
@@ -47,7 +35,7 @@ class StudentHealthRecordPolicy < ApplicationPolicy
     def resolve
       return scope.none unless Current.school
 
-      scope.kept.where(school_id: Current.school.id)
+      scope.where(school_id: Current.school.id)
     end
   end
 end
