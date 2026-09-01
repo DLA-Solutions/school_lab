@@ -68,5 +68,7 @@ anchor docs  ──▶  domain PRD  ──▶  data modeling  ──▶  impleme
   [`deployment.md`](deployment.md).
 - Deploys are manual and always take an explicit destination (`-d production|staging`).
   Staging deploys from branch `staging`; production from `main`.
+- After a successful staging deploy, Jira `DLA-N` moves to **Ready to QA** (skill
+  `jira-task-lifecycle`). Claim + **In Progress** happen when implementation starts.
 - Local CI (`bin/ci`, deploy gate); GitHub Actions disabled:
   [`local-ci.md`](local-ci.md).

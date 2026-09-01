@@ -14,7 +14,7 @@ Kamal: rule `deployment` and skill **`deploy-kamal`**. One-pager:
 1. Branch from **`staging`** — naming per rule `git-branch-naming`.
 2. Atomic commits on the feature branch — rule `git-atomic-commits`.
 3. Open a PR targeting **`staging`**; wait for merge.
-4. Deploy staging: checkout `staging`, pull, `bin/require-deploy-branch staging`, then Kamal `-d staging`.
+4. Deploy staging: checkout `staging`, pull, `bin/require-deploy-branch staging`, then Kamal `-d staging`. On success, skill **`jira-task-lifecycle`** → **Ready to QA**.
 5. After QA: on `main`, `git merge --ff-only origin/staging` and `git push origin main`
    (optional review PR `staging` → `main`; do not squash/rebase-merge it). Then checkout
    `main`; pull; `bin/require-deploy-branch production`; Kamal `-d production`.
@@ -68,4 +68,5 @@ Then run Kamal from the service directory per skill **`deploy-kamal`**.
 - **`backend-ci`** opens PRs against **`staging`**; it does not deploy.
 - **Deploy agents** — after `kamal deploy` finishes (success or failure), **must** post to
   Discord via `discord-deploy` MCP `notify_deploy`. See skill **`deploy-kamal`** § Discord
-  notify. Never end a deploy task without this step.
+  notify. Never end a deploy task without this step. After a **successful staging** deploy,
+  also run skill **`jira-task-lifecycle`** Ready to QA (before Discord).

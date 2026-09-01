@@ -1,6 +1,6 @@
 ---
 name: deploy-kamal
-description: Deploy site, school SPA, backoffice SPA, or web API to staging or production with Kamal 2. Use when the user asks to deploy site, frontend, SPA, backoffice, API, or web to staging or production, run kamal deploy, cut over path routing, or fix kamal-proxy deploy errors. Always finish with Discord notify_deploy via discord-deploy MCP (success or failure).
+description: Deploy site, school SPA, backoffice SPA, or web API to staging or production with Kamal 2. Use when the user asks to deploy site, frontend, SPA, backoffice, API, or web to staging or production, run kamal deploy, cut over path routing, or fix kamal-proxy deploy errors. Always finish with Discord notify_deploy via discord-deploy MCP (success or failure). After a successful staging deploy, move the related DLA Jira issue to Ready to QA (skill jira-task-lifecycle).
 ---
 
 # Deploy with Kamal
@@ -12,7 +12,8 @@ Deploy one layer or the full stack to **staging** or **production**. Runbook: `d
 1. Pre-deploy checks (CI, secrets, branch vs destination — `bin/require-deploy-branch`).
 2. `kamal deploy -d <staging|production>` from the service directory.
 3. Post-deploy smoke (read-only) on success.
-4. **Discord `notify_deploy`** — mandatory last step; success or failure. Never skip.
+4. **Staging success only** — skill `jira-task-lifecycle` Ready to QA phase (In Progress → Ready to QA). Skip on failure and on production.
+5. **Discord `notify_deploy`** — mandatory last step; success or failure. Never skip.
 
 ## Parse the request
 
@@ -175,6 +176,18 @@ ssh deploy@77.42.33.33 'docker exec kamal-proxy kamal-proxy ls'
 
 Smoke is **read-only**. Do not POST invite, password reset, guardian access, school create/handoff, or any other mailer-triggering route. Do not run `rails runner` mailers or `deliver_now` on the host. See rule `email-safety`.
 
+## Jira Ready to QA (staging success only)
+
+After smoke passes on **`-d staging`**, run skill **`jira-task-lifecycle`** Ready to QA phase: assign stays as-is; status **In Progress** → **Ready to QA**; comment with staging URL + git SHA.
+
+Skip when:
+
+- Deploy **failed**, or smoke did not pass
+- Destination is **production** (QA already happened)
+- Atlassian MCP is missing — tell the user; do **not** treat that as a deploy failure
+
+Do this **before** Discord notify so Discord remains the last step.
+
 ## Discord notify (mandatory — do not end deploy without this)
 
 Post to the **School Lab** Discord channel via the `discord-deploy` MCP. This is the **last step** of every deploy task. Do it once the user's requested deploy has a final result — after smoke on success, or as soon as `kamal deploy` fails. **Do not skip on failure.** A deploy task is incomplete until Discord is notified (or the user is told MCP is misconfigured).
@@ -238,6 +251,7 @@ Database migrations are **not** rolled back with the container. Coordinate API r
 ## Do not
 
 - Finish a deploy task without calling `notify_deploy` (unless MCP is misconfigured — then tell the user).
+- Skip Jira Ready to QA after a successful staging deploy (unless Atlassian MCP is missing — then tell the user).
 - Run `kamal deploy` without `-d` (blocked by config, but never omit intentionally).
 - Run `kamal deploy -d staging` except from branch `staging`, or `-d production` except from `main`.
 - Run `kamal proxy remove` — removes the entire kamal-proxy container.
