@@ -37,6 +37,7 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`index.md`](students-and-enrollments/index.md) | Integration, waves, NFR summary, competitive grounding (**20** `students.*` canonicals) | validated |
 | [`enrollments.md`](students-and-enrollments/enrollments.md) | BC1 — enrollment lifecycle, import, contracts, exports | validated |
 | [`records.md`](students-and-enrollments/records.md) | BC2 — student/guardian records, class structure, assign class | validated |
+| [`health-records.md`](students-and-enrollments/health-records.md) | BC3 — guardian health profile, multiple records, optional PDF (DLA-11) | validated |
 
 ### Domain folder — communication
 

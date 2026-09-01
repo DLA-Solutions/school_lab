@@ -437,6 +437,48 @@ Table student_guardians {
   }
 }
 
+Table student_health_profiles {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  blood_type varchar [note: 'A+ | A- | B+ | B- | AB+ | AB- | O+ | O- | unknown — optional']
+  health_plan_name varchar(120) [note: 'LGPD: sensitive health data']
+  health_plan_number varchar(60) [note: 'LGPD: sensitive health data']
+  emergency_contact_name varchar(120) [note: 'LGPD: personal data']
+  emergency_contact_phone varchar(30) [note: 'LGPD: personal data; digits normalized in model']
+  special_care_notes text [note: 'LGPD: sensitive health data; max 2000 chars in model']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    student_id [unique, note: 'One profile per student']
+    school_id
+  }
+}
+
+Table student_health_records {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  title varchar(120) [not null, default: '', note: 'Required label — allergy, medication, condition']
+  content text [not null, default: '', note: 'LGPD: sensitive health data; max 5000 chars in model']
+  created_by_id integer [note: 'users.id — guardian who created the entry']
+  updated_by_id integer [note: 'users.id — last family author']
+  content_updated_at timestamp [note: 'Set when content or document changes']
+  discarded_at timestamp [note: 'Discard gem — guardian soft delete']
+  created_at timestamp
+  updated_at timestamp
+
+  Note: 'Optional PDF via has_one_attached :document (Active Storage). application/pdf only; max 10 MB. Not archive_documents in MVP.'
+
+  indexes {
+    student_id [note: 'Non-unique — many records per student']
+    school_id
+    created_by_id
+    updated_by_id
+  }
+}
+
 // --- Billing ---
 
 Table billing_plans {
@@ -1842,6 +1884,14 @@ Ref: school_modules.school_id > schools.id
 Ref: student_guardians.guardian_id > guardians.id
 Ref: student_guardians.student_id > students.id
 Ref: student_guardians.school_id > schools.id
+
+Ref: student_health_profiles.school_id > schools.id
+Ref: student_health_profiles.student_id > students.id
+
+Ref: student_health_records.school_id > schools.id
+Ref: student_health_records.student_id > students.id
+Ref: student_health_records.created_by_id > users.id
+Ref: student_health_records.updated_by_id > users.id
 
 Ref: contracts.student_id > students.id
 Ref: contracts.billing_plan_id > billing_plans.id
