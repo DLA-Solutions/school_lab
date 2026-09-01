@@ -219,6 +219,15 @@ en:
           attributes:
             base:
               no_payment_route: "Fill in a pix key, or the bank, branch and account number."
+        student_health_record:
+          attributes:
+            document:
+              invalid: "must be a PDF file"
+              too_large: "must be 10 MB or smaller"
+        student_health_profile:
+          attributes:
+            blood_type:
+              inclusion: "is not a valid blood type"
     attributes:
       contract_template:
         logo: "Logo"
