@@ -18,9 +18,22 @@ import MyHealthRecords from './MyHealthRecords';
 const user = userEvent.setup({ delay: null });
 
 const STUDENTS_PATH = `/api/v1/schools/${SCHOOL_ID}/me/students`;
-const sheetPath = (id: number) => `/api/v1/schools/${SCHOOL_ID}/me/students/${id}/health_record`;
+const profilePath = (id: number) =>
+  `/api/v1/schools/${SCHOOL_ID}/me/students/${id}/health_profile`;
+const recordsPath = (id: number) =>
+  `/api/v1/schools/${SCHOOL_ID}/me/students/${id}/health_records`;
 
 const child = (id: number, name: string) => ({ id, school_id: SCHOOL_ID, name });
+
+const emptyProfile = (studentId: number) => ({
+  student_id: studentId,
+  blood_type: null,
+  health_plan_name: null,
+  health_plan_number: null,
+  emergency_contact_name: null,
+  emergency_contact_phone: null,
+  special_care_notes: null,
+});
 
 const stubChildren = (rows: ReturnType<typeof child>[]) =>
   server.use(
@@ -29,21 +42,16 @@ const stubChildren = (rows: ReturnType<typeof child>[]) =>
     ),
   );
 
-const stubSheet = (id: number, filled: boolean) =>
+const stubHealth = (
+  id: number,
+  {
+    profile = emptyProfile(id),
+    records = [] as unknown[],
+  }: { profile?: Record<string, unknown>; records?: unknown[] } = {},
+) =>
   server.use(
-    http.get(apiUrl(sheetPath(id)), () =>
-      HttpResponse.json({
-        data: {
-          id: filled ? 1 : null,
-          student_id: id,
-          student_name: null,
-          content: filled ? 'Alérgica a amendoim.' : '',
-          content_updated_at: filled ? '2026-08-17T12:00:00Z' : null,
-          updated_by_name: filled ? 'carol@example.com' : null,
-          filled,
-        },
-      }),
-    ),
+    http.get(apiUrl(profilePath(id)), () => HttpResponse.json({ data: profile })),
+    http.get(apiUrl(recordsPath(id)), () => HttpResponse.json({ data: records })),
   );
 
 beforeEach(() => {
@@ -56,8 +64,8 @@ beforeEach(() => {
 describe('MyHealthRecords', () => {
   it('lists every child the family answers for', async () => {
     stubChildren([child(1, 'Mariana Sales'), child(2, 'Pedro Sales')]);
-    stubSheet(1, true);
-    stubSheet(2, false);
+    stubHealth(1);
+    stubHealth(2);
 
     renderWithTheme(<MyHealthRecords />);
 
@@ -65,11 +73,13 @@ describe('MyHealthRecords', () => {
     expect(screen.getByText('Pedro Sales')).toBeInTheDocument();
   });
 
-  // The family's first question here is which sheets are still blank.
-  it('says which sheets are still empty', async () => {
+  it('says which children still have nothing on file', async () => {
     stubChildren([child(1, 'Mariana Sales'), child(2, 'Pedro Sales')]);
-    stubSheet(1, true);
-    stubSheet(2, false);
+    stubHealth(1, {
+      profile: { ...emptyProfile(1), blood_type: 'O+' },
+      records: [{ id: 1, title: 'Alergia', content: 'Amendoim' }],
+    });
+    stubHealth(2);
 
     renderWithTheme(<MyHealthRecords />);
 
@@ -77,17 +87,31 @@ describe('MyHealthRecords', () => {
     expect(screen.getByText('Não preenchida')).toBeInTheDocument();
   });
 
-  it('opens the sheet of the child chosen', async () => {
+  it('shows the profile section and records list for each child', async () => {
     stubChildren([child(1, 'Mariana Sales')]);
-    stubSheet(1, true);
+    stubHealth(1, {
+      records: [
+        {
+          id: 1,
+          student_id: 1,
+          title: 'Alergia a amendoim',
+          content: 'Usa bombinha.',
+          has_document: false,
+          document_url: null,
+          document_filename: null,
+          created_by_name: 'carol@example.com',
+          updated_by_name: 'carol@example.com',
+          content_updated_at: '2026-08-17T12:00:00Z',
+          created_at: '2026-08-17T10:00:00Z',
+        },
+      ],
+    });
 
     renderWithTheme(<MyHealthRecords />);
 
-    await user.click(
-      await screen.findByRole('button', { name: 'Ficha de saúde de Mariana Sales' }),
-    );
-
-    expect(await screen.findByDisplayValue('Alérgica a amendoim.')).toBeInTheDocument();
+    expect(await screen.findByText('Dados gerais')).toBeInTheDocument();
+    expect(screen.getByText('Registros de saúde')).toBeInTheDocument();
+    expect(await screen.findByText('Alergia a amendoim')).toBeInTheDocument();
   });
 
   it('says plainly when no child is linked', async () => {
@@ -98,10 +122,9 @@ describe('MyHealthRecords', () => {
     expect(await screen.findByText('Nenhum filho vinculado ao seu cadastro.')).toBeInTheDocument();
   });
 
-  // One unreadable sheet should not hide the other children.
-  it('still lists a child whose sheet could not be read', async () => {
+  it('still lists a child whose health data could not be read', async () => {
     stubChildren([child(1, 'Mariana Sales')]);
-    server.use(http.get(apiUrl(sheetPath(1)), () => HttpResponse.error()));
+    server.use(http.get(apiUrl(profilePath(1)), () => HttpResponse.error()));
 
     renderWithTheme(<MyHealthRecords />);
 
@@ -118,40 +141,45 @@ describe('MyHealthRecords', () => {
     );
   });
 
-  it('updates the filled chip after saving without closing the dialog', async () => {
+  it('updates the filled chip after saving the profile', async () => {
     stubChildren([child(1, 'Mariana Sales')]);
-    stubSheet(1, false);
+    let saved = false;
     server.use(
-      http.patch(apiUrl(sheetPath(1)), () =>
+      http.get(apiUrl(profilePath(1)), () =>
         HttpResponse.json({
-          data: {
-            id: 1,
-            student_id: 1,
-            student_name: 'Mariana Sales',
-            content: 'Asma',
-            content_updated_at: '2026-08-17T12:00:00Z',
-            updated_by_name: 'carol@example.com',
-            filled: true,
-          },
+          data: saved ? { ...emptyProfile(1), blood_type: 'O+' } : emptyProfile(1),
         }),
       ),
+      http.get(apiUrl(recordsPath(1)), () => HttpResponse.json({ data: [] })),
+      http.put(apiUrl(profilePath(1)), () => {
+        saved = true;
+        return HttpResponse.json({ data: { ...emptyProfile(1), blood_type: 'O+' } });
+      }),
     );
 
     renderWithTheme(<MyHealthRecords />);
 
     expect(await screen.findByText('Não preenchida')).toBeInTheDocument();
 
-    await user.click(
-      await screen.findByRole('button', { name: 'Ficha de saúde de Mariana Sales' }),
-    );
-
-    await user.type(await screen.findByLabelText(/Informações de saúde/), 'Asma');
+    const bloodType = await screen.findByLabelText('Tipo sanguíneo');
+    await user.click(bloodType);
+    await user.click(screen.getByRole('option', { name: 'O+' }));
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     await waitFor(() => {
       expect(screen.getByText('Preenchida')).toBeInTheDocument();
     });
     expect(screen.queryByText('Não preenchida')).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Ficha salva.');
+  });
+
+  it('opens the add-record dialog from the list', async () => {
+    stubChildren([child(1, 'Mariana Sales')]);
+    stubHealth(1);
+
+    renderWithTheme(<MyHealthRecords />);
+
+    await user.click(await screen.findByRole('button', { name: 'Adicionar registro' }));
+
+    expect(await screen.findByLabelText(/^Título/)).toBeInTheDocument();
   });
 });

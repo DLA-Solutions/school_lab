@@ -11,7 +11,7 @@ import { useSearchParams } from 'react-router';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
 import AuthorizedPickupsDialog from 'components/sections/people/students/AuthorizedPickupsDialog';
-import HealthRecordDialog from 'components/sections/people/students/HealthRecordDialog';
+import HealthRecordsDialog from 'components/sections/people/students/HealthRecordsDialog';
 import StudentAcademicDialog from 'components/sections/people/students/StudentAcademicDialog';
 import StudentFormDialog from 'components/sections/people/students/StudentFormDialog';
 import {
@@ -495,11 +495,12 @@ const Students = () => {
       )}
 
       {healthFor && (
-        <HealthRecordDialog
+        <HealthRecordsDialog
           open
           schoolId={school.school_id}
           studentId={healthFor.id}
           studentName={healthFor.name}
+          readOnly
           onClose={() => setHealthFor(null)}
         />
       )}

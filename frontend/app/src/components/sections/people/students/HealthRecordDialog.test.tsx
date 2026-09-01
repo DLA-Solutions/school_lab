@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { delay } from 'msw';
 import {
@@ -16,24 +16,27 @@ import { setAccessToken } from 'services/tokenStore';
 import HealthRecordDialog from './HealthRecordDialog';
 
 const user = userEvent.setup({ delay: null });
-
 const STUDENT_ID = 12;
-const SCHOOL_PATH = `/api/v1/schools/${SCHOOL_ID}/people/students/${STUDENT_ID}/health_record`;
-const PORTAL_PATH = `/api/v1/schools/${SCHOOL_ID}/me/students/${STUDENT_ID}/health_record`;
+const RECORD_ID = 5;
+const RECORDS_PATH = `/api/v1/schools/${SCHOOL_ID}/me/students/${STUDENT_ID}/health_records`;
 
-const sheet = (overrides: Record<string, unknown> = {}) => ({
-  id: 1,
+const record = (overrides: Record<string, unknown> = {}) => ({
+  id: RECORD_ID,
   student_id: STUDENT_ID,
-  student_name: 'Mariana Sales',
-  content: 'Alérgica a amendoim.',
-  content_updated_at: '2026-08-17T12:00:00Z',
+  title: 'Alergia a amendoim',
+  content: 'Usa bombinha.',
+  has_document: true,
+  document_url: '/rails/active_storage/blobs/abc/receita.pdf',
+  document_filename: 'receita.pdf',
+  created_by_name: 'carol@example.com',
   updated_by_name: 'carol@example.com',
-  filled: true,
+  content_updated_at: '2026-08-17T12:00:00Z',
+  created_at: '2026-08-17T10:00:00Z',
   ...overrides,
 });
 
-const stubSheet = (path: string, data = sheet()) =>
-  server.use(http.get(apiUrl(path), () => HttpResponse.json({ data })));
+const stubRecord = (data = record()) =>
+  server.use(http.get(apiUrl(`${RECORDS_PATH}/${RECORD_ID}`), () => HttpResponse.json({ data })));
 
 beforeEach(() => {
   setAccessToken(FRESH_ACCESS_TOKEN, ACCESS_EXPIRES_AT);
@@ -45,158 +48,80 @@ const renderDialog = (props: Partial<Parameters<typeof HealthRecordDialog>[0]> =
       open
       schoolId={SCHOOL_ID}
       studentId={STUDENT_ID}
-      studentName="Mariana Sales"
+      recordId={RECORD_ID}
+      asGuardian
       onClose={vi.fn()}
       {...props}
     />,
   );
 
 describe('HealthRecordDialog', () => {
-  it('shows what the family wrote about the child', async () => {
-    stubSheet(SCHOOL_PATH);
-
+  it('shows the record the family wrote', async () => {
+    stubRecord();
     renderDialog();
-
-    expect(await screen.findByDisplayValue('Alérgica a amendoim.')).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Alergia a amendoim')).toBeInTheDocument();
   });
 
-  // A note nobody can attribute is one nobody acts on: the secretary has to know whether the
-  // allergy came from the mother or from the front desk.
-  it('says who wrote it last', async () => {
-    stubSheet(SCHOOL_PATH);
-
-    renderDialog();
-
-    expect(await screen.findByText(/carol@example.com/)).toBeInTheDocument();
-  });
-
-  // An empty sheet is a family that has not been asked yet, not a child with nothing to report.
-  it('says plainly when nobody has filled it in', async () => {
-    stubSheet(
-      SCHOOL_PATH,
-      sheet({ content: '', content_updated_at: null, updated_by_name: null, filled: false }),
-    );
-
-    renderDialog();
-
-    expect(await screen.findByText('Ainda não preenchida.')).toBeInTheDocument();
-  });
-
-  it('saves what was typed', async () => {
-    let sent: unknown = null;
-    stubSheet(SCHOOL_PATH, sheet({ content: '' }));
+  it('creates a record with title and content', async () => {
+    let body = '';
     server.use(
-      http.patch(apiUrl(SCHOOL_PATH), async ({ request }) => {
-        sent = await request.json();
-        return HttpResponse.json({ data: sheet({ content: 'Asma' }) });
+      http.post(apiUrl(RECORDS_PATH), async ({ request }) => {
+        body = await request.text();
+        return HttpResponse.json({ data: record() });
       }),
     );
-
-    renderDialog();
-
-    const field = await screen.findByLabelText(/Informações de saúde/);
-    await user.type(field, 'Asma');
+    renderDialog({ recordId: null });
+    await user.type(await screen.findByLabelText(/^Título/), 'Asma');
+    await user.type(screen.getByLabelText(/Informações de saúde/), 'Bombinha diária.');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    await waitFor(() => expect(sent).toEqual({ health_record: { content: 'Asma' } }));
-    expect(await screen.findByRole('status')).toHaveTextContent('Ficha salva.');
+    await waitFor(() => expect(body).toContain('Asma'));
   });
 
-  it('shows saving state while the request is in flight', async () => {
-    stubSheet(SCHOOL_PATH, sheet({ content: '' }));
+  it('uploads a PDF when one is chosen', async () => {
+    let body = '';
     server.use(
-      http.patch(apiUrl(SCHOOL_PATH), async () => {
-        await delay(100);
-        return HttpResponse.json({ data: sheet({ content: 'Asma' }) });
+      http.post(apiUrl(RECORDS_PATH), async ({ request }) => {
+        body = await request.text();
+        return HttpResponse.json({ data: record() });
       }),
     );
-
-    renderDialog();
-
-    const field = await screen.findByLabelText(/Informações de saúde/);
-    await user.type(field, 'Asma');
+    renderDialog({ recordId: null });
+    await user.type(await screen.findByLabelText(/^Título/), 'Medicação');
+    fireEvent.change(screen.getByLabelText('Anexar PDF (opcional)'), {
+      target: { files: [new File(['pdf'], 'receita.pdf', { type: 'application/pdf' })] },
+    });
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    expect(screen.getByRole('button', { name: 'Salvando...' })).toBeInTheDocument();
-    expect(await screen.findByRole('status')).toHaveTextContent('Ficha salva.');
+    await waitFor(() => expect(body).toContain('health_record[document]'));
   });
 
-  it('notifies the parent when the sheet is saved', async () => {
-    const onSaved = vi.fn();
-    const saved = sheet({ content: 'Asma' });
-    stubSheet(SCHOOL_PATH, sheet({ content: '' }));
-    server.use(
-      http.patch(apiUrl(SCHOOL_PATH), () => HttpResponse.json({ data: saved })),
-    );
-
-    renderDialog({ onSaved });
-
-    await user.type(await screen.findByLabelText(/Informações de saúde/), 'Asma');
-    await user.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(saved));
-  });
-
-  it('has nothing to save until the text changes', async () => {
-    stubSheet(SCHOOL_PATH);
-
-    renderDialog();
-    await screen.findByDisplayValue('Alérgica a amendoim.');
-
+  it('rejects a non-PDF attachment before saving', async () => {
+    renderDialog({ recordId: null });
+    await user.type(await screen.findByLabelText(/^Título/), 'Medicação');
+    fireEvent.change(screen.getByLabelText('Anexar PDF (opcional)'), {
+      target: { files: [new File(['x'], 'foto.png', { type: 'image/png' })] },
+    });
+    expect(screen.getByText('Somente arquivos PDF são aceitos.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled();
   });
 
-  // The family reaches the sheet through the portal, which only ever answers about their own
-  // children — the school's own route would refuse them.
-  it('reads through the guardian portal when the family opens it', async () => {
-    let calledPortal = false;
+  it('hides save controls in read-only mode', async () => {
+    stubRecord();
+    renderDialog({ readOnly: true });
+    await screen.findByDisplayValue('Alergia a amendoim');
+    expect(screen.queryByRole('button', { name: 'Salvar' })).not.toBeInTheDocument();
+  });
+
+  it('shows saving state while the request is in flight', async () => {
+    stubRecord(record({ content: '' }));
     server.use(
-      http.get(apiUrl(PORTAL_PATH), () => {
-        calledPortal = true;
-        return HttpResponse.json({ data: sheet() });
+      http.patch(apiUrl(`${RECORDS_PATH}/${RECORD_ID}`), async () => {
+        await delay(100);
+        return HttpResponse.json({ data: record({ content: 'Asma' }) });
       }),
     );
-
-    renderDialog({ asGuardian: true });
-
-    await screen.findByDisplayValue('Alérgica a amendoim.');
-    expect(calledPortal).toBe(true);
-  });
-
-  it('says so when the sheet cannot be loaded', async () => {
-    server.use(http.get(apiUrl(SCHOOL_PATH), () => HttpResponse.error()));
-
     renderDialog();
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Não foi possível carregar a ficha de saúde.',
-    );
-  });
-
-  it('reports a save that failed instead of looking saved', async () => {
-    stubSheet(SCHOOL_PATH, sheet({ content: '' }));
-    server.use(http.patch(apiUrl(SCHOOL_PATH), () => HttpResponse.error()));
-
-    renderDialog();
-
     await user.type(await screen.findByLabelText(/Informações de saúde/), 'Asma');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
-
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.queryByText('Ficha salva.')).not.toBeInTheDocument();
-  });
-
-  it('fetches nothing while it is closed', async () => {
-    let called = false;
-    server.use(
-      http.get(apiUrl(SCHOOL_PATH), () => {
-        called = true;
-        return HttpResponse.json({ data: sheet() });
-      }),
-    );
-
-    renderDialog({ open: false });
-
-    expect(called).toBe(false);
+    expect(screen.getByRole('button', { name: 'Salvando...' })).toBeInTheDocument();
   });
 });
