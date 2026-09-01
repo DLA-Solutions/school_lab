@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { delay } from 'msw';
 import {
   ACCESS_EXPIRES_AT,
   FRESH_ACCESS_TOKEN,
@@ -98,7 +99,42 @@ describe('HealthRecordDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
     await waitFor(() => expect(sent).toEqual({ health_record: { content: 'Asma' } }));
-    expect(await screen.findByText('Ficha salva.')).toBeInTheDocument();
+    expect(await screen.findByRole('status')).toHaveTextContent('Ficha salva.');
+  });
+
+  it('shows saving state while the request is in flight', async () => {
+    stubSheet(SCHOOL_PATH, sheet({ content: '' }));
+    server.use(
+      http.patch(apiUrl(SCHOOL_PATH), async () => {
+        await delay(100);
+        return HttpResponse.json({ data: sheet({ content: 'Asma' }) });
+      }),
+    );
+
+    renderDialog();
+
+    const field = await screen.findByLabelText(/Informações de saúde/);
+    await user.type(field, 'Asma');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    expect(screen.getByRole('button', { name: 'Salvando...' })).toBeInTheDocument();
+    expect(await screen.findByRole('status')).toHaveTextContent('Ficha salva.');
+  });
+
+  it('notifies the parent when the sheet is saved', async () => {
+    const onSaved = vi.fn();
+    const saved = sheet({ content: 'Asma' });
+    stubSheet(SCHOOL_PATH, sheet({ content: '' }));
+    server.use(
+      http.patch(apiUrl(SCHOOL_PATH), () => HttpResponse.json({ data: saved })),
+    );
+
+    renderDialog({ onSaved });
+
+    await user.type(await screen.findByLabelText(/Informações de saúde/), 'Asma');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(saved));
   });
 
   it('has nothing to save until the text changes', async () => {
