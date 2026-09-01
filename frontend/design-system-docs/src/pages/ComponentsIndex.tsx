@@ -23,7 +23,6 @@ const items = [
 const strings = [
   [<code key="k">ConfirmDialog</code>, 'confirmLabel, cancelLabel', "'Confirm', 'Cancel'"],
   [<code key="k">DataTable</code>, 'rangeLabel', "'1-25 of 400'"],
-  [<code key="k">EmptyState</code>, 'icon', "the '∅' glyph"],
   [<code key="k">ErrorBanner</code>, 'retryLabel', "'Retry'"],
   [<code key="k">SearchField</code>, 'placeholder, ariaLabel', "'Search for...', 'Search'"],
   [

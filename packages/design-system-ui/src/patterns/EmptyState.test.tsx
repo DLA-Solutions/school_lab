@@ -11,13 +11,26 @@ describe('EmptyState', () => {
     expect(screen.getByText('Enrol one to start.')).toBeInTheDocument();
   });
 
-  it('hides the decorative glyph from assistive technology', () => {
-    renderWithTheme(<EmptyState title="No students yet" />);
+  it('stacks the title and description in a column', () => {
+    const { container } = renderWithTheme(
+      <EmptyState title="No students yet" description="Enrol one to start." />,
+    );
 
-    expect(screen.getByText('∅').closest('[aria-hidden="true"]')).toBeInTheDocument();
+    const stacks = container.querySelectorAll('.MuiStack-root');
+    expect(stacks.length).toBeGreaterThanOrEqual(2);
+    stacks.forEach((stack) => {
+      expect(stack).toHaveStyle({ flexDirection: 'column' });
+    });
   });
 
-  it('lets the caller replace the glyph, still hidden from assistive technology', () => {
+  it('does not render a decorative tile unless the caller passed an icon', () => {
+    const { container } = renderWithTheme(<EmptyState title="No students yet" />);
+
+    expect(screen.queryByText('∅')).not.toBeInTheDocument();
+    expect(container.querySelector('[aria-hidden="true"]')).not.toBeInTheDocument();
+  });
+
+  it('renders a caller-supplied icon, still hidden from assistive technology', () => {
     renderWithTheme(<EmptyState title="No students yet" icon={<span>+</span>} />);
 
     expect(screen.getByText('+').closest('[aria-hidden="true"]')).toBeInTheDocument();
