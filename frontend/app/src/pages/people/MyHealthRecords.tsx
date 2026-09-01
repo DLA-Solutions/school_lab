@@ -1,38 +1,46 @@
 import { useCallback, useEffect, useState } from 'react';
-import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { EmptyState, ErrorBanner, PageHeader, SectionCard, SemanticChip } from 'design-system';
-import HealthRecordDialog from 'components/sections/people/students/HealthRecordDialog';
+import HealthProfileSection from 'components/sections/people/students/HealthProfileSection';
+import HealthRecordsList from 'components/sections/people/students/HealthRecordsList';
 import { useTranslation } from 'providers/I18nContext';
 import { useGuardianSchool } from 'providers/useGuardianSchool';
 import { ApiError } from 'services/api';
-import { getHealthRecord } from 'services/healthRecordsApi';
+import { getHealthProfile, listHealthRecords } from 'services/healthRecordsApi';
 import { listMyStudents } from 'services/studentsApi';
 import { Student } from 'types/student';
 
-/** A child and whether their sheet has anything on it yet. */
-interface ChildSheet {
+/** A child and whether anything has been written about their health yet. */
+interface ChildHealth {
   student: Student;
   filled: boolean;
 }
 
+const profileHasData = (profile: Awaited<ReturnType<typeof getHealthProfile>>) =>
+  Boolean(
+    profile.blood_type ||
+      profile.health_plan_name ||
+      profile.health_plan_number ||
+      profile.emergency_contact_name ||
+      profile.emergency_contact_phone ||
+      profile.special_care_notes,
+  );
+
 /**
- * The family's side of the health sheet: one row per child, each opening the sheet for that child.
- *
- * Sits alongside the boletos in the portal because it is the same errand — the handful of things
- * the school needs from a family, in the one place they already come to.
+ * The family's side of the health sheet: one section per child — stable profile facts plus
+ * individual records the school must recognise.
  */
 const MyHealthRecords = () => {
   const { t } = useTranslation();
   const membership = useGuardianSchool();
   const schoolId = membership?.school_id ?? null;
 
-  const [children, setChildren] = useState<ChildSheet[]>([]);
+  const [children, setChildren] = useState<ChildHealth[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [openFor, setOpenFor] = useState<Student | null>(null);
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -45,21 +53,21 @@ const MyHealthRecords = () => {
     try {
       const response = await listMyStudents(schoolId);
 
-      // Whether each sheet has been filled in is read per child: the listing endpoint answers
-      // about students, and the family's first question here is which ones are still blank.
-      const sheets = await Promise.all(
+      const rows = await Promise.all(
         response.data.map(async (student) => {
           try {
-            const record = await getHealthRecord(schoolId, student.id, { asGuardian: true });
-            return { student, filled: record.filled };
+            const [profile, records] = await Promise.all([
+              getHealthProfile(schoolId, student.id, { asGuardian: true }),
+              listHealthRecords(schoolId, student.id, { asGuardian: true }),
+            ]);
+            return { student, filled: profileHasData(profile) || records.length > 0 };
           } catch {
-            // One unreadable sheet should not hide the other children.
             return { student, filled: false };
           }
         }),
       );
 
-      setChildren(sheets);
+      setChildren(rows);
     } catch (err) {
       setChildren([]);
       setError(err instanceof ApiError ? err.message : t('health.myChildren.loadError'));
@@ -71,6 +79,25 @@ const MyHealthRecords = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const refreshChildStatus = async (studentId: number) => {
+    if (!schoolId) {
+      return;
+    }
+
+    try {
+      const [profile, records] = await Promise.all([
+        getHealthProfile(schoolId, studentId, { asGuardian: true }),
+        listHealthRecords(schoolId, studentId, { asGuardian: true }),
+      ]);
+      const filled = profileHasData(profile) || records.length > 0;
+      setChildren((current) =>
+        current.map((row) => (row.student.id === studentId ? { ...row, filled } : row)),
+      );
+    } catch {
+      // Status chip is secondary — a failed refresh should not block the form.
+    }
+  };
 
   return (
     <Stack direction="column" gap={3.5}>
@@ -97,58 +124,38 @@ const MyHealthRecords = () => {
               headingLevel={2}
             />
           ) : (
-            <Stack direction="column" gap={1.5}>
-              {children.map(({ student, filled }) => (
-                <Stack
-                  key={student.id}
-                  direction="row"
-                  gap={1.5}
-                  alignItems="center"
-                  flexWrap="wrap"
-                >
-                  <Typography variant="body2" sx={{ minWidth: 180 }}>
-                    {student.name}
-                  </Typography>
-                  <SemanticChip
-                    variant={filled ? 'success' : 'warning'}
-                    label={filled ? t('health.filled') : t('health.empty')}
+            <Stack direction="column" gap={3}>
+              {children.map(({ student, filled }, index) => (
+                <Stack key={student.id} direction="column" gap={2}>
+                  {index > 0 && <Divider />}
+
+                  <Stack direction="row" gap={1.5} alignItems="center" flexWrap="wrap">
+                    <Typography variant="subtitle1">{student.name}</Typography>
+                    <SemanticChip
+                      variant={filled ? 'success' : 'warning'}
+                      label={filled ? t('health.filled') : t('health.empty')}
+                    />
+                  </Stack>
+
+                  <HealthProfileSection
+                    schoolId={schoolId!}
+                    studentId={student.id}
+                    asGuardian
+                    onSaved={() => refreshChildStatus(student.id)}
                   />
-                  <Button
-                    size="small"
-                    variant="contained"
-                    onClick={() => setOpenFor(student)}
-                    aria-label={t('health.aria', { name: student.name })}
-                  >
-                    {t('health.fill')}
-                  </Button>
+
+                  <HealthRecordsList
+                    schoolId={schoolId!}
+                    studentId={student.id}
+                    asGuardian
+                    onChanged={() => refreshChildStatus(student.id)}
+                  />
                 </Stack>
               ))}
             </Stack>
           )}
         </Stack>
       </SectionCard>
-
-      {openFor && schoolId && (
-        <HealthRecordDialog
-          open
-          asGuardian
-          schoolId={schoolId}
-          studentId={openFor.id}
-          studentName={openFor.name}
-          onSaved={(record) => {
-            setChildren((current) =>
-              current.map((row) =>
-                row.student.id === openFor.id ? { ...row, filled: record.filled } : row,
-              ),
-            );
-          }}
-          onClose={() => {
-            setOpenFor(null);
-            // A sheet just filled in should stop reading as blank behind the dialog.
-            load();
-          }}
-        />
-      )}
     </Stack>
   );
 };

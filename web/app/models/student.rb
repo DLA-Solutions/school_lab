@@ -17,9 +17,9 @@ class Student < ApplicationRecord
   has_many :guardians, through: :student_guardians
   has_many :contracts, dependent: :destroy
   has_many :documents, as: :documentable, dependent: :destroy
-  # What the family wants the school to know about the child's health. Created on first read
-  # rather than with the student, so a register full of untouched blanks does not read as filled.
-  has_one :health_record, class_name: "StudentHealthRecord", dependent: :destroy
+  # Structured health facts (blood type, plan, emergency contact) and condition-specific records.
+  has_one :health_profile, class_name: "StudentHealthProfile", dependent: :destroy
+  has_many :health_records, class_name: "StudentHealthRecord", dependent: :destroy
   # Who the family allows to collect the child at the gate.
   has_many :authorized_pickups, dependent: :destroy
   has_many :grades, dependent: :destroy

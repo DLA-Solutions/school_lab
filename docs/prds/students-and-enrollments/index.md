@@ -110,6 +110,7 @@ Requirements without market anchor are marked `[product decision]` or `[invented
 - Enrollment contract templates and enrollment binding (unsigned in MVP) — BC1.
 - Enrollment list and carteirinha-style exports — BC1.
 - Permission key `manage_enrollment` and `manage_people` integration — identity BC1.
+- Guardian health profile and multiple health records with optional PDF — BC3 ([`health-records.md`](health-records.md), DLA-11).
 
 ### Out of scope
 
@@ -130,6 +131,7 @@ Requirements without market anchor are marked `[product decision]` or `[invented
 |----|----------|---------|
 | **BC1 — Enrollments** | [`enrollments.md`](enrollments.md) | How does a student get matriculated for a school year? What is enrollment status? How do imports, contracts, and exports work? |
 | **BC2 — Records** | [`records.md`](records.md) | Who is the student? Who are their guardians? Which turma are they in? What is class structure? |
+| **BC3 — Health records** | [`health-records.md`](health-records.md) | What health facts and condition records does the family share with the school? Optional PDF per record; guardian write / staff read |
 
 ```mermaid
 flowchart LR
@@ -137,6 +139,10 @@ flowchart LR
         STU[students]
         GL[student_guardians]
         CLS[classes]
+    end
+    subgraph BC3 [Health records]
+        HP[student_health_profiles]
+        HR[student_health_records]
     end
     subgraph BC1 [Enrollments]
         ENR[enrollments]
@@ -150,6 +156,8 @@ flowchart LR
     STU --> ENR
     GL --> STU
     CLS --> ENR
+    STU --> HP
+    STU --> HR
     CTR --> ENR
     INV -.->|links user_id| GL
     CSV -.->|onboarding only| STU
@@ -274,8 +282,9 @@ Cross-cutting catalog: [`docs/product/non-functional-requirements.md`](../../pro
 
 Domain-specific bullets:
 
-- **LGPD** — collect only cadastral fields required for enrollment and billing; sensitive
-  health fields out of MVP student record (academic/incidents domain).
+- **LGPD** — collect only cadastral fields required for enrollment and billing; structured health
+  profile and health records live in BC3 ([`health-records.md`](health-records.md)); incident health
+  notes remain in academic domain.
 - **Family isolation** — staff listing guardians on a student must not expose unrelated
   families; guardian `/me/students` returns linked children only.
 - **Import safety** — bulk import supports `dry_run` preview; commit is transactional per

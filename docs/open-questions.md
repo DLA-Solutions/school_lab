@@ -370,6 +370,14 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
       guardian request details/resolutions.
 - [ ] Retention and download-audit requirements for annual tax declarations and their immutable
       payer/child/payment snapshots (also tracked under Billing release blockers).
+- [ ] **Health record PDF retention** — how long are guardian-uploaded medical PDFs on
+      `student_health_records` kept after student withdrawal or school departure? Align with
+      `archive_documents` policy or keep a separate health-data retention window
+      ([`health-records.md`](prds/students-and-enrollments/health-records.md) BR-H09).
+- [ ] **Health data access audit** — should staff views/downloads of health profiles and record
+      PDFs be logged (who accessed which child's health attachment and when)? MVP ships
+      `SchoolAuditable` change history only; read/download audit deferred
+      ([`health-records.md`](prds/students-and-enrollments/health-records.md)).
 
 ### Billing integration (Cora) — recorded Aug 2026
 

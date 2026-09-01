@@ -3,22 +3,36 @@
 class StudentHealthRecordBlueprint < Blueprinter::Base
   identifier :id
 
-  fields :student_id, :content, :content_updated_at
+  fields :student_id, :title, :content, :content_updated_at, :created_at, :updated_at
 
-  # Names the child, so a guardian's list of sheets reads without a lookup per row.
   field :student_name do |record|
     record.student&.name
   end
 
-  # A note nobody can attribute is one nobody trusts: the secretary has to know whether the
-  # allergy came from the mother or from the front desk.
+  field :created_by_name do |record|
+    record.created_by&.email
+  end
+
   field :updated_by_name do |record|
     record.updated_by&.email
   end
 
-  # Blank until somebody fills it in. An empty sheet is a family that has not been asked yet,
-  # which is a different thing from a child with nothing to report.
   field :filled do |record|
     record.filled?
+  end
+
+  field :has_document do |record|
+    record.document.attached?
+  end
+
+  field :document_url do |record, options|
+    next unless record.document.attached?
+
+    helpers = options[:url_helpers] || Rails.application.routes.url_helpers
+    helpers.rails_blob_url(record.document, only_path: !options[:full_url])
+  end
+
+  field :document_filename do |record|
+    record.document.filename.to_s if record.document.attached?
   end
 end
