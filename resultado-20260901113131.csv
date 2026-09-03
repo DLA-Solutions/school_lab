@@ -1,0 +1,2 @@
+pagador,cpf,status_http,resposta
+Murillo Franco de Azeredo Bastos,97750573100,400,The Idempotency-Key|x-idempotency-id header must be a valid UUID.
