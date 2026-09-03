@@ -14,23 +14,27 @@ RSpec.describe Contracts::MarkSignedService do
                       signature_status: "pending_signature")
   end
 
-  it "marks the contract signed and enqueues guardian access provisioning" do
+  it "marks the contract signed and enqueues guardian access provisioning and the signed notification" do
     expect do
       described_class.call(contract: contract)
     end.to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
       .with(contract.id, school.id)
+      .and have_enqueued_job(Notifications::NotifyContractSignedJob).with(contract.id, school.id)
 
     expect(contract.reload).to be_signed
     expect(contract.signed_at).to be_present
   end
 
-  it "does not enqueue access provisioning when the contract was already signed" do
+  it "does not enqueue access provisioning or the notification when the contract was already signed" do
     contract.update!(signature_status: "signed", signed_at: 1.day.ago)
     first_signed_at = contract.signed_at
 
     expect do
       described_class.call(contract: contract)
     end.not_to have_enqueued_job(Contracts::ProvisionGuardianAccessJob)
+    expect do
+      described_class.call(contract: contract)
+    end.not_to have_enqueued_job(Notifications::NotifyContractSignedJob)
 
     expect(contract.reload.signed_at).to eq(first_signed_at)
   end

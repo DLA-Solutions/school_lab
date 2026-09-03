@@ -24,6 +24,7 @@ class Contract < ApplicationRecord
   belongs_to :payer_guardian, class_name: "Guardian", optional: true
 
   has_many :charges, dependent: :destroy
+  has_many :notifications, dependent: :nullify
 
   validates :status, inclusion: { in: STATUSES }
   validates :signature_status, inclusion: { in: SIGNATURE_STATUSES }

@@ -58,6 +58,10 @@ en:
         phone_label: "Phone (WhatsApp)"
         submitted_at_label: "Submitted at"
         source: "Source: Scholar Premium marketing site"
+  notifications:
+    contract_signed:
+      title: "Contract signed"
+      body: "%{student}'s contract has been signed by all parties."
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."

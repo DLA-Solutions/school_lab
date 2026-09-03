@@ -59,6 +59,10 @@ pt-BR:
         phone_label: "Telefone (WhatsApp)"
         submitted_at_label: "Enviado em"
         source: "Origem: site de marketing Scholar Premium"
+  notifications:
+    contract_signed:
+      title: "Contrato assinado"
+      body: "O contrato de %{student} foi assinado por todas as partes."
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."
