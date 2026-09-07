@@ -762,6 +762,11 @@ const enUS: Messages = {
   'contract.prefill.relationship.mother': 'Mother',
   'contract.prefill.relationship.other': 'Guardian',
 
+  'notifications.title': 'Notifications',
+  'notifications.empty': 'No notifications yet.',
+  'notifications.markAllAsRead': 'Mark all as read',
+  'notifications.loadError': 'Could not load notifications.',
+
   'dashboard.loadError': 'Could not load the dashboard figures.',
   'dashboard.kpi.students': 'Total students',
   'dashboard.kpi.collaborators': 'Staff',

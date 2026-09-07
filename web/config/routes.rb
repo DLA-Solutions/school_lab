@@ -29,6 +29,11 @@ Rails.application.routes.draw do
       end
 
       get "me", to: "me#show"
+      resources :notifications, only: %i[index update] do
+        collection do
+          post :mark_all_as_read
+        end
+      end
       namespace :platform do
         resource :operational_summary, only: :show, controller: "operational_summary"
         resources :audits, only: :index
