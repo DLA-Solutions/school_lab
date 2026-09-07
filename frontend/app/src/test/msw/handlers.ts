@@ -986,6 +986,38 @@ export const handlers = [
       : expiredToken();
   }),
 
+  // Empty by default: most suites never open the bell, and the ones that do override this with
+  // their own fixtures via `server.use(...)`.
+  http.get(apiUrl('/api/v1/notifications'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({
+      data: [],
+      meta: { page: 1, per_page: 25, total: 0, unread_count: 0 },
+    });
+  }),
+
+  http.patch(apiUrl('/api/v1/notifications/:id'), ({ params }) => {
+    return HttpResponse.json({
+      data: {
+        id: Number(params.id),
+        kind: 'contract_signed',
+        title: 'Contrato assinado',
+        body: null,
+        created_at: '2026-08-01T12:00:00Z',
+        read: true,
+        school_id: SCHOOL_ID,
+        contract_id: null,
+      },
+    });
+  }),
+
+  http.post(apiUrl('/api/v1/notifications/mark_all_as_read'), () =>
+    HttpResponse.json({ data: { unread_count: 0 } }),
+  ),
+
   http.get(apiUrl('/api/v1/schools'), ({ request }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();

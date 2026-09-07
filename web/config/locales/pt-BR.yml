@@ -61,6 +61,10 @@ pt-BR:
         source: "Origem: site de marketing Scholar Premium"
       demo_request_confirmation:
         subject: "Recebemos sua solicitação — Scholar Premium"
+  notifications:
+    contract_signed:
+      title: "Contrato assinado"
+      body: "O contrato de %{student} foi assinado por todas as partes."
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."

@@ -1,12 +1,12 @@
 import { Link as RouterLink } from 'react-router';
 import paths from 'routes/paths';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import ButtonBase from '@mui/material/ButtonBase';
 import IconButton from '@mui/material/IconButton';
 import IconifyIcon from 'components/base/IconifyIcon';
 import LanguageSelect from './LanguageSelect';
+import NotificationsMenu from './NotificationsMenu';
 import ProfileMenu from './ProfileMenu';
 import { BrandLogo, ThemeToggle } from 'design-system';
 
@@ -53,11 +53,7 @@ const Topbar = ({ isClosing, mobileOpen, setMobileOpen }: TopbarProps) => {
         <ThemeToggle />
         <LanguageSelect />
 
-        <Tooltip title="Notifications">
-          <IconButton size="large" sx={{ color: 'text.secondary' }}>
-            <IconifyIcon icon="ion:notifications" />
-          </IconButton>
-        </Tooltip>
+        <NotificationsMenu />
 
         <ProfileMenu />
       </Stack>

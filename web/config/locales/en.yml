@@ -60,6 +60,10 @@ en:
         source: "Source: Scholar Premium marketing site"
       demo_request_confirmation:
         subject: "We received your request — Scholar Premium"
+  notifications:
+    contract_signed:
+      title: "Contract signed"
+      body: "%{student}'s contract has been signed by all parties."
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."

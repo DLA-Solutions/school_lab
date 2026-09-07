@@ -58,7 +58,24 @@ const StudentsByClass = ({ metrics, loading }: StudentsByClassProps) => {
         <>
           <StudentsByClassChart data={data} sx={{ height: '260px !important' }} />
 
-          <Stack direction="column" spacing={1.25} mt={1} sx={{ maxHeight: 150, overflowY: 'auto' }}>
+          <Stack
+            direction="column"
+            spacing={1.25}
+            mt={1}
+            pr={0.5}
+            sx={{
+              maxHeight: 150,
+              overflowY: 'auto',
+              // The app hides scrollbars until hover (see `theme/styles/scrollbar.ts`) — fine for
+              // a drawer nobody doubts has more below the fold, but here it read as "that's every
+              // class there is" and the numbers stopped adding up to the total in the middle.
+              // Kept visible rather than hover-revealed so the cut-off itself is what states
+              // there is more, not a pointer gesture nothing on screen suggests trying.
+              '&::-webkit-scrollbar, &::-webkit-scrollbar-thumb': {
+                visibility: 'visible',
+              },
+            }}
+          >
             {data.map((item, index) => (
               <Stack key={item.label} alignItems="center" justifyContent="space-between">
                 <Stack spacing={1} alignItems="center" minWidth={0}>

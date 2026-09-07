@@ -766,6 +766,11 @@ const ptBR = {
   'contract.prefill.relationship.mother': 'Mãe',
   'contract.prefill.relationship.other': 'Responsável',
 
+  'notifications.title': 'Notificações',
+  'notifications.empty': 'Nenhuma notificação por aqui.',
+  'notifications.markAllAsRead': 'Marcar todas como lidas',
+  'notifications.loadError': 'Não foi possível carregar as notificações.',
+
   'dashboard.loadError': 'Não foi possível carregar os indicadores.',
   'dashboard.kpi.students': 'Total de alunos',
   'dashboard.kpi.collaborators': 'Colaboradores',
