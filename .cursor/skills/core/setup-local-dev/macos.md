@@ -1,12 +1,18 @@
 # macOS (local dev)
 
-Use with skill `setup-local-dev`. Commands in `README.md` stay the same; this file is host tooling only.
+Install host tooling only. Then return to [`SKILL.md`](SKILL.md) happy path. Do not run `bundle install` / `bin/dev` here unless you opted into Host Rails at the bottom.
 
-## Docker path (recommended)
+## Docker path (required)
 
-1. [Docker Desktop](https://docs.docker.com/get-docker/) (Compose v2). Start it before any `make` target.
-2. Node.js **22.x** — `frontend/app/README.md`. nvm/fnm/mise are fine; there is **no** `.nvmrc`.
-3. Xcode CLT if `git` or native npm extras fail: `xcode-select --install`.
+1. Install [Docker Desktop](https://docs.docker.com/get-docker/) (Compose v2). **Start it** and wait until the whale is idle.
+2. Node.js **22.x** (`frontend/app/README.md`; there is **no** `.nvmrc`). Default:
+
+   ```bash
+   nvm install 22 && nvm use 22
+   ```
+
+   Alternatives: Homebrew `node@22`, or fnm — same major version.
+3. If `git` or native npm extras fail: `xcode-select --install`.
 
 ```bash
 docker info
@@ -14,22 +20,15 @@ docker compose version
 node -v    # v22.x
 ```
 
-Then return to `SKILL.md` §4 (env files). Skip the rest of this file.
+**OK when:** all three succeed. Return to [`SKILL.md`](SKILL.md) happy path (`cp web/.env.example web/.env` …).
 
-## Host Rails (optional)
+## Host Rails (skip unless…)
 
-`README.md` optional tools:
+Skip unless you want Rails on the host for faster Ruby-only feedback. Postgres/Redis still come from Docker (`make services-up`). Do not install a second Homebrew PostgreSQL on 5432 unless you set `POSTGRES_PORT` in `web/.env`.
 
-- [mise](https://mise.jdx.dev/) (Ruby 4.0.5 — see `web/mise.toml`)
-- Rails 8.1.3 (`gem install rails -v 8.1.3`)
+Ruby **4.0.5** via [mise](https://mise.jdx.dev/) (`web/mise.toml`, `web/.ruby-version` is `ruby-4.0.5`). README also lists `gem install rails -v 8.1.3`. rbenv/asdf work if they honor that version; **mise is what the README names**.
 
-```bash
-cd web && mise install && ruby -v    # ruby 4.0.5
-```
-
-`.ruby-version` is `ruby-4.0.5`. rbenv/asdf also work if they install that version; **mise is what the README names**.
-
-Native libraries matching `web/Dockerfile.dev` (needed to compile `pg`, `ruby-vips`, psych):
+Native libs matching `web/Dockerfile.dev` (to compile `pg`, `ruby-vips`, psych):
 
 ```bash
 brew install libpq vips libyaml pkg-config
@@ -37,17 +36,14 @@ export PATH="$(brew --prefix libpq)/bin:$PATH"
 export PKG_CONFIG_PATH="$(brew --prefix libpq)/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 ```
 
-Keep those exports in the shell (or mise/direnv) before `bundle install`. Then:
+Keep those exports in the shell (or mise/direnv). From **repo root**:
 
 ```bash
-cp web/.env.example web/.env   # from repo root
+cp web/.env.example web/.env    # still add CORS_ORIGINS — see SKILL.md
 make services-up
-cd web && bundle install && bin/rails db:prepare
-bin/dev
+(cd web && mise install && ruby -v)    # ruby 4.0.5
+(cd web && bundle install && bin/rails db:prepare)
+(cd web && bin/dev)
 ```
 
-Postgres/Redis still come from Docker (`make services-up`). Do not install a second Homebrew PostgreSQL on 5432 unless you set `POSTGRES_PORT` in `web/.env` (`README.md` troubleshooting).
-
-## Cursor / GitHub MCP
-
-`.cursor/scripts/install-github-mcp.sh` downloads Darwin assets (`github-mcp-server_Darwin_arm64.tar.gz` or `_Darwin_x86_64.tar.gz`, release `v1.7.0`). Run it from repo root after copying `.cursor/mcp.env` — see `cursor.md`.
+`bin/dev` starts Puma via Foreman (`web/Procfile.dev`). API is JSON-only — no asset build.
