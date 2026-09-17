@@ -1,6 +1,6 @@
 # Setup deploy — reference
 
-Full runbook: [`docs/guidelines/process/deployment.md`](../../../docs/guidelines/process/deployment.md). First-day steps: [`SKILL.md`](SKILL.md). After this file is green, skill **`deploy-kamal`** — do not duplicate that workflow here.
+Full runbook: [`docs/guidelines/process/deployment.md`](../../../docs/guidelines/process/deployment.md). First-day steps: [`SKILL.md`](SKILL.md). After this file is green, skills **`deploy-staging`** / **`deploy-production`** — do not duplicate that workflow here.
 
 Branch vs destination (rule `deploy-environment-branches`):
 
@@ -72,4 +72,4 @@ URL-encode `@`, `:`, `/`, `?`, and `#` in `POSTGRES_PASSWORD` / `REDIS_PASSWORD`
 
 More Kamal/proxy errors: skill `deploy-kamal` → [`troubleshooting.md`](../deploy-kamal/troubleshooting.md).
 
-**Ready** → skill **`deploy-kamal`**.
+**Ready** → skill **`deploy-staging`** or **`deploy-production`**.

@@ -7,7 +7,7 @@ description: >-
   when a new developer needs onboarding, first clone, or asks how to run the
   project locally — setup local, como rodar o projeto, primeiro clone, ambiente
   local, Ubuntu, macOS, Cursor. Not for Kamal/deploy machine setup (skill
-  setup-deploy) or running kamal deploy (skill deploy-kamal).
+  setup-deploy) or running kamal deploy (skills deploy-staging / deploy-production).
 ---
 
 # Setup local development
@@ -18,7 +18,7 @@ First day on a **laptop**: run the Docker web API + host Node SPAs in Cursor on 
 
 - Only run the app on a laptop? → `setup-local-dev`
 - This machine will run `kamal deploy` for the first time? → `setup-deploy`
-- Already onboarded, just publish? → `deploy-kamal`
+- Already onboarded, just publish? → `deploy-staging` or `deploy-production`
 
 You are in the right file.
 
@@ -121,7 +121,7 @@ PRs target **`staging`**, not `main`. Code/docs/commits/API keys = English; prod
 
 ## Do not
 
-- Use this skill for a Kamal machine (`setup-deploy`) or `kamal deploy` (`deploy-kamal`).
+- Use this skill for a Kamal machine (`setup-deploy`) or `kamal deploy` (`deploy-staging` / `deploy-production`).
 - Deploy from a feature branch (destination branches are `staging` / `main`).
 - Put `POSTMARK_API_TOKEN` to “try email”, or hit invite/reset/régua on staging to test mail (rule `email-safety`).
 - Use yarn/pnpm, or add a root `.env`.

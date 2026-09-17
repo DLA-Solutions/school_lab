@@ -64,7 +64,7 @@ On success, writes `.cursor/ci.stamp` (optional bookkeeping; not required for PR
 
 ## CD — manual deploy
 
-Deploys are **not** automated. Run essential CI before deploy — see `deployment.md` and skill `deploy-kamal`. Staging deploys from branch `staging`; production from `main`.
+Deploys are **not** automated. Run essential CI before deploy — see `deployment.md` and skills `deploy-staging` / `deploy-production`. Staging deploys from branch `staging`; production from `main`.
 
 ```bash
 bin/require-deploy-branch staging          # or production

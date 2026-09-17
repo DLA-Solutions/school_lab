@@ -4,7 +4,7 @@ description: >-
   Claims a DLA Jira issue for the current implementer (assign + In Progress)
   and, after a successful staging deploy, moves it to Ready to QA. Use when the
   user names a DLA-N ticket or Jira URL, asks to pick/claim/start a Jira task,
-  says "pega a task", "vou implementar", "atribuir", or when deploy-kamal
+  says "pega a task", "vou implementar", "atribuir", or when deploy-staging
   finishes a successful staging deploy.
 ---
 
@@ -118,7 +118,7 @@ Return: `https://dla-solutions.atlassian.net/browse/{KEY}`, summary, type, assig
 
 ## Phase: Ready to QA
 
-Run from skill **`deploy-kamal`** after a **successful** staging deploy (smoke passed). Not on failure. Not on **production**.
+Run from skill **`deploy-staging`** after a **successful** staging deploy (smoke passed). Not on failure. Not on **production**.
 
 ```
 - [ ] 1. Identify In Progress issue(s) for this work
@@ -165,7 +165,7 @@ Deployed to staging — ready for QA.
 
 Never put secrets, webhook URLs, or `.kamal/` values in the comment.
 
-Then continue `deploy-kamal` (Discord `notify_deploy` stays last).
+Then continue `deploy-staging` (Discord `notify_deploy` stays last).
 
 ## Do not
 

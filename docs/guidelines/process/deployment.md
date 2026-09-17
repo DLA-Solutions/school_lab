@@ -434,7 +434,7 @@ routes on staging or production (see `docs/guidelines/web/mailers.md`).
 Cursor posts a channel message when a deploy finishes via the `discord-deploy` MCP.
 Configure `DISCORD_BOT_TOKEN` + `DISCORD_DEPLOY_CHANNEL_ID` in `.cursor/mcp.env` (channel
 ID is copied with Developer Mode; no channel edit required). An incoming webhook is
-optional. Skill `deploy-kamal` calls `notify_deploy` after smoke on success, and also
+optional. Skills `deploy-staging` / `deploy-production` call `notify_deploy` after smoke on success, and also
 on failure. This is School Lab / Scholar Premium only — not a general Discord bot.
 
 ## API documentation (staging only)
@@ -534,6 +534,6 @@ native gems (`pg`, `bootsnap`) takes several minutes. Uncomment `builder.remote`
   school uploads credentials. See `docs/guidelines/web/gateways.md`.
 - **Local CI; manual CD.** GitHub Actions workflows are disabled — see
   `docs/guidelines/process/local-ci.md`. Run `bin/install-git-hooks` once per clone;
-  run essential CI before deploy (skill `deploy-kamal`); deploy staging/production manually with Kamal (§ Day-to-day).
+  run essential CI before deploy (skills `deploy-staging` / `deploy-production`); deploy staging/production manually with Kamal (§ Day-to-day).
 - **Active Storage** writes to a Kamal volume on the app server. That disk is not
   backed up by the deploy process; migrating to S3 is an open decision.
