@@ -6,7 +6,7 @@ alwaysApply: true
 # Deploy from environment branches
 
 Deploy **staging** only from `staging`, and **production** only from `main`. How to run
-Kamal: rule `deployment` and skill **`deploy-kamal`**. One-pager:
+Kamal: rule `deployment` and skills **`deploy-staging`** / **`deploy-production`** (shared: **`deploy-kamal`**). One-pager:
 `docs/guidelines/process/git-and-deploy-flow.md`. ADR: `docs/adr/003-environment-branches.md`.
 
 ## Implementation flow
@@ -55,11 +55,11 @@ git checkout main && git pull origin main
 bin/require-deploy-branch production
 ```
 
-Then run Kamal from the service directory per skill **`deploy-kamal`**.
+Then run Kamal from the service directory per skill **`deploy-staging`** or **`deploy-production`**.
 
 ## Agents
 
-- **Parent agents**, **`deploy-kamal`**, **`backend-ci`**, and any deploy automation —
+- **Parent agents**, **`deploy-staging`**, **`deploy-production`**, **`backend-ci`**, and any deploy automation —
   **must not** deploy from a feature branch; **must not** deploy production from `staging`.
 - If the user asks to deploy while on a feature branch, explain the policy: finish PR to
   `staging` → merge → checkout `staging` → pull → deploy staging.
@@ -68,5 +68,5 @@ Then run Kamal from the service directory per skill **`deploy-kamal`**.
 - **`backend-ci`** opens PRs against **`staging`**; it does not deploy.
 - **Deploy agents** — after `kamal deploy` finishes (success or failure), **must** post to
   Discord via `discord-deploy` MCP `notify_deploy`. See skill **`deploy-kamal`** § Discord
-  notify. Never end a deploy task without this step. After a **successful staging** deploy,
-  also run skill **`jira-task-lifecycle`** Ready to QA (before Discord).
+  notify. Never end a deploy task without this step. After a **successful staging** deploy
+  (`deploy-staging`), also run skill **`jira-task-lifecycle`** Ready to QA (before Discord).

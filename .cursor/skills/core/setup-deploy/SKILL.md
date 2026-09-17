@@ -6,7 +6,7 @@ description: >-
   bin/deploy-preflight. Use when a developer needs first-time deploy access, or
   asks about KAMAL_REGISTRY_PASSWORD, máquina de deploy, setup deploy, or
   primeiro kamal. Not for running the app on a laptop (skill setup-local-dev)
-  or publishing after onboarding (skill deploy-kamal).
+  or publishing after onboarding (skills deploy-staging / deploy-production).
 ---
 
 # Setup deploy (first time)
@@ -17,7 +17,7 @@ Onboard this machine for Kamal **staging**. Runbook: `docs/guidelines/process/de
 
 - Only run the app on a laptop? → `setup-local-dev`
 - This machine will run `kamal deploy` for the first time? → `setup-deploy`
-- Already onboarded, just publish? → `deploy-kamal`
+- Already onboarded, just publish? → `deploy-staging` or `deploy-production`
 
 You are in the right file. First-day target is **staging**. Feature branches never deploy.
 
@@ -207,4 +207,4 @@ cp .cursor/mcp.env.example .cursor/mcp.env   # if not already present
 
 **OK when:** `discord-deploy` MCP is connected, or you skipped this because you deploy by hand.
 
-**Ready** → skill **`deploy-kamal`** (`kamal setup` / `kamal deploy -d staging` per service dir; always finish with `notify_deploy` when an agent deploys).
+**Ready** → skill **`deploy-staging`** or **`deploy-production`** (`kamal setup` / `kamal deploy -d <dest>` per service dir; always finish with `notify_deploy` when an agent deploys).

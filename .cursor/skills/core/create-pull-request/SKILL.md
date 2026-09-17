@@ -5,7 +5,7 @@ description: Create a GitHub pull request in DLA-Solutions/school_lab. Use when 
 
 # Create Pull Request
 
-Open PRs in `DLA-Solutions/school_lab` when the branch is ready for review. **Local CI is not required** before PR creation — essential CI runs at deploy time (skill `deploy-kamal`).
+Open PRs in `DLA-Solutions/school_lab` when the branch is ready for review. **Local CI is not required** before PR creation — essential CI runs at deploy time (skills `deploy-staging` / `deploy-production`).
 
 Subagent **backend-ci** can run CI, fix failures, commit atomically, push, and open a PR when the user asks for that full pipeline. Use this skill directly when only the PR step is needed.
 
