@@ -5,7 +5,7 @@ description: First-time deploy machine onboarding for School Lab — 1Password s
 
 # Setup deploy (first time)
 
-Onboard a developer machine for Kamal **staging** deploys. Runbook: `docs/guidelines/process/deployment.md`. Troubleshooting: [`reference.md`](reference.md). Deploy only from **`main`** after merge — see skill **`deploy-kamal`**.
+Onboard a developer machine for Kamal **staging** deploys. Runbook: `docs/guidelines/process/deployment.md`. Troubleshooting: [`reference.md`](reference.md). Deploy only from **`main`** after merge — see skill **`deploy-kamal`**. Running the app on a laptop (Docker, SPA, Cursor MCP for coding) is skill **`setup-local-dev`** — not this file.
 
 ## Admin — send the email
 
