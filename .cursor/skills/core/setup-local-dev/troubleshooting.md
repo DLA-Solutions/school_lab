@@ -1,6 +1,22 @@
 # Troubleshooting (local dev)
 
-Use with skill `setup-local-dev`. Port/DB notes from `README.md` are copied here so the agent does not paraphrase them.
+Use with skill `setup-local-dev`. Port/DB notes from `README.md` so the agent does not paraphrase them.
+
+## CORS / cookies (first)
+
+Backoffice is **5175** and is **not** in the API default `CORS_ORIGINS` (`web/config/initializers/cors.rb`). Add this to `web/.env` and restart the API, or the browser rejects the refresh cookie (`credentials: 'include'`):
+
+```
+CORS_ORIGINS=http://localhost:5173,http://localhost:5175,http://localhost:8082
+```
+
+School SPA must stay on **5173** unless `CORS_ORIGINS` includes the new origin (`frontend/app/README.md`).
+
+## Demo password (first)
+
+Password is `Password123!` (`web/db/seeds/demo_school.rb`). Root `README.md` still says `password123` — that line is stale; trust the seed file.
+
+Re-seed is safe (idempotent): `make seed` or `(cd web && bin/rails db:seed)`.
 
 ## Makefile / env
 
@@ -18,7 +34,7 @@ Every compose-backed `make` target runs `check-env` first.
 
 **Port 3000 already in use** — set `PORT=3001` in `web/.env`.
 
-**Port 5173** — school SPA (`frontend/app/vite.config.ts`) **and** `site/` Vite default. Do not run both `make app-dev` and `cd site && npm run dev` together. Design-system docs use **5174**; backoffice uses **5175**.
+**Port 5173** — school SPA (`frontend/app/vite.config.ts`) **and** `site/` Vite default. Do not run both `make app-dev` and `(cd site && npm run dev)` together. Design-system docs use **5174**; backoffice uses **5175**.
 
 **`connection refused` to PostgreSQL** — run `make services-up` (or `make up-d`) and confirm `make services-ps` shows `healthy`.
 
@@ -46,24 +62,14 @@ make setup
 
 | Symptom | Fix |
 |---------|-----|
-| `ruby -v` not 4.0.5 | `cd web && mise install` (`web/mise.toml`). rbenv/asdf must honor `.ruby-version` (`ruby-4.0.5`) |
+| `ruby -v` not 4.0.5 | `(cd web && mise install)` (`web/mise.toml`). rbenv/asdf must honor `.ruby-version` (`ruby-4.0.5`) |
 | Vite 7 / engine errors | Node **22.x** (`frontend/app/README.md`). No `.nvmrc` |
 | `yarn` / `pnpm` lockfile noise | Use **npm** (`package-lock.json`). Makefile runs `npm install` / `npm run dev` |
 | `npm ci` fails | Run from the package dir (`frontend/app`, `frontend/backoffice`, `site`, `mobile`) — there is no root lockfile |
 
-## CORS / cookies
-
-School SPA must stay on **5173** unless `CORS_ORIGINS` in `web/.env` includes the new origin (`frontend/app/README.md`). Backoffice is **5175** and is **not** in the API default list — add `http://localhost:5175` or the browser rejects the refresh cookie (`credentials: 'include'`).
-
-## Auth / seeds
-
-Demo password is `Password123!` (`web/db/seeds/demo_school.rb`). Root `README.md` still says `password123` — that line is stale; trust the seed file.
-
-Re-seed is safe (idempotent): `make seed` or `cd web && bin/rails db:seed`.
-
 ## Email
 
-Local mail is `Gateways::Email::Fake` (log event `email.fake_delivery`). Empty `/letter_opener` is expected. Never set delivery to Postmark in development/test (`docs/guidelines/web/mailers.md`, rule `email-safety`).
+Local mail is `Gateways::Email::Fake` (log event `email.fake_delivery`). Empty `/letter_opener` is expected — it is mounted but not the active delivery path. Never set delivery to Postmark in development/test (`docs/guidelines/web/mailers.md`, rule `email-safety`).
 
 Jobs that send mail need Solid Queue processing: uncomment `SOLID_QUEUE_IN_PUMA=1` in `web/.env` and restart (`README.md`).
 
@@ -75,7 +81,7 @@ Jobs that send mail need Solid Queue processing: uncomment `SOLID_QUEUE_IN_PUMA=
 
 ## GitHub MCP
 
-- Missing `.cursor/mcp.env` → copy `.cursor/mcp.env.example`
+- Missing `.cursor/mcp.env` → `cp .cursor/mcp.env.example .cursor/mcp.env`
 - Placeholder token → `run-github-mcp.sh` exits
 - Ubuntu: Darwin-only installer — `ubuntu.md`
 - Restart Cursor after installing `.cursor/bin/github-mcp-server`
