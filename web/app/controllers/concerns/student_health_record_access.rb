@@ -1,33 +1,73 @@
 # frozen_string_literal: true
 
-# Reading and writing one child's health sheet. Shared by the school's own screen and the
-# guardian portal: the sheet is the same record from both sides, and the only difference is which
-# students the caller may reach — which `policy_scope(Student)` already answers.
+# CRUD for a child's health records. Shared by the school's register and the guardian portal.
 module StudentHealthRecordAccess
   extend ActiveSupport::Concern
 
+  def index
+    authorize StudentHealthRecord.new(student: student, school_id: student.school_id), :index?
+
+    records = StudentHealthRecord.for_student(student.id).with_attached_document
+
+    render json: { data: StudentHealthRecordBlueprint.render_as_hash(records) }
+  end
+
   def show
-    record = health_record_for(student)
+    record = find_record
     authorize record, :show?
 
     render json: { data: StudentHealthRecordBlueprint.render_as_hash(record) }
   end
 
-  def update
-    record = health_record_for(student)
-    authorize record, :update?
+  def create
+    record = StudentHealthRecord.new(
+      record_params.except(:document).merge(
+        student: student,
+        school_id: student.school_id,
+        created_by: Current.user,
+        updated_by: Current.user,
+        content_updated_at: Time.current
+      )
+    )
+    authorize record, :create?
 
-    content = params.require(:health_record).permit(:content)[:content]
+    record.document.attach(record_params[:document]) if record_params[:document].present?
 
-    if content.to_s.length > StudentHealthRecord::MAX_CONTENT_LENGTH
+    unless record.save
       return render_error(:validation_error, status: :unprocessable_content,
-                                             details: { content: [ I18n.t("api.errors.health_record_too_long",
-                                                                          limit: StudentHealthRecord::MAX_CONTENT_LENGTH) ] })
+                                             details: record.errors.to_hash)
     end
 
-    record.write!(content, actor: Current.user)
+    render json: { data: StudentHealthRecordBlueprint.render_as_hash(record) }, status: :created
+  end
 
-    render json: { data: StudentHealthRecordBlueprint.render_as_hash(record.reload) }
+  def update
+    record = find_record
+    authorize record, :update?
+
+    record.assign_attributes(record_params.except(:document))
+    record.updated_by = Current.user
+    record.content_updated_at = Time.current
+
+    if record_params[:document].present?
+      record.document.purge if record.document.attached?
+      record.document.attach(record_params[:document])
+    end
+
+    unless record.save
+      return render_error(:validation_error, status: :unprocessable_content,
+                                             details: record.errors.to_hash)
+    end
+
+    render json: { data: StudentHealthRecordBlueprint.render_as_hash(record) }
+  end
+
+  def destroy
+    record = find_record
+    authorize record, :destroy?
+
+    record.discard
+    head :no_content
   end
 
   private
@@ -36,9 +76,11 @@ module StudentHealthRecordAccess
     @student ||= policy_scope(Student).find(params[:student_id])
   end
 
-  # Built on first read rather than alongside the student: a register full of untouched blank
-  # rows would report every child as having a sheet when none of them does.
-  def health_record_for(student)
-    student.health_record || student.build_health_record(school_id: student.school_id)
+  def find_record
+    StudentHealthRecord.kept.find_by!(id: params[:id], student_id: student.id)
+  end
+
+  def record_params
+    params.require(:health_record).permit(:title, :content, :document)
   end
 end

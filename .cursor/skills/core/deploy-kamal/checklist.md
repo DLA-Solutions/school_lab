@@ -25,8 +25,8 @@
 
 ## Before each deploy
 
-- [ ] Essential CI passed for this layer (see deploy-kamal skill — e.g. `web/bin/backend-ci --full` for API)
-- [ ] `bin/require-deploy-branch staging` or `production` (from repo root; must match `-d`)
+- [ ] Essential CI passed for this layer (see `deploy-kamal` CI table — e.g. `web/bin/backend-ci --full` for API)
+- [ ] `bin/require-deploy-branch staging` (`deploy-staging`) or `production` (`deploy-production`) — must match `-d`
 - [ ] Correct service directory (`site/`, `frontend/app/`, `frontend/backoffice/`, or `web/`)
 - [ ] Correct destination: `-d staging` or `-d production`
 - [ ] `kamal secrets print -d <dest>` shows non-empty registry secrets
@@ -41,4 +41,5 @@
 - [ ] Smoke stayed read-only — no invite, password reset, or other mailer-triggering requests
 - [ ] `kamal-proxy ls` shows four services with expected path prefixes
 - [ ] API migration run if schema changed (`kamal app exec ... db:migrate`)
+- [ ] Staging success: related DLA Jira issue moved to Ready to QA (skill `jira-task-lifecycle`)
 - [ ] Discord `notify_deploy` posted for this School Lab deploy (success or failure)

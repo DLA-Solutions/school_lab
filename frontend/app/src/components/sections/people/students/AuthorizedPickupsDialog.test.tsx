@@ -145,9 +145,41 @@ describe('AuthorizedPickupsDialog', () => {
       await user.click(screen.getByRole('button', { name: 'Autorizar' }));
 
       await waitFor(() => expect(body).toContain('Avó Marta'));
+      expect(body).toContain('52998224725');
       expect(body).toContain('name="authorized_pickup[cpf]"');
       expect(body).toContain('name="authorized_pickup[photo]"');
       expect(body).toContain('Content-Type: image/png');
+    });
+
+    it('masks the CPF while typing', async () => {
+      stubList(PORTAL_PATH, []);
+
+      renderDialog({ asGuardian: true });
+
+      const cpfField = await screen.findByLabelText(/^CPF/);
+      await user.type(cpfField, '12345678909');
+
+      expect(cpfField).toHaveValue('123.456.789-09');
+    });
+
+    it('refuses an invalid CPF before calling the API', async () => {
+      let called = false;
+      stubList(PORTAL_PATH, []);
+      server.use(
+        http.post(apiUrl(PORTAL_PATH), () => {
+          called = true;
+          return HttpResponse.json({ data: grandmother }, { status: 201 });
+        }),
+      );
+
+      renderDialog({ asGuardian: true });
+
+      await user.type(await screen.findByLabelText(/^Nome/), 'Avó Marta');
+      await user.type(screen.getByLabelText(/^CPF/), '111.111.111-11');
+      await user.click(screen.getByRole('button', { name: 'Autorizar' }));
+
+      expect(screen.getByText('CPF inválido.')).toBeInTheDocument();
+      expect(called).toBe(false);
     });
 
     it('refuses to send somebody with no name', async () => {
@@ -165,16 +197,23 @@ describe('AuthorizedPickupsDialog', () => {
       await user.type(await screen.findByLabelText(/^CPF/), '529.982.247-25');
       await user.click(screen.getByRole('button', { name: 'Autorizar' }));
 
-      expect(await screen.findByRole('alert')).toHaveTextContent('Informe o nome.');
+      expect(await screen.findByText('Informe o nome.')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(called).toBe(false);
     });
 
-    it('reports a refusal from the API instead of looking saved', async () => {
+    it('reports a duplicate CPF on the field, not a generic banner', async () => {
       stubList(PORTAL_PATH, []);
       server.use(
         http.post(apiUrl(PORTAL_PATH), () =>
           HttpResponse.json(
-            { error: { code: 'validation_error', message: 'CPF inválido.', details: {} } },
+            {
+              error: {
+                code: 'validation_error',
+                message: 'Dados inválidos.',
+                details: { cpf: ['Esta pessoa já está cadastrada como autorizada.'] },
+              },
+            },
             { status: 422 },
           ),
         ),
@@ -183,10 +222,41 @@ describe('AuthorizedPickupsDialog', () => {
       renderDialog({ asGuardian: true });
 
       await user.type(await screen.findByLabelText(/^Nome/), 'Avó Marta');
-      await user.type(screen.getByLabelText(/^CPF/), '111.111.111-11');
+      await user.type(screen.getByLabelText(/^CPF/), '529.982.247-25');
       await user.click(screen.getByRole('button', { name: 'Autorizar' }));
 
-      expect(await screen.findByRole('alert')).toHaveTextContent('CPF inválido.');
+      expect(
+        await screen.findByText('Esta pessoa já está cadastrada como autorizada.'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Dados inválidos.')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('reports a field error when the API rejects the CPF', async () => {
+      stubList(PORTAL_PATH, []);
+      server.use(
+        http.post(apiUrl(PORTAL_PATH), () =>
+          HttpResponse.json(
+            {
+              error: {
+                code: 'validation_error',
+                message: 'Dados inválidos.',
+                details: { cpf: ['não é um CPF válido'] },
+              },
+            },
+            { status: 422 },
+          ),
+        ),
+      );
+
+      renderDialog({ asGuardian: true });
+
+      await user.type(await screen.findByLabelText(/^Nome/), 'Avó Marta');
+      await user.type(screen.getByLabelText(/^CPF/), '529.982.247-25');
+      await user.click(screen.getByRole('button', { name: 'Autorizar' }));
+
+      expect(await screen.findByText('não é um CPF válido')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
     // Withdrawing somebody is confirmed: it decides who gets turned away at the gate.

@@ -56,7 +56,11 @@ const GuardianDashboard = () => {
   ];
 
   return (
-    <Stack spacing={3}>
+    <Stack
+      direction="column"
+      spacing={3.5}
+      sx={{ maxWidth: 960, width: '100%', mx: 'auto' }}
+    >
       <PageHeader title={t('dashboard.guardian.title')} />
 
       <EmptyState
@@ -69,7 +73,7 @@ const GuardianDashboard = () => {
         <Grid container spacing={2.5}>
           {quickLinks.map((link) => (
             <Grid key={link.key} size={{ xs: 12, md: 6 }}>
-              <Stack spacing={1.5} height={1}>
+              <Stack direction="column" spacing={1.5} sx={{ height: 1 }}>
                 <Typography variant="subtitle1">{link.title}</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {link.description}

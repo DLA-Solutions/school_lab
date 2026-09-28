@@ -21,4 +21,18 @@ class MarketingMailer < ApplicationMailer
       }
     )
   end
+
+  def demo_request_confirmation
+    name = params[:name]
+    email = params[:email]
+
+    template_mail(
+      template_alias: Gateways::Email::Templates::DEMO_REQUEST_CONFIRMATION,
+      to: email,
+      subject: I18n.t("marketing.mailer.demo_request_confirmation.subject"),
+      reply_to: SchoolLab::EmailDelivery.from_address,
+      tag: "marketing-demo-confirmation",
+      template_model: { name: name }
+    )
+  end
 end

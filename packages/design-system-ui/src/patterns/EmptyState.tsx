@@ -9,8 +9,9 @@ export interface EmptyStateProps {
   action?: ReactNode;
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   /**
-   * Content of the tile above the title, `∅` by default. Decorative: it sits in an `aria-hidden`
-   * container, so anything passed here must repeat nothing the title does not already say.
+   * Optional content of a tile above the title. Decorative: when present it sits in an
+   * `aria-hidden` container, so anything passed here must repeat nothing the title does not
+   * already say. Omitted, no tile is rendered.
    */
   icon?: ReactNode;
 }
@@ -19,34 +20,33 @@ export interface EmptyStateProps {
 // surrounding SectionCard already titles the region, so a second heading would duplicate it in the
 // outline; when the empty state is the whole page body its title is the only landmark, and only
 // the call site knows which level fits the page.
-const EmptyState = ({
-  title,
-  description,
-  action,
-  headingLevel,
-  icon = (
-    <Typography variant="h5" color="text.secondary">
-      ∅
-    </Typography>
-  ),
-}: EmptyStateProps) => {
+const EmptyState = ({ title, description, action, headingLevel, icon }: EmptyStateProps) => {
   return (
-    <Stack alignItems="center" justifyContent="center" spacing={2} py={6} px={3}>
-      <Box
-        aria-hidden
-        sx={{
-          width: 48,
-          height: 48,
-          borderRadius: 2,
-          bgcolor: 'surface.alt',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {icon}
-      </Box>
-      <Stack spacing={0.5} alignItems="center" textAlign="center">
+    <Stack
+      direction="column"
+      alignItems="center"
+      justifyContent="center"
+      spacing={2}
+      py={6}
+      px={3}
+    >
+      {icon != null && (
+        <Box
+          aria-hidden
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: 2,
+            bgcolor: 'surface.alt',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {icon}
+        </Box>
+      )}
+      <Stack direction="column" spacing={0.5} alignItems="center" textAlign="center">
         <Typography
           variant="subtitle1"
           color="text.primary"

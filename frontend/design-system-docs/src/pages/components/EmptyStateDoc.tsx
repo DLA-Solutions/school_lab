@@ -29,7 +29,7 @@ const EmptyStateDoc = () => (
         name: 'icon',
         type: 'ReactNode',
         description:
-          "Content of the tile above the title, the '∅' glyph by default. The tile is aria-hidden, so whatever goes here is decorative and must not carry meaning the title omits",
+          'Optional decorative tile above the title. Omitted, no tile is rendered. When passed, the tile is aria-hidden, so whatever goes here must not carry meaning the title omits',
       },
     ]}
     code={`import { EmptyState } from 'design-system';

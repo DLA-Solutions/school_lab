@@ -24,7 +24,25 @@ import {
   listAuthorizedPickups,
   pickupPhotoUrl,
 } from 'services/authorizedPickupsApi';
-import { formatCpf } from 'utils/documentNumber';
+import { formatCpf, isValidCpf, normalizeCpf } from 'utils/documentNumber';
+
+type FormField = 'name' | 'cpf' | 'phone' | 'photo';
+
+type FieldErrors = Partial<Record<FormField, string>>;
+
+const FORM_FIELDS: FormField[] = ['name', 'cpf', 'phone', 'photo'];
+
+/**
+ * `validation_error` responses carry `details` as ActiveModel's `errors.to_hash`, e.g.
+ * `{ cpf: ["Esta pessoa já está cadastrada como autorizada."] }`.
+ */
+const toFieldErrors = (details: Record<string, unknown>): FieldErrors =>
+  Object.entries(details).reduce<FieldErrors>((acc, [key, value]) => {
+    if (FORM_FIELDS.includes(key as FormField) && Array.isArray(value) && typeof value[0] === 'string') {
+      acc[key as FormField] = value[0];
+    }
+    return acc;
+  }, {});
 
 export interface AuthorizedPickupsDialogProps {
   open: boolean;
@@ -66,6 +84,7 @@ const AuthorizedPickupsDialog = ({
   const [photo, setPhoto] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const [previewing, setPreviewing] = useState<AuthorizedPickup | null>(null);
   const [removing, setRemoving] = useState<AuthorizedPickup | null>(null);
@@ -97,34 +116,76 @@ const AuthorizedPickupsDialog = ({
     setCpf('');
     setPhone('');
     setPhoto(null);
+    setFieldErrors({});
+  };
+
+  const clearFieldError = (field: FormField) => {
+    setFieldErrors((current) => ({ ...current, [field]: undefined }));
+    setFormError('');
+  };
+
+  const handleCpfChange = (value: string) => {
+    const formatted = formatCpf(value);
+    setCpf(formatted);
+    clearFieldError('cpf');
+
+    const digits = normalizeCpf(formatted);
+    if (digits.length === 11 && !isValidCpf(formatted)) {
+      setFieldErrors((current) => ({ ...current, cpf: t('pickups.cpfInvalid') }));
+    }
   };
 
   const handleAdd = async (event: FormEvent) => {
     event.preventDefault();
 
+    const normalizedCpf = normalizeCpf(cpf);
+    const localErrors: FieldErrors = {};
+
     if (!name.trim()) {
-      setFormError(t('pickups.nameRequired'));
-      return;
+      localErrors.name = t('pickups.nameRequired');
     }
-    if (!cpf.trim()) {
-      setFormError(t('pickups.cpfRequired'));
+    if (!normalizedCpf) {
+      localErrors.cpf = t('pickups.cpfRequired');
+    } else if (!isValidCpf(cpf)) {
+      localErrors.cpf = t('pickups.cpfInvalid');
+    }
+
+    if (Object.keys(localErrors).length > 0) {
+      setFieldErrors(localErrors);
+      setFormError('');
       return;
     }
 
     setSaving(true);
     setFormError('');
+    setFieldErrors({});
 
     try {
       await createAuthorizedPickup(schoolId, studentId, {
         name: name.trim(),
-        cpf: cpf.trim(),
+        cpf: normalizedCpf,
         phone: phone.trim() || undefined,
         photo,
       });
       resetForm();
       await load();
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : t('pickups.saveError'));
+      if (err instanceof ApiError) {
+        const fields = toFieldErrors(err.details);
+        const { photo: photoError, ...textFieldErrors } = fields;
+
+        setFieldErrors(textFieldErrors);
+
+        if (photoError) {
+          setFormError(photoError);
+        } else if (Object.keys(textFieldErrors).length === 0) {
+          setFormError(err.message);
+        } else {
+          setFormError('');
+        }
+      } else {
+        setFormError(t('pickups.saveError'));
+      }
     } finally {
       setSaving(false);
     }
@@ -241,10 +302,15 @@ const AuthorizedPickupsDialog = ({
                         id="pickup-name"
                         label={t('common.name')}
                         value={name}
-                        onChange={(event) => setName(event.target.value)}
+                        onChange={(event) => {
+                          setName(event.target.value);
+                          clearFieldError('name');
+                        }}
                         fullWidth
                         required
                         disabled={saving}
+                        error={Boolean(fieldErrors.name)}
+                        helperText={fieldErrors.name}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -252,10 +318,14 @@ const AuthorizedPickupsDialog = ({
                         id="pickup-cpf"
                         label="CPF"
                         value={cpf}
-                        onChange={(event) => setCpf(event.target.value)}
+                        onChange={(event) => handleCpfChange(event.target.value)}
+                        placeholder="000.000.000-00"
+                        inputMode="numeric"
                         fullWidth
                         required
                         disabled={saving}
+                        error={Boolean(fieldErrors.cpf)}
+                        helperText={fieldErrors.cpf}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -263,9 +333,14 @@ const AuthorizedPickupsDialog = ({
                         id="pickup-phone"
                         label={t('common.phone')}
                         value={phone}
-                        onChange={(event) => setPhone(event.target.value)}
+                        onChange={(event) => {
+                          setPhone(event.target.value);
+                          clearFieldError('phone');
+                        }}
                         fullWidth
                         disabled={saving}
+                        error={Boolean(fieldErrors.phone)}
+                        helperText={fieldErrors.phone}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -283,7 +358,10 @@ const AuthorizedPickupsDialog = ({
                           type="file"
                           accept="image/*"
                           aria-label={t('pickups.choosePhoto')}
-                          onChange={(event) => setPhoto(event.target.files?.[0] ?? null)}
+                          onChange={(event) => {
+                            setPhoto(event.target.files?.[0] ?? null);
+                            clearFieldError('photo');
+                          }}
                         />
                       </Button>
                     </Grid>

@@ -1253,8 +1253,7 @@ function buildVerification(captures, lighthouse) {
       name: 'platform CTA bypasses the isolated preview fallback',
       passed: requiredCaptures.every(
         (capture) =>
-          capture.platformTarget ===
-          'https://scholarpremium.com.br/app/authentication/signin',
+          capture.platformTarget === '/app/authentication/signin',
       ),
     },
     {

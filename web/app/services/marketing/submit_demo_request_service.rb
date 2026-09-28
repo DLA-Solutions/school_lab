@@ -75,12 +75,16 @@ module Marketing
     end
 
     def enqueue_email!
-      MarketingMailer.with(
+      mailer_params = {
         name: params[:name].to_s.strip,
         email: params[:email].to_s.strip,
         phone: params[:phone].to_s.strip,
         submitted_at: Time.current
-      ).demo_request.deliver_later
+      }
+
+      MarketingMailer.with(**mailer_params).demo_request.deliver_later
+      MarketingMailer.with(name: mailer_params[:name], email: mailer_params[:email])
+                     .demo_request_confirmation.deliver_later
     end
   end
 end

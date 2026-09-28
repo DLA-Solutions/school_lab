@@ -24,7 +24,7 @@ export const copy = {
     ctaPrimary: 'Agendar demonstração',
     ctaSecondary: 'Acessar plataforma',
     ctaPrimaryHref: './agendar-demonstracao/',
-    ctaSecondaryHref: 'https://scholarpremium.com.br/app/authentication/signin',
+    ctaSecondaryHref: '/app/authentication/signin',
     signature: 'Scholar Premium, by DLA Solutions',
   },
   frame02: {

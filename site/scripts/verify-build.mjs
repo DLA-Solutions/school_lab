@@ -81,10 +81,11 @@ if (failures.length === 0) {
     'demo CTAs link to the dedicated scheduling page',
   );
   check(
-    html.includes(
-      'href="https://scholarpremium.com.br/app/authentication/signin"',
-    ),
-    'platform CTA targets the deployed product instead of preview fallback',
+    html.includes('href="/app/authentication/signin"') &&
+      !html.includes(
+        'href="https://scholarpremium.com.br/app/authentication/signin"',
+      ),
+    'platform CTA uses same-origin path instead of hardcoded production domain',
   );
   check(
     !/class="legacy-thread"/i.test(html),

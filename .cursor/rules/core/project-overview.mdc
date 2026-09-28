@@ -36,7 +36,7 @@ Do not implement `web/` or client feature code in the parent agent when a specia
 - `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming, **agent-routing**, **email-safety**).
 - `rules/docs/`, `rules/web/`, `rules/mobile/` — scoped by surface via `globs`; the folder is organizational, activation is driven by frontmatter.
 - `agents/` — specialized subagents (`rails-implementer` orchestrates `web/`; `frontend-implementer` orchestrates `frontend/app`, `frontend/backoffice`, and `mobile/`; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/` via rails-implementer; `prd-reviewer`, `doc-consistency-checker` for docs; `backend-ci` for `web/` CI).
-- `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `mobile/`). Deploy workflow: skill `deploy-kamal`; guardrails: rule `deployment`.
+- `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `mobile/`). Deploy: skills `deploy-staging` / `deploy-production` (shared Kamal mechanics: `deploy-kamal`); Jira claim / Ready to QA: skill `jira-task-lifecycle`; guardrails: rule `deployment`.
 - Detailed "why" for these rules lives in `docs/guidelines/`; rules stay terse and point there.
 
 ## Ground rules

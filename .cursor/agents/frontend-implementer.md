@@ -99,7 +99,8 @@ Cross-surface (web + mobile):
 - Web UI review: skill `review-web-ui`
 - Mobile review: skill `review-mobile`
 - API contract review: skill `review-api`
-- Deploy SPAs: skill `deploy-kamal`
+- Deploy SPAs: skill `deploy-staging` or `deploy-production` (after successful staging, skill `jira-task-lifecycle` → Ready to QA)
+- Jira ticket named (`DLA-N`): skill `jira-task-lifecycle` Start phase (assign + In Progress) before coding if the parent has not already claimed it
 - Task breakdown from PRD: skill `context-to-tasks`
 - Design principles: `docs/guidelines/process/design-principles.md`
 

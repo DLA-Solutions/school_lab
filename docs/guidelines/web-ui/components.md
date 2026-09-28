@@ -11,7 +11,6 @@ English default, so a screen changes wording by passing it rather than by forkin
 |---|---|---|
 | `ConfirmDialog` | `confirmLabel`, `cancelLabel` | `'Confirm'`, `'Cancel'` |
 | `DataTable` | `rangeLabel` | `'1-25 of 400'` |
-| `EmptyState` | `icon` | the `∅` glyph |
 | `ErrorBanner` | `retryLabel` | `'Retry'` |
 | `SearchField` | `placeholder`, `ariaLabel` | `'Search for...'`, `'Search'` |
 | `ThemeToggle` | `switchToLightLabel`, `switchToDarkLabel` | `'Switch to light mode'`, `'Switch to dark mode'` |
@@ -62,8 +61,8 @@ Centered empty list placeholder with optional CTA.
 <EmptyState title="No orders" icon={<IconifyIcon icon="mingcute:inbox-line" />} />
 ```
 
-The tile holding `icon` is `aria-hidden`, so whatever goes in it is decorative and must not carry
-meaning the title leaves out.
+`icon` is optional. When omitted, no tile is rendered. When passed, the tile is `aria-hidden`, so
+whatever goes in it is decorative and must not carry meaning the title leaves out.
 
 The title is a paragraph unless `headingLevel` is given. In the list-page composition the
 surrounding `SectionCard` already titles the region; pass a level only when the empty state is the

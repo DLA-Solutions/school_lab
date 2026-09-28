@@ -10,7 +10,7 @@ description: Runs local CI for web/ or the full monorepo (path filters match Git
 
 `web/bin/backend-ci` remains for **web/** only (lint, security, RSpec, OpenAPI, optional Docker).
 
-**When CI runs:** manually, on demand, and **mandatorily before deploy** (skill `deploy-kamal`). Git hooks do **not** run CI on commit or push; PR creation is not gated.
+**When CI runs:** manually, on demand, and **mandatorily before deploy** (skills `deploy-staging` / `deploy-production`). Git hooks do **not** run CI on commit or push; PR creation is not gated.
 
 ## Install git hooks (once per clone)
 

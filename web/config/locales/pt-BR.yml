@@ -59,6 +59,8 @@ pt-BR:
         phone_label: "Telefone (WhatsApp)"
         submitted_at_label: "Enviado em"
         source: "Origem: site de marketing Scholar Premium"
+      demo_request_confirmation:
+        subject: "Recebemos sua solicitação — Scholar Premium"
   notifications:
     contract_signed:
       title: "Contrato assinado"
@@ -213,10 +215,24 @@ pt-BR:
           attributes:
             cpf:
               taken: "já cadastrado para outro responsável nesta escola"
+        authorized_pickup:
+          attributes:
+            cpf:
+              taken: "Esta pessoa já está cadastrada como autorizada."
+              invalid: "não é um CPF válido"
         teacher_bank_account:
           attributes:
             base:
               no_payment_route: "Informe a chave pix ou o banco, a agência e o número da conta."
+        student_health_record:
+          attributes:
+            document:
+              invalid: "deve ser um arquivo PDF"
+              too_large: "deve ter no máximo 10 MB"
+        student_health_profile:
+          attributes:
+            blood_type:
+              inclusion: "não é um tipo sanguíneo válido"
     attributes:
       contract_template:
         logo: "Logo"

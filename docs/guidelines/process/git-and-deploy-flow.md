@@ -15,6 +15,9 @@ Feature work never deploys. Merge first, then deploy from the environment branch
 ```
 feature/meu-trabalho  →  PR para staging  →  merge  →  deploy staging  →  QA
 staging               →  git merge --ff-only na main →  push main      →  deploy production
+
+Jira (`DLA-N`, skill `jira-task-lifecycle`): claim → **In Progress**; after successful
+`kamal deploy -d staging` → **Ready to QA**. QA then owns **QA in progress** / **Done**.
 ```
 
 ## Everyday work

@@ -28,8 +28,8 @@ RSpec.describe Marketing::SubmitDemoRequestService do
     Rails.cache = original_cache
   end
 
-  it "enqueues the demo request email and applies rate limiting" do
-    expect { result }.to have_enqueued_job(ActionMailer::MailDeliveryJob)
+  it "enqueues the demo request and confirmation emails and applies rate limiting" do
+    expect { result }.to have_enqueued_job(ActionMailer::MailDeliveryJob).exactly(2).times
 
     expect(result).to be_success
     expect(Rails.cache.read("marketing_demo_request:#{client_ip}")).to be(true)

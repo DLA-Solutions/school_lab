@@ -1,18 +1,28 @@
 # frozen_string_literal: true
 
-# The health sheet is written by whoever answers for the child and read by the school. Both may
-# keep it current: a family updates an allergy from home, and the front desk writes down what a
-# parent said at the counter. The record carries who wrote it last, so a note is always
-# attributable even though two kinds of people can write it.
+# Health records are written by whoever answers for the child and read by the school. Only the
+# family may create, edit, or withdraw them — staff need the list but must not change it.
 class StudentHealthRecordPolicy < ApplicationPolicy
-  def show?
+  def index?
     return staff_with?(:manage_people) && same_school? if Current.membership&.staff_member?
 
     guardian_of_the_student?
   end
 
+  def show?
+    index?
+  end
+
+  def create?
+    guardian_of_the_student?
+  end
+
   def update?
-    show?
+    create?
+  end
+
+  def destroy?
+    create?
   end
 
   private
@@ -22,13 +32,22 @@ class StudentHealthRecordPolicy < ApplicationPolicy
   end
 
   def same_school?
-    student.school_id == school_id
+    student.blank? || student.school_id == school_id
   end
 
   def guardian_of_the_student?
     return false unless Current.membership&.role == "guardian" && Current.guardian
-    return false unless same_school?
+    return false if student.blank?
+    return false unless student.school_id == school_id
 
     Current.guardian.students.kept.exists?(id: student.id)
+  end
+
+  class Scope < Scope
+    def resolve
+      return scope.none unless Current.school
+
+      scope.kept.where(school_id: Current.school.id)
+    end
   end
 end

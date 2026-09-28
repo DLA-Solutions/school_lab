@@ -1373,16 +1373,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_000000) do
     t.check_constraint "relationship::text = ANY (ARRAY['father'::character varying, 'mother'::character varying, 'other'::character varying]::text[])", name: "student_guardians_relationship_valid"
   end
 
+  create_table "student_health_profiles", force: :cascade do |t|
+    t.string "blood_type"
+    t.datetime "created_at", null: false
+    t.string "emergency_contact_name", limit: 120
+    t.string "emergency_contact_phone", limit: 30
+    t.string "health_plan_name", limit: 120
+    t.string "health_plan_number", limit: 60
+    t.bigint "school_id", null: false
+    t.text "special_care_notes"
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_student_health_profiles_on_school_id"
+    t.index ["student_id"], name: "index_student_health_profiles_on_student", unique: true
+    t.index ["student_id"], name: "index_student_health_profiles_on_student_id"
+  end
+
   create_table "student_health_records", force: :cascade do |t|
     t.text "content", default: "", null: false
     t.datetime "content_updated_at"
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.datetime "discarded_at"
     t.bigint "school_id", null: false
     t.bigint "student_id", null: false
+    t.string "title", default: "", null: false
     t.datetime "updated_at", null: false
     t.bigint "updated_by_id"
+    t.index ["created_by_id"], name: "index_student_health_records_on_created_by_id"
     t.index ["school_id"], name: "index_student_health_records_on_school_id"
-    t.index ["student_id"], name: "index_student_health_records_on_student", unique: true
     t.index ["student_id"], name: "index_student_health_records_on_student_id"
     t.index ["updated_by_id"], name: "index_student_health_records_on_updated_by_id"
   end
@@ -1825,8 +1844,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_000000) do
   add_foreign_key "student_guardians", "guardians"
   add_foreign_key "student_guardians", "schools"
   add_foreign_key "student_guardians", "students"
+  add_foreign_key "student_health_profiles", "schools"
+  add_foreign_key "student_health_profiles", "students"
   add_foreign_key "student_health_records", "schools"
   add_foreign_key "student_health_records", "students"
+  add_foreign_key "student_health_records", "users", column: "created_by_id"
   add_foreign_key "student_health_records", "users", column: "updated_by_id"
   add_foreign_key "students", "school_classes"
   add_foreign_key "students", "schools"

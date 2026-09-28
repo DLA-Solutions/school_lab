@@ -58,6 +58,9 @@ RSpec.describe "Who may collect a student", type: :request do
       add({ cpf: "111.111.111-11" })
 
       expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("error", "details", "cpf")).to include(
+        I18n.t("activerecord.errors.models.authorized_pickup.attributes.cpf.invalid")
+      )
     end
 
     it "refuses somebody with no name" do
@@ -72,6 +75,9 @@ RSpec.describe "Who may collect a student", type: :request do
       add
 
       expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("error", "details", "cpf")).to include(
+        I18n.t("activerecord.errors.models.authorized_pickup.attributes.cpf.taken")
+      )
     end
 
     it "accepts a photo of the person" do
