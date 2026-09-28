@@ -1,0 +1,13 @@
+> Never send real email from automated tests or staging/production checks
+>
+> **Always relevant** — read this whenever working anywhere in the repo.
+
+# Email safety
+
+Full guide: `docs/guidelines/web/mailers.md`. Rule `mailers` for mailer code.
+
+- **Development** — Letter Opener (`/letter_opener`). Never Postmark.
+- **RSpec** — `delivery_method = :test` only, even if `RAILS_ENV=production` or a Postmark token is present.
+- **Staging / production checks** — do **not** trigger mail. Smoke is `GET /up` and read-only pages. Never invite, password reset, guardian access, collection régua, `deliver_now` / `deliver_later`, or `rails runner` mailers.
+- Do not treat `DISABLE_EMAIL_DELIVERY=true` as permission to exercise those endpoints on a live host.
+- Specs must not set `POSTMARK_API_TOKEN` or call the mail provider API.

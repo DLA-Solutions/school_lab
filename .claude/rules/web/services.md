@@ -1,0 +1,44 @@
+> Service object conventions for web/ — business logic, results, tenancy
+>
+> **Relevant when touching:** `web/app/services/**/*.rb`, `web/spec/services/**/*.rb`
+
+# web/ — Service Objects
+
+Full guide: `docs/guidelines/web/services.md`. Rules: `web-rails`, `controllers`, `state-machines`, `testing-rspec`.
+
+## Entry point
+
+- One use case per class; single public method `#call`.
+- Class shortcut: `self.call(...)` → `new(...).call` (via `ApplicationService`).
+- Inherit from `ApplicationService` (`app/services/application_service.rb`).
+- Prefer multi-line `def method_name(...)` bodies — avoid endless method syntax (`def foo = bar`).
+
+## Naming and layout
+
+- Namespace by domain, verb + `Service` suffix: `Billing::CreateChargeService`, `Auth::IssueTokensService`.
+- File path mirrors constant: `app/services/billing/create_charge_service.rb`.
+- Inject dependencies via constructor (gateways, mailers); pass context as keywords (`school:`, `actor:`, `params:`).
+
+## Results
+
+- Return `ResponseService` — never raise for expected business failures.
+- `ResponseService.success(data:)` / `ResponseService.failure(code:, details: nil)` — `code` is a stable symbol mapped to API `error.code`.
+- Success when `error_code` is blank; controllers branch on `result.success?` / `result.failure?`.
+
+## Tenancy and authorization
+
+- Pundit `authorize` runs in the **controller** before calling the service.
+- Services receive scoped records or `school:` — never load tenant data from raw IDs without scope.
+- Cross-aggregate checks and orchestration live here; models keep thin guards (`may_*?`).
+
+## Persistence and side effects
+
+- Wrap multi-model writes in `ActiveRecord::Base.transaction`.
+- AASM: check `may_*?`, then `event!` — map denial to `ResponseService.failure(code: :invalid_state_transition)` (API `409`).
+- Side effects (email, boleto, jobs) after successful save — not in model callbacks.
+- Bulk/system updates: `Model.without_auditing` when no per-row actor.
+
+## Testing
+
+- Specs in `spec/services/` — `subject(:result)`; assert success and failure paths.
+- Real DB + FactoryBot; mock only external gateways. Assert persisted state and audit rows when relevant.

@@ -1,0 +1,35 @@
+> Vendor HTTP integrations — lib/school_lab/integrations, adapter error mapping, no port errors in lib
+>
+> **Relevant when touching:** `web/lib/school_lab/integrations/**/*.rb`, `web/app/services/gateways/**/adapter.rb`, `web/app/services/gateways/**/error_mapper.rb`, `web/spec/lib/school_lab/integrations/**/*.rb`
+
+# web/ — Vendor Integrations
+
+Full guide: `docs/guidelines/web/integrations.md`. Transport: rule `http-client`. Gateways: rule `gateways`. Skill: `use-vendor-integration`.
+
+## Layer 2 — `SchoolLab::Integrations::<Vendor>`
+
+- Vendor HTTP client, OAuth/token cache, ENV `Configuration`, vendor error taxonomy live in `lib/school_lab/integrations/<vendor>/`.
+- Use `SchoolLab::Http` for transport — no raw Faraday or Net::HTTP.
+- Clients are injectable — no `for_school`, no `Registry`, no ActiveRecord in lib.
+
+## Lib must not import
+
+- `Gateways::*` port errors or value objects
+- `Registry`, `SchoolPaymentProvider`, models
+- Business services
+
+## Gateway adapter keeps
+
+- Port contract (`Interface`), `RequestPayload`, `ResponseParser`, `ErrorMapper`.
+- Client factory: `Registry.active_config` → build `Integrations::<Vendor>::Client`.
+- `with_port_errors { ... }` wraps client calls; maps lib errors → port errors.
+
+## Errors
+
+- Lib raises `Integrations::<Vendor>::*Error` — never port errors.
+- Adapter `ErrorMapper` translates to `Gateways::<Instrument>::*Error`.
+
+## Testing
+
+- Lib specs: `spec/lib/school_lab/integrations/<vendor>/` — assert vendor errors.
+- Adapter specs: `spec/gateways/<instrument>/<vendor>/` — assert port errors.

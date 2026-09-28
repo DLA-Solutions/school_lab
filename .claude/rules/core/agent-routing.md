@@ -1,0 +1,81 @@
+> Mandatory agent routing — delegate web/ to rails-implementer, client surfaces to frontend-implementer
+>
+> **Always relevant** — read this whenever working anywhere in the repo.
+
+# Agent Routing
+
+Parent agents (chat, cloud, multitask) **must delegate** surface-specific implementation to the specialist orchestrator. Do not implement `web/` or client UI directly when a specialist exists.
+
+Full orchestrator docs: `.claude/agents/rails-implementer.md`, `.claude/agents/frontend-implementer.md`.
+
+## Routing table
+
+| Paths / work | Orchestrator | Subagents (via orchestrator only) |
+|--------------|--------------|-----------------------------------|
+| `web/**` (API, migrations, services, policies, jobs, lib, swagger, Kamal for API) | **rails-implementer** | migration-agent, policy-agent, service-agent, api-controller-agent |
+| `web/` CI fixes and ship | **backend-ci** | — (uses skills `run-backend-ci`, `create-pull-request`) |
+| `frontend/app/**`, `frontend/backoffice/**`, `packages/design-tokens/**`, `frontend/design-system-docs/**`, `mobile/**` | **frontend-implementer** | review skills only (`review-web-ui`, `review-mobile`) |
+| `docs/**` (PRDs, modeling, DBML) | **prd-reviewer** / **doc-consistency-checker** | — |
+| `site/**` | Parent or general-purpose | No dedicated orchestrator |
+| Cross-surface deploy | Skill `deploy-kamal` | Coordinate rails + frontend orchestrators when multiple surfaces change; **must** call `discord-deploy` `notify_deploy` when deploy finishes |
+
+## Mandatory rules
+
+1. **Never** edit `web/app/`, `web/db/`, `web/spec/`, `web/lib/`, or `web/config/` for feature work without delegating to **rails-implementer** (or **backend-ci** for CI-only fixes).
+2. **Never** edit `frontend/app/`, `frontend/backoffice/`, `mobile/`, or `packages/design-tokens/` for feature work without delegating to **frontend-implementer**.
+3. **Never** delegate directly to layer subagents (`service-agent`, `policy-agent`, `api-controller-agent`, `migration-agent`) from the parent — always go through **rails-implementer**.
+4. **Never** duplicate business rules in client code; API changes belong in `web/` via **rails-implementer**.
+5. When the user asks for end-to-end product work spanning API + UI, **split by surface** — do not let one orchestrator own both stacks.
+
+## Default sequence (API + UI)
+
+Unless the API contract is already frozen in `docs/api/v1/`:
+
+1. **rails-implementer** — modeling alignment, migration, API, rswag/OpenAPI.
+2. **frontend-implementer** — types, API modules, routes, screens, tests (after contract exists).
+
+If the contract is frozen but API is not yet implemented, parent may run **rails-implementer** and **frontend-implementer** **in parallel** (frontend uses MSW against the documented contract).
+
+## Parallel delegation (when safe)
+
+Launch **two** `Task` subagents in one message when workstreams are independent or contract-backed:
+
+| Scenario | Parallel? | Delegation |
+|----------|-----------|------------|
+| New domain: DB + API + SPA list page, no API doc yet | No — sequential | rails-implementer first, then frontend-implementer |
+| API doc approved; implement backend + UI for same feature | Yes | rails-implementer (`web/`) ∥ frontend-implementer (MSW + screens) |
+| RuboCop fix in `web/` + design-token tweak | Yes | backend-ci ∥ frontend-implementer |
+| Billing API change + unrelated mobile screen | Yes | rails-implementer (billing) ∥ frontend-implementer (mobile) |
+| Same file tree, same feature, no frozen contract | No | One orchestrator at a time |
+
+After parallel work, parent reconciles: OpenAPI drift, integration smoke, single PR scope.
+
+## How to delegate
+
+```
+Task subagent_type: rails-implementer
+  prompt: Implement <feature> in web/ per docs/prds/<domain>.md ...
+```
+
+```
+Task subagent_type: frontend-implementer
+  prompt: Build <screen> in frontend/app per layer-web-spa.md; API contract docs/api/v1/<domain>.md ...
+```
+
+```
+Task subagent_type: backend-ci
+  prompt: Run web/bin/backend-ci, fix failures with atomic commits, open PR when green.
+```
+
+Use `run_in_background: true` only in Multitask Mode or when the user explicitly wants background work.
+
+## Parent agent checklist
+
+Before writing code, ask:
+
+1. Which paths will change?
+2. Is this `web/`, client, docs, or mixed?
+3. If mixed — sequential or parallel per table above?
+4. Delegate via `Task` with a **complete** prompt (PRD path, surface, acceptance criteria).
+
+If unsure, delegate to the orchestrator for the **primary** path being edited; it will coordinate the other side.

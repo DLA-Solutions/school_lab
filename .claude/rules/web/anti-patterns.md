@@ -1,0 +1,24 @@
+> Rails anti-patterns to avoid in web/ — god models, callbacks, unscoped queries
+>
+> **Relevant when touching:** `web/app/**/*.rb`, `web/spec/**/*.rb`
+
+# web/ — Anti-Patterns
+
+Full guide: `docs/guidelines/web/anti-patterns.md`. Principles: `design-principles`.
+
+- **God model** — extract logic to services when model exceeds ~200 lines or owns workflows.
+- **Service graveyard** — no service for trivial CRUD behind `authorize`.
+- **Callback spaghetti** — no emails/jobs/APIs in `after_*`; normalization only in callbacks.
+- **Kitchen sink concern** — narrow concerns (~30 lines); multi-responsibility → service.
+- **STI abuse** — many NULL subtype columns → polymorphic or separate tables.
+- **N+1** — `includes`/`preload`; `strict_loading` in development.
+- **Unscoped tenant queries** — never `Model.find(params[:id])` or `Model.all` for tenant data.
+- **Auth in wrong layer** — Pundit in controller; business rules in services.
+- **Raise for business failures** — use `ResponseService.failure`, not exceptions.
+- **Premature abstraction** — extract on third stable case, not before.
+- **Direct AASM** — controllers/jobs → services → `event!`.
+- **Mocking domain in tests** — real AR + DB; mock external gateways only.
+- **Provider email in local/test** — never `:postmark` / SMTP / mail API in development or RSpec. Development uses Letter Opener; test uses `:test` (rule `mailers`).
+- **Raw outbound HTTP** — no `Net::HTTP` or ad-hoc Faraday in product code; use `SchoolLab::Http` (rule `http-client`).
+- **Vendor HTTP in gateways** — OAuth/client/token cache belong in `lib/school_lab/integrations/` (rule `integrations`); gateway keeps adapter + mappers only.
+- **Port errors in lib** — lib raises vendor errors; adapter `ErrorMapper` translates (rule `integrations`).

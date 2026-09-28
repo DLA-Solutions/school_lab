@@ -1,0 +1,48 @@
+> Rails 8.1 web layer conventions (locked stack)
+>
+> **Relevant when touching:** `web/**`
+
+# web/ — Rails 8.1 Conventions
+
+Stack is locked in `docs/web-stack.md`. Ruby 4.0, Rails 8.1. API conventions in `docs/api/README.md`.
+Index: `docs/guidelines/web/README.md`.
+
+**Agent routing:** Feature work in `web/` is owned by **rails-implementer** (rule `agent-routing`). Parent agents delegate; layer subagents are invoked only through rails-implementer. CI/PR: **backend-ci**.
+
+## Architecture
+- Business logic in **service objects** (`app/services/`). API controllers delegate to services — no duplicated rules.
+- **Generators:** `bin/rails generate` for models (`--skip-migration` after migration-agent) and controllers (`api/v1/... --skip-routes`); no scaffold.
+- Controllers: `docs/guidelines/web/controllers.md` — rule `controllers`.
+- Services: `docs/guidelines/web/services.md` — rule `services`.
+- Models: `docs/guidelines/web/models.md` — rule `models`.
+- Policies: `docs/guidelines/web/policies.md` — rule `policies`.
+- Multi-tenancy: `docs/guidelines/web/multi-tenancy.md` — rule `multi-tenancy`.
+- Migrations: `docs/guidelines/web/migrations.md` — rule `migrations`.
+- State machines: `docs/guidelines/web/state-machines.md` — rule `state-machines`.
+- Auditing: `docs/guidelines/web/auditing.md` — rule `auditing`.
+- Jobs: `docs/guidelines/web/jobs.md` — rule `jobs`.
+- Serializers: `docs/guidelines/web/serializers.md` — rule `serializers`.
+- Mailers / gateways / HTTP: `docs/guidelines/web/mailers.md`, `gateways.md`, `http-client.md` — rules `mailers`, `gateways`, `http-client`. Development mail is Letter Opener; RSpec is `:test`; never Postmark locally.
+- Anti-patterns: `docs/guidelines/web/anti-patterns.md` — rule `anti-patterns`.
+- **No Hotwire UI** in `web/` — `config.api_only = true`; the product web surface is the React SPA in `frontend/app`.
+- API: REST JSON under `/api/v1`, JWT auth; OpenAPI via **rswag** request specs.
+- Clients: the web SPA (`frontend/app`) and the mobile app (`mobile/`, React Native) consume the same API.
+
+## Auth
+- Devise for credentials on `users`; JWT access + `refresh_tokens` table.
+- Pundit — roles: backoffice, school, teacher, guardian; per-school + per-family isolation.
+- See `docs/modeling/002-api-auth.md` for TTL, rotation, and client transport.
+
+## Infra defaults (MVP)
+- PostgreSQL 16+, Solid Queue (jobs), Solid Cache. No Redis/Sidekiq in MVP.
+- Active Storage → S3. Push via FCM, enqueued on Solid Queue, gated by a state machine.
+- rack-cors for web SPA origins.
+
+## Testing
+RSpec (model/service/policy + **rswag** request specs), FactoryBot. Test **behavior**, not implementation; avoid mocks except at external boundaries. See `docs/guidelines/web/testing.md` and rule `testing-rspec`.
+
+## Serialization
+**blueprinter** (provisional). Email provider and boleto gateway still open in `docs/open-questions.md`.
+
+## Out of scope
+GraphQL, microservices, Sidekiq/Redis for jobs, server-rendered Hotwire as primary UI.

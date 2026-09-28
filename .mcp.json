@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp/oauth"
+    },
+    "github": {
+      "command": "bash",
+      "args": ["${workspaceFolder}/.claude/scripts/run-github-mcp.sh"]
+    },
+    "discord-deploy": {
+      "command": "bash",
+      "args": ["${workspaceFolder}/.claude/scripts/run-discord-mcp.sh"]
+    }
+  }
+}

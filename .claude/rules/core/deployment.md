@@ -1,0 +1,39 @@
+> Kamal deploy guardrails for site, school SPA, backoffice SPA, and web API
+>
+> **Relevant when touching:** `site/config/**`, `frontend/app/config/**`, `frontend/backoffice/config/**`, `web/config/deploy*.yml`, `**/Dockerfile`, `**/nginx.conf`
+
+# Deployment (Kamal)
+
+Full runbook: `docs/guidelines/process/deployment.md`. Executable workflow: skill **`deploy-kamal`**.
+
+**Branch policy:** `-d staging` only from **`staging`**; `-d production` only from **`main`**. Feature branches and open PRs must not deploy — see rule **`deploy-environment-branches`**. One-pager: `docs/guidelines/process/git-and-deploy-flow.md`.
+
+## Services
+
+| Layer | Directory | Kamal service | Host path |
+|---|---|---|---|
+| Site | `site/` | `scholarpremium-site` | `/` (root) |
+| SPA (school) | `frontend/app/` | `scholarpremium-spa` | `/app` |
+| SPA (backoffice) | `frontend/backoffice/` | `scholarpremium-backoffice-spa` | `/backoffice` |
+| API | `web/` | `scholarpremium` | `/api`, `/up`, `/api-docs`, `/webhooks` |
+
+Always pass `-d staging` or `-d production` (`require_destination: true`).
+
+Post-deploy smoke is read-only (`GET /`, `/app/`, `/backoffice/`, `/up`). Never trigger transactional email on staging or production (rule `email-safety`).
+
+**Discord notify (mandatory):** after the deploy has a final result, call `notify_deploy` via the `discord-deploy` MCP (success or failure). See skill **`deploy-kamal`** § Discord notify. Do not skip on failure; a Discord outage is not a deploy failure.
+
+## Guardrails
+
+- **Secrets per service directory** — Kamal reads `.kamal/` from the cwd (`site/`, `frontend/app/`, `frontend/backoffice/`, or `web/`). Copy `secrets-common` into each before the first deploy.
+- **TLS only on site** — `proxy.ssl: true` in `site/config/deploy.yml` only. API and SPA must not set `ssl` with path prefixes.
+- **Docker build (site/SPA)** — `builder.context: ..`, `builder.dockerfile: Dockerfile` (relative to service dir, not `site/Dockerfile`).
+- **Routine deploy order** — site → school SPA → backoffice SPA → API.
+- **Cutover** (API already owns full host) — `kamal-proxy remove <api-service>` → site → API → school SPA → backoffice SPA. Never `kamal proxy remove` (drops entire proxy).
+- **API path prefixes** — `strip_path_prefix: false` so Rails receives `/api/v1/...` intact.
+
+## Do not
+
+- Deploy without checking `KAMAL_REGISTRY_PASSWORD` and `.kamal/secrets-common` in the target service dir.
+- Commit `.kamal/secrets-common` or destination secret files (only `.example` templates are versioned).
+- Assume uncommitted Kamal config changes are in the image — `web/` builds from git; site/SPA build from local context.

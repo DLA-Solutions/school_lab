@@ -29,10 +29,10 @@ CSV_PATH = File.join(DIR, "cora_boletos.csv")
 CERT_PATH = File.join(DIR, "certificate.pem")
 KEY_PATH = File.join(DIR, "private-key.key")
 
-# Setembro de 2026: os "dia_vencimento" do CSV (4, 5, 10...) são só o dia; o mês/ano não vem na
+# Outubro de 2026: os "dia_vencimento" do CSV (4, 5, 10...) são só o dia; o mês/ano não vem na
 # planilha reduzida, então fica fixo aqui — mudar isto ao reaproveitar o script para outro mês.
 BILLING_YEAR = 2026
-BILLING_MONTH = 9
+BILLING_MONTH = 10
 
 API_BASE_URL = "https://matls-clients.api.cora.com.br"
 

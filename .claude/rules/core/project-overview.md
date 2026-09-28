@@ -1,0 +1,46 @@
+> School Lab monorepo overview, structure, and working conventions
+>
+> **Always relevant** — read this whenever working anywhere in the repo.
+
+# School Lab — Project Overview
+
+Multi-school management SaaS for private Brazilian schools. Product UI locale is `pt-BR`; repository language is English (see the `core/language-conventions` rule).
+
+## Monorepo layout
+- `web/` — Rails 8.1, API-only (`config.api_only = true`), serving the versioned REST API (single source of business rules). Stack is locked; see the `web/web-rails` rule. Outbound third-party HTTP uses `web/lib/school_lab/http.rb` (rule `http-client`).
+- `frontend/app/` — React + Vite school SPA at `/app`. Consumes the API; never duplicates business rules.
+- `frontend/backoffice/` — React + Vite platform SPA at `/backoffice`. Same API contract.
+- `site/` — static institutional landing at the domain root (`/`). No API dependency.
+- `frontend/base` — upstream template the SPA started from. Reference only; not the product.
+- `mobile/` — React Native. Consumes the API; never duplicates business rules.
+- `docs/` — anchor docs, PRDs, ADRs, guidelines. Source of truth for scope. Engineering standards live in `docs/guidelines/`.
+
+Surface layout decision: `docs/adr/001-monorepo-surfaces.md`.
+
+## Working convention
+Follow the documented flow (`docs/product-map.md`): anchor docs → domain PRDs (`docs/prds/`) → modeling (narrative in `docs/modeling/`) + database (DBML/DER in `docs/database/`) → implementation in `web/`. Do not implement domains that lack a PRD without flagging it.
+
+## Agent routing
+
+Parent agents **must** delegate by surface — see rule `agent-routing` (always applied):
+
+- **`web/`** → **rails-implementer** (and **backend-ci** for CI/PR); layer work via its subagents only.
+- **Client surfaces** (`frontend/app`, `frontend/backoffice`, `mobile`, design tokens) → **frontend-implementer**.
+- **Docs / PRDs** → **prd-reviewer**, **doc-consistency-checker**.
+- API + UI features: rails first unless `docs/api/v1/` contract is frozen; then parallel is allowed.
+
+Do not implement `web/` or client feature code in the parent agent when a specialist exists.
+
+## `.cursor` layout
+- `rules/core/` — cross-cutting, always-applied rules (this file, language, LGPD, branch naming, **agent-routing**, **email-safety**).
+- `rules/docs/`, `rules/web/`, `rules/mobile/` — scoped by surface via `globs`; the folder is organizational, activation is driven by frontmatter.
+- `agents/` — specialized subagents (`rails-implementer` orchestrates `web/`; `frontend-implementer` orchestrates `frontend/app`, `frontend/backoffice`, and `mobile/`; `migration-agent`, `policy-agent`, `service-agent`, `api-controller-agent` for `web/` via rails-implementer; `prd-reviewer`, `doc-consistency-checker` for docs; `backend-ci` for `web/` CI).
+- `skills/` — grouped by context (`core/`, `docs/`, `web/`, `web-ui/`, `mobile/`). Deploy workflow: skill `deploy-kamal`; guardrails: rule `deployment`.
+- Detailed "why" for these rules lives in `docs/guidelines/`; rules stay terse and point there.
+
+## Ground rules
+- Business logic lives in the API layer (service objects), shared by web + mobile.
+- Data is isolated per school (`school_id`); never leak data across schools.
+- Never send real email from tests or from staging/production smoke — rule `email-safety`.
+- When unsure about scope, check `docs/open-questions.md` before assuming.
+- **"Pode versionar"** (also "versione", "versionar") — atomic commits, push, open PR; see rule `git-atomic-commits` and skill `create-pull-request`.

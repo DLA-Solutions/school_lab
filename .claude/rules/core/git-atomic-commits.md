@@ -1,0 +1,65 @@
+> Git atomic commit conventions for School Lab — one concern per commit
+>
+> **Always relevant** — read this whenever working anywhere in the repo.
+
+# Git Atomic Commits
+
+Every commit must contain **one logical change**. Split unrelated work before committing — including agent fixes, CI repairs, and config updates.
+
+Full guide: agents and skills reference this rule; `backend-ci` enforces it on CI fix commits.
+
+## One concern per commit
+
+| Good (atomic) | Bad (mixed) |
+|---------------|-------------|
+| Fix RuboCop offenses in billing services. | Fix RuboCop and update invite accept specs. |
+| Regenerate OpenAPI after auth route changes. | OpenAPI regen + unrelated frontend typo. |
+| Add git atomic commits rule. | Agent update + rule + skill changes in one commit. |
+
+## Grouping rules
+
+1. **By purpose**, not by file count — one service fix and its spec can share a commit when the spec exists only to cover that fix.
+2. **Separate layers** when changes are independent — migration vs service vs controller vs OpenAPI regen vs Cursor config.
+3. **Separate fix types on CI branches** — RuboCop, spec failure, OpenAPI drift, Brakeman/audit each get their own commit when they fail independently.
+4. **Never** batch "drive-by" edits with feature work — second commit or drop the drive-by.
+
+## Message format
+
+- English, imperative mood, present tense (`Add`, `Fix`, `Remove`, `Regenerate`).
+- Focus on **why**, not a file list.
+- First line is the full message for small commits; no required body.
+
+Examples:
+
+```
+Fix failing specs for invite accept flow.
+Regenerate OpenAPI after invite accept request spec changes.
+Add git atomic commits rule.
+Extend backend-ci agent to commit fixes and open PRs.
+```
+
+## When committing
+
+1. Review `git diff` — if it spans unrelated concerns, split with `git add -p` or staged paths.
+2. Commit the smallest shippable unit that still makes sense in history.
+3. Re-run the narrowest verification for that unit (spec, RuboCop, CI step) before the next commit.
+4. Before push or PR, each commit on the branch should be reviewable on its own.
+
+## Agents and CI
+
+- **backend-ci** — one atomic commit per CI failure type; never leave CI fixes uncommitted.
+- **All agents** — follow this rule when the user asks to commit or when shipping work; do not squash unrelated changes to save time.
+
+## When user says "pode versionar"
+
+Portuguese trigger phrases — **"pode versionar"**, **"versione"**, **"versionar"** — mean **ship the current branch**, not a single commit only. Always run the full pipeline in order:
+
+1. **Atomic commits** — one logical change per commit (this rule); split unrelated work before committing.
+2. **Push** — `git push -u origin HEAD` on the current branch.
+3. **Open a PR against `staging`** — skill `create-pull-request` (`gh pr create --base staging`); return the PR URL.
+
+Treat this as explicit permission to commit, push, and open a PR in one flow. Do not skip push or PR. If a PR already exists for the branch, push only — do not create a duplicate. Promotion to production is a local fast-forward of `staging` onto `main`, not a GitHub squash/rebase merge.
+
+## When unsure
+
+If a diff mixes two prefixes (`fix/` vs `chore/` vs `feature/`), split into two commits or two branches — same test as branch naming (`git-branch-naming` rule).
