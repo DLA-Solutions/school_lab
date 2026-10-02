@@ -2490,6 +2490,68 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/academics/students/{student_id}/report_card_preview/pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "student_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "academic_period_id",
+          "in": "query",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Teacher live, unpublished, cross-subject boletim preview",
+        "tags": [
+          "Report Cards",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "no grade data at all for the period renders blank, not a 422"
+          },
+          "403": {
+            "description": "a non-teacher role, even a full owner"
+          },
+          "404": {
+            "description": "unknown student"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/academics/report_card_publication_batches/validate": {
       "parameters": [
         {
