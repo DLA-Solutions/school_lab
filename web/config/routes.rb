@@ -189,6 +189,11 @@ Rails.application.routes.draw do
                 end
               end
             end
+
+            # Teacher live, unpublished, cross-subject PDF preview from the grade-entry screen
+            # (BR-RC14). Deliberately not nested under report_card_publications: this path never
+            # creates a publication, snapshot, or stored PDF.
+            get "students/:student_id/report_card_preview/pdf", to: "report_card_previews#pdf"
           end
 
           namespace :communication do
