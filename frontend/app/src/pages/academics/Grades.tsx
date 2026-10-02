@@ -188,12 +188,34 @@ const Grades = () => {
     return drafts[key] ?? (saved === null || saved === undefined ? '' : String(saved).replace('.', ','));
   };
 
-  const stateIcon = (state: CellState | undefined) => {
-    if (state === 'saving') return <CircularProgress size={12} />;
-    if (state === 'saved') return <IconifyIcon icon="mingcute:check-line" aria-hidden />;
-    if (state === 'error') return <IconifyIcon icon="mingcute:alert-line" aria-hidden />;
-    return null;
-  };
+  // Fixed-size slot regardless of state: an icon that pops in and out would otherwise nudge the
+  // input's own width (and the text inside it) as a cell goes idle -> saving -> saved.
+  const stateIcon = (state: CellState | undefined) => (
+    <Box
+      sx={{
+        width: 14,
+        height: 14,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}
+    >
+      {state === 'saving' && <CircularProgress size={10} />}
+      {state === 'saved' && (
+        <IconifyIcon icon="mingcute:check-line" aria-hidden width={12} height={12} />
+      )}
+      {state === 'error' && (
+        <IconifyIcon
+          icon="mingcute:alert-line"
+          aria-hidden
+          width={12}
+          height={12}
+          sx={{ color: 'error.main' }}
+        />
+      )}
+    </Box>
+  );
 
   if (!school) {
     return (
@@ -277,7 +299,7 @@ const Grades = () => {
             headingLevel={2}
           />
         ) : (
-          <Box px={3.5} py={3.5} sx={{ width: 1, overflowX: 'auto' }}>
+          <Box px={2} py={2.5} sx={{ width: 1, overflowX: 'auto' }}>
             {/* The class and subject are chosen in dropdowns above and the year is implied by the
                 class, so without this the teacher stares at a wall of numbers with nothing on
                 screen confirming whose year they belong to. */}
@@ -291,10 +313,17 @@ const Grades = () => {
               {t('grades.autosaveHint')}
             </Typography>
 
-            <Table size="small">
+            {/* Dense by design: up to four bimestres of three components each (12 grade columns)
+                need to sit next to the roll without the sheet spilling into horizontal scroll on
+                a normal laptop screen, so every cell below trades the usual comfortable padding
+                for a tight, deliberate footprint. overflowX on the wrapper above is only a safety
+                net for narrow viewports or heavy browser zoom. */}
+            <Table size="small" sx={{ width: 'auto' }}>
               <TableHead>
                 <TableRow>
-                  <TableCell rowSpan={2}>{t('common.student')}</TableCell>
+                  <TableCell rowSpan={2} sx={{ maxWidth: 104, px: 1 }}>
+                    {t('common.student')}
+                  </TableCell>
                   {book.periods.map((period) => (
                     // One spanning header per period, so "1º trimestre" reads as the group that
                     // owns the P1 / P2 / Trabalho columns under it, rather than three loose ones.
@@ -302,6 +331,7 @@ const Grades = () => {
                       key={period.id}
                       align="center"
                       colSpan={Math.max(period.components.length, 1)}
+                      sx={{ px: 0.5, py: 0.5 }}
                     >
                       {period.name}
                       {period.closed && (
@@ -315,7 +345,11 @@ const Grades = () => {
                 <TableRow>
                   {book.periods.flatMap((period) =>
                     period.components.map((component) => (
-                      <TableCell key={`${period.id}:${component.id}`} align="center">
+                      <TableCell
+                        key={`${period.id}:${component.id}`}
+                        align="center"
+                        sx={{ px: 0.5, py: 0.25 }}
+                      >
                         <Typography variant="caption" color="text.secondary">
                           {component.name}
                         </Typography>
@@ -327,7 +361,18 @@ const Grades = () => {
               <TableBody>
                 {book.students.map((student) => (
                   <TableRow key={student.id}>
-                    <TableCell>{student.name}</TableCell>
+                    <TableCell
+                      title={student.name}
+                      sx={{
+                        maxWidth: 104,
+                        px: 1,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {student.name}
+                    </TableCell>
                     {book.periods.flatMap((period) =>
                       period.components.map((component) => {
                         const key = cellKey(student.id, period.id, component.id);
@@ -335,8 +380,13 @@ const Grades = () => {
                         const saved = student.entries[period.id]?.[component.id] ?? null;
 
                         return (
-                          <TableCell key={key} align="center">
-                            <Stack direction="row" gap={0.5} alignItems="center">
+                          <TableCell key={key} align="center" sx={{ px: 0.25, py: 0.5 }}>
+                            {/* The state icon overlays the input's own corner instead of sitting
+                                in an endAdornment slot: an adornment is a flex sibling of the
+                                input and steals width from it, which at this column width left
+                                almost nothing for the digits themselves. pointerEvents: 'none'
+                                keeps it from ever stealing a click meant for the field. */}
+                            <Box sx={{ position: 'relative', display: 'inline-block' }}>
                               <TextField
                                 // Labelled per cell: a grid of bare inputs is unreadable to a
                                 // screen reader, which cannot see the row and column headers.
@@ -348,6 +398,7 @@ const Grades = () => {
                                   }),
                                   inputMode: 'decimal',
                                 }}
+                                hiddenLabel
                                 value={cellValue(student.id, period.id, component.id, saved)}
                                 onChange={(e) =>
                                   setDrafts((current) => ({ ...current, [key]: e.target.value }))
@@ -356,12 +407,27 @@ const Grades = () => {
                                 error={state === 'error'}
                                 variant="filled"
                                 size="small"
-                                sx={{ width: 76 }}
+                                sx={{
+                                  width: 56,
+                                  '& .MuiFilledInput-input': {
+                                    textAlign: 'center',
+                                    px: 0.5,
+                                    py: 0.75,
+                                    fontSize: '0.8125rem',
+                                  },
+                                }}
                               />
-                              <Box sx={{ width: 16, display: 'flex', alignItems: 'center' }}>
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 2,
+                                  right: 2,
+                                  pointerEvents: 'none',
+                                }}
+                              >
                                 {stateIcon(state)}
                               </Box>
-                            </Stack>
+                            </Box>
                           </TableCell>
                         );
                       }),

@@ -176,7 +176,7 @@ module Api
         case code.to_sym
         when :unauthorized, :invalid_credentials, :invalid_invite_token, :invalid_oauth_token
           :unauthorized
-        when :forbidden, :module_disabled, :access_denied, :user_disabled
+        when :forbidden, :module_disabled, :access_denied, :user_disabled, :not_your_lesson
           :forbidden
         when :not_found
           :not_found

@@ -220,6 +220,7 @@ const enUS: Messages = {
   'lessons.empty.description': 'Assign a teacher to a subject of a class to begin.',
   'nav.grades': 'Grades',
   'grades.loadError': 'Could not load the grades.',
+  'grades.optionsLoadError': 'Could not load the classes and subjects.',
   'grades.choose.title': 'Choose the class and the subject',
   'grades.choose.description': 'Grades are entered per class and subject, one term per column.',
   'grades.empty.title': 'No students in this class',

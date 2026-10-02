@@ -267,4 +267,17 @@ describe('Grades page', () => {
 
     expect(await screen.findByText(/não leciona esta matéria/i)).toBeInTheDocument();
   });
+
+  // A failure loading the class/subject dropdowns used to leave them silently empty with no
+  // indication anything went wrong — the teacher just saw nothing to pick from.
+  it('reports when the class and subject dropdowns fail to load instead of going silently empty', async () => {
+    server.use(
+      http.get(apiUrl(`${BASE}/school_classes`), () => jsonError(403, 'forbidden', 'Sem permissão.')),
+      http.get(apiUrl(`${BASE}/subjects`), () => jsonError(403, 'forbidden', 'Sem permissão.')),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText(/sem permissão/i)).toBeInTheDocument();
+  });
 });

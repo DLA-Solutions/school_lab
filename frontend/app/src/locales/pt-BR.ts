@@ -220,6 +220,7 @@ const ptBR = {
   'lessons.empty.description': 'Atribua um professor a uma matéria de uma turma para começar.',
   'nav.grades': 'Notas',
   'grades.loadError': 'Não foi possível carregar as notas.',
+  'grades.optionsLoadError': 'Não foi possível carregar as turmas e matérias.',
   'grades.choose.title': 'Escolha a turma e a matéria',
   'grades.choose.description': 'As notas são lançadas por turma e matéria, um bimestre por coluna.',
   'grades.empty.title': 'Nenhum estudante nesta turma',
