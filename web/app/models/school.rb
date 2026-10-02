@@ -15,6 +15,7 @@ class School < ApplicationRecord
   has_many :student_guardians, dependent: :destroy
   has_many :school_classes, dependent: :destroy
   has_many :subjects, dependent: :destroy
+  has_many :class_disciplines, dependent: :destroy
   has_many :teachers, dependent: :destroy
   has_many :job_positions, dependent: :destroy
   has_many :teaching_assignments, dependent: :destroy

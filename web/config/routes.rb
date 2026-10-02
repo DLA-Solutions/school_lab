@@ -146,12 +146,11 @@ Rails.application.routes.draw do
             end
             resources :teaching_assignments, only: %i[index destroy]
 
-            # The mark sheet: read whole for one class and subject, written a cell at a time. The
-            # cell is identified by the student and the period, not by a row id — the screen edits
-            # a grid, and a cell that has never been marked has no row yet.
-            resources :grades, only: :index do
-              put :cell, on: :collection
-            end
+            # The grade book: the grid of periods/components for one class + subject, read whole
+            # and written a cell at a time (components/templates/roster/entries already exist —
+            # this is the teacher-facing read + single-cell write on top of them).
+            get "classes/:school_class_id/grade_book", to: "grade_books#show"
+            put "classes/:school_class_id/grade_book/entries", to: "grade_books#update_entry"
 
             # Preceptoria: a teacher's account of a student, in prose. Written as a draft and
             # published deliberately, so the guardian-facing state change is a member rather

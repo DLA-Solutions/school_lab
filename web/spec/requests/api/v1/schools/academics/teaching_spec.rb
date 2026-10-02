@@ -382,4 +382,71 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
       expect(rows.size).to eq(2)
     end
   end
+
+  # `mine=true` narrows the class/subject dropdowns to what the current teacher actually has a
+  # `ClassDiscipline` for (the grade book's own source of truth) — opt-in, and a no-op for every
+  # role that isn't a teacher, so the plain index keeps behaving exactly as it did before.
+  describe "mine=true narrowing for dropdowns" do
+    let(:school_year) { create(:school_year, :custom, school: school) }
+    let!(:maths_class) { create(:school_class, school: school, name: "A", year: school_year.name.to_i) }
+    let!(:other_class) { create(:school_class, school: school, name: "B", year: school_year.name.to_i) }
+    let(:maths) { create(:subject, school: school, name: "Matemática") }
+    let(:history) { create(:subject, school: school, name: "História") }
+
+    let(:teacher_user) { create(:user, email: "carla@example.com") }
+    let!(:teacher_membership) { create(:membership, user: teacher_user, school: school, role: "teacher") }
+    let!(:carla) { create(:teacher, school: school, email: "carla@example.com", name: "Carla Souza") }
+    let(:teacher_headers) { auth_headers_for(teacher_user) }
+
+    before do
+      # The system `teacher` template only grants `teach`, not `manage_enrollment` — the index
+      # itself is gated on `manage_enrollment` (same as the grade book), so narrowing a teacher's
+      # own dropdown requires a school-configured custom template granting it too.
+      custom_template = create(:school_role_template, school: school)
+      create(:role_template_permission, school: school, role_template: custom_template,
+                                        permission_key: "manage_enrollment", scope_kind: "full")
+      create(:staff_profile, membership: teacher_membership, school: school,
+                            role_template: custom_template)
+      create(:class_discipline, school: school, school_class: maths_class, subject: maths,
+                                school_year: school_year, teacher: carla)
+      create(:class_discipline, school: school, school_class: other_class, subject: history,
+                                school_year: school_year)
+    end
+
+    it "leaves the admin's index unchanged with or without the param" do
+      get "#{base}/school_classes", headers: headers
+      without_mine = response.parsed_body["data"].map { |row| row["id"] }
+
+      get "#{base}/school_classes?mine=true", headers: headers
+      with_mine = response.parsed_body["data"].map { |row| row["id"] }
+
+      expect(with_mine).to eq(without_mine)
+      expect(with_mine).to include(maths_class.id, other_class.id)
+    end
+
+    it "narrows a teacher's classes to the ones they hold a class_discipline for" do
+      get "#{base}/school_classes?mine=true", headers: teacher_headers
+
+      ids = response.parsed_body["data"].map { |row| row["id"] }
+      expect(ids).to eq([ maths_class.id ])
+    end
+
+    it "leaves the admin's subjects unchanged with or without the param" do
+      get "#{base}/subjects", headers: headers
+      without_mine = response.parsed_body["data"].map { |row| row["id"] }
+
+      get "#{base}/subjects?mine=true", headers: headers
+      with_mine = response.parsed_body["data"].map { |row| row["id"] }
+
+      expect(with_mine).to eq(without_mine)
+      expect(with_mine).to include(maths.id, history.id)
+    end
+
+    it "narrows a teacher's subjects to the ones they hold a class_discipline for" do
+      get "#{base}/subjects?mine=true", headers: teacher_headers
+
+      ids = response.parsed_body["data"].map { |row| row["id"] }
+      expect(ids).to eq([ maths.id ])
+    end
+  end
 end

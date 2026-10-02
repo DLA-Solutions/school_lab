@@ -108,6 +108,12 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
       return false;
     }
 
+    // Narrower than audience: excludes a specific role even though it collapses into a matching
+    // audience bucket (e.g. `teacher` collapsing into `staff`).
+    if (item.excludeRoles && membership !== null && item.excludeRoles.includes(membership.role)) {
+      return false;
+    }
+
     const moduleKey = menuItemModuleKey(item);
     if (moduleKey && !isModuleEnabledForMembership(membership, moduleKey)) {
       return false;

@@ -47,11 +47,69 @@ Base: `/api/v1/schools/:school_id/academics`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/classes/:class_id/grade_book` | Grid by period |
-| `PUT` | `/grade_entries` | Upsert scores |
-| `POST` | `/grade_launches` | Publish period grades |
+| `GET` | `/classes/:school_class_id/grade_book?subject_id=` | Grid by period (implemented) |
+| `PUT` | `/classes/:school_class_id/grade_book/entries` | Upsert one cell (implemented) |
+| `POST` | `/grade_launches` | Publish period grades (not yet implemented) |
 
-Period closed → `409 period_closed`.
+`GET`/`PUT` resolve `school_class_id` + `subject_id` to one `ClassDiscipline`; a pair with no
+matching discipline is `404`. `authorize EvaluationComponent`/`GradeEntry` gates on
+`manage_enrollment` first; a teacher-role membership is then narrowed to its own
+`ClassDiscipline#teacher_id` and a mismatch is `403` (`error.code: "forbidden"`, not `"not_found"`
+— the actor already knows the class and subject exist). Period closed on write → `409
+period_closed`. Invalid value → `422 validation_error`.
+
+Each period lists its own template's components — periods are not assumed to share one component
+set. A missing cell is simply absent from `entries`, not `null`, so the UI can tell "never
+entered" from "entered as zero". `GradeEntry#value` is a plain string (a `GradeScale.scale_type`
+may be concept/rubric, not numeric) — the grid casts it to a float only when it looks numeric,
+otherwise ships the raw string.
+
+Worked example — `GET /classes/12/grade_book?subject_id=7`:
+
+```json
+{
+  "data": {
+    "context": {
+      "school_class_id": 12,
+      "school_class_label": "Ensino Fundamental I — 3º ano A · Matutino — 2026",
+      "subject_id": 7,
+      "subject_name": "Matemática",
+      "class_discipline_id": 42,
+      "year": 2026
+    },
+    "periods": [
+      {
+        "id": 101,
+        "name": "1º trimestre",
+        "sequence": 1,
+        "closed": false,
+        "components": [
+          { "id": 501, "name": "P1", "position": 1, "weight_percent": 40.0 },
+          { "id": 502, "name": "P2", "position": 2, "weight_percent": 40.0 },
+          { "id": 503, "name": "Trabalho", "position": 3, "weight_percent": 20.0 }
+        ]
+      }
+    ],
+    "students": [
+      {
+        "id": 9001,
+        "name": "Ana",
+        "entries": { "101": { "501": 8.5, "502": 7.0, "503": 10.0 } }
+      }
+    ]
+  }
+}
+```
+
+`PUT /classes/12/grade_book/entries`:
+
+```json
+{ "grade_entry": { "student_id": 9001, "academic_period_id": 101, "evaluation_component_id": 503, "value": "10.0" } }
+```
+
+```json
+{ "data": { "student_id": 9001, "academic_period_id": 101, "evaluation_component_id": 503, "value": "10.0" } }
+```
 
 When a contributing grade entry/override/template/formula changes after launch and
 `lock_on_launch = false`, the current launch is marked `invalidated` with audit metadata.
@@ -140,7 +198,7 @@ structured developmental scale.
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/academics/preceptorship_reports?student_id=&status=&mine=` | Staff/teacher list |
-| `GET` | `/academics/preceptorship_reports/roll` | Students the actor may write about |
+| `GET` | `/academics/preceptorship_reports/roll` | Students the actor may write about (each row includes `guardian_names: string[]`) |
 | `POST` | `/academics/preceptorship_reports` | Create draft |
 | `GET/PATCH/DELETE` | `/academics/preceptorship_reports/:id` | Draft read/edit/discard |
 | `POST` | `/academics/preceptorship_reports/:id/publish` | One-way publication |

@@ -1,10 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
-import Box from '@mui/material/Box';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import {
   ConfirmDialog,
@@ -15,28 +12,26 @@ import {
   SemanticChip,
   SuccessBanner,
 } from 'design-system';
+import PreceptorshipFormDialog from 'components/sections/academics/PreceptorshipFormDialog';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
-import {
-  createReport,
-  deleteReport,
-  fetchReportPdf,
-  fetchRoll,
-  listReports,
-  publishReport,
-  updateReport,
-} from 'services/preceptorshipApi';
+import { deleteReport, fetchReportPdf, fetchRoll, listReports, publishReport } from 'services/preceptorshipApi';
 import { PreceptorshipReport, RollStudent } from 'types/preceptorshipReport';
-import { downloadBlob } from 'utils/downloadBlob';
+import { previewBlob, revokeBlobUrls } from 'utils/previewBlob';
+
+interface RosterRow {
+  student: RollStudent;
+  report: PreceptorshipReport | null;
+}
 
 /**
- * Preceptoria as a teacher works it: what they have written about their students, and what they
- * are still writing.
+ * Preceptoria as a teacher works it: a roster of the students they may write about, each row
+ * showing who the family is and, once a report exists, a way to look at it or carry on writing.
  *
- * The draft is the whole point of the screen. A teacher works on a paragraph about somebody's
- * child over several sittings, so the writing box saves as a draft and publishing is a separate,
- * deliberate act — with a confirmation, because there is no way back.
+ * Starting a report happens through "Nova preceptoria" rather than an always-open form — most of
+ * a teacher's visits here are to check or edit something that already exists, not to start from
+ * blank.
  */
 const Preceptorship = () => {
   const { t } = useTranslation();
@@ -49,13 +44,17 @@ const Preceptorship = () => {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
-  const [studentId, setStudentId] = useState('');
-  const [body, setBody] = useState('');
-  // The draft being worked on, if any. Writing into an existing draft rather than starting a
-  // second one is what keeps a student from collecting three half-written reports.
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<PreceptorshipReport | null>(null);
+  const [initialStudentId, setInitialStudentId] = useState<number | null>(null);
+
   const [publishing, setPublishing] = useState<PreceptorshipReport | null>(null);
+  const [previewingId, setPreviewingId] = useState<number | null>(null);
+
+  // Preview tabs open against object URLs that only this component created — nobody else will
+  // revoke them, so they are tracked here and released when the page is left.
+  const previewUrls = useRef<string[]>([]);
+  useEffect(() => () => revokeBlobUrls(previewUrls.current), []);
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -80,58 +79,56 @@ const Preceptorship = () => {
     load();
   }, [load]);
 
-  useEffect(() => {
+  const loadRoll = useCallback(async () => {
     if (!schoolId) {
       return;
     }
 
-    const loadRoll = async () => {
-      try {
-        const response = await fetchRoll(schoolId);
-        setRoll(response.data);
-      } catch {
-        setRoll([]);
-      }
-    };
-
-    loadRoll();
+    try {
+      const response = await fetchRoll(schoolId);
+      setRoll(response.data);
+    } catch {
+      setRoll([]);
+    }
   }, [schoolId]);
 
-  const resetForm = () => {
-    setEditingId(null);
-    setStudentId('');
-    setBody('');
+  useEffect(() => {
+    loadRoll();
+  }, [loadRoll]);
+
+  // One row per student in the roll, not per existing report — a student with nothing written
+  // yet is still something a teacher needs to see, so they know who is left.
+  const roster: RosterRow[] = useMemo(
+    () =>
+      roll.map((student) => ({
+        student,
+        report: reports.find((report) => report.student_id === student.id) ?? null,
+      })),
+    [roll, reports],
+  );
+
+  const openNewReport = (studentId: number | null = null) => {
+    setEditingReport(null);
+    setInitialStudentId(studentId);
+    setDialogOpen(true);
   };
 
-  const save = async () => {
-    if (!schoolId || !body.trim() || (!editingId && !studentId)) {
-      return;
-    }
-
-    setSaving(true);
-    setError('');
-    setNotice('');
-
-    try {
-      if (editingId) {
-        await updateReport(schoolId, editingId, { body: body.trim() });
-      } else {
-        await createReport(schoolId, { student_id: Number(studentId), body: body.trim() });
-      }
-      setNotice(t('preceptorship.saved'));
-      resetForm();
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('preceptorship.saveError'));
-    } finally {
-      setSaving(false);
-    }
+  const openEditReport = (report: PreceptorshipReport) => {
+    setEditingReport(report);
+    setInitialStudentId(null);
+    setDialogOpen(true);
   };
 
-  const edit = (report: PreceptorshipReport) => {
-    setEditingId(report.id);
-    setStudentId(String(report.student_id));
-    setBody(report.body);
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setEditingReport(null);
+    setInitialStudentId(null);
+  };
+
+  const handleSaved = async () => {
+    setNotice(t('preceptorship.saved'));
+    closeDialog();
+    await load();
   };
 
   const confirmPublish = async () => {
@@ -144,9 +141,6 @@ const Preceptorship = () => {
     try {
       await publishReport(schoolId, publishing.id);
       setNotice(t('preceptorship.published'));
-      if (editingId === publishing.id) {
-        resetForm();
-      }
       setPublishing(null);
       await load();
     } catch (err) {
@@ -164,27 +158,27 @@ const Preceptorship = () => {
 
     try {
       await deleteReport(schoolId, report.id);
-      if (editingId === report.id) {
-        resetForm();
-      }
       await load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('preceptorship.deleteError'));
     }
   };
 
-  const download = async (report: PreceptorshipReport) => {
+  const preview = async (report: PreceptorshipReport) => {
     if (!schoolId) {
       return;
     }
 
     setError('');
+    setPreviewingId(report.id);
 
     try {
       const blob = await fetchReportPdf(schoolId, report.id, 'teacher');
-      downloadBlob(blob, `preceptoria-${report.student_name ?? report.student_id}.pdf`);
+      previewUrls.current.push(previewBlob(blob));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('preceptorship.pdfError'));
+    } finally {
+      setPreviewingId(null);
     }
   };
 
@@ -205,125 +199,103 @@ const Preceptorship = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader title={t('nav.preceptorship')} />
+      <PageHeader
+        title={t('nav.preceptorship')}
+        actions={
+          <Button variant="contained" onClick={() => openNewReport()}>
+            {t('preceptorship.new')}
+          </Button>
+        }
+      />
 
       {error && <ErrorBanner message={error} />}
       {notice && <SuccessBanner message={notice} />}
 
       <SectionCard>
         <Typography variant="subtitle1" component="h2" gutterBottom>
-          {editingId ? t('preceptorship.form.editTitle') : t('preceptorship.form.newTitle')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={2.5}>
-          {t('preceptorship.form.description')}
+          {t('preceptorship.roster.title')}
         </Typography>
 
-        <Stack direction="column" gap={2}>
-          <TextField
-            id="preceptorship-student"
-            label={t('common.student')}
-            value={studentId}
-            onChange={(event) => setStudentId(event.target.value)}
-            // Which child a report is about is settled when it is started. Letting it be moved
-            // afterwards would turn a correction into a report about the wrong student.
-            disabled={Boolean(editingId)}
-            variant="filled"
-            size="small"
-            select
-            required
-            sx={{ minWidth: 320 }}
-          >
-            {roll.map((student) => (
-              <MenuItem key={student.id} value={String(student.id)}>
-                {student.school_class_name
-                  ? `${student.name} — ${student.school_class_name}`
-                  : student.name}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            id="preceptorship-body"
-            label={t('preceptorship.form.body')}
-            helperText={t('preceptorship.form.bodyHelp')}
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            variant="filled"
-            size="small"
-            multiline
-            minRows={6}
-            required
-            fullWidth
-          />
-
-          <Stack direction="row" gap={1}>
-            <Button
-              variant="contained"
-              onClick={save}
-              disabled={saving || !body.trim() || (!editingId && !studentId)}
-            >
-              {t('preceptorship.form.save')}
-            </Button>
-            {editingId && <Button onClick={resetForm}>{t('common.cancel')}</Button>}
-          </Stack>
-        </Stack>
-      </SectionCard>
-
-      <SectionCard>
-        <Typography variant="subtitle1" component="h2" gutterBottom>
-          {t('preceptorship.list.title')}
-        </Typography>
-
-        {!loading && reports.length === 0 ? (
+        {!loading && roster.length === 0 ? (
           <EmptyState
-            title={t('preceptorship.empty.title')}
-            description={t('preceptorship.empty.description')}
+            title={t('preceptorship.roster.empty.title')}
+            description={t('preceptorship.roster.empty.description')}
             headingLevel={3}
           />
         ) : (
           <Stack direction="column" divider={<Divider />}>
-            {reports.map((report) => (
-              <Stack key={report.id} direction="column" gap={1} py={2}>
-                <Stack direction="row" gap={1.5} alignItems="center" flexWrap="wrap">
-                  <Typography variant="subtitle2">{report.student_name}</Typography>
-                  <SemanticChip
-                    variant={report.status === 'published' ? 'success' : 'info'}
-                    label={t(`preceptorship.status.${report.status}`)}
-                  />
-                  <Typography variant="caption" color="text.secondary">
-                    {new Date(report.published_at ?? report.created_at).toLocaleDateString()}
-                  </Typography>
-                </Stack>
+            {roster.map(({ student, report }) => {
+              const guardianNames = student.guardian_names ?? [];
 
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {report.body}
-                </Typography>
-
-                <Box>
-                  <Stack direction="row" gap={1} flexWrap="wrap">
-                    {report.editable && (
-                      <>
-                        <Button size="small" onClick={() => edit(report)}>
-                          {t('preceptorship.action.edit')}
-                        </Button>
-                        <Button size="small" onClick={() => setPublishing(report)}>
-                          {t('preceptorship.action.publish')}
-                        </Button>
-                        <Button size="small" color="error" onClick={() => discard(report)}>
-                          {t('preceptorship.action.discard')}
-                        </Button>
-                      </>
+              return (
+                <Stack key={student.id} direction="column" gap={1} py={2}>
+                  <Stack direction="row" gap={1.5} alignItems="center" flexWrap="wrap">
+                    <Typography variant="subtitle2">
+                      {student.school_class_name
+                        ? `${student.name} — ${student.school_class_name}`
+                        : student.name}
+                    </Typography>
+                    {report && (
+                      <SemanticChip
+                        variant={report.status === 'published' ? 'success' : 'info'}
+                        label={t(`preceptorship.status.${report.status}`)}
+                      />
                     )}
-                    <Button size="small" onClick={() => download(report)}>
-                      {t('preceptorship.action.pdf')}
-                    </Button>
                   </Stack>
-                </Box>
-              </Stack>
-            ))}
+
+                  <Typography variant="body2" color="text.secondary">
+                    {t('preceptorship.roster.guardians')}:{' '}
+                    {guardianNames.length > 0
+                      ? guardianNames.join(', ')
+                      : t('preceptorship.roster.noGuardians')}
+                  </Typography>
+
+                  <Stack direction="row" gap={1} flexWrap="wrap" alignItems="center">
+                    {report ? (
+                      <>
+                        <Button
+                          size="small"
+                          onClick={() => preview(report)}
+                          disabled={previewingId === report.id}
+                        >
+                          {t('preceptorship.action.preview')}
+                        </Button>
+                        {report.editable && (
+                          <>
+                            <Button size="small" onClick={() => openEditReport(report)}>
+                              {t('preceptorship.action.edit')}
+                            </Button>
+                            <Button size="small" onClick={() => setPublishing(report)}>
+                              {t('preceptorship.action.publish')}
+                            </Button>
+                            <Button size="small" color="error" onClick={() => discard(report)}>
+                              {t('preceptorship.action.discard')}
+                            </Button>
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <Typography variant="caption" color="text.secondary">
+                        {t('preceptorship.roster.noReport')}
+                      </Typography>
+                    )}
+                  </Stack>
+                </Stack>
+              );
+            })}
           </Stack>
         )}
       </SectionCard>
+
+      <PreceptorshipFormDialog
+        open={dialogOpen}
+        schoolId={schoolId as number}
+        roll={roll}
+        report={editingReport}
+        initialStudentId={initialStudentId}
+        onClose={closeDialog}
+        onSaved={handleSaved}
+      />
 
       {/* Publishing cannot be undone, so it is asked about rather than done on a single click. */}
       <ConfirmDialog

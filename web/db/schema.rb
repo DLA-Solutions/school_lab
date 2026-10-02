@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_153648) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -497,28 +497,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_153648) do
     t.integer "version", null: false
     t.index ["school_id", "name", "version"], name: "index_grade_scales_on_school_name_version_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_id"], name: "index_grade_scales_on_school_id"
-  end
-
-  create_table "grades", force: :cascade do |t|
-    t.bigint "academic_period_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "discarded_at"
-    t.text "note"
-    t.bigint "recorded_by_id"
-    t.bigint "school_class_id", null: false
-    t.bigint "school_id", null: false
-    t.decimal "score", precision: 5, scale: 2
-    t.bigint "student_id", null: false
-    t.bigint "subject_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["academic_period_id"], name: "index_grades_on_academic_period_id"
-    t.index ["recorded_by_id"], name: "index_grades_on_recorded_by_id"
-    t.index ["school_class_id"], name: "index_grades_on_school_class_id"
-    t.index ["school_id"], name: "index_grades_on_school_id"
-    t.index ["student_id", "subject_id", "academic_period_id"], name: "index_grades_on_student_subject_period_kept", unique: true, where: "(discarded_at IS NULL)"
-    t.index ["student_id"], name: "index_grades_on_student_id"
-    t.index ["subject_id"], name: "index_grades_on_subject_id"
-    t.check_constraint "score IS NULL OR score >= 0::numeric AND score <= 10::numeric", name: "grades_score_range"
   end
 
   create_table "guardian_requests", force: :cascade do |t|
@@ -1779,12 +1757,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_153648) do
   add_foreign_key "grade_overrides", "schools"
   add_foreign_key "grade_overrides", "students"
   add_foreign_key "grade_scales", "schools"
-  add_foreign_key "grades", "academic_periods"
-  add_foreign_key "grades", "school_classes"
-  add_foreign_key "grades", "schools"
-  add_foreign_key "grades", "students"
-  add_foreign_key "grades", "subjects"
-  add_foreign_key "grades", "users", column: "recorded_by_id"
   add_foreign_key "guardian_requests", "guardians"
   add_foreign_key "guardian_requests", "schools"
   add_foreign_key "guardian_requests", "students"

@@ -94,7 +94,9 @@ describe('DrawerItems permission gating', () => {
 
     expect(screen.queryByRole('link', { name: 'Responsáveis' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Estudantes' })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Colaboradores' })).toBeInTheDocument();
+    // Colaboradores is a staff-only directory — teacher never sees it (see "DrawerItems teacher
+    // audience" below), even though manage_people-gated routes are the focus of this case.
+    expect(screen.queryByRole('link', { name: 'Colaboradores' })).not.toBeInTheDocument();
   });
 
   it('shows billing routes to a user with manage_billing', () => {
@@ -210,6 +212,20 @@ describe('DrawerItems guardian audience', () => {
 
     expect(screen.queryByRole('link', { name: 'Estudantes' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Meus pedidos' })).toBeInTheDocument();
+  });
+});
+
+describe('DrawerItems teacher audience', () => {
+  it('hides Dashboard and Colaboradores from an active teacher context', () => {
+    renderDrawer([teacherMembership]);
+
+    expect(screen.queryByRole('link', { name: 'Dashboard' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Colaboradores' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Notas' })).toBeInTheDocument();
+    // Aulas is class/subject configuration — the Secretaria's job, not a teacher's.
+    expect(screen.queryByRole('link', { name: 'Aulas' })).not.toBeInTheDocument();
+    // Cargo (job positions) is HR configuration — not a teacher concern.
+    expect(screen.queryByRole('link', { name: 'Cargo' })).not.toBeInTheDocument();
   });
 });
 

@@ -257,6 +257,15 @@ const enUS: Messages = {
   'preceptorship.action.publish': 'Publish',
   'preceptorship.action.discard': 'Discard',
   'preceptorship.action.pdf': 'Download PDF',
+  'preceptorship.action.preview': 'Preview PDF',
+  'preceptorship.new': 'New report',
+  'preceptorship.roster.title': 'Students',
+  'preceptorship.roster.guardians': 'Guardians',
+  'preceptorship.roster.noGuardians': 'No guardian on file',
+  'preceptorship.roster.noReport': 'No report yet',
+  'preceptorship.roster.empty.title': 'No students in your roll',
+  'preceptorship.roster.empty.description':
+    'Once you have students to write about, they show up here.',
   'preceptorship.confirmPublish.title': 'Publish to the family?',
   'preceptorship.confirmPublish.description':
     "{student}'s family will be able to read this report. Once published it cannot be edited or withdrawn.",

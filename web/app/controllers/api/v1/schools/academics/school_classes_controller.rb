@@ -15,6 +15,7 @@ module Api
             classes = classes.for_shift(params[:shift]) if params[:shift].present?
             classes = classes.for_grade_level(params[:grade_level]) if params[:grade_level].present?
             classes = classes.search(params[:q])
+            classes = classes.where(id: mine_class_ids) if mine_only?
 
             pagy, records = pagy(classes)
 
@@ -68,6 +69,21 @@ module Api
           end
 
           private
+
+          # `mine=true` narrows a teacher's dropdown to the classes they hold a `ClassDiscipline`
+          # for — the same source of truth the grade book uses to decide who may write a cell.
+          # Opt-in and no-op for every other role, so the plain index behaves exactly as before.
+          def mine_only?
+            params[:mine] == "true" && Current.membership&.role == "teacher"
+          end
+
+          def mine_class_ids
+            teacher = Current.school.teachers.kept.find_by(email: Current.user.email)
+            return [] if teacher.blank?
+
+            Current.school.class_disciplines.kept.where(teacher_id: teacher.id)
+                   .select(:school_class_id)
+          end
 
           def save_and_render(school_class, status: :ok)
             if school_class.save

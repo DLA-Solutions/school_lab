@@ -225,6 +225,28 @@ RSpec.describe "Preceptoria: what the teacher writes", type: :request do
 
       expect(response.parsed_body["data"].first["school_class_name"]).to eq(school_class.full_name)
     end
+
+    # The preceptoria screen writes about one child, but a teacher reaching out about an
+    # incident needs to know who to call — including a split household with more than one
+    # guardian on file.
+    it "lists every linked guardian's name, for a student with more than one" do
+      mother = create(:guardian, school: school, name: "Marcela Silva")
+      father = create(:guardian, school: school, name: "Roberto Silva")
+      create(:student_guardian, school: school, student: pedro, guardian: mother, relationship: "mother")
+      create(:student_guardian, school: school, student: pedro, guardian: father, relationship: "father")
+
+      get "#{base}/roll", headers: headers
+
+      row = response.parsed_body["data"].find { |r| r["id"] == pedro.id }
+      expect(row["guardian_names"]).to match_array([ "Marcela Silva", "Roberto Silva" ])
+    end
+
+    it "is an empty array for a student with no guardian on file" do
+      get "#{base}/roll", headers: headers
+
+      row = response.parsed_body["data"].find { |r| r["id"] == pedro.id }
+      expect(row["guardian_names"]).to eq([])
+    end
   end
 
   describe "who may write one" do

@@ -1,5 +1,6 @@
 import paths from './paths';
 import type { RouteAudience } from 'utils/membership/audience';
+import type { MembershipRole } from 'types/auth';
 
 export type NavSection = 'primary' | 'family' | 'billing' | 'settings' | 'accounts';
 
@@ -32,6 +33,11 @@ export interface MenuItem {
    * Permission keys narrow staff/teacher access; they never turn a staff route into a guardian route.
    */
   audience?: RouteAudience;
+  /**
+   * Narrows an `audience` bucket to exclude specific roles — e.g. a `staff`-audience item that
+   * `teacher` should not see even though `teacher` otherwise collapses into the `staff` audience.
+   */
+  excludeRoles?: MembershipRole[];
   /** Sidebar grouping — operational vs billing vs school platform settings. */
   section?: NavSection;
 }
@@ -43,6 +49,9 @@ const sitemap: MenuItem[] = [
     path: paths.dashboard,
     icon: 'mingcute:home-1-fill',
     audience: 'shared',
+    // Dashboard surfaces billing/people KPIs a teacher has no permission for; a teacher's
+    // landing content comes from the academic routes below instead.
+    excludeRoles: ['teacher'],
     section: 'primary',
   },
   {
@@ -152,6 +161,8 @@ const sitemap: MenuItem[] = [
     path: paths.collaborators,
     icon: 'mingcute:presentation-2-line',
     audience: 'staff',
+    // Staff directory — a teacher has no business browsing their colleagues' records.
+    excludeRoles: ['teacher'],
     section: 'primary',
   },
   {
@@ -168,6 +179,9 @@ const sitemap: MenuItem[] = [
     path: paths.lessons,
     icon: 'mingcute:book-5-line',
     audience: 'staff',
+    // Class/subject configuration is the Secretaria's job — a teacher has no business
+    // configuring classes or subjects.
+    excludeRoles: ['teacher'],
     section: 'primary',
   },
   {
@@ -176,6 +190,7 @@ const sitemap: MenuItem[] = [
     path: paths.jobPositions,
     icon: 'mingcute:idcard-line',
     audience: 'staff',
+    excludeRoles: ['teacher'],
     section: 'primary',
   },
   {

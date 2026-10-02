@@ -8,7 +8,9 @@ module Api
           def index
             authorize Subject
 
-            pagy, records = pagy(policy_scope(Subject).search(params[:q]).order(:name))
+            subjects = policy_scope(Subject).search(params[:q])
+            subjects = subjects.where(id: mine_subject_ids) if mine_only?
+            pagy, records = pagy(subjects.order(:name))
 
             render json: {
               data: SubjectBlueprint.render_as_hash(records),
@@ -41,6 +43,19 @@ module Api
           end
 
           private
+
+          # `mine=true` narrows a teacher's dropdown to the subjects they hold a `ClassDiscipline`
+          # for. Opt-in and no-op for every other role, so the plain index is unchanged.
+          def mine_only?
+            params[:mine] == "true" && Current.membership&.role == "teacher"
+          end
+
+          def mine_subject_ids
+            teacher = Current.school.teachers.kept.find_by(email: Current.user.email)
+            return [] if teacher.blank?
+
+            Current.school.class_disciplines.kept.where(teacher_id: teacher.id).select(:subject_id)
+          end
 
           def save_and_render(subject, status: :ok)
             if subject.save

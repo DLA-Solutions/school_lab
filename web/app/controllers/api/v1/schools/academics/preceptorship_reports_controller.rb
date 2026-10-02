@@ -31,7 +31,9 @@ module Api
           def roll
             authorize PreceptorshipReport, :index?
 
-            students = Current.school.students.kept.includes(:school_class).order(:name)
+            students = Current.school.students.kept
+                               .includes(:school_class, student_guardians: :guardian)
+                               .order(:name)
             report_policy = policy(PreceptorshipReport)
             students = students.select { |student| report_policy.assignable_student?(student) }
 
@@ -40,7 +42,8 @@ module Api
                 {
                   id: student.id,
                   name: student.name,
-                  school_class_name: student.school_class&.full_name
+                  school_class_name: student.school_class&.full_name,
+                  guardian_names: student.student_guardians.kept.filter_map { |link| link.guardian&.name }
                 }
               end
             }

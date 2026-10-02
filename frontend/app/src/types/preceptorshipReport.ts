@@ -33,6 +33,15 @@ export interface RollStudent {
   id: number;
   name: string;
   school_class_name: string | null;
+  /**
+   * The student's guardian(s), so the roster can show who the report ultimately reaches without
+   * a request per student.
+   *
+   * Pending delivery from `PreceptorshipReportsController#roll` (see
+   * `docs/api/v1/academics.md` / the live response once the backend agent ships it) — optional
+   * until then so the roster degrades to an empty list rather than breaking.
+   */
+  guardian_names?: string[];
 }
 
 export interface RollResponse {
