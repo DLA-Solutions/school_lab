@@ -143,4 +143,49 @@ RSpec.describe "Api::V1::Schools::Academics::ReportCardPreviews", type: :request
       expect(ReportCardSnapshot.count).to eq(0)
     end
   end
+
+  # `academic_period_id=all` (AC-RC13): rswag's `parameter` above is typed as an integer query
+  # param, so the literal string "all" is covered here instead, as plain request specs.
+  describe "academic_period_id=all" do
+    def get_preview(academic_period_id:)
+      get "/api/v1/schools/#{school.id}/academics/students/#{student.id}/report_card_preview/pdf",
+          params: { academic_period_id: academic_period_id }, headers: auth_headers_for(create_math_teacher)
+    end
+
+    it "combines every period of the school class's school year into one PDF, in sequence order" do
+      period_1 = create(:academic_period, school_year: school_year, school: school, name: "1º trimestre",
+                                           sequence: 1, starts_on: Date.new(2026, 2, 1), ends_on: Date.new(2026, 4, 30))
+      period_2 = create(:academic_period, school_year: school_year, school: school, name: "2º trimestre",
+                                           sequence: 2, starts_on: Date.new(2026, 5, 1), ends_on: Date.new(2026, 7, 31))
+      period_3 = create(:academic_period, school_year: school_year, school: school, name: "3º trimestre",
+                                           sequence: 3, starts_on: Date.new(2026, 8, 1), ends_on: Date.new(2026, 12, 15))
+
+      get_preview(academic_period_id: "all")
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq("application/pdf")
+      expect(ReportCardPublication.count).to eq(0)
+      expect(ReportCardSnapshot.count).to eq(0)
+
+      strings = PDF::Inspector::Text.analyze(response.body).strings
+      text = strings.join(" ")
+      expect(text).to include("Matemática")
+      expect(text).to include("Ciências")
+
+      # Each period's own name appears, in `sequence` order -- one section per period. The name
+      # is drawn inside a combined "Período: <name>" line, not as its own string, hence `include?`.
+      period_positions = [ period_1, period_2, period_3 ].map do |period|
+        strings.index { |string| string.include?(period.name) }
+      end
+      expect(period_positions).to all(be_present)
+      expect(period_positions).to eq(period_positions.sort)
+    end
+
+    it "returns 200 with an otherwise-empty PDF when the school year has zero periods" do
+      get_preview(academic_period_id: "all")
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq("application/pdf")
+    end
+  end
 end
