@@ -24,21 +24,42 @@ const schoolClass = {
   subjects: [],
 };
 
-const sheet = {
+const book = {
   context: {
     school_class_id: 4,
     school_class_label: 'Ensino Fundamental I 5º ano A · Matutino — 2026',
     subject_id: 7,
     subject_name: 'Matemática',
+    class_discipline_id: 67,
     year: 2026,
   },
   periods: [
-    { id: 11, name: '1º bimestre', sequence: 1, closed: false },
-    { id: 12, name: '2º bimestre', sequence: 2, closed: true },
+    {
+      id: 11,
+      name: '1º trimestre',
+      sequence: 1,
+      closed: false,
+      components: [
+        { id: 101, name: 'P1', position: 1, weight_percent: 40 },
+        { id: 102, name: 'P2', position: 2, weight_percent: 40 },
+        { id: 103, name: 'Trabalho', position: 3, weight_percent: 20 },
+      ],
+    },
+    {
+      id: 12,
+      name: '2º trimestre',
+      sequence: 2,
+      closed: true,
+      components: [
+        { id: 104, name: 'P1', position: 1, weight_percent: 40 },
+        { id: 105, name: 'P2', position: 2, weight_percent: 40 },
+        { id: 106, name: 'Trabalho', position: 3, weight_percent: 20 },
+      ],
+    },
   ],
   students: [
-    { id: 1, name: 'Ana', scores: { 11: 8.5, 12: null } },
-    { id: 2, name: 'Pedro', scores: { 11: null, 12: null } },
+    { id: 1, name: 'Ana', entries: { 11: { 101: 8.5, 102: null, 103: null }, 12: {} } },
+    { id: 2, name: 'Pedro', entries: { 11: { 101: null, 102: null, 103: null }, 12: {} } },
   ],
 };
 
@@ -55,11 +76,18 @@ const stub = () => {
     http.get(apiUrl(`${BASE}/subjects`), () =>
       HttpResponse.json(page([{ id: 7, school_id: SCHOOL_ID, name: 'Matemática' }])),
     ),
-    http.get(apiUrl(`${BASE}/grades`), () => HttpResponse.json({ data: sheet })),
-    http.put(apiUrl(`${BASE}/grades/cell`), async ({ request }) => {
+    http.get(apiUrl(`${BASE}/classes/4/grade_book`), () => HttpResponse.json({ data: book })),
+    http.put(apiUrl(`${BASE}/classes/4/grade_book/entries`), async ({ request }) => {
       const body = (await request.json()) as Record<string, unknown>;
       saved.push(body);
-      return HttpResponse.json({ data: { student_id: 1, academic_period_id: 11, score: 9 } });
+      return HttpResponse.json({
+        data: {
+          student_id: 1,
+          academic_period_id: 11,
+          evaluation_component_id: 101,
+          value: '9.0',
+        },
+      });
     }),
   );
 
@@ -106,22 +134,25 @@ describe('Grades page', () => {
     expect(await screen.findByText(/escolha a turma e a matéria/i)).toBeInTheDocument();
   });
 
-  it('lays the roll down and the terms across', async () => {
+  it('lays the roll down, the terms across, and each term split into its components', async () => {
     stub();
     renderPage(chosen);
 
     expect(await screen.findByText('Ana')).toBeInTheDocument();
     expect(screen.getByText('Pedro')).toBeInTheDocument();
-    expect(screen.getByText('1º bimestre')).toBeInTheDocument();
-    expect(screen.getByText('2º bimestre')).toBeInTheDocument();
+    expect(screen.getByText('1º trimestre')).toBeInTheDocument();
+    expect(screen.getByText('2º trimestre')).toBeInTheDocument();
+    expect(screen.getAllByText('P1')).toHaveLength(2);
+    expect(screen.getAllByText('P2')).toHaveLength(2);
+    expect(screen.getAllByText('Trabalho')).toHaveLength(2);
   });
 
   it('shows the marks already given, and leaves the rest empty', async () => {
     stub();
     renderPage(chosen);
 
-    const ana = await screen.findByLabelText(/nota de ana no 1º bimestre/i);
-    const pedro = screen.getByLabelText(/nota de pedro no 1º bimestre/i);
+    const ana = await screen.findByLabelText(/nota de ana.*1º trimestre.*p1/i);
+    const pedro = screen.getByLabelText(/nota de pedro.*1º trimestre.*p1/i);
 
     expect(ana).toHaveValue('8,5');
     expect(pedro).toHaveValue('');
@@ -132,13 +163,16 @@ describe('Grades page', () => {
     const saved = stub();
     renderPage(chosen);
 
-    await user.type(await screen.findByLabelText(/nota de pedro no 1º bimestre/i), '9');
+    await user.type(await screen.findByLabelText(/nota de pedro.*1º trimestre.*p1/i), '9');
 
     await waitFor(() => expect(saved.length).toBeGreaterThan(0));
     expect(saved[saved.length - 1]).toMatchObject({
-      school_class_id: schoolClass.id,
-      subject_id: 7,
-      grade: { student_id: 2, academic_period_id: 11, score: 9 },
+      grade_entry: {
+        student_id: 2,
+        academic_period_id: 11,
+        evaluation_component_id: 101,
+        value: '9',
+      },
     });
   });
 
@@ -147,10 +181,26 @@ describe('Grades page', () => {
     const saved = stub();
     renderPage(chosen);
 
-    await user.clear(await screen.findByLabelText(/nota de ana no 1º bimestre/i));
+    await user.clear(await screen.findByLabelText(/nota de ana.*1º trimestre.*p1/i));
 
     await waitFor(() => expect(saved.length).toBeGreaterThan(0));
-    expect((saved[saved.length - 1] as { grade: { score: number | null } }).grade.score).toBeNull();
+    expect(
+      (saved[saved.length - 1] as { grade_entry: { value: string | null } }).grade_entry.value,
+    ).toBeNull();
+  });
+
+  // A cell is identified by student + period + component, so marking one component never bleeds
+  // into another component of the same period.
+  it('saves the right component when the sheet has more than one per term', async () => {
+    const saved = stub();
+    renderPage(chosen);
+
+    await user.type(await screen.findByLabelText(/nota de pedro.*1º trimestre.*trabalho/i), '7');
+
+    await waitFor(() => expect(saved.length).toBeGreaterThan(0));
+    expect(saved[saved.length - 1]).toMatchObject({
+      grade_entry: { student_id: 2, academic_period_id: 11, evaluation_component_id: 103 },
+    });
   });
 
   // A closed term is the school's record of what was awarded.
@@ -158,7 +208,7 @@ describe('Grades page', () => {
     stub();
     renderPage(chosen);
 
-    expect(await screen.findByLabelText(/nota de ana no 2º bimestre/i)).toBeDisabled();
+    expect(await screen.findByLabelText(/nota de ana.*2º trimestre.*p1/i)).toBeDisabled();
     expect(screen.getByText(/fechado/i)).toBeInTheDocument();
   });
 
@@ -166,10 +216,10 @@ describe('Grades page', () => {
     const saved = stub();
     renderPage(chosen);
 
-    await user.type(await screen.findByLabelText(/nota de pedro no 1º bimestre/i), '11');
+    await user.type(await screen.findByLabelText(/nota de pedro.*1º trimestre.*p1/i), '11');
 
     await waitFor(() =>
-      expect(screen.getByLabelText(/nota de pedro no 1º bimestre/i)).toHaveAttribute(
+      expect(screen.getByLabelText(/nota de pedro.*1º trimestre.*p1/i)).toHaveAttribute(
         'aria-invalid',
         'true',
       ),
@@ -193,8 +243,8 @@ describe('Grades page', () => {
   it('says the year has no terms instead of showing an empty grid', async () => {
     stub();
     server.use(
-      http.get(apiUrl(`${BASE}/grades`), () =>
-        HttpResponse.json({ data: { ...sheet, periods: [] } }),
+      http.get(apiUrl(`${BASE}/classes/4/grade_book`), () =>
+        HttpResponse.json({ data: { ...book, periods: [] } }),
       ),
     );
 
@@ -208,7 +258,7 @@ describe('Grades page', () => {
     server.use(
       http.get(apiUrl(`${BASE}/school_classes`), () => HttpResponse.json(page([schoolClass]))),
       http.get(apiUrl(`${BASE}/subjects`), () => HttpResponse.json(page([]))),
-      http.get(apiUrl(`${BASE}/grades`), () =>
+      http.get(apiUrl(`${BASE}/classes/4/grade_book`), () =>
         jsonError(403, 'forbidden', 'Você não leciona esta matéria nesta turma.'),
       ),
     );

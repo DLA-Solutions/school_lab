@@ -23,12 +23,23 @@ module Api
           def update_entry
             authorize GradeEntry, :update?
 
-            class_discipline = find_class_discipline
-            return render_not_teaching unless teaches?(class_discipline)
+            school_class = policy_scope(SchoolClass).find(params[:school_class_id])
 
-            student = policy_scope(Student).find(entry_params[:student_id])
+            # Scoped by school, not by `policy_scope(Student)`: that scope demands
+            # `manage_people`, which a grading-only teacher does not hold (and does not need —
+            # `teaches?` below is the real narrowing for this endpoint). Same tenant-only lookup
+            # the read side already uses for the roster (`school_class.students`).
+            student = school_class.students.kept.find(entry_params[:student_id])
             academic_period = policy_scope(AcademicPeriod).find(entry_params[:academic_period_id])
             evaluation_component = policy_scope(EvaluationComponent).find(entry_params[:evaluation_component_id])
+
+            # The component already names its own discipline — the cell does not need a
+            # `subject_id` of its own, only confirmation that the component really belongs to the
+            # class this route names, so a cell cannot be written against a different cohort's
+            # discipline by mistake.
+            class_discipline = evaluation_component.class_discipline
+            return render_error(:not_found, status: :not_found) if class_discipline.school_class_id != school_class.id
+            return render_not_teaching unless teaches?(class_discipline)
 
             result = Grades::UpsertGradeEntryService.call(
               class_discipline: class_discipline,

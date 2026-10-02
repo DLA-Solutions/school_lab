@@ -6,7 +6,10 @@ RSpec.describe "Api::V1::Schools::Academics::GradeBooks", type: :request do
   let(:school) { create(:school) }
   let(:school_id) { school.id }
   let(:school_year) { create(:school_year, :custom, school: school) }
-  let(:school_class) { create(:school_class, school: school, year: school_year.name.to_i) }
+  # Matched on `starts_on.year`, not `school_year.name.to_i`: `name` is a drifting factory
+  # sequence while `starts_on` stays fixed, and `AcademicPeriod.for_calendar_year` (what the
+  # controller uses to find this class's periods) filters on the date, not the label.
+  let(:school_class) { create(:school_class, school: school, year: school_year.starts_on.year) }
   let(:subject_record) { create(:subject, school: school) }
   let(:subject_id) { subject_record.id }
   let(:school_class_id) { school_class.id }
@@ -59,6 +62,21 @@ RSpec.describe "Api::V1::Schools::Academics::GradeBooks", type: :request do
     create(:role_template_permission, school: school, role_template: custom_template,
                                       permission_key: "manage_enrollment", scope_kind: "full")
     create(:staff_profile, membership: membership, school: school, role_template: custom_template)
+
+    assigned_to.update!(teacher: teacher) if assigned_to
+    teacher_user
+  end
+
+  # The REAL shape every teacher in the product actually has: the stock, unmodified system
+  # `teacher` template, which grants `teach` and nothing else — no `manage_enrollment`. This is
+  # the account that must be able to read and write its own grade book; if this helper's user
+  # gets a 403, the feature does not work for a single real teacher in the system.
+  def create_stock_teacher(assigned_to: nil)
+    teacher_user = create(:user)
+    membership = create(:membership, user: teacher_user, school: school, role: "teacher")
+    teacher = create(:teacher, school: school, email: teacher_user.email)
+    stock_teacher_template = create_system_templates_for(school).find { |t| t.system_key == "teacher" }
+    create(:staff_profile, membership: membership, school: school, role_template: stock_teacher_template)
 
     assigned_to.update!(teacher: teacher) if assigned_to
     teacher_user
@@ -142,6 +160,12 @@ RSpec.describe "Api::V1::Schools::Academics::GradeBooks", type: :request do
         run_test!
       end
 
+      response "200", "a stock teacher (only `teach`, no `manage_enrollment`) assigned to this class/subject" do
+        let(:Authorization) { auth_headers_for(create_stock_teacher(assigned_to: class_discipline))["Authorization"] }
+
+        run_test!
+      end
+
       response "404", "cross-school class id" do
         let(:school_class_id) { create(:school_class, school: create(:school)).id }
 
@@ -217,6 +241,15 @@ RSpec.describe "Api::V1::Schools::Academics::GradeBooks", type: :request do
         let(:Authorization) { auth_headers_for(create_teacher_with_enrollment)["Authorization"] }
 
         run_test!
+      end
+
+      response "200", "a stock teacher (only `teach`, no `manage_enrollment`) writes the cell" do
+        let(:Authorization) { auth_headers_for(create_stock_teacher(assigned_to: class_discipline))["Authorization"] }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("data", "value")).to eq("9.5")
+        end
       end
 
       response "409", "the period is closed" do

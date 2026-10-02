@@ -227,7 +227,7 @@ const enUS: Messages = {
   'grades.autosaveHint':
     'Each grade saves itself shortly after it is typed. Leave a cell blank for a grade not given yet.',
   'grades.closed': 'Closed',
-  'grades.cellAria': 'Grade for {student} in {period}',
+  'grades.cellAria': 'Grade for {student} — {period} — {component}',
   'grades.context': 'Entering grades for {subject} · {schoolClass}',
   'grades.noPeriods.title': 'No terms set up for {year}',
   'grades.noPeriods.description':

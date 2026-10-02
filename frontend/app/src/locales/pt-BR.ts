@@ -227,7 +227,7 @@ const ptBR = {
   'grades.autosaveHint':
     'Cada nota é salva sozinha, logo depois de digitada. Deixe em branco para uma nota ainda não dada.',
   'grades.closed': 'Fechado',
-  'grades.cellAria': 'Nota de {student} no {period}',
+  'grades.cellAria': 'Nota de {student} — {period} — {component}',
   'grades.context': 'Lançando notas de {subject} · {schoolClass}',
   'grades.noPeriods.title': 'Nenhum bimestre cadastrado para {year}',
   'grades.noPeriods.description':

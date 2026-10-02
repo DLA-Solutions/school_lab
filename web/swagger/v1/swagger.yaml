@@ -2301,7 +2301,7 @@
             "description": "unauthenticated"
           },
           "200": {
-            "description": "a teacher assigned to this class/subject"
+            "description": "a stock teacher (only `teach`, no `manage_enrollment`) assigned to this class/subject"
           },
           "403": {
             "description": "a teacher not assigned to this class/subject"
@@ -2356,7 +2356,7 @@
             "description": "unauthenticated"
           },
           "200": {
-            "description": "writes the cell"
+            "description": "a stock teacher (only `teach`, no `manage_enrollment`) writes the cell"
           },
           "403": {
             "description": "a teacher not assigned to this class/subject"

@@ -28,12 +28,36 @@ RSpec.describe EvaluationComponentPolicy do
     end
   end
 
-  describe "teacher without manage_enrollment" do
+  describe "a stock teacher (holds only `teach`, never `manage_enrollment`)" do
     let!(:membership) { create(:membership, user: user, school: school, role: "teacher") }
     let(:teacher_template) { create_system_templates_for(school).find { |t| t.system_key == "teacher" } }
 
     before do
       create(:staff_profile, membership: membership, school: school, role_template: teacher_template)
+      Current.user = user
+      Current.membership = membership
+      Current.school = school
+      Current.effective_permission_keys = nil
+    end
+
+    # `teach` and `manage_enrollment` are separate permission keys, and the system `teacher`
+    # template only grants `teach` (see `lib/school_lab/permissions.rb`). A teacher reading their
+    # own grade book is the entire point of this endpoint, so `teach` alone must be enough here —
+    # the per-class narrowing (did THIS teacher teach THIS class/discipline) is the controller's
+    # job via `ClassDiscipline#teacher_id`, not this policy's.
+    it "permits reading the grade book grid on `teach` alone" do
+      expect(policy.index?).to be(true)
+    end
+  end
+
+  describe "a staff role with neither `teach` nor `manage_enrollment`" do
+    let!(:membership) { create(:membership, :staff, user: user, school: school) }
+    let(:billing_only_template) { create(:school_role_template, school: school) }
+
+    before do
+      create(:role_template_permission, school: school, role_template: billing_only_template,
+                                        permission_key: "manage_billing", scope_kind: "full")
+      create(:staff_profile, membership: membership, school: school, role_template: billing_only_template)
       Current.user = user
       Current.membership = membership
       Current.school = school

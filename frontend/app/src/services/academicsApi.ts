@@ -59,9 +59,11 @@ export const provisionDefaultJobPositions = async (schoolId: number): Promise<Jo
 
 /* ---------------------------------------------------------------- subjects */
 
-export const listSubjects = (schoolId: number, page = 1, q?: string) => {
+export const listSubjects = (schoolId: number, page = 1, q?: string, mine?: boolean) => {
   const query = new URLSearchParams({ page: String(page) });
   if (q) query.set('q', q);
+  // Narrows the listing to only the subjects the current teacher is assigned to. No-op for staff.
+  if (mine) query.set('mine', 'true');
 
   return request<Paginated<Subject>>(`${base(schoolId)}/subjects?${query}`);
 };
@@ -100,11 +102,13 @@ export interface ListSchoolClassesParams {
   grade_level?: string;
   shift?: string;
   year?: string;
+  /** Narrows the listing to only the classes the current teacher is assigned to. No-op for staff. */
+  mine?: boolean;
 }
 
 export const listSchoolClasses = (
   schoolId: number,
-  { page = 1, q, grade_level, shift, year }: ListSchoolClassesParams = {},
+  { page = 1, q, grade_level, shift, year, mine }: ListSchoolClassesParams = {},
 ) => {
   const query = new URLSearchParams({ page: String(page) });
   // Only what was actually chosen: an empty parameter would narrow the listing to nothing.
@@ -112,6 +116,7 @@ export const listSchoolClasses = (
   if (grade_level) query.set('grade_level', grade_level);
   if (shift) query.set('shift', shift);
   if (year) query.set('year', year);
+  if (mine) query.set('mine', 'true');
 
   return request<Paginated<SchoolClass>>(`${base(schoolId)}/school_classes?${query}`);
 };
@@ -248,84 +253,101 @@ export const listTeachingAssignments = (
   );
 };
 
-/* ------------------------------------------------------------------ grades */
+/* -------------------------------------------------------------- grade book */
 
-export interface GradeSheetPeriod {
+/** One of the up to three named marks a period carries — mirrors `EvaluationComponentBlueprint`. */
+export interface GradeBookComponent {
+  id: number;
+  /** Server-named: "P1", "P2", "Trabalho" today — render whatever comes back, don't hardcode. */
+  name: string;
+  position: number;
+  weight_percent: number;
+}
+
+/** One term of the school year — mirrors `AcademicPeriodBlueprint`. */
+export interface GradeBookPeriod {
   id: number;
   name: string;
   sequence: number;
   /** A closed period is the school's record of what was awarded; the grid greys it out. */
   closed: boolean;
+  components: GradeBookComponent[];
 }
 
-export interface GradeSheetStudent {
+export interface GradeBookStudent {
   id: number;
   name: string;
-  /** Keyed by period id. `null` means no mark given yet, which is not the same as a zero. */
-  scores: Record<string, number | null>;
+  /**
+   * Keyed by period id, then by component id. `null` (or the key simply missing) means no mark
+   * given yet, which is not the same as a zero.
+   */
+  entries: Record<string, Record<string, number | null>>;
 }
 
-/** What the sheet is marking, so the screen can name it rather than showing a bare grid. */
-export interface GradeSheetContext {
+/** What the book is marking, so the screen can name it rather than showing a bare grid. */
+export interface GradeBookContext {
   school_class_id: number;
   school_class_label: string;
   subject_id: number;
   subject_name: string;
+  class_discipline_id: number;
   year: number;
 }
 
-export interface GradeSheet {
-  context: GradeSheetContext;
-  periods: GradeSheetPeriod[];
-  students: GradeSheetStudent[];
+export interface GradeBook {
+  context: GradeBookContext;
+  periods: GradeBookPeriod[];
+  students: GradeBookStudent[];
 }
 
-/** GET .../grades — the whole sheet for one class and subject, empty cells included. */
-export const fetchGradeSheet = async (
+/** GET .../grade_book — the whole book for one class and subject, empty cells included. */
+export const fetchGradeBook = async (
   schoolId: number,
   schoolClassId: number,
   subjectId: number,
-): Promise<GradeSheet> => {
-  const query = new URLSearchParams({
-    school_class_id: String(schoolClassId),
-    subject_id: String(subjectId),
-  });
-  const response = await request<{ data: GradeSheet }>(`${base(schoolId)}/grades?${query}`);
+): Promise<GradeBook> => {
+  const query = new URLSearchParams({ subject_id: String(subjectId) });
+  const response = await request<{ data: GradeBook }>(
+    `${base(schoolId)}/classes/${schoolClassId}/grade_book?${query}`,
+  );
 
   return response.data;
 };
 
 /**
- * PUT .../grades/cell — one mark.
+ * PUT .../grade_book/entries — one mark.
  *
- * A cell is identified by the student and the period rather than by a row id: the screen edits a
- * grid, and a cell nobody has marked yet has no row behind it.
+ * A cell is identified by the student, the period and the component rather than by a row id: the
+ * screen edits a grid, and a cell nobody has marked yet has no row behind it.
  */
-export const saveGradeCell = (
+export const saveGradeBookEntry = (
   schoolId: number,
+  schoolClassId: number,
   params: {
-    schoolClassId: number;
-    subjectId: number;
     studentId: number;
     academicPeriodId: number;
-    score: number | null;
+    evaluationComponentId: number;
+    value: number | null;
   },
 ) =>
-  request<{ data: { student_id: number; academic_period_id: number; score: number | null } }>(
-    `${base(schoolId)}/grades/cell`,
-    {
-      method: 'PUT',
-      body: {
-        school_class_id: params.schoolClassId,
-        subject_id: params.subjectId,
-        grade: {
-          student_id: params.studentId,
-          academic_period_id: params.academicPeriodId,
-          score: params.score,
-        },
+  request<{
+    data: {
+      student_id: number;
+      academic_period_id: number;
+      evaluation_component_id: number;
+      value: string | number | null;
+    };
+  }>(`${base(schoolId)}/classes/${schoolClassId}/grade_book/entries`, {
+    method: 'PUT',
+    body: {
+      grade_entry: {
+        student_id: params.studentId,
+        academic_period_id: params.academicPeriodId,
+        evaluation_component_id: params.evaluationComponentId,
+        value: params.value === null ? null : String(params.value),
       },
     },
-  );
+  });
 
 /**
  * GET .../teachers/:id/bank_account — where this collaborator's salary is sent.
