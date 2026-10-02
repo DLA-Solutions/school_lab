@@ -55,6 +55,9 @@ class School < ApplicationRecord
   has_many :tax_declaration_versions, dependent: :destroy
   has_many :tax_declaration_items, dependent: :destroy
   has_many :tax_declaration_access_events, dependent: :destroy
+  has_many :notification_policies, dependent: :destroy
+  has_many :notification_intents, dependent: :destroy
+  has_many :notification_deliveries, dependent: :destroy
 
   DEFAULT_TIMEZONE = "America/Sao_Paulo"
 

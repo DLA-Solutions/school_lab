@@ -1216,21 +1216,56 @@ Table announcements {
   updated_at timestamp
 }
 
+// Per school × channel_key toggles (BR-N02, BR-N03). No row = fall back to the hardcoded MVP
+// default (push on, email/whatsapp off) — a row only exists once staff overrides it.
+Table notification_policies {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  channel_key varchar [not null, note: 'messages | announcements | service_tickets | attendance | photos | report_cards, non-exhaustive per BR-N02']
+  push_enabled boolean [not null, default: true]
+  email_enabled boolean [not null, default: false]
+  whatsapp_enabled boolean [not null, default: false]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, channel_key) [unique]
+  }
+}
+
+// One row per domain event fan-out (BR-N01, UC-N01). `payload` carries push title/body/deep-link
+// context only — never message body text (LGPD minimization).
+Table notification_intents {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  channel_key varchar [not null, note: 'Resolves the effective notification_policies row']
+  source_type varchar [not null, note: 'ReportCardSnapshot | Message | Announcement | AbsenceRecorded, …']
+  source_id integer [not null]
+  payload jsonb [not null, default: '{}', note: 'Push title/body/deep-link context']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (source_type, source_id, channel_key) [unique, note: 'Idempotent intent creation on event retry']
+  }
+}
+
+// Per user × channel delivery state (BR-N04, BR-N05). AASM: queued -> sent | failed | skipped.
 Table notification_deliveries {
   id integer [primary key, increment]
   school_id integer [not null]
-  source_type varchar [not null, note: 'Message | AbsenceRecorded | Announcement']
-  source_id integer [not null]
-  device_token_id integer
-  channel varchar [not null, note: 'fcm | email']
-  status varchar [not null, default: 'pending', note: 'pending | sent | failed']
+  notification_intent_id integer [not null]
+  user_id integer [not null, note: 'Recipient resolved from the intent target users']
+  channel varchar [not null, note: 'push | email | whatsapp']
+  status varchar [not null, default: 'queued', note: 'queued | sent | failed | skipped (policy off)']
+  attempts integer [not null, default: 0, note: 'Retry count for exponential backoff — BR-N05']
   sent_at timestamp
   error_code varchar
   created_at timestamp
   updated_at timestamp
 
   indexes {
-    (source_type, source_id, device_token_id) [unique, note: 'Idempotent push delivery']
+    (notification_intent_id, channel, user_id) [unique, note: 'Idempotent delivery — BR-N05']
   }
 }
 
@@ -1744,8 +1779,11 @@ Ref: messages.school_id > schools.id
 Ref: messages.sender_membership_id > memberships.id
 Ref: announcements.school_id > schools.id
 Ref: announcements.author_membership_id > memberships.id
+Ref: notification_policies.school_id > schools.id
+Ref: notification_intents.school_id > schools.id
 Ref: notification_deliveries.school_id > schools.id
-Ref: notification_deliveries.device_token_id > device_tokens.id
+Ref: notification_deliveries.notification_intent_id > notification_intents.id
+Ref: notification_deliveries.user_id > users.id
 
 Ref: subjects.school_id > schools.id
 Ref: class_disciplines.school_id > schools.id

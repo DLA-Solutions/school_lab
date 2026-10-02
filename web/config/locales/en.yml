@@ -64,6 +64,10 @@ en:
     contract_signed:
       title: "Contract signed"
       body: "%{student}'s contract has been signed by all parties."
+    push:
+      report_card_published:
+        title: "Report card available"
+        body: "%{student}'s report card is now available."
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."

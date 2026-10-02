@@ -1,0 +1,661 @@
+<title>Onboarding School Lab</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#f5f6fb;
+    --surface:#ffffff;
+    --surface-alt:#eef0f9;
+    --border:#dfe3f1;
+    --text:#1a2040;
+    --text-muted:#5c6288;
+    --code-bg:#eef0f9;
+    --code-text:#2a3061;
+    --accent:#3552d8;
+    --accent-soft:#e7ebfd;
+    --accent-contrast:#ffffff;
+    --success:#16875a;
+    --success-soft:#e2f5ec;
+    --warning:#a5680f;
+    --warning-soft:#fbeed9;
+    --danger:#c23b3b;
+    --danger-soft:#fbe6e6;
+    --shadow: 0 1px 2px rgba(26,32,64,.06), 0 8px 24px -12px rgba(26,32,64,.12);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0c1020;
+      --surface:#141a30;
+      --surface-alt:#1b2340;
+      --border:#283054;
+      --text:#e8eaf7;
+      --text-muted:#9aa1c9;
+      --code-bg:#1b2340;
+      --code-text:#c7ccf5;
+      --accent:#6c85ff;
+      --accent-soft:#232c52;
+      --accent-contrast:#0c1020;
+      --success:#3fcf94;
+      --success-soft:#123227;
+      --warning:#e8b155;
+      --warning-soft:#332510;
+      --danger:#f18080;
+      --danger-soft:#3a1c1c;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c1020;
+    --surface:#141a30;
+    --surface-alt:#1b2340;
+    --border:#283054;
+    --text:#e8eaf7;
+    --text-muted:#9aa1c9;
+    --code-bg:#1b2340;
+    --code-text:#c7ccf5;
+    --accent:#6c85ff;
+    --accent-soft:#232c52;
+    --accent-contrast:#0c1020;
+    --success:#3fcf94;
+    --success-soft:#123227;
+    --warning:#e8b155;
+    --warning-soft:#332510;
+    --danger:#f18080;
+    --danger-soft:#3a1c1c;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', 'Segoe UI', sans-serif;
+    font-size:15px;
+    line-height:1.6;
+  }
+  h1,h2,h3,h4{
+    font-family:'Manrope','Segoe UI',sans-serif;
+    color:var(--text);
+    text-wrap:balance;
+    margin:0 0 .4em;
+  }
+  code, .mono{ font-family:'IBM Plex Mono','SFMono-Regular',Consolas,monospace; }
+  a{ color:var(--accent); }
+  p{ margin:0 0 1em; color:var(--text); }
+  ::selection{ background:var(--accent-soft); }
+
+  .shell{
+    display:grid;
+    grid-template-columns: 260px minmax(0,1fr);
+    min-height:100vh;
+    max-width:1320px;
+    margin:0 auto;
+  }
+
+  /* Sidebar */
+  .sidebar{
+    position:sticky;
+    top:0;
+    align-self:start;
+    height:100vh;
+    padding:28px 18px;
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    overflow-y:auto;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Manrope',sans-serif; font-weight:800; font-size:15px;
+  }
+  .brand .mark{
+    width:30px;height:30px;border-radius:9px;
+    background:linear-gradient(155deg,var(--accent),#8aa0ff);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--accent-contrast); font-size:15px; flex:none;
+    box-shadow:var(--shadow);
+  }
+  .progress-card{
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+  }
+  .progress-card .label{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:11.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em;
+    margin-bottom:8px;
+  }
+  .progress-card .label b{ font-family:'IBM Plex Mono',monospace; color:var(--text); font-weight:600; }
+  .bar{ height:7px; border-radius:99px; background:var(--border); overflow:hidden; }
+  .bar > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#8aa0ff); transition:width .35s ease; }
+
+  nav.toc{ display:flex; flex-direction:column; gap:2px; font-size:13.5px; }
+  nav.toc a{
+    text-decoration:none; color:var(--text-muted);
+    padding:7px 10px; border-radius:8px;
+    display:flex; align-items:center; gap:9px;
+    transition:background .15s, color .15s;
+  }
+  nav.toc a .n{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); width:16px; }
+  nav.toc a:hover{ background:var(--surface-alt); color:var(--text); }
+  nav.toc a.active{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  nav.toc a.active .n{ color:var(--accent); }
+
+  .sidebar-foot{ margin-top:auto; font-size:11.5px; color:var(--text-muted); }
+  .sidebar-foot code{ background:var(--surface-alt); padding:1px 5px; border-radius:5px; }
+
+  /* Main */
+  main{ padding:40px 56px 100px; min-width:0; }
+  section{ scroll-margin-top:24px; padding-top:12px; }
+  section + section{ margin-top:64px; }
+
+  .hero{
+    display:flex; flex-direction:column; gap:14px;
+    padding-bottom:28px; border-bottom:1px solid var(--border); margin-bottom:44px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--accent); font-weight:600;
+  }
+  .hero h1{ font-size:32px; font-weight:800; }
+  .hero .sub{ color:var(--text-muted); max-width:62ch; font-size:15.5px; }
+  .hero-meta{ display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:600; padding:5px 11px; border-radius:99px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text-muted);
+  }
+  .pill.accent{ background:var(--accent-soft); color:var(--accent); border-color:transparent; }
+  .pill.success{ background:var(--success-soft); color:var(--success); border-color:transparent; }
+
+  h2.section-title{
+    font-size:22px; display:flex; align-items:baseline; gap:10px; margin-bottom:6px;
+  }
+  h2.section-title .num{ font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--accent); font-weight:600; }
+  .section-desc{ color:var(--text-muted); max-width:70ch; margin-bottom:24px; font-size:14.5px; }
+
+  /* Architecture diagram */
+  .diagram{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:32px; box-shadow:var(--shadow);
+  }
+  .diagram-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .diagram-row.single{ grid-template-columns:1fr; max-width:340px; margin:0 auto; }
+  .node{
+    border:1px solid var(--border); border-radius:12px; padding:14px 16px;
+    background:var(--surface-alt); text-align:center;
+  }
+  .node .t{ font-weight:700; font-family:'Manrope',sans-serif; font-size:13.5px; }
+  .node .d{ font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+  .node.focus{ border-color:var(--accent); background:var(--accent-soft); }
+  .node.focus .t{ color:var(--accent); }
+  .connector{ display:flex; justify-content:center; align-items:center; height:34px; }
+  .connector::before{
+    content:'↓'; color:var(--text-muted); font-size:18px;
+  }
+  .diagram-caption{ margin-top:18px; font-size:12.5px; color:var(--text-muted); text-align:center; }
+
+  /* Task card */
+  .task-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:26px 28px; box-shadow:var(--shadow); margin-bottom:26px;
+  }
+  .task-card .head{ display:flex; justify-content:space-between; align-items:start; gap:16px; flex-wrap:wrap; margin-bottom:10px; }
+  .task-card h3{ font-size:18px; }
+  .gwt{ display:grid; gap:10px; margin-top:16px; }
+  .gwt .row{ display:grid; grid-template-columns:74px 1fr; gap:10px; font-size:13.5px; }
+  .gwt .row b{ font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; color:var(--accent); padding-top:2px; }
+
+  /* Rule cards */
+  .rules-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .rule{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:18px 20px; box-shadow:var(--shadow);
+  }
+  .rule .tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+    color:var(--accent); background:var(--accent-soft); padding:2px 8px; border-radius:6px;
+    display:inline-block; margin-bottom:8px;
+  }
+  .rule p{ margin:0; font-size:13.7px; color:var(--text); }
+  .rule p.note{ color:var(--text-muted); margin-top:8px; font-size:12.8px; }
+  .callout{
+    border:1px solid var(--warning); background:var(--warning-soft);
+    border-radius:12px; padding:14px 18px; font-size:13.5px; margin-top:18px;
+    display:flex; gap:10px;
+  }
+  .callout b{ color:var(--warning); }
+  .callout.danger{ border-color:var(--danger); background:var(--danger-soft); }
+  .callout.danger b{ color:var(--danger); }
+
+  /* API table */
+  .table-wrap{ overflow-x:auto; border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); }
+  table{ width:100%; border-collapse:collapse; font-size:13.3px; min-width:640px; }
+  thead th{
+    text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--text-muted); background:var(--surface-alt);
+    padding:11px 16px; border-bottom:1px solid var(--border);
+  }
+  tbody td{ padding:11px 16px; border-bottom:1px solid var(--border); background:var(--surface); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  .method{
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:11.5px;
+    padding:2px 8px; border-radius:6px; display:inline-block;
+  }
+  .method.get{ background:var(--success-soft); color:var(--success); }
+  .method.post{ background:var(--accent-soft); color:var(--accent); }
+  .method.patch{ background:var(--warning-soft); color:var(--warning); }
+  .method.delete{ background:var(--danger-soft); color:var(--danger); }
+  td code{ background:var(--code-bg); color:var(--code-text); padding:1px 6px; border-radius:5px; font-size:12.3px; }
+
+  /* Pattern cards */
+  .pattern-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .pattern{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:18px 20px; box-shadow:var(--shadow);
+  }
+  .pattern h4{ font-size:14px; display:flex; align-items:center; gap:8px; }
+  .pattern .path{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--accent);
+    background:var(--accent-soft); padding:2px 7px; border-radius:6px; display:inline-block; margin-bottom:8px;
+  }
+  .pattern p{ font-size:13px; color:var(--text-muted); margin:0; }
+
+  /* Steps */
+  .steps{ display:flex; flex-direction:column; gap:12px; }
+  .step{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:16px 20px; display:flex; gap:16px; align-items:flex-start;
+    box-shadow:var(--shadow); transition:border-color .15s;
+  }
+  .step.done{ border-color:var(--success); }
+  .step .check{
+    flex:none; width:24px; height:24px; border-radius:7px; border:1.5px solid var(--border);
+    background:var(--surface-alt); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:14px; color:transparent; margin-top:2px; transition:all .15s;
+  }
+  .step.done .check{ background:var(--success); border-color:var(--success); color:var(--accent-contrast); }
+  .step .body{ flex:1; }
+  .step .body h4{ font-size:14.5px; margin-bottom:4px; display:flex; gap:8px; align-items:baseline; }
+  .step .body h4 .idx{ font-family:'IBM Plex Mono',monospace; color:var(--text-muted); font-size:12px; }
+  .step .body p{ font-size:13.3px; color:var(--text-muted); margin-bottom:6px; }
+  .step .body .cmd{
+    background:var(--code-bg); color:var(--code-text); font-family:'IBM Plex Mono',monospace;
+    font-size:12.3px; padding:8px 12px; border-radius:8px; margin-top:6px; overflow-x:auto;
+  }
+  .step .body .refs{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .step .body .refs span{
+    font-size:11px; font-family:'IBM Plex Mono',monospace; color:var(--text-muted);
+    background:var(--surface-alt); border:1px solid var(--border); padding:2px 7px; border-radius:6px;
+  }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border); font-size:12.5px; color:var(--text-muted); }
+
+  @media (max-width: 900px){
+    .shell{ grid-template-columns:1fr; }
+    .sidebar{ position:relative; height:auto; }
+    main{ padding:28px 20px 80px; }
+    .rules-grid, .pattern-grid, .diagram-row{ grid-template-columns:1fr; }
+  }
+</style>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">🎓</span> School Lab · Onboarding</div>
+
+    <div class="progress-card">
+      <div class="label">Seu progresso <b id="progressLabel">0/10</b></div>
+      <div class="bar"><i id="progressBar"></i></div>
+    </div>
+
+    <nav class="toc">
+      <a href="#visao-geral"><span class="n">01</span> Visão geral</a>
+      <a href="#arquitetura"><span class="n">02</span> Arquitetura</a>
+      <a href="#task"><span class="n">03</span> Sua primeira task</a>
+      <a href="#regras"><span class="n">04</span> Regras de negócio</a>
+      <a href="#api"><span class="n">05</span> Contrato de API</a>
+      <a href="#padroes"><span class="n">06</span> Padrões de frontend</a>
+      <a href="#passos"><span class="n">07</span> Passo a passo</a>
+    </nav>
+
+    <div class="sidebar-foot">
+      Progresso salvo neste navegador via <code>localStorage</code> — só neste dispositivo.
+    </div>
+  </aside>
+
+  <main>
+    <div class="hero">
+      <span class="eyebrow">Guia de onboarding · dev júnior</span>
+      <h1>Bem-vindo(a) ao School Lab</h1>
+      <p class="sub">School Lab é um SaaS de gestão para escolas particulares brasileiras — um monorepo com API em Rails, SPAs em React e app mobile em React Native. Este guia te leva da arquitetura até a entrega da sua primeira task.</p>
+      <div class="hero-meta">
+        <span class="pill accent">Issue #202</span>
+        <span class="pill">frontend/app</span>
+        <span class="pill">React + Vite + MUI</span>
+        <span class="pill success">API já pronta (PR #170)</span>
+      </div>
+    </div>
+
+    <!-- 01 Visão geral -->
+    <section id="visao-geral">
+      <h2 class="section-title"><span class="num">01</span> Visão geral do produto</h2>
+      <p class="section-desc">O produto atende escolas particulares: direção, secretaria, professores e responsáveis (guardians). A interface do produto é em <strong>pt-BR</strong>, mas todo o repositório — código, API, docs, nomes de branch — é em <strong>inglês</strong>. Português só é usado em textos exibidos ao usuário final (i18n) e em exceções de domínio documentadas no glossário.</p>
+      <div class="rules-grid">
+        <div class="rule">
+          <span class="tag">isolamento</span>
+          <p>Cada escola só enxerga seus próprios dados (<code>school_id</code>) e cada família só enxerga seus próprios registros — mesmo rigor de isolamento para ambos.</p>
+        </div>
+        <div class="rule">
+          <span class="tag">lgpd</span>
+          <p>O produto lida com dados de crianças. Acesso mínimo, consentimento do responsável como base legal, cuidado extra com dados sensíveis (saúde, ocorrências).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 Arquitetura -->
+    <section id="arquitetura">
+      <h2 class="section-title"><span class="num">02</span> Arquitetura do monorepo</h2>
+      <p class="section-desc">Um único backend serve três frontends. Nenhum cliente duplica regra de negócio — tudo que é regra vive na API.</p>
+
+      <div class="diagram">
+        <div class="diagram-row">
+          <div class="node focus">
+            <div class="t">frontend/app</div>
+            <div class="d">SPA da escola · React + Vite · rota /app</div>
+          </div>
+          <div class="node">
+            <div class="t">frontend/backoffice</div>
+            <div class="d">SPA da plataforma · rota /backoffice</div>
+          </div>
+          <div class="node">
+            <div class="t">mobile/</div>
+            <div class="d">React Native · guardian + professor</div>
+          </div>
+        </div>
+        <div class="diagram-row single"><div class="connector"></div></div>
+        <div class="diagram-row single">
+          <div class="node">
+            <div class="t">web/ — API Rails 8.1</div>
+            <div class="d">api_only · REST JSON /api/v1 · JWT · single source of business rules</div>
+          </div>
+        </div>
+        <div class="diagram-row single"><div class="connector"></div></div>
+        <div class="diagram-row single">
+          <div class="node"><div class="t">PostgreSQL</div><div class="d">multi-tenant por school_id</div></div>
+        </div>
+        <p class="diagram-caption">Sua task fica inteiramente na caixa destacada — <code>frontend/app</code> — consumindo endpoints que já existem na API.</p>
+      </div>
+    </section>
+
+    <!-- 03 Sua task -->
+    <section id="task">
+      <h2 class="section-title"><span class="num">03</span> Sua primeira task</h2>
+      <p class="section-desc">Escolhida por três motivos: é só frontend (não mexe em Rails), a API que ela consome já está em produção, e os critérios de aceite já estão escritos.</p>
+
+      <div class="task-card">
+        <div class="head">
+          <div>
+            <span class="pill accent" style="margin-bottom:8px;">Issue #202</span>
+            <h3>Tela de listagem e edição de "papéis" (role templates)</h3>
+          </div>
+          <span class="pill success">Desbloqueada</span>
+        </div>
+        <p>Toda escola tem <strong>papéis</strong> (role templates) que definem o que cada funcionário pode fazer: Direção, Secretaria, Coordenação, Professor — mais papéis customizados que a própria escola pode criar (ex: "Recepção"). Sua task é construir a tela onde o dono da escola vê esses papéis e edita as permissões de um papel customizado.</p>
+        <div class="gwt">
+          <div class="row"><b>Given</b><span>um(a) dono(a) de escola com permissão <code>manage_people</code></span></div>
+          <div class="row"><b>When</b><span>ele(a) abre as configurações de papéis</span></div>
+          <div class="row"><b>Then</b><span>a tela carrega <code>GET /schools/:id/role_templates</code> e mostra papéis de sistema e customizados com seus conjuntos de permissão</span></div>
+          <div class="row"><b>Given</b><span>um papel customizado (não-sistema)</span></div>
+          <div class="row"><b>When</b><span>o dono altera permissões e salva</span></div>
+          <div class="row"><b>Then</b><span>a tela chama <code>PATCH /role_templates/:id</code> e exibe <code>affected_memberships_count</code> retornado na resposta</span></div>
+          <div class="row"><b>Given</b><span>um papel de sistema (ex: "Direção")</span></div>
+          <div class="row"><b>When</b><span>tentam excluí-lo</span></div>
+          <div class="row"><b>Then</b><span>a UI impede a ação ou mostra o erro <code>cannot_delete_system_template</code> vindo da API</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 Regras -->
+    <section id="regras">
+      <h2 class="section-title"><span class="num">04</span> Regras de negócio que a tela precisa respeitar</h2>
+      <p class="section-desc">Extraídas de <code>docs/prds/identity-and-onboarding/permissions.md</code>. Não é preciso implementá-las de novo — a API já aplica tudo isso — mas a UI precisa refletir esse comportamento com fidelidade.</p>
+
+      <div class="rules-grid">
+        <div class="rule">
+          <span class="tag">D2 — sistema vs. customizado</span>
+          <p><code>director</code>, <code>secretary</code>, <code>coordination</code> e <code>teacher</code> são papéis de <strong>sistema</strong> (<code>is_system: true</code>), provisionados automaticamente por escola. Escolas podem criar papéis <strong>customizados</strong> combinando permissões do catálogo.</p>
+          <p class="note">UI: papéis de sistema são somente leitura — sem editar nome/permissões, sem excluir.</p>
+        </div>
+        <div class="rule">
+          <span class="tag">PD-1 — propagação</span>
+          <p>O papel de um funcionário é um <strong>ponteiro</strong>, não uma cópia. Editar um papel afeta <em>imediatamente</em> todos os funcionários que o usam — recalculado a cada request.</p>
+          <p class="note">UI: por isso o PATCH retorna <code>affected_memberships_count</code>, que precisa aparecer para o dono antes/depois de salvar.</p>
+        </div>
+        <div class="rule">
+          <span class="tag">PD-2 — overrides separados</span>
+          <p>Permissões extras por pessoa (<em>overrides</em>) ficam em outra tabela e nunca são sobrescritas silenciosamente ao editar um papel.</p>
+          <p class="note">Fora do escopo desta task — overrides têm tela própria (issue futura, W2).</p>
+        </div>
+        <div class="rule">
+          <span class="tag">BR-P01</span>
+          <p>O papel de membership <code>school</code> está sendo renomeado para <code>staff</code> no código. Na UI, a escola continua sendo chamada de "Escola" e a equipe interna de "Equipe" (não confundir os dois conceitos).</p>
+        </div>
+        <div class="rule">
+          <span class="tag">escopo</span>
+          <p>Ação: <code>POST /role_templates/:id/clone</code> permite duplicar um papel existente — útil na UI como atalho para "criar customizado a partir de um de sistema".</p>
+        </div>
+        <div class="rule">
+          <span class="tag">autorização</span>
+          <p>Listar exige <code>manage_people</code>; criar, editar, excluir e clonar exigem ser <strong>dono(a)</strong> da escola (<code>is_owner</code>). A API já garante isso — a UI deve esconder/desabilitar ações para quem não é dono.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span>⚠️</span>
+        <div><b>Cuidado com o "blast radius":</b> como o modelo é ponteiro (PD-1), editar o papel "Secretária" errado pode mudar o acesso de várias pessoas de uma vez. Sempre mostre <code>affected_memberships_count</code> antes de confirmar um <code>PATCH</code> — é a mitigação de risco documentada no PRD.</div>
+      </div>
+    </section>
+
+    <!-- 05 API -->
+    <section id="api">
+      <h2 class="section-title"><span class="num">05</span> Contrato de API que você vai consumir</h2>
+      <p class="section-desc">De <code>docs/api/v1/identity-onboarding.md</code>. A API já está implementada e mergeada — trate este contrato como fixo; se algo não bater, é a UI que precisa se ajustar, não a API.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Método</th><th>Rota</th><th>Descrição</th></tr></thead>
+          <tbody>
+            <tr><td><span class="method get">GET</span></td><td><code>/schools/:school_id/permission_definitions</code></td><td>Catálogo de permissões disponíveis na plataforma</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/schools/:school_id/role_templates</code></td><td>Lista papéis da escola — requer <code>manage_people</code></td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/schools/:school_id/role_templates</code></td><td>Cria papel customizado — somente dono(a)</td></tr>
+            <tr><td><span class="method patch">PATCH</span></td><td><code>/role_templates/:id</code></td><td>Atualiza papel — resposta inclui <code>affected_memberships_count</code></td></tr>
+            <tr><td><span class="method delete">DELETE</span></td><td><code>/role_templates/:id</code></td><td>Exclui papel customizado — bloqueado para papéis de sistema</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/role_templates/:id/clone</code></td><td>Clona um papel existente</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 06 Padrões -->
+    <section id="padroes">
+      <h2 class="section-title"><span class="num">06</span> Padrões de frontend a seguir</h2>
+      <p class="section-desc">Não comece do zero — o repo já tem convenções e uma tela quase idêntica para copiar o padrão.</p>
+      <div class="pattern-grid">
+        <div class="pattern">
+          <span class="path">frontend/app/src/pages/settings/SignatureCredentials.tsx</span>
+          <h4>Sua referência principal</h4>
+          <p>Já é uma tela de configurações da escola com lista + edição. Copie a estrutura de componentes e o padrão de teste (<code>.test.tsx</code> ao lado do componente).</p>
+        </div>
+        <div class="pattern">
+          <span class="path">frontend/app/src/services/peopleApi.ts</span>
+          <h4>Padrão de client de API</h4>
+          <p>Crie um <code>roleTemplatesApi.ts</code> análogo: funções tipadas para <code>list</code>, <code>create</code>, <code>update</code>, <code>remove</code>, <code>clone</code>.</p>
+        </div>
+        <div class="pattern">
+          <span class="path">design-system/ (PageHeader, SectionCard, DataTable)</span>
+          <h4>Composição obrigatória</h4>
+          <p>Páginas de lista novas compõem <code>PageHeader</code> + <code>SectionCard</code> + <code>DataTable</code>/<code>EmptyState</code>. Nunca cor hexadecimal direto — sempre token do tema.</p>
+        </div>
+        <div class="pattern">
+          <span class="path">frontend/app/src/test/msw/</span>
+          <h4>Mocks de API nos testes</h4>
+          <p>Use MSW para simular as respostas de <code>role_templates</code> — inclusive o caso de erro <code>cannot_delete_system_template</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 Passo a passo -->
+    <section id="passos">
+      <h2 class="section-title"><span class="num">07</span> Seu passo a passo</h2>
+      <p class="section-desc">Marque cada item conforme for concluindo — seu progresso fica salvo neste navegador.</p>
+
+      <div class="steps" id="stepsList">
+        <div class="step" data-step="1">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">1</span> Ambiente-se na documentação</h4>
+            <p>Leia, nessa ordem: <code>CLAUDE.md</code> (raiz), <code>docs/api/v1/identity-onboarding.md</code> (seção Role templates) e <code>docs/prds/identity-and-onboarding/permissions.md</code>.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="2">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">2</span> Crie sua branch a partir de <code>staging</code></h4>
+            <p>Prefixo <code>feature/</code> + slug curto em kebab-case, conforme a convenção do repo.</p>
+            <div class="cmd">git checkout staging && git pull origin staging
+git checkout -b feature/role-templates-ui</div>
+          </div>
+        </div>
+
+        <div class="step" data-step="3">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">3</span> Se for usar Claude Code, delegue ao agente certo</h4>
+            <p>Este repo roteia trabalho de <code>frontend/app</code> para o agente <strong>frontend-implementer</strong> — não implemente a tela diretamente no chat principal. Se estiver codando manualmente, ignore este passo.</p>
+            <div class="refs"><span>.claude/rules/core/agent-routing.md</span></div>
+          </div>
+        </div>
+
+        <div class="step" data-step="4">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">4</span> Crie o client de API</h4>
+            <p>Novo arquivo <code>services/roleTemplatesApi.ts</code>, espelhando a forma de <code>peopleApi.ts</code>, cobrindo as 5 rotas do contrato (seção 05).</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="5">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">5</span> Construa a tela</h4>
+            <p>Nova página em <code>pages/settings/RoleTemplates.tsx</code>: <code>PageHeader</code> + <code>SectionCard</code> com <code>DataTable</code> listando papéis; ação de editar abre formulário de permissões.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="6">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">6</span> Aplique as regras de negócio na UI</h4>
+            <p>Desabilite editar/excluir em papéis de sistema (<code>is_system: true</code>); ao salvar um PATCH, exiba <code>affected_memberships_count</code> antes de confirmar; trate o erro <code>cannot_delete_system_template</code> com mensagem clara.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="7">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">7</span> Escreva os testes</h4>
+            <p>Arquivo <code>RoleTemplates.test.tsx</code> ao lado do componente, com MSW mockando as respostas — cubra o caminho feliz, o bloqueio de papel de sistema e o retorno de <code>affected_memberships_count</code>.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="8">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">8</span> Rode e valide localmente</h4>
+            <p>Suba o SPA, navegue até a tela nova e teste manualmente o fluxo completo: listar, editar um papel customizado, tentar excluir um papel de sistema.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="9">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">9</span> Commits atômicos</h4>
+            <p>Um commit por camada: client de API separado da tela, separado dos testes — se fizer sentido no seu fluxo. Mensagens em inglês, no imperativo, focando no "porquê".</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="10">
+          <div class="check">✓</div>
+          <div class="body">
+            <h4><span class="idx">10</span> Abra o PR contra <code>staging</code></h4>
+            <p>Push da branch e PR para <code>staging</code> (nunca para <code>main</code> direto). No repo, dizer "pode versionar" aciona esse fluxo inteiro automaticamente.</p>
+            <div class="cmd">git push -u origin feature/role-templates-ui
+gh pr create --base staging</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Gerado a partir de <code>docs/</code>, <code>CLAUDE.md</code> e da issue #202 deste repositório · School Lab
+    </footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  var STORAGE_KEY = 'sl-onboarding-role-templates-v1';
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveState(state){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var state = loadState();
+
+  function updateProgress(){
+    var done = steps.filter(function(s){ return s.classList.contains('done'); }).length;
+    document.getElementById('progressLabel').textContent = done + '/' + steps.length;
+    document.getElementById('progressBar').style.width = (done / steps.length * 100) + '%';
+  }
+
+  steps.forEach(function(step){
+    var id = step.getAttribute('data-step');
+    if (state[id]) step.classList.add('done');
+    var check = step.querySelector('.check');
+    check.addEventListener('click', function(){
+      step.classList.toggle('done');
+      state[id] = step.classList.contains('done');
+      saveState(state);
+      updateProgress();
+    });
+  });
+  updateProgress();
+
+  // Scrollspy
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+  var sections = links.map(function(l){ return document.querySelector(l.getAttribute('href')); });
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      var idx = sections.indexOf(entry.target);
+      if (idx === -1) return;
+      if (entry.isIntersecting){
+        links.forEach(function(l){ l.classList.remove('active'); });
+        links[idx].classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+  sections.forEach(function(s){ if (s) io.observe(s); });
+})();
+</script>

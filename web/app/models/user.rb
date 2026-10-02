@@ -30,6 +30,7 @@ class User < ApplicationRecord
   has_many :user_identities, dependent: :destroy
   has_many :device_tokens, dependent: :destroy
   has_many :notifications, dependent: :destroy
+  has_many :notification_deliveries, dependent: :destroy
 
   belongs_to :disabled_by, class_name: "User", optional: true
 

@@ -2,6 +2,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../providers/AuthContext';
+import { navigationRef } from '../services/pushNotifications';
 import AuthStack from './AuthStack';
 import MainDrawer from './MainDrawer';
 
@@ -27,7 +28,7 @@ const RootNavigator = () => {
   const { status } = useAuth();
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer ref={navigationRef} theme={navigationTheme}>
       {status === 'loading' ? <Splash /> : status === 'authenticated' ? <MainDrawer /> : <AuthStack />}
     </NavigationContainer>
   );

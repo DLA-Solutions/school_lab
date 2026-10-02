@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_03_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_153648) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -646,6 +646,47 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_000000) do
     t.index ["suspended_by_id"], name: "index_memberships_on_suspended_by_id"
     t.index ["user_id", "school_id"], name: "index_memberships_on_user_id_and_school_id_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["user_id"], name: "index_memberships_on_user_id"
+  end
+
+  create_table "notification_deliveries", force: :cascade do |t|
+    t.integer "attempts", default: 0, null: false
+    t.string "channel", null: false
+    t.datetime "created_at", null: false
+    t.string "error_code"
+    t.bigint "notification_intent_id", null: false
+    t.bigint "school_id", null: false
+    t.datetime "sent_at"
+    t.string "status", default: "queued", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["notification_intent_id", "channel", "user_id"], name: "index_notification_deliveries_on_intent_channel_user", unique: true
+    t.index ["notification_intent_id"], name: "index_notification_deliveries_on_notification_intent_id"
+    t.index ["school_id"], name: "index_notification_deliveries_on_school_id"
+    t.index ["user_id"], name: "index_notification_deliveries_on_user_id"
+  end
+
+  create_table "notification_intents", force: :cascade do |t|
+    t.string "channel_key", null: false
+    t.datetime "created_at", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.bigint "school_id", null: false
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_notification_intents_on_school_id"
+    t.index ["source_type", "source_id", "channel_key"], name: "index_notification_intents_on_source_and_channel", unique: true
+  end
+
+  create_table "notification_policies", force: :cascade do |t|
+    t.string "channel_key", null: false
+    t.datetime "created_at", null: false
+    t.boolean "email_enabled", default: false, null: false
+    t.boolean "push_enabled", default: true, null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "whatsapp_enabled", default: false, null: false
+    t.index ["school_id", "channel_key"], name: "index_notification_policies_on_school_id_and_channel_key", unique: true
+    t.index ["school_id"], name: "index_notification_policies_on_school_id"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -1763,6 +1804,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_03_000000) do
   add_foreign_key "memberships", "schools"
   add_foreign_key "memberships", "users"
   add_foreign_key "memberships", "users", column: "suspended_by_id"
+  add_foreign_key "notification_deliveries", "notification_intents"
+  add_foreign_key "notification_deliveries", "schools"
+  add_foreign_key "notification_deliveries", "users"
+  add_foreign_key "notification_intents", "schools"
+  add_foreign_key "notification_policies", "schools"
   add_foreign_key "notifications", "contracts"
   add_foreign_key "notifications", "schools"
   add_foreign_key "notifications", "users"

@@ -33,8 +33,9 @@
 
 | Table | Role |
 |-------|------|
-| `notification_deliveries` | FCM/email adapter state — links to source message/event |
-| `notification_policies` | Per-school channel rules |
+| `notification_policies` | Per school × `channel_key` toggles (push/email/whatsapp); no row = hardcoded MVP default |
+| `notification_intents` | One row per domain event fan-out (`source_type`/`source_id`/`channel_key`) |
+| `notification_deliveries` | Per user × channel adapter state — links to `notification_intents` |
 
 ### Media (BC5)
 
@@ -57,8 +58,18 @@ guardian id — **never** expose another family's threads (NFR-002, NFR-004).
 
 ## Push pipeline
 
-`notification_deliveries` state machine: `pending` → `sent` → `failed`; Solid Queue job;
-idempotent on `(source_type, source_id, device_token_id)`.
+Event → `Notifications::ProcessIntentService` creates a `notification_intents` row (idempotent on
+`source_type`/`source_id`/`channel_key`) → resolves the effective `notification_policies` row for
+`school_id` + `channel_key` (hardcoded MVP default when no override exists) → one
+`notification_deliveries` row per target user per enabled channel. `notification_deliveries` AASM:
+`queued` → `sent` | `failed` | `skipped` (policy disabled); idempotent on
+`(notification_intent_id, channel, user_id)` — Solid Queue job sends via the `Gateways::Push` FCM
+adapter and transitions the row.
+
+First wired trigger (MVP): `ReportCards::ReportCardPublishedJob` (channel_key `report_cards` —
+extends the BR-N02 list, which is explicitly non-exhaustive) fans out to each guardian's
+`device_tokens` when a report card snapshot is released. `MessagePosted` (BC1) is still the
+PRD's reference trigger once `messages` ships.
 
 ## LGPD
 

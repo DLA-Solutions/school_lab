@@ -33,6 +33,34 @@ const DrawerContent = ({ state, navigation }: DrawerContentComponentProps) => {
         </Text>
       </Pressable>
 
+      <Pressable
+        style={[styles.item, activeRoute === 'Boletos' && styles.itemActive]}
+        onPress={() => navigation.navigate('Boletos')}
+      >
+        <Ionicons
+          name="document-text-outline"
+          size={20}
+          color={activeRoute === 'Boletos' ? colors.primary : colors.textSecondary}
+        />
+        <Text style={[styles.itemLabel, activeRoute === 'Boletos' && styles.itemLabelActive]}>
+          Boletos
+        </Text>
+      </Pressable>
+
+      <Pressable
+        style={[styles.item, activeRoute === 'ReportCards' && styles.itemActive]}
+        onPress={() => navigation.navigate('ReportCards')}
+      >
+        <Ionicons
+          name="ribbon-outline"
+          size={20}
+          color={activeRoute === 'ReportCards' ? colors.primary : colors.textSecondary}
+        />
+        <Text style={[styles.itemLabel, activeRoute === 'ReportCards' && styles.itemLabelActive]}>
+          Boletins
+        </Text>
+      </Pressable>
+
       <View style={styles.spacer} />
 
       <View style={styles.profile}>

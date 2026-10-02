@@ -65,6 +65,10 @@ pt-BR:
     contract_signed:
       title: "Contrato assinado"
       body: "O contrato de %{student} foi assinado por todas as partes."
+    push:
+      report_card_published:
+        title: "Boletim disponível"
+        body: "O boletim de %{student} já está disponível."
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."
