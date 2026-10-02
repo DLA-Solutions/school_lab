@@ -14,11 +14,37 @@ module Api
             authorize :report_card_preview, :show?
 
             student = Current.school.students.kept.find(params[:student_id])
-            academic_period = Current.school.academic_periods.find(params[:academic_period_id])
+            academic_periods = resolve_academic_periods(student)
 
-            result = ReportCards::RenderLivePreviewPdfService.call(student: student, academic_period: academic_period)
+            result = ReportCards::RenderLivePreviewPdfService.call(
+              student: student, academic_periods: academic_periods
+            )
 
             render_service_result(result) { |data| send_live_preview_pdf(data) }
+          end
+
+          private
+
+          # `academic_period_id=all` (AC-RC13) combines every period of the student's school
+          # class's school year into one PDF, ordered by `sequence`. A year with zero periods
+          # returns an empty list here -- RenderMultiPeriodPreviewPdfService still renders a
+          # (near-empty) PDF for that, 200 rather than 404/422.
+          def resolve_academic_periods(student)
+            return all_periods_for(student) if params[:academic_period_id] == "all"
+
+            [ Current.school.academic_periods.find(params[:academic_period_id]) ]
+          end
+
+          def all_periods_for(student)
+            school_class = student.school_class
+            return [] if school_class.blank?
+
+            Current.school.academic_periods
+                   .kept
+                   .joins(:school_year)
+                   .merge(SchoolYear.kept.for_calendar_year(school_class.year))
+                   .order(:sequence)
+                   .to_a
           end
         end
       end
