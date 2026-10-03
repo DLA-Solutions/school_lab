@@ -147,8 +147,18 @@ Rails.application.routes.draw do
               # Where the collaborator's salary is sent. One standing record per person, so it is
               # a singular resource rather than a list.
               resource :bank_account, only: %i[show update], controller: "teacher_bank_accounts"
+              # BC6 collaborator health profile — staff with manage_people may read it; only the
+              # teacher themself may write it (see the academics/me nesting below).
+              resource :health_profile, only: :show, controller: "teacher_health_profiles"
             end
             resources :teaching_assignments, only: %i[index destroy]
+
+            # The teacher's own self-service view of their health profile (BC6) — resolved by
+            # email match against Current.user, never by a :teacher_id param, so a teacher cannot
+            # reach a colleague's profile by changing the URL.
+            namespace :me do
+              resource :teacher_health_profile, only: %i[show update], controller: "teacher_health_profiles"
+            end
 
             # The grade book: the grid of periods/components for one class + subject, read whole
             # and written a cell at a time (components/templates/roster/entries already exist —
