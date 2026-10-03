@@ -23,6 +23,8 @@ class Student < ApplicationRecord
   # Who the family allows to collect the child at the gate.
   has_many :authorized_pickups, dependent: :destroy
   has_many :grades, dependent: :destroy
+  # Occurrence records (BC7, product label "Ata") — see Incident.
+  has_many :incidents, dependent: :destroy
 
   before_validation :normalize_cpf
 
