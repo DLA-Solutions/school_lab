@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_03_014708) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_03_094738) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -1600,6 +1600,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_014708) do
     t.index ["updated_by_id"], name: "index_teacher_bank_accounts_on_updated_by_id"
   end
 
+  create_table "teacher_health_profiles", force: :cascade do |t|
+    t.string "blood_type"
+    t.datetime "created_at", null: false
+    t.string "emergency_contact_name", limit: 120
+    t.string "emergency_contact_phone", limit: 30
+    t.string "health_plan_name", limit: 120
+    t.string "health_plan_number", limit: 60
+    t.bigint "school_id", null: false
+    t.text "special_care_notes"
+    t.bigint "teacher_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_teacher_health_profiles_on_school_id"
+    t.index ["teacher_id"], name: "index_teacher_health_profiles_on_teacher", unique: true
+    t.index ["teacher_id"], name: "index_teacher_health_profiles_on_teacher_id"
+  end
+
   create_table "teachers", force: :cascade do |t|
     t.string "city"
     t.string "complement"
@@ -1923,6 +1939,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_014708) do
   add_foreign_key "teacher_bank_accounts", "schools"
   add_foreign_key "teacher_bank_accounts", "teachers"
   add_foreign_key "teacher_bank_accounts", "users", column: "updated_by_id"
+  add_foreign_key "teacher_health_profiles", "schools"
+  add_foreign_key "teacher_health_profiles", "teachers"
   add_foreign_key "teachers", "job_positions"
   add_foreign_key "teachers", "schools"
   add_foreign_key "teachers", "users", column: "discarded_by_id"
