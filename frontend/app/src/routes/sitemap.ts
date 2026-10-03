@@ -38,6 +38,13 @@ export interface MenuItem {
    * `teacher` should not see even though `teacher` otherwise collapses into the `staff` audience.
    */
   excludeRoles?: MembershipRole[];
+  /**
+   * The inverse of `excludeRoles`: when set, only these roles see the entry, even though other
+   * roles in the same `audience` bucket would otherwise match. Use for an item scoped to one
+   * role specifically (e.g. a `staff`-audience item only `teacher` should reach) rather than a
+   * permission key, which any role holding it would also see.
+   */
+  includeRoles?: MembershipRole[];
   /** Sidebar grouping — operational vs billing vs school platform settings. */
   section?: NavSection;
 }
@@ -154,6 +161,19 @@ const sitemap: MenuItem[] = [
     icon: 'mingcute:inbox-line',
     audience: 'guardian',
     section: 'family',
+  },
+  {
+    // The collaborator's own side of the health profile (BC6) — scoped to the teacher role
+    // specifically via `includeRoles`, not a permission key: any staff holding `manage_people`
+    // would otherwise also pass a `staff`-audience filter, but only the teacher named on a
+    // `Teacher` row has a profile to fill in here (resolved by login-email match).
+    id: 'my-health-profile',
+    subheader: 'nav.myHealthProfile',
+    path: paths.myHealthProfile,
+    icon: 'mingcute:heartbeat-line',
+    audience: 'staff',
+    includeRoles: ['teacher'],
+    section: 'primary',
   },
   {
     id: 'collaborators',

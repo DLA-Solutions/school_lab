@@ -35,6 +35,9 @@ export default {
   myRequests: '/meus-pedidos',
   myCharges: '/meus-boletos',
   myHealthRecords: '/ficha-de-saude',
+  // The collaborator's own side of the same idea (BC6) — a distinct address from the guardian's
+  // above: different audience, different page, one profile instead of one per child.
+  myHealthProfile: '/ficha-de-saude-colaborador',
   myPickups: '/quem-pode-buscar',
   myTaxDeclarations: '/imposto-de-renda',
 

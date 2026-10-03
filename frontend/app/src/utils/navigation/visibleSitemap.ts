@@ -46,6 +46,7 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.preceptorship]: 'academic',
   [paths.reportCards]: 'academic',
   [paths.requests]: 'documents',
+  [paths.myHealthProfile]: 'academic',
   [paths.myPreceptorship]: 'academic',
   [paths.myReportCards]: 'academic',
   [paths.myTaxDeclarations]: 'billing',
@@ -74,6 +75,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.preceptorship]: 'staff',
   [paths.reportCards]: 'staff',
   [paths.requests]: 'staff',
+  [paths.myHealthProfile]: 'staff',
   [paths.charges]: 'staff',
   [paths.plans]: 'staff',
   [paths.billingSettings]: 'staff',
@@ -114,6 +116,12 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
     // Narrower than audience: excludes a specific role even though it collapses into a matching
     // audience bucket (e.g. `teacher` collapsing into `staff`).
     if (item.excludeRoles && membership !== null && item.excludeRoles.includes(membership.role)) {
+      return false;
+    }
+
+    // The inverse: only these roles see the entry, even though others in the same audience
+    // bucket would otherwise match (e.g. a `staff`-audience item only `teacher` should reach).
+    if (item.includeRoles && (membership === null || !item.includeRoles.includes(membership.role))) {
       return false;
     }
 

@@ -16,6 +16,7 @@ import {
   RequireRouteAudience,
   RequireRouteModule,
   RequireSchoolOwner,
+  RequireTeacherRole,
 } from './guards';
 
 // Vite `base` uses a trailing slash (/app/); React Router `basename` must not — otherwise
@@ -37,6 +38,7 @@ const Lessons = lazy(() => import('pages/academics/Lessons'));
 const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
 const Subjects = lazy(() => import('pages/academics/Subjects'));
 const JobPositions = lazy(() => import('pages/academics/JobPositions'));
+const MyHealthProfile = lazy(() => import('pages/academics/MyHealthProfile'));
 const Preceptorship = lazy(() => import('pages/preceptorship/Preceptorship'));
 const MyPreceptorship = lazy(() => import('pages/preceptorship/MyPreceptorship'));
 const ReportCards = lazy(() => import('pages/report-cards/ReportCards'));
@@ -125,6 +127,17 @@ const router = createBrowserRouter(
             {
               path: paths.jobPositions,
               element: <JobPositions />,
+            },
+            {
+              // Owner-only-style guard (BC6): a hidden nav entry is not an access rule, so a
+              // non-teacher staff member landing on this URL is bounced rather than shown a page
+              // that can never resolve a profile for them.
+              path: paths.myHealthProfile,
+              element: (
+                <RequireTeacherRole>
+                  <MyHealthProfile />
+                </RequireTeacherRole>
+              ),
             },
             {
               path: paths.preceptorship,

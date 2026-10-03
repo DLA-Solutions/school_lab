@@ -31,6 +31,28 @@ export const RequireSchoolOwner = ({ children }: PropsWithChildren) => {
   return children;
 };
 
+/**
+ * Blocks the collaborator's own health profile (BC6) from staff who are not a `teacher` —
+ * a hidden menu entry is not an access rule on its own, same reasoning as `RequireSchoolOwner`.
+ * The API enforces the real boundary (own-profile-by-email-match); this only keeps a non-teacher
+ * staff member from landing on a page that can never resolve a profile for them.
+ */
+export const RequireTeacherRole = ({ children }: PropsWithChildren) => {
+  const { status } = useAuth();
+  const membership = useActiveMembership();
+  const location = useLocation();
+
+  if (status === 'loading') {
+    return <Splash />;
+  }
+
+  if (membership?.role !== 'teacher') {
+    return <Navigate to={paths.dashboard} state={{ from: location.pathname }} replace />;
+  }
+
+  return children;
+};
+
 /** Redirects deep-links to module-gated routes when the school module is disabled. */
 export const RequireRouteModule = ({ children }: PropsWithChildren) => {
   const { status } = useAuth();
