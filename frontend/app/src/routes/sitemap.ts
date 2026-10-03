@@ -174,6 +174,14 @@ const sitemap: MenuItem[] = [
     section: 'primary',
   },
   {
+    id: 'lesson-plans',
+    subheader: 'nav.lessonPlans',
+    path: paths.lessonPlans,
+    icon: 'mingcute:calendar-2-line',
+    audience: 'staff',
+    section: 'primary',
+  },
+  {
     id: 'lessons',
     subheader: 'nav.lessons',
     path: paths.lessons,

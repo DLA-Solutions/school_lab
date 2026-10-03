@@ -1899,4 +1899,130 @@ export const handlers = [
       });
     },
   ),
+
+  /* --------------------------------------------------- lesson plans (BC10) --------------------- */
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/academics/school_classes/:schoolClassId/instructional_days'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      // No instructional days marked by default — a spec asserting the calendar overrides this
+      // with `server.use(...)` to give the class an actual school year and marked days.
+      return HttpResponse.json({
+        data: {
+          school_year_id: 1,
+          starts_on: '2026-02-01',
+          ends_on: '2026-12-18',
+          instructional_dates: [],
+        },
+      });
+    },
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/academics/lesson_plans'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return paginated([], new URL(request.url));
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/academics/lesson_plans/:id'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return jsonError(404, 'not_found', 'Plano de aula não encontrado.');
+    },
+  ),
+
+  http.put(apiUrl('/api/v1/schools/:schoolId/academics/lesson_plans'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as {
+      lesson_plan: { school_class_id: number; subject_id: number; date: string; content: string };
+    };
+
+    return HttpResponse.json({
+      data: {
+        id: 1,
+        school_id: SCHOOL_ID,
+        class_discipline_id: 1,
+        ...body.lesson_plan,
+      },
+    });
+  }),
+
+  /* ----------------------------------------- instructional days admin (BR-SY10) ---------------- */
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/school_years/active'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    // No active year by default — a spec exercising the admin calendar opts in with
+    // `server.use(...)` rather than relying on one existing implicitly.
+    return jsonError(404, 'not_found', 'Nenhum ano letivo ativo.');
+  }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/school_years/:schoolYearId/instructional_days'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return HttpResponse.json({ data: [] });
+    },
+  ),
+
+  http.put(
+    apiUrl('/api/v1/schools/:schoolId/school_years/:schoolYearId/instructional_days'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const body = (await request.json()) as {
+        instructional_days: { date: string; instructional: boolean }[];
+      };
+
+      return HttpResponse.json({ data: body.instructional_days });
+    },
+  ),
 ];

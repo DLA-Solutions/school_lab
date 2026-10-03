@@ -137,7 +137,11 @@ Rails.application.routes.draw do
               end
             end
             resources :subjects, only: %i[index create update destroy]
-            resources :school_classes, only: %i[index show create update destroy]
+            resources :school_classes, only: %i[index show create update destroy] do
+              # Thin passthrough for UC-LP01: resolves the class's school year, then reads the
+              # same `school_instructional_days` table the platform-side route owns (BR-SY10).
+              resource :instructional_days, only: :show, controller: "instructional_days"
+            end
             resources :teachers, only: %i[index show create update destroy] do
               resources :teaching_assignments, only: :create
               # Where the collaborator's salary is sent. One standing record per person, so it is
@@ -194,6 +198,12 @@ Rails.application.routes.draw do
             # (BR-RC14). Deliberately not nested under report_card_publications: this path never
             # creates a publication, snapshot, or stored PDF.
             get "students/:student_id/report_card_preview/pdf", to: "report_card_previews#pdf"
+
+            # Deliberately bare `PUT /lesson_plans` (no `:id`): the API table specifies an
+            # upsert-by-body-attributes endpoint — `school_class_id` + `subject_id` + `date`
+            # resolve the target (BR-LP04), not a URL id.
+            resources :lesson_plans, only: %i[index show]
+            put "lesson_plans", to: "lesson_plans#upsert"
           end
 
           namespace :communication do
@@ -210,6 +220,7 @@ Rails.application.routes.draw do
             end
             resources :academic_periods, only: %i[index create]
             resources :holidays, only: %i[index create]
+            resource :instructional_days, only: %i[show update], controller: "instructional_days"
           end
           resources :academic_periods, only: :update
           resources :holidays, only: %i[update destroy]

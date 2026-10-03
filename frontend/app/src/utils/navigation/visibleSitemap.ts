@@ -12,6 +12,7 @@ import {
 const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   students: 'academic',
   guardians: 'academic',
+  'lesson-plans': 'academic',
   lessons: 'academic',
   'school-classes': 'academic',
   subjects: 'academic',
@@ -41,6 +42,7 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.collaborators]: 'academic',
   [paths.jobPositions]: 'academic',
   [paths.grades]: 'academic',
+  [paths.lessonPlans]: 'academic',
   [paths.preceptorship]: 'academic',
   [paths.reportCards]: 'academic',
   [paths.requests]: 'documents',
@@ -65,6 +67,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.collaborators]: 'staff',
   [paths.lessons]: 'staff',
   [paths.grades]: 'staff',
+  [paths.lessonPlans]: 'staff',
   [paths.schoolClasses]: 'staff',
   [paths.subjects]: 'staff',
   [paths.jobPositions]: 'staff',

@@ -19,6 +19,7 @@ export default {
   collaborators: `/${rootPaths.academicsRoot}/colaboradores`,
   lessons: `/${rootPaths.academicsRoot}/aulas`,
   grades: `/${rootPaths.academicsRoot}/notas`,
+  lessonPlans: `/${rootPaths.academicsRoot}/plano-de-aula`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,
   subjects: `/${rootPaths.academicsRoot}/materias`,
   jobPositions: `/${rootPaths.academicsRoot}/cargos`,

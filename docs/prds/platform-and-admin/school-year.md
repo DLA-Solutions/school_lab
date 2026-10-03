@@ -107,6 +107,17 @@ BR-SY09
 
 All queries scoped by `school_id` (NFR-003).
 
+BR-SY10
+
+**Instructional days** (`school_instructional_days`): `school_year_id`, `date`, `instructional`
+(boolean) — one row per date the admin has explicitly decided about. Unlike `school_holidays`
+(BR-SY05, an exclusion list), there is no weekday-pattern inference: a date with no row is simply
+undecided, and academic BC's lesson-plan calendar ([`academic/lesson-plans.md`](../academic/lesson-plans.md)
+BR-LP03) treats undecided the same as non-instructional — never guesses. `date` must fall within
+the school year's bounds; unique per `(school_year_id, date)`. A date marked instructional here
+while also present in `school_holidays` is a configuration conflict the admin screen should
+surface, not silently resolve `[product decision]`.
+
 ---
 
 ## Use Cases
@@ -149,6 +160,19 @@ Flow
 1. Services call `Platform::ActiveSchoolYearService`.
 2. Returns active year or `422 no_active_school_year`.
 
+### UC-SY05 — Mark instructional days (BR-SY10)
+
+Input: `school_year_id`, a set of `{date, instructional}` pairs — typically one calendar month at
+a time from the admin's day-by-day screen.
+
+Flow
+
+1. Validate `manage_school_settings`.
+2. Upsert `school_instructional_days` rows for the given dates (BR-SY10); dates not included are
+   left as they were (still undecided, if they always were).
+3. Academic BC's lesson-plan calendar (`academic/lesson-plans.md` UC-LP01) reads this per class's
+   school year.
+
 ---
 
 ## API
@@ -164,6 +188,7 @@ membership.
 | School years | List, create, show, update (draft only), delete, activate, archive, `GET /school_years/active` |
 | Academic periods | List/create under year; PATCH dates on draft year only — closure via Academic BC6 |
 | Holidays | Nested CRUD under `/school_years/:year_id/holidays`; flat PATCH/DELETE on `/holidays/:id` |
+| Instructional days *(new, BR-SY10/UC-SY05)* | `GET/PUT /school_years/:year_id/instructional_days` — bulk read/write `{date, instructional}` pairs |
 
 Do not implement flat `/api/v1/school_years` paths — superseded by tenant-scoped routes above.
 
@@ -196,6 +221,7 @@ Standard envelope per [`docs/api/README.md`](../../api/README.md). Full catalog 
 | `school_years` | Ano letivo container |
 | `academic_periods` | Bimester/trimester boundaries |
 | `school_holidays` | Non-school days |
+| `school_instructional_days` *(new, BR-SY10)* | Explicit day-by-day instructional marking, consumed by `academic/lesson-plans.md` |
 | `schools.timezone` | IANA timezone inherited by year/calendar operations |
 
 `academic_periods.closure_status` remains on the period row: Platform owns its date boundaries and
@@ -258,6 +284,13 @@ AC-SY04
 - [ ] Given enrollments exist for year Y, when DELETE year Y, then 409 year_in_use.
 - Source: `[invented]`
 
+AC-SY05 *(BR-SY10)*
+
+- [ ] Given a date has no `school_instructional_days` row, When a teacher opens the lesson-plan
+      calendar for that date, Then it renders as non-instructional (not clickable) — undecided
+      never defaults to instructional.
+- Source: `[product decision]`, consumed by [`academic/lesson-plans.md`](../academic/lesson-plans.md) AC-LP02
+
 ---
 
 ## Open items
@@ -265,6 +298,8 @@ AC-SY04
 - [x] Default period template — `trimester` for new schools; `bimester` and `custom` remain
       selectable at year create (BR-SY04).
 - [ ] Whether financial year can diverge from academic year — MVP: same container.
+- [ ] Whether marking a date instructional that is also a `school_holidays` row should be blocked
+      outright or just flagged in the admin UI (BR-SY10).
 
 ---
 
