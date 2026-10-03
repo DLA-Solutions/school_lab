@@ -2,10 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { DataTable, EmptyState, ErrorBanner, PageHeader, SectionCard, SemanticChip } from 'design-system';
+import IconifyIcon from 'components/base/IconifyIcon';
 import IncidentFormDialog from 'components/sections/academics/IncidentFormDialog';
+import IncidentPreviewDialog from 'components/sections/academics/IncidentPreviewDialog';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
@@ -53,6 +57,7 @@ const Atas = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actingId, setActingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState('');
+  const [previewing, setPreviewing] = useState<Incident | null>(null);
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -173,14 +178,23 @@ const Atas = () => {
       {
         field: 'actions',
         headerName: t('common.actions'),
-        width: 180,
+        width: 220,
         sortable: false,
         filterable: false,
         renderCell: ({ row }: GridRenderCellParams<Incident>) => {
           const busy = actingId === row.id;
 
           return (
-            <Stack direction="row" spacing={1} alignItems="center" height={1}>
+            <Stack direction="row" spacing={0.5} alignItems="center" height={1}>
+              <Tooltip title={t('atas.preview')}>
+                <IconButton
+                  size="small"
+                  aria-label={t('atas.previewAria', { student: row.student_name })}
+                  onClick={() => setPreviewing(row)}
+                >
+                  <IconifyIcon icon="mingcute:eye-line" />
+                </IconButton>
+              </Tooltip>
               {canApprove && row.status === 'pending_approval' && (
                 <Button
                   size="small"
@@ -274,6 +288,13 @@ const Atas = () => {
         teacherRoll={isTeacher ? teacherRoll : undefined}
         onClose={() => setDialogOpen(false)}
         onCreated={handleCreated}
+      />
+
+      <IncidentPreviewDialog
+        open={previewing !== null}
+        schoolId={school.school_id}
+        incident={previewing}
+        onClose={() => setPreviewing(null)}
       />
     </Stack>
   );

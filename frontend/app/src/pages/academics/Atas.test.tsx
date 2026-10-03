@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -160,6 +160,59 @@ describe('Atas page — teacher creating a "nota ata"', () => {
 
     expect(await screen.findByText('Pedro Silva')).toBeInTheDocument();
     expect(screen.getByText('Marcela Silva')).toBeInTheDocument();
+  });
+});
+
+describe('Atas page — PDF preview', () => {
+  beforeEach(() => {
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock/1');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('opens the ata as a PDF, shows the iframe, and releases the file on close', async () => {
+    server.use(
+      http.get(apiUrl(`${BASE}/incidents`), () => HttpResponse.json(page([incidentRow()]))),
+      http.get(apiUrl(`${BASE}/incidents/5/pdf`), () =>
+        HttpResponse.arrayBuffer(new TextEncoder().encode('%PDF-1.4').buffer, {
+          headers: { 'Content-Type': 'application/pdf' },
+        }),
+      ),
+    );
+
+    renderPage(directorMembership);
+
+    const row = await screen.findByRole('row', { name: /pedro silva/i });
+    await user.click(within(row).getByRole('button', { name: /pré-visualizar/i }));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+    const frame = await screen.findByTitle('Ata');
+    expect(frame).toHaveAttribute('src', 'blob:mock/1');
+
+    await user.click(screen.getByRole('button', { name: /fechar/i }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock/1'));
+  });
+
+  it('shows an error banner when the PDF cannot be fetched', async () => {
+    server.use(
+      http.get(apiUrl(`${BASE}/incidents`), () => HttpResponse.json(page([incidentRow()]))),
+      http.get(apiUrl(`${BASE}/incidents/5/pdf`), () => HttpResponse.error()),
+    );
+
+    renderPage(directorMembership);
+
+    const row = await screen.findByRole('row', { name: /pedro silva/i });
+    await user.click(within(row).getByRole('button', { name: /pré-visualizar/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /não foi possível carregar o pdf da ata/i,
+    );
   });
 });
 

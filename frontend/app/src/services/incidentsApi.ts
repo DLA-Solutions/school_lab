@@ -1,5 +1,5 @@
 import { IncidentCreatePayload, IncidentListResponse, IncidentResponse } from 'types/incidents';
-import { request } from './api';
+import { request, requestBlob } from './api';
 
 /**
  * "Ata" (BC7) as staff work it. Routes land under `academics` (see `web/config/routes.rb`) —
@@ -67,3 +67,12 @@ export const publishIncident = async (schoolId: number, id: number): Promise<Inc
 
   return response.data;
 };
+
+/**
+ * GET .../academics/incidents/:id/pdf — the same document a guardian would be shown
+ * (`Academic::RenderIncidentPdfService`), rendered inline. `IncidentPolicy#show?` gates it: a
+ * teacher outside the incident's class gets `403`, a cross-school id `404`s via the tenant-scoped
+ * lookup itself.
+ */
+export const fetchIncidentPdf = (schoolId: number, id: number): Promise<Blob> =>
+  requestBlob(`${base(schoolId)}/${id}/pdf`);
