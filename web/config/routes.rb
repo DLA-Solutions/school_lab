@@ -222,6 +222,7 @@ Rails.application.routes.draw do
               member do
                 post :approve
                 post :publish
+                get :pdf
               end
             end
           end
@@ -350,7 +351,11 @@ Rails.application.routes.draw do
               # And names who may collect them at the gate.
               resources :authorized_pickups, only: %i[index create destroy]
               # "Ata" (BC7) — published, guardian-visible incidents about this child only.
-              resources :incidents, only: :index
+              resources :incidents, only: :index do
+                member do
+                  get :pdf
+                end
+              end
             end
             resources :documents, only: :index
             resources :requests, only: %i[index show create]

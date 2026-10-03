@@ -8,6 +8,8 @@ module Api
         # `manage_academic`. Approval (BR-IN08) and guardian publish (BR-IN02) are independent
         # member actions layered on top of create — see IncidentPolicy for both gates.
         class IncidentsController < BaseController
+          include IncidentPdfDelivery
+
           def index
             authorize Incident
 
@@ -57,6 +59,18 @@ module Api
             render_incident(result)
           end
 
+          # The same document a guardian would be shown, so a teacher or coordinator previewing
+          # an Ata is never looking at different bytes than the family. Deliberately resolved from
+          # the school rather than through `policy_scope` -- `IncidentPolicy::Scope` already
+          # narrows a teacher to their own classes, and reusing it here would turn "another
+          # teacher's incident" into a 404 instead of the 403 `show?` is meant to give (BR-IN03).
+          def pdf
+            incident = find_school_incident
+            authorize incident, :show?
+
+            send_incident_pdf(incident)
+          end
+
           private
 
           def render_incident(result, success_status: :ok)
@@ -67,6 +81,12 @@ module Api
 
           def find_incident
             policy_scope(Incident).find(params[:id])
+          end
+
+          # Tenant-scoped only -- not role-scoped like `find_incident` -- so `authorize` is what
+          # decides access, and a cross-school id still 404s via the school-scoped lookup itself.
+          def find_school_incident
+            Incident.where(school_id: Current.school.id).find(params[:id])
           end
 
           # Read from the school rather than through `policy_scope(Student)`: the student scope is
