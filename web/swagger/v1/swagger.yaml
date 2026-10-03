@@ -2398,6 +2398,61 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/academics/incidents/{id}/pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "The Ata as a PDF, for staff",
+        "tags": [
+          "Incidents",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "a teacher previews an incident about a student in their own class"
+          },
+          "403": {
+            "description": "a teacher previews an incident outside their own classes"
+          },
+          "404": {
+            "description": "cross-school incident"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/academics/me/teacher_health_profile": {
       "parameters": [
         {
@@ -4556,6 +4611,66 @@
         "responses": {
           "200": {
             "description": "linked children documents only"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/students/{student_id}/incidents/{id}/pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "student_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "The Ata as a PDF, for the family",
+        "tags": [
+          "Incidents",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "a published, guardian-visible incident about their own child"
+          },
+          "404": {
+            "description": "cross-school incident"
           }
         }
       }
