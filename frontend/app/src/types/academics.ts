@@ -153,3 +153,41 @@ export interface TeacherBankAccountPayload {
   agency: string | null;
   account_number: string | null;
 }
+
+/** Same enum the student health profile uses (BC6 — product decision: no new values). */
+export type TeacherBloodType =
+  | 'A+'
+  | 'A-'
+  | 'B+'
+  | 'B-'
+  | 'AB+'
+  | 'AB-'
+  | 'O+'
+  | 'O-'
+  | 'unknown';
+
+/**
+ * A collaborator's self-reported health facts — mirrors `TeacherHealthProfileBlueprint`.
+ *
+ * Same field set as `StudentHealthProfile` (BC6, product decision: no new fields invented for
+ * the collaborator version), one row per `Teacher`. Only the teacher named on the row may write
+ * it, resolved by login-email match; staff with `manage_people` may read any colleague's.
+ */
+export interface TeacherHealthProfile {
+  id: number;
+  teacher_id: number;
+  teacher_name: string | null;
+  blood_type: TeacherBloodType | null;
+  health_plan_name: string | null;
+  health_plan_number: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  special_care_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TeacherHealthProfilePayload = Omit<
+  TeacherHealthProfile,
+  'id' | 'teacher_id' | 'teacher_name' | 'created_at' | 'updated_at'
+>;
