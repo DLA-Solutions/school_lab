@@ -25,6 +25,7 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   'my-tax-declarations': 'billing',
   'report-cards': 'academic',
   'my-report-cards': 'academic',
+  atas: 'academic',
 };
 
 /** Maps SPA paths to module keys for deep-link route guards (includes off-menu academic routes). */
@@ -43,6 +44,7 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.jobPositions]: 'academic',
   [paths.grades]: 'academic',
   [paths.lessonPlans]: 'academic',
+  [paths.atas]: 'academic',
   [paths.preceptorship]: 'academic',
   [paths.reportCards]: 'academic',
   [paths.requests]: 'documents',
@@ -69,6 +71,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.lessons]: 'staff',
   [paths.grades]: 'staff',
   [paths.lessonPlans]: 'staff',
+  [paths.atas]: 'staff',
   [paths.schoolClasses]: 'staff',
   [paths.subjects]: 'staff',
   [paths.jobPositions]: 'staff',

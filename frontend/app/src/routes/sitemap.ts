@@ -202,6 +202,19 @@ const sitemap: MenuItem[] = [
     section: 'primary',
   },
   {
+    // "Ata" (BC7) — a teacher records for their own classes, manage_academic staff record
+    // school-wide (BR-IN03). Same split as lesson-plans above: no requiredPermission/role
+    // narrowing here, since either condition alone is enough and the two together aren't a
+    // single permission key — the page itself branches by role and degrades gracefully for staff
+    // who hold neither.
+    id: 'atas',
+    subheader: 'nav.atas',
+    path: paths.atas,
+    icon: 'mingcute:file-text-line',
+    audience: 'staff',
+    section: 'primary',
+  },
+  {
     id: 'lessons',
     subheader: 'nav.lessons',
     path: paths.lessons,
