@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
@@ -6,7 +6,7 @@ import { HttpResponse, SCHOOL_ID, apiUrl, http, jsonError, server, staffMembersh
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { setAccessToken } from 'services/tokenStore';
-import { AuthUser } from 'types/auth';
+import { AuthUser, Membership } from 'types/auth';
 import Grades from './Grades';
 
 const BASE = `/api/v1/schools/${SCHOOL_ID}/academics`;
@@ -112,7 +112,7 @@ const authValue: AuthContextValue = {
   refreshUser: vi.fn(),
 };
 
-const renderPage = (search = '') => {
+const renderPage = (search = '', memberships?: Membership[]) => {
   setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
 
   return renderWithTheme(
@@ -121,6 +121,7 @@ const renderPage = (search = '') => {
         <Grades />
       </AuthContext.Provider>
     </MemoryRouter>,
+    memberships ? { memberships } : undefined,
   );
 };
 
@@ -279,5 +280,115 @@ describe('Grades page', () => {
     renderPage();
 
     expect(await screen.findByText(/sem permissão/i)).toBeInTheDocument();
+  });
+});
+
+const PREVIEW_PATH = `/api/v1/schools/${SCHOOL_ID}/academics/students/:studentId/report_card_preview/pdf`;
+
+const teacherMembership: Membership = { ...staffMembership, role: 'teacher' };
+
+// BR-RC14 / AC-RC12: a teacher's live, unpublished PDF preview of a student's whole boletim for
+// one academic period — triggered from this same gradebook, next to the marks they were just
+// entering.
+describe('teacher live boletim preview (BR-RC14)', () => {
+  beforeEach(() => {
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock/1');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    vi.spyOn(window, 'open').mockImplementation(() => null);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // "Na visão de professor": the icon is specific to the teacher view, not shown to staff roles
+  // that already reach report cards through the dedicated screens.
+  it('shows the preview action only in the teacher view', async () => {
+    stub();
+    renderPage(chosen);
+
+    await screen.findByText('Ana');
+    expect(screen.queryByLabelText(/pré-visualizar boletim de ana/i)).not.toBeInTheDocument();
+  });
+
+  it('offers the preview action per student for a teacher', async () => {
+    stub();
+    renderPage(chosen, [teacherMembership]);
+
+    expect(await screen.findByLabelText(/pré-visualizar boletim de ana/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/pré-visualizar boletim de pedro/i)).toBeInTheDocument();
+  });
+
+  // The book has two terms, so the icon has to ask which one before the request can carry a
+  // single academic_period_id — and the request must name the row's student, not the sheet's.
+  it('asks which period, then previews that student and period', async () => {
+    stub();
+    let captured: { studentId?: string; periodId: string | null } = { periodId: null };
+    server.use(
+      http.get(apiUrl(PREVIEW_PATH), ({ request, params }) => {
+        captured = {
+          studentId: params.studentId as string,
+          periodId: new URL(request.url).searchParams.get('academic_period_id'),
+        };
+        return new HttpResponse('%PDF-1.4 preview', {
+          headers: { 'Content-Type': 'application/pdf' },
+        });
+      }),
+    );
+
+    renderPage(chosen, [teacherMembership]);
+
+    await user.click(await screen.findByLabelText(/pré-visualizar boletim de pedro/i));
+    await user.click(await screen.findByRole('menuitem', { name: '2º trimestre' }));
+
+    await waitFor(() => expect(captured.studentId).toBe('2'));
+    expect(captured.periodId).toBe('12');
+    expect(window.open).toHaveBeenCalledWith('blob:mock/1', '_blank', 'noopener');
+  });
+
+  // BR-RC14 / AC-RC13: "Todos" asks for every period in one combined PDF — the literal `all`,
+  // never a period id, and never coerced into one.
+  it('sends the literal "all" instead of a period id when "Todos" is picked', async () => {
+    stub();
+    let captured: { studentId?: string; periodId: string | null } = { periodId: null };
+    server.use(
+      http.get(apiUrl(PREVIEW_PATH), ({ request, params }) => {
+        captured = {
+          studentId: params.studentId as string,
+          periodId: new URL(request.url).searchParams.get('academic_period_id'),
+        };
+        return new HttpResponse('%PDF-1.4 preview', {
+          headers: { 'Content-Type': 'application/pdf' },
+        });
+      }),
+    );
+
+    renderPage(chosen, [teacherMembership]);
+
+    await user.click(await screen.findByLabelText(/pré-visualizar boletim de ana/i));
+    await user.click(await screen.findByRole('menuitem', { name: 'Todos' }));
+
+    await waitFor(() => expect(captured.studentId).toBe('1'));
+    expect(captured.periodId).toBe('all');
+    expect(window.open).toHaveBeenCalledWith('blob:mock/1', '_blank', 'noopener');
+  });
+
+  it('shows an error instead of crashing when the preview request fails', async () => {
+    stub();
+    server.use(
+      http.get(apiUrl(PREVIEW_PATH), () =>
+        jsonError(403, 'forbidden', 'Apenas professores da escola podem pré-visualizar o boletim.'),
+      ),
+    );
+
+    renderPage(chosen, [teacherMembership]);
+
+    await user.click(await screen.findByLabelText(/pré-visualizar boletim de ana/i));
+    await user.click(await screen.findByRole('menuitem', { name: '1º trimestre' }));
+
+    expect(
+      await screen.findByText(/apenas professores da escola podem pré-visualizar/i),
+    ).toBeInTheDocument();
+    expect(window.open).not.toHaveBeenCalled();
   });
 });

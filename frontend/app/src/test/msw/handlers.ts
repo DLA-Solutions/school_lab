@@ -1522,6 +1522,32 @@ export const handlers = [
     },
   ),
 
+  // Teacher live boletim preview (BR-RC14) — a PDF response, not JSON; a spec overrides this with
+  // `server.use` for the forbidden (non-teacher) and not-found cases.
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/academics/students/:studentId/report_card_preview/pdf'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      // Accepts a numeric period id or the literal `all` (BR-RC14, AC-RC13) — this default
+      // handler does not care which, only that something was sent.
+      const academicPeriodId = new URL(request.url).searchParams.get('academic_period_id');
+      if (!academicPeriodId) {
+        return jsonError(404, 'not_found', 'Período não encontrado.');
+      }
+
+      return new HttpResponse('%PDF-1.4 preview', {
+        headers: { 'Content-Type': 'application/pdf' },
+      });
+    },
+  ),
+
   http.get(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_settings'), ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();

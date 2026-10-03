@@ -223,3 +223,25 @@ export const getMyReportCardSnapshot = async (
 /** GET .../me/report_cards/:publication_id/snapshots/:snapshot_id/pdf */
 export const fetchMyReportCardPdf = (schoolId: number, publicationId: number, snapshotId: number) =>
   requestBlob(`${familyBase(schoolId)}/${publicationId}/snapshots/${snapshotId}/pdf`);
+
+/**
+ * GET .../academics/students/:student_id/report_card_preview/pdf?academic_period_id=
+ *
+ * A teacher's live, unpublished boletim preview (BR-RC14): rendered on demand from the student's
+ * *current* grade and attendance state, covering every discipline of the student's class — not
+ * only the one the requesting teacher teaches, and not the published snapshot. It creates no
+ * publication or snapshot row, so there is nothing to poll or list; the PDF bytes are the whole
+ * response.
+ *
+ * `academicPeriodId` also accepts the literal `'all'` (BR-RC14, AC-RC13): one combined PDF with a
+ * section per period of the school year, in sequence order. That literal goes on the wire exactly
+ * as typed — never through `Number(...)` or similar — since it is not a period id at all.
+ */
+export const fetchReportCardPreviewPdf = (
+  schoolId: number,
+  studentId: number,
+  academicPeriodId: number | 'all',
+) =>
+  requestBlob(
+    `${staffBase(schoolId)}/students/${studentId}/report_card_preview/pdf?academic_period_id=${academicPeriodId}`,
+  );

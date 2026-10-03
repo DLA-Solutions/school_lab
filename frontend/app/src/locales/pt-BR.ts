@@ -233,6 +233,12 @@ const ptBR = {
   'grades.noPeriods.title': 'Nenhum bimestre cadastrado para {year}',
   'grades.noPeriods.description':
     'As notas são lançadas por bimestre. Cadastre os bimestres do ano letivo de {year} para poder lançar.',
+  'grades.previewReportCard.columnHeader': 'Boletim',
+  'grades.previewReportCard.button': 'Pré-visualizar boletim',
+  'grades.previewReportCard.aria': 'Pré-visualizar boletim de {student}',
+  'grades.previewReportCard.periodMenu.label': 'Escolha o período',
+  'grades.previewReportCard.periodMenu.all': 'Todos',
+  'grades.previewReportCard.error': 'Não foi possível abrir a pré-visualização do boletim.',
   'nav.preceptorship': 'Preceptoria',
   'nav.myPreceptorship': 'Preceptoria',
   'preceptorship.loadError': 'Não foi possível carregar os relatórios.',

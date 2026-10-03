@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
@@ -10,6 +13,7 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
@@ -23,7 +27,9 @@ import {
   listSubjects,
   saveGradeBookEntry,
 } from 'services/academicsApi';
+import { fetchReportCardPreviewPdf } from 'services/reportCardsApi';
 import { SchoolClass, Subject } from 'types/academics';
+import { previewBlob, revokeBlobUrls } from 'utils/previewBlob';
 import { schoolClassLabel } from 'utils/schoolClassLabel';
 
 /** How long a cell waits after the last keystroke before it saves itself. */
@@ -66,6 +72,19 @@ const Grades = () => {
   // Held apart from the book: the input shows what was typed, the book holds what was saved.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [states, setStates] = useState<Record<string, CellState>>({});
+
+  // The teacher-only live boletim preview (BR-RC14): which student's icon is mid-fetch, which
+  // student's period menu (when the book has more than one) is open, and any failure to report.
+  const [previewingStudentId, setPreviewingStudentId] = useState<number | null>(null);
+  const [previewMenu, setPreviewMenu] = useState<{ studentId: number; anchorEl: HTMLElement } | null>(
+    null,
+  );
+  const [previewError, setPreviewError] = useState('');
+
+  // Preview tabs load the blob URL asynchronously, so it has to outlive this call — tracked here
+  // and revoked only once, on unmount, rather than right after `previewBlob` opens the tab.
+  const previewUrls = useRef<string[]>([]);
+  useEffect(() => () => revokeBlobUrls(previewUrls.current), []);
 
   useEffect(() => {
     if (!schoolId) {
@@ -177,6 +196,53 @@ const Grades = () => {
 
   const chosen = useMemo(() => Boolean(classId) && Boolean(subjectId), [classId, subjectId]);
 
+  const closePreviewMenu = () => setPreviewMenu(null);
+
+  // Fetches the live PDF for one student and pops it open in a new tab — a preview to look at,
+  // not a file to keep, so `previewBlob` rather than a forced download. `academicPeriodId` is
+  // either one period's id or the literal `'all'` (BR-RC14, AC-RC13) — sent on the wire exactly
+  // as given, never coerced through `Number(...)`.
+  const openPreview = useCallback(
+    async (studentId: number, academicPeriodId: number | 'all') => {
+      if (!schoolId) {
+        return;
+      }
+
+      closePreviewMenu();
+      setPreviewError('');
+      setPreviewingStudentId(studentId);
+
+      try {
+        const blob = await fetchReportCardPreviewPdf(schoolId, studentId, academicPeriodId);
+        previewUrls.current.push(previewBlob(blob));
+      } catch (err) {
+        setPreviewError(err instanceof ApiError ? err.message : t('grades.previewReportCard.error'));
+      } finally {
+        setPreviewingStudentId(null);
+      }
+    },
+    [schoolId, t],
+  );
+
+  // One period: preview it directly. More than one: the icon needs to ask which, since the
+  // preview endpoint always wants exactly one `academic_period_id`.
+  const handlePreviewClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    studentId: number,
+    periods: GradeBook['periods'],
+  ) => {
+    if (previewingStudentId !== null || periods.length === 0) {
+      return;
+    }
+
+    if (periods.length === 1) {
+      openPreview(studentId, periods[0].id);
+      return;
+    }
+
+    setPreviewMenu({ studentId, anchorEl: event.currentTarget });
+  };
+
   const cellValue = (
     studentId: number,
     periodId: number,
@@ -272,6 +338,7 @@ const Grades = () => {
       </Stack>
 
       {error && <ErrorBanner message={error} />}
+      {previewError && <ErrorBanner message={previewError} />}
 
       <SectionCard padding={0}>
         {!chosen ? (
@@ -314,14 +381,16 @@ const Grades = () => {
             </Typography>
 
             {/* Dense by design: up to four bimestres of three components each (12 grade columns)
-                need to sit next to the roll without the sheet spilling into horizontal scroll on
-                a normal laptop screen, so every cell below trades the usual comfortable padding
-                for a tight, deliberate footprint. overflowX on the wrapper above is only a safety
-                net for narrow viewports or heavy browser zoom. */}
+                need to sit next to the roll, so every grade cell below trades the usual
+                comfortable padding for a tight, deliberate footprint. The student name column is
+                the deliberate exception: it is sized to show a full name (measured for real names
+                up to ~50 characters, not clipped to save width), so the sheet can now need
+                horizontal scroll on narrower viewports — overflowX on the wrapper above is the
+                safety net for that. */}
             <Table size="small" sx={{ width: 'auto' }}>
               <TableHead>
                 <TableRow>
-                  <TableCell rowSpan={2} sx={{ maxWidth: 104, px: 1 }}>
+                  <TableCell rowSpan={2} sx={{ maxWidth: 420, px: 1 }}>
                     {t('common.student')}
                   </TableCell>
                   {book.periods.map((period) => (
@@ -341,6 +410,13 @@ const Grades = () => {
                       )}
                     </TableCell>
                   ))}
+                  {isTeacher && (
+                    // The live boletim preview (BR-RC14) is a teacher-only action; staff roles with
+                    // unrestricted grade access get it through the published report card screens.
+                    <TableCell rowSpan={2} align="center" sx={{ px: 1 }}>
+                      {t('grades.previewReportCard.columnHeader')}
+                    </TableCell>
+                  )}
                 </TableRow>
                 <TableRow>
                   {book.periods.flatMap((period) =>
@@ -362,9 +438,14 @@ const Grades = () => {
                 {book.students.map((student) => (
                   <TableRow key={student.id}>
                     <TableCell
+                      // Sized to fit a real name in full (measured: Inter 0.875rem at this
+                      // padding renders a realistic 50-character Portuguese name at ~360-386px,
+                      // including some deliberately wide stress cases). The title attribute and
+                      // the ellipsis styling below are now only a fallback for the rare outlier
+                      // that still overruns this budget.
                       title={student.name}
                       sx={{
-                        maxWidth: 104,
+                        maxWidth: 420,
                         px: 1,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -432,10 +513,56 @@ const Grades = () => {
                         );
                       }),
                     )}
+                    {isTeacher && (
+                      <TableCell align="center" sx={{ px: 1 }}>
+                        <Tooltip title={t('grades.previewReportCard.button')}>
+                          <span>
+                            <IconButton
+                              size="small"
+                              aria-label={t('grades.previewReportCard.aria', {
+                                student: student.name,
+                              })}
+                              onClick={(e) => handlePreviewClick(e, student.id, book.periods)}
+                              disabled={previewingStudentId !== null}
+                            >
+                              {previewingStudentId === student.id ? (
+                                <CircularProgress size={16} />
+                              ) : (
+                                <IconifyIcon icon="mingcute:eye-line" width={16} height={16} />
+                              )}
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+
+            {/* One menu, positioned against whichever row's icon opened it — the preview itself
+                always wants exactly one academic_period_id, so with more than one period the
+                teacher has to pick before the request goes out. */}
+            <Menu anchorEl={previewMenu?.anchorEl ?? null} open={Boolean(previewMenu)} onClose={closePreviewMenu}>
+              <Typography variant="caption" color="text.secondary" sx={{ px: 2, py: 0.5, display: 'block' }}>
+                {t('grades.previewReportCard.periodMenu.label')}
+              </Typography>
+              {/* A different kind of choice from the periods below it — the combined, every-period
+                  PDF (BR-RC14, AC-RC13) rather than one more period — so it sits apart, set off by
+                  the divider rather than folded into the list as if it were just another term. */}
+              <MenuItem onClick={() => previewMenu && openPreview(previewMenu.studentId, 'all')}>
+                {t('grades.previewReportCard.periodMenu.all')}
+              </MenuItem>
+              <Divider />
+              {book.periods.map((period) => (
+                <MenuItem
+                  key={period.id}
+                  onClick={() => previewMenu && openPreview(previewMenu.studentId, period.id)}
+                >
+                  {period.name}
+                </MenuItem>
+              ))}
+            </Menu>
           </Box>
         )}
       </SectionCard>

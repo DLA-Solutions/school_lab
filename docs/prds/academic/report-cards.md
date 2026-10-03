@@ -2,7 +2,7 @@
 
 > Status: validated  
 > Parent PRD: [`index.md`](index.md)  
-> Capability IDs: `academic.publish_report_card`, `academic.view_report_card`, `academic.configure_report_card`  
+> Capability IDs: `academic.publish_report_card`, `academic.view_report_card`, `academic.configure_report_card`, `academic.preview_report_card`  
 > Related BCs: [`grades.md`](grades.md), [`attendance.md`](attendance.md), [`periods.md`](periods.md)  
 > Modeling: [`docs/modeling/007-academic.md`](../../modeling/007-academic.md)
 > API narrative: [`docs/api/v1/academic.md`](../../api/v1/academic.md) — approved narrative target; executable OpenAPI pending
@@ -43,7 +43,7 @@ prior standard-vs-school template ambiguity without allowing arbitrary executabl
 | Actor | Surfaces | Actions |
 |-------|----------|---------|
 | staff with `manage_academic` | Web SPA/API | Configure, validate, schedule, publish, correct |
-| teacher | Web SPA/API | Optional read only when separately approved |
+| teacher | Web SPA/API | Live PDF preview of a student's full boletim (all disciplines, any period) from the grade entry screen (BR-RC14) |
 | guardian (UI: **Responsável**) | Web first; mobile parity | List/read released snapshots and PDF for linked children |
 
 ---
@@ -164,6 +164,27 @@ student/period aggregate, and `snapshot_id` identifies one immutable version und
 publication. Sequential `version` is display metadata and is never accepted where `snapshot_id`
 is required.
 
+BR-RC14
+
+**Teacher live preview** (`academic.preview_report_card`) renders a PDF on demand from the
+student's *current* grade and attendance state for one `academic_period_id` — not the published
+snapshot. It includes every `class_discipline` for the student's school class in that period,
+including disciplines the requesting teacher does not teach, with the same hide-discipline
+visibility rules as `report_card_configs` (BR-RC02) applied. Missing/pending launches render as
+blank rather than blocking the preview (no BR-RC05 readiness validation). Any staff member with
+the `teacher` role at the school may request a preview for any student at the school — access is
+not limited to a shared class or subject (explicit product decision, narrower scoping deferred
+until there is a concrete LGPD concern to respond to). The preview is read-only and ephemeral: it
+creates no `report_card_publication`, `report_card_snapshot`, or stored PDF, and never advances
+`active_snapshot_id`. This is separate from, and does not grant, teacher read access to already
+**published** snapshots (`ReportCardSnapshotPolicy` still denies the `teacher` role there).
+
+`academic_period_id` also accepts the literal `all`: one combined PDF with one section per
+`academic_period` of the student's school class's school year, ordered by `sequence`, each section
+built the same way as the single-period case (cross-subject, blank for missing data, same
+hide-discipline rules). A school year with zero periods still returns `200` with an otherwise-empty
+PDF rather than `404`/`422` — consistent with BR-RC14's "never block the preview" intent.
+
 ---
 
 ## Use Cases
@@ -205,6 +226,19 @@ Flow
 2. Return only released versions; latest active version is the list default.
 3. Preserve superseded version metadata and correction notice without mutating prior snapshots.
 
+### UC-RC04 — Preview report card live (teacher)
+
+Input: `student_id`, `academic_period_id`.
+
+Flow
+
+1. Verify requester has the `teacher` role at the school (BR-RC14) — no class/subject match
+   required.
+2. Load every `class_discipline` for the student's school class in that period, the student's
+   current grade launches/entries per discipline, the current attendance summary, and the active
+   `report_card_config` visibility rules.
+3. Render a PDF from that live payload without creating any publication, snapshot, or stored file.
+
 ---
 
 ## API
@@ -226,6 +260,7 @@ Base: `/api/v1/schools/:school_id`
 | `GET` | `/me/report_cards/:publication_id` | Guardian aggregate + active released snapshot |
 | `GET` | `/me/report_cards/:publication_id/snapshots/:snapshot_id` | Guardian exact released snapshot |
 | `GET` | `/me/report_cards/:publication_id/snapshots/:snapshot_id/pdf` | Guardian exact family-scoped PDF |
+| `GET` | `/academics/students/:student_id/report_card_preview/pdf?academic_period_id=` | Teacher live, unpublished PDF preview — all disciplines; `academic_period_id=all` combines every period of the school year into one PDF (BR-RC14) |
 
 Class publish/validate request:
 
@@ -309,7 +344,7 @@ as unavailable.
 
 | Status | Code | Description |
 |--------|------|-------------|
-| 404 | `not_found` | Unpublished/cross-family publication or snapshot; snapshot not under publication; unknown batch/schedule |
+| 404 | `not_found` | Unpublished/cross-family publication or snapshot; snapshot not under publication; unknown batch/schedule; unknown student or period on preview |
 | 409 | `report_card_frozen` | Mutation on published snapshot |
 | 409 | `publication_in_progress` | Duplicate immediate/scheduled execution |
 | 422 | `report_card_not_ready` | Structured grade/period/attendance blockers |
@@ -346,11 +381,11 @@ Executable definitions: [`schema.dbml`](../../database/schema.dbml).
 
 ## Permissions
 
-| Key | configure | validate/publish/republish | view (staff) | view (guardian) |
-|-----|-----------|---------|--------------|-----------------|
-| `manage_academic` | yes | yes | yes | — |
-| guardian `/me` | — | — | — | linked students |
-| teacher | — | — | assigned classes read `[product decision]` | — |
+| Key | configure | validate/publish/republish | view (staff) | view (guardian) | live preview (teacher) |
+|-----|-----------|---------|--------------|-----------------|-----------------|
+| `manage_academic` | yes | yes | yes | — | — |
+| guardian `/me` | — | — | — | linked students | — |
+| teacher | — | — | no snapshot access | — | any student at the school (BR-RC14) |
 
 ---
 
@@ -430,11 +465,30 @@ AC-RC11 *(attendance formula)*
       percentage and never recomputes them on read.
 - Source: [`attendance.md`](attendance.md) BR-AT14 `[product decision]`
 
+AC-RC12 *(teacher live preview, cross-subject)*
+
+- [ ] Given teacher T teaches only discipline X for student S's class, When T requests the live
+      preview PDF for S and academic period P, Then the PDF includes every discipline of S's class
+      in P (not only X), reflects current grade values even if some disciplines have no launch yet,
+      and no `report_card_publication` or `report_card_snapshot` row is created by the request.
+- Source: BR-RC14
+
+AC-RC13 *(teacher live preview, all periods)*
+
+- [ ] Given student S's school year has periods P1, P2, and P3, When a teacher requests the live
+      preview with `academic_period_id=all`, Then the response is one PDF with a section per
+      period in sequence order, each showing every discipline for S in that period.
+- Source: BR-RC14
+
 ---
 
 ## Open items / pending decisions
 
-- [ ] Teacher read access to published boletins before guardian release.
+- [x] Teacher read access to published boletins before guardian release. Resolved: teachers do not
+      get read access to the published `report_card_snapshot`; instead they get a separate live,
+      unpublished, cross-subject PDF preview (BR-RC14, `academic.preview_report_card`), open to any
+      teacher at the school for any student. Narrower scoping (e.g. shared class/subject only) is
+      deferred until there is a concrete LGPD concern to respond to.
 - [ ] Whether communication consumes `ReportCardPublished`, and if so which channel (`grades` vs
       `announcements`) and delivery policy. Event emission itself is decided and required.
 

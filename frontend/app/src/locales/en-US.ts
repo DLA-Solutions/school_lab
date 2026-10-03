@@ -233,6 +233,12 @@ const enUS: Messages = {
   'grades.noPeriods.title': 'No terms set up for {year}',
   'grades.noPeriods.description':
     'Grades are entered per term. Set up the terms of the {year} school year before entering grades.',
+  'grades.previewReportCard.columnHeader': 'Report card',
+  'grades.previewReportCard.button': 'Preview report card',
+  'grades.previewReportCard.aria': 'Preview {student}’s report card',
+  'grades.previewReportCard.periodMenu.label': 'Choose the period',
+  'grades.previewReportCard.periodMenu.all': 'All',
+  'grades.previewReportCard.error': 'Could not open the report card preview.',
   'nav.preceptorship': 'Preceptorship',
   'nav.myPreceptorship': 'Preceptorship',
   'preceptorship.loadError': 'Could not load the reports.',
