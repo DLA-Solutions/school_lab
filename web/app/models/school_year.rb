@@ -12,6 +12,7 @@ class SchoolYear < ApplicationRecord
 
   has_many :academic_periods, dependent: :destroy
   has_many :school_holidays, dependent: :destroy
+  has_many :school_instructional_days, dependent: :destroy
 
   validates :name, presence: true
   validates :starts_on, :ends_on, presence: true

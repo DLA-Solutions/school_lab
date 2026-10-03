@@ -2,10 +2,6 @@
 
 module SchoolYears
   class UpsertInstructionalDaysService < ApplicationService
-    # NOTE: `SchoolYear` has no `has_many :school_instructional_days` association (checked
-    # app/models/school_year.rb) — querying through `SchoolInstructionalDay` directly with an
-    # explicit `school_year:` scope instead. Adding the association is a model-layer change out of
-    # scope here; flagged for follow-up.
     def initialize(school_year:, days:)
       @school_year = school_year
       @days = Array(days)
@@ -35,7 +31,7 @@ module SchoolYears
 
     def upsert_one(day)
       attrs = day.to_h.symbolize_keys
-      record = SchoolInstructionalDay.find_or_initialize_by(school_year: school_year, date: attrs[:date])
+      record = school_year.school_instructional_days.find_or_initialize_by(date: attrs[:date])
       record.instructional = ActiveModel::Type::Boolean.new.cast(attrs[:instructional])
       record.save
       record
