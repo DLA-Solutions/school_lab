@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_03_014708) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -578,6 +578,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
     t.index ["school_id"], name: "index_job_positions_on_school_id"
   end
 
+  create_table "lesson_plans", force: :cascade do |t|
+    t.bigint "class_discipline_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["class_discipline_id", "date"], name: "index_lesson_plans_on_class_discipline_date", unique: true
+    t.index ["class_discipline_id"], name: "index_lesson_plans_on_class_discipline_id"
+    t.index ["school_id"], name: "index_lesson_plans_on_school_id"
+  end
+
   create_table "membership_invite_tokens", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
@@ -1045,6 +1057,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
     t.index ["school_id"], name: "index_school_holidays_on_school_id"
     t.index ["school_year_id", "date"], name: "index_school_holidays_on_year_date_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_year_id"], name: "index_school_holidays_on_school_year_id"
+  end
+
+  create_table "school_instructional_days", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.boolean "instructional", null: false
+    t.bigint "school_id", null: false
+    t.bigint "school_year_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_school_instructional_days_on_school_id"
+    t.index ["school_year_id", "date"], name: "index_school_instructional_days_on_year_date", unique: true
+    t.index ["school_year_id"], name: "index_school_instructional_days_on_school_year_id"
   end
 
   create_table "school_modules", force: :cascade do |t|
@@ -1768,6 +1792,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
   add_foreign_key "guardians", "users", column: "discarded_by_id"
   add_foreign_key "job_positions", "schools"
   add_foreign_key "job_positions", "users", column: "discarded_by_id"
+  add_foreign_key "lesson_plans", "class_disciplines"
+  add_foreign_key "lesson_plans", "schools"
   add_foreign_key "membership_invite_tokens", "memberships"
   add_foreign_key "membership_invite_tokens", "schools"
   add_foreign_key "membership_invite_tokens", "users", column: "created_by_id"
@@ -1832,6 +1858,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
   add_foreign_key "school_fiscal_settings", "schools"
   add_foreign_key "school_holidays", "school_years"
   add_foreign_key "school_holidays", "schools"
+  add_foreign_key "school_instructional_days", "school_years"
+  add_foreign_key "school_instructional_days", "schools"
   add_foreign_key "school_modules", "schools"
   add_foreign_key "school_payment_providers", "schools"
   add_foreign_key "school_payment_providers", "users", column: "uploaded_by_id"
