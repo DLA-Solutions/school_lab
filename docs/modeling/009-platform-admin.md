@@ -216,6 +216,50 @@ Retention of platform invoice rows pending legal validation — do not assume in
 Credentials: ENV only. `webhook_endpoint_token` is a URL secret (rotate by updating the
 singleton); it is not the Asaas API token.
 
+## Collaborator health profile (BC6)
+
+PRD: [`collaborator-health.md`](../prds/platform-and-admin/collaborator-health.md).
+
+A `Teacher` (collaborator) self-reported health profile, field-for-field identical to
+`student_health_profiles` (005) but scoped to a `Teacher` instead of a `Student`. Profile only —
+no records list, no document attachments; both are explicitly out of scope for this increment.
+
+```mermaid
+erDiagram
+    Teacher ||--o| TeacherHealthProfile : has
+```
+
+### `teacher_health_profiles`
+
+One row per teacher (`teacher_id` unique). School-scoped (`school_id`). Same optional fields as
+`student_health_profiles`:
+
+- `blood_type` — `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`, `unknown`.
+- `health_plan_name` (120), `health_plan_number` (60).
+- `emergency_contact_name` (120), `emergency_contact_phone` (30, digits normalized in model).
+- `special_care_notes` (2000).
+
+`SchoolAuditable`. Created or updated only by the logged-in collaborator; staff with
+`manage_people` read-only.
+
+### Teacher self-resolution
+
+`Teacher` rows carry no FK back to `users`/`memberships` — "a collaborator here is a person on
+file and needs no login" (`app/models/teacher.rb`). The logged-in teacher's own `Teacher` row is
+resolved by matching email, the same idiom already used elsewhere in the academic domain
+(`Current.school.teachers.kept.find_by!(email: Current.user.email)`), not by trusting a
+`:teacher_id` path/body param — this is what keeps a teacher from reading or writing a colleague's
+profile by changing the URL.
+
+### PRD-to-schema audit
+
+| Requirement | Result | Schema evidence / boundary |
+|--------------|--------|-----------------------------|
+| BR-CH01 | OK | `teacher_health_profiles` one per teacher; same fields/enum as `student_health_profiles` |
+| BR-CH02 | OK | Policy: teacher write/read own (email-matched), `manage_people` read any |
+| BR-CH03 | OK | No write-on-behalf path for staff; empty profile is a valid roster state `[product decision]` |
+| BR-CH04 | OK | `school_id` on `teacher_health_profiles`; policy scope enforces same-school |
+
 ## Out of scope
 
 - `menu_visibility_overrides` and `school_product_settings`.

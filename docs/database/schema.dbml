@@ -418,6 +418,26 @@ Table teachers {
   Note: 'Teacher domain record; user_id links the login when provisioned. Membership role remains the authorization context.'
 }
 
+Table teacher_health_profiles {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  teacher_id integer [not null]
+  blood_type varchar [note: 'A+ | A- | B+ | B- | AB+ | AB- | O+ | O- | unknown — optional']
+  health_plan_name varchar(120) [note: 'LGPD: sensitive health data']
+  health_plan_number varchar(60) [note: 'LGPD: sensitive health data']
+  emergency_contact_name varchar(120) [note: 'LGPD: personal data']
+  emergency_contact_phone varchar(30) [note: 'LGPD: personal data; digits normalized in model']
+  special_care_notes text [note: 'LGPD: sensitive health data; max 2000 chars in model']
+  created_at timestamp
+  updated_at timestamp
+  Note: 'BC6 collaborator health profile — mirrors student_health_profiles field-for-field, scoped to a Teacher instead of a Student. Profile only; no records list, no document uploads (out of scope per collaborator-health.md).'
+
+  indexes {
+    teacher_id [unique, note: 'One profile per teacher']
+    school_id
+  }
+}
+
 Table student_guardians {
   id integer [primary key, increment]
   guardian_id integer [not null]
@@ -1925,6 +1945,9 @@ Ref: student_guardians.school_id > schools.id
 
 Ref: student_health_profiles.school_id > schools.id
 Ref: student_health_profiles.student_id > students.id
+
+Ref: teacher_health_profiles.school_id > schools.id
+Ref: teacher_health_profiles.teacher_id > teachers.id
 
 Ref: student_health_records.school_id > schools.id
 Ref: student_health_records.student_id > students.id
