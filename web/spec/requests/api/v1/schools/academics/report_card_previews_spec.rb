@@ -131,6 +131,28 @@ RSpec.describe "Api::V1::Schools::Academics::ReportCardPreviews", type: :request
     end
   end
 
+  # Regression: a component exists (template staged for the period) but nobody has entered a
+  # value for it yet -- the single real-world case the fixture above never exercised, since its
+  # "no grade data" case has no template/component at all for science_discipline and short-circuits
+  # before `computed_final`'s `components.sum`. Reproduces the exact shape that 500'd in production
+  # (student had a component with no entry): `components.sum` without a BigDecimal seed stays an
+  # Integer when every entry is blank, and `Integer#round(2, BigDecimal::ROUND_HALF_UP)` raises
+  # ArgumentError.
+  it "renders blank, not a 500, when a component exists but has no entry yet" do
+    template = create(:evaluation_template, school: school, school_class: school_class,
+                                             academic_period: academic_period)
+    create(:evaluation_component, school: school, evaluation_template: template,
+                                   class_discipline: math_discipline,
+                                   grade_scale: create(:grade_scale, school: school),
+                                   weight_percent: 100, position: 1)
+
+    get "/api/v1/schools/#{school.id}/academics/students/#{student.id}/report_card_preview/pdf",
+        params: { academic_period_id: academic_period.id }, headers: auth_headers_for(create_math_teacher)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.media_type).to eq("application/pdf")
+  end
+
   describe "creates nothing" do
     it "persists no report_card_publication or report_card_snapshot" do
       headers = auth_headers_for(create_math_teacher)

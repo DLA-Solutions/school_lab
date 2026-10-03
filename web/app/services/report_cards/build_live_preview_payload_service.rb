@@ -137,9 +137,13 @@ module ReportCards
     def computed_final(components, entries)
       return nil if components.empty?
 
-      total = components.sum do |component|
+      # `sum`'s implicit initial value is the Integer 0; when every component is still blank
+      # (BR-RC14's whole point) the block never returns a BigDecimal and `total` stays an
+      # Integer, which `Integer#round` can't take a rounding-mode argument for. Seeding with
+      # BigDecimal(0) keeps `total` a BigDecimal regardless of how many entries are blank.
+      total = components.sum(BigDecimal(0)) do |component|
         entry = entries.find { |row| row.evaluation_component_id == component.id }
-        next 0 if entry.blank? || entry.value.blank?
+        next BigDecimal(0) if entry.blank? || entry.value.blank?
 
         entry.value.to_d * (component.weight_percent / 100)
       end
