@@ -83,7 +83,10 @@ pt-BR:
     report_card:
       title: "Boletim escolar"
       student: "Estudante"
+      cpf: "CPF"
+      cohort: "Turma"
       period: "Período"
+      discipline: "Disciplina"
       final_grade: "Nota final"
       attendance: "Frequência"
     guardians:

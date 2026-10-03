@@ -83,8 +83,15 @@ RSpec.describe "Api::V1::Schools::Academics::ReportCardPreviews", type: :request
 
           text = PDF::Inspector::Text.analyze(response.body).strings.join(" ")
           expect(text).to include("Pedro Silva")
+          expect(text).to include(student.formatted_cpf)
+          expect(text).to include(school_class.full_name)
           expect(text).to include("Matemática")
           expect(text).to include("Ciências")
+          # Positional, not the component's stored `name`: N1/N2, then T<period.sequence>, never
+          # the free-text component name schools configure (BR-RC10).
+          expect(text).to include("N1")
+          expect(text).to include("T#{academic_period.sequence}")
+          expect(text).to include("9.0")
         end
       end
 

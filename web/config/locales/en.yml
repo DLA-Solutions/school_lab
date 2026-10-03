@@ -82,7 +82,10 @@ en:
     report_card:
       title: "Report card"
       student: "Student"
+      cpf: "CPF"
+      cohort: "Class"
       period: "Term"
+      discipline: "Subject"
       final_grade: "Final grade"
       attendance: "Attendance"
     guardians:
