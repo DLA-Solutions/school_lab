@@ -11,7 +11,8 @@ module ReportCards
   # and `academic_period_id=all` (AC-RC13) passes every period of the student's school class's
   # school year, ordered by `sequence`. A single resulting section still renders through
   # RenderSnapshotPdfService (unchanged contract, same as the real publish path); more than one
-  # renders through RenderMultiPeriodPreviewPdfService, one page per period.
+  # renders through RenderMultiPeriodPreviewPdfService -- one grid, one column group per period,
+  # not one page per period.
   class RenderLivePreviewPdfService < ApplicationService
     def initialize(student:, academic_periods:)
       @student = student
@@ -25,7 +26,11 @@ module ReportCards
         payload_result = BuildLivePreviewPayloadService.call(student: student, academic_period: academic_period)
         return payload_result if payload_result.failure?
 
-        sections << { payload: payload_result.data, period_name: academic_period.name }
+        sections << {
+          payload: payload_result.data,
+          period_name: academic_period.name,
+          sequence: academic_period.sequence
+        }
       end
 
       render(sections)
@@ -36,21 +41,26 @@ module ReportCards
     attr_reader :student, :academic_periods
 
     def render(sections)
+      common = { student_cpf: student.formatted_cpf, class_name: class_name, school_name: student.school.name }
+
       if sections.size == 1
         single_section = sections.first
         RenderSnapshotPdfService.call(
           snapshot_payload: single_section.fetch(:payload),
           student_name: student.name,
           period_name: single_section.fetch(:period_name),
-          school_name: student.school.name
+          period_sequence: single_section.fetch(:sequence),
+          **common
         )
       else
-        RenderMultiPeriodPreviewPdfService.call(
-          sections: sections,
-          student_name: student.name,
-          school_name: student.school.name
-        )
+        RenderMultiPeriodPreviewPdfService.call(sections: sections, student_name: student.name, **common)
       end
+    end
+
+    # Defensive: a student is required to carry a school_class (model validation), but a legacy
+    # record could still lack one -- never crash the header over it, just show it blank.
+    def class_name
+      student.school_class&.full_name.to_s
     end
   end
 end
