@@ -68,6 +68,9 @@ en:
       report_card_published:
         title: "Report card available"
         body: "%{student}'s report card is now available."
+      incident_published:
+        title: "New incident record"
+        body: "A new incident record about %{student} is now available."
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."

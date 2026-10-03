@@ -69,6 +69,9 @@ pt-BR:
       report_card_published:
         title: "Boletim disponível"
         body: "O boletim de %{student} já está disponível."
+      incident_published:
+        title: "Nova ocorrência registrada"
+        body: "Uma nova ocorrência sobre %{student} já está disponível."
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."
