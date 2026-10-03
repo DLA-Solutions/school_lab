@@ -214,6 +214,16 @@ Rails.application.routes.draw do
             # resolve the target (BR-LP04), not a URL id.
             resources :lesson_plans, only: %i[index show]
             put "lesson_plans", to: "lesson_plans#upsert"
+
+            # "Ata" (BC7) — the staff side: a teacher writes about their own classes,
+            # manage_academic staff write school-wide, and approve/publish are independent member
+            # actions on top of create (see IncidentPolicy for the BR-IN03/BR-IN08 gates).
+            resources :incidents, only: %i[index create] do
+              member do
+                post :approve
+                post :publish
+              end
+            end
           end
 
           namespace :communication do
@@ -339,6 +349,8 @@ Rails.application.routes.draw do
               resources :health_records, controller: "student_health_records"
               # And names who may collect them at the gate.
               resources :authorized_pickups, only: %i[index create destroy]
+              # "Ata" (BC7) — published, guardian-visible incidents about this child only.
+              resources :incidents, only: :index
             end
             resources :documents, only: :index
             resources :requests, only: %i[index show create]
