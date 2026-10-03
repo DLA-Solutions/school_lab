@@ -141,7 +141,18 @@ const ptBR = {
   'health.records.empty.guardian': 'Adicione um registro para cada alergia, medicação ou condição.',
   'health.records.empty.school': 'A família ainda não adicionou registros de saúde.',
 
+  // The collaborator version (BC6) — same field set as the student's, one profile per teacher,
+  // no sub-records. `health.profile.*` carries the shared field labels; `health.loadError` /
+  // `health.saveError` / `health.saved` are generic enough (no mention of "student") to reuse
+  // here for both the teacher's own page and the staff read-only dialog.
+  'health.teacherProfile.title': 'Minha ficha de saúde',
+  'health.teacherProfile.description':
+    'Dados que a escola usa em caso de emergência: tipo sanguíneo, plano de saúde, contato de emergência e cuidados especiais.',
+  'health.teacherProfile.descriptionStaff':
+    'O que o colaborador informou sobre a própria saúde. Somente leitura — alterações são feitas pelo próprio colaborador.',
+
   'nav.myHealthRecords': 'Ficha de saúde',
+  'nav.myHealthProfile': 'Minha ficha de saúde',
   'pickups.title': 'Quem pode buscar',
   'pickups.action': 'Quem pode buscar',
   'pickups.aria': 'Pessoas autorizadas a buscar {name}',
@@ -1136,6 +1147,8 @@ const ptBR = {
   'collaborators.deleteError': 'Não foi possível excluir o colaborador.',
   'collaborators.bankAccount': 'Dados bancários',
   'collaborators.bankAccountAria': 'Dados bancários de {name}',
+  'collaborators.healthProfile': 'Ver ficha de saúde',
+  'collaborators.healthProfileAria': 'Ver ficha de saúde de {name}',
 
   'bankAccount.title': 'Dados bancários',
   'bankAccount.description':

@@ -141,7 +141,14 @@ const enUS: Messages = {
   'health.records.empty.guardian': 'Add a record for each allergy, medication, or condition.',
   'health.records.empty.school': 'The family has not added health records yet.',
 
+  'health.teacherProfile.title': 'My health record',
+  'health.teacherProfile.description':
+    'What the school uses in an emergency: blood type, health plan, emergency contact, and special care notes.',
+  'health.teacherProfile.descriptionStaff':
+    "What the collaborator reported about their own health. Read-only — changes are made by the collaborator themself.",
+
   'nav.myHealthRecords': 'Health sheet',
+  'nav.myHealthProfile': 'My health record',
   'pickups.title': 'Who may collect',
   'pickups.action': 'Who may collect',
   'pickups.aria': 'People allowed to collect {name}',
@@ -1126,6 +1133,8 @@ const enUS: Messages = {
   'collaborators.deleteError': 'Could not delete the collaborator.',
   'collaborators.bankAccount': 'Bank details',
   'collaborators.bankAccountAria': "{name}'s bank details",
+  'collaborators.healthProfile': 'View health record',
+  'collaborators.healthProfileAria': "View {name}'s health record",
 
   'bankAccount.title': 'Bank details',
   'bankAccount.description':
