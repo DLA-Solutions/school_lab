@@ -4,8 +4,8 @@
 > Parent PRD: [`index.md`](index.md)  
 > Capability IDs: `academic.record_incidents`  
 > Related BCs: [`communication/notifications.md`](../communication/notifications.md) *(optional notify)*  
-> Modeling: *(pending — `docs/modeling/007-academic.md`)*  
-> API narrative: *(pending — `docs/api/v1/academic.md`)*
+> Modeling: [`007-academic.md`](../../modeling/007-academic.md) § Incidents (BC7)  
+> API narrative: [`academic.md`](../../api/v1/academic.md) § Incidents
 
 ---
 
