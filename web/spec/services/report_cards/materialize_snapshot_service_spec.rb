@@ -47,7 +47,7 @@ RSpec.describe ReportCards::MaterializeSnapshotService do
     end.not_to raise_error
 
     expect(result).to be_success
-    row = result.data[:disciplines].find { |discipline| discipline[:class_discipline_id] == class_discipline.id }
-    expect(row[:final_value]).to eq("0.0")
+    row = result.data.fetch("disciplines").find { |discipline| discipline["class_discipline_id"] == class_discipline.id }
+    expect(row["final_value"]).to eq("0.0")
   end
 end

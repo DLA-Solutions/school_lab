@@ -58,7 +58,7 @@ module ReportCards
           student: student,
           publication: publication_record,
           snapshot_payload: payload,
-          grade_launch_digest: payload.fetch(:grade_launch_digest),
+          grade_launch_digest: payload.fetch("grade_launch_digest"),
           pdf_storage_key: blob_key,
           pdf_bytes: pdf_result.data.fetch(:pdf),
           version: version,
