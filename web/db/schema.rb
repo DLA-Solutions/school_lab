@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_03_094738) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_03_135515) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -564,6 +564,51 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_094738) do
     t.datetime "updated_at", null: false
     t.index ["position"], name: "index_help_taxonomy_categories_on_position"
     t.index ["slug"], name: "index_help_taxonomy_categories_on_slug", unique: true, where: "(discarded_at IS NULL)"
+  end
+
+  create_table "incident_types", force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.string "default_visibility", default: "staff_only", null: false
+    t.datetime "discarded_at"
+    t.boolean "is_system", default: false, null: false
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.string "severity"
+    t.string "system_key"
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "name"], name: "index_incident_types_on_school_id_and_name", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id", "system_key"], name: "index_incident_types_on_school_id_and_system_key", unique: true, where: "((system_key IS NOT NULL) AND (discarded_at IS NULL))"
+    t.index ["school_id"], name: "index_incident_types_on_school_id"
+  end
+
+  create_table "incidents", force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "coordination_approved_at"
+    t.bigint "coordination_approved_by_membership_id"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.datetime "director_approved_at"
+    t.bigint "director_approved_by_membership_id"
+    t.text "guardian_points_raised"
+    t.bigint "incident_type_id", null: false
+    t.datetime "published_at"
+    t.bigint "reported_by_membership_id", null: false
+    t.bigint "school_id", null: false
+    t.text "school_response"
+    t.string "severity"
+    t.string "status", default: "pending_approval", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "visibility", null: false
+    t.index ["coordination_approved_by_membership_id"], name: "index_incidents_on_coordination_approved_by_membership_id"
+    t.index ["director_approved_by_membership_id"], name: "index_incidents_on_director_approved_by_membership_id"
+    t.index ["incident_type_id"], name: "index_incidents_on_incident_type_id"
+    t.index ["reported_by_membership_id"], name: "index_incidents_on_reported_by_membership_id"
+    t.index ["school_id", "status"], name: "index_incidents_on_school_id_and_status"
+    t.index ["school_id", "student_id", "created_at"], name: "index_incidents_on_school_id_and_student_id_and_created_at"
+    t.index ["school_id"], name: "index_incidents_on_school_id"
+    t.index ["student_id"], name: "index_incidents_on_student_id"
   end
 
   create_table "job_positions", force: :cascade do |t|
@@ -1806,6 +1851,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_094738) do
   add_foreign_key "guardians", "schools"
   add_foreign_key "guardians", "users"
   add_foreign_key "guardians", "users", column: "discarded_by_id"
+  add_foreign_key "incident_types", "schools"
+  add_foreign_key "incidents", "incident_types"
+  add_foreign_key "incidents", "memberships", column: "coordination_approved_by_membership_id"
+  add_foreign_key "incidents", "memberships", column: "director_approved_by_membership_id"
+  add_foreign_key "incidents", "memberships", column: "reported_by_membership_id"
+  add_foreign_key "incidents", "schools"
+  add_foreign_key "incidents", "students"
   add_foreign_key "job_positions", "schools"
   add_foreign_key "job_positions", "users", column: "discarded_by_id"
   add_foreign_key "lesson_plans", "class_disciplines"
