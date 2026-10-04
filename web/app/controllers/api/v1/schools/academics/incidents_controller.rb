@@ -13,8 +13,10 @@ module Api
           def index
             authorize Incident
 
-            incidents = policy_scope(Incident).includes(:student, :incident_type, :reported_by_membership)
+            incidents = policy_scope(Incident)
+                          .includes(:student, :incident_type, :reported_by_membership, :incident_guardians)
             incidents = incidents.where(student_id: params[:student_id]) if params[:student_id].present?
+            incidents = incidents.where(reported_by_membership_id: params[:reported_by_membership_id]) if reported_by_membership_filter?
             incidents = incidents.order(created_at: :desc)
             pagy, records = pagy(incidents)
 
@@ -38,7 +40,8 @@ module Api
               description: incident_params[:description],
               guardian_points_raised: incident_params[:guardian_points_raised],
               school_response: incident_params[:school_response],
-              visibility: incident_params[:visibility]
+              visibility: incident_params[:visibility],
+              guardian_ids: incident_params[:guardian_ids]
             )
             render_incident(result, success_status: :created)
           end
@@ -102,10 +105,20 @@ module Api
                                      details: { base: [ I18n.t("api.errors.not_your_student") ] })
           end
 
+          # BR-IN10/UC-IN05: `reported_by_membership_id` only narrows for `manage_academic` staff.
+          # A teacher-role request's `policy_scope` already excludes every other staff/teacher's
+          # incidents, so honoring the param for them would wrongly narrow their own list to zero
+          # when it names someone else, instead of the "no effect" AC-IN07's third bullet requires
+          # — same defensive pattern as LessonPlansController's `teacher_id_filter?`.
+          def reported_by_membership_filter?
+            params[:reported_by_membership_id].present? && policy(Incident).manage_academic_staff?
+          end
+
           def incident_params
             params.require(:incident).permit(
               :incident_type_id, :student_id, :description,
-              :guardian_points_raised, :school_response, :visibility
+              :guardian_points_raised, :school_response, :visibility,
+              guardian_ids: []
             )
           end
         end

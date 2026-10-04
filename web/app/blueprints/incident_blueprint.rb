@@ -26,9 +26,18 @@ class IncidentBlueprint < Blueprinter::Base
     incident.incident_type&.name
   end
 
-  # Derived from the student's linked family on every read — never stored on the incident itself.
-  field :guardian_names do |incident|
-    incident.student.student_guardians.kept.filter_map { |link| link.guardian&.name }
+  # BR-IN11 — the guardian set recorded on this incident at save time, not derived live from the
+  # student's current `student_guardians` the way this field used to work. `guardian_id` is
+  # nullable (a later guardian deletion nullifies rather than cascades), so a snapshot row can
+  # outlive the guardian it was taken from — `name`/`relationship` are what survive either way.
+  field :guardians do |incident|
+    incident.incident_guardians.map do |incident_guardian|
+      {
+        guardian_id: incident_guardian.guardian_id,
+        name: incident_guardian.name,
+        relationship: incident_guardian.relationship
+      }
+    end
   end
 
   view :guardian do

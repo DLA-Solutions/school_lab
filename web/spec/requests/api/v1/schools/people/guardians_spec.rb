@@ -146,6 +146,39 @@ RSpec.describe "Api::V1::Schools::People::Guardians", type: :request do
   end
 end
 
+# BR-IN11/UC-IN06 — the reverse of StudentsController's existing `guardian_id` filter: lets the
+# ata form pre-fill "this student's current guardians" before an incident is even saved.
+RSpec.describe "Guardians filtered by student_id (BR-IN11/UC-IN06)", type: :request do
+  let(:school) { create(:school) }
+  let(:school_admin) { create(:user) }
+  let!(:school_admin_membership) { create(:membership, :school_admin, user: school_admin, school: school) }
+  let(:headers) { auth_headers_for(school_admin) }
+
+  it "narrows to the guardians linked to one student, excluding unrelated guardians" do
+    pedro = create(:student, school: school, name: "Pedro Silva")
+    mother = create(:guardian, school: school, name: "Marcela Silva")
+    create(:student_guardian, school: school, student: pedro, guardian: mother, relationship: "mother")
+    create(:guardian, school: school, name: "Unrelated Guardian")
+
+    get "/api/v1/schools/#{school.id}/people/guardians", params: { student_id: pedro.id }, headers: headers
+
+    expect(response).to have_http_status(:ok)
+    names = response.parsed_body["data"].map { |row| row["name"] }
+    expect(names).to eq([ "Marcela Silva" ])
+  end
+
+  it "excludes a discarded student_guardians link" do
+    pedro = create(:student, school: school, name: "Pedro Silva")
+    mother = create(:guardian, school: school, name: "Marcela Silva")
+    link = create(:student_guardian, school: school, student: pedro, guardian: mother, relationship: "mother")
+    link.discard!
+
+    get "/api/v1/schools/#{school.id}/people/guardians", params: { student_id: pedro.id }, headers: headers
+
+    expect(response.parsed_body["data"]).to be_empty
+  end
+end
+
 RSpec.describe "Suspended membership blocks school access", type: :request do
   let(:school) { create(:school) }
   let(:user) { create(:user) }
