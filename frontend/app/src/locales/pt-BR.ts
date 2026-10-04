@@ -1392,6 +1392,7 @@ const ptBR = {
   'dailyRoutine.bulk.snack': 'Marcar todos: lanche',
   'dailyRoutine.bulk.poop': 'Marcar todos: cocô',
   'dailyRoutine.bulk.pee': 'Marcar todos: xixi',
+  'dailyRoutine.bulk.sendAll': 'Enviar tudo',
 
   'error404.title': 'Página não encontrada',
   'error404.description': 'A página que você está buscando não existe ou foi movida.',

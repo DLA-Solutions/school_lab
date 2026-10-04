@@ -225,6 +225,23 @@ const DailyRoutine = () => {
     [roster, handleUpsert],
   );
 
+  // Separate from `bulkField` (mark-all touches fields, this touches send) so the two can be
+  // cross-disabled against each other below — both loop over the same rows via Promise.allSettled.
+  const [sendingAll, setSendingAll] = useState(false);
+
+  const handleSendAll = useCallback(async () => {
+    setSendingAll(true);
+    try {
+      await Promise.allSettled(
+        roster
+          .filter((row) => row.daily_routine_entry?.status === 'draft')
+          .map((row) => handleSend(row)),
+      );
+    } finally {
+      setSendingAll(false);
+    }
+  }, [roster, handleSend]);
+
   const setFilter = (key: string, value: string) => {
     setSearchParams(
       (current) => {
@@ -317,7 +334,7 @@ const DailyRoutine = () => {
               <Button
                 size="small"
                 variant="outlined"
-                disabled={bulkField !== null || roster.length === 0}
+                disabled={bulkField !== null || sendingAll || roster.length === 0}
                 onClick={() => handleBulkMark('snack')}
                 startIcon={
                   bulkField === 'snack' ? (
@@ -332,7 +349,7 @@ const DailyRoutine = () => {
               <Button
                 size="small"
                 variant="outlined"
-                disabled={bulkField !== null || roster.length === 0}
+                disabled={bulkField !== null || sendingAll || roster.length === 0}
                 onClick={() => handleBulkMark('poop')}
                 startIcon={
                   bulkField === 'poop' ? (
@@ -347,7 +364,7 @@ const DailyRoutine = () => {
               <Button
                 size="small"
                 variant="outlined"
-                disabled={bulkField !== null || roster.length === 0}
+                disabled={bulkField !== null || sendingAll || roster.length === 0}
                 onClick={() => handleBulkMark('pee')}
                 startIcon={
                   bulkField === 'pee' ? (
@@ -358,6 +375,26 @@ const DailyRoutine = () => {
                 }
               >
                 {t('dailyRoutine.bulk.pee')}
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                disabled={
+                  bulkField !== null ||
+                  sendingAll ||
+                  !roster.some((row) => row.daily_routine_entry?.status === 'draft')
+                }
+                onClick={handleSendAll}
+                startIcon={
+                  sendingAll ? (
+                    <CircularProgress size={14} />
+                  ) : (
+                    <IconifyIcon icon="mingcute:send-plane-line" width={16} height={16} />
+                  )
+                }
+              >
+                {t('dailyRoutine.bulk.sendAll')}
               </Button>
             </Stack>
             <Table size="small" sx={{ width: 'auto' }}>

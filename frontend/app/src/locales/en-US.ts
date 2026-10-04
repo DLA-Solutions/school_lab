@@ -1375,6 +1375,7 @@ const enUS: Messages = {
   'dailyRoutine.bulk.snack': 'Mark all: snack',
   'dailyRoutine.bulk.poop': 'Mark all: poop',
   'dailyRoutine.bulk.pee': 'Mark all: pee',
+  'dailyRoutine.bulk.sendAll': 'Send all',
 
   'error404.title': 'Page not found',
   'error404.description': 'The page you are looking for does not exist or has been moved.',
