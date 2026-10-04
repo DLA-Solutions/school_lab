@@ -21,6 +21,7 @@ export default {
   grades: `/${rootPaths.academicsRoot}/notas`,
   lessonPlans: `/${rootPaths.academicsRoot}/plano-de-aula`,
   atas: `/${rootPaths.academicsRoot}/atas`,
+  dailyRoutine: `/${rootPaths.academicsRoot}/rotina-diaria`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,
   subjects: `/${rootPaths.academicsRoot}/materias`,
   jobPositions: `/${rootPaths.academicsRoot}/cargos`,

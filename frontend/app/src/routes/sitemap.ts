@@ -215,6 +215,17 @@ const sitemap: MenuItem[] = [
     section: 'primary',
   },
   {
+    // BC11 "Rotina Infantil" — a teacher records/sends for their own assigned classes (BR-DR07),
+    // manage_academic staff do the same for any class in the school. Same no-narrowing split as
+    // lesson-plans/atas above: the page itself resolves which classes to offer per role.
+    id: 'daily-routine',
+    subheader: 'nav.dailyRoutine',
+    path: paths.dailyRoutine,
+    icon: 'mingcute:baby-line',
+    audience: 'staff',
+    section: 'primary',
+  },
+  {
     id: 'lessons',
     subheader: 'nav.lessons',
     path: paths.lessons,
