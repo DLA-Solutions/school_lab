@@ -1,3 +1,5 @@
+import { StudentGuardianLink } from 'types/student';
+
 /**
  * BC7 — Academic: Incidents (`docs/prds/academic/incidents.md`), surfaced in the product menu as
  * "Ata". Mirrors `IncidentBlueprint` (web/app/blueprints/incident_blueprint.rb) — the staff shape,
@@ -31,8 +33,20 @@ export interface Incident {
   /** The "Ata" grid is read by name, not by id — derived from the student association. */
   student_name: string;
   incident_type_name: string;
-  /** Every guardian linked to the student, derived fresh on every read. */
-  guardian_names: string[];
+  /**
+   * BR-IN11 — the guardian set snapshotted onto this incident at save time (`incident_guardians`),
+   * not derived live from the student's current `student_guardians` the way this field used to
+   * work. `guardian_id` is nullable: a later guardian deletion nullifies the link but keeps the
+   * row, since the ata is a historical record of who was on file that day.
+   */
+  guardians: IncidentGuardianSnapshot[];
+}
+
+/** One row of `Incident#guardians` — mirrors `incident_guardians`. */
+export interface IncidentGuardianSnapshot {
+  guardian_id: number | null;
+  name: string;
+  relationship: 'father' | 'mother' | 'other';
 }
 
 export interface IncidentListMeta {
@@ -61,6 +75,13 @@ export interface IncidentCreatePayload {
   student_id: number;
   guardian_points_raised?: string;
   school_response?: string;
+  /**
+   * BR-IN11/UC-IN06 — the guardians to snapshot onto the incident. Omitted preserves today's
+   * default (the API snapshots the student's current `student_guardians`); sent only once the
+   * creator has actually touched the pre-filled checklist (`manage_academic` staff path only —
+   * the teacher "nota ata" flow never sends this).
+   */
+  guardian_ids?: number[];
 }
 
 /** A student offered by the "Ata" create dialog's picker — shape shared by both data sources it
@@ -69,4 +90,11 @@ export interface IncidentStudentOption {
   id: number;
   name: string;
   school_class_name?: string | null;
+  /**
+   * Present only for the manage_academic staff search path (`StudentBlueprint` already embeds
+   * this on every row) — lets the guardian checklist show "Mãe"/"Pai" labels without a second
+   * round trip. The teacher roll endpoint does not carry relationship-tagged guardians, so this
+   * is absent there (BR-IN11's guardian picker is staff-only — see `IncidentFormDialog`).
+   */
+  guardians?: StudentGuardianLink[];
 }

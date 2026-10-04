@@ -13,13 +13,26 @@ export interface ListIncidentsParams {
   page?: number;
   /** Narrows the grid to one student's record. */
   studentId?: number;
+  /**
+   * BR-IN10 — narrows the grid to one author's atas, including the caller's own
+   * `membership_id` for the "minhas atas" shortcut. Only has effect for `manage_academic`
+   * staff; a `teacher`-role caller's result is already their own incidents only, so the API
+   * ignores the param for them (`IncidentPolicy#manage_academic_staff?`).
+   */
+  reportedByMembershipId?: number;
 }
 
 /** GET .../academics/incidents — `policy_scope`'d server-side (own classes vs. whole school). */
-export const listIncidents = (schoolId: number, { page = 1, studentId }: ListIncidentsParams = {}) => {
+export const listIncidents = (
+  schoolId: number,
+  { page = 1, studentId, reportedByMembershipId }: ListIncidentsParams = {},
+) => {
   const query = new URLSearchParams({ page: String(page) });
   if (studentId !== undefined) {
     query.set('student_id', String(studentId));
+  }
+  if (reportedByMembershipId !== undefined) {
+    query.set('reported_by_membership_id', String(reportedByMembershipId));
   }
 
   return request<IncidentListResponse>(`${base(schoolId)}?${query}`);
@@ -28,6 +41,8 @@ export const listIncidents = (schoolId: number, { page = 1, studentId }: ListInc
 /**
  * POST .../academics/incidents — UC-IN01. Refused with `403` when the student is outside the
  * teacher's assigned classes (BR-IN03) — `IncidentPolicy#assignable_student?` on the API side.
+ * `payload.guardian_ids` (BR-IN11) is optional — omitted, the API snapshots the student's
+ * current guardians on its own.
  */
 export const createIncident = async (
   schoolId: number,

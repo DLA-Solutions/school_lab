@@ -23,16 +23,25 @@ export interface ListGuardiansParams {
   q?: string;
   /** `active` (the default), `inactive` or `all`. */
   status?: 'active' | 'inactive' | 'all';
+  /**
+   * BR-IN11/UC-IN06 — narrows to the guardians linked to one student (the reverse of
+   * `listStudents`' `guardianId`). What the "Ata" guardian picker uses to pre-fill a student's
+   * current guardians before an incident is even saved.
+   */
+  studentId?: number;
 }
 
 /** GET /api/v1/schools/:school_id/people/guardians — ordered by name, 25 per page. */
-export const listGuardians = ({ schoolId, page = 1, q, status }: ListGuardiansParams) => {
+export const listGuardians = ({ schoolId, page = 1, q, status, studentId }: ListGuardiansParams) => {
   const query = new URLSearchParams({ page: String(page) });
   if (q?.trim()) {
     query.set('q', q.trim());
   }
   if (status && status !== 'active') {
     query.set('status', status);
+  }
+  if (studentId !== undefined) {
+    query.set('student_id', String(studentId));
   }
 
   return request<GuardianListResponse>(`${collectionPath(schoolId)}?${query}`);
