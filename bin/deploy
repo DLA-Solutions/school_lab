@@ -1,0 +1,304 @@
+#!/usr/bin/env bash
+#
+# Deploy Kamal layers in runbook order.
+#
+#   bin/deploy <staging|production> [site|frontend|backoffice|web]
+#
+# Omit the layer to deploy site, frontend/app, frontend/backoffice, then web.
+# Stops at the first kamal failure. Uses `kamal` on PATH (gem 2.12.0), never
+# the Bundler wrappers under */bin/kamal.
+#
+# Outside GitHub Actions: bin/require-deploy-branch, then the .kamal/secrets*
+# files already on the machine. Does not create or overwrite them.
+#
+# GITHUB_ACTIONS=true: write those gitignored files (chmod 600) from the
+# environment only. No `gh config`, no config/master.key, no secret values
+# printed.
+#
+# db:migrate runs from web/ after a successful web deploy when web is in the
+# set and either DEPLOY_MIGRATE=1, or DEPLOY_MIGRATE_PATHS / DEPLOY_CHANGED_PATHS
+# (newline-separated) contains web/db/migrate/ or web/db/schema.rb. Otherwise
+# it does not migrate.
+
+set -euo pipefail
+
+root="$(cd "$(dirname "$0")/.." && pwd)"
+dest=""
+layers=()
+
+usage() {
+  printf 'Usage: bin/deploy <staging|production> [site|frontend|backoffice|web]\n' >&2
+  exit 2
+}
+
+service_dir() {
+  case "$1" in
+    site) printf '%s/site\n' "$root" ;;
+    frontend) printf '%s/frontend/app\n' "$root" ;;
+    backoffice) printf '%s/frontend/backoffice\n' "$root" ;;
+    web) printf '%s/web\n' "$root" ;;
+    *) return 1 ;;
+  esac
+}
+
+layer_selected() {
+  local want="$1"
+  local name
+  for name in "${layers[@]}"; do
+    if [ "$name" = "$want" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+require_env() {
+  local name="$1"
+  if ! printenv "$name" 2>/dev/null | grep -q .; then
+    printf 'bin/deploy: required environment variable %s is unset or empty\n' "$name" >&2
+    exit 1
+  fi
+}
+
+require_secrets_file() {
+  local path="$1"
+  local rel="${path#"$root"/}"
+  if [ ! -f "$path" ]; then
+    printf 'bin/deploy: missing secrets file %s\n' "$rel" >&2
+    printf '         Copy the matching .kamal/secrets*.example and fill it in. Outside GitHub Actions this script does not create or overwrite secrets.\n' >&2
+    exit 1
+  fi
+  if [ ! -r "$path" ]; then
+    printf 'bin/deploy: secrets file %s is not readable\n' "$rel" >&2
+    exit 1
+  fi
+}
+
+write_secrets_file() {
+  local path="$1"
+  local dir tmp rel
+  dir="$(dirname "$path")"
+  rel="${path#"$root"/}"
+  mkdir -p "$dir"
+  tmp="$(mktemp "$dir/secrets-write.XXXXXX")"
+  chmod 600 "$tmp"
+  if ! cat > "$tmp"; then
+    rm -f "$tmp"
+    exit 1
+  fi
+  mv "$tmp" "$path"
+  chmod 600 "$path"
+  printf 'bin/deploy: wrote %s\n' "$rel"
+}
+
+require_kamal() {
+  local kamal_bin
+  kamal_bin="$(type -P kamal || true)"
+  if [ -z "$kamal_bin" ]; then
+    printf 'bin/deploy: kamal not found on PATH. Install gem kamal 2.12.0 (do not use web/bin/kamal).\n' >&2
+    exit 1
+  fi
+  case "$kamal_bin" in
+    */web/bin/kamal|*/site/bin/kamal|*/frontend/*/bin/kamal)
+      printf 'bin/deploy: %s is a Bundler wrapper. Install gem kamal 2.12.0 on PATH.\n' "$kamal_bin" >&2
+      exit 1
+      ;;
+  esac
+}
+
+require_gha_env_for_layer() {
+  local name="$1"
+  require_env KAMAL_REGISTRY_USERNAME
+  require_env KAMAL_REGISTRY_PASSWORD
+  case "$name" in
+    frontend)
+      require_env GOOGLE_OAUTH_CLIENT_ID
+      ;;
+    web)
+      require_env RAILS_MASTER_KEY
+      require_env POSTGRES_PASSWORD
+      require_env REDIS_PASSWORD
+      require_env GOOGLE_OAUTH_CLIENT_ID
+      if [ "$dest" = "staging" ]; then
+        require_env JWT_SECRET_KEY_STAGING
+        require_env API_DOCS_USERNAME
+        require_env API_DOCS_PASSWORD
+        require_env POSTMARK_API_TOKEN_STAGING
+      else
+        require_env JWT_SECRET_KEY_PRODUCTION
+        require_env POSTMARK_API_TOKEN_PRODUCTION
+      fi
+      ;;
+  esac
+}
+
+write_gha_secrets_for_layer() {
+  local name="$1"
+  local dir
+  dir="$(service_dir "$name")"
+  case "$name" in
+    site|backoffice)
+      write_secrets_file "$dir/.kamal/secrets-common" <<'EOF'
+KAMAL_REGISTRY_USERNAME=$KAMAL_REGISTRY_USERNAME
+KAMAL_REGISTRY_PASSWORD=$KAMAL_REGISTRY_PASSWORD
+EOF
+      ;;
+    frontend)
+      write_secrets_file "$dir/.kamal/secrets-common" <<'EOF'
+KAMAL_REGISTRY_USERNAME=$KAMAL_REGISTRY_USERNAME
+KAMAL_REGISTRY_PASSWORD=$KAMAL_REGISTRY_PASSWORD
+GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID
+EOF
+      ;;
+    web)
+      write_secrets_file "$dir/.kamal/secrets-common" <<'EOF'
+KAMAL_REGISTRY_USERNAME=$KAMAL_REGISTRY_USERNAME
+KAMAL_REGISTRY_PASSWORD=$KAMAL_REGISTRY_PASSWORD
+RAILS_MASTER_KEY=$RAILS_MASTER_KEY
+EOF
+      if [ "$dest" = "staging" ]; then
+        write_secrets_file "$dir/.kamal/secrets.staging" <<'EOF'
+JWT_SECRET_KEY=$JWT_SECRET_KEY_STAGING
+API_DOCS_USERNAME=$API_DOCS_USERNAME
+API_DOCS_PASSWORD=$API_DOCS_PASSWORD
+POSTMARK_API_TOKEN=$POSTMARK_API_TOKEN_STAGING
+GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID
+DATABASE_URL=postgres://scholarpremium:$POSTGRES_PASSWORD@10.0.0.3:5432/scholarpremium_staging
+CABLE_DATABASE_URL=postgres://scholarpremium:$POSTGRES_PASSWORD@10.0.0.3:5432/scholarpremium_staging_cable
+REDIS_URL=redis://:$REDIS_PASSWORD@10.0.0.3:6379/1
+EOF
+      else
+        write_secrets_file "$dir/.kamal/secrets.production" <<'EOF'
+JWT_SECRET_KEY=$JWT_SECRET_KEY_PRODUCTION
+POSTMARK_API_TOKEN=$POSTMARK_API_TOKEN_PRODUCTION
+GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID
+DATABASE_URL=postgres://scholarpremium:$POSTGRES_PASSWORD@10.0.0.3:5432/scholarpremium_production
+CABLE_DATABASE_URL=postgres://scholarpremium:$POSTGRES_PASSWORD@10.0.0.3:5432/scholarpremium_production_cable
+REDIS_URL=redis://:$REDIS_PASSWORD@10.0.0.3:6379/0
+EOF
+      fi
+      ;;
+  esac
+}
+
+require_local_secrets_for_layer() {
+  local name="$1"
+  local dir
+  dir="$(service_dir "$name")"
+  require_secrets_file "$dir/.kamal/secrets-common"
+  if [ "$name" = "web" ]; then
+    require_secrets_file "$dir/.kamal/secrets.${dest}"
+  fi
+}
+
+paths_request_migrate() {
+  local line blob=""
+  if [ -z "${DEPLOY_MIGRATE_PATHS+x}" ] && [ -z "${DEPLOY_CHANGED_PATHS+x}" ]; then
+    return 1
+  fi
+  if [ -n "${DEPLOY_MIGRATE_PATHS+x}" ]; then
+    blob="${DEPLOY_MIGRATE_PATHS}"$'\n'
+  fi
+  if [ -n "${DEPLOY_CHANGED_PATHS+x}" ]; then
+    blob="${blob}${DEPLOY_CHANGED_PATHS}"$'\n'
+  fi
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="${line%$'\r'}"
+    [ -z "$line" ] && continue
+    case "$line" in
+      *web/db/migrate/*|*web/db/schema.rb*)
+        return 0
+        ;;
+    esac
+  done <<< "$blob"
+  return 1
+}
+
+should_migrate() {
+  if ! layer_selected web; then
+    return 1
+  fi
+  if [ "${DEPLOY_MIGRATE:-}" = "1" ]; then
+    return 0
+  fi
+  paths_request_migrate
+}
+
+run_kamal_deploy() {
+  local name="$1"
+  local dir rel
+  dir="$(service_dir "$name")"
+  rel="${dir#"$root"/}"
+  printf 'bin/deploy: kamal deploy -d %s (%s)\n' "$dest" "$rel"
+  (
+    cd "$dir"
+    command kamal deploy -d "$dest"
+  )
+}
+
+run_migrate() {
+  printf 'bin/deploy: kamal app exec -d %s --primary bin/rails db:migrate\n' "$dest"
+  (
+    cd "$root/web"
+    command kamal app exec -d "$dest" --primary "bin/rails db:migrate"
+  )
+}
+
+main() {
+  local name layer
+
+  if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+    usage
+  fi
+
+  dest="$1"
+  if [ "$dest" != "staging" ] && [ "$dest" != "production" ]; then
+    usage
+  fi
+
+  layer="${2:-}"
+  if [ -n "$layer" ]; then
+    case "$layer" in
+      site|frontend|backoffice|web) ;;
+      *) usage ;;
+    esac
+    layers=("$layer")
+  else
+    layers=(site frontend backoffice web)
+  fi
+
+  cd "$root"
+
+  if [ "${GITHUB_ACTIONS:-}" != "true" ]; then
+    "$root/bin/require-deploy-branch" "$dest"
+  fi
+
+  require_kamal
+
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    for name in "${layers[@]}"; do
+      require_gha_env_for_layer "$name"
+    done
+    for name in "${layers[@]}"; do
+      write_gha_secrets_for_layer "$name"
+    done
+  else
+    for name in "${layers[@]}"; do
+      require_local_secrets_for_layer "$name"
+    done
+  fi
+
+  for name in "${layers[@]}"; do
+    run_kamal_deploy "$name"
+  done
+
+  if layer_selected web; then
+    if should_migrate; then
+      run_migrate
+    else
+      printf 'bin/deploy: skipping db:migrate\n'
+    fi
+  fi
+}
+
+main "$@"

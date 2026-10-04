@@ -1,28 +1,56 @@
 ---
 name: deploy-staging
 description: >-
-  Deploy School Lab (site, school SPA, backoffice SPA, web API) to staging with
-  Kamal 2 from branch staging only. Use when the user asks to deploy staging,
-  sobe staging, kamal -d staging, publish to
-  https://staging.scholarpremium.com.br, or to QA on staging. Always finish with
-  Discord notify_deploy. After smoke, skill jira-task-lifecycle Ready to QA.
-  Shared Kamal mechanics live in skill deploy-kamal. Not for production
-  (skill deploy-production) or first-time machine setup (skill setup-deploy).
+  Staging CD is GitHub Actions on ubuntu-latest: a push to branch staging runs
+  bin/deploy. Use when the user asks to deploy staging, sobe staging, publish to
+  https://staging.scholarpremium.com.br, or QA on staging. Do not run Kamal on
+  the developer machine. Local bin/deploy staging is the fallback only when
+  .kamal/secrets* already exist; it still enforces bin/require-deploy-branch.
+  Shared Kamal mechanics live in skill deploy-kamal. Discord on the workflow is
+  best-effort. Jira Ready to QA stays manual. Not for production (skill
+  deploy-production) or first-time machine setup (skill setup-deploy).
 ---
 
 # Deploy staging
 
-Lock destination to **`-d staging`**. Host: `https://staging.scholarpremium.com.br`.
+Host: `https://staging.scholarpremium.com.br`.
 
-Shared layers, CI, secrets, cutover, Discord payload, rollback: skill **`deploy-kamal`**. Read it before the first Kamal command. First-time machine: skill **`setup-deploy`**.
+**Default path:** a push to `staging` deploys staging. GitHub Actions on
+`ubuntu-latest` runs `bin/deploy` with Environment `staging`. The job does not
+run tests. CI stays `bin/ci` before merge. The app server `77.42.33.33` only
+receives the image.
 
-If the user also asked for production, **finish this skill first** (including Discord), then skill **`deploy-production`**.
+Do not run `kamal` on the developer machine after a merge. Confirm the Actions
+run instead. To redeploy without a new commit, use `workflow_dispatch` on ref
+`staging`: layer `changed`, `all`, `site`, `frontend`, `backoffice`, or `web`.
+The migrate checkbox defaults to off; set it only when the API should run
+`db:migrate`. On a push, migrate runs only when the API layer deploys and
+`web/db/migrate` or `web/db/schema.rb` changed.
+
+Smoke on that run is a read-only GET. Discord notify is best-effort. Jira
+**Ready to QA** stays manual — the workflow does not move the ticket. Run skill
+`jira-task-lifecycle` only when the user asks, after the Actions run is green.
+
+Secrets are created by a person in the GitHub UI before the workflow is merged.
+List: `docs/guidelines/process/deployment.md` (repository secrets vs Environment
+`staging` vs Environment `production`). Do not use `GITHUB_TOKEN` as
+`KAMAL_REGISTRY_PASSWORD`.
+
+If the user also asked for production, that is a later fast-forward push to
+`main` (skill **`deploy-production`**), not a local Kamal run after this one.
+
+## Local fallback
+
+Use this only when `.kamal/secrets*` already exist and the user wants a deploy
+from this machine. `bin/deploy staging [layer]` calls `bin/require-deploy-branch`.
+Shared layers, cutover, Discord payload, rollback: skill **`deploy-kamal`**.
+Do not re-derive those mechanics here. First-time machine: skill **`setup-deploy`**.
 
 ```
 - [ ] 1. Branch + pull
 - [ ] 2. GHCR token
 - [ ] 3. Preflight + CI
-- [ ] 4. kamal deploy -d staging
+- [ ] 4. bin/deploy staging
 - [ ] 5. Smoke (read-only)
 - [ ] 6. Jira Ready to QA
 - [ ] 7. Discord notify_deploy
@@ -70,16 +98,18 @@ Essential CI for every layer you will deploy (skill `deploy-kamal` table). Stop 
 
 ## 4. Deploy
 
-From each service directory, **always** `-d staging`:
+From the repo root. This still enforces `bin/require-deploy-branch`:
 
 ```bash
-cd site                && kamal deploy -d staging
-cd frontend/app        && kamal deploy -d staging
-cd frontend/backoffice && kamal deploy -d staging
-cd web                 && kamal deploy -d staging
+bin/deploy staging
+bin/deploy staging web    # optional: site, frontend, backoffice, or web
 ```
 
-Routine order: site → school SPA → backoffice SPA → API. Use `bin/kamal` when present. First time only: `kamal setup -d staging`. Schema change: `cd web && kamal app exec -d staging "bin/rails db:migrate"`.
+Order inside the script: site → school SPA → backoffice SPA → API. It stops at
+the first failure. First-time host bootstrap only: `kamal setup -d staging` from
+the service directory (skill `deploy-kamal`). Schema migrate on this fallback
+follows the same rule as a push: API layer included and `web/db/migrate` or
+`web/db/schema.rb` changed.
 
 On Kamal failure: skip smoke and Jira; go to Discord with `status: failure`. Cutover/proxy errors: `deploy-kamal` § Cutover and [`../deploy-kamal/troubleshooting.md`](../deploy-kamal/troubleshooting.md).
 
@@ -97,7 +127,11 @@ No invite, password reset, guardian access, or other mailer routes. No `rails ru
 
 ## 6. Jira Ready to QA
 
-After smoke passes, skill **`jira-task-lifecycle`** Ready to QA (In Progress → Ready to QA; comment with staging URL + SHA). Skip if no In Progress issue or Atlassian MCP is missing — tell the user; that is not a deploy failure. **Not** on Kamal/smoke failure.
+The Actions path does not move the ticket. On this local fallback, after smoke
+passes, skill **`jira-task-lifecycle`** Ready to QA (In Progress → Ready to QA;
+comment with staging URL + SHA). Skip if no In Progress issue or Atlassian MCP
+is missing — tell the user; that is not a deploy failure. **Not** on Kamal/smoke
+failure.
 
 Do this **before** Discord.
 
@@ -113,6 +147,6 @@ Mandatory last step — success **or** failure. `deploy-kamal` § Discord notify
 
 - Pass `-d production` from this skill.
 - Deploy while on any branch other than `staging` aligned with `origin/staging`.
-- Skip `notify_deploy`.
-- Skip Ready to QA after a successful staging deploy (unless no ticket / MCP missing).
+- Skip `notify_deploy` on this local fallback. The Actions path notifies on its own (best-effort).
+- Skip Ready to QA after a successful local staging deploy (unless no ticket / MCP missing). The Actions path leaves that transition manual.
 - Print PATs, webhook URLs, or `.kamal/` secret values.

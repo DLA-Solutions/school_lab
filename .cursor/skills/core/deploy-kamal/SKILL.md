@@ -10,6 +10,8 @@ disable-model-invocation: true
 
 # Deploy with Kamal (shared)
 
+**Default path:** GitHub Actions on `ubuntu-latest` runs `bin/deploy` after a push to `staging` or `main`, or via `workflow_dispatch` on those branches. This file is the local fallback when `.kamal/secrets*` already exist. It is not the default for every developer.
+
 Shared runbook for **`deploy-staging`** and **`deploy-production`**. Do not pick the destination here.
 
 | Destination | Skill | Branch | Flag |
