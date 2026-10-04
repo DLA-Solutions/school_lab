@@ -58,7 +58,7 @@ Requirements with no further market anchor beyond the stakeholder's own note are
 | Actor | Surfaces | Notes |
 |-------|----------|-------|
 | teacher | Web SPA (`/app`) | Open the annual calendar for a class, click an instructional day, write/send the plan for one of their own subjects that day; list their own plans |
-| staff with `manage_academic` | Web SPA (`/app`) | Read every lesson plan in the school; no approval action in this version |
+| staff with `manage_academic` | Web SPA (`/app`) | Read every lesson plan in the school via a dedicated menu entry (separate from the teacher-facing calendar at `nav.lessonPlans`), filterable by teacher, subject, and class (UC-LP04); no approval action in this version |
 | guardian | — | No access |
 
 ---
@@ -188,12 +188,16 @@ Flow
 
 ### UC-LP04 — Read a school's lesson plans (coordination)
 
-Input: filters (class, subject, date range).
+Input: filters (class, subject, teacher, date range).
 
 Flow
 
-1. Staff with `manage_academic` reads across all classes/subjects in the school — no action beyond
-   reading in this version (BR-LP05).
+1. Staff with `manage_academic` reads across all classes/subjects/teachers in the school via a
+   dedicated menu entry (`[product decision]` — a new sitemap item gated by `manage_academic`,
+   distinct from the shared `nav.lessonPlans` entry that still serves the teacher calendar /
+   instructional-days admin split) — no action beyond reading in this version (BR-LP05).
+2. The requester may narrow the list by any combination of `school_class_id`, `subject_id`,
+   `teacher_id`, and `from`/`to` date range.
 
 ---
 
@@ -204,7 +208,7 @@ Base: `/api/v1/schools/:school_id/academics`
 | Method | Path | Purpose |
 |--------|------|---------|
 | `GET` | `/school_classes/:school_class_id/instructional_days` | Calendar for UC-LP01 — reads BR-SY10 data, scoped to this class's school year |
-| `GET` | `/lesson_plans?school_class_id=&subject_id=&from=&to=` | List (UC-LP03 teacher-scoped, UC-LP04 staff-scoped by `policy_scope`) |
+| `GET` | `/lesson_plans?school_class_id=&subject_id=&teacher_id=&from=&to=` | List (UC-LP03 teacher-scoped, UC-LP04 staff-scoped by `policy_scope`; `teacher_id` is only meaningful for `manage_academic` staff — a teacher's own scope already excludes every other teacher) |
 | `GET` | `/lesson_plans/:id` | Read one |
 | `PUT` | `/lesson_plans` | Upsert by `school_class_id` + `subject_id` + `date` (UC-LP02, BR-LP04) |
 | `GET` | `/lesson_plans/:id/pdf` | PDF preview (UC-LP05, BR-LP08) — `Content-Type: application/pdf`, `disposition: inline` |
@@ -318,6 +322,18 @@ AC-LP06 *(PDF preview)*
 - [ ] Given a teacher not assigned to that `class_discipline`, When they request the PDF, Then the
       API returns `403`.
 - Source: BR-LP08, BR-LP02
+
+AC-LP07 *(coordination list + filters)*
+
+- [ ] Given staff member S holds `manage_academic`, When S opens the dedicated "all lesson plans"
+      menu entry, Then S sees lesson plans from every teacher/class/subject in the school, not
+      just their own.
+- [ ] Given that screen, When S filters by teacher, subject, or class (alone or combined), Then
+      only matching plans are listed; combined with `from`/`to` narrows further.
+- [ ] Given a teacher (no `manage_academic`) calls `GET /lesson_plans` with a `teacher_id` other
+      than their own, When the request resolves, Then the `teacher_id` filter has no effect beyond
+      their own already-scoped plans (BR-LP02/BR-LP06 — `policy_scope` still wins).
+- Source: UC-LP04
 
 ---
 
