@@ -40,7 +40,6 @@ const Harness = () => {
         minDate={dayjs('2026-02-01')}
         maxDate={dayjs('2026-12-18')}
         onChange={(day) => {
-          // eslint-disable-next-line no-console
           console.log('onChange fired', (day as dayjs.Dayjs).format('YYYY-MM-DD'));
           setPending((c) => ({ ...c, [(day as dayjs.Dayjs).format('YYYY-MM-DD')]: true }));
         }}

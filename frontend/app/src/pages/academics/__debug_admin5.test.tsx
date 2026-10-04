@@ -24,6 +24,7 @@ const Harness = () => {
 
   const [viewMonth, setViewMonth] = useState<Dayjs | null>(null);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setViewMonth(year ? dayjs(year.starts_on) : null);
   }, [year]);
 
@@ -34,6 +35,7 @@ const Harness = () => {
 
   useEffect(() => {
     if (!year || !monthKey) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     Promise.resolve().then(() => {
       setBaseline({});
@@ -62,7 +64,6 @@ const Harness = () => {
   );
 
   const handleDayClick = (day: Dayjs) => {
-    // eslint-disable-next-line no-console
     console.log('handleDayClick', day.format('YYYY-MM-DD'));
     const key = day.format('YYYY-MM-DD');
     setPending((c) => ({ ...c, [key]: !dayValue(key) }));

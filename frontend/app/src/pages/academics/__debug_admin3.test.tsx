@@ -18,6 +18,7 @@ const Harness = () => {
 
   useEffect(() => {
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     Promise.resolve().then(() => {
       if (active) setLoading(false);
@@ -55,7 +56,6 @@ const Harness = () => {
         loading={loading}
         onMonthChange={(month) => setViewMonth(month as Dayjs)}
         onChange={(day) => {
-          // eslint-disable-next-line no-console
           console.log('onChange fired', (day as Dayjs).format('YYYY-MM-DD'));
           setPending((c) => ({ ...c, [(day as Dayjs).format('YYYY-MM-DD')]: true }));
         }}
