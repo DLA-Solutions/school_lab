@@ -72,6 +72,10 @@ RSpec.describe IncidentPolicy do
       expect(policy.publish?).to be(false)
     end
 
+    it "denies manage_academic_staff? (BR-IN10 / AC-IN07) -- the reported_by filter must have no effect" do
+      expect(policy.manage_academic_staff?).to be(false)
+    end
+
     it "scopes the index to assigned students only" do
       assigned = create(:incident, school: school, student: student, incident_type: incident_type,
                                     reported_by_membership: membership)
@@ -104,6 +108,10 @@ RSpec.describe IncidentPolicy do
       expect(policy.publish?).to be(true)
     end
 
+    it "permits manage_academic_staff? (BR-IN10 / AC-IN07) -- may narrow the list by author" do
+      expect(policy.manage_academic_staff?).to be(true)
+    end
+
     it "returns every same-school incident in scope" do
       a = create(:incident, school: school, student: student, incident_type: incident_type)
       b = create(:incident, school: school, student: other_student, incident_type: incident_type)
@@ -122,6 +130,27 @@ RSpec.describe IncidentPolicy do
 
     it "permits approve" do
       expect(policy.approve?).to be(true)
+    end
+  end
+
+  describe "coordination-templated membership that does not separately hold manage_academic" do
+    let(:user) { create(:user, email: "coord-no-perm@example.com") }
+    let!(:membership) { create(:membership, :staff, user: user, school: school) }
+
+    before do
+      # Deliberately skips Identity::ProvisionSystemRoleTemplatesService -- the role template
+      # carries BR-IN08's `system_key: "coordination"` (which satisfies `approve?`) but, since no
+      # role_template_permission rows exist, grants no `manage_academic` permission. This is the
+      # BR-IN10 / AC-IN07 negative case: `manage_academic_staff?` is strictly about the
+      # `manage_academic` permission, not the BR-IN08 approval role templates -- the two gates
+      # must not be conflated.
+      coordination_template = create(:school_role_template, :coordination, school: school)
+      create(:staff_profile, membership: membership, school: school, role_template: coordination_template)
+      set_current!(membership)
+    end
+
+    it "denies manage_academic_staff? even though the role template is coordination" do
+      expect(policy.manage_academic_staff?).to be(false)
     end
   end
 
