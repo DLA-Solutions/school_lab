@@ -1372,6 +1372,9 @@ const enUS: Messages = {
   'dailyRoutine.sendAria': "Send to {student}'s guardian",
   'dailyRoutine.send': 'Send',
   'dailyRoutine.sent': 'Sent',
+  'dailyRoutine.bulk.snack': 'Mark all: snack',
+  'dailyRoutine.bulk.poop': 'Mark all: poop',
+  'dailyRoutine.bulk.pee': 'Mark all: pee',
 
   'error404.title': 'Page not found',
   'error404.description': 'The page you are looking for does not exist or has been moved.',

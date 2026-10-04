@@ -196,6 +196,35 @@ const DailyRoutine = () => {
     [schoolId, t],
   );
 
+  // One click replays the same per-student upsert used by a single icon tap, across the whole
+  // roster (BR-DR04) — no new semantic, just a convenience loop. Kept sequential-looking via
+  // Promise.allSettled rather than three independently-triggerable runs, since three concurrent
+  // bulk passes over the same rows would race on `savingIds`/`roster` state.
+  const [bulkField, setBulkField] = useState<'snack' | 'poop' | 'pee' | null>(null);
+
+  const handleBulkMark = useCallback(
+    async (field: 'snack' | 'poop' | 'pee') => {
+      setBulkField(field);
+      try {
+        await Promise.allSettled(
+          roster.map((row) => {
+            const entry = row.daily_routine_entry;
+            if (field === 'snack') {
+              return handleUpsert(row.student_id, { snack_eaten: true });
+            }
+            if (field === 'poop') {
+              return handleUpsert(row.student_id, { poop_count: (entry?.poop_count ?? 0) + 1 });
+            }
+            return handleUpsert(row.student_id, { pee_count: (entry?.pee_count ?? 0) + 1 });
+          }),
+        );
+      } finally {
+        setBulkField(null);
+      }
+    },
+    [roster, handleUpsert],
+  );
+
   const setFilter = (key: string, value: string) => {
     setSearchParams(
       (current) => {
@@ -284,6 +313,53 @@ const DailyRoutine = () => {
           />
         ) : (
           <Box px={2} py={2.5} sx={{ width: 1, overflowX: 'auto' }}>
+            <Stack direction="row" gap={1} flexWrap="wrap" mb={2}>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={bulkField !== null || roster.length === 0}
+                onClick={() => handleBulkMark('snack')}
+                startIcon={
+                  bulkField === 'snack' ? (
+                    <CircularProgress size={14} />
+                  ) : (
+                    <IconifyIcon icon="mingcute:cookie-fill" width={16} height={16} />
+                  )
+                }
+              >
+                {t('dailyRoutine.bulk.snack')}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={bulkField !== null || roster.length === 0}
+                onClick={() => handleBulkMark('poop')}
+                startIcon={
+                  bulkField === 'poop' ? (
+                    <CircularProgress size={14} />
+                  ) : (
+                    <IconifyIcon icon="mingcute:toilet-paper-fill" width={16} height={16} />
+                  )
+                }
+              >
+                {t('dailyRoutine.bulk.poop')}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={bulkField !== null || roster.length === 0}
+                onClick={() => handleBulkMark('pee')}
+                startIcon={
+                  bulkField === 'pee' ? (
+                    <CircularProgress size={14} />
+                  ) : (
+                    <IconifyIcon icon="mingcute:drop-fill" width={16} height={16} />
+                  )
+                }
+              >
+                {t('dailyRoutine.bulk.pee')}
+              </Button>
+            </Stack>
             <Table size="small" sx={{ width: 'auto' }}>
               <TableHead>
                 <TableRow>

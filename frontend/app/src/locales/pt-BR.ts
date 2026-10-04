@@ -1389,6 +1389,9 @@ const ptBR = {
   'dailyRoutine.sendAria': 'Enviar para o responsável de {student}',
   'dailyRoutine.send': 'Enviar',
   'dailyRoutine.sent': 'Enviado',
+  'dailyRoutine.bulk.snack': 'Marcar todos: lanche',
+  'dailyRoutine.bulk.poop': 'Marcar todos: cocô',
+  'dailyRoutine.bulk.pee': 'Marcar todos: xixi',
 
   'error404.title': 'Página não encontrada',
   'error404.description': 'A página que você está buscando não existe ou foi movida.',
