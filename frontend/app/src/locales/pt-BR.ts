@@ -286,6 +286,20 @@ const ptBR = {
   'lessonPlans.admin.pendingChanges': '{count} dia(s) alterado(s) ainda não salvos.',
   'lessonPlans.admin.readOnlyHint':
     'Você pode ver os dias letivos, mas apenas quem administra as configurações da escola pode alterá-los.',
+  'nav.allLessonPlans': 'Planos de Aula — Todos',
+  'allLessonPlans.noAccess.description':
+    'Você não tem acesso aos planos de aula de todos os professores — esta tela é da coordenação.',
+  'allLessonPlans.loadError': 'Não foi possível carregar os planos de aula.',
+  'allLessonPlans.optionsLoadError': 'Não foi possível carregar os professores, matérias e turmas.',
+  'allLessonPlans.intro':
+    'Todos os planos de aula enviados por qualquer professor, filtráveis por professor, matéria e turma.',
+  'allLessonPlans.filter.allTeachers': 'Todos os professores',
+  'allLessonPlans.column.date': 'Data',
+  'allLessonPlans.column.topic': 'Tema',
+  'allLessonPlans.empty.title': 'Nenhum plano de aula encontrado',
+  'allLessonPlans.empty.description':
+    'Nenhum professor enviou um plano de aula com esses filtros ainda.',
+  'allLessonPlans.previewAria': 'Pré-visualizar plano de aula de {subject}',
   'nav.grades': 'Notas',
   'grades.loadError': 'Não foi possível carregar as notas.',
   'grades.optionsLoadError': 'Não foi possível carregar as turmas e matérias.',
