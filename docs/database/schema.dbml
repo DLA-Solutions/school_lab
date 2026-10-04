@@ -1733,6 +1733,7 @@ Table incident_guardians {
   guardian_id integer [note: 'Nullable: a later guardian deletion nullifies rather than cascades, so the historical ata row survives (BR-IN11)']
   name varchar [not null, note: 'Denormalized snapshot of guardian.name at save time — does not follow later changes to the guardian or to the student\'s student_guardians links (BR-IN11)']
   relationship varchar [not null, note: 'Denormalized snapshot of student_guardians.relationship at save time — same non-live note as name (BR-IN11)']
+<<<<<<< HEAD
   created_at timestamp
   updated_at timestamp
 
@@ -1756,14 +1757,23 @@ Table daily_routine_entries {
   sent_at timestamp [note: 'Set on the draft -> sent transition (UC-DR03); never touched by an upsert']
   sent_by_membership_id integer
   recorded_by_membership_id integer
+=======
+>>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   created_at timestamp
   updated_at timestamp
 
   indexes {
+<<<<<<< HEAD
     (student_id, date) [unique, note: 'One entry per student per day (BR-DR01) — upserting again updates the row in place']
   }
 
   Note: 'Daily routine note (BC11, "Rotina Infantil"): snack, diaper/bathroom counts, and free-text notes for one child on one day. No discarded_at — rows are upserted in place, never soft-deleted. Sending (status: sent) notifies the student\'s linked guardians once (BR-DR05); editing after send does not revert status or re-notify.'
+=======
+    (incident_id)
+  }
+
+  Note: 'BR-IN11 snapshot of the guardians recorded on an incident ("ata") at save time — one row per guardian. Distinct from the live student_guardians association: editing or removing a student_guardians link later does not change an already-saved incident_guardians row, since the ata is a historical record, not a derived view.'
+>>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
 }
 
 // --- Documents & archive (008) ---

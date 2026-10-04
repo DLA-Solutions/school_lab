@@ -291,6 +291,9 @@ const ptBR = {
   'lessonPlans.admin.readOnlyHint':
     'Você pode ver os dias letivos, mas apenas quem administra as configurações da escola pode alterá-los.',
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.allLessonPlans': 'Planos de Aula — Todos',
   'allLessonPlans.noAccess.description':
     'Você não tem acesso aos planos de aula de todos os professores — esta tela é da coordenação.',
@@ -305,6 +308,7 @@ const ptBR = {
   'allLessonPlans.empty.description':
     'Nenhum professor enviou um plano de aula com esses filtros ainda.',
   'allLessonPlans.previewAria': 'Pré-visualizar plano de aula de {subject}',
+<<<<<<< HEAD
 =======
 
   'nav.dailyRoutine': 'Rotina Infantil',
@@ -337,6 +341,8 @@ const ptBR = {
   'dailyRoutine.status.sent': 'Enviado',
 
 >>>>>>> origin/main
+=======
+>>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.grades': 'Notas',
   'grades.loadError': 'Não foi possível carregar as notas.',
   'grades.optionsLoadError': 'Não foi possível carregar as turmas e matérias.',

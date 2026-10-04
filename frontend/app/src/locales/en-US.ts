@@ -287,6 +287,9 @@ const enUS: Messages = {
   'lessonPlans.admin.readOnlyHint':
     'You can see the instructional days, but only someone who manages the school settings can change them.',
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.allLessonPlans': 'Lesson Plans — All',
   'allLessonPlans.noAccess.description':
     'You do not have access to every teacher’s lesson plans — this screen is for coordination staff.',
@@ -300,6 +303,7 @@ const enUS: Messages = {
   'allLessonPlans.empty.title': 'No lesson plans found',
   'allLessonPlans.empty.description': 'No teacher has sent in a lesson plan matching these filters yet.',
   'allLessonPlans.previewAria': 'Preview lesson plan for {subject}',
+<<<<<<< HEAD
 =======
 
   'nav.dailyRoutine': 'Daily Routine',
@@ -332,6 +336,8 @@ const enUS: Messages = {
   'dailyRoutine.status.sent': 'Sent',
 
 >>>>>>> origin/main
+=======
+>>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.grades': 'Grades',
   'grades.loadError': 'Could not load the grades.',
   'grades.optionsLoadError': 'Could not load the classes and subjects.',
