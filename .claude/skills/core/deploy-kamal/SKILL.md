@@ -5,6 +5,8 @@ description: Deploy site, school SPA, backoffice SPA, or web API to staging or p
 
 # Deploy with Kamal
 
+**Default path:** GitHub Actions on `ubuntu-latest` runs `bin/deploy` after a push to `staging` or `main`, or via `workflow_dispatch` on those branches. This file is the local fallback when `.kamal/secrets*` already exist. It is not the default for every developer. Mechanics below are unchanged.
+
 Deploy one layer or the full stack to **staging** or **production**. Runbook: `docs/guidelines/process/deployment.md`. Guardrails: `.claude/rules/core/deployment.mdc`. First-time machine setup: skill `setup-deploy`.
 
 ## Workflow (end-to-end)

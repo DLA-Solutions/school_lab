@@ -1,55 +1,95 @@
 ---
 name: deploy-production
 description: >-
-  Deploy School Lab (site, school SPA, backoffice SPA, web API) to production
-  with Kamal 2 from branch main only, after a fast-forward of origin/staging.
-  Use when the user asks to deploy production, deploy prod, sobe produção,
-  kamal -d production, or publish to https://scholarpremium.com.br. Confirm
-  before running Kamal. Always finish with Discord notify_deploy. Do not move
-  Jira to Ready to QA. Shared Kamal mechanics live in skill deploy-kamal. Not
-  for staging (skill deploy-staging) or first-time machine setup (skill
-  setup-deploy).
+  Production CD is GitHub Actions on ubuntu-latest: a push to branch main runs
+  bin/deploy production after a fast-forward of origin/staging. Use when the
+  user asks to deploy production, deploy prod, sobe produção, or publish to
+  https://scholarpremium.com.br. Do not run Kamal on the developer machine.
+  Local bin/deploy production is the fallback only when .kamal/secrets* already
+  exist; it still enforces bin/require-deploy-branch. Confirm before that local
+  fallback. Shared Kamal mechanics live in skill deploy-kamal. Discord on the
+  workflow is best-effort. Do not move Jira to Ready to QA. Not for staging
+  (skill deploy-staging) or first-time machine setup (skill setup-deploy).
 ---
 
 # Deploy production
 
-Lock destination to **`-d production`**. Host: `https://scholarpremium.com.br` (and `www.` if configured).
+Host: `https://scholarpremium.com.br` (and `www.` if configured).
 
-Shared layers, CI, secrets, cutover, Discord payload, rollback: skill **`deploy-kamal`**. Read it before the first Kamal command. First-time machine: skill **`setup-deploy`**.
+**Default path:** a push to `main` deploys production. GitHub Actions on
+`ubuntu-latest` runs `bin/deploy` with Environment `production`. The job does
+not run tests. The app server `77.42.33.33` only receives the image.
 
-If staging is also requested, **finish skill `deploy-staging` first** (including Discord) before this skill.
-
-**Confirm with the user** before `kamal deploy -d production` unless they already gave an explicit go (e.g. “pode deployar produção”).
-
-```
-- [ ] 1. Confirm + promote main
-- [ ] 2. GHCR token
-- [ ] 3. Preflight + CI
-- [ ] 4. kamal deploy -d production
-- [ ] 5. Smoke (read-only)
-- [ ] 6. Discord notify_deploy
-```
-
-## 1. Promote `main`, then check branch
-
-Production SHA must be the SHA already on `origin/staging` (QA). Rule `deploy-environment-branches`.
+Promote with a local fast-forward, then push. That push is the deploy. Do not
+run `kamal` on the developer machine afterward.
 
 ```bash
 git fetch origin
 git checkout main
 git merge --ff-only origin/staging
 git push origin main
+```
+
+Refuse a merge commit, squash, or rebase-merge of `staging` → `main`. Do not
+push `main` when `origin/staging` has commits that have not been QA'd and the
+user did not ask to promote them.
+
+To redeploy without a new commit, use `workflow_dispatch` on ref `main`: layer
+`changed`, `all`, `site`, `frontend`, `backoffice`, or `web`. The migrate
+checkbox defaults to off. On a push, migrate runs only when the API layer
+deploys and `web/db/migrate` or `web/db/schema.rb` changed.
+
+Smoke on that run is a read-only GET. Discord notify is best-effort. Do not
+move Jira to Ready to QA.
+
+Secrets are created by a person in the GitHub UI before the workflow is merged.
+List: `docs/guidelines/process/deployment.md`. Do not use `GITHUB_TOKEN` as
+`KAMAL_REGISTRY_PASSWORD`. The production JWT is an Environment `production`
+secret, not a staging secret.
+
+If staging is also requested, that publish already happened on the push to
+`staging` (skill **`deploy-staging`**). Do not Kamal staging locally first.
+
+## Local fallback
+
+Use this only when `.kamal/secrets*` already exist and the user wants a deploy
+from this machine **instead of** the push. A fast-forward push to `main` already
+starts Actions — do not also run `bin/deploy` after that push.
+
+**Confirm** before `bin/deploy production` unless they already gave an explicit
+go (e.g. “pode deployar produção”). The script calls `bin/require-deploy-branch`.
+Shared mechanics: skill **`deploy-kamal`**. Do not re-derive them here.
+First-time machine: skill **`setup-deploy`**.
+
+```
+- [ ] 1. Check branch (do not push)
+- [ ] 2. GHCR token
+- [ ] 3. Preflight + CI
+- [ ] 4. bin/deploy production
+- [ ] 5. Smoke (read-only)
+- [ ] 6. Discord notify_deploy
+```
+
+## 1. Check branch
+
+`main` must already match `origin/main`, and that SHA must be the one QA'd on
+staging. Promoting is the default path above (fast-forward, then push). Do not
+push from this checklist.
+
+```bash
+git fetch origin
+git checkout main
 git pull origin main
 bin/require-deploy-branch production
 ```
 
 Refuse and stop when:
 
-- Fast-forward fails (branches diverged) — do not merge-commit, squash, or rebase-merge `staging` → `main`.
-- Current branch is `staging` or a feature branch — never `kamal deploy -d production` from those.
-- `origin/staging` has commits that have not been QA’d and the user did not ask to promote them.
+- Current branch is `staging` or a feature branch — never `bin/deploy production` from those.
+- `main` is not the QA'd SHA — go back to the default path and push; do not deploy locally and push.
+- The user did not confirm this local fallback.
 
-Hotfix exception (production broken, staging has unrelated work): branch from `main`, PR to `main`, deploy, then merge `main` into `staging`. Do not invent this path.
+Hotfix exception (production broken, staging has unrelated work): branch from `main`, PR to `main`. The merge publishes production. Then merge `main` into `staging`. Do not invent this path.
 
 Default layer is **all four** unless the user names one (`site`, `frontend`, `backoffice`, `web`).
 
@@ -80,16 +120,19 @@ Essential CI for every layer you will deploy (skill `deploy-kamal` table). Stop 
 
 ## 4. Deploy
 
-From each service directory, **always** `-d production`:
+From the repo root, after the branch check in step 1. This still enforces
+`bin/require-deploy-branch`:
 
 ```bash
-cd site                && kamal deploy -d production
-cd frontend/app        && kamal deploy -d production
-cd frontend/backoffice && kamal deploy -d production
-cd web                 && kamal deploy -d production
+bin/deploy production
+bin/deploy production web    # optional: site, frontend, backoffice, or web
 ```
 
-Routine order: site → school SPA → backoffice SPA → API. Use `bin/kamal` when present. First time only: `kamal setup -d production`. Schema change: `cd web && kamal app exec -d production "bin/rails db:migrate"`.
+Order inside the script: site → school SPA → backoffice SPA → API. It stops at
+the first failure. First-time host bootstrap only: `kamal setup -d production`
+from the service directory (skill `deploy-kamal`). Schema migrate on this
+fallback follows the same rule as a push: API layer included and
+`web/db/migrate` or `web/db/schema.rb` changed.
 
 On Kamal failure: skip smoke; go to Discord with `status: failure`. Cutover/proxy errors: `deploy-kamal` § Cutover and [`../deploy-kamal/troubleshooting.md`](../deploy-kamal/troubleshooting.md).
 
@@ -121,5 +164,5 @@ Mandatory last step — success **or** failure. `deploy-kamal` § Discord notify
 - Deploy production from `staging` or a feature branch.
 - Promote `staging` → `main` with a GitHub squash/rebase/merge commit.
 - Move Jira to Ready to QA (QA already happened on staging).
-- Skip `notify_deploy`.
+- Skip `notify_deploy` on this local fallback. The Actions path notifies on its own (best-effort).
 - Print PATs, webhook URLs, or `.kamal/` secret values.
