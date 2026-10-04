@@ -24,6 +24,7 @@ class Teacher < ApplicationRecord
   # Stable self-reported health facts (BC6) — one standing record, not a history. Mirrors
   # Student#health_profile.
   has_one :health_profile, class_name: "TeacherHealthProfile", dependent: :destroy
+  has_many :daily_routines, foreign_key: :author_id, inverse_of: :author, dependent: :restrict_with_exception
 
   ADDRESS_FIELDS = %i[zip_code street number complement neighborhood city state].freeze
 

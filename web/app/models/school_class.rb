@@ -16,6 +16,9 @@ class SchoolClass < ApplicationRecord
     *(6..9).map { |year| "fundamental_ii_#{year}" }
   ].freeze
 
+  # Early-childhood grades that receive a daily routine. The first five keys of GRADE_LEVELS.
+  INFANTIL_GRADE_LEVELS = GRADE_LEVELS.grep(/\Ainfantil_/).freeze
+
   # When the cohort is taught. Two groups with the same letter in the same grade and year are
   # told apart by this, so it is part of what makes a cohort unique rather than a label on it.
   SHIFTS = %w[matutino vespertino].freeze
@@ -31,6 +34,7 @@ class SchoolClass < ApplicationRecord
   has_many :evaluation_templates, dependent: :destroy
   has_many :grade_launches, dependent: :destroy
   has_many :attendance_sessions, dependent: :destroy
+  has_many :daily_routines, dependent: :restrict_with_exception
 
   # "A", "a" and " A " all name the same cohort. Folded on the way in so the register holds one
   # spelling, and compared case-insensitively so the older spellings cannot slip past either.
@@ -99,6 +103,10 @@ class SchoolClass < ApplicationRecord
   # instead of silently heading it.
   def curricular_position
     GRADE_LEVELS.index(grade_level) || GRADE_LEVELS.size
+  end
+
+  def infantil?
+    INFANTIL_GRADE_LEVELS.include?(grade_level)
   end
 
   # Everything that names the cohort: "Ensino Fundamental I — 5º ano A · Matutino — 2026".

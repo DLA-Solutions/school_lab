@@ -13,6 +13,10 @@ class Membership < ApplicationRecord
   has_one :staff_profile, dependent: :destroy
   has_many :membership_permissions, dependent: :destroy
   has_many :membership_invite_tokens, dependent: :destroy
+  has_many :sent_messages, class_name: "Message", foreign_key: :sender_membership_id,
+                           inverse_of: :sender_membership, dependent: :restrict_with_exception
+  has_many :communication_attachments, foreign_key: :uploaded_by_membership_id,
+                                       inverse_of: :uploaded_by_membership, dependent: :restrict_with_exception
 
   validates :role, inclusion: { in: ROLES }
   validates :status, inclusion: { in: STATUSES }

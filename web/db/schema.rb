@@ -10,11 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_04_035413) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "vector"
 
   create_table "academic_periods", force: :cascade do |t|
     t.jsonb "attendance_policy_override"
@@ -286,6 +285,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
     t.index ["school_id"], name: "index_collection_reminder_deliveries_on_school_id"
   end
 
+  create_table "communication_attachments", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "daily_routine_id"
+    t.bigint "message_id"
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "uploaded_by_membership_id", null: false
+    t.index ["daily_routine_id"], name: "index_communication_attachments_on_daily_routine_id"
+    t.index ["message_id"], name: "index_communication_attachments_on_message_id"
+    t.index ["school_id", "uploaded_by_membership_id"], name: "index_communication_attachments_on_school_and_uploader"
+    t.index ["school_id"], name: "index_communication_attachments_on_school_id"
+    t.index ["uploaded_by_membership_id"], name: "index_communication_attachments_on_uploaded_by_membership_id"
+    t.check_constraint "message_id IS NULL OR daily_routine_id IS NULL", name: "communication_attachments_single_owner"
+  end
+
   create_table "contract_templates", force: :cascade do |t|
     t.text "body_html", null: false
     t.string "copy_emails", default: [], null: false, array: true
@@ -330,6 +344,62 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
     t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying, 'cancelled'::character varying]::text[])", name: "contracts_signature_status_valid"
+  end
+
+  create_table "conversations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.datetime "last_message_at"
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "last_message_at"], name: "index_conversations_on_school_id_and_last_message_at"
+    t.index ["school_id", "student_id"], name: "index_conversations_on_school_id_and_student_id_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id"], name: "index_conversations_on_school_id"
+    t.index ["student_id"], name: "index_conversations_on_student_id"
+  end
+
+  create_table "daily_routines", force: :cascade do |t|
+    t.bigint "author_id", null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.string "discomfort"
+    t.text "discomfort_detail"
+    t.string "evacuation"
+    t.string "interaction"
+    t.string "meal_afternoon_snack"
+    t.string "meal_breakfast"
+    t.string "meal_dinner"
+    t.string "meal_hydration"
+    t.string "meal_lunch"
+    t.text "narrative"
+    t.bigint "school_class_id", null: false
+    t.bigint "school_id", null: false
+    t.datetime "sent_at"
+    t.string "sleep_after_lunch"
+    t.string "sleep_afternoon"
+    t.string "sleep_morning"
+    t.string "status", default: "draft", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_daily_routines_on_author_id"
+    t.index ["school_class_id"], name: "index_daily_routines_on_school_class_id"
+    t.index ["school_id", "school_class_id", "date"], name: "index_daily_routines_on_school_id_and_school_class_id_and_date"
+    t.index ["school_id", "student_id", "date"], name: "index_daily_routines_on_school_student_date", unique: true
+    t.index ["school_id"], name: "index_daily_routines_on_school_id"
+    t.index ["student_id"], name: "index_daily_routines_on_student_id"
+    t.check_constraint "discomfort IS NULL OR (discomfort::text = ANY (ARRAY['yes'::character varying, 'no'::character varying]::text[]))", name: "daily_routines_discomfort_values"
+    t.check_constraint "evacuation IS NULL OR (evacuation::text = ANY (ARRAY['yes'::character varying, 'no'::character varying]::text[]))", name: "daily_routines_evacuation_values"
+    t.check_constraint "interaction IS NULL OR (interaction::text = ANY (ARRAY['yes'::character varying, 'no'::character varying]::text[]))", name: "daily_routines_interaction_values"
+    t.check_constraint "meal_afternoon_snack IS NULL OR (meal_afternoon_snack::text = ANY (ARRAY['great'::character varying, 'regular'::character varying, 'refused'::character varying]::text[]))", name: "daily_routines_meal_afternoon_snack_values"
+    t.check_constraint "meal_breakfast IS NULL OR (meal_breakfast::text = ANY (ARRAY['great'::character varying, 'regular'::character varying, 'refused'::character varying]::text[]))", name: "daily_routines_meal_breakfast_values"
+    t.check_constraint "meal_dinner IS NULL OR (meal_dinner::text = ANY (ARRAY['great'::character varying, 'regular'::character varying, 'refused'::character varying]::text[]))", name: "daily_routines_meal_dinner_values"
+    t.check_constraint "meal_hydration IS NULL OR (meal_hydration::text = ANY (ARRAY['great'::character varying, 'regular'::character varying, 'refused'::character varying]::text[]))", name: "daily_routines_meal_hydration_values"
+    t.check_constraint "meal_lunch IS NULL OR (meal_lunch::text = ANY (ARRAY['great'::character varying, 'regular'::character varying, 'refused'::character varying]::text[]))", name: "daily_routines_meal_lunch_values"
+    t.check_constraint "sleep_after_lunch IS NULL OR (sleep_after_lunch::text = ANY (ARRAY['yes'::character varying, 'no'::character varying]::text[]))", name: "daily_routines_sleep_after_lunch_values"
+    t.check_constraint "sleep_afternoon IS NULL OR (sleep_afternoon::text = ANY (ARRAY['yes'::character varying, 'no'::character varying]::text[]))", name: "daily_routines_sleep_afternoon_values"
+    t.check_constraint "sleep_morning IS NULL OR (sleep_morning::text = ANY (ARRAY['yes'::character varying, 'no'::character varying]::text[]))", name: "daily_routines_sleep_morning_values"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'sent'::character varying]::text[])", name: "daily_routines_status"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -690,6 +760,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
     t.index ["suspended_by_id"], name: "index_memberships_on_suspended_by_id"
     t.index ["user_id", "school_id"], name: "index_memberships_on_user_id_and_school_id_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["user_id"], name: "index_memberships_on_user_id"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.text "body"
+    t.string "client_request_id"
+    t.bigint "conversation_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "daily_routine_id"
+    t.string "kind", default: "text", null: false
+    t.bigint "school_id", null: false
+    t.bigint "sender_membership_id", null: false
+    t.datetime "sent_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_id", "client_request_id"], name: "index_messages_on_conversation_and_client_request_id", unique: true, where: "(client_request_id IS NOT NULL)"
+    t.index ["conversation_id", "sent_at"], name: "index_messages_on_conversation_id_and_sent_at"
+    t.index ["conversation_id"], name: "index_messages_on_conversation_id"
+    t.index ["daily_routine_id"], name: "index_messages_on_daily_routine_id_unique", unique: true, where: "(daily_routine_id IS NOT NULL)"
+    t.index ["school_id"], name: "index_messages_on_school_id"
+    t.index ["sender_membership_id"], name: "index_messages_on_sender_membership_id"
+    t.check_constraint "kind::text = ANY (ARRAY['text'::character varying, 'routine'::character varying]::text[])", name: "messages_kind"
   end
 
   create_table "notification_deliveries", force: :cascade do |t|
@@ -1811,6 +1901,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
   add_foreign_key "class_disciplines", "teachers"
   add_foreign_key "collection_reminder_deliveries", "charges"
   add_foreign_key "collection_reminder_deliveries", "schools"
+  add_foreign_key "communication_attachments", "daily_routines"
+  add_foreign_key "communication_attachments", "memberships", column: "uploaded_by_membership_id"
+  add_foreign_key "communication_attachments", "messages"
+  add_foreign_key "communication_attachments", "schools"
   add_foreign_key "contract_templates", "schools"
   add_foreign_key "contract_templates", "users", column: "updated_by_id"
   add_foreign_key "contracts", "billing_plans"
@@ -1818,6 +1912,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
   add_foreign_key "contracts", "plan_discounts"
   add_foreign_key "contracts", "schools"
   add_foreign_key "contracts", "students"
+  add_foreign_key "conversations", "schools"
+  add_foreign_key "conversations", "students"
+  add_foreign_key "daily_routines", "school_classes"
+  add_foreign_key "daily_routines", "schools"
+  add_foreign_key "daily_routines", "students"
+  add_foreign_key "daily_routines", "teachers", column: "author_id"
   add_foreign_key "device_tokens", "users"
   add_foreign_key "document_signatories", "schools"
   add_foreign_key "documents", "schools"
@@ -1879,6 +1979,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
   add_foreign_key "memberships", "schools"
   add_foreign_key "memberships", "users"
   add_foreign_key "memberships", "users", column: "suspended_by_id"
+  add_foreign_key "messages", "conversations"
+  add_foreign_key "messages", "daily_routines"
+  add_foreign_key "messages", "memberships", column: "sender_membership_id"
+  add_foreign_key "messages", "schools"
   add_foreign_key "notification_deliveries", "notification_intents"
   add_foreign_key "notification_deliveries", "schools"
   add_foreign_key "notification_deliveries", "users"
