@@ -55,8 +55,8 @@ customer-facing HTML, metadata, or manifests.
 
 ## Deploy
 
-Kamal/nginx configs live in `site/config/`. Build output goes to `dist/`; the Docker image copies
-`site/dist` into nginx. Deploy with Kamal 2 from this directory — see
+Kamal/nginx configs live in `site/config/`. The Docker image builds `dist/` inside a Node
+stage and copies that output into nginx. Deploy with Kamal 2 from this directory — see
 `docs/guidelines/process/deployment.md` for the four-service topology and deploy order
 (site → school SPA → backoffice SPA → API).
 
