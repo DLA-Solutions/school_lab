@@ -116,6 +116,43 @@ not change `status`. A staff member who creates the incident still must separate
 `POST .../approve` to fill their own slot if their role template qualifies; creating does not imply
 approving `[product decision]`.
 
+BR-IN10 *(coordination list filter — confirmed 2026-10-04)*
+
+`GET /incidents` already returns every school incident for `manage_academic` staff and only the
+teacher's own for a `teacher`-role membership (BR-IN03's `policy_scope`, unchanged). This adds a
+`reported_by_membership_id` filter param on top of that scope so `manage_academic` staff can narrow
+the already-schoolwide list to one author — including their own `membership_id` as a "minhas atas"
+shortcut — without changing who is authorized to see what. For a `teacher`-role requester the param
+has no effect: their result is already their own incidents only, same defensive pattern as
+`lesson-plans.md`'s `teacher_id` filter (a filter narrows what an already-authorized caller sees; it
+never widens or substitutes for `policy_scope`).
+
+BR-IN11 *(guardian snapshot on the ata — confirmed 2026-10-04)*
+
+When creating (or editing, per BR-IN05) an incident, the creator may search for the student by the
+student's own name, **or** by a linked guardian's name (father/mother/other) — guardian name search
+resolves to that guardian's children, to find the right student when only a parent's name is known
+(reuses the existing guardian search used elsewhere, e.g. the billing payer picker). Selecting a
+student pre-fills the set of guardians to record on the incident from that student's *current*
+`student_guardians` (father + mother + any `other` rows); the creator may add or remove individual
+guardians from that set before saving (e.g. add a non-default `other` guardian found via search, or
+drop one who should not be named in this particular ata).
+
+The selected set is **snapshotted** onto the incident as `incident_guardians` — one row per
+guardian, capturing `guardian_id` (nullable: a later guardian deletion nullifies rather than
+cascades) plus a **denormalized `name` and `relationship`** taken at save time — not derived live
+from the student's `student_guardians` the way `IncidentBlueprint#guardian_names` does today. Once
+saved, an incident's recorded guardians do not change if the family's guardian links are edited or
+removed later; the ata is the historical record of who was on file for that incident
+`[product decision]` — coordination needs the printed/PDF ata to keep showing the same names it
+showed on the day it was recorded, not whoever is currently linked to the student.
+
+Existing incidents created before this rule shipped have no `incident_guardians` rows; a one-time
+migration backfills each from that incident's student's `student_guardians` *at migration time*, so
+already-recorded atas are not left without guardian names. This backfill is itself a snapshot (it
+freezes whatever was linked at migration time) — it is not kept in sync afterward, same as every
+other incident's `incident_guardians`.
+
 ---
 
 ## Use Cases
@@ -164,11 +201,54 @@ Flow
 3. Emit `IncidentCreated` → `NotificationIntent` fan-out to resolved targets. Never includes
    teacher memberships as targets.
 
+### UC-IN05 — List a school's incidents, filtered by author (coordination)
+
+Input: optional `reported_by_membership_id` (plus existing filters, e.g. `student_id`).
+
+Flow
+
+1. `manage_academic` staff reads across every incident in the school (BR-IN03's existing scope,
+   unchanged).
+2. If `reported_by_membership_id` is present, narrow to that author — the requester's own
+   `membership_id` is the "minhas atas" case, any other staff/teacher membership id shows that
+   person's atas (BR-IN10).
+3. For a `teacher`-role requester, `reported_by_membership_id` is accepted but has no effect — their
+   result is already scoped to their own incidents only.
+
+### UC-IN06 — Search by guardian or student name when recording an incident (BR-IN11)
+
+Input: free-text search term (matched against student names and/or guardian names), then a chosen
+`student_id` and a set of `guardian_id`s to record.
+
+Flow
+
+1. Search resolves candidates by student name directly, or by guardian name → that guardian's
+   children (reuses the existing guardian/student search endpoints — no new search endpoint).
+2. On picking a student, pre-fill the guardian set from that student's current `student_guardians`
+   (father, mother, any `other`); the creator may add/remove individual guardians from this set
+   before saving.
+3. On save, persist the chosen set as `incident_guardians` rows (`guardian_id` + snapshotted `name`
+   + `relationship`) — a point-in-time record, not a live association (BR-IN11).
+
 ---
 
 ## API
 
+### GET /api/v1/schools/:school_id/incidents?student_id=&reported_by_membership_id=
+
+UC-IN05 — existing list, `reported_by_membership_id` is the new filter (BR-IN10); scope unchanged.
+
 ### POST /api/v1/schools/:school_id/incidents
+
+Request now also accepts `guardian_ids: [...]` (UC-IN06, BR-IN11) — the set of guardians to
+snapshot as `incident_guardians`; omitted means "use the student's current guardians at save time"
+(the same default the form pre-fills, so a client that never touches the field still gets sane
+behavior).
+
+### PATCH /api/v1/schools/:school_id/incidents/:id
+
+Same `guardian_ids` handling as create, per BR-IN05's "audited on edit" — editing an incident may
+also re-snapshot its guardians (replaces the prior `incident_guardians` set, does not merge).
 
 ### GET /api/v1/schools/:school_id/me/students/:student_id/incidents
 
@@ -178,6 +258,11 @@ Guardian visible only.
 
 UC-IN03 — fills whichever of the two approval slots (BR-IN08) matches the requester's role
 template.
+
+No new search endpoint for UC-IN06 — reuses the existing guardian search
+(`GET /api/v1/schools/:school_id/people/guardians?q=`) and student search
+(`GET /api/v1/schools/:school_id/people/students?q=&guardian_id=`) already used elsewhere (e.g. the
+billing payer picker, the incident form's own student field).
 
 ---
 
@@ -194,7 +279,9 @@ template.
 
 Expected entity groups: `incident_types`, `incidents` (carries the two BR-IN08 approval slots
 directly — no separate approvals table, since there are always exactly two fixed slots, not an
-arbitrary list), `incident_attachments`.
+arbitrary list), `incident_attachments`, `incident_guardians` *(new, BR-IN11 — one row per guardian
+snapshotted on an incident: nullable `guardian_id` FK (nullify on guardian destroy), denormalized
+`name`, denormalized `relationship`, `incident_id` FK)*.
 
 ---
 
@@ -267,6 +354,33 @@ AC-IN06 *(creation notification)*
 - [ ] Given a `director`-templated membership creates an incident, When the incident is saved, Then
       only `coordination`-templated staff are notified (not the creator, not teachers).
 - Source: BR-IN09
+
+AC-IN07 *(coordination list filter)*
+
+- [ ] Given a `manage_academic` staff member, When they list incidents with
+      `reported_by_membership_id` set to their own membership, Then only incidents they personally
+      created are returned.
+- [ ] Given the same staff member, When they set `reported_by_membership_id` to another staff or
+      teacher membership, Then only that person's incidents are returned.
+- [ ] Given a `teacher`-role requester, When they list incidents with any
+      `reported_by_membership_id` value, Then the result is unchanged from their normal
+      teacher-scoped list (the filter has no effect — BR-IN10).
+- Source: BR-IN10
+
+AC-IN08 *(guardian snapshot)*
+
+- [ ] Given a student with a mother and father on file, When staff creates an incident for that
+      student without touching the guardian field, Then `incident_guardians` is saved with both,
+      each with `name`/`relationship` matching the student's `student_guardians` at that moment.
+- [ ] Given staff searches by a guardian's name instead of the student's name, When a matching
+      guardian is selected, Then the student picker narrows to that guardian's children.
+- [ ] Given an incident already saved with its guardian snapshot, When the family's
+      `student_guardians` links later change (e.g. a guardian is removed or reassigned), Then the
+      incident's `incident_guardians` rows and displayed names are unchanged.
+- [ ] Given incidents that existed before this feature shipped, When the backfill migration runs,
+      Then each gets `incident_guardians` rows matching its student's `student_guardians` as they
+      stood at migration time.
+- Source: BR-IN11
 
 ---
 
