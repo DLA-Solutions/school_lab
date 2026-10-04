@@ -1963,7 +1963,21 @@ export const handlers = [
     }
 
     const body = (await request.json()) as {
-      lesson_plan: { school_class_id: number; subject_id: number; date: string; content: string };
+      lesson_plan: {
+        school_class_id: number;
+        subject_id: number;
+        date: string;
+        duration?: string;
+        unit_stage?: string;
+        topic?: string;
+        general_objective?: string;
+        specific_objectives?: string;
+        bncc_competencies?: string;
+        other_competencies?: string;
+        resources_materials?: string;
+        assessment_types?: string[];
+        assessment_formats?: string[];
+      };
     };
 
     return HttpResponse.json({
@@ -1971,10 +1985,29 @@ export const handlers = [
         id: 1,
         school_id: SCHOOL_ID,
         class_discipline_id: 1,
+        assessment_types: [],
+        assessment_formats: [],
         ...body.lesson_plan,
       },
     });
   }),
+
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/academics/lesson_plans/:id/pdf'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return new HttpResponse(new Blob(['%PDF-1.4'], { type: 'application/pdf' }), {
+        headers: { 'Content-Type': 'application/pdf' },
+      });
+    },
+  ),
 
   /* ----------------------------------------- instructional days admin (BR-SY10) ---------------- */
 

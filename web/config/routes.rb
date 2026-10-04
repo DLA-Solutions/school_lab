@@ -212,7 +212,11 @@ Rails.application.routes.draw do
             # Deliberately bare `PUT /lesson_plans` (no `:id`): the API table specifies an
             # upsert-by-body-attributes endpoint — `school_class_id` + `subject_id` + `date`
             # resolve the target (BR-LP04), not a URL id.
-            resources :lesson_plans, only: %i[index show]
+            resources :lesson_plans, only: %i[index show] do
+              member do
+                get :pdf
+              end
+            end
             put "lesson_plans", to: "lesson_plans#upsert"
 
             # "Ata" (BC7) — the staff side: a teacher writes about their own classes,
