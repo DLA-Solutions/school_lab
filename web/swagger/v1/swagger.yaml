@@ -2453,6 +2453,61 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/academics/lesson_plans/{id}/pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "The lesson plan as a PDF, for its teacher or manage_academic staff",
+        "tags": [
+          "LessonPlans",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "the assigned teacher previews their own plan"
+          },
+          "403": {
+            "description": "a teacher not assigned to this class_discipline"
+          },
+          "404": {
+            "description": "cross-school lesson plan"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/academics/me/teacher_health_profile": {
       "parameters": [
         {
