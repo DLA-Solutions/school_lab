@@ -1635,6 +1635,47 @@ Table preceptorship_reports {
   }
 }
 
+Table lesson_plans {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  class_discipline_id integer [not null]
+  date date [not null]
+  duration varchar [note: 'Free text, e.g. "50 minutos" — not a structured numeric/unit pair (BR-LP07 [product decision])']
+  unit_stage varchar
+  topic varchar
+  general_objective text
+  specific_objectives text
+  bncc_competencies text [note: 'Free text, not validated against a catalog — no BNCC code catalog exists yet (BR-LP07 [product decision])']
+  other_competencies text
+  resources_materials text
+  assessment_types varchar[] [not null, default: '{}', note: 'Allowed values enforced at the model level: diagnostic | formative | summative']
+  assessment_formats varchar[] [not null, default: '{}', note: 'Allowed values enforced at the model level: observation | exercises | participation | written_production | oral_presentation | practical_activity | test']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (class_discipline_id, date) [unique, note: 'One plan per class_discipline/day (BR-LP04) — submitting again updates the row in place']
+  }
+
+  Note: 'Teacher plano de aula (BC10). All BR-LP07 template fields are optional — only class_discipline_id/date (which resolve professor/disciplina/turma/data) are required to save a plan. No status, no submission/approval workflow in this version (BR-LP05).'
+}
+
+Table school_instructional_days {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  school_year_id integer [not null]
+  date date [not null]
+  instructional boolean [not null]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_year_id, date) [unique, note: 'One explicit instructional/non-instructional mark per calendar day per school year']
+  }
+
+  Note: 'BR-SY10 (school-year.md) — which calendar days are instructional, marked explicitly day by day by an admin (not derived from school_holidays by exclusion). A date with no row here is "undecided" and is treated as non-instructional by consumers (e.g. lesson_plans BR-LP03) — never guessed as instructional.'
+}
+
 Table incident_types {
   id integer [primary key, increment]
   school_id integer [not null]
@@ -1684,6 +1725,29 @@ Table incidents {
   }
 
   Note: 'Occurrence record (BC7, product label "Ata"). No discarded_at — BR-IN05 "no hard delete" is expressed entirely through status (archived), not Discard. No occurred_on: UC-IN01 lists no distinct "when it happened" input, so the record date is created_at; a separate event-date field is an open item (docs/open-questions.md), not guessed into the schema. Attachments use has_many_attached :attachments directly on the model (Active Storage, same pattern as student_health_records.document and authorized_pickups.photo) — no separate incident_attachments table, since Active Storage already is this repo\'s one attachment mechanism.'
+}
+
+Table daily_routine_entries {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  date date [not null]
+  snack_eaten boolean [note: 'null means not yet recorded, distinct from "recorded as not eaten" (false) — BR-DR03 [product decision]']
+  poop_count integer [not null, default: 0]
+  pee_count integer [not null, default: 0]
+  notes text [note: 'LGPD: child-sensitive diaper/toileting content, same NFR-002 scope as incidents.description']
+  status varchar [not null, default: 'draft', note: 'draft | sent — plain two-state flag (BR-DR04), not AASM']
+  sent_at timestamp [note: 'Set on the draft -> sent transition (UC-DR03); never touched by an upsert']
+  sent_by_membership_id integer
+  recorded_by_membership_id integer
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (student_id, date) [unique, note: 'One entry per student per day (BR-DR01) — upserting again updates the row in place']
+  }
+
+  Note: 'Daily routine note (BC11, "Rotina Infantil"): snack, diaper/bathroom counts, and free-text notes for one child on one day. No discarded_at — rows are upserted in place, never soft-deleted. Sending (status: sent) notifies the student\'s linked guardians once (BR-DR05); editing after send does not revert status or re-notify.'
 }
 
 // --- Documents & archive (008) ---
@@ -1800,6 +1864,8 @@ Ref: academic_periods.school_year_id > school_years.id
 Ref: academic_periods.school_id > schools.id
 Ref: school_holidays.school_id > schools.id
 Ref: school_holidays.school_year_id > school_years.id
+Ref: school_instructional_days.school_id > schools.id
+Ref: school_instructional_days.school_year_id > school_years.id
 Ref: calendar_events.school_id > schools.id
 Ref: calendar_events.school_year_id > school_years.id
 Ref: calendar_events.user_id > users.id
@@ -1918,10 +1984,16 @@ Ref: preceptorship_reports.student_id > students.id
 Ref: preceptorship_reports.teacher_id > teachers.id
 Ref: preceptorship_reports.academic_period_id > academic_periods.id
 Ref: preceptorship_reports.author_id > users.id
+Ref: lesson_plans.school_id > schools.id
+Ref: lesson_plans.class_discipline_id > class_disciplines.id
 Ref: incident_types.school_id > schools.id
 Ref: incidents.school_id > schools.id
 Ref: incidents.student_id > students.id
 Ref: incidents.incident_type_id > incident_types.id
+Ref: daily_routine_entries.school_id > schools.id
+Ref: daily_routine_entries.student_id > students.id
+Ref: daily_routine_entries.sent_by_membership_id > memberships.id
+Ref: daily_routine_entries.recorded_by_membership_id > memberships.id
 Ref: incidents.reported_by_membership_id > memberships.id
 Ref: incidents.coordination_approved_by_membership_id > memberships.id
 Ref: incidents.director_approved_by_membership_id > memberships.id

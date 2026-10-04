@@ -5,6 +5,9 @@ FactoryBot.define do
     class_discipline
     school { class_discipline.school }
     date { Date.current }
-    content { "Introdução a frações — exercícios 1 a 5 do livro." }
+    topic { "Introdução a frações" }
+    general_objective { "Compreender o conceito de fração como parte de um todo." }
+    assessment_types { [ "formative" ] }
+    assessment_formats { [ "exercises", "participation" ] }
   end
 end

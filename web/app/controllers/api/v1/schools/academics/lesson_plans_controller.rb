@@ -4,10 +4,16 @@ module Api
   module V1
     module Schools
       module Academics
-        # A teacher's free-text plan for one class_discipline on one calendar day (BR-LP01). No
-        # status, no submission/approval workflow (BR-LP05) — `upsert` is immediate create-or-
-        # update by `(class_discipline_id, date)` (BR-LP04).
+        # A teacher's structured plan (BR-LP07) for one class_discipline on one calendar day
+        # (BR-LP01). No status, no submission/approval workflow (BR-LP05) — `upsert` is immediate
+        # create-or-update by `(class_discipline_id, date)` (BR-LP04).
         class LessonPlansController < BaseController
+          # BR-LP07 template fields — all optional (AC-LP05).
+          TEMPLATE_PARAM_KEYS = %i[
+            duration unit_stage topic general_objective specific_objectives bncc_competencies
+            other_competencies resources_materials assessment_types assessment_formats
+          ].freeze
+
           before_action :set_school_context!
 
           def index
@@ -42,11 +48,30 @@ module Api
             result = ::LessonPlans::UpsertLessonPlanService.call(
               class_discipline: class_discipline,
               date: lesson_plan_params[:date],
-              content: lesson_plan_params[:content]
+              attributes: lesson_plan_params.slice(*TEMPLATE_PARAM_KEYS)
             )
             render_service_result(result) do |plan|
               render json: { data: LessonPlanBlueprint.render_as_hash(plan) }
             end
+          end
+
+          # Deliberately tenant-scoped only (not `policy_scope`, which LessonPlanPolicy::Scope
+          # already narrows to a teacher's own class_disciplines) -- `authorize ..., :show?` is
+          # what must decide access here, so a teacher not assigned to this class_discipline gets
+          # the `403` AC-LP06 calls for, not a `404` that would hide the plan's existence instead.
+          def pdf
+            lesson_plan = LessonPlan.where(school_id: Current.school.id).find(params[:id])
+            authorize lesson_plan, :show?
+
+            result = ::Academic::RenderLessonPlanPdfService.call(lesson_plan: lesson_plan)
+            if result.failure?
+              return render_error(result.error_code, status: :unprocessable_content, details: result.details)
+            end
+
+            send_data result.data.fetch(:pdf),
+                      filename: result.data.fetch(:filename),
+                      type: "application/pdf",
+                      disposition: "inline"
           end
 
           private
@@ -67,7 +92,12 @@ module Api
           end
 
           def lesson_plan_params
-            params.require(:lesson_plan).permit(:school_class_id, :subject_id, :date, :content)
+            params.require(:lesson_plan).permit(
+              :school_class_id, :subject_id, :date,
+              :duration, :unit_stage, :topic, :general_objective, :specific_objectives,
+              :bncc_competencies, :other_competencies, :resources_materials,
+              assessment_types: [], assessment_formats: []
+            )
           end
 
           def filter_by_class_or_subject?

@@ -75,6 +75,9 @@ pt-BR:
       incident_created:
         title: "Ocorrência aguardando análise"
         body: "Uma nova ocorrência sobre %{student} precisa da sua análise."
+      daily_routine_sent:
+        title: "Rotina do dia disponível"
+        body: "A rotina de %{student} já está disponível."
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."
@@ -107,6 +110,34 @@ pt-BR:
         pending_approval: "Pendente de aprovação"
         approved: "Aprovado"
         archived: "Arquivado"
+    lesson_plan:
+      title: "Plano de Aula"
+      teacher: "Professor(a)"
+      subject: "Disciplina"
+      school_class: "Turma"
+      date: "Data"
+      duration: "Duração"
+      unit_stage: "Unidade/Etapa"
+      topic: "Tema da Aula"
+      general_objective: "Objetivo geral"
+      specific_objectives: "Objetivos específicos"
+      bncc_competencies: "Competências e habilidades (Código BNCC)"
+      other_competencies: "Outras competências"
+      resources_materials: "Recursos, Materiais e estratégias metodológicas"
+      assessment_types: "Tipo de avaliação"
+      assessment_formats: "Formato de avaliação"
+      assessment_types_values:
+        diagnostic: "Diagnóstica"
+        formative: "Formativa"
+        summative: "Somativa"
+      assessment_formats_values:
+        observation: "Observação"
+        exercises: "Exercícios"
+        participation: "Participação"
+        written_production: "Produção escrita"
+        oral_presentation: "Apresentação oral"
+        practical_activity: "Atividade prática"
+        test: "Prova"
     report_card:
       title: "Boletim escolar"
       student: "Estudante"
@@ -134,6 +165,7 @@ pt-BR:
       not_your_student: "Você não leciona para a turma deste estudante."
       report_unsupported_characters: "O relatório traz caracteres que a fonte do PDF não desenha. Verifique os nomes cadastrados."
       incident_pdf_unsupported_characters: "A ata contém caracteres que a fonte do PDF não desenha. Verifique o texto cadastrado."
+      lesson_plan_pdf_unsupported_characters: "O plano de aula contém caracteres que a fonte do PDF não desenha. Verifique o texto cadastrado."
       invalid_reset_token: "Este link expirou ou já foi usado. Peça um novo."
       invalid_credentials: "E-mail ou senha inválidos."
       invalid_oauth_token: "Token de login do Google inválido."

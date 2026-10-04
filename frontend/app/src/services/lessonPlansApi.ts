@@ -1,6 +1,6 @@
 import { Paginated } from 'types/academics';
 import { ClassInstructionalDays, LessonPlan, LessonPlanUpsertPayload } from 'types/lessonPlans';
-import { request } from './api';
+import { request, requestBlob } from './api';
 
 const base = (schoolId: number) => `/api/v1/schools/${schoolId}/academics`;
 
@@ -66,3 +66,12 @@ export const upsertLessonPlan = async (
 
   return response.data;
 };
+
+/**
+ * GET .../lesson_plans/:id/pdf — UC-LP05/BR-LP08: the BR-LP07 template fields plus the resolved
+ * teacher/subject/class/date, rendered inline (`Academic::RenderLessonPlanPdfService`). `403` when
+ * the requester is not this `class_discipline`'s teacher and not `manage_academic` staff
+ * (BR-LP02, AC-LP06).
+ */
+export const fetchLessonPlanPdf = (schoolId: number, id: number): Promise<Blob> =>
+  requestBlob(`${base(schoolId)}/lesson_plans/${id}/pdf`);
