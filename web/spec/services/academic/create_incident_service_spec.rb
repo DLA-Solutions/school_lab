@@ -12,7 +12,7 @@ RSpec.describe Academic::CreateIncidentService do
       school: school, student: student, reported_by_membership: membership,
       incident_type_id: incident_type_id, description: description,
       guardian_points_raised: guardian_points_raised, school_response: school_response,
-      visibility: visibility
+      visibility: visibility, guardian_ids: guardian_ids
     )
   end
 
@@ -21,6 +21,7 @@ RSpec.describe Academic::CreateIncidentService do
   let(:guardian_points_raised) { nil }
   let(:school_response) { nil }
   let(:visibility) { nil }
+  let(:guardian_ids) { nil }
 
   context "when no incident_type_id is given" do
     it "lazily provisions the default guardian-meeting type and uses it (BR-IN01)" do
@@ -172,6 +173,82 @@ RSpec.describe Academic::CreateIncidentService do
         expect { result }.not_to have_enqueued_job(Incidents::IncidentCreatedJob)
 
         expect(result).to be_failure
+      end
+    end
+  end
+
+  describe "BR-IN11 / UC-IN06 — guardian snapshot (AC-IN08)" do
+    let(:mother) { create(:guardian, school: school, name: "Maria Silva") }
+    let(:father) { create(:guardian, school: school, name: "João Silva") }
+
+    before do
+      create(:student_guardian, school: school, student: student, guardian: mother, relationship: "mother")
+      create(:student_guardian, school: school, student: student, guardian: father, relationship: "father")
+    end
+
+    context "when guardian_ids is not given (AC-IN08 bullet 1)" do
+      it "snapshots the student's current student_guardians (both mother and father)" do
+        expect(result).to be_success
+
+        snapshots = result.data.incident_guardians
+        expect(snapshots.map { |ig| [ ig.guardian_id, ig.name, ig.relationship ] }).to contain_exactly(
+          [ mother.id, "Maria Silva", "mother" ],
+          [ father.id, "João Silva", "father" ]
+        )
+      end
+    end
+
+    context "when guardian_ids is given for a guardian not linked to this student via student_guardians" do
+      let(:unrelated_guardian) { create(:guardian, school: school, name: "Ana Souza") }
+      let(:guardian_ids) { [ unrelated_guardian.id ] }
+
+      it "snapshots exactly that guardian, falling back to relationship: other" do
+        expect(result).to be_success
+
+        snapshots = result.data.incident_guardians
+        expect(snapshots.size).to eq(1)
+        expect(snapshots.first.guardian_id).to eq(unrelated_guardian.id)
+        expect(snapshots.first.name).to eq("Ana Souza")
+        expect(snapshots.first.relationship).to eq("other")
+      end
+    end
+
+    context "when guardian_ids includes an id belonging to a guardian from a different school" do
+      let(:other_school_guardian) { create(:guardian) } # different school by default
+      let(:guardian_ids) { [ other_school_guardian.id, mother.id ] }
+
+      it "silently excludes the cross-tenant id (not a validation error, not a leak)" do
+        expect(result).to be_success
+
+        snapshots = result.data.incident_guardians
+        expect(snapshots.map(&:guardian_id)).to contain_exactly(mother.id)
+      end
+    end
+
+    context "when the family's student_guardians links change after the incident was saved" do
+      it "leaves the already-created incident_guardians rows unchanged (AC-IN08 bullet 3)" do
+        expect(result).to be_success
+        incident = result.data
+        original_snapshot = incident.incident_guardians.map { |ig| [ ig.guardian_id, ig.name, ig.relationship ] }
+
+        student.student_guardians.kept.find_by(guardian_id: mother.id).discard
+        create(:student_guardian, school: school, student: student, guardian: mother, relationship: "other")
+        mother.update!(name: "Maria Silva Santos")
+
+        incident.reload
+        expect(incident.incident_guardians.map { |ig| [ ig.guardian_id, ig.name, ig.relationship ] })
+          .to contain_exactly(*original_snapshot)
+      end
+    end
+
+    context "when incident creation fails validation" do
+      let(:visibility) { "nonsense" }
+
+      it "rolls back cleanly, leaving no stray incident_guardians rows" do
+        expect { result }.not_to change(IncidentGuardian, :count)
+
+        expect(result).to be_failure
+        expect(result.error_code).to eq(:validation_error)
       end
     end
   end
