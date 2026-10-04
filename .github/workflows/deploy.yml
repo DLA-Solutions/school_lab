@@ -1,0 +1,636 @@
+name: Deploy
+
+# Push to staging deploys staging. Push to main deploys production.
+# This workflow does not run bin/ci, RSpec, or RuboCop.
+# workflow_dispatch on any other ref fails in `guard` before the deploy job
+# selects an environment or starts Docker.
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+    paths:
+      - "site/**"
+      - "frontend/app/**"
+      - "frontend/backoffice/**"
+      - "packages/design-tokens/**"
+      - "web/**"
+      - "bin/deploy"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+    inputs:
+      services:
+        description: Layers to deploy
+        type: choice
+        required: true
+        default: changed
+        options:
+          - changed
+          - all
+          - site
+          - frontend
+          - backoffice
+          - web
+      migrate:
+        description: Force database migrate when web is included
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  guard:
+    name: Require staging or main
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail closed on other refs
+        run: |
+          set -euo pipefail
+          case "$GITHUB_REF" in
+            refs/heads/staging|refs/heads/main)
+              echo "Deploy ref ${GITHUB_REF} is allowed."
+              ;;
+            *)
+              echo "Deploy refuses ${GITHUB_REF}. Only refs/heads/staging and refs/heads/main are allowed."
+              exit 1
+              ;;
+          esac
+
+  deploy:
+    name: Deploy
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/main'
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    env:
+      KAMAL_REGISTRY_USERNAME: ${{ secrets.KAMAL_REGISTRY_USERNAME }}
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+      JWT_SECRET_KEY_STAGING: ${{ secrets.JWT_SECRET_KEY_STAGING }}
+      JWT_SECRET_KEY_PRODUCTION: ${{ secrets.JWT_SECRET_KEY_PRODUCTION }}
+      POSTMARK_API_TOKEN_STAGING: ${{ secrets.POSTMARK_API_TOKEN_STAGING }}
+      POSTMARK_API_TOKEN_PRODUCTION: ${{ secrets.POSTMARK_API_TOKEN_PRODUCTION }}
+      API_DOCS_USERNAME: ${{ secrets.API_DOCS_USERNAME }}
+      API_DOCS_PASSWORD: ${{ secrets.API_DOCS_PASSWORD }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - name: Refuse unexpected ref before Docker
+        id: gate
+        run: |
+          set -euo pipefail
+          case "$GITHUB_REF" in
+            refs/heads/staging|refs/heads/main)
+              ;;
+            *)
+              echo "Deploy refuses ${GITHUB_REF} before any image build."
+              exit 1
+              ;;
+          esac
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Detect layers
+        id: detect
+        env:
+          INPUT_SERVICES: ${{ github.event.inputs.services }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            dest="production"
+          else
+            dest="staging"
+          fi
+
+          delimiter="PATHS_$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
+          write_paths() {
+            {
+              echo "changed_paths<<${delimiter}"
+              if [ -n "${1}" ]; then
+                printf '%s\n' "$1"
+              fi
+              echo "${delimiter}"
+            } >> "$GITHUB_OUTPUT"
+          }
+
+          finish_all() {
+            local paths="${1:-}"
+            echo "destination=${dest}" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "layers=all" >> "$GITHUB_OUTPUT"
+            write_paths "$paths"
+            echo "Layers: all (${dest})."
+          }
+
+          classify() {
+            local files="$1"
+            local capped="${2:-0}"
+            local site=0 frontend=0 backoffice=0 web=0 deployable=0
+            local path
+
+            if [ "$capped" = "1" ]; then
+              echo "Compare API returned the 300-file cap. Deploying all layers."
+              finish_all "$files"
+              return
+            fi
+
+            while IFS= read -r path; do
+              [ -z "$path" ] && continue
+              case "$path" in
+                site|site/*)
+                  site=1
+                  deployable=1
+                  ;;
+                frontend/app|frontend/app/*)
+                  frontend=1
+                  deployable=1
+                  ;;
+                frontend/backoffice|frontend/backoffice/*)
+                  backoffice=1
+                  deployable=1
+                  ;;
+                packages/design-tokens|packages/design-tokens/*)
+                  frontend=1
+                  backoffice=1
+                  deployable=1
+                  ;;
+                web|web/*)
+                  web=1
+                  deployable=1
+                  ;;
+                bin/deploy|.github/workflows/deploy.yml)
+                  ;;
+                *)
+                  ;;
+              esac
+            done <<< "$files"
+
+            echo "destination=${dest}" >> "$GITHUB_OUTPUT"
+            write_paths "$files"
+
+            if [ "$deployable" -eq 0 ]; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "layers=" >> "$GITHUB_OUTPUT"
+              echo "Diff has no site, frontend, backoffice, or web changes. Skipping Kamal."
+              exit 0
+            fi
+
+            local selected=""
+            append() {
+              if [ -n "$selected" ]; then
+                selected="${selected} $1"
+              else
+                selected="$1"
+              fi
+            }
+            [ "$site" -eq 1 ] && append site
+            [ "$frontend" -eq 1 ] && append frontend
+            [ "$backoffice" -eq 1 ] && append backoffice
+            [ "$web" -eq 1 ] && append web
+
+            local count
+            count=$(wc -w <<< "$selected" | tr -d ' ')
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            if [ "$count" -eq 4 ]; then
+              echo "layers=all" >> "$GITHUB_OUTPUT"
+              echo "Layers: all (${dest})."
+            else
+              echo "layers=${selected}" >> "$GITHUB_OUTPUT"
+              echo "Layers: ${selected} (${dest})."
+            fi
+          }
+
+          collect_diff() {
+            local base="$1"
+            local head="$2"
+            local allow_git="${3:-0}"
+            local body_file names_file http count files
+            body_file=$(mktemp)
+            names_file=$(mktemp)
+            http=$(curl -sS -o "$body_file" -w "%{http_code}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/compare/${base}...${head}") || http="000"
+
+            if [ "$http" = "200" ]; then
+              count=$(jq '.files | if type == "array" then length else -1 end' "$body_file") || count=-1
+              jq -r '.files[]?.filename' "$body_file" > "$names_file" || true
+              files=$(cat "$names_file")
+              rm -f "$body_file" "$names_file"
+              if [ "$count" -lt 0 ] || [ "$count" -ge 300 ]; then
+                classify "$files" 1
+              else
+                classify "$files" 0
+              fi
+              return
+            fi
+
+            echo "GitHub compare API returned HTTP ${http}." >&2
+            jq -r '.message // empty' "$body_file" >&2 || true
+            rm -f "$body_file" "$names_file"
+
+            if [ "$allow_git" = "1" ]; then
+              echo "Compare API failed. Using git diff ${base}..${head}."
+              files=$(git diff --name-only "$base" "$head")
+              classify "$files" 0
+              return
+            fi
+            echo "Could not read the push diff from the GitHub compare API."
+            exit 1
+          }
+
+          valid_sha() {
+            [[ "$1" =~ ^[0-9a-fA-F]{40}$ ]]
+          }
+
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            case "$INPUT_SERVICES" in
+              all)
+                finish_all ""
+                ;;
+              site|frontend|backoffice|web)
+                echo "destination=${dest}" >> "$GITHUB_OUTPUT"
+                echo "skip=false" >> "$GITHUB_OUTPUT"
+                echo "layers=${INPUT_SERVICES}" >> "$GITHUB_OUTPUT"
+                write_paths ""
+                echo "Layers: ${INPUT_SERVICES} (${dest})."
+                ;;
+              changed)
+                parent=""
+                if git rev-parse --verify --quiet 'HEAD~1^{commit}' >/dev/null; then
+                  parent=$(git rev-parse 'HEAD~1')
+                else
+                  parent=$(curl -fsSL \
+                    -H "Accept: application/vnd.github+json" \
+                    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" \
+                    "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}" \
+                    | jq -r '.parents[0].sha // empty' || true)
+                fi
+                if [ -z "$parent" ] || ! valid_sha "$parent"; then
+                  echo "No parent commit for the last commit. Deploying all layers."
+                  finish_all ""
+                else
+                  collect_diff "$parent" "$GITHUB_SHA" 1
+                fi
+                ;;
+              *)
+                echo "Unknown services input."
+                exit 1
+                ;;
+            esac
+          else
+            if [ -z "${BEFORE_SHA}" ] || ! valid_sha "$BEFORE_SHA"; then
+              echo "Push event did not include a 40-character github.event.before SHA."
+              exit 1
+            fi
+            if [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
+              echo "github.event.before is all zeros. Deploying all layers."
+              finish_all ""
+            else
+              collect_diff "$BEFORE_SHA" "$GITHUB_SHA" 0
+            fi
+          fi
+
+      - name: Set up Ruby
+        if: success() && steps.detect.outputs.skip != 'true'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler: none
+
+      - name: Install Kamal
+        if: success() && steps.detect.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          gem install kamal -v 2.12.0 --no-document
+          kamal version
+
+      - name: Deploy with Kamal
+        id: deploy
+        if: success() && steps.detect.outputs.skip != 'true'
+        env:
+          DEST: ${{ steps.detect.outputs.destination }}
+          LAYERS: ${{ steps.detect.outputs.layers }}
+          DEPLOY_CHANGED_PATHS: ${{ steps.detect.outputs.changed_paths }}
+          DEPLOY_MIGRATE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.migrate == 'true' && '1' || '' }}
+        run: |
+          set -euo pipefail
+
+          if [ "$DEST" != "staging" ] && [ "$DEST" != "production" ]; then
+            echo "Refusing deploy. Destination must be staging or production."
+            exit 1
+          fi
+          if [ ! -x bin/deploy ]; then
+            echo "bin/deploy is missing or not executable."
+            exit 1
+          fi
+          if [ -z "${DEPLOY_SSH_PRIVATE_KEY:-}" ] || [ -z "${DEPLOY_KNOWN_HOSTS:-}" ]; then
+            echo "DEPLOY_SSH_PRIVATE_KEY and DEPLOY_KNOWN_HOSTS must be configured."
+            exit 1
+          fi
+
+          eval "$(ssh-agent -s)"
+          mkdir -p "${HOME}/.ssh"
+          chmod 700 "${HOME}/.ssh"
+          key_file=$(mktemp)
+          chmod 600 "$key_file"
+          # Write from the environment. The secret value is not a process argument.
+          ruby -e 'data = ENV.fetch("DEPLOY_SSH_PRIVATE_KEY").to_s.delete("\r"); data << "\n" unless data.end_with?("\n"); File.write(ARGV[0], data)' "$key_file"
+          ssh-add "$key_file"
+          rm -f "$key_file"
+          unset DEPLOY_SSH_PRIVATE_KEY
+          ruby -e 'data = ENV.fetch("DEPLOY_KNOWN_HOSTS").to_s.delete("\r"); data << "\n" unless data.end_with?("\n"); File.write(ARGV[0], data)' "${HOME}/.ssh/known_hosts"
+          chmod 644 "${HOME}/.ssh/known_hosts"
+          unset DEPLOY_KNOWN_HOSTS
+
+          if [ "${DEPLOY_MIGRATE:-}" != "1" ]; then
+            unset DEPLOY_MIGRATE || true
+          fi
+
+          if [ "$LAYERS" = "all" ]; then
+            bin/deploy "$DEST"
+          else
+            read -r -a layer_list <<< "$LAYERS"
+            if [ "${#layer_list[@]}" -eq 0 ]; then
+              echo "No layers selected."
+              exit 1
+            fi
+            for layer in "${layer_list[@]}"; do
+              case "$layer" in
+                site|frontend|backoffice|web)
+                  bin/deploy "$DEST" "$layer"
+                  ;;
+                *)
+                  echo "Refusing unknown layer."
+                  exit 1
+                  ;;
+              esac
+            done
+          fi
+
+      - name: Smoke
+        id: smoke
+        if: success() && steps.detect.outputs.skip != 'true'
+        env:
+          DEST: ${{ steps.detect.outputs.destination }}
+          LAYERS: ${{ steps.detect.outputs.layers }}
+        run: |
+          set -euo pipefail
+
+          if [ "$DEST" = "production" ]; then
+            host="https://scholarpremium.com.br"
+          else
+            host="https://staging.scholarpremium.com.br"
+          fi
+
+          check() {
+            local url="$1"
+            local code
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 -X GET "$url") || {
+              echo "GET ${url} failed before a status code."
+              exit 1
+            }
+            echo "GET ${url} -> ${code}"
+            if [ "$code" != "200" ]; then
+              echo "Smoke check failed."
+              exit 1
+            fi
+          }
+
+          smoke_layer() {
+            case "$1" in
+              site) check "${host}/" ;;
+              frontend) check "${host}/app/" ;;
+              backoffice) check "${host}/backoffice/" ;;
+              web) check "${host}/up" ;;
+              *)
+                echo "Refusing unknown layer in smoke."
+                exit 1
+                ;;
+            esac
+          }
+
+          if [ "$LAYERS" = "all" ]; then
+            smoke_layer site
+            smoke_layer frontend
+            smoke_layer backoffice
+            smoke_layer web
+          else
+            read -r -a layer_list <<< "$LAYERS"
+            for layer in "${layer_list[@]}"; do
+              smoke_layer "$layer"
+            done
+          fi
+
+      - name: Discord
+        if: always() && steps.gate.outcome == 'success' && steps.detect.outputs.skip != 'true'
+        env:
+          DEST: ${{ steps.detect.outputs.destination }}
+          LAYERS: ${{ steps.detect.outputs.layers }}
+          DEPLOY_OUTCOME: ${{ steps.deploy.outcome }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+        run: |
+          set +e
+          set -u
+
+          if [ -z "${DISCORD_DEPLOY_WEBHOOK_URL:-}" ]; then
+            echo "Discord webhook secret is unset. Skipping notification."
+            exit 0
+          fi
+
+          if [ "${DEST:-}" = "production" ]; then
+            host="https://scholarpremium.com.br"
+            ambiente="Produção"
+          elif [ "${DEST:-}" = "staging" ]; then
+            host="https://staging.scholarpremium.com.br"
+            ambiente="Staging"
+          else
+            echo "Discord notification skipped because the destination is unknown."
+            exit 0
+          fi
+
+          layer_label() {
+            case "$1" in
+              site) echo "Site" ;;
+              frontend) echo "School SPA" ;;
+              backoffice) echo "Backoffice SPA" ;;
+              web) echo "API" ;;
+              all) echo "Full stack" ;;
+              *) echo "" ;;
+            esac
+          }
+
+          layer_path() {
+            case "$1" in
+              site|all) echo "/" ;;
+              frontend) echo "/app/" ;;
+              backoffice) echo "/backoffice/" ;;
+              web) echo "/up" ;;
+              *) echo "/" ;;
+            esac
+          }
+
+          layers="${LAYERS:-}"
+          if [ "$layers" = "all" ]; then
+            camada="Full stack"
+            url="${host}/"
+          elif [ -z "$layers" ]; then
+            camada="Full stack"
+            url="${host}/"
+          else
+            read -r -a layer_list <<< "$layers"
+            if [ "${#layer_list[@]}" -eq 1 ]; then
+              camada=$(layer_label "${layer_list[0]}")
+              url="${host}$(layer_path "${layer_list[0]}")"
+            else
+              camada=""
+              for layer in "${layer_list[@]}"; do
+                label=$(layer_label "$layer")
+                [ -z "$label" ] && continue
+                if [ -n "$camada" ]; then
+                  camada="${camada}, ${label}"
+                else
+                  camada="$label"
+                fi
+              done
+              url="${host}$(layer_path "${layer_list[0]}")"
+            fi
+          fi
+
+          if [ "${DEPLOY_OUTCOME:-}" = "success" ]; then
+            title="Deploy concluído"
+            status_label="Concluído"
+            failed=0
+          else
+            title="Deploy falhou"
+            status_label="Falhou"
+            failed=1
+          fi
+
+          case "${SMOKE_OUTCOME:-}" in
+            success)
+              smoke_label="OK (somente leitura)"
+              smoke_failed=0
+              ;;
+            failure)
+              smoke_label="Falhou"
+              smoke_failed=1
+              ;;
+            *)
+              smoke_label="Não executado"
+              smoke_failed=0
+              ;;
+          esac
+
+          if [ "$failed" -eq 1 ]; then
+            color=15548997
+          elif [ "$smoke_failed" -eq 1 ]; then
+            color=16705372
+          else
+            color=3908957
+          fi
+
+          branch="$GITHUB_REF_NAME"
+          if ! [[ "$branch" =~ ^[A-Za-z0-9._/-]{1,200}$ ]]; then
+            branch=""
+          fi
+          short_sha=""
+          if [[ "$GITHUB_SHA" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+            short_sha=$(printf '%s' "$GITHUB_SHA" | cut -c1-12)
+          fi
+          timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          payload_file=$(mktemp)
+          err_file=$(mktemp)
+          jq -n \
+            --arg username "School Lab Deploy" \
+            --arg title "$title" \
+            --arg description "School Lab · Kamal" \
+            --arg url "$url" \
+            --argjson color "$color" \
+            --arg timestamp "$timestamp" \
+            --arg produto "Scholar Premium" \
+            --arg ambiente "$ambiente" \
+            --arg camada "$camada" \
+            --arg status "$status_label" \
+            --arg smoke "$smoke_label" \
+            --arg branch "$branch" \
+            --arg sha "$short_sha" \
+            --arg footer "School Lab · ${DEST}" \
+            '{
+              username: $username,
+              allowed_mentions: { parse: [] },
+              embeds: [{
+                title: $title,
+                description: $description,
+                url: $url,
+                color: $color,
+                timestamp: $timestamp,
+                footer: { text: $footer },
+                fields: (
+                  [
+                    { name: "Produto", value: $produto, inline: true },
+                    { name: "Ambiente", value: $ambiente, inline: true },
+                    { name: "Camada", value: $camada, inline: true },
+                    { name: "Status", value: $status, inline: true },
+                    { name: "Smoke", value: $smoke, inline: true },
+                    { name: "URL", value: $url, inline: false }
+                  ]
+                  + (if $branch != "" then [{ name: "Branch", value: ("`" + $branch + "`"), inline: true }] else [] end)
+                  + (if $sha != "" then [{ name: "Commit", value: ("`" + $sha + "`"), inline: true }] else [] end)
+                )
+              }]
+            }' > "$payload_file"
+          jq_status=$?
+          if [ "$jq_status" -ne 0 ]; then
+            echo "Discord payload was not built. Deploy status is unchanged."
+            rm -f "$payload_file" "$err_file"
+            exit 0
+          fi
+
+          http_code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 15 \
+            -H "Content-Type: application/json" \
+            -A "SchoolLabDeployMCP (https://github.com/DLA-Solutions/school_lab, 1.0.0)" \
+            -X POST \
+            --data-binary @"${payload_file}" \
+            "${DISCORD_DEPLOY_WEBHOOK_URL}?wait=true" 2>"$err_file")
+          curl_status=$?
+          rm -f "$payload_file" "$err_file"
+          if [ "$curl_status" -ne 0 ]; then
+            echo "Discord notification was not delivered. Deploy status is unchanged."
+            exit 0
+          fi
+          case "$http_code" in
+            200|204)
+              echo "Discord notification sent."
+              ;;
+            *)
+              echo "Discord notification was not delivered (HTTP ${http_code}). Deploy status is unchanged."
+              ;;
+          esac
+          exit 0
