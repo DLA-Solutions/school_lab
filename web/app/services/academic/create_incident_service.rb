@@ -47,6 +47,11 @@ module Academic
         return ResponseService.failure(code: :validation_error, details: incident.errors.to_hash)
       end
 
+      # BR-IN09 / UC-IN04: mandatory, informational-only notice to whichever BR-IN08 approval
+      # slot(s) still need a holder. Independent of approval — never fills a slot, never touches
+      # `status`.
+      Incidents::EventEmitter.incident_created(incident: incident)
+
       ResponseService.success(data: incident)
     end
 

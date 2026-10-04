@@ -71,6 +71,9 @@ en:
       incident_published:
         title: "New incident record"
         body: "A new incident record about %{student} is now available."
+      incident_created:
+        title: "Incident awaiting review"
+        body: "A new incident record about %{student} needs your review."
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."

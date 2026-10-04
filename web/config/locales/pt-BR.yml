@@ -72,6 +72,9 @@ pt-BR:
       incident_published:
         title: "Nova ocorrência registrada"
         body: "Uma nova ocorrência sobre %{student} já está disponível."
+      incident_created:
+        title: "Ocorrência aguardando análise"
+        body: "Uma nova ocorrência sobre %{student} precisa da sua análise."
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."

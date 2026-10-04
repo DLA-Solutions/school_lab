@@ -155,4 +155,24 @@ RSpec.describe Academic::CreateIncidentService do
     expect(outcome.data.guardian_points_raised).to eq(guardian_points)
     expect(outcome.data.school_response).to eq(school_response_text)
   end
+
+  describe "BR-IN09 / UC-IN04 — creation notification" do
+    it "emits IncidentCreated (enqueues the staff-review notification job) on a successful save" do
+      expect { result }.to have_enqueued_job(Incidents::IncidentCreatedJob)
+      expect(result).to be_success
+
+      enqueued = ActiveJob::Base.queue_adapter.enqueued_jobs.find { |job| job[:job] == Incidents::IncidentCreatedJob }
+      expect(enqueued[:args]).to eq([ result.data.id, school.id ])
+    end
+
+    context "when creation fails validation" do
+      let(:visibility) { "nonsense" }
+
+      it "does not emit IncidentCreated" do
+        expect { result }.not_to have_enqueued_job(Incidents::IncidentCreatedJob)
+
+        expect(result).to be_failure
+      end
+    end
+  end
 end

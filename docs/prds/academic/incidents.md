@@ -97,6 +97,25 @@ gate is independent of BR-IN02's guardian-visibility publish step — an inciden
 guardians (or stay `staff_only`) regardless of its approval state; approval is an internal
 sign-off, not a guardian-facing state `[product decision]`.
 
+BR-IN09
+
+On incident **creation**, the staff who still need to act on the BR-IN08 approval gate are notified
+via the existing comms notification pipeline (`NotificationIntent` → `ProcessIntentService`, per
+[`communication/notifications.md`](../communication/notifications.md)) — mandatory, not the
+optional BR-IN06 guardian notice:
+
+- Creator is a **teacher** → notify **all** `coordination`- and `director`-templated staff
+  memberships (neither slot can have been filled by the creator, since teachers hold neither
+  template).
+- Creator is a **`coordination`-templated** membership → notify `director`-templated staff only.
+- Creator is a **`director`-templated** membership → notify `coordination`-templated staff only.
+- **Teachers are never notification targets**, regardless of who created the incident.
+
+This notification is informational only — it does not fill either BR-IN08 approval slot and does
+not change `status`. A staff member who creates the incident still must separately call
+`POST .../approve` to fill their own slot if their role template qualifies; creating does not imply
+approving `[product decision]`.
+
 ---
 
 ## Use Cases
@@ -130,6 +149,20 @@ Flow
 2. Record that slot's `*_approved_at`/`*_approved_by_membership_id`; re-approving the same slot is
    idempotent (no second row, no error).
 3. Once both slots are present, incident status becomes `approved`.
+
+### UC-IN04 — Notify staff on incident creation (BR-IN09)
+
+Input: incident_id, creating membership.
+
+Flow
+
+1. Determine the creating membership's role template (`teacher`, `coordination`, `director`, or
+   other `manage_academic` staff without either template).
+2. Resolve notification targets: both templates if creator is a teacher (or untemplated
+   `manage_academic` staff), the other template only if creator is `coordination`- or
+   `director`-templated.
+3. Emit `IncidentCreated` → `NotificationIntent` fan-out to resolved targets. Never includes
+   teacher memberships as targets.
 
 ---
 
@@ -170,6 +203,7 @@ arbitrary list), `incident_attachments`.
 | Event | When | Consumers |
 |-------|------|-----------|
 | `IncidentPublished` | Guardian publish | Communication (optional) |
+| `IncidentCreated` | Incident created | `coordination`/`director`-templated staff per BR-IN09 (mandatory, never teachers) |
 
 ---
 
@@ -222,6 +256,17 @@ AC-IN05
 - [ ] Given a `manage_academic` staff member whose role template is neither `coordination` nor
       `director`, When they call the approve endpoint, Then the API returns `403`.
 - Source: BR-IN08
+
+AC-IN06 *(creation notification)*
+
+- [ ] Given a teacher creates an incident, When the incident is saved, Then both `coordination`-
+      and `director`-templated staff memberships receive a notification and no teacher membership
+      does.
+- [ ] Given a `coordination`-templated membership creates an incident, When the incident is saved,
+      Then only `director`-templated staff are notified (not the creator, not teachers).
+- [ ] Given a `director`-templated membership creates an incident, When the incident is saved, Then
+      only `coordination`-templated staff are notified (not the creator, not teachers).
+- Source: BR-IN09
 
 ---
 
