@@ -150,7 +150,8 @@ RSpec.describe "Api::V1::Schools::Academics::GradeBooks", type: :request do
 
         run_test! do |response|
           body = JSON.parse(response.body)
-          expect(body.dig("error", "code")).to eq("forbidden")
+          expect(body.dig("error", "code")).to eq("not_your_lesson")
+          expect(body.dig("error", "message")).to eq("Você não leciona esta matéria nesta turma.")
         end
       end
 

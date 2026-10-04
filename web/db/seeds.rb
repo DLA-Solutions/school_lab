@@ -8,6 +8,7 @@
 # Production: never seeded.
 
 require_relative "seeds/demo_school"
+require_relative "seeds/rosario_grade_entry"
 
 if DemoSchool.seed_enabled?
   DemoSchool.seed!
@@ -18,5 +19,10 @@ if DemoSchool.seed_enabled?
     DemoSchool::DEMO_USER_EMAILS.each do |email|
       puts "  #{email}"
     end
+  end
+
+  rosario_result = RosarioGradeEntry.seed!
+  if rosario_result && Rails.env.development?
+    puts "Rosário Fundamental I grade entry fixture extended for #{RosarioGradeEntry::TEACHER_EMAIL}."
   end
 end

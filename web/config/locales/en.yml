@@ -68,6 +68,12 @@ en:
       report_card_published:
         title: "Report card available"
         body: "%{student}'s report card is now available."
+      incident_published:
+        title: "New incident record"
+        body: "A new incident record about %{student} is now available."
+      incident_created:
+        title: "Incident awaiting review"
+        body: "A new incident record about %{student} needs your review."
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."
@@ -79,10 +85,34 @@ en:
       teacher: "Teacher"
       cohort: "Class"
       period: "Term"
+    incident:
+      title: "Incident report"
+      student: "Student"
+      type: "Type"
+      category: "Category"
+      severity: "Severity"
+      status: "Status"
+      guardian_points_raised: "Points raised by the guardians"
+      school_response: "School's response"
+      description: "Description"
+      approvals: "Approvals"
+      coordination_approval: "Coordination approval"
+      director_approval: "Director approval"
+      categories:
+        disciplinary: "Disciplinary"
+        pastoral: "Pastoral"
+        health: "Health"
+      statuses:
+        pending_approval: "Pending approval"
+        approved: "Approved"
+        archived: "Archived"
     report_card:
       title: "Report card"
       student: "Student"
+      cpf: "CPF"
+      cohort: "Class"
       period: "Term"
+      discipline: "Subject"
       final_grade: "Final grade"
       attendance: "Attendance"
     guardians:
@@ -102,6 +132,7 @@ en:
       period_outside_class_year: "This term does not belong to the year the class is taught in."
       not_your_student: "You do not teach this student's class."
       report_unsupported_characters: "The report contains characters the PDF font cannot draw. Check the names on file."
+      incident_pdf_unsupported_characters: "The incident report contains characters the PDF font cannot draw. Check the text on file."
       invalid_reset_token: "This link has expired or was already used. Request a new one."
       invalid_credentials: "Invalid e-mail or password."
       invalid_oauth_token: "Invalid Google sign-in token."

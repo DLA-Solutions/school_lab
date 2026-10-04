@@ -2398,6 +2398,174 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/academics/incidents/{id}/pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "The Ata as a PDF, for staff",
+        "tags": [
+          "Incidents",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "a teacher previews an incident about a student in their own class"
+          },
+          "403": {
+            "description": "a teacher previews an incident outside their own classes"
+          },
+          "404": {
+            "description": "cross-school incident"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/me/teacher_health_profile": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "A teacher reads their own health profile",
+        "tags": [
+          "Academics",
+          "Health"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "the profile after it has been filled in"
+          },
+          "404": {
+            "description": "a teacher membership with no matching Teacher row"
+          }
+        }
+      },
+      "put": {
+        "summary": "A teacher writes their own health profile",
+        "tags": [
+          "Academics",
+          "Health"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "persists valid fields and reads them back"
+          },
+          "422": {
+            "description": "an invalid blood type is rejected"
+          },
+          "404": {
+            "description": "a teacher membership with no matching Teacher row"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "health_profile": {
+                    "type": "object",
+                    "properties": {
+                      "blood_type": {
+                        "type": "string"
+                      },
+                      "health_plan_name": {
+                        "type": "string"
+                      },
+                      "health_plan_number": {
+                        "type": "string"
+                      },
+                      "emergency_contact_name": {
+                        "type": "string"
+                      },
+                      "emergency_contact_phone": {
+                        "type": "string"
+                      },
+                      "special_care_notes": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/academics/report_card_config": {
       "parameters": [
         {
@@ -2486,6 +2654,68 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/students/{student_id}/report_card_preview/pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "student_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "academic_period_id",
+          "in": "query",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Teacher live, unpublished, cross-subject boletim preview",
+        "tags": [
+          "Report Cards",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "no grade data at all for the period renders blank, not a 422"
+          },
+          "403": {
+            "description": "a non-teacher role, even a full owner"
+          },
+          "404": {
+            "description": "unknown student"
           }
         }
       }
@@ -2689,6 +2919,61 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/academics/teachers/{teacher_id}/health_profile": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "teacher_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Staff read of a collaborator's health profile",
+        "tags": [
+          "Academics",
+          "Health"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "staff with manage_people reads a filled profile"
+          },
+          "403": {
+            "description": "a teacher cannot read a colleague's profile via another teacher's id"
+          },
+          "404": {
+            "description": "unknown collaborator"
           }
         }
       }
@@ -4326,6 +4611,66 @@
         "responses": {
           "200": {
             "description": "linked children documents only"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/me/students/{student_id}/incidents/{id}/pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "student_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "The Ata as a PDF, for the family",
+        "tags": [
+          "Incidents",
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "a published, guardian-visible incident about their own child"
+          },
+          "404": {
+            "description": "cross-school incident"
           }
         }
       }

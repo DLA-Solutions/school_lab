@@ -132,9 +132,15 @@ module Api
             class_discipline.teacher_id == teacher.id
           end
 
+          # A dedicated code rather than the generic `:forbidden` one: `render_error` always
+          # derives the top-level `error.message` from the error code's own i18n string
+          # (`api.errors.<code>`), never from `details`. Reusing `:forbidden` here meant the SPA's
+          # banner only ever showed the generic "Acesso negado." — the specific, already-written
+          # "Você não leciona esta matéria nesta turma." lived in `details.base`, which nothing
+          # reads. Naming the code `not_your_lesson` puts the real reason where the client already
+          # looks (`error.message`), with no client-side change required.
           def render_not_teaching
-            render_error(:forbidden, status: :forbidden,
-                                     details: { base: [ I18n.t("api.errors.not_your_lesson") ] })
+            render_error(:not_your_lesson, status: :forbidden)
           end
 
           def entry_params

@@ -14,4 +14,13 @@ module ReportCardPdfDelivery
               type: "application/pdf",
               disposition: "attachment"
   end
+
+  # The teacher live preview (BR-RC14) never persists a blob -- `render_data` is the in-memory
+  # bytes a RenderSnapshotPdfService call just returned, not a stored snapshot.
+  def send_live_preview_pdf(render_data)
+    send_data render_data.fetch(:pdf),
+              filename: render_data.fetch(:filename),
+              type: "application/pdf",
+              disposition: "attachment"
+  end
 end

@@ -85,4 +85,34 @@ RSpec.describe ReportCards::ExecuteBatchService do
       expect(result.data.dig(:counts, :released)).to eq(1)
     end.to have_enqueued_job(ReportCards::ReportCardPublishedJob).once
   end
+
+  # Regression for the actual deliverable, not just "doesn't crash": MaterializeSnapshotService's
+  # payload used to be symbol-keyed while RenderSnapshotPdfService/SnapshotPdfSection read it with
+  # string keys. StageSnapshotService renders directly from that in-memory hash, before any
+  # database round-trip, so the published PDF silently drew a header with an empty grid in
+  # production -- no error, just missing content. This downloads the real stored blob (the same
+  # bytes ReportCardPdfDelivery#send_snapshot_pdf hands a guardian) and asserts the subject,
+  # CPF, class, and the entered grade actually appear on the page.
+  it "renders the subject, student CPF, class, and entered grade onto the stored PDF" do
+    batch = create(
+      :report_card_publish_batch,
+      school: school,
+      school_class: school_class,
+      academic_period: period,
+      requested_by_membership: owner_membership,
+      requested_count: 1
+    )
+
+    result = described_class.call(batch: batch)
+    expect(result).to be_success
+
+    snapshot = ReportCardSnapshot.last
+    blob = ActiveStorage::Blob.find_by!(key: snapshot.pdf_storage_key)
+    text = PDF::Inspector::Text.analyze(blob.download).strings.join(" ")
+
+    expect(text).to include(subject_record.name)
+    expect(text).to include(student.formatted_cpf)
+    expect(text).to include(school_class.full_name)
+    expect(text).to include("9.0")
+  end
 end

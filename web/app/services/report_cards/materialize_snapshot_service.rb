@@ -2,6 +2,14 @@
 
 module ReportCards
   # Builds immutable snapshot payload from launched grades and attendance summary (BR-RC09).
+  #
+  # String keys throughout, top level included -- matching the shape Postgres hands back once
+  # this payload is written into the jsonb `snapshot` column (JSON has no symbols, so a
+  # persisted-then-reread snapshot was always string-keyed) and matching
+  # BuildLivePreviewPayloadService's twin. RenderSnapshotPdfService/SnapshotPdfSection read this
+  # payload with string keys either way; StageSnapshotService calls this directly, before any
+  # database round-trip, so an in-memory symbol-keyed hash here would have rendered a blank grid
+  # for every real publish.
   class MaterializeSnapshotService < ApplicationService
     def initialize(student:, school_class:, academic_period:, config:)
       @student = student
@@ -19,13 +27,13 @@ module ReportCards
       return attendance_result if attendance_result.failure?
 
       payload = {
-        student: student_payload,
-        period: period_payload,
-        school_class: class_payload,
-        config: config_payload,
-        disciplines: discipline_rows,
-        attendance: attendance_payload(attendance_result.data),
-        grade_launch_digest: combined_grade_launch_digest
+        "student" => student_payload,
+        "period" => period_payload,
+        "school_class" => class_payload,
+        "config" => config_payload,
+        "disciplines" => discipline_rows,
+        "attendance" => attendance_payload(attendance_result.data),
+        "grade_launch_digest" => combined_grade_launch_digest
       }
 
       ResponseService.success(data: payload)
@@ -37,36 +45,36 @@ module ReportCards
 
     def student_payload
       {
-        id: student.id,
-        name: student.name
+        "id" => student.id,
+        "name" => student.name
       }
     end
 
     def period_payload
       {
-        id: academic_period.id,
-        name: academic_period.name,
-        sequence: academic_period.sequence,
-        closure_status: academic_period.closure_status
+        "id" => academic_period.id,
+        "name" => academic_period.name,
+        "sequence" => academic_period.sequence,
+        "closure_status" => academic_period.closure_status
       }
     end
 
     def class_payload
       {
-        id: school_class.id,
-        name: school_class.full_name
+        "id" => school_class.id,
+        "name" => school_class.full_name
       }
     end
 
     def config_payload
       {
-        id: config.id,
-        version: config.version,
-        template_key: config.template_key,
-        display_config: config.display_config,
-        header_text: config.header_text,
-        footer_text: config.footer_text,
-        signatory: config.signatory_snapshot
+        "id" => config.id,
+        "version" => config.version,
+        "template_key" => config.template_key,
+        "display_config" => config.display_config,
+        "header_text" => config.header_text,
+        "footer_text" => config.footer_text,
+        "signatory" => config.signatory_snapshot
       }
     end
 
@@ -107,25 +115,25 @@ module ReportCards
       )
 
       {
-        class_discipline_id: discipline.id,
-        subject_id: discipline.subject_id,
-        subject_name: discipline.subject.name,
-        grade_launch_id: launch.id,
-        grade_launch_digest: launch.input_digest,
-        components: components.map { |component| component_payload(component, entries) },
-        override: override_payload(override),
-        final_value: override&.override_value || computed_final(components, entries)
+        "class_discipline_id" => discipline.id,
+        "subject_id" => discipline.subject_id,
+        "subject_name" => discipline.subject.name,
+        "grade_launch_id" => launch.id,
+        "grade_launch_digest" => launch.input_digest,
+        "components" => components.map { |component| component_payload(component, entries) },
+        "override" => override_payload(override),
+        "final_value" => override&.override_value || computed_final(components, entries)
       }
     end
 
     def component_payload(component, entries)
       entry = entries.find { |row| row.evaluation_component_id == component.id }
       {
-        id: component.id,
-        name: component.name,
-        weight_percent: component.weight_percent.to_s("F"),
-        entry_kind: component.entry_kind,
-        value: entry&.value
+        "id" => component.id,
+        "name" => component.name,
+        "weight_percent" => component.weight_percent.to_s("F"),
+        "entry_kind" => component.entry_kind,
+        "value" => entry&.value
       }
     end
 
@@ -133,18 +141,23 @@ module ReportCards
       return nil if override.blank?
 
       {
-        computed_value: override.computed_value,
-        override_value: override.override_value,
-        reason_code: override.reason_code
+        "computed_value" => override.computed_value,
+        "override_value" => override.override_value,
+        "reason_code" => override.reason_code
       }
     end
 
     def computed_final(components, entries)
       return nil if components.empty?
 
-      total = components.sum do |component|
+      # `sum`'s implicit initial value is the Integer 0; when every component is still blank (a
+      # grade_launch existing does not guarantee every component has a value yet) the block never
+      # returns a BigDecimal and `total` stays an Integer, which `Integer#round` cannot take a
+      # rounding-mode argument for. Seeding with BigDecimal(0) keeps `total` a BigDecimal
+      # regardless of how many entries are blank.
+      total = components.sum(BigDecimal(0)) do |component|
         entry = entries.find { |row| row.evaluation_component_id == component.id }
-        next 0 if entry.blank? || entry.value.blank?
+        next BigDecimal(0) if entry.blank? || entry.value.blank?
 
         entry.value.to_d * (component.weight_percent / 100)
       end
@@ -153,14 +166,14 @@ module ReportCards
 
     def attendance_payload(summary)
       {
-        instructional_sessions: summary.instructional_sessions,
-        present_count: summary.present_count,
-        absent_count: summary.absent_count,
-        late_count: summary.late_count,
-        excused_count: summary.excused_count,
-        numerator: summary.numerator,
-        late_counts_as_absence: summary.late_counts_as_absence,
-        percentage: summary.percentage
+        "instructional_sessions" => summary.instructional_sessions,
+        "present_count" => summary.present_count,
+        "absent_count" => summary.absent_count,
+        "late_count" => summary.late_count,
+        "excused_count" => summary.excused_count,
+        "numerator" => summary.numerator,
+        "late_counts_as_absence" => summary.late_counts_as_absence,
+        "percentage" => summary.percentage
       }
     end
 

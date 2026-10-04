@@ -3,14 +3,22 @@
 require "prawn"
 
 module ReportCards
-  # Renders a stored snapshot payload to PDF bytes (BR-RC10).
+  # Renders a stored snapshot payload to PDF bytes (BR-RC10). One academic period, by contract --
+  # the real publish path (StageSnapshotService) always has exactly one, since a
+  # report_card_publication is one aggregate per (school, student, period) (BR-RC03). Draws
+  # through the shared SnapshotPdfSection so this and the multi-period teacher preview
+  # (RenderMultiPeriodPreviewPdfService) are the same grid-drawing code.
   class RenderSnapshotPdfService < ApplicationService
     MARGIN = 48
 
-    def initialize(snapshot_payload:, student_name:, period_name:, school_name:)
+    def initialize(snapshot_payload:, student_name:, student_cpf:, class_name:, period_name:, period_sequence:,
+                    school_name:)
       @snapshot_payload = snapshot_payload
       @student_name = student_name
+      @student_cpf = student_cpf
+      @class_name = class_name
       @period_name = period_name
+      @period_sequence = period_sequence
       @school_name = school_name
     end
 
@@ -25,29 +33,20 @@ module ReportCards
 
     private
 
-    attr_reader :snapshot_payload, :student_name, :period_name, :school_name
+    attr_reader :snapshot_payload, :student_name, :student_cpf, :class_name, :period_name, :period_sequence,
+                :school_name
 
     def render
       Prawn::Document.new(page_size: "A4", page_layout: :portrait, margin: MARGIN) do |pdf|
         pdf.font "Helvetica"
-        pdf.text school_name, size: 14, style: :bold
-        pdf.text I18n.t("reports.report_card.title"), size: 12
-        pdf.move_down 12
-        pdf.text "#{I18n.t('reports.report_card.student')}: #{student_name}", size: 10
-        pdf.text "#{I18n.t('reports.report_card.period')}: #{period_name}", size: 10
-        pdf.move_down 16
-
-        snapshot_payload.fetch("disciplines", []).each do |discipline|
-          pdf.text discipline["subject_name"].to_s, size: 10, style: :bold
-          pdf.text "#{I18n.t('reports.report_card.final_grade')}: #{discipline['final_value']}", size: 9
-          pdf.move_down 8
-        end
-
-        attendance = snapshot_payload.fetch("attendance", {})
-        pdf.move_down 8
-        pdf.text I18n.t("reports.report_card.attendance"), size: 10, style: :bold
-        pdf.text "#{attendance['percentage']}% (#{attendance['numerator']}/#{attendance['instructional_sessions']})",
-                 size: 9
+        SnapshotPdfSection.draw(
+          pdf,
+          sections: [ { payload: snapshot_payload, period_name: period_name, sequence: period_sequence } ],
+          student_name: student_name,
+          student_cpf: student_cpf,
+          class_name: class_name,
+          school_name: school_name
+        )
       end.render
     end
   end

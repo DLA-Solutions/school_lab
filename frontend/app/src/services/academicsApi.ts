@@ -7,6 +7,8 @@ import {
   Teacher,
   TeacherBankAccount,
   TeacherBankAccountPayload,
+  TeacherHealthProfile,
+  TeacherHealthProfilePayload,
   TeacherPayload,
   TeachingAssignment,
 } from 'types/academics';
@@ -373,6 +375,48 @@ export const updateTeacherBankAccount = async (
   const response = await request<{ data: TeacherBankAccount }>(
     `${base(schoolId)}/teachers/${teacherId}/bank_account`,
     { method: 'PUT', body: { bank_account: payload } },
+  );
+
+  return response.data;
+};
+
+/* ------------------------------------------------ collaborator health profile (BC6) */
+
+/**
+ * GET .../teachers/:id/health_profile — staff read of a collaborator's health profile.
+ *
+ * `manage_people` only, same gate as the Colaboradores roster itself; read-only — there is no
+ * PUT on this nesting at all, even for staff (only the teacher themself may write, via the
+ * `me/teacher_health_profile` self-service endpoint below).
+ */
+export const getTeacherHealthProfile = async (schoolId: number, teacherId: number) => {
+  const response = await request<{ data: TeacherHealthProfile }>(
+    `${base(schoolId)}/teachers/${teacherId}/health_profile`,
+  );
+
+  return response.data;
+};
+
+/**
+ * GET .../me/teacher_health_profile — the logged-in teacher's own health profile, resolved
+ * server-side by matching login email against a `Teacher` row — never by a `teacher_id` param.
+ */
+export const getMyTeacherHealthProfile = async (schoolId: number) => {
+  const response = await request<{ data: TeacherHealthProfile }>(
+    `${base(schoolId)}/me/teacher_health_profile`,
+  );
+
+  return response.data;
+};
+
+/** PUT .../me/teacher_health_profile — the logged-in teacher upserts their own profile. */
+export const updateMyTeacherHealthProfile = async (
+  schoolId: number,
+  payload: TeacherHealthProfilePayload,
+) => {
+  const response = await request<{ data: TeacherHealthProfile }>(
+    `${base(schoolId)}/me/teacher_health_profile`,
+    { method: 'PUT', body: { health_profile: payload } },
   );
 
   return response.data;

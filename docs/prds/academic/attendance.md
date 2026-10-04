@@ -64,6 +64,18 @@ School Lab supports **school-level default policy** with optional **per-academic
 
 **Teacher surfaces:** attendance recording is **mobile-first** per Jul 2026 decision; web also supported.
 
+**Implementation note (2026-10-02):** `diary.md` (BC4), which `lesson_id`/`counting_mode: lesson`
+depends on, is not implemented yet — there is no `lessons` table to hold the FK. The product owner
+confirmed building the full PRD as written; in practice this means `counting_mode: period_total`
+(session scoped by `academic_period_id`, null `lesson_id` — already a first-class mode per
+BR-AT01) is the only mode that can actually persist a session today. Build the `counting_mode`
+field and both branches of BR-AT01's validation so `lesson` mode is not silently wrong, but
+selecting it returns `501 not_implemented` until `diary.md` ships a `lessons` table — don't stub a
+fake lesson row to force it through. `communication`'s `NotificationIntent`/`NotificationDelivery`
+pipeline (see `app/models/notification_intent.rb`, `app/services/notifications/`) already exists
+and is NOT blocked — `AbsenceRecorded` should fan out through it the same way
+`NotifyContractSignedService` does, not through a new bespoke channel.
+
 ---
 
 ## Business Rules

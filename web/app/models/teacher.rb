@@ -21,6 +21,9 @@ class Teacher < ApplicationRecord
   # Where their salary is sent. One standing record, not a history — the school pays into the
   # account that is current.
   has_one :bank_account, class_name: "TeacherBankAccount", dependent: :destroy
+  # Stable self-reported health facts (BC6) — one standing record, not a history. Mirrors
+  # Student#health_profile.
+  has_one :health_profile, class_name: "TeacherHealthProfile", dependent: :destroy
 
   ADDRESS_FIELDS = %i[zip_code street number complement neighborhood city state].freeze
 

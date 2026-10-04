@@ -39,7 +39,10 @@ module ReportCards
       pdf_result = RenderSnapshotPdfService.call(
         snapshot_payload: payload,
         student_name: student.name,
+        student_cpf: student.formatted_cpf,
+        class_name: school_class.full_name,
         period_name: academic_period.name,
+        period_sequence: academic_period.sequence,
         school_name: school_class.school.name
       )
       return pdf_result if pdf_result.failure?
@@ -55,7 +58,7 @@ module ReportCards
           student: student,
           publication: publication_record,
           snapshot_payload: payload,
-          grade_launch_digest: payload.fetch(:grade_launch_digest),
+          grade_launch_digest: payload.fetch("grade_launch_digest"),
           pdf_storage_key: blob_key,
           pdf_bytes: pdf_result.data.fetch(:pdf),
           version: version,

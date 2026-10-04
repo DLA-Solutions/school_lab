@@ -11,6 +11,7 @@ import IconifyIcon from 'components/base/IconifyIcon';
 import CollaboratorBankAccountDialog from 'components/sections/academics/CollaboratorBankAccountDialog';
 import CollaboratorDetailsDialog from 'components/sections/academics/CollaboratorDetailsDialog';
 import CollaboratorFormDialog from 'components/sections/academics/CollaboratorFormDialog';
+import CollaboratorHealthProfileDialog from 'components/sections/academics/CollaboratorHealthProfileDialog';
 import TeacherAssignmentsDialog from 'components/sections/academics/TeacherAssignmentsDialog';
 import PersonDocumentsDialog from 'components/sections/documents/PersonDocumentsDialog';
 import {
@@ -29,6 +30,7 @@ import { deleteTeacher, listTeachers } from 'services/academicsApi';
 import { COLLABORATOR_DOCUMENT_TYPES } from 'services/documentsApi';
 import { Teacher } from 'types/academics';
 import { formatCpf } from 'utils/documentNumber';
+import { membershipHasPermission } from 'utils/onboarding/access';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
 
 const PAGE_SIZE = 25;
@@ -41,6 +43,9 @@ const Collaborators = () => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
   const schoolId = school?.school_id ?? null;
+  // Same gate the roster listing itself answers to on the API (`TeacherPolicy#index?`) — kept
+  // explicit here too so the button never renders for staff who would only get a 403 from it.
+  const canViewHealthProfile = school !== null && membershipHasPermission(school, 'manage_people');
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [total, setTotal] = useState(0);
@@ -57,6 +62,7 @@ const Collaborators = () => {
   const [detailsFor, setDetailsFor] = useState<Teacher | null>(null);
   const [documentsFor, setDocumentsFor] = useState<Teacher | null>(null);
   const [bankAccountFor, setBankAccountFor] = useState<Teacher | null>(null);
+  const [healthProfileFor, setHealthProfileFor] = useState<Teacher | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -182,6 +188,17 @@ const Collaborators = () => {
                 <IconifyIcon icon="mingcute:bank-card-line" />
               </IconButton>
             </Tooltip>
+            {canViewHealthProfile && (
+              <Tooltip title={t('collaborators.healthProfile')}>
+                <IconButton
+                  size="small"
+                  aria-label={t('collaborators.healthProfileAria', { name: row.name })}
+                  onClick={() => setHealthProfileFor(row)}
+                >
+                  <IconifyIcon icon="mingcute:heartbeat-line" />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title={t('collaborators.classesTooltip')}>
               <IconButton
                 size="small"
@@ -346,6 +363,15 @@ const Collaborators = () => {
           schoolId={school.school_id}
           teacher={bankAccountFor}
           onClose={() => setBankAccountFor(null)}
+        />
+      )}
+
+      {healthProfileFor && (
+        <CollaboratorHealthProfileDialog
+          open
+          schoolId={school.school_id}
+          teacher={healthProfileFor}
+          onClose={() => setHealthProfileFor(null)}
         />
       )}
 

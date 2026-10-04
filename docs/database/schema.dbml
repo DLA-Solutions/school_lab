@@ -418,6 +418,26 @@ Table teachers {
   Note: 'Teacher domain record; user_id links the login when provisioned. Membership role remains the authorization context.'
 }
 
+Table teacher_health_profiles {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  teacher_id integer [not null]
+  blood_type varchar [note: 'A+ | A- | B+ | B- | AB+ | AB- | O+ | O- | unknown — optional']
+  health_plan_name varchar(120) [note: 'LGPD: sensitive health data']
+  health_plan_number varchar(60) [note: 'LGPD: sensitive health data']
+  emergency_contact_name varchar(120) [note: 'LGPD: personal data']
+  emergency_contact_phone varchar(30) [note: 'LGPD: personal data; digits normalized in model']
+  special_care_notes text [note: 'LGPD: sensitive health data; max 2000 chars in model']
+  created_at timestamp
+  updated_at timestamp
+  Note: 'BC6 collaborator health profile — mirrors student_health_profiles field-for-field, scoped to a Teacher instead of a Student. Profile only; no records list, no document uploads (out of scope per collaborator-health.md).'
+
+  indexes {
+    teacher_id [unique, note: 'One profile per teacher']
+    school_id
+  }
+}
+
 Table student_guardians {
   id integer [primary key, increment]
   guardian_id integer [not null]
@@ -1615,17 +1635,55 @@ Table preceptorship_reports {
   }
 }
 
+Table incident_types {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null]
+  category varchar [not null, note: 'disciplinary | pastoral | health (BR-IN01)']
+  severity varchar [note: 'School-configurable free label (e.g. low/medium/high); no fixed catalog mandated by BR-IN01']
+  default_visibility varchar [not null, default: 'staff_only', note: 'staff_only | guardian | guardian_on_publish — BR-IN02 forces staff_only at creation time for category=health regardless of this default']
+  is_system boolean [not null, default: false, note: 'Seeded default row (system_key present) vs a school-authored custom type']
+  system_key varchar [note: 'Stable lookup for a seeded default, e.g. guardian_meeting ("Reunião com os pais" — BC7 product ask). Null for custom types, mirrors school_role_templates.system_key']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, name) [unique, note: 'WHERE discarded_at IS NULL']
+    (school_id, system_key) [unique, note: 'WHERE system_key IS NOT NULL AND discarded_at IS NULL']
+  }
+
+  Note: 'School-configurable incident type catalog (BR-IN01). Full CRUD management UI is deferred (docs/open-questions.md) — MVP ships one seeded system row per school ("Reunião com os pais", category pastoral) provisioned lazily on first incident creation, plus whatever a school adds through data/console until a management UI exists.'
+}
+
 Table incidents {
   id integer [primary key, increment]
   school_id integer [not null]
   student_id integer [not null]
-  reported_by_membership_id integer
-  description text [note: 'LGPD: may contain health/sensitive data']
-  visible_to_guardian boolean [not null, default: false]
-  occurred_on date
-  discarded_at timestamp
+  incident_type_id integer [not null]
+  reported_by_membership_id integer [not null]
+  category varchar [not null, note: 'Snapshotted from incident_type.category at creation — stable even if the type catalog row changes later']
+  severity varchar [note: 'Snapshotted from incident_type.severity at creation']
+  visibility varchar [not null, note: 'staff_only | guardian | guardian_on_publish (BR-IN02)']
+  status varchar [not null, default: 'pending_approval', note: 'pending_approval | approved | archived — BR-IN08 gate; archived is the only "delete" (BR-IN05), no endpoint ships yet']
+  description text [note: 'LGPD: may contain health/sensitive data per category — see BR-IN07']
+  guardian_points_raised text [note: '"Pontos trazidos pelos pais" — structured body field for the guardian-meeting incident type. LGPD: may contain sensitive family/health content']
+  school_response text [note: '"Respostas da escola" — structured body field paired with guardian_points_raised. LGPD: may contain sensitive content']
+  published_at timestamp [note: 'Guardian-facing publish moment (UC-IN02). Set immediately at creation for visibility=guardian; set by POST .../publish for guardian_on_publish; never set for staff_only']
+  coordination_approved_at timestamp [note: 'BR-IN08 slot 1 of 2 — filled only by a membership whose role_template.system_key == "coordination"']
+  coordination_approved_by_membership_id integer
+  director_approved_at timestamp [note: 'BR-IN08 slot 2 of 2 — filled only by a membership whose role_template.system_key == "director"']
+  director_approved_by_membership_id integer
   created_at timestamp
   updated_at timestamp
+
+  indexes {
+    (school_id, student_id, created_at)
+    (school_id, status)
+    (incident_type_id)
+  }
+
+  Note: 'Occurrence record (BC7, product label "Ata"). No discarded_at — BR-IN05 "no hard delete" is expressed entirely through status (archived), not Discard. No occurred_on: UC-IN01 lists no distinct "when it happened" input, so the record date is created_at; a separate event-date field is an open item (docs/open-questions.md), not guessed into the schema. Attachments use has_many_attached :attachments directly on the model (Active Storage, same pattern as student_health_records.document and authorized_pickups.photo) — no separate incident_attachments table, since Active Storage already is this repo\'s one attachment mechanism.'
 }
 
 // --- Documents & archive (008) ---
@@ -1860,9 +1918,13 @@ Ref: preceptorship_reports.student_id > students.id
 Ref: preceptorship_reports.teacher_id > teachers.id
 Ref: preceptorship_reports.academic_period_id > academic_periods.id
 Ref: preceptorship_reports.author_id > users.id
+Ref: incident_types.school_id > schools.id
 Ref: incidents.school_id > schools.id
 Ref: incidents.student_id > students.id
+Ref: incidents.incident_type_id > incident_types.id
 Ref: incidents.reported_by_membership_id > memberships.id
+Ref: incidents.coordination_approved_by_membership_id > memberships.id
+Ref: incidents.director_approved_by_membership_id > memberships.id
 
 Ref: archive_document_types.school_id > schools.id
 Ref: archive_documents.school_id > schools.id
@@ -1925,6 +1987,9 @@ Ref: student_guardians.school_id > schools.id
 
 Ref: student_health_profiles.school_id > schools.id
 Ref: student_health_profiles.student_id > students.id
+
+Ref: teacher_health_profiles.school_id > schools.id
+Ref: teacher_health_profiles.teacher_id > teachers.id
 
 Ref: student_health_records.school_id > schools.id
 Ref: student_health_records.student_id > students.id
