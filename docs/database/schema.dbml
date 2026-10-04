@@ -1727,6 +1727,22 @@ Table incidents {
   Note: 'Occurrence record (BC7, product label "Ata"). No discarded_at — BR-IN05 "no hard delete" is expressed entirely through status (archived), not Discard. No occurred_on: UC-IN01 lists no distinct "when it happened" input, so the record date is created_at; a separate event-date field is an open item (docs/open-questions.md), not guessed into the schema. Attachments use has_many_attached :attachments directly on the model (Active Storage, same pattern as student_health_records.document and authorized_pickups.photo) — no separate incident_attachments table, since Active Storage already is this repo\'s one attachment mechanism.'
 }
 
+Table incident_guardians {
+  id integer [primary key, increment]
+  incident_id integer [not null]
+  guardian_id integer [note: 'Nullable: a later guardian deletion nullifies rather than cascades, so the historical ata row survives (BR-IN11)']
+  name varchar [not null, note: 'Denormalized snapshot of guardian.name at save time — does not follow later changes to the guardian or to the student\'s student_guardians links (BR-IN11)']
+  relationship varchar [not null, note: 'Denormalized snapshot of student_guardians.relationship at save time — same non-live note as name (BR-IN11)']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (incident_id)
+  }
+
+  Note: 'BR-IN11 snapshot of the guardians recorded on an incident ("ata") at save time — one row per guardian. Distinct from the live student_guardians association: editing or removing a student_guardians link later does not change an already-saved incident_guardians row, since the ata is a historical record, not a derived view.'
+}
+
 // --- Documents & archive (008) ---
 
 Table archive_document_types {
@@ -1970,6 +1986,8 @@ Ref: incidents.incident_type_id > incident_types.id
 Ref: incidents.reported_by_membership_id > memberships.id
 Ref: incidents.coordination_approved_by_membership_id > memberships.id
 Ref: incidents.director_approved_by_membership_id > memberships.id
+Ref: incident_guardians.incident_id > incidents.id
+Ref: incident_guardians.guardian_id > guardians.id
 
 Ref: archive_document_types.school_id > schools.id
 Ref: archive_documents.school_id > schools.id
