@@ -24,9 +24,11 @@ export interface IncidentPreviewDialogProps {
 /**
  * The "Ata" exactly as a guardian would be shown it (`Academic::RenderIncidentPdfService`) — so a
  * teacher or coordinator reading it back is never looking at different bytes than the family.
- * Mirrors `ContractPreviewDialog`'s PDF branch: fetched as a blob through the API (never a bare
- * `<a href>`, which would need the bearer token the browser does not carry) and rendered in a
- * sandboxed iframe so the document's own markup never reaches the app's styles or session.
+ * Mirrors `ContractPreviewDialog`'s blob-URL PDF branch: fetched as a blob through the API (never
+ * a bare `<a href>`, which would need the bearer token the browser does not carry) and rendered
+ * in an iframe pointed at that blob URL. No `sandbox` attribute — sandboxing would force the
+ * iframe into an opaque origin that conflicts with the blob URL's inherited app origin, which is
+ * what was blocking the PDF from rendering.
  */
 const IncidentPreviewDialog = ({ open, schoolId, incident, onClose }: IncidentPreviewDialogProps) => {
   const { t } = useTranslation();
@@ -94,7 +96,6 @@ const IncidentPreviewDialog = ({ open, schoolId, incident, onClose }: IncidentPr
               component="iframe"
               title={t('atas.previewFrame')}
               src={url}
-              sandbox=""
               sx={{
                 width: 1,
                 height: 520,
