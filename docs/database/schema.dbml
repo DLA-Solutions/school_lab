@@ -1727,6 +1727,29 @@ Table incidents {
   Note: 'Occurrence record (BC7, product label "Ata"). No discarded_at — BR-IN05 "no hard delete" is expressed entirely through status (archived), not Discard. No occurred_on: UC-IN01 lists no distinct "when it happened" input, so the record date is created_at; a separate event-date field is an open item (docs/open-questions.md), not guessed into the schema. Attachments use has_many_attached :attachments directly on the model (Active Storage, same pattern as student_health_records.document and authorized_pickups.photo) — no separate incident_attachments table, since Active Storage already is this repo\'s one attachment mechanism.'
 }
 
+Table daily_routine_entries {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  date date [not null]
+  snack_eaten boolean [note: 'null means not yet recorded, distinct from "recorded as not eaten" (false) — BR-DR03 [product decision]']
+  poop_count integer [not null, default: 0]
+  pee_count integer [not null, default: 0]
+  notes text [note: 'LGPD: child-sensitive diaper/toileting content, same NFR-002 scope as incidents.description']
+  status varchar [not null, default: 'draft', note: 'draft | sent — plain two-state flag (BR-DR04), not AASM']
+  sent_at timestamp [note: 'Set on the draft -> sent transition (UC-DR03); never touched by an upsert']
+  sent_by_membership_id integer
+  recorded_by_membership_id integer
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (student_id, date) [unique, note: 'One entry per student per day (BR-DR01) — upserting again updates the row in place']
+  }
+
+  Note: 'Daily routine note (BC11, "Rotina Infantil"): snack, diaper/bathroom counts, and free-text notes for one child on one day. No discarded_at — rows are upserted in place, never soft-deleted. Sending (status: sent) notifies the student\'s linked guardians once (BR-DR05); editing after send does not revert status or re-notify.'
+}
+
 // --- Documents & archive (008) ---
 
 Table archive_document_types {
@@ -1967,6 +1990,10 @@ Ref: incident_types.school_id > schools.id
 Ref: incidents.school_id > schools.id
 Ref: incidents.student_id > students.id
 Ref: incidents.incident_type_id > incident_types.id
+Ref: daily_routine_entries.school_id > schools.id
+Ref: daily_routine_entries.student_id > students.id
+Ref: daily_routine_entries.sent_by_membership_id > memberships.id
+Ref: daily_routine_entries.recorded_by_membership_id > memberships.id
 Ref: incidents.reported_by_membership_id > memberships.id
 Ref: incidents.coordination_approved_by_membership_id > memberships.id
 Ref: incidents.director_approved_by_membership_id > memberships.id

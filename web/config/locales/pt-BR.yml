@@ -75,6 +75,9 @@ pt-BR:
       incident_created:
         title: "Ocorrência aguardando análise"
         body: "Uma nova ocorrência sobre %{student} precisa da sua análise."
+      daily_routine_sent:
+        title: "Rotina do dia disponível"
+        body: "A rotina de %{student} já está disponível."
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."

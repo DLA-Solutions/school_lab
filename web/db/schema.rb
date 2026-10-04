@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_04_022651) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -330,6 +330,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
     t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying, 'cancelled'::character varying]::text[])", name: "contracts_signature_status_valid"
+  end
+
+  create_table "daily_routine_entries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.text "notes"
+    t.integer "pee_count", default: 0, null: false
+    t.integer "poop_count", default: 0, null: false
+    t.bigint "recorded_by_membership_id"
+    t.bigint "school_id", null: false
+    t.datetime "sent_at"
+    t.bigint "sent_by_membership_id"
+    t.boolean "snack_eaten"
+    t.string "status", default: "draft", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recorded_by_membership_id"], name: "index_daily_routine_entries_on_recorded_by_membership_id"
+    t.index ["school_id"], name: "index_daily_routine_entries_on_school_id"
+    t.index ["sent_by_membership_id"], name: "index_daily_routine_entries_on_sent_by_membership_id"
+    t.index ["student_id", "date"], name: "index_daily_routine_entries_on_student_date", unique: true
+    t.index ["student_id"], name: "index_daily_routine_entries_on_student_id"
   end
 
   create_table "device_tokens", force: :cascade do |t|
@@ -1818,6 +1839,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
   add_foreign_key "contracts", "plan_discounts"
   add_foreign_key "contracts", "schools"
   add_foreign_key "contracts", "students"
+  add_foreign_key "daily_routine_entries", "memberships", column: "recorded_by_membership_id"
+  add_foreign_key "daily_routine_entries", "memberships", column: "sent_by_membership_id"
+  add_foreign_key "daily_routine_entries", "schools"
+  add_foreign_key "daily_routine_entries", "students"
   add_foreign_key "device_tokens", "users"
   add_foreign_key "document_signatories", "schools"
   add_foreign_key "documents", "schools"
