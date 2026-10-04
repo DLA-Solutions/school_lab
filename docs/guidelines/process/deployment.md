@@ -1,7 +1,16 @@
 # Deployment
 
-How `site/`, `frontend/app/`, `frontend/backoffice/`, and `web/` reach production and staging.
-Deploys are manual, run from a developer machine with Kamal 2.
+How `site/`, `frontend/app/`, `frontend/backoffice/`, and `web/` reach staging and production.
+
+Continuous delivery is GitHub Actions on `ubuntu-latest`. The workflow
+[`.github/workflows/deploy.yml`](../../../.github/workflows/deploy.yml) runs
+[`bin/deploy`](../../../bin/deploy). It does not run RuboCop, RSpec, or any other
+test. CI stays local (`bin/ci`) before merge — see [`local-ci.md`](local-ci.md).
+
+The app server `77.42.33.33` only receives the image. There is no self-hosted
+runner and no git clone on the server for deploy. Kamal on the runner builds the
+image, pushes it to GHCR, and uses SSH only to pull the image and swap the
+container.
 
 ## Branch policy
 
@@ -9,28 +18,104 @@ Two long-lived branches, one per environment. One-pager:
 [`git-and-deploy-flow.md`](git-and-deploy-flow.md). ADR:
 [`003-environment-branches.md`](../../adr/003-environment-branches.md).
 
-| Deploy | Git branch | After |
-|--------|------------|--------|
-| `kamal deploy -d staging` | `staging` (in sync with `origin/staging`) | Feature PR merged to `staging` |
-| `kamal deploy -d production` | `main` (in sync with `origin/main`) | Fast-forward `origin/staging` onto `main` after QA |
+| Trigger | Git branch | What publishes |
+|---------|------------|----------------|
+| Push | `staging` | Staging (`bin/deploy staging`, GitHub Environment `staging`) |
+| Push | `main` | Production (`bin/deploy production`, GitHub Environment `production`) |
+| Actions button (`workflow_dispatch`) | `staging` or `main` only | Redeploy one layer or all four; optional migrate checkbox |
+
+A push starts the job only when it touches a deployable path: `site/**`,
+`frontend/app/**`, `frontend/backoffice/**`, `packages/design-tokens/**`,
+`web/**`, `bin/deploy`, or `.github/workflows/deploy.yml`. A docs-only commit
+does not deploy. `packages/design-tokens/**` includes both SPAs. A diff that
+only changes the workflow or `bin/deploy` ends the job without Kamal.
+
+`workflow_dispatch` on any other branch fails before Docker. The layer input is
+`changed` (the last commit), `all`, `site`, `frontend`, `backoffice`, or `web`.
+The migrate checkbox defaults to off.
+
+Do not deploy from `feature/*`, `fix/*`, `chore/*`, or `docs/*`. Do not deploy
+an open PR by checking out the feature branch. Cursor rule:
+`.cursor/rules/core/deploy-environment-branches.mdc`.
+
+### What the workflow runs
+
+`bin/deploy staging` or `bin/deploy production` publishes four layers, in runbook
+order, and stops at the first failure: `site/`, `frontend/app/`,
+`frontend/backoffice/`, `web/`. An optional third argument limits the run to
+`site`, `frontend`, `backoffice`, or `web`.
+
+Migrations run with `kamal app exec -d <dest> --primary "bin/rails db:migrate"`
+after the API, and only when the API is one of the layers in that run:
+
+- On a push, only when the diff includes `web/db/migrate/**` or `web/db/schema.rb`.
+- On the manual button, only when the migrate checkbox is set.
+
+Smoke is a read-only `GET` of the public URLs for the layers that shipped
+(`/`, `/app/`, `/backoffice/`, `/up` on `staging.scholarpremium.com.br` or
+`scholarpremium.com.br`). A failed smoke fails the job. Smoke does not send
+e-mail and does not `POST`.
+
+Discord notify is best-effort (`if: always()`). The optional repository secret
+`DISCORD_DEPLOY_WEBHOOK_URL` posts the same embed as
+[`.cursor/mcp/discord-deploy/notify.mjs`](../../../.cursor/mcp/discord-deploy/notify.mjs).
+A missing webhook or a Discord outage does not fail the deploy. Jira
+**Ready to QA** stays manual (skill `jira-task-lifecycle`). The workflow does
+not transition tickets.
+
+### Secrets in the GitHub UI
+
+Nothing in the repository creates these secrets. A person creates the GitHub
+Environments `staging` and `production` and fills the values **before** merging
+the workflow. The first push fails if they are missing.
+
+Repository secrets (visible to both jobs):
+
+| Secret | Notes |
+|--------|--------|
+| `KAMAL_REGISTRY_USERNAME` | GHCR user |
+| `KAMAL_REGISTRY_PASSWORD` | Classic PAT with `write:packages` and `read:packages` |
+| `DEPLOY_SSH_PRIVATE_KEY` | SSH key for `deploy@77.42.33.33` |
+| `DEPLOY_KNOWN_HOSTS` | `known_hosts` for that server |
+| `RAILS_MASTER_KEY` | API credentials key |
+| `POSTGRES_PASSWORD` | `scholarpremium` role; URL-encode `@`, `:`, `/`, `?`, `#` |
+| `REDIS_PASSWORD` | Redis `requirepass`; URL-encode the same characters |
+| `GOOGLE_OAUTH_CLIENT_ID` | School SPA builder secret |
+| `DISCORD_DEPLOY_WEBHOOK_URL` | Optional; deploy still succeeds without it |
+
+Environment `staging`:
+
+- `JWT_SECRET_KEY_STAGING`
+- `POSTMARK_API_TOKEN_STAGING`
+- `API_DOCS_USERNAME`
+- `API_DOCS_PASSWORD`
+
+Environment `production`:
+
+- `JWT_SECRET_KEY_PRODUCTION`
+- `POSTMARK_API_TOKEN_PRODUCTION`
+
+`KAMAL_REGISTRY_PASSWORD` must be that classic PAT. Do not use `GITHUB_TOKEN`
+(the Actions token or a general-purpose token). Those tokens normally lack the
+packages scopes, and GHCR rejects them with a 401. The production JWT does not
+belong in the staging environment: a staging token must not verify in production.
+
+URL-encode `POSTGRES_PASSWORD` and `REDIS_PASSWORD` when the password contains
+`@`, `:`, `/`, `?`, or `#`. A literal character breaks `DATABASE_URL` parsing,
+and the failure looks like a wrong host.
+
+### Local fallback
+
+When `.kamal/secrets*` already exist on a machine, local `bin/deploy` remains
+valid. Outside Actions the script calls `bin/require-deploy-branch` and reads
+those files. It does not run tests. This is not the default path for every
+developer.
 
 ```bash
-# Staging
-git checkout staging
-git pull origin staging
-bin/require-deploy-branch staging
-
-# Production (only after QA on staging)
-git fetch origin
-git checkout main
-git merge --ff-only origin/staging
-git push origin main
-bin/require-deploy-branch production
+bin/deploy staging
+bin/deploy staging web          # site, frontend, backoffice, or web
+bin/deploy production
 ```
-
-Do not deploy from `feature/*`, `fix/*`, `chore/*`, or `docs/*`. Do not deploy an open
-PR by checking out the feature branch. Cursor rule:
-`.cursor/rules/core/deploy-environment-branches.mdc`.
 
 ## Topology
 
@@ -230,9 +315,11 @@ The `vector` extension is available in the databases but unused today — there 
 `vector` column in `db/schema.rb`, so `schema_format` stays `:ruby`. Revisit when the
 first embedding migration lands (see `docs/open-questions.md`).
 
-Schema loading and migrations run automatically: `bin/docker-entrypoint` calls
-`db:prepare` on boot. Demo seeds are guarded by `Rails.env.local?` in `db/seeds.rb`
-and never run on a deployed environment.
+Schema loading on boot still runs through `bin/docker-entrypoint` (`db:prepare`).
+The workflow's explicit `db:migrate` is separate: it runs only when the API layer
+deploys and, on a push, `web/db/migrate` or `web/db/schema.rb` changed — or, on
+the manual button, the migrate checkbox is set. Demo seeds are guarded by
+`Rails.env.local?` in `db/seeds.rb` and never run on a deployed environment.
 
 ## Application secrets
 
@@ -272,7 +359,10 @@ Development and test deliberately use fixed throwaway values committed to the re
 so the suite runs without credentials — CI has no `RAILS_MASTER_KEY`. Those values protect
 nothing real and must never be reused by a deployed environment.
 
-## Prerequisites on the deploy machine
+## Prerequisites on a local deploy machine (fallback)
+
+GitHub Actions is the default path and does not use these files. This section is
+only for `bin/deploy` on a machine that already has `.kamal/secrets*`.
 
 1. SSH access as `deploy` to `77.42.33.33`, with the key loaded in the agent.
 2. Docker running locally (Kamal builds the image on your machine).
@@ -319,9 +409,9 @@ URL-encode the database and Redis passwords. A literal `@`, `:`, `/`, `?`, or `#
 a password breaks `DATABASE_URL` parsing, and the failure looks like a wrong host rather
 than a bad password.
 
-The GHCR username is not in that table because `secrets-common` derives it from
-`gh config get -h github.com user`, so each developer authenticates as themselves and no
-account is pinned in the repository.
+On a local machine the GHCR username is not in that table: `secrets-common`
+derives it from `gh config get -h github.com user`. GitHub Actions does not call
+`gh config`. It uses the repository secret `KAMAL_REGISTRY_USERNAME`.
 
 `KAMAL_REGISTRY_PASSWORD` must be a **classic** personal access token with
 `write:packages` and `read:packages`, and your account needs write access to packages in
@@ -355,6 +445,9 @@ The Active Record encryption keys are not checked there: the app validates them 
 a missing key fails the health check and the deploy never takes traffic.
 
 ## First deploy
+
+Routine publishes go through GitHub Actions. `kamal setup` below is the
+first-time host bootstrap from a machine that already has local secrets.
 
 Run from each service directory, once per destination.
 
@@ -401,49 +494,60 @@ from `.kamal/secrets-common.example`.
 
 ## Day-to-day
 
-Confirm the Git branch matches the destination (`bin/require-deploy-branch staging` or
-`production`) before the first `kamal deploy` below.
+Push to `staging` publishes staging. After QA, fast-forward `origin/staging` onto
+`main` and push `main`; that push publishes production. To redeploy without a new
+commit, run the workflow manually (`workflow_dispatch`) on that same branch and
+pick one layer or all. Set the migrate checkbox only when the API should run
+`db:migrate`.
+
+Confirm `/`, `/app/`, `/backoffice/`, and `/up` on staging before promoting
+`main`. `/backoffice/` must return the backoffice SPA (not the site landing).
+Smoke is a read-only GET — do not POST invite, password reset, or other
+mailer-triggering routes on staging or production (see
+`docs/guidelines/web/mailers.md`).
+
+Discord notify on the Actions path is best-effort via
+`DISCORD_DEPLOY_WEBHOOK_URL`. Jira **Ready to QA** stays manual.
+
+### Local fallback
+
+When `.kamal/secrets*` already exist, from the repo root:
 
 ```bash
-# Deploy staging (site → school SPA → backoffice SPA → API)
-cd site && kamal deploy -d staging
-cd frontend/app && kamal deploy -d staging
-cd frontend/backoffice && kamal deploy -d staging
-cd web && kamal deploy -d staging
+bin/deploy staging
+bin/deploy production
+# optional layer: bin/deploy staging web
+```
 
-# Production
-cd site && kamal deploy -d production
-cd frontend/app && kamal deploy -d production
-cd frontend/backoffice && kamal deploy -d production
-cd web && kamal deploy -d production
+Outside Actions the script runs `bin/require-deploy-branch` and does not run
+tests. The same layer order (site → school SPA → backoffice SPA → API) is what
+a direct `kamal deploy -d <dest>` from each service directory does; prefer
+`bin/deploy` so the branch check stays in one place.
 
-# Logs and console (API only)
-cd web
+Logs and console (API only, from `web/`):
+
+```bash
 kamal app logs -f -d production  # or: kamal logs -d production
 kamal console -d production      # rails console
 kamal shell -d production        # bash in the running container
 kamal dbc -d production          # rails dbconsole
-kamal app exec -d production "bin/rails db:migrate"
 ```
 
-Deploy staging first and confirm `/`, `/app/`, `/backoffice/`, and `/up` respond before
-touching production. `/backoffice/` must return the backoffice SPA (not the site landing).
-Smoke is read-only — do not POST invite, password reset, or other mailer-triggering
-routes on staging or production (see `docs/guidelines/web/mailers.md`).
-
-Cursor posts a channel message when a deploy finishes via the `discord-deploy` MCP.
-Configure `DISCORD_BOT_TOKEN` + `DISCORD_DEPLOY_CHANNEL_ID` in `.cursor/mcp.env` (channel
-ID is copied with Developer Mode; no channel edit required). An incoming webhook is
-optional. Skills `deploy-staging` / `deploy-production` call `notify_deploy` after smoke on success, and also
-on failure. This is School Lab / Scholar Premium only — not a general Discord bot.
+The local fallback skills `deploy-staging` / `deploy-production` still call the
+`discord-deploy` MCP `notify_deploy` after smoke, on success and on failure.
+Configure `DISCORD_BOT_TOKEN` + `DISCORD_DEPLOY_CHANNEL_ID` in `.cursor/mcp.env`
+for that path (channel ID is copied with Developer Mode). This is School Lab /
+Scholar Premium only.
 
 ## API documentation (staging only)
 
 Staging exposes Swagger UI at `https://staging.scholarpremium.com.br/api-docs`, protected
 by HTTP Basic Auth. Production does not mount `/api-docs`.
 
-Set `API_DOCS_USERNAME` and `API_DOCS_PASSWORD` on the deploy machine before
-`kamal deploy -d staging` (see `.kamal/secrets.staging.example`). Verify with
+On the default path, `API_DOCS_USERNAME` and `API_DOCS_PASSWORD` are secrets on
+the GitHub Environment `staging`. The local fallback still interpolates them
+from the shell into `web/.kamal/secrets.staging` before `bin/deploy staging`
+(see `.kamal/secrets.staging.example`). Verify with
 `kamal secrets print -d staging` that both values are non-empty — an exported shell
 variable that is not interpolated into `.kamal/secrets.staging` still produces a
 failed boot. Local development serves `/api-docs` without credentials.
@@ -458,7 +562,10 @@ Collection régua reminders use Postmark when `POSTMARK_API_TOKEN` is set on the
 container. `MAIL_FROM` defaults to `contato@scholarpremium.com.br` via `deploy.yml`
 (`env.clear`); override per destination in `deploy.<destination>.yml` if needed.
 
-Set **distinct** Postmark Server API tokens per destination:
+Set **distinct** Postmark Server API tokens per destination. On the default path
+they are `POSTMARK_API_TOKEN_STAGING` (Environment `staging`) and
+`POSTMARK_API_TOKEN_PRODUCTION` (Environment `production`). The local fallback
+exports them in the shell:
 
 ```bash
 export POSTMARK_API_TOKEN_STAGING='...'
@@ -522,9 +629,13 @@ set `builder.context`.
 
 ## Build performance
 
-`builder.arch` is `amd64`. On an arm64 Mac that means QEMU emulation, and compiling
-native gems (`pg`, `bootsnap`) takes several minutes. Uncomment `builder.remote` in
-`config/deploy.yml` to build on the app server, which is already amd64.
+`builder.arch` is `amd64`. The GitHub Actions runner is amd64, so the default path
+builds there and the app server only pulls the image. Do not enable `builder.remote`
+for that path — it would build on the server.
+
+On an arm64 Mac using the local fallback, the same `amd64` target means QEMU
+emulation, and compiling native gems (`pg`, `bootsnap`) takes several minutes.
+Uncomment `builder.remote` in `config/deploy.yml` only for that local case.
 
 ## Notes
 
@@ -532,8 +643,9 @@ native gems (`pg`, `bootsnap`) takes several minutes. Uncomment `builder.remote`
   key are stored encrypted on `school_payment_providers`, using the Active Record
   encryption keys from the credentials — which is why those keys must be real before any
   school uploads credentials. See `docs/guidelines/web/gateways.md`.
-- **Local CI; manual CD.** GitHub Actions workflows are disabled — see
-  `docs/guidelines/process/local-ci.md`. Run `bin/install-git-hooks` once per clone;
-  run essential CI before deploy (skills `deploy-staging` / `deploy-production`); deploy staging/production manually with Kamal (§ Day-to-day).
+- **Local CI; CD on GitHub Actions.** Tests stay on `bin/ci` — see
+  `docs/guidelines/process/local-ci.md`. The deploy workflow does not run them.
+  Push to `staging` or `main` runs `bin/deploy` on `ubuntu-latest`. Local
+  `bin/deploy` is the fallback when `.kamal/secrets*` already exist.
 - **Active Storage** writes to a Kamal volume on the app server. That disk is not
   backed up by the deploy process; migrating to S3 is an open decision.
