@@ -13,7 +13,7 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`identity-and-onboarding/`](identity-and-onboarding/index.md) | Multi-tenancy, permissions, onboarding, auth, invites, profiles, consent | validated | **13** MVP `identity.*` canonicals per [`mvp-scope.md`](../product/mvp-scope.md) | [`003-identity-permissions`](../modeling/003-identity-permissions.md), [`004-school-onboarding`](../modeling/004-school-onboarding.md) | [`identity-onboarding`](../api/v1/identity-onboarding.md) |
 | [`students-and-enrollments/`](students-and-enrollments/index.md) | Student records, guardian links, classes, enrollments (BC1 + BC2) | validated | **9** MVP `students.*` canonicals | [`005-students-enrollments`](../modeling/005-students-enrollments.md) | [`students-and-enrollments`](../api/v1/students-and-enrollments.md) |
 | [`communication/`](communication/index.md) | Messages, channels, announcements, notifications, media (BC1–BC5) | validated | **37** MVP `communication.*` canonicals (**46** total) | [`006-communication`](../modeling/006-communication.md) | [`communication`](../api/v1/communication.md) |
-| [`academic/`](academic/index.md) | Attendance, grades, report cards, diary, curriculum, periods, incidents, coordination, Preceptoria backfill (BC1–BC9) | validated | **22** MVP `academic.*` canonicals (**34** total) + product-decision Preceptoria | [`007-academic`](../modeling/007-academic.md) | [`academic`](../api/v1/academic.md) |
+| [`academic/`](academic/index.md) | Attendance, grades, report cards, diary, curriculum, periods, incidents, coordination, Preceptoria, lesson plans, Infantil daily routine (BC1–BC11) | validated | **22** MVP `academic.*` canonicals in taxonomy (**34** total); `academic.log_daily_routine` is specified for this cut | [`007-academic`](../modeling/007-academic.md) | [`academic`](../api/v1/academic.md) |
 | [`billing/`](billing/index.md) | Charges, boletos, payments, dunning, settings, guardian portal, NFS-e scope, annual tax declarations (BC1–BC8) | validated; tax declaration release legally gated | **32** MVP `billing.*` canonicals + product-decision tax declaration; partner slice **implemented** in `web/` | [`001-fintech-first`](../modeling/001-fintech-first.md) *(baseline + PRD delta)* | [`billing`](../api/v1/billing.md) extends [`fintech-first`](../api/v1/fintech-first.md) |
 | [`documents-and-archive/`](documents-and-archive/index.md) | Digital archive, audit export, signatories, retention hooks, guardian requests (BC1–BC3) | validated | **5** MVP `documents.*` canonicals (**12** total) + implemented guardian-request backfill | [`008-documents-archive`](../modeling/008-documents-archive.md) | [`documents-and-archive`](../api/v1/documents-and-archive.md) |
 | [`platform-and-admin/`](platform-and-admin/index.md) | School year, backoffice ops, calendar, staff users, product access (BC1–BC5) | validated | **6** MVP `platform.*` canonicals (**13** total) | [`009-platform-admin`](../modeling/009-platform-admin.md) | [`platform-and-admin`](../api/v1/platform-and-admin.md) — **W1 frozen (4C.1)** |
@@ -44,11 +44,11 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | File | Bounded context | Status |
 |------|-----------------|--------|
 | [`index.md`](communication/index.md) | Integration, waves, NFR summary, competitive grounding (**37** MVP `communication.*`) | validated |
-| [`messages.md`](communication/messages.md) | BC1 — DM, group/class threads, inbox, edit audit, scheduled send | validated |
+| [`messages.md`](communication/messages.md) | BC1 — family thread per school and student in this cut; edit and schedule remain a later wave | validated |
 | [`channels.md`](communication/channels.md) | BC2 — groups, service channels, tickets, CSAT, staff inbox | validated |
 | [`announcements.md`](communication/announcements.md) | BC3 — targeted comunicados, templates, moderation, calendar events | validated |
 | [`notifications.md`](communication/notifications.md) | BC4 — FCM push, email/WhatsApp adapters, policy, delivery tracking | validated |
-| [`media.md`](communication/media.md) | BC5 — attachments, photo albums, video, learning materials | validated |
+| [`media.md`](communication/media.md) | BC5 — this cut: jpeg/png/webp, audio, short video, 10 MB, 5 files; albums later | validated |
 
 ### Domain folder — academic
 
@@ -64,6 +64,8 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`incidents.md`](academic/incidents.md) | BC7 — occurrences, guardian visibility | validated |
 | [`coordination.md`](academic/coordination.md) | BC8 — coordination dashboard | validated |
 | [`preceptorship.md`](academic/preceptorship.md) | BC9 — implemented narrative publish, family read/PDF; not PEI/AEE | implemented |
+| [`lesson-plans.md`](academic/lesson-plans.md) | BC10 — one plan per class, subject, and instructional day | validated |
+| [`daily-routine.md`](academic/daily-routine.md) | BC11 — Infantil day card (`infantil_1`…`infantil_5`); one thread card on send | validated |
 
 ### Domain folder — billing
 

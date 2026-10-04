@@ -128,11 +128,11 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 
 ### In scope
 
-- **BC1 Messages** — DM, group/class threads, inbox, edit audit, scheduled send.
+- **BC1 Messages** — this cut: one family thread per school and student, class notice copied into each thread, no edit or delete. Broader inbox, edit audit, and scheduled send stay a later wave ([`messages.md`](messages.md)).
 - **BC2 Channels** — group vs channel vs DM model, service channels, tickets, CSAT, staff inbox.
 - **BC3 Announcements** — individual targeted comunicados, categories, templates, moderation, calendar events.
 - **BC4 Notifications** — FCM push, email adapter, WhatsApp adapter, delivery tracking, notification inbox, push policy.
-- **BC5 Media** — attachments (images priority), photo albums/mural, video, learning materials distribution.
+- **BC5 Media** — this cut: image, audio, and short video on the family thread (10 MB, 5 files, no transcoding). Photo albums and learning materials remain a later wave.
 - Module settings (branding, defaults, enablement) at school level.
 - Recipient resolution from students enrollments/classes/guardian links.
 - Per-family isolation on all guardian routes (NFR-002).
@@ -140,7 +140,8 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 ### Out of scope
 
 - **Real-time messaging** — timely delivery via queue + push, not live sync ([`open-questions.md`](../../open-questions.md)).
-- **Audio messages** — explicitly out per Jul 2026 decision ([`vision.md`](../../vision.md) §6).
+- **Audio and short video** are in this cut, on the same attachment as images
+  ([`media.md`](media.md) BR-D02, [`messages.md`](messages.md) BR-M09). Long-form video stays out.
 - **AI virtual assistant** — `communication.defer_ai_assistant` / Lia / Duda patterns documented only
   ([`DIV-communication-006`](../../ref/divergencias.md)).
 - **Mass announcements** — P2 (`communication.send_mass_announcement`).
@@ -207,7 +208,7 @@ Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md).
 
 | Segment | Applies | Notes |
 |---------|---------|-------|
-| `infantil` | yes | Photo updates and individual announcements cover routine gap until academic P2 routine module |
+| `infantil` | yes | Family thread plus the Infantil daily routine ([`daily-routine.md`](../academic/daily-routine.md)); photos alone no longer stand in for that card |
 | `fundamental_medio` | yes | Primary messaging volume; class-based group threads |
 | `pj_financeiro` | partial | Comms unchanged; financial guardian from students BC for billing notifications only |
 | `multi_unidade` | partial | All comms scoped per `school_id`; network broadcast P2 |
@@ -223,13 +224,12 @@ Shared with [`students-and-enrollments/`](../students-and-enrollments/index.md) 
    `enrollments.class_id`, `student_guardians`, and staff class assignments. Events consumed:
    `EnrollmentCreated`, `EnrollmentClassChanged`, `ClassStructureChanged`, `GuardianLinkChanged`
    ([`students-and-enrollments/enrollments.md`](../students-and-enrollments/enrollments.md) Events).
-2. **Family isolation (NFR-002)** — guardian routes under `/schools/:school_id/me/communication/*`
-   return only threads where the guardian is a participant via linked students. Cross-family
-   access returns `404`.
+2. **Family isolation (NFR-002)** — this cut's guardian routes are under `/schools/:school_id/me/conversations` and `/me/daily_routines`. Cross-family access returns `404` `not_found`.
 3. **Active child context** — guardian API accepts optional `student_id` query param for
    multi-child households; enforcement uses `student_guardians` (identity `profiles.md` slice owns UX).
-4. **Permissions** — comms mutations require permission keys such as `manage_communication`,
-   `send_messages`, `moderate_communication` (defined in identity BC1; defaults on system templates).
+4. **Permissions (this cut)** — teacher send requires role `teacher` plus a `teaching_assignment`.
+   No new `send_messages` key. `moderate_messages` does not open a private thread. Later waves may
+   still use `manage_communication` and related keys; they are not created here.
 5. **Onboarding** — `communication.onboard_communication_users` reuses identity invite flow;
    comms module adds post-accept checklist (FCM token, notification prefs) — not a parallel auth path.
 6. **Academic absence handoff** — when academic domain emits `AbsenceRecorded` (increment 4),
@@ -256,7 +256,7 @@ Capability: `communication.configure_communication_module`.
 
 | Wave | Primary doc | Deliverable |
 |------|-------------|-------------|
-| **W1** | messages.md + channels.md | Thread model, DM, class groups, recipient sync from students events |
+| **W1** | messages.md + media.md | Family thread per school and student, class notice, image/audio/short-video attachments. No push |
 | **W2** | channels.md | Service channels, tickets, CSAT, staff inbox |
 | **W3** | announcements.md + media.md | Individual announcements, moderation, attachments, photo albums |
 | **W4** | notifications.md | FCM pipeline, push policy, email/WhatsApp adapters, delivery tracking |
@@ -278,8 +278,9 @@ W1 depends on students W1–W2 (classes, enrollments, guardian links).
 | D6 | Explicit per-channel push policy | Documented — [`DIV-communication-007`](../../ref/divergencias.md) |
 | D7 | Not real-time — queue + FCM | Documented — [`open-questions.md`](../../open-questions.md) |
 | D8 | Individual announcements MVP; mass P2 | Documented — [`mvp-scope.md`](../../product/mvp-scope.md) |
-| D9 | Image attachments in messages — differentiator | Documented — [`vision.md`](../../vision.md) §3 |
+| D9 | Image, audio, and short video on the family thread — 10 MB, 5 files, no transcoding | Documented — [`vision.md`](../../vision.md) §3, [`media.md`](media.md) BR-D02 |
 | D10 | Emergency contacts / broadcast — blocked | Open — [`open-questions.md`](../../open-questions.md) |
+| D11 | This cut: one thread per school and student; no edit/delete; no push | Documented — [`messages.md`](messages.md) § Family thread slice |
 
 ---
 
@@ -300,9 +301,10 @@ in academic PRD — communication delivers the notification only after academic 
 
 Domain-specific bullets:
 
-- **No silent edits** — message body changes append to edit history visible to participants (BR-M06).
-- **Attachment limits** — max size/type enforced at upload; open item for exact MB/resolution
-  ([`open-questions.md`](../../open-questions.md) § Communication).
+- **Sent messages stay sent** — this cut has no edit or delete. A correction is a new message.
+  Edit history (BR-M06) is a later wave.
+- **Attachment limits** — 10 MB, 5 files, allow-list in [`media.md`](media.md) BR-D02. Any cap
+  above 10 MB, and resolution, stay open ([`open-questions.md`](../../open-questions.md) § Communication).
 - **Access audit for sensitive threads** — who viewed message content — open LGPD item (NFR-005).
 
 ---
@@ -315,7 +317,8 @@ See [`docs/open-questions.md`](../../open-questions.md) § Communication and § 
 - [ ] Push immediacy vs daily digest for non-urgent messages.
 - [ ] Teacher quiet hours / response-time expectations.
 - [ ] Escalation when teacher does not reply within X hours.
-- [ ] Image size and resolution limits.
+- [x] This cut: 10 MB per file, 5 files, image/audio/short-video allow-list. Resolution and any cap above 10 MB stay open.
+- [ ] Image resolution limit, and any size cap above 10 MB.
 - [ ] Message/photo retention windows and post-enrollment deletion.
 - [ ] Access audit (view logging) for conflict cases.
 - [ ] Emergency contacts and school alert button — legal review.

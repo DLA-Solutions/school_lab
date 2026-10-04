@@ -5,7 +5,7 @@
 > Platform: [`platform-and-admin.md`](platform-and-admin.md) — **frozen W1 (4C.1)**  
 > Conventions: [`docs/api/README.md`](../README.md)
 
-Attendance, grades, report cards, diary, curriculum, incidents — NFR-001 on absence notifications.
+Attendance, grades, report cards, diary, curriculum, incidents, and the Infantil daily routine.
 
 ---
 
@@ -217,6 +217,55 @@ broader-than-assignment scope is an explicit application authorization hardening
 
 ---
 
+## Daily routine (this cut)
+
+Infantil day card for classes `infantil_1` through `infantil_5`. One row per child per `date`.
+The paper agenda is the content reference, not the response shape. Full rules:
+[`docs/prds/academic/daily-routine.md`](../../prds/academic/daily-routine.md).
+
+Teacher and coordination base: `/api/v1/schools/:school_id/academics`  
+Guardian base: `/api/v1/schools/:school_id/me`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `PUT` | `/daily_routines` | Upsert by `student_id` and `date`. Does not post a thread card |
+| `POST` | `/daily_routines/apply_meals` | One meal field for the class. Fills only where that field is null. Does not send |
+| `POST` | `/daily_routines/:id/send` | Requires a narrative, a filled field, or an attachment. Posts one `kind: routine` message on the family thread |
+| `GET` | `/daily_routines` | Teacher: assigned Infantil classes. `manage_academic`: the school, read-only |
+| `GET` | `/me/daily_routines` | Guardian: `sent` cards for linked children. Null fields omitted |
+
+`PUT` body (`daily_routine`): `student_id`, `date`, `narrative`, `sleep_morning`,
+`sleep_after_lunch`, `sleep_afternoon` (`yes` \| `no` \| null), `interaction`, `evacuation`,
+`discomfort` (`yes` \| `no` \| null), `discomfort_detail`, `meal_breakfast`, `meal_lunch`,
+`meal_afternoon_snack`, `meal_dinner`, `meal_hydration` (`great` \| `regular` \| `refused` \| null),
+`attachment_ids`.
+
+`apply_meals` body: `school_class_id`, `date`, `field` (one meal column name), `value`.
+
+Writes use the civil date in `America/Sao_Paulo`. A date before today is `409` `routine_day_locked`.
+A second send is `409` `routine_already_sent`. The teacher must be role `teacher` with a
+`teaching_assignment` on the class. `manage_academic` cannot write and cannot read the thread
+(`404` on communication routes). Another family or school is `404` `not_found`.
+
+Thread contract: [`communication.md`](communication.md).
+
+Errors:
+
+| HTTP | `error.code` | When |
+|------|--------------|------|
+| `404` | `not_found` | Outside the family, the class, or the school |
+| `403` | `forbidden` | `manage_academic` attempting to write |
+| `409` | `routine_day_locked` | Date before today in `America/Sao_Paulo` |
+| `409` | `routine_already_sent` | Send called again |
+| `422` | `empty_content` | Send with no narrative, no filled field, and no attachment |
+| `422` | `discomfort_detail_required` | Detail missing when discomfort is `yes`, or set otherwise |
+| `422` | `not_infantil` | Class is not `infantil_1` … `infantil_5` |
+| `422` | `unsupported_media_type` | Attachment outside the communication allow-list |
+| `422` | `file_too_large` | Attachment over 10 MB |
+| `422` | `too_many_files` | More than 5 attachments |
+
+---
+
 ## Diary & curriculum (W3)
 
 | Method | Path | Description |
@@ -287,4 +336,4 @@ already school-scoped period and atomically validates the pre-closing checklist 
 
 ## OpenAPI tags
 
-`Academic`, `Attendance`, `Grades`, `Report Cards`, `Preceptorship`, `Guardian Me`
+`Academic`, `Attendance`, `Grades`, `Report Cards`, `Preceptorship`, `Daily Routines`, `Guardian Me`

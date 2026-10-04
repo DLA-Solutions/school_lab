@@ -1170,56 +1170,64 @@ Table enrollment_imports {
   }
 }
 
-// --- Communication (006) ---
+// --- Communication (006) — family thread slice. Announcement and notification tables below are a
+// later sketch: do not treat them as requirements of this cut, and do not migrate them with it.
 
 Table conversations {
   id integer [primary key, increment]
   school_id integer [not null]
-  conversation_type varchar [not null, note: 'direct | class | group']
-  subject_type varchar [note: 'Polymorphic — Class, Student, etc.']
-  subject_id integer
+  student_id integer [not null, note: 'The subject. One private thread per school and student. No person-to-person thread without a student']
   last_message_at timestamp
-  discarded_at timestamp
+  discarded_at timestamp [note: 'Discard gem. Uniqueness is among kept rows. This cut does not expose a delete API']
   created_at timestamp
   updated_at timestamp
 
   indexes {
+    (school_id, student_id) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
     (school_id, last_message_at)
   }
-}
 
-Table conversation_participants {
-  id integer [primary key, increment]
-  conversation_id integer [not null]
-  school_id integer [not null]
-  participant_type varchar [not null, note: 'Membership | Guardian']
-  participant_id integer [not null]
-  last_read_at timestamp
-  discarded_at timestamp
-  created_at timestamp
-  updated_at timestamp
-
-  indexes {
-    (conversation_id, participant_type, participant_id) [unique, note: 'WHERE discarded_at IS NULL']
-  }
+  Note: 'Family thread (messages.md family-thread slice). Participants are derived: linked guardians, and teachers with role teacher plus a teaching_assignment on the student current class. moderate_messages does not open the row.'
 }
 
 Table messages {
   id integer [primary key, increment]
   conversation_id integer [not null]
-  school_id integer [not null]
-  sender_membership_id integer [note: 'Nullable for system messages']
-  body text [not null, note: 'LGPD: message content']
+  school_id integer [not null, note: 'Must match the conversation school_id']
+  sender_membership_id integer [not null]
+  body text [note: 'LGPD: message content. Nullable when the message has an attachment']
+  kind varchar [not null, default: 'text', note: 'text | routine']
+  daily_routine_id integer [note: 'Set only for kind routine. One card per routine']
+  client_request_id varchar [note: 'Optional. Class notice copies the same id onto each child thread; a repeat does not insert again']
   sent_at timestamp [not null]
-  edited_at timestamp
-  scheduled_for timestamp
-  discarded_at timestamp
   created_at timestamp
   updated_at timestamp
 
   indexes {
     (conversation_id, sent_at)
+    (daily_routine_id) [unique, note: 'DB migration: UNIQUE WHERE daily_routine_id IS NOT NULL']
+    (conversation_id, client_request_id) [unique, note: 'DB migration: UNIQUE WHERE client_request_id IS NOT NULL']
   }
+
+  Note: 'No edited_at, no scheduled_for, no discarded_at. Sent content is not edited, not deleted, and not hard-deleted while LGPD retention is open.'
+}
+
+Table communication_attachments {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  uploaded_by_membership_id integer [not null]
+  message_id integer [note: 'Nullable until the next send attaches the file to a message']
+  daily_routine_id integer [note: 'Nullable until the file is attached to a daily routine. Must not be set together with message_id']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (message_id)
+    (daily_routine_id)
+    (school_id, uploaded_by_membership_id)
+  }
+
+  Note: 'Bytes via Active Storage has_one_attached. First real upload route; incidents already declare has_many_attached without a route. Allow-list and 10 MB / 5-file cap are service checks, not a DB enum: image/jpeg, image/png, image/webp, audio/webm, audio/mp4, audio/mpeg, audio/ogg, video/mp4, video/webm. No transcoding. content_type and byte_size live on the blob. LGPD: child image/audio/video; retention open; not hard-deleted.'
 }
 
 Table announcements {
@@ -1660,6 +1668,39 @@ Table lesson_plans {
   Note: 'Teacher plano de aula (BC10). All BR-LP07 template fields are optional — only class_discipline_id/date (which resolve professor/disciplina/turma/data) are required to save a plan. No status, no submission/approval workflow in this version (BR-LP05).'
 }
 
+Table daily_routines {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  school_class_id integer [not null, note: 'classes.id — child current class. Application allows only grade_level infantil_1, infantil_2, infantil_3, infantil_4, infantil_5']
+  date date [not null, note: 'Civil date. Same-day edits use America/Sao_Paulo; a later civil day is 409 routine_day_locked']
+  author_id integer [not null, note: 'teachers.id']
+  narrative text [note: 'Nullable. Blank is omitted from the guardian payload']
+  sleep_morning varchar [note: 'Null, yes, or no']
+  sleep_after_lunch varchar [note: 'Null, yes, or no']
+  sleep_afternoon varchar [note: 'Null, yes, or no']
+  interaction varchar [note: 'Null, yes, or no']
+  evacuation varchar [note: 'Null, yes, or no']
+  discomfort varchar [note: 'Null, yes, or no']
+  discomfort_detail text [note: 'LGPD sensitive (health). Required when discomfort is yes; empty otherwise']
+  meal_breakfast varchar [note: 'Null, great, regular, or refused']
+  meal_lunch varchar [note: 'Null, great, regular, or refused']
+  meal_afternoon_snack varchar [note: 'Null, great, regular, or refused']
+  meal_dinner varchar [note: 'Null, great, regular, or refused']
+  meal_hydration varchar [note: 'Null, great, regular, or refused']
+  status varchar [not null, default: 'draft', note: 'draft | sent']
+  sent_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, student_id, date) [unique, note: 'One card per child per date. No discarded_at — sent content is not hard-deleted; retention length is open']
+    (school_id, school_class_id, date)
+  }
+
+  Note: 'Infantil daily routine (BC11). Paper agenda is the content reference, not the UI. apply_meals fills a single meal column only where it is null and does not send. Send posts one messages row with kind routine. manage_academic reads these rows and does not read conversations.'
+}
+
 Table school_instructional_days {
   id integer [primary key, increment]
   school_id integer [not null]
@@ -1873,11 +1914,15 @@ Ref: enrollment_imports.school_id > schools.id
 Ref: enrollment_imports.uploaded_by_id > users.id
 
 Ref: conversations.school_id > schools.id
-Ref: conversation_participants.conversation_id > conversations.id
-Ref: conversation_participants.school_id > schools.id
+Ref: conversations.student_id > students.id
 Ref: messages.conversation_id > conversations.id
 Ref: messages.school_id > schools.id
 Ref: messages.sender_membership_id > memberships.id
+Ref: messages.daily_routine_id > daily_routines.id
+Ref: communication_attachments.school_id > schools.id
+Ref: communication_attachments.uploaded_by_membership_id > memberships.id
+Ref: communication_attachments.message_id > messages.id
+Ref: communication_attachments.daily_routine_id > daily_routines.id
 Ref: announcements.school_id > schools.id
 Ref: announcements.author_membership_id > memberships.id
 Ref: notification_policies.school_id > schools.id
@@ -1963,6 +2008,10 @@ Ref: preceptorship_reports.academic_period_id > academic_periods.id
 Ref: preceptorship_reports.author_id > users.id
 Ref: lesson_plans.school_id > schools.id
 Ref: lesson_plans.class_discipline_id > class_disciplines.id
+Ref: daily_routines.school_id > schools.id
+Ref: daily_routines.student_id > students.id
+Ref: daily_routines.school_class_id > classes.id
+Ref: daily_routines.author_id > teachers.id
 Ref: incident_types.school_id > schools.id
 Ref: incidents.school_id > schools.id
 Ref: incidents.student_id > students.id

@@ -184,6 +184,32 @@ section, but the concrete feature request (two text fields) does not need it yet
 no "when it happened" field, so the record date shown in the grid is `created_at`. Whether a
 school ever needs a date distinct from the record date is an open item, not a guessed column.
 
+### Daily routine (BC11)
+
+| Table | Role |
+|-------|------|
+| `daily_routines` | One Infantil card per child per date |
+
+The paper agenda is the content reference (narrative, sleep, meals, signals). It is not a UI
+model. `school_class_id` references `classes.id`. `author_id` references `teachers.id`.
+
+| Column | Notes |
+|--------|-------|
+| `school_id`, `student_id`, `school_class_id`, `date` | Unique on `(school_id, student_id, date)` |
+| `author_id` | Teacher who writes the card |
+| `narrative` | Nullable text |
+| `sleep_morning`, `sleep_after_lunch`, `sleep_afternoon` | Null, `yes`, or `no` |
+| `interaction`, `evacuation`, `discomfort` | Null, `yes`, or `no` |
+| `discomfort_detail` | Sensitive. Required when `discomfort` is `yes`; empty otherwise |
+| `meal_breakfast`, `meal_lunch`, `meal_afternoon_snack`, `meal_dinner`, `meal_hydration` | Null, `great`, `regular`, or `refused` |
+| `status` | `draft` or `sent` |
+| `sent_at` | Set when the one routine message is posted |
+
+No `discarded_at`. Same-day edits use `America/Sao_Paulo`. A later civil day is not writable.
+`communication_attachments.daily_routine_id` and `messages.daily_routine_id` (unique) live with
+the communication model. Only classes `infantil_1` … `infantil_5` get a row. `manage_academic`
+reads these rows and does not read `conversations`.
+
 ## Events
 
 - `AbsenceRecorded` → communication notification pipeline (NFR-001 reliability requirements).
@@ -205,5 +231,8 @@ render leaves the whole batch unreleased and invisible to guardians.
 Health-related incident fields marked sensitive; `description`, `guardian_points_raised`, and
 `school_response` may all carry sensitive family content regardless of category and are flagged
 accordingly (BR-IN07); guardian visibility explicit per incident.
+`daily_routines.discomfort_detail` is health data about a child. Guardian routine reads are
+family-scoped and omit null fields. Retention for messages, attachments, and routine rows remains
+pending legal review; sent content is not hard-deleted.
 Report-card snapshots and Preceptoria narratives are child education records. All guardian reads
 are family-scoped; retention and access-audit periods remain pending legal review.

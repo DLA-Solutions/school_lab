@@ -4,8 +4,9 @@
 > Parent PRD: [`index.md`](index.md)  
 > Capability IDs: `communication.send_direct_message`, `communication.send_group_message`, `communication.manage_message_inbox`, `communication.edit_message_content`, `communication.schedule_message_delivery`, `communication.manage_communication_operations`  
 > Related BCs: [`channels.md`](channels.md), [`media.md`](media.md), [`notifications.md`](notifications.md)  
-> Modeling: *(pending — `docs/modeling/006-communication.md`)*  
-> API narrative: *(pending — `docs/api/v1/communication.md`)*
+> Modeling: [`docs/modeling/006-communication.md`](../../modeling/006-communication.md)  
+> API narrative: [`docs/api/v1/communication.md`](../../api/v1/communication.md)  
+> **This cut** supersedes the thread, edit, schedule, and permission sketch below. See [Family thread slice](#family-thread-slice).
 
 ---
 
@@ -34,7 +35,7 @@ with per-family isolation and school-scoped recipient resolution from students d
 
 | Segment | Applies | Notes |
 |---------|---------|-------|
-| `infantil` | yes | Guardian-primary; teachers send photo-heavy group updates |
+| `infantil` | yes | Guardian-primary; teachers send on the child's family thread, including photos, audio, and short video |
 | `fundamental_medio` | yes | Class group threads primary pattern |
 | `pj_financeiro` | yes | No segment-specific message rules |
 | `multi_unidade` | partial | Threads scoped per `school_id` |
@@ -51,11 +52,38 @@ School Lab separates **BC1 messages** (peer/group threads) from **BC2 service ch
 **Dependencies**
 
 - Students: active enrollment → class membership for group expansion (UC-M04).
-- Identity: `send_messages` permission; guardian membership for `/me` routes.
+- Identity: this cut uses role `teacher` plus a `teaching_assignment` (no new `send_messages` key); guardian membership for `/me` routes.
 - Channels BC: `thread_kind` distinguishes DM, `class_group`, and `service` origins.
 
-**Not real-time:** clients poll or refresh on push tap; no WebSocket/Solid Cable in MVP
+**Not real-time:** clients poll or refresh. This cut does not send push. No WebSocket/Solid Cable
 ([`open-questions.md`](../../open-questions.md)).
+
+---
+
+## Family thread slice
+
+Locked for the family-communication cut. Where this section disagrees with BR-M01–BR-M08, BR-M10,
+the API sketch, or the permission keys below, **this section wins** until a later wave reopens
+those rules.
+
+- One kept conversation per `(school_id, student_id)`. Participants are the guardians linked to
+  that student and the teachers who hold role `teacher` plus a `teaching_assignment` on the
+  student's current class. Someone who leaves loses access; the history stays for whoever remains.
+  There is no shared room in which one family sees another.
+- A class notice copies the same message into each child's thread. Repeating `client_request_id`
+  does not insert a second copy.
+- The thread is created on the first send. Another family, another class, or another school
+  receives `404` `not_found`. `403` `family_isolation_violation` is not used.
+- This cut does not add a `send_messages` permission. `moderate_messages` does not open a private
+  thread. Coordination with `manage_academic` reads daily routines and does not read the thread
+  ([`daily-routine.md`](../academic/daily-routine.md)).
+- A sent message is not edited and not deleted. A correction is a new message. No `edited_at`,
+  no `scheduled_for`, no hard delete of sent content. LGPD retention stays open.
+- `body` may be empty when the message has an attachment. A send with neither body nor attachment
+  is `422` `empty_content`.
+- `kind` is `text` or `routine`. A routine card is the single message created by sending a daily
+  routine. Audio and short video follow [`media.md`](media.md) BR-D02.
+- Push, mobile screens, announcements, service channels, and scheduled send are outside this cut.
 
 ---
 
@@ -109,13 +137,18 @@ with audit and retention policy hook (LGPD open item).
 
 BR-M09
 
-**Audio attachments** are rejected in MVP (`422 unsupported_media_type`) — Jul 2026 decision
-([`vision.md`](../../vision.md) §6).
+**Audio and short video** are allowed on a message in this cut when the file matches the media
+allow-list (BR-D02 in [`media.md`](media.md)): images `jpeg` / `png` / `webp`, audio `webm` /
+`mp4` / `mpeg` / `ogg`, short video `video/mp4` / `video/webm`. Cap is 10 MB and 5 files. No
+transcoding. A disallowed type is `422` `unsupported_media_type`. A larger file is `422`
+`file_too_large`. Long-form video is out of this cut (the size cap is the rejection; there is
+no separate duration pipeline). The Jul 2026 "audio out of scope" note in
+[`vision.md`](../../vision.md) is superseded for this cut.
 
 BR-M10
 
-New message on thread emits notification intent to BC4 per push policy — comms does not push
-directly from controller.
+This cut does **not** emit a notification intent and does **not** call FCM. Push stays in
+[`notifications.md`](notifications.md) for a later wave.
 
 ---
 
@@ -187,39 +220,15 @@ Flow
 
 ## API
 
-Representative endpoints — full contract in API narrative when written.
+Normative routes for this cut: [`docs/api/v1/communication.md`](../../api/v1/communication.md).
 
-### POST /api/v1/schools/:school_id/communication/threads/:id/messages
+Teacher base `/api/v1/schools/:school_id/communication`: list children (with a thread only after
+the first send), read and post messages, upload an attachment, download an attachment, post a
+class notice.
 
-Request
+Guardian base `/api/v1/schools/:school_id/me`: list threads, read messages, reply.
 
-```json
-{
-  "body": "Olá, segue orientação sobre a excursão.",
-  "attachment_ids": ["uuid-1"],
-  "scheduled_at": null
-}
-```
-
-Response 201
-
-```json
-{
-  "id": "msg_uuid",
-  "thread_id": "thread_uuid",
-  "body": "Olá, segue orientação sobre a excursão.",
-  "posted_at": "2026-08-15T14:00:00Z",
-  "edit_count": 0
-}
-```
-
-### GET /api/v1/schools/:school_id/me/communication/inbox
-
-Guardian-scoped list; optional `student_id` filter for multi-child context.
-
-### PATCH /api/v1/schools/:school_id/communication/messages/:id
-
-Edit body — returns updated message with `edit_count` incremented.
+No `PATCH` edit and no `scheduled_at` in this cut.
 
 ---
 
@@ -227,28 +236,33 @@ Edit body — returns updated message with `edit_count` incremented.
 
 | Status | Code | Description |
 |--------|------|-------------|
-| 403 | `forbidden` | Actor cannot send to this class/recipient |
-| 404 | `not_found` | Thread or student outside family scope (guardian) |
-| 409 | `thread_archived` | Cannot post to archived thread without reopen |
-| 422 | `unsupported_media_type` | Audio rejected (BR-M09) |
-| 422 | `invalid_schedule` | `scheduled_at` in the past beyond grace window |
+| 404 | `not_found` | Outside the family, the class, or the school — including `moderate_messages` on a private thread. Not `403` `family_isolation_violation` |
+| 422 | `empty_content` | Send with no body and no attachment |
+| 422 | `unsupported_media_type` | Type outside BR-D02 (BR-M09) |
+| 422 | `file_too_large` | File over 10 MB |
+| 422 | `too_many_files` | More than 5 files |
 
 ---
 
 ## Database
 
+This cut uses `conversations`, `messages`, and `communication_attachments` in
+[`docs/modeling/006-communication.md`](../../modeling/006-communication.md) and
+[`docs/database/schema.dbml`](../../database/schema.dbml). The entity names below are the later-wave
+sketch (edit history, stored participants, scheduled status) and are **not** migrated in this cut.
+
 | Entity group | Purpose |
 |--------------|---------|
-| `communication_threads` | Thread metadata, kind, class/student refs |
-| `communication_thread_participants` | User/staff/guardian participation, inbox state |
-| `communication_messages` | Body, status (`posted`, `scheduled`), author |
-| `communication_message_edits` | Edit history |
-| `communication_message_attachments` | FK to media assets |
+| `communication_threads` | Later-wave thread metadata |
+| `communication_thread_participants` | Later-wave stored participation and inbox state |
+| `communication_messages` | Later-wave body and scheduled status |
+| `communication_message_edits` | Later-wave edit history |
+| `communication_message_attachments` | Later-wave media FK |
 
 | Artifact | Location |
 |----------|----------|
-| Narrative DSL | `docs/modeling/006-communication.md` *(pending)* |
-| DBML | `docs/database/database_dml.md` |
+| Narrative DSL | [`docs/modeling/006-communication.md`](../../modeling/006-communication.md) |
+| DBML | [`docs/database/schema.dbml`](../../database/schema.dbml) |
 
 ---
 
@@ -273,16 +287,21 @@ Edit body — returns updated message with `edit_count` incremented.
 
 ## Permissions
 
+**This cut:** role `teacher` plus a `teaching_assignment` on the student's current class. Guardians
+use family scope on `/me` routes. No new `send_messages` key. `moderate_messages` does not open a
+private thread (`404`).
+
+The keys below (`send_messages`, `moderate_communication`, `manage_communication`) remain the
+later-wave sketch. They are not created for this cut. `send_messages` is named in older PRD text
+and is absent from `web/lib/school_lab/permissions.rb`.
+
 | Action | Permission key |
 |--------|----------------|
-| Send DM / group message | `send_messages` |
-| Edit own message (window) | `send_messages` |
-| Edit any message / moderation | `moderate_communication` |
-| Archive/delete for others | `manage_communication` |
+| Send DM / group message | `send_messages` *(later wave — not this cut)* |
+| Edit own message (window) | `send_messages` *(later wave — not this cut)* |
+| Edit any message / moderation | `moderate_communication` *(later wave)* |
+| Archive/delete for others | `manage_communication` *(later wave)* |
 | Guardian inbox | membership + family scope (no key) |
-
-Default system templates: `teacher` includes `send_messages`; `secretary`, `director` include
-`manage_communication` ([`identity-and-onboarding/permissions.md`](../identity-and-onboarding/permissions.md)).
 
 ---
 
@@ -318,10 +337,10 @@ AC-M02
 
 AC-M03
 
-- [ ] Given teacher edits message within edit window  
-      When guardian opens thread  
-      Then edited indicator and history entry are visible  
-- Source: [`agenda-edu/comunicacao/funcionalidades-por-ator.md`](../../ref/agenda-edu/comunicacao/funcionalidades-por-ator.md)
+- [ ] Given a message already sent on the family thread  
+      When the author tries to edit or delete it  
+      Then the API has no edit or delete route and the original body stays  
+- Source: `[product decision]` — family thread slice; edit history (BR-M06) is a later wave
 
 AC-M04
 
@@ -332,23 +351,25 @@ AC-M04
 
 AC-M05
 
-- [ ] Given message with audio attachment  
-      When POST messages  
-      Then API returns 422 `unsupported_media_type`  
-- Source: [`vision.md`](../../vision.md) §6 — BR-M09
+- [ ] Given an audio file whose type is `audio/webm`, `audio/mp4`, `audio/mpeg`, or `audio/ogg`, within 10 MB, and within the five-file cap  
+      When the teacher attaches it to a family-thread message  
+      Then the guardian who is linked to that student can download it  
+- [ ] Given a file outside the BR-D02 allow-list, or a file over 10 MB  
+      When it is uploaded  
+      Then the API returns `422` `unsupported_media_type` or `422` `file_too_large`  
+- Source: [`vision.md`](../../vision.md) §3 and §6 — BR-M09, [`media.md`](media.md) BR-D02
 
 AC-M06
 
-- [ ] Given scheduled message with future `scheduled_at`  
-      When time passes and job runs  
-      Then message becomes visible to participants exactly once  
-- Source: [`classapp/comunicacao/funcionalidades-por-ator.md`](../../ref/classapp/comunicacao/funcionalidades-por-ator.md), NFR-001 idempotence
+- [ ] Scheduled send is not in this cut: the API does not accept `scheduled_at` or `scheduled_for`  
+- Source: `[product decision]` — family thread slice. ClassApp deferred send stays a later wave (BR-M07)
 
 ---
 
 ## Open items / pending decisions
 
-- [ ] Edit window duration (24h default vs school setting).
+- [x] Message edit and delete — out of this cut. A correction is a new message. Edit-window length stays open only if a later wave adds edit.
+- [ ] Edit window duration (24h default vs school setting) — later wave only.
 - [ ] Whether guardians can initiate DM to any teacher or only assigned class teachers.
 - [ ] Unified inbox UX merging service tickets — layer SPA PRD.
 - [ ] Thread reopen rules after archive.
@@ -363,3 +384,5 @@ AC-M06
 - Attachment upload/storage — [`media.md`](media.md).
 - Read receipts — P2.
 - Real-time typing indicators — phase 2.
+- Push, mobile screens, announcements, and scheduled send — later waves.
+- Editing or deleting a sent message — later wave; this cut keeps sent content.

@@ -2,77 +2,101 @@
 
 > PRD: [`docs/prds/communication/`](../prds/communication/)  
 > Depends on: [`005-students-enrollments.md`](005-students-enrollments.md)  
-> Executable schema: [`docs/database/schema.dbml`](../database/schema.dbml) · DER: `der_006.png` (TBD)
+> Executable schema: [`docs/database/schema.dbml`](../database/schema.dbml) · DER: `der_006.png` (not re-exported in this pass)
+
+## This cut
+
+Family thread and attachments only. Announcements, notification policies, and service channels stay
+in the DBML as a later sketch. This pass does not add implementation requirements for them, and it
+does not migrate them.
 
 ## Entity groups
 
-### Messages (BC1)
+### Family thread (this cut)
 
 | Table | Role |
 |-------|------|
-| `conversations` | DM, class, or group thread — `school_id`, `conversation_type` |
-| `conversation_participants` | Membership or guardian participation |
-| `messages` | Body, sender, `sent_at`, edit audit |
-| `message_attachments` | FK to Active Storage blob |
+| `conversations` | One private thread per school and student |
+| `messages` | Text or a single routine card. No edit, no schedule, no delete |
+| `communication_attachments` | Active Storage file owned by a membership, linked to a message or a daily routine |
 
-### Channels (BC2)
+Participants are **not** stored. A guardian sees the thread when `student_guardians` still links
+them to `conversations.student_id`. A teacher sees it when the membership role is `teacher` and a
+`teaching_assignment` covers the student's current class. Someone who leaves loses access; rows
+stay for whoever remains.
 
-| Table | Role |
-|-------|------|
-| `service_channels` | School↔family tickets — optional MVP W3 |
-| `channel_messages` | Thread on service channel |
-
-### Announcements (BC3)
+### Channels, announcements, notifications (later — not this cut)
 
 | Table | Role |
 |-------|------|
-| `announcements` | Targeted comunicados — class/school scope |
-| `announcement_recipients` | Per-guardian delivery/read state |
-
-### Notifications (BC4)
-
-| Table | Role |
-|-------|------|
-| `notification_policies` | Per school × `channel_key` toggles (push/email/whatsapp); no row = hardcoded MVP default |
-| `notification_intents` | One row per domain event fan-out (`source_type`/`source_id`/`channel_key`) |
-| `notification_deliveries` | Per user × channel adapter state — links to `notification_intents` |
-
-### Media (BC5)
-
-Reuses `message_attachments` and shared blob storage contract from
-[`008-documents-archive.md`](008-documents-archive.md).
+| `service_channels` | Not in the DBML yet; service tickets stay out of this cut |
+| `announcements` | Sketch only. Not migrated and not required by this cut |
+| `notification_policies` | Sketch only |
+| `notification_intents` | Sketch only |
+| `notification_deliveries` | Sketch only |
 
 ## conversations
 
 | Column | Notes |
 |--------|-------|
 | `school_id` | Required |
-| `conversation_type` | `direct` \| `class` \| `group` |
-| `subject_type/id` | Polymorphic — `Class`, `Student`, etc. |
+| `student_id` | The subject. There is no thread that is only between two people |
 | `last_message_at` | Denormalized for inbox sort |
+| `discarded_at` | Uniqueness is among kept rows: one `(school_id, student_id)` where `discarded_at` is null |
+
+No `conversation_type`. No polymorphic subject. No `conversation_participants`.
+
+The thread row is created on the first send.
+
+## messages
+
+| Column | Notes |
+|--------|-------|
+| `conversation_id` | Required |
+| `school_id` | Required. Must match the conversation |
+| `sender_membership_id` | Required. Teacher or guardian membership |
+| `body` | Nullable when the message has an attachment |
+| `kind` | `text` or `routine` |
+| `daily_routine_id` | Nullable. Unique when set — one card per routine |
+| `client_request_id` | Nullable. Unique per conversation when set, so a repeated class-notice id does not copy twice into the same thread |
+| `sent_at` | Required |
+
+No `edited_at`. No `scheduled_for`. No `discarded_at`. Sent rows are not hard-deleted while LGPD
+retention is open.
+
+A class notice inserts one `kind: text` row per child in the class, each carrying the same
+`client_request_id`.
+
+## communication_attachments
+
+| Column | Notes |
+|--------|-------|
+| `school_id` | Required |
+| `uploaded_by_membership_id` | Required |
+| `message_id` | Nullable until the file is sent on a message |
+| `daily_routine_id` | Nullable until the file is attached to a routine |
+
+The bytes are Active Storage (`has_one_attached`), the same mechanism incidents already declare.
+This table is the first upload route. Both foreign keys may be null while the client holds the id
+for the next send. They must not both be set. Allow-list and the 10 MB / 5-file cap are service
+checks: images `image/jpeg`, `image/png`, `image/webp`; audio `audio/webm`, `audio/mp4`,
+`audio/mpeg`, `audio/ogg`; video `video/mp4`, `video/webm`. No transcoding. `content_type` and
+`byte_size` live on the blob.
 
 ## Family isolation
 
-Every guardian query joins `conversation_participants` where participant is the guardian's user or
-guardian id — **never** expose another family's threads (NFR-002, NFR-004).
+Guardian queries resolve through the linked student, not through a participant table. Another
+family, another class, or another school is `404` `not_found`. `moderate_messages` is not a
+participant and does not open the thread. `manage_academic` does not read `conversations`.
 
 ## Push pipeline
 
-Event → `Notifications::ProcessIntentService` creates a `notification_intents` row (idempotent on
-`source_type`/`source_id`/`channel_key`) → resolves the effective `notification_policies` row for
-`school_id` + `channel_key` (hardcoded MVP default when no override exists) → one
-`notification_deliveries` row per target user per enabled channel. `notification_deliveries` AASM:
-`queued` → `sent` | `failed` | `skipped` (policy disabled); idempotent on
-`(notification_intent_id, channel, user_id)` — Solid Queue job sends via the `Gateways::Push` FCM
-adapter and transitions the row.
-
-First wired trigger (MVP): `ReportCards::ReportCardPublishedJob` (channel_key `report_cards` —
-extends the BR-N02 list, which is explicitly non-exhaustive) fans out to each guardian's
-`device_tokens` when a report card snapshot is released. `MessagePosted` (BC1) is still the
-PRD's reference trigger once `messages` ships.
+Not used by this cut. No `MessagePosted` intent is written when a family message or routine card
+is sent. The notification tables below stay a later sketch; report-card push, when it ships, is
+unchanged by this model and is not a requirement of this cut.
 
 ## LGPD
 
-Message body and attachments — retention default **7 years** after student leaves school
-([`retention.md`](../prds/documents-and-archive/retention.md) hooks P2); access audit on staff
-reads of guardian threads (P2).
+Message `body` and attachment bytes are children's communication content. Retention length is
+**open** ([`open-questions.md`](../open-questions.md) § LGPD). Sent messages, attachments, and
+sent routine cards are not hard-deleted. Access audit of who read a thread stays open.

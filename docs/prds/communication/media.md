@@ -4,8 +4,8 @@
 > Parent PRD: [`index.md`](index.md)  
 > Capability IDs: `communication.attach_files_to_message`, `communication.share_photo_update`, `communication.manage_photo_album`, `communication.share_video_content`, `communication.distribute_learning_materials`  
 > Related BCs: [`messages.md`](messages.md), [`announcements.md`](announcements.md)  
-> Modeling: *(pending — `docs/modeling/006-communication.md`)*  
-> API narrative: *(pending — `docs/api/v1/communication.md`)*
+> Modeling: [`docs/modeling/006-communication.md`](../../modeling/006-communication.md)  
+> API narrative: [`docs/api/v1/communication.md`](../../api/v1/communication.md)
 
 ---
 
@@ -33,7 +33,7 @@ social feed ([`DIV-communication-005`](../../ref/divergencias.md)).
 
 | Segment | Applies | Notes |
 |---------|---------|-------|
-| `infantil` | yes | Photo updates substitute for P2 daily routine module |
+| `infantil` | yes | Photos, audio, and short video ride on the family thread; the structured day is [`daily-routine.md`](../academic/daily-routine.md) |
 | `fundamental_medio` | yes | Learning materials via attachments |
 | `pj_financeiro` | yes | No segment-specific media rules |
 | `multi_unidade` | partial | Albums scoped per school |
@@ -42,17 +42,14 @@ social feed ([`DIV-communication-005`](../../ref/divergencias.md)).
 
 ## Context
 
-[`vision.md`](../../vision.md) positions **images in messages** as a differentiator vs
-competitors. Early childhood **structured routine** (meals, sleep) is P2 academic module;
-MVP infantil needs are met via **photo updates and messaging** (Jul 2026 decision in
-[`open-questions.md`](../../open-questions.md)).
+[`vision.md`](../../vision.md) positions **images, audio, and short video** in the family thread as
+the attachment differentiator for this cut. The structured Infantil day is
+[`daily-routine.md`](../academic/daily-routine.md), not a photo album.
 
-ClassApp **Momentos** is a social feed — School Lab uses **album/timeline per class or event**
-without public reactions ([`DIV-communication-005`](../../ref/divergencias.md)). Likes/comments
-are P2 and off by default.
+ClassApp **Momentos** is a social feed — albums and reactions stay a later wave
+([`DIV-communication-005`](../../ref/divergencias.md)).
 
-**Storage:** Active Storage with S3 target per [`web-stack.md`](../../web-stack.md) — production
-backend open item in [`open-questions.md`](../../open-questions.md) Infrastructure.
+**Storage:** Active Storage. Production today uses the local service. This cut does not transcode.
 
 ---
 
@@ -65,13 +62,17 @@ optional `student_id` / `class_id` context for guardian filtering.
 
 BR-D02
 
-**Allowed types in MVP:** images (`image/jpeg`, `image/png`, `image/webp`), PDF, common video
-(`video/mp4`) with size caps. **Audio rejected** (BR-M09). Executable and archive types rejected.
+**Allow-list for this cut:** `image/jpeg`, `image/png`, `image/webp`; audio `audio/webm`,
+`audio/mp4`, `audio/mpeg`, `audio/ogg`; short video `video/mp4`, `video/webm`. No transcoding.
+A clip over the size cap is rejected at upload. Long-form video, executables, and archives are
+rejected (`422` `unsupported_media_type`). PDF and other document types are not in this cut.
 
 BR-D03
 
-Default **max attachment size** 10 MB per file; max 5 attachments per message
-`[product decision]` — pending open question on exact limits.
+**Max 10 MB per file and 5 files** per message or daily routine `[product decision]`. A larger
+file is `422` `file_too_large` (not `413`). More than five files is `422` `too_many_files`.
+Any cap above 10 MB, and any resolution cap, stay open
+([`open-questions.md`](../../open-questions.md) § Communication).
 
 BR-D04
 
@@ -163,6 +164,12 @@ Flow
 
 ## API
 
+This cut: `POST /api/v1/schools/:school_id/communication/attachments` (multipart) returns an id
+for the next message or routine send. `GET` of that attachment redirects to the blob only for a
+participant. Contract: [`docs/api/v1/communication.md`](../../api/v1/communication.md).
+
+Album, photo-update, and learning-material routes below are a later wave. They are not this cut.
+
 ### POST /api/v1/schools/:school_id/communication/media/uploads
 
 Multipart upload → returns `attachment_id`.
@@ -185,9 +192,10 @@ Signed download URL with authorization check.
 
 | Status | Code | Description |
 |--------|------|-------------|
-| 413 | `file_too_large` | Exceeds BR-D03 |
-| 422 | `unsupported_media_type` | Type not allowed (BR-D02) |
-| 404 | `not_found` | Asset outside guardian scope |
+| 422 | `file_too_large` | Exceeds 10 MB (BR-D03). Not HTTP 413 |
+| 422 | `too_many_files` | More than 5 files (BR-D03) |
+| 422 | `unsupported_media_type` | Type not on the BR-D02 allow-list |
+| 404 | `not_found` | Asset outside the participant's family, class, or school |
 
 ---
 
@@ -271,26 +279,31 @@ AC-D05
 
 AC-D06
 
-- [ ] Given audio file upload  
-      When POST media/uploads  
-      Then API returns 422 unsupported_media_type  
-- Source: BR-D02, [`vision.md`](../../vision.md) §6
+- [ ] Given an allowed audio or short-video file within 10 MB  
+      When the teacher uploads it and attaches it to a family-thread message  
+      Then the linked guardian can open it, and the bytes are the original file (no transcoding)  
+- [ ] Given an audio or video type outside BR-D02, or a file over 10 MB  
+      When POST attachments  
+      Then the API returns `422` `unsupported_media_type` or `422` `file_too_large`  
+- Source: BR-D02, BR-D03, [`vision.md`](../../vision.md) §6
 
 ---
 
 ## Open items / pending decisions
 
-- [ ] Exact MB/resolution limits ([`open-questions.md`](../../open-questions.md) § Communication).
-- [ ] Retention windows and post-withdrawal deletion ([`open-questions.md`](../../open-questions.md) § LGPD).
+- [x] This cut: 10 MB per file, 5 files, allow-list in BR-D02, no transcoding ([`open-questions.md`](../../open-questions.md) § Communication).
+- [ ] Resolution limit, and any cap above 10 MB ([`open-questions.md`](../../open-questions.md) § Communication).
+- [ ] Retention windows and post-withdrawal deletion ([`open-questions.md`](../../open-questions.md) § LGPD). Sent bytes are not hard-deleted while that item is open.
 - [ ] S3 migration from local Active Storage in production.
-- [ ] Image compression/transcoding pipeline.
-- [ ] Guardian-initiated photo upload — defer MVP.
+- [x] Transcoding — none in this cut.
+- [ ] Guardian-initiated photo upload on albums — later wave. Guardian reply on the family thread may attach the same allow-list.
 
 ---
 
 ## Out of Scope
 
-- Structured infantil daily routine fields — academic P2 (`academic.log_daily_routine`).
+- Structured Infantil daily routine fields — [`daily-routine.md`](../academic/daily-routine.md). Attachments on that card use this allow-list.
 - Social reactions on photos — P2.
 - Semantic search on media — documents/archive phase 2.
-- Native in-app video hosting at scale — prefer link adapter for long-form P2.
+- Long-form video and any transcoding pipeline.
+- Photo albums, learning-material distribution, and PDF attachments — later wave (BR-D04, BR-D07). This cut's upload route is `POST /communication/attachments` only.

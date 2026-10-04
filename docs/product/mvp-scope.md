@@ -57,8 +57,10 @@ Normative billing scope: [`prds/billing/`](../prds/billing/). See
 - **Collection régua** — taxonomy marks `billing.build_dunning_workflow` and
   `billing.send_payment_reminder` as MVP; Aug 2026 fintech-first decision defers
   platform régua (stub notifier only). Overdue detection and dashboard ship first.
-- **Early childhood routine** — `academic.log_daily_routine` is P2; communication covers
-  infantil needs in MVP per Jul 2026 decision.
+- **Early childhood routine** — specified for this cut in
+  [`prds/academic/daily-routine.md`](../prds/academic/daily-routine.md) (`infantil_1`…`infantil_5`).
+  The taxonomy row `academic.log_daily_routine` is still tagged P2 in the capability map; this
+  note does not retag it. Push of the diary stays deferred.
 - **NFS-e** — `billing.issue_service_invoice` is MVP in taxonomy; open item in
   fintech-first may defer issuance.
 
@@ -235,7 +237,7 @@ domain PRD is missing or not written (see capability-map for detail).
 |--------|--------:|--------------------------|
 | Billing | 12 | NFS-e settings, ERP import, boleto protest, corporate payer, online enrollment pay |
 | Communication | 7 | Mass announcements, emergency broadcast, AI assistant, read receipts |
-| Academic | 11 | Daily routine (infantil), online re-enrollment trilha, advanced scheduling |
+| Academic | 11 | Push of the diary stays deferred; the Infantil card is specified in this cut. Online re-enrollment trilha, advanced scheduling |
 | Students & enrollments | 10 | Online enrollment trilha, contract signature gate |
 | Identity & onboarding | 1 | Enrollment contract signature blocking |
 | Documents & archive | 7 | Livro Ata, minutes signatures, semantic archive search |
@@ -267,7 +269,7 @@ domain PRD is missing or not written (see capability-map for detail).
 | `communication.view_communication_engagement` | View communication engagement reports | `prds/communication/index.md` | Delivery and read metrics; not public leaderboards. |
 | `academic.deliver_diary_to_families` | Deliver daily diary to guardians | `prds/academic/diary.md` | Push diary entries to families; infantil priority. |
 | `academic.issue_transcript` | Issue school transcript (histórico escolar) | `prds/documents-and-archive/archive.md` | Official transcript generation with audit. |
-| `academic.log_daily_routine` | Log early childhood daily routine | `prds/academic/diary.md` | Routine module MVP-relevant for infantil. |
+| `academic.log_daily_routine` | Log early childhood daily routine | `prds/academic/daily-routine.md` | Specified for this cut (Infantil grades only). Taxonomy phase tag stays P2 until a separate retag. |
 | `academic.manage_lesson_lifecycle` | Manage lesson lifecycle (cancel/makeup) | `prds/academic/diary.md` | Cancel and makeup rules explicit. |
 | `academic.manage_live_lesson` | Manage live online lessons | `prds/academic/diary.md` | Meet/adapter links; recordings attached to lesson. |
 | `academic.manage_special_education` | Manage special education (AEE) records | `prds/academic/special-education.md` | AEE module deferred; document competitor pattern. |
@@ -336,8 +338,11 @@ related taxonomy rows exist as P2/N/A:
 - **Advanced communication** — mass announcements, read receipts (P2 in taxonomy).
 - **Landing / sales page** — institutional site only; product sales flow deferred.
 - **Advanced reporting and BI** — basic exports in MVP; dashboards deferred.
-- **Structured early childhood daily routine** — meals, sleep, hygiene module (P2).
-- **Audio messages** — explicitly out per Jul 2026 communication decision.
+- **Structured early childhood daily routine** — specified for this cut in
+  [`prds/academic/daily-routine.md`](../prds/academic/daily-routine.md). The taxonomy P2 tag is
+  unchanged in this pass.
+- **Audio and short video** on the family thread are in this cut (10 MB, 5 files). Long-form
+  video stays out. A cap above 10 MB stays open.
 - **Real-time messaging** — timely delivery via push/queue, not live sync (phase 2).
 - **Receivables anticipation / guaranteed revenue** — fintech partner pattern only (`N/A`).
 - **AI support agents** — defer; human escalation first ([`DIV-communication-006`](../ref/divergencias.md)).

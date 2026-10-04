@@ -43,14 +43,17 @@ recurring reasons:
   validation pending).
 - **Everything in one place**: academic, financial, documents, and
   communication.
-- **Early childhood education daily routine** (phase 2): the teacher logs meals,
-  sleep, hygiene, health, mood, and notes; parents follow along. In the MVP,
-  early childhood education is served through **communication** (messages with
-  images).
-- **Direct, secure communication**: parents talk with the teacher and the school
-  inside the platform, with history and per-family privacy. Differentiator:
-  sending **images** in messages (current competitors do not offer this). Audio
-  is **out of scope** in the MVP.
+- **Early childhood education daily routine** (this cut, Infantil only): for
+  classes `infantil_1` through `infantil_5`, the teacher keeps one card per
+  child per day — narrative, sleep, meals, and signals. Blank fields stay
+  hidden from the family. Sending the card posts it once into that child's
+  private thread. See
+  [`docs/prds/academic/daily-routine.md`](prds/academic/daily-routine.md).
+- **Direct, secure communication**: one private thread per school and student,
+  shared by the linked guardians and the teachers assigned to the child's
+  current class. Differentiator: **images, audio, and short video** on the
+  same message (up to 10 MB, five files, no transcoding). Long video stays
+  out. A sent message is kept as sent.
 
 ## 4. Target audience
 
@@ -85,18 +88,19 @@ as the main focus, with academic stability and billing as complementary pillars.
 - Identity and roles: backoffice, staff, teacher, parents.
 - User registration and login (all roles).
 - Base records: students, guardians, classes, subjects.
-- **Communication**: two-way parent↔teacher and parent↔school messaging, with
-  image sending. Push notifications to alert about new messages and events
-  (parity with the current system — it already exists today).
+- **Communication** (this cut): one private thread per school and student, with
+  text, images, audio, and short video. A class notice is copied into each
+  child's thread. Push, mobile screens, and announcements wait for a later cut.
 - Academic: reliable grade posting [elementary/high school]; report card
   reporting; attendance with automatic absence notification — **it must be
   stable and correct** (a failure creates legal conflict).
-- Teacher: lesson plan and message sending.
-- Early childhood education: communication covers the main need in the MVP; a
-  structured daily routine (meals, sleep, etc.) is left for a later phase.
+- Teacher: lesson plan, family messages, and the Infantil daily routine.
+- Early childhood education: structured daily routine for `infantil_1` through
+  `infantil_5` — one card per child per civil day in `America/Sao_Paulo`,
+  editable that same day, then locked.
 - Billing: generation and tracking of boletos; parent view.
 - Digital archive: document repository per student/school.
-- Web and app (both channels in the MVP).
+- Web SPA in this cut. The mobile app will use the same API contract later.
 
 **Out of the MVP (later phases)**
 
@@ -113,8 +117,9 @@ as the main focus, with academic stability and billing as complementary pillars.
 - Advanced communication (mass announcements, read receipts).
 - Landing / sales page.
 - Advanced reporting and BI.
-- Structured early childhood education daily routine.
-- Audio messages.
+- Long-form video, editing or deleting a sent message, push delivery, mobile
+  screens, and announcements — outside the family-thread and Infantil-routine
+  cut. Push and the mobile app remain later product work on the same contract.
 
 > Stakeholder validation (Jul 2026): the partner director prioritized
 > communication, grades, report cards, and lesson plans for the second semester;

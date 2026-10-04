@@ -24,18 +24,21 @@ Recorded from a conversation with the partner director (escola NSR). Details in
 `docs/vision.md` and `docs/actors-and-surfaces.md`.
 
 - [x] **Communication enters the MVP** — priority #1 for the second semester.
-      Two-way parent↔teacher and parent↔school messaging, with image sending.
-      Audio out of scope.
+      Two-way parent↔teacher messaging, with image sending.
+      Audio out of scope. **Superseded for the family-thread cut** by the Oct 2026
+      decisions below (audio and short video are in; long video stays out).
 - [x] **Push notification** — already exists in the current system; keep parity
       in the MVP. Delivery via FCM + queue (Solid Queue) + state machine on the
-      API.
+      API. **Not in the family-thread cut** (Oct 2026); push remains later work.
 - [x] **Real-time is not needed** — information must arrive in a timely manner,
       not in real time. Solid Cable / Turbo Streams are left for phase 2.
 - [x] **Web and app in the MVP** — both channels from the start.
+      **This cut ships the web SPA.** The mobile app uses the same contract later.
 - [x] **Registration and login** — all roles need registration and
       authentication.
 - [x] **Early childhood education in the MVP** — communication covers the main
       need; a structured daily routine is left for a later phase.
+      **Superseded** by the Oct 2026 daily-routine decisions below.
 - [x] **Attendance in the MVP** — already exists in the legacy system; automatic
       absence notification is critical and must be reliable (a failure creates
       legal conflict).
@@ -332,22 +335,29 @@ PRD: [`academic/incidents.md`](prds/academic/incidents.md) (**validated**); mode
 - [ ] **Explicit "when it happened" date distinct from `created_at`** — UC-IN01's input list has no
       such field; the grid shows `created_at`. Flagged rather than guessed into the schema.
 
-## Early childhood education / Daily routine (phase 2)
+## Early childhood education / Daily routine
 
-- [ ] Record fields: meals, sleep, hygiene/diaper, health, mood, photos, notes
-      (confirmed as the desired set — still need to detail the granularity of
-      each field, e.g., meals per serving or overall)
-- [ ] How to distinguish an "early childhood education" class vs.
-      "elementary/high school" in the modeling — by class segment, by school, or
-      configurable?
-- [ ] Recording frequency/granularity: by period of the day (morning/afternoon)
-      or by discrete event (each diaper change, each meal)?
-- [ ] Notification to parents: in real time for each record, or a consolidated
-      daily summary?
-- [ ] Photos of the day: part of this feature or via messages with images
-      (communication module)?
+Format for this cut is decided in [`prds/academic/daily-routine.md`](prds/academic/daily-routine.md).
+Retention is not.
+
+- [x] **Record fields (this cut)** — one card per child per date: `narrative`; sleep
+      `sleep_morning`, `sleep_after_lunch`, `sleep_afternoon` (null, `yes`, `no`); signals
+      `interaction`, `evacuation`, `discomfort` (null, `yes`, `no`); `discomfort_detail` required
+      when discomfort is `yes` and empty otherwise; meals `meal_breakfast`, `meal_lunch`,
+      `meal_afternoon_snack`, `meal_dinner`, `meal_hydration` (null, `great`, `regular`, `refused`).
+      Blank fields are omitted for the family. Photos, audio, and short video are attachments, not
+      extra columns. Hygiene, diaper, mood, and a general health form are not in this cut.
+- [x] **Which classes** — `grade_level` `infantil_1` through `infantil_5` only
+      (`SchoolClass::GRADE_LEVELS`). Other classes are rejected.
+- [x] **Frequency** — one row per child per civil date. Editable the same day in
+      `America/Sao_Paulo`. The next civil day returns `409`. A later comment is a new message on
+      the family thread.
+- [x] **How the family hears** — sending posts one routine card on the private thread. No push and
+      no separate daily digest in this cut.
+- [x] **Photos of the day** — attachments on the routine or the thread
+      ([`prds/communication/media.md`](prds/communication/media.md)), not a separate album.
 - [ ] Retention/history: for how long does the routine history stay available to
-      parents?
+      parents? Sent cards are not hard-deleted while this stays open.
 
 ## Communication
 
@@ -355,8 +365,10 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
 
 - [x] Types in the MVP — 1:1 parent↔teacher and parent↔school chat plus **mass announcements**
       (BC3 [`announcements.md`](prds/communication/announcements.md)); contextual comments P2.
+      **This family-thread cut does not include announcements.**
 - [x] Mass announcement — MVP via [`announcements.md`](prds/communication/announcements.md);
-      whole-school and by-class targeting.
+      whole-school and by-class targeting. **Outside this cut** (no announcement routes in the
+      family-thread contract).
 - [ ] Are read receipts mandatory in announcements? Do they become an auditable
       record (`docs/vision.md` — digital archive)?
 - [ ] Teacher response-time expectations — how to avoid demands for 24/7
@@ -366,9 +378,14 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
       escalate to coordination/school?
 - [ ] Push notifications: immediate for everything, or only for urgent items
       (e.g., health, absence) with a daily summary for the rest?
-- [x] Isolation — per-family enforcement via Pundit + services (NFR-004);
-      see [`communication/messages.md`](prds/communication/messages.md).
-- [ ] Size/resolution limit for images in messages?
+- [x] Isolation — per-family enforcement via Pundit + services. This cut returns `404`
+      `not_found` outside the family, class, or school (not `403` `family_isolation_violation`).
+      See [`communication/messages.md`](prds/communication/messages.md).
+- [x] **Attachment cap for this cut** — 10 MB per file, 5 files, allow-list jpeg/png/webp, audio
+      webm/mp4/mpeg/ogg, short video mp4/webm, no transcoding
+      ([`prds/communication/media.md`](prds/communication/media.md) BR-D02).
+- [ ] Size limit **above 10 MB**, and any resolution cap, for images (and for audio or video) in
+      messages. The 10 MB ceiling is the decision; a higher ceiling is not.
 
 ## LGPD / Privacy
 
@@ -383,7 +400,8 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
       incidents): does it need differentiated processing/retention from other
       data?
 - [ ] Retention: for how long are messages, photos, and routine records kept?
-      What happens when the student leaves the school?
+      What happens when the student leaves the school? Sent content is not hard-deleted
+      while this stays open.
 - [ ] Retention: how long are student cadastral records and enrollment import error reports kept
       after withdrawal or school departure?
 - [ ] Retention: what legal/audit windows apply to enrollment contracts, consent history and
