@@ -116,6 +116,7 @@ jobs:
         env:
           INPUT_SERVICES: ${{ github.event.inputs.services }}
           BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
