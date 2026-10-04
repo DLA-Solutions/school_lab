@@ -210,7 +210,7 @@ const sitemap: MenuItem[] = [
     id: 'atas',
     subheader: 'nav.atas',
     path: paths.atas,
-    icon: 'mingcute:file-text-line',
+    icon: 'mingcute:file-line',
     audience: 'staff',
     section: 'primary',
   },
