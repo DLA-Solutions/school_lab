@@ -3,7 +3,7 @@
 > Status: validated  
 > Relation to School Lab: core MVP domain #6 per [`docs/product-map.md`](../../product-map.md) §5 — **MVP pillar #2** (reliability-critical)  
 > Capability IDs: see [Competitive grounding](#competitive-grounding) — **22** MVP canonical `academic.*` rows in [`mvp-scope.md`](../../product/mvp-scope.md); **34** canonicals total in taxonomy  
-> Domain PRDs: [`attendance.md`](attendance.md) (BC1), [`grades.md`](grades.md) (BC2), [`report-cards.md`](report-cards.md) (BC3), [`diary.md`](diary.md) (BC4), [`curriculum.md`](curriculum.md) (BC5), [`periods.md`](periods.md) (BC6), [`incidents.md`](incidents.md) (BC7), [`coordination.md`](coordination.md) (BC8), [`preceptorship.md`](preceptorship.md) (BC9 shipped backfill), [`lesson-plans.md`](lesson-plans.md) (BC10)
+> Domain PRDs: [`attendance.md`](attendance.md) (BC1), [`grades.md`](grades.md) (BC2), [`report-cards.md`](report-cards.md) (BC3), [`diary.md`](diary.md) (BC4), [`curriculum.md`](curriculum.md) (BC5), [`periods.md`](periods.md) (BC6), [`incidents.md`](incidents.md) (BC7), [`coordination.md`](coordination.md) (BC8), [`preceptorship.md`](preceptorship.md) (BC9 shipped backfill), [`lesson-plans.md`](lesson-plans.md) (BC10), [`routine.md`](routine.md) (BC11)
 > Modeling: [`docs/modeling/007-academic.md`](../../modeling/007-academic.md)  
 > API: [`docs/api/v1/academic.md`](../../api/v1/academic.md)  
 > Traceability: BR-/UC-/AC- IDs per bounded context — see [`traceability.md`](../../product/traceability.md)
@@ -87,7 +87,6 @@ Competitor depth reference: Proesc, Agenda Edu ([`parity-matrix.md`](../../produ
 
 | Capability | Phase | Notes |
 |------------|-------|-------|
-| `academic.log_daily_routine` | P2 | Infantil routine — [`DIV-academic-004`](../../ref/divergencias.md); MVP comms photos cover gap |
 | `academic.deliver_diary_to_families` | P2 | Push routine diary to guardians |
 | `academic.process_reenrollment` | P2 | Online trilha — [`DIV-academic-003`](../../ref/divergencias.md); staff enrollment in students BC1 |
 | `academic.schedule_lesson` | P2 | [`DIV-academic-005`](../../ref/divergencias.md) — MVP diary creates lessons inline |
@@ -139,13 +138,18 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 - **BC8 Coordination** — dashboard for diary/grade/attendance status.
 - **BC9 Preceptorship** — shipped teacher narrative `draft` → `published`, family read/PDF;
   explicitly not PEI/AEE.
+- **BC10 Lesson plans** — structured template per class/subject/day, PDF preview.
+- **BC11 Infant daily routine** — snack/diaper/notes per child/day, draft → sent, guardian
+  notify on send; narrower slice of `academic.log_daily_routine` — see
+  [`routine.md`](routine.md) § Out of Scope for the still-deferred broader fields.
 
 ### Out of scope
 
 - **Online re-enrollment trilha** — P2 (`academic.process_reenrollment`); MVP staff rematrícula via
   [`students-and-enrollments/enrollments.md`](../students-and-enrollments/enrollments.md) § Re-enrollment boundary.
-- **Early childhood daily routine** — P2 (`academic.log_daily_routine`); infantil covered by comms photos
-  until routine module ([`mvp-scope.md`](../../product/mvp-scope.md) § Deferred).
+- **Early childhood daily routine — broader fields** — sleep, health, mood, photos remain P2
+  (`academic.log_daily_routine`'s full vision); the snack/diaper/notes slice is now built as
+  [`routine.md`](routine.md) (BC11).
 - **Lesson scheduling / cancel-makeup lifecycle** — P2 full rules; MVP supports lesson cancel flag only
   ([`diary.md`](diary.md) BR-D12).
 - **ERP sync mode** — P2; MVP is self-service SIS ([`DIV-academic-001`](../../ref/divergencias.md)).

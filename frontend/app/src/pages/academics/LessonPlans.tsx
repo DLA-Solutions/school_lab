@@ -1,6 +1,9 @@
+import { useState } from 'react';
+import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import InstructionalDaysAdminCalendar from 'components/sections/academics/InstructionalDaysAdminCalendar';
 import LessonPlanCalendar from 'components/sections/academics/LessonPlanCalendar';
+import LessonPlanNewPlanDialog from 'components/sections/academics/LessonPlanNewPlanDialog';
 import { EmptyState, PageHeader, SectionCard } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
@@ -20,6 +23,7 @@ import { membershipHasPermission } from 'utils/onboarding/access';
 const LessonPlans = () => {
   const { t } = useTranslation();
   const school = useCurrentSchool();
+  const [newPlanOpen, setNewPlanOpen] = useState(false);
 
   if (!school) {
     return (
@@ -41,11 +45,24 @@ const LessonPlans = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader title={t('nav.lessonPlans')} />
+      <PageHeader
+        title={t('nav.lessonPlans')}
+        actions={
+          isTeacher ? (
+            <Button variant="contained" size="small" onClick={() => setNewPlanOpen(true)}>
+              {t('lessonPlans.new')}
+            </Button>
+          ) : undefined
+        }
+      />
       {isTeacher ? (
         <LessonPlanCalendar schoolId={school.school_id} />
       ) : (
         <InstructionalDaysAdminCalendar schoolId={school.school_id} canManage={canManage} />
+      )}
+
+      {isTeacher && (
+        <LessonPlanNewPlanDialog open={newPlanOpen} onClose={() => setNewPlanOpen(false)} />
       )}
     </Stack>
   );

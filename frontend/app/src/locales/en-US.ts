@@ -226,6 +226,10 @@ const enUS: Messages = {
   'lessons.empty.title': 'No lessons yet',
   'lessons.empty.description': 'Assign a teacher to a subject of a class to begin.',
   'nav.lessonPlans': 'Lesson Plan',
+  'lessonPlans.new': 'New Plan',
+  'lessonPlans.newDialog.title': 'New lesson plan',
+  'lessonPlans.newDialog.saveDisabledHint':
+    'Saving isn’t available from here yet — open an instructional day on the calendar to send that lesson’s plan.',
   'lessonPlans.loadError': 'Could not load the calendar.',
   'lessonPlans.optionsLoadError': 'Could not load the classes.',
   'lessonPlans.choose.title': 'Choose the class',
@@ -282,6 +286,7 @@ const enUS: Messages = {
   'lessonPlans.admin.pendingChanges': '{count} day(s) changed and not yet saved.',
   'lessonPlans.admin.readOnlyHint':
     'You can see the instructional days, but only someone who manages the school settings can change them.',
+<<<<<<< HEAD
   'nav.allLessonPlans': 'Lesson Plans — All',
   'allLessonPlans.noAccess.description':
     'You do not have access to every teacher’s lesson plans — this screen is for coordination staff.',
@@ -295,6 +300,38 @@ const enUS: Messages = {
   'allLessonPlans.empty.title': 'No lesson plans found',
   'allLessonPlans.empty.description': 'No teacher has sent in a lesson plan matching these filters yet.',
   'allLessonPlans.previewAria': 'Preview lesson plan for {subject}',
+=======
+
+  'nav.dailyRoutine': 'Daily Routine',
+  'dailyRoutine.loadError': 'Could not load the day’s routine.',
+  'dailyRoutine.optionsLoadError': 'Could not load the classes.',
+  'dailyRoutine.choose.title': 'Choose the class',
+  'dailyRoutine.choose.description': 'Pick the class and the date to see the students’ routine.',
+  'dailyRoutine.empty.title': 'No students in this class',
+  'dailyRoutine.empty.description': 'Enrol students in the class to record their routine.',
+  'dailyRoutine.dateLabel': 'Date',
+  'dailyRoutine.column.snack': 'Snack',
+  'dailyRoutine.column.poop': 'Poop',
+  'dailyRoutine.column.pee': 'Pee',
+  'dailyRoutine.column.notes': 'Notes',
+  'dailyRoutine.column.status': 'Status',
+  'dailyRoutine.column.send': 'Send',
+  'dailyRoutine.notesPlaceholder': 'Notes for the day...',
+  'dailyRoutine.notesAria': 'Notes for {student}',
+  'dailyRoutine.snackYesAria': '{student} ate the snack',
+  'dailyRoutine.snackNoAria': '{student} did not eat the snack',
+  'dailyRoutine.poopAria': '{student} pooped — {count} time(s) — tap to add one more',
+  'dailyRoutine.peeAria': '{student} peed — {count} time(s) — tap to add one more',
+  'dailyRoutine.send': 'Send',
+  'dailyRoutine.sent': 'Sent',
+  'dailyRoutine.sendAria': 'Send {student}’s routine to the guardians',
+  'dailyRoutine.resendAria': '{student}’s routine already sent — tap to send again',
+  'dailyRoutine.upsertError': 'Could not save the routine.',
+  'dailyRoutine.sendError': 'Could not send the routine.',
+  'dailyRoutine.status.draft': 'Draft',
+  'dailyRoutine.status.sent': 'Sent',
+
+>>>>>>> origin/main
   'nav.grades': 'Grades',
   'grades.loadError': 'Could not load the grades.',
   'grades.optionsLoadError': 'Could not load the classes and subjects.',

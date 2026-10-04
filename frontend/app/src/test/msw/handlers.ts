@@ -2009,6 +2009,95 @@ export const handlers = [
     },
   ),
 
+  /* -------------------------------------------- daily routine (BC11) ----------------------------- */
+
+  http.get(
+    apiUrl(
+      '/api/v1/schools/:schoolId/academics/school_classes/:schoolClassId/daily_routine_entries',
+    ),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      // No students by default — a spec exercising the roster overrides this with
+      // `server.use(...)`.
+      return HttpResponse.json({ data: [] });
+    },
+  ),
+
+  http.put(
+    apiUrl('/api/v1/schools/:schoolId/academics/daily_routine_entries'),
+    async ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const body = (await request.json()) as {
+        daily_routine_entry: {
+          student_id: number;
+          date: string;
+          snack_eaten?: boolean | null;
+          poop_count?: number;
+          pee_count?: number;
+          notes?: string | null;
+        };
+      };
+
+      return HttpResponse.json({
+        data: {
+          id: 1,
+          status: 'draft',
+          sent_at: null,
+          sent_by_membership_id: null,
+          recorded_by_membership_id: null,
+          poop_count: 0,
+          pee_count: 0,
+          snack_eaten: null,
+          notes: null,
+          ...body.daily_routine_entry,
+        },
+      });
+    },
+  ),
+
+  http.post(
+    apiUrl('/api/v1/schools/:schoolId/academics/daily_routine_entries/:id/send'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      return HttpResponse.json({
+        data: {
+          id: Number(params.id),
+          student_id: 1,
+          date: '2026-02-10',
+          snack_eaten: null,
+          poop_count: 0,
+          pee_count: 0,
+          notes: null,
+          status: 'sent',
+          sent_at: '2026-02-10T12:00:00Z',
+          sent_by_membership_id: 1,
+          recorded_by_membership_id: 1,
+        },
+      });
+    },
+  ),
+
   /* ----------------------------------------- instructional days admin (BR-SY10) ---------------- */
 
   http.get(apiUrl('/api/v1/schools/:schoolId/school_years/active'), ({ request, params }) => {

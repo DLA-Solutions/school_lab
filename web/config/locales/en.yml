@@ -74,6 +74,9 @@ en:
       incident_created:
         title: "Incident awaiting review"
         body: "A new incident record about %{student} needs your review."
+      daily_routine_sent:
+        title: "Daily routine available"
+        body: "%{student}'s daily routine is now available."
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."

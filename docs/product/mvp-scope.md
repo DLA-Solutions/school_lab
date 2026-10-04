@@ -267,7 +267,7 @@ domain PRD is missing or not written (see capability-map for detail).
 | `communication.view_communication_engagement` | View communication engagement reports | `prds/communication/index.md` | Delivery and read metrics; not public leaderboards. |
 | `academic.deliver_diary_to_families` | Deliver daily diary to guardians | `prds/academic/diary.md` | Push diary entries to families; infantil priority. |
 | `academic.issue_transcript` | Issue school transcript (histórico escolar) | `prds/documents-and-archive/archive.md` | Official transcript generation with audit. |
-| `academic.log_daily_routine` | Log early childhood daily routine | `prds/academic/diary.md` | Routine module MVP-relevant for infantil. |
+| `academic.log_daily_routine` | Log early childhood daily routine | `prds/academic/routine.md` | Snack/diaper/notes slice built (BC11); sleep/health/mood/photos still deferred. |
 | `academic.manage_lesson_lifecycle` | Manage lesson lifecycle (cancel/makeup) | `prds/academic/diary.md` | Cancel and makeup rules explicit. |
 | `academic.manage_live_lesson` | Manage live online lessons | `prds/academic/diary.md` | Meet/adapter links; recordings attached to lesson. |
 | `academic.manage_special_education` | Manage special education (AEE) records | `prds/academic/special-education.md` | AEE module deferred; document competitor pattern. |
