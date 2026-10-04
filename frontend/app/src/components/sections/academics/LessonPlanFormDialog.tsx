@@ -1,14 +1,10 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormGroup from '@mui/material/FormGroup';
-import FormLabel from '@mui/material/FormLabel';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
@@ -17,17 +13,19 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import { ErrorBanner } from 'design-system';
 import IconifyIcon from 'components/base/IconifyIcon';
-import type { MessageKey } from 'locales';
 import { useTranslation } from 'providers/I18nContext';
 import { ApiError } from 'services/api';
 import { listLessonPlans, upsertLessonPlan } from 'services/lessonPlansApi';
 import { Subject } from 'types/academics';
+import { LessonPlan, LessonPlanAssessmentFormat, LessonPlanAssessmentType } from 'types/lessonPlans';
 import {
-  LessonPlan,
-  LessonPlanAssessmentFormat,
-  LessonPlanAssessmentType,
-} from 'types/lessonPlans';
+  LessonPlanTemplateFormState,
+  LessonPlanTemplateTextField,
+  emptyLessonPlanTemplate,
+  toLessonPlanTemplateFormState,
+} from 'utils/lessonPlanTemplate';
 import LessonPlanPreviewDialog from './LessonPlanPreviewDialog';
+import LessonPlanTemplateFields from './LessonPlanTemplateFields';
 
 export interface LessonPlanFormDialogProps {
   open: boolean;
@@ -40,100 +38,6 @@ export interface LessonPlanFormDialogProps {
   onClose: () => void;
   onSaved: () => void;
 }
-
-/** BR-LP07 — free-text template fields, all optional. */
-type TemplateTextField =
-  | 'duration'
-  | 'unit_stage'
-  | 'topic'
-  | 'general_objective'
-  | 'specific_objectives'
-  | 'bncc_competencies'
-  | 'other_competencies'
-  | 'resources_materials';
-
-type TemplateFormState = Record<TemplateTextField, string> & {
-  assessment_types: LessonPlanAssessmentType[];
-  assessment_formats: LessonPlanAssessmentFormat[];
-};
-
-const emptyTemplate: TemplateFormState = {
-  duration: '',
-  unit_stage: '',
-  topic: '',
-  general_objective: '',
-  specific_objectives: '',
-  bncc_competencies: '',
-  other_competencies: '',
-  resources_materials: '',
-  assessment_types: [],
-  assessment_formats: [],
-};
-
-const toTemplateFormState = (plan: LessonPlan): TemplateFormState => ({
-  duration: plan.duration ?? '',
-  unit_stage: plan.unit_stage ?? '',
-  topic: plan.topic ?? '',
-  general_objective: plan.general_objective ?? '',
-  specific_objectives: plan.specific_objectives ?? '',
-  bncc_competencies: plan.bncc_competencies ?? '',
-  other_competencies: plan.other_competencies ?? '',
-  resources_materials: plan.resources_materials ?? '',
-  assessment_types: plan.assessment_types ?? [],
-  assessment_formats: plan.assessment_formats ?? [],
-});
-
-const TEXT_FIELDS: { key: TemplateTextField; labelKey: MessageKey; multiline: boolean }[] = [
-  { key: 'duration', labelKey: 'lessonPlans.dialog.durationLabel', multiline: false },
-  { key: 'unit_stage', labelKey: 'lessonPlans.dialog.unitStageLabel', multiline: false },
-  { key: 'topic', labelKey: 'lessonPlans.dialog.topicLabel', multiline: false },
-  { key: 'general_objective', labelKey: 'lessonPlans.dialog.generalObjectiveLabel', multiline: true },
-  {
-    key: 'specific_objectives',
-    labelKey: 'lessonPlans.dialog.specificObjectivesLabel',
-    multiline: true,
-  },
-  {
-    key: 'bncc_competencies',
-    labelKey: 'lessonPlans.dialog.bnccCompetenciesLabel',
-    multiline: true,
-  },
-  {
-    key: 'other_competencies',
-    labelKey: 'lessonPlans.dialog.otherCompetenciesLabel',
-    multiline: true,
-  },
-  {
-    key: 'resources_materials',
-    labelKey: 'lessonPlans.dialog.resourcesMaterialsLabel',
-    multiline: true,
-  },
-];
-
-const ASSESSMENT_TYPE_OPTIONS: { key: LessonPlanAssessmentType; labelKey: MessageKey }[] = [
-  { key: 'diagnostic', labelKey: 'lessonPlans.dialog.assessmentTypes.diagnostic' },
-  { key: 'formative', labelKey: 'lessonPlans.dialog.assessmentTypes.formative' },
-  { key: 'summative', labelKey: 'lessonPlans.dialog.assessmentTypes.summative' },
-];
-
-const ASSESSMENT_FORMAT_OPTIONS: { key: LessonPlanAssessmentFormat; labelKey: MessageKey }[] = [
-  { key: 'observation', labelKey: 'lessonPlans.dialog.assessmentFormats.observation' },
-  { key: 'exercises', labelKey: 'lessonPlans.dialog.assessmentFormats.exercises' },
-  { key: 'participation', labelKey: 'lessonPlans.dialog.assessmentFormats.participation' },
-  {
-    key: 'written_production',
-    labelKey: 'lessonPlans.dialog.assessmentFormats.writtenProduction',
-  },
-  {
-    key: 'oral_presentation',
-    labelKey: 'lessonPlans.dialog.assessmentFormats.oralPresentation',
-  },
-  {
-    key: 'practical_activity',
-    labelKey: 'lessonPlans.dialog.assessmentFormats.practicalActivity',
-  },
-  { key: 'test', labelKey: 'lessonPlans.dialog.assessmentFormats.test' },
-];
 
 /**
  * UC-LP02: subject + the BR-LP07 template for one class/day, upserted by `(school_class_id,
@@ -153,7 +57,7 @@ const LessonPlanFormDialog = ({
   const { t, locale } = useTranslation();
 
   const [subjectId, setSubjectId] = useState('');
-  const [template, setTemplate] = useState<TemplateFormState>(emptyTemplate);
+  const [template, setTemplate] = useState<LessonPlanTemplateFormState>(emptyLessonPlanTemplate);
   const [fieldErrors, setFieldErrors] = useState<{ subject_id?: string }>({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -168,7 +72,7 @@ const LessonPlanFormDialog = ({
     }
 
     setSubjectId('');
-    setTemplate(emptyTemplate);
+    setTemplate(emptyLessonPlanTemplate);
     setFieldErrors({});
     setError('');
     setExistingError('');
@@ -211,11 +115,12 @@ const LessonPlanFormDialog = ({
     setError('');
 
     const existing = existingPlans.find((plan) => String(plan.subject_id) === value);
-    setTemplate(existing ? toTemplateFormState(existing) : emptyTemplate);
+    setTemplate(existing ? toLessonPlanTemplateFormState(existing) : emptyLessonPlanTemplate);
   };
 
   const handleTextChange =
-    (key: TemplateTextField) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (key: LessonPlanTemplateTextField) =>
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setTemplate((current) => ({ ...current, [key]: event.target.value }));
     };
 
@@ -341,67 +246,13 @@ const LessonPlanFormDialog = ({
                   </TextField>
                 </Grid>
 
-                {TEXT_FIELDS.map(({ key, labelKey, multiline }) => (
-                  <Grid size={12} key={key}>
-                    <TextField
-                      id={`lesson-plan-${key}`}
-                      label={t(labelKey)}
-                      value={template[key]}
-                      onChange={handleTextChange(key)}
-                      disabled={saving}
-                      variant="filled"
-                      fullWidth
-                      multiline={multiline}
-                      minRows={multiline ? 3 : undefined}
-                    />
-                  </Grid>
-                ))}
-
-                <Grid size={12}>
-                  <FormLabel component="legend">
-                    {t('lessonPlans.dialog.assessmentSectionTitle')}
-                  </FormLabel>
-
-                  <Stack direction="column" gap={1} mt={1}>
-                    <FormLabel component="legend" sx={{ typography: 'caption' }}>
-                      {t('lessonPlans.dialog.assessmentTypesLabel')}
-                    </FormLabel>
-                    <FormGroup row>
-                      {ASSESSMENT_TYPE_OPTIONS.map((option) => (
-                        <FormControlLabel
-                          key={option.key}
-                          control={
-                            <Checkbox
-                              checked={template.assessment_types.includes(option.key)}
-                              onChange={() => toggleAssessmentType(option.key)}
-                              disabled={saving}
-                            />
-                          }
-                          label={t(option.labelKey)}
-                        />
-                      ))}
-                    </FormGroup>
-
-                    <FormLabel component="legend" sx={{ typography: 'caption' }}>
-                      {t('lessonPlans.dialog.assessmentFormatsLabel')}
-                    </FormLabel>
-                    <FormGroup row>
-                      {ASSESSMENT_FORMAT_OPTIONS.map((option) => (
-                        <FormControlLabel
-                          key={option.key}
-                          control={
-                            <Checkbox
-                              checked={template.assessment_formats.includes(option.key)}
-                              onChange={() => toggleAssessmentFormat(option.key)}
-                              disabled={saving}
-                            />
-                          }
-                          label={t(option.labelKey)}
-                        />
-                      ))}
-                    </FormGroup>
-                  </Stack>
-                </Grid>
+                <LessonPlanTemplateFields
+                  template={template}
+                  onTextChange={handleTextChange}
+                  onToggleAssessmentType={toggleAssessmentType}
+                  onToggleAssessmentFormat={toggleAssessmentFormat}
+                  disabled={saving}
+                />
               </>
             )}
             {existingError && (

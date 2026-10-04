@@ -24,6 +24,7 @@ export default {
   // `lessonPlans` above, which stays the teacher calendar / instructional-days admin split.
   allLessonPlans: `/${rootPaths.academicsRoot}/planos-de-aula-todos`,
   atas: `/${rootPaths.academicsRoot}/atas`,
+  dailyRoutine: `/${rootPaths.academicsRoot}/rotina-diaria`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,
   subjects: `/${rootPaths.academicsRoot}/materias`,
   jobPositions: `/${rootPaths.academicsRoot}/cargos`,

@@ -226,6 +226,10 @@ const enUS: Messages = {
   'lessons.empty.title': 'No lessons yet',
   'lessons.empty.description': 'Assign a teacher to a subject of a class to begin.',
   'nav.lessonPlans': 'Lesson Plan',
+  'lessonPlans.new': 'New Plan',
+  'lessonPlans.newDialog.title': 'New lesson plan',
+  'lessonPlans.newDialog.saveDisabledHint':
+    'Saving isn’t available from here yet — open an instructional day on the calendar to send that lesson’s plan.',
   'lessonPlans.loadError': 'Could not load the calendar.',
   'lessonPlans.optionsLoadError': 'Could not load the classes.',
   'lessonPlans.choose.title': 'Choose the class',

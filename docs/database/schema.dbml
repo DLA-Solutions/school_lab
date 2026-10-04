@@ -1983,6 +1983,10 @@ Ref: incident_types.school_id > schools.id
 Ref: incidents.school_id > schools.id
 Ref: incidents.student_id > students.id
 Ref: incidents.incident_type_id > incident_types.id
+Ref: daily_routine_entries.school_id > schools.id
+Ref: daily_routine_entries.student_id > students.id
+Ref: daily_routine_entries.sent_by_membership_id > memberships.id
+Ref: daily_routine_entries.recorded_by_membership_id > memberships.id
 Ref: incidents.reported_by_membership_id > memberships.id
 Ref: incidents.coordination_approved_by_membership_id > memberships.id
 Ref: incidents.director_approved_by_membership_id > memberships.id

@@ -141,6 +141,9 @@ Rails.application.routes.draw do
               # Thin passthrough for UC-LP01: resolves the class's school year, then reads the
               # same `school_instructional_days` table the platform-side route owns (BR-SY10).
               resource :instructional_days, only: :show, controller: "instructional_days"
+              # BC11 "Rotina Infantil" roster for one day (UC-DR01) — a teacher's own assigned
+              # classes, or any class for manage_academic staff.
+              resources :daily_routine_entries, only: :index
             end
             resources :teachers, only: %i[index show create update destroy] do
               resources :teaching_assignments, only: :create
@@ -229,6 +232,17 @@ Rails.application.routes.draw do
                 get :pdf
               end
             end
+
+            # BC11 "Rotina Infantil" — deliberately bare `PUT /daily_routine_entries` (no `:id`):
+            # `student_id` + `date` resolve the target row (BR-DR01), not a URL id, same shape as
+            # `PUT /lesson_plans` above. `send` is a member action (UC-DR03); routed to
+            # `send_entry` since `send` is a reserved method name on every Ruby object.
+            resources :daily_routine_entries, only: [] do
+              member do
+                post :send, action: :send_entry
+              end
+            end
+            put "daily_routine_entries", to: "daily_routine_entries#upsert"
           end
 
           namespace :communication do
@@ -360,6 +374,8 @@ Rails.application.routes.draw do
                   get :pdf
                 end
               end
+              # BC11 "Rotina Infantil" — sent-only entries about this child only (BR-DR06/UC-DR04).
+              resources :daily_routine_entries, only: :index
             end
             resources :documents, only: :index
             resources :requests, only: %i[index show create]
