@@ -299,6 +299,39 @@ signature infrastructure with contracts.
       `AbsenceRecorded` → FCM; retry with backoff; audit on `notification_deliveries`
       ([`academic/attendance.md`](prds/academic/attendance.md), NFR-001).
 
+## Incidents ("Ata")
+
+PRD: [`academic/incidents.md`](prds/academic/incidents.md) (**validated**); modeling:
+[`007-academic.md`](modeling/007-academic.md) § Incidents.
+
+- [x] **Approval gate — decided (2026-10-02):** an incident needs sign-off from both a
+      `coordination`-templated and a `director`-templated membership (BR-IN08); `manage_academic`
+      alone never satisfies either slot.
+- [ ] **Default incident type catalog vs fully custom (BR-IN01)** — this pass ships schema support
+      for school-configurable types plus one seeded system row ("Reunião com os pais",
+      `system_key: guardian_meeting`, category `pastoral`, `default_visibility: staff_only` —
+      a product judgment call, not a literal BR-IN02 requirement since only `health` is
+      auto-`staff_only` by rule). No CRUD management UI for custom types ships in this pass.
+- [ ] **Push on publish vs in-app only (BR-IN06)** — `IncidentPublished` emits via the same
+      log-and-enqueue convention as `ReportCardPublished`/`AbsenceRecorded`
+      (`Incidents::EventEmitter` → `Incidents::IncidentPublishedJob` →
+      `Notifications::ProcessIntentService`, `channel_key: "incidents"`, extending the BR-N02
+      taxonomy the same way `report_cards` already did). Whether this should also fire push vs.
+      in-app-only is unresolved, same open status as `ReportCardPublished`.
+- [ ] **Retention period for disciplinary/incident records** — not addressed this pass; see also
+      the general LGPD retention items above.
+- [ ] **Incident edit/update endpoint** — BR-IN05 anticipates edits being audited ("audited on
+      edit"), but the PRD's API section lists no update route and this pass does not add one
+      (create, approve, publish, and the two list endpoints only). Add when a real edit UI exists.
+- [ ] **Incident archive endpoint** — BR-IN05's "no hard delete — archived status only" is modeled
+      (`status: archived` is a valid value) but no endpoint transitions an incident to it yet.
+- [ ] **Incident attachment upload endpoint** — `has_many_attached :attachments` is scaffolded on
+      `Incident` (Active Storage, same mechanism as `student_health_records.document`), but no API
+      route accepts an upload in this pass; the concrete feature request (two text fields) does
+      not need it yet.
+- [ ] **Explicit "when it happened" date distinct from `created_at`** — UC-IN01's input list has no
+      such field; the grid shows `created_at`. Flagged rather than guessed into the schema.
+
 ## Early childhood education / Daily routine (phase 2)
 
 - [ ] Record fields: meals, sleep, hygiene/diaper, health, mood, photos, notes

@@ -136,6 +136,18 @@ BR-RC10
 PDF generation uses only the stored snapshot. Guardian download is a family-scoped API response or
 short-lived signed artifact; it never triggers recalculation.
 
+The PDF layout — shared by the official published boletim and the teacher live preview (BR-RC14),
+since both render through the same drawing code — is: a header with school name, student name,
+student CPF, and `school_class` (turma); then one grid with a row per visible discipline and
+columns grouped by `academic_period`, matching the same per-period component breakdown the
+grade-entry grid (`grades.md`) shows for that period — not a single aggregated final value. Within
+each period group, components are positioned the same way the grade-entry screen expects them
+(two regular grades, then an optional work grade): the 1st component displays as `N1`, the 2nd as
+`N2`, and a 3rd as `T<period.sequence>` (`T1`..`T4`) rather than its stored `name` — a display-only
+label on the document, not a rename of the underlying `evaluation_components.name`. A period
+beyond a 4th component is out of this grid's scope. Attendance stays one line per period below the
+grid, as before.
+
 BR-RC11
 
 Report-card readiness depends on the minimum prerequisite contracts below. Client implementation

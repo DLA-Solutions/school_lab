@@ -99,6 +99,43 @@ FactoryBot.define do
       role { "staff" }
     end
 
+    # Non-owner staff with a system role template whose `system_key` is exactly "coordination" or
+    # "director" — the two BR-IN08 approval slots (Incidents) key off that field specifically, not
+    # `manage_academic` (both templates hold it, which is the whole point of the gate).
+    trait :coordination do
+      staff
+
+      after(:create) do |membership|
+        school = membership.school
+        next if school.blank?
+
+        result = Identity::ProvisionSystemRoleTemplatesService.call(school: school)
+        next unless result.success?
+
+        template = result.data[:templates]["coordination"]
+        profile = StaffProfile.find_or_initialize_by(membership: membership, school: school)
+        profile.role_template = template
+        profile.save!
+      end
+    end
+
+    trait :director do
+      staff
+
+      after(:create) do |membership|
+        school = membership.school
+        next if school.blank?
+
+        result = Identity::ProvisionSystemRoleTemplatesService.call(school: school)
+        next unless result.success?
+
+        template = result.data[:templates]["director"]
+        profile = StaffProfile.find_or_initialize_by(membership: membership, school: school)
+        profile.role_template = template
+        profile.save!
+      end
+    end
+
     trait :invited do
       status { "invited" }
     end

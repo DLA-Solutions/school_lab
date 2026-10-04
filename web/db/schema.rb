@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_03_135515) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -566,6 +566,51 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
     t.index ["slug"], name: "index_help_taxonomy_categories_on_slug", unique: true, where: "(discarded_at IS NULL)"
   end
 
+  create_table "incident_types", force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.string "default_visibility", default: "staff_only", null: false
+    t.datetime "discarded_at"
+    t.boolean "is_system", default: false, null: false
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.string "severity"
+    t.string "system_key"
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "name"], name: "index_incident_types_on_school_id_and_name", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id", "system_key"], name: "index_incident_types_on_school_id_and_system_key", unique: true, where: "((system_key IS NOT NULL) AND (discarded_at IS NULL))"
+    t.index ["school_id"], name: "index_incident_types_on_school_id"
+  end
+
+  create_table "incidents", force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "coordination_approved_at"
+    t.bigint "coordination_approved_by_membership_id"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.datetime "director_approved_at"
+    t.bigint "director_approved_by_membership_id"
+    t.text "guardian_points_raised"
+    t.bigint "incident_type_id", null: false
+    t.datetime "published_at"
+    t.bigint "reported_by_membership_id", null: false
+    t.bigint "school_id", null: false
+    t.text "school_response"
+    t.string "severity"
+    t.string "status", default: "pending_approval", null: false
+    t.bigint "student_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "visibility", null: false
+    t.index ["coordination_approved_by_membership_id"], name: "index_incidents_on_coordination_approved_by_membership_id"
+    t.index ["director_approved_by_membership_id"], name: "index_incidents_on_director_approved_by_membership_id"
+    t.index ["incident_type_id"], name: "index_incidents_on_incident_type_id"
+    t.index ["reported_by_membership_id"], name: "index_incidents_on_reported_by_membership_id"
+    t.index ["school_id", "status"], name: "index_incidents_on_school_id_and_status"
+    t.index ["school_id", "student_id", "created_at"], name: "index_incidents_on_school_id_and_student_id_and_created_at"
+    t.index ["school_id"], name: "index_incidents_on_school_id"
+    t.index ["student_id"], name: "index_incidents_on_student_id"
+  end
+
   create_table "job_positions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
@@ -576,6 +621,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
     t.index ["discarded_by_id"], name: "index_job_positions_on_discarded_by_id"
     t.index ["school_id", "name"], name: "index_job_positions_on_school_id_and_name_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_id"], name: "index_job_positions_on_school_id"
+  end
+
+  create_table "lesson_plans", force: :cascade do |t|
+    t.bigint "class_discipline_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["class_discipline_id", "date"], name: "index_lesson_plans_on_class_discipline_date", unique: true
+    t.index ["class_discipline_id"], name: "index_lesson_plans_on_class_discipline_id"
+    t.index ["school_id"], name: "index_lesson_plans_on_school_id"
   end
 
   create_table "membership_invite_tokens", force: :cascade do |t|
@@ -1045,6 +1102,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
     t.index ["school_id"], name: "index_school_holidays_on_school_id"
     t.index ["school_year_id", "date"], name: "index_school_holidays_on_year_date_kept", unique: true, where: "(discarded_at IS NULL)"
     t.index ["school_year_id"], name: "index_school_holidays_on_school_year_id"
+  end
+
+  create_table "school_instructional_days", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.boolean "instructional", null: false
+    t.bigint "school_id", null: false
+    t.bigint "school_year_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_school_instructional_days_on_school_id"
+    t.index ["school_year_id", "date"], name: "index_school_instructional_days_on_year_date", unique: true
+    t.index ["school_year_id"], name: "index_school_instructional_days_on_school_year_id"
   end
 
   create_table "school_modules", force: :cascade do |t|
@@ -1576,6 +1645,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
     t.index ["updated_by_id"], name: "index_teacher_bank_accounts_on_updated_by_id"
   end
 
+  create_table "teacher_health_profiles", force: :cascade do |t|
+    t.string "blood_type"
+    t.datetime "created_at", null: false
+    t.string "emergency_contact_name", limit: 120
+    t.string "emergency_contact_phone", limit: 30
+    t.string "health_plan_name", limit: 120
+    t.string "health_plan_number", limit: 60
+    t.bigint "school_id", null: false
+    t.text "special_care_notes"
+    t.bigint "teacher_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id"], name: "index_teacher_health_profiles_on_school_id"
+    t.index ["teacher_id"], name: "index_teacher_health_profiles_on_teacher", unique: true
+    t.index ["teacher_id"], name: "index_teacher_health_profiles_on_teacher_id"
+  end
+
   create_table "teachers", force: :cascade do |t|
     t.string "city"
     t.string "complement"
@@ -1766,8 +1851,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
   add_foreign_key "guardians", "schools"
   add_foreign_key "guardians", "users"
   add_foreign_key "guardians", "users", column: "discarded_by_id"
+  add_foreign_key "incident_types", "schools"
+  add_foreign_key "incidents", "incident_types"
+  add_foreign_key "incidents", "memberships", column: "coordination_approved_by_membership_id"
+  add_foreign_key "incidents", "memberships", column: "director_approved_by_membership_id"
+  add_foreign_key "incidents", "memberships", column: "reported_by_membership_id"
+  add_foreign_key "incidents", "schools"
+  add_foreign_key "incidents", "students"
   add_foreign_key "job_positions", "schools"
   add_foreign_key "job_positions", "users", column: "discarded_by_id"
+  add_foreign_key "lesson_plans", "class_disciplines"
+  add_foreign_key "lesson_plans", "schools"
   add_foreign_key "membership_invite_tokens", "memberships"
   add_foreign_key "membership_invite_tokens", "schools"
   add_foreign_key "membership_invite_tokens", "users", column: "created_by_id"
@@ -1832,6 +1926,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
   add_foreign_key "school_fiscal_settings", "schools"
   add_foreign_key "school_holidays", "school_years"
   add_foreign_key "school_holidays", "schools"
+  add_foreign_key "school_instructional_days", "school_years"
+  add_foreign_key "school_instructional_days", "schools"
   add_foreign_key "school_modules", "schools"
   add_foreign_key "school_payment_providers", "schools"
   add_foreign_key "school_payment_providers", "users", column: "uploaded_by_id"
@@ -1895,6 +1991,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_010432) do
   add_foreign_key "teacher_bank_accounts", "schools"
   add_foreign_key "teacher_bank_accounts", "teachers"
   add_foreign_key "teacher_bank_accounts", "users", column: "updated_by_id"
+  add_foreign_key "teacher_health_profiles", "schools"
+  add_foreign_key "teacher_health_profiles", "teachers"
   add_foreign_key "teachers", "job_positions"
   add_foreign_key "teachers", "schools"
   add_foreign_key "teachers", "users", column: "discarded_by_id"

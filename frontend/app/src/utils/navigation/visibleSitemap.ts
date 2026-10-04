@@ -12,6 +12,7 @@ import {
 const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   students: 'academic',
   guardians: 'academic',
+  'lesson-plans': 'academic',
   lessons: 'academic',
   'school-classes': 'academic',
   subjects: 'academic',
@@ -24,6 +25,7 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   'my-tax-declarations': 'billing',
   'report-cards': 'academic',
   'my-report-cards': 'academic',
+  atas: 'academic',
 };
 
 /** Maps SPA paths to module keys for deep-link route guards (includes off-menu academic routes). */
@@ -41,9 +43,12 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.collaborators]: 'academic',
   [paths.jobPositions]: 'academic',
   [paths.grades]: 'academic',
+  [paths.lessonPlans]: 'academic',
+  [paths.atas]: 'academic',
   [paths.preceptorship]: 'academic',
   [paths.reportCards]: 'academic',
   [paths.requests]: 'documents',
+  [paths.myHealthProfile]: 'academic',
   [paths.myPreceptorship]: 'academic',
   [paths.myReportCards]: 'academic',
   [paths.myTaxDeclarations]: 'billing',
@@ -65,12 +70,15 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.collaborators]: 'staff',
   [paths.lessons]: 'staff',
   [paths.grades]: 'staff',
+  [paths.lessonPlans]: 'staff',
+  [paths.atas]: 'staff',
   [paths.schoolClasses]: 'staff',
   [paths.subjects]: 'staff',
   [paths.jobPositions]: 'staff',
   [paths.preceptorship]: 'staff',
   [paths.reportCards]: 'staff',
   [paths.requests]: 'staff',
+  [paths.myHealthProfile]: 'staff',
   [paths.charges]: 'staff',
   [paths.plans]: 'staff',
   [paths.billingSettings]: 'staff',
@@ -111,6 +119,12 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
     // Narrower than audience: excludes a specific role even though it collapses into a matching
     // audience bucket (e.g. `teacher` collapsing into `staff`).
     if (item.excludeRoles && membership !== null && item.excludeRoles.includes(membership.role)) {
+      return false;
+    }
+
+    // The inverse: only these roles see the entry, even though others in the same audience
+    // bucket would otherwise match (e.g. a `staff`-audience item only `teacher` should reach).
+    if (item.includeRoles && (membership === null || !item.includeRoles.includes(membership.role))) {
       return false;
     }
 

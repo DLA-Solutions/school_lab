@@ -141,7 +141,18 @@ const ptBR = {
   'health.records.empty.guardian': 'Adicione um registro para cada alergia, medicação ou condição.',
   'health.records.empty.school': 'A família ainda não adicionou registros de saúde.',
 
+  // The collaborator version (BC6) — same field set as the student's, one profile per teacher,
+  // no sub-records. `health.profile.*` carries the shared field labels; `health.loadError` /
+  // `health.saveError` / `health.saved` are generic enough (no mention of "student") to reuse
+  // here for both the teacher's own page and the staff read-only dialog.
+  'health.teacherProfile.title': 'Minha ficha de saúde',
+  'health.teacherProfile.description':
+    'Dados que a escola usa em caso de emergência: tipo sanguíneo, plano de saúde, contato de emergência e cuidados especiais.',
+  'health.teacherProfile.descriptionStaff':
+    'O que o colaborador informou sobre a própria saúde. Somente leitura — alterações são feitas pelo próprio colaborador.',
+
   'nav.myHealthRecords': 'Ficha de saúde',
+  'nav.myHealthProfile': 'Minha ficha de saúde',
   'pickups.title': 'Quem pode buscar',
   'pickups.action': 'Quem pode buscar',
   'pickups.aria': 'Pessoas autorizadas a buscar {name}',
@@ -218,6 +229,39 @@ const ptBR = {
   'lessons.subjectRequired': 'Selecione a matéria.',
   'lessons.empty.title': 'Nenhuma aula cadastrada',
   'lessons.empty.description': 'Atribua um professor a uma matéria de uma turma para começar.',
+  'nav.lessonPlans': 'Plano de Aula',
+  'lessonPlans.loadError': 'Não foi possível carregar o calendário.',
+  'lessonPlans.optionsLoadError': 'Não foi possível carregar as turmas.',
+  'lessonPlans.choose.title': 'Escolha a turma',
+  'lessonPlans.choose.description':
+    'O calendário de dias letivos é por turma — escolha uma para ver os dias em que é possível planejar.',
+  'lessonPlans.calendar.instructionalHint': 'Dias letivos aparecem em destaque e podem ser clicados.',
+  'lessonPlans.calendar.noInstructionalDays':
+    'Nenhum dia letivo foi marcado ainda para o ano letivo desta turma.',
+  'lessonPlans.dialog.title': 'Plano de aula — {date}',
+  'lessonPlans.dialog.subjectLabel': 'Matéria',
+  'lessonPlans.dialog.contentLabel': 'Conteúdo',
+  'lessonPlans.dialog.subjectRequired': 'Selecione a matéria.',
+  'lessonPlans.dialog.contentRequired': 'Descreva o conteúdo da aula.',
+  'lessonPlans.dialog.noSubjects': 'Você não leciona nenhuma matéria nesta turma.',
+  'lessonPlans.dialog.saveError': 'Não foi possível salvar o plano de aula.',
+  'lessonPlans.dialog.nonInstructionalDay': 'Este dia não está marcado como letivo.',
+  'lessonPlans.dialog.existingLoadError': 'Não foi possível carregar os planos já enviados para este dia.',
+  'lessonPlans.admin.title': 'Dias letivos',
+  'lessonPlans.admin.description':
+    'Marque, dia a dia, quais datas do ano letivo ativo são letivas — os professores só conseguem planejar aulas nos dias marcados aqui.',
+  'lessonPlans.admin.noActiveYear.title': 'Nenhum ano letivo ativo',
+  'lessonPlans.admin.noActiveYear.description':
+    'Ative um ano letivo em Configurações para marcar os dias letivos dele.',
+  'lessonPlans.admin.loadError': 'Não foi possível carregar os dias letivos deste mês.',
+  'lessonPlans.admin.saveError': 'Não foi possível salvar as alterações.',
+  'lessonPlans.admin.saved': 'Dias letivos atualizados.',
+  'lessonPlans.admin.legend.instructional': 'Letivo',
+  'lessonPlans.admin.legend.notInstructional': 'Não letivo',
+  'lessonPlans.admin.saveChanges': 'Salvar alterações',
+  'lessonPlans.admin.pendingChanges': '{count} dia(s) alterado(s) ainda não salvos.',
+  'lessonPlans.admin.readOnlyHint':
+    'Você pode ver os dias letivos, mas apenas quem administra as configurações da escola pode alterá-los.',
   'nav.grades': 'Notas',
   'grades.loadError': 'Não foi possível carregar as notas.',
   'grades.optionsLoadError': 'Não foi possível carregar as turmas e matérias.',
@@ -1103,6 +1147,8 @@ const ptBR = {
   'collaborators.deleteError': 'Não foi possível excluir o colaborador.',
   'collaborators.bankAccount': 'Dados bancários',
   'collaborators.bankAccountAria': 'Dados bancários de {name}',
+  'collaborators.healthProfile': 'Ver ficha de saúde',
+  'collaborators.healthProfileAria': 'Ver ficha de saúde de {name}',
 
   'bankAccount.title': 'Dados bancários',
   'bankAccount.description':
@@ -1235,6 +1281,34 @@ const ptBR = {
   'platformSubscription.paymentMethod.bank_slip': 'Boleto',
   'platformSubscription.paymentMethod.pix': 'Pix',
   'platformSubscription.overdue': 'Em atraso',
+
+  'nav.atas': 'Ata',
+  'atas.new': 'Nova nota ata',
+  'atas.loadError': 'Não foi possível carregar as atas.',
+  'atas.noAccess.description': 'Você não tem acesso às atas desta escola.',
+  'atas.empty.title': 'Nenhuma ata registrada',
+  'atas.empty.description': 'Registre uma nota ata para começar.',
+  'atas.column.guardians': 'Pais',
+  'atas.column.date': 'Data',
+  'atas.status.pending_approval': 'Pendente de aprovação',
+  'atas.status.approved': 'Aprovada',
+  'atas.status.archived': 'Arquivada',
+  'atas.approve': 'Aprovar',
+  'atas.approveError': 'Não foi possível aprovar a ata.',
+  'atas.publish': 'Publicar',
+  'atas.publishError': 'Não foi possível publicar a ata.',
+  'atas.preview': 'Pré-visualizar',
+  'atas.previewAria': 'Pré-visualizar ata de {student}',
+  'atas.previewTitle': 'Pré-visualização da ata',
+  'atas.previewFrame': 'Ata',
+  'atas.previewError': 'Não foi possível carregar o PDF da ata.',
+  'atas.form.title': 'Nova nota ata',
+  'atas.form.description': 'Registre os pontos trazidos pelos pais e a resposta da escola.',
+  'atas.form.guardianPointsRaised': 'Pontos trazidos pelos pais',
+  'atas.form.schoolResponse': 'Respostas da Escola',
+  'atas.form.noStudentFound': 'Nenhum aluno encontrado.',
+  'atas.form.typeToSearch': 'Digite para buscar um aluno.',
+  'atas.form.saveError': 'Não foi possível salvar a nota ata.',
 
   'error404.title': 'Página não encontrada',
   'error404.description': 'A página que você está buscando não existe ou foi movida.',

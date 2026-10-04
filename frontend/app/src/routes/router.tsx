@@ -16,6 +16,7 @@ import {
   RequireRouteAudience,
   RequireRouteModule,
   RequireSchoolOwner,
+  RequireTeacherRole,
 } from './guards';
 
 // Vite `base` uses a trailing slash (/app/); React Router `basename` must not — otherwise
@@ -32,10 +33,13 @@ const Users = lazy(() => import('pages/people/Users'));
 const Students = lazy(() => import('pages/people/Students'));
 const Collaborators = lazy(() => import('pages/academics/Collaborators'));
 const Grades = lazy(() => import('pages/academics/Grades'));
+const LessonPlans = lazy(() => import('pages/academics/LessonPlans'));
+const Atas = lazy(() => import('pages/academics/Atas'));
 const Lessons = lazy(() => import('pages/academics/Lessons'));
 const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
 const Subjects = lazy(() => import('pages/academics/Subjects'));
 const JobPositions = lazy(() => import('pages/academics/JobPositions'));
+const MyHealthProfile = lazy(() => import('pages/academics/MyHealthProfile'));
 const Preceptorship = lazy(() => import('pages/preceptorship/Preceptorship'));
 const MyPreceptorship = lazy(() => import('pages/preceptorship/MyPreceptorship'));
 const ReportCards = lazy(() => import('pages/report-cards/ReportCards'));
@@ -108,6 +112,14 @@ const router = createBrowserRouter(
               element: <Grades />,
             },
             {
+              path: paths.lessonPlans,
+              element: <LessonPlans />,
+            },
+            {
+              path: paths.atas,
+              element: <Atas />,
+            },
+            {
               // Kept at its own address though it left the menu: it is a tab inside Aulas now, and
               // an existing link to a class listing should still land somewhere.
               path: paths.schoolClasses,
@@ -120,6 +132,17 @@ const router = createBrowserRouter(
             {
               path: paths.jobPositions,
               element: <JobPositions />,
+            },
+            {
+              // Owner-only-style guard (BC6): a hidden nav entry is not an access rule, so a
+              // non-teacher staff member landing on this URL is bounced rather than shown a page
+              // that can never resolve a profile for them.
+              path: paths.myHealthProfile,
+              element: (
+                <RequireTeacherRole>
+                  <MyHealthProfile />
+                </RequireTeacherRole>
+              ),
             },
             {
               path: paths.preceptorship,

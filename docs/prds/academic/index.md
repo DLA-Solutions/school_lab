@@ -3,7 +3,7 @@
 > Status: validated  
 > Relation to School Lab: core MVP domain #6 per [`docs/product-map.md`](../../product-map.md) §5 — **MVP pillar #2** (reliability-critical)  
 > Capability IDs: see [Competitive grounding](#competitive-grounding) — **22** MVP canonical `academic.*` rows in [`mvp-scope.md`](../../product/mvp-scope.md); **34** canonicals total in taxonomy  
-> Domain PRDs: [`attendance.md`](attendance.md) (BC1), [`grades.md`](grades.md) (BC2), [`report-cards.md`](report-cards.md) (BC3), [`diary.md`](diary.md) (BC4), [`curriculum.md`](curriculum.md) (BC5), [`periods.md`](periods.md) (BC6), [`incidents.md`](incidents.md) (BC7), [`coordination.md`](coordination.md) (BC8), [`preceptorship.md`](preceptorship.md) (BC9 shipped backfill)
+> Domain PRDs: [`attendance.md`](attendance.md) (BC1), [`grades.md`](grades.md) (BC2), [`report-cards.md`](report-cards.md) (BC3), [`diary.md`](diary.md) (BC4), [`curriculum.md`](curriculum.md) (BC5), [`periods.md`](periods.md) (BC6), [`incidents.md`](incidents.md) (BC7), [`coordination.md`](coordination.md) (BC8), [`preceptorship.md`](preceptorship.md) (BC9 shipped backfill), [`lesson-plans.md`](lesson-plans.md) (BC10)
 > Modeling: [`docs/modeling/007-academic.md`](../../modeling/007-academic.md)  
 > API: [`docs/api/v1/academic.md`](../../api/v1/academic.md)  
 > Traceability: BR-/UC-/AC- IDs per bounded context — see [`traceability.md`](../../product/traceability.md)

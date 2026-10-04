@@ -7,7 +7,7 @@ import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { ActiveMembershipContext } from 'providers/ActiveMembershipContext';
 import { guardianMembership, staffMembership, staffUser } from 'test/msw';
 import paths from './paths';
-import { RequireRouteAudience, RequireRouteModule } from './guards';
+import { RequireRouteAudience, RequireRouteModule, RequireTeacherRole } from './guards';
 
 const billingStaffAuth: AuthContextValue = {
   user: {
@@ -281,5 +281,48 @@ describe('RequireRouteAudience', () => {
     renderGuardedRoute(paths.myCharges, auth, guardianMembership.id);
 
     expect(screen.getByText('My charges page')).toBeInTheDocument();
+  });
+});
+
+// BC6 — a hidden nav entry is not an access rule on its own (same reasoning as
+// `RequireSchoolOwner`): a non-teacher staff member deep-linking to the collaborator's own
+// health profile is bounced rather than shown a page that can never resolve a profile for them.
+describe('RequireTeacherRole', () => {
+  const renderTeacherGuardedRoute = (membership: typeof staffMembership) =>
+    renderWithTheme(
+      <MemoryRouter initialEntries={[paths.myHealthProfile]}>
+        <AuthContext.Provider
+          value={{ ...billingStaffAuth, user: { ...staffUser, memberships: [membership] } }}
+        >
+          <ActiveMembershipContext.Provider
+            value={activeMembershipValueFor([membership], membership.id)}
+          >
+            <Routes>
+              <Route
+                path={paths.myHealthProfile}
+                element={
+                  <RequireTeacherRole>
+                    <div>My health profile page</div>
+                  </RequireTeacherRole>
+                }
+              />
+              <Route path={paths.dashboard} element={<div>Dashboard</div>} />
+            </Routes>
+          </ActiveMembershipContext.Provider>
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+
+  it('allows a teacher to open their own health profile', () => {
+    renderTeacherGuardedRoute({ ...staffMembership, role: 'teacher' });
+
+    expect(screen.getByText('My health profile page')).toBeInTheDocument();
+  });
+
+  it('redirects non-teacher staff deep-linking to the health profile route', () => {
+    renderTeacherGuardedRoute(staffMembership);
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.queryByText('My health profile page')).not.toBeInTheDocument();
   });
 });

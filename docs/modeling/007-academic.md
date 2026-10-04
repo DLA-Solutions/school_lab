@@ -125,7 +125,64 @@ claim. The text is not PEI/AEE, a health record, or a grade scale.
 
 | Table | Role |
 |-------|------|
-| `incidents` | Occurrence records — guardian visibility flag |
+| `incident_types` | School-configurable catalog — `category` (disciplinary/pastoral/health), free-text `severity`, `default_visibility` |
+| `incidents` | Occurrence record (product label **"Ata"**) — carries both BR-IN08 approval slots directly |
+
+Surfaced in the product menu as **"Ata"** — the end-user request was a single-type flow ("nota
+ata" with "pontos trazidos pelos pais" / "respostas da escola") mapped onto the general,
+school-configurable `incident_type` model from BR-IN01 rather than hardcoded, so other incident
+types (disciplinary, health) stay representable without a second schema.
+
+**Type catalog (BR-IN01):** one seeded system row per school, `system_key: "guardian_meeting"`
+("Reunião com os pais", `category: pastoral`). `default_visibility: staff_only` was a product
+judgment call, not literally mandated by BR-IN02 (which only forces `staff_only` automatically for
+`category: health`) — meeting notes about a family are treated as sensitive-by-default until a
+staff member explicitly decides to share them, matching how the end-user described this as an
+internal record first. The row provisions lazily (idempotent `find_or_create` keyed on
+`system_key`) the first time a school creates an incident with no explicit `incident_type_id`, so
+the feature needs no catalog-management screen to be usable. Full CRUD for custom types is
+deferred — see `docs/open-questions.md`.
+
+**Snapshot fields:** `incidents.category`/`severity` copy from `incident_type` at creation time and
+do not follow later edits to the type row — a report filtered by category must not change meaning
+retroactively because a school renamed or recategorised a type after the fact.
+
+**Structured body:** `description` stays a generic free-text field for any incident type;
+`guardian_points_raised`/`school_response` are additional nullable fields specific to the
+guardian-meeting shape (mapped 1:1 from the end-user's "pontos trazidos pelos pais" /"respostas da
+escola") but available to any incident type rather than gated behind a per-type dynamic schema —
+over-engineering for two fields.
+
+**Visibility and publish (BR-IN02/BR-IN04/UC-IN02):** `visibility: guardian` publishes immediately
+at creation (`published_at` set then); `guardian_on_publish` stays a draft until
+`POST .../publish`; `staff_only` never publishes (publishing one is a `409`). Guardian name
+("nome dos pais" in the grid) is never stored on the incident — it is derived at render time from
+`student.student_guardians`, the same association `Preceptoria#roll` already reads.
+
+**Approval gate (BR-IN08):** two fixed slots (`coordination_approved_at`/`_by_membership_id`,
+`director_approved_at`/`_by_membership_id`) rather than an approvals table, since there are always
+exactly two named slots, never an arbitrary list. Modeled as plain guarded model methods
+(`approve_coordination!`/`approve_director!`), not AASM — the state is two independent booleans
+converging on one derived status, not a linear transition graph. `status: approved` only once both
+are present; `manage_academic` alone never fills a slot — only a membership whose
+`staff_profile.role_template.system_key` is exactly `coordination` or `director` can (checked via
+`SchoolRoleTemplate.system_key`, the same field `school_role_templates` already carries). This gate
+is independent of the guardian-visibility publish step (BR-IN08), by product decision.
+
+**No hard delete (BR-IN05):** `incidents` carries no `discarded_at` — "archived" is a `status`
+value, not a Discard flag, so the business lifecycle and the soft-delete mechanism are not
+conflated for this table. No archive endpoint ships in this pass (not in the PRD's API list);
+the status value exists in the schema for a later pass.
+
+**Attachments:** `has_many_attached :attachments` directly on `Incident` (Active Storage), the
+same mechanism already used by `student_health_records.document` and
+`authorized_pickups.photo` — no separate `incident_attachments` join table. No upload endpoint
+ships in this pass; the capability is scaffolded on the model per BR-IN05/the PRD's database
+section, but the concrete feature request (two text fields) does not need it yet.
+
+**No distinct event date:** UC-IN01's input list (`student_id, type, description, visibility`) has
+no "when it happened" field, so the record date shown in the grid is `created_at`. Whether a
+school ever needs a date distinct from the record date is an open item, not a guessed column.
 
 ## Events
 
@@ -145,6 +202,8 @@ render leaves the whole batch unreleased and invisible to guardians.
 
 ## LGPD
 
-Health-related incident fields marked sensitive; guardian visibility explicit per incident.
+Health-related incident fields marked sensitive; `description`, `guardian_points_raised`, and
+`school_response` may all carry sensitive family content regardless of category and are flagged
+accordingly (BR-IN07); guardian visibility explicit per incident.
 Report-card snapshots and Preceptoria narratives are child education records. All guardian reads
 are family-scoped; retention and access-audit periods remain pending legal review.

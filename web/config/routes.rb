@@ -137,14 +137,28 @@ Rails.application.routes.draw do
               end
             end
             resources :subjects, only: %i[index create update destroy]
-            resources :school_classes, only: %i[index show create update destroy]
+            resources :school_classes, only: %i[index show create update destroy] do
+              # Thin passthrough for UC-LP01: resolves the class's school year, then reads the
+              # same `school_instructional_days` table the platform-side route owns (BR-SY10).
+              resource :instructional_days, only: :show, controller: "instructional_days"
+            end
             resources :teachers, only: %i[index show create update destroy] do
               resources :teaching_assignments, only: :create
               # Where the collaborator's salary is sent. One standing record per person, so it is
               # a singular resource rather than a list.
               resource :bank_account, only: %i[show update], controller: "teacher_bank_accounts"
+              # BC6 collaborator health profile — staff with manage_people may read it; only the
+              # teacher themself may write it (see the academics/me nesting below).
+              resource :health_profile, only: :show, controller: "teacher_health_profiles"
             end
             resources :teaching_assignments, only: %i[index destroy]
+
+            # The teacher's own self-service view of their health profile (BC6) — resolved by
+            # email match against Current.user, never by a :teacher_id param, so a teacher cannot
+            # reach a colleague's profile by changing the URL.
+            namespace :me do
+              resource :teacher_health_profile, only: %i[show update], controller: "teacher_health_profiles"
+            end
 
             # The grade book: the grid of periods/components for one class + subject, read whole
             # and written a cell at a time (components/templates/roster/entries already exist —
@@ -194,6 +208,23 @@ Rails.application.routes.draw do
             # (BR-RC14). Deliberately not nested under report_card_publications: this path never
             # creates a publication, snapshot, or stored PDF.
             get "students/:student_id/report_card_preview/pdf", to: "report_card_previews#pdf"
+
+            # Deliberately bare `PUT /lesson_plans` (no `:id`): the API table specifies an
+            # upsert-by-body-attributes endpoint — `school_class_id` + `subject_id` + `date`
+            # resolve the target (BR-LP04), not a URL id.
+            resources :lesson_plans, only: %i[index show]
+            put "lesson_plans", to: "lesson_plans#upsert"
+
+            # "Ata" (BC7) — the staff side: a teacher writes about their own classes,
+            # manage_academic staff write school-wide, and approve/publish are independent member
+            # actions on top of create (see IncidentPolicy for the BR-IN03/BR-IN08 gates).
+            resources :incidents, only: %i[index create] do
+              member do
+                post :approve
+                post :publish
+                get :pdf
+              end
+            end
           end
 
           namespace :communication do
@@ -210,6 +241,7 @@ Rails.application.routes.draw do
             end
             resources :academic_periods, only: %i[index create]
             resources :holidays, only: %i[index create]
+            resource :instructional_days, only: %i[show update], controller: "instructional_days"
           end
           resources :academic_periods, only: :update
           resources :holidays, only: %i[update destroy]
@@ -318,6 +350,12 @@ Rails.application.routes.draw do
               resources :health_records, controller: "student_health_records"
               # And names who may collect them at the gate.
               resources :authorized_pickups, only: %i[index create destroy]
+              # "Ata" (BC7) — published, guardian-visible incidents about this child only.
+              resources :incidents, only: :index do
+                member do
+                  get :pdf
+                end
+              end
             end
             resources :documents, only: :index
             resources :requests, only: %i[index show create]

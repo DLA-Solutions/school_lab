@@ -37,6 +37,7 @@ describe('visibleSitemap module filtering', () => {
     expect(routeAudienceForPath(paths.myTaxDeclarations)).toBe('guardian');
     expect(routeAudienceForPath(paths.myCharges)).toBe('guardian');
     expect(routeAudienceForPath(paths.reportCards)).toBe('staff');
+    expect(routeAudienceForPath(paths.myHealthProfile)).toBe('staff');
   });
 
   // Stronger than a permission key: the Autentique token creates documents in the school's name,
@@ -194,6 +195,39 @@ describe('visibleSitemap audience filtering', () => {
 
   it('hides staff searchable sub-pages from guardians', () => {
     const ids = visibleMenuItems(guardianMembership, searchableSubPages).map((item) => item.id);
+
+    expect(ids).toEqual([]);
+  });
+});
+
+// BC6 — `includeRoles` is the inverse of `excludeRoles`: it narrows a `staff`-audience item
+// down to one role specifically, rather than every role the audience bucket would otherwise
+// admit (secretary, director, teacher all collapse into `staff`).
+describe('visibleSitemap includeRoles filtering', () => {
+  const teacherMembership = { ...staffMembership, role: 'teacher' };
+
+  it('shows the collaborator health profile entry to a teacher', () => {
+    const ids = visibleSitemap(teacherMembership).map((item) => item.id);
+
+    expect(ids).toContain('my-health-profile');
+  });
+
+  it('hides the collaborator health profile entry from non-teacher staff', () => {
+    const ids = visibleSitemap(staffMembership).map((item) => item.id);
+
+    expect(ids).not.toContain('my-health-profile');
+  });
+
+  it('hides the collaborator health profile entry from a guardian', () => {
+    const ids = visibleSitemap(guardianMembership).map((item) => item.id);
+
+    expect(ids).not.toContain('my-health-profile');
+  });
+
+  it('hides an includeRoles entry when there is no active membership', () => {
+    const ids = visibleMenuItems(null, [
+      { id: 'teacher-only', subheader: 'nav.myHealthProfile', audience: 'staff' as const, includeRoles: ['teacher'] },
+    ]).map((item) => item.id);
 
     expect(ids).toEqual([]);
   });

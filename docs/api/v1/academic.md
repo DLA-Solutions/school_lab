@@ -227,12 +227,32 @@ broader-than-assignment scope is an explicit application authorization hardening
 
 ---
 
-## Incidents (W3)
+## Incidents (W3 — implemented, product label "Ata")
+
+Base: `/api/v1/schools/:school_id/academics` (staff); `/api/v1/schools/:school_id/me` (guardian).
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/incidents` | Record occurrence |
-| `GET` | `/me/students/:id/incidents` | Guardian when `visible_to_guardian` |
+| `GET` | `/incidents` | Staff list — grid of student, guardian names, date, status |
+| `POST` | `/incidents` | UC-IN01 — create; draft or auto-published per visibility |
+| `POST` | `/incidents/:id/approve` | UC-IN03 — fills whichever BR-IN08 slot matches the requester's role template |
+| `POST` | `/incidents/:id/publish` | UC-IN02 — guardian publish for `visibility: guardian_on_publish` |
+| `GET` | `/me/students/:student_id/incidents` | Guardian — published only, family-scoped |
+
+Teacher create/read is narrowed to students in the teacher's own `teaching_assignments`
+(BR-IN03), the same assignment table Preceptoria already narrows on; `manage_academic` staff see
+and create school-wide and alone may publish. Approval is independent of that: only a membership
+whose `staff_profile.role_template.system_key` is `coordination` or `director` fills a slot —
+`manage_academic` never substitutes for it (BR-IN08, AC-IN05). `incident_type_id` is optional on
+create; omitted, it resolves (and lazily provisions) the school's seeded "Reunião com os pais"
+type (`system_key: guardian_meeting`). `visibility: guardian` publishes immediately;
+`guardian_on_publish` stays draft until `POST .../publish`; `staff_only` can never be published
+(`409 invalid_state_transition`). Guardian name in the grid is derived from
+`student.student_guardians`, never stored on the incident.
+
+No update, destroy, or archive endpoint ships in this pass (not in the PRD's API list; BR-IN05's
+"archived" status exists in the schema for a later pass). No attachment-upload endpoint ships
+either — `has_many_attached :attachments` is scaffolded on the model but unused by any route yet.
 
 ---
 

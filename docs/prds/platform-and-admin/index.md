@@ -3,7 +3,7 @@
 > Status: validated  
 > Relation to School Lab: cross-cutting MVP foundation — unblocks academic, billing, and documents calendar scoping per [`docs/product-map.md`](../../product-map.md) §5  
 > Capability IDs: see [Competitive grounding](#competitive-grounding) — **6** MVP canonical `platform.*` rows in [`mvp-scope.md`](../../product/mvp-scope.md); **13** canonicals total in taxonomy  
-> Domain PRDs: [`school-year.md`](school-year.md) (BC1), [`backoffice.md`](backoffice.md) (BC2), [`calendar.md`](calendar.md) (BC3), [`staff-users.md`](staff-users.md) (BC4), [`onboarding.md`](onboarding.md) (BC5)  
+> Domain PRDs: [`school-year.md`](school-year.md) (BC1), [`backoffice.md`](backoffice.md) (BC2), [`calendar.md`](calendar.md) (BC3), [`staff-users.md`](staff-users.md) (BC4), [`onboarding.md`](onboarding.md) (BC5), [`collaborator-health.md`](collaborator-health.md) (BC6)  
 > Modeling: [`docs/modeling/009-platform-admin.md`](../../modeling/009-platform-admin.md)  
 > API: [`docs/api/v1/platform-and-admin.md`](../../api/v1/platform-and-admin.md)  
 > Traceability: BR-/UC-/AC- IDs per bounded context — see [`traceability.md`](../../product/traceability.md)
@@ -123,6 +123,7 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 | BC3 | [`calendar.md`](calendar.md) | Institutional events + staff personal events |
 | BC4 | [`staff-users.md`](staff-users.md) | Staff roster, menu visibility; defers auth/permissions to identity |
 | BC5 | [`onboarding.md`](onboarding.md) | Product access, getting-started, app download — **not** tenant provisioning |
+| BC6 | [`collaborator-health.md`](collaborator-health.md) | Collaborator self-reported health profile, read by admin on the Colaboradores roster |
 
 ### Out of scope (MVP)
 

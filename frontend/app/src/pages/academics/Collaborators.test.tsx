@@ -13,6 +13,8 @@ import Collaborators from './Collaborators';
 const TEACHERS_PATH = `/api/v1/schools/${SCHOOL_ID}/academics/teachers`;
 const DOCUMENTS_PATH = `/api/v1/schools/${SCHOOL_ID}/documents`;
 const POSITIONS_PATH = `/api/v1/schools/${SCHOOL_ID}/academics/job_positions`;
+const healthProfilePath = (teacherId: number) =>
+  `/api/v1/schools/${SCHOOL_ID}/academics/teachers/${teacherId}/health_profile`;
 
 const user = userEvent.setup({ delay: null });
 
@@ -58,13 +60,14 @@ const authValue: AuthContextValue = {
 };
 
 // The listing keeps its term in the URL, so it needs a router around it.
-const renderPage = () =>
+const renderPage = (memberships = [staffMembership]) =>
   renderWithTheme(
     <MemoryRouter>
       <AuthContext.Provider value={authValue}>
         <Collaborators />
       </AuthContext.Provider>
     </MemoryRouter>,
+    { memberships },
   );
 
 /** Records the `q` of every listing request and filters like `PersonSearchable` does. */
@@ -210,5 +213,70 @@ describe('Collaborators page', () => {
     expect(screen.getByRole('option', { name: 'Diploma / certificação' })).toBeInTheDocument();
     // Proof of income belongs to a guardian's file, not a collaborator's.
     expect(screen.queryByRole('option', { name: 'Comprovante de renda' })).not.toBeInTheDocument();
+  });
+
+  // BC6 — the same `manage_people` gate the roster listing itself answers to on the API.
+  describe('health profile (BC6)', () => {
+    it('shows the button to staff with manage_people', async () => {
+      authenticate();
+      stubListing();
+
+      renderPage([staffMembership]);
+
+      await screen.findByText('Carla Nogueira');
+
+      expect(
+        screen.getByRole('button', { name: 'Ver ficha de saúde de Carla Nogueira' }),
+      ).toBeInTheDocument();
+    });
+
+    it('hides the button from staff without manage_people', async () => {
+      authenticate();
+      stubListing();
+
+      renderPage([{ ...staffMembership, permissions: [] }]);
+
+      await screen.findByText('Carla Nogueira');
+
+      expect(
+        screen.queryByRole('button', { name: 'Ver ficha de saúde de Carla Nogueira' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("opens a collaborator's health profile, read-only", async () => {
+      authenticate();
+      stubListing();
+      server.use(
+        http.get(apiUrl(healthProfilePath(carla.id)), () =>
+          HttpResponse.json({
+            data: {
+              id: 1,
+              teacher_id: carla.id,
+              teacher_name: carla.name,
+              blood_type: 'B+',
+              health_plan_name: 'Amil',
+              health_plan_number: null,
+              emergency_contact_name: null,
+              emergency_contact_phone: null,
+              special_care_notes: null,
+              created_at: '2026-01-01T00:00:00Z',
+              updated_at: '2026-01-01T00:00:00Z',
+            },
+          }),
+        ),
+      );
+
+      renderPage([staffMembership]);
+      await screen.findByText('Carla Nogueira');
+
+      await user.click(screen.getByRole('button', { name: 'Ver ficha de saúde de Carla Nogueira' }));
+
+      const dialog = await screen.findByRole('dialog');
+      expect(
+        within(dialog).getByRole('combobox', { name: 'Tipo sanguíneo' }),
+      ).toHaveTextContent('B+');
+      expect(within(dialog).getByLabelText('Plano de saúde')).toBeDisabled();
+      expect(within(dialog).queryByRole('button', { name: 'Salvar' })).not.toBeInTheDocument();
+    });
   });
 });
