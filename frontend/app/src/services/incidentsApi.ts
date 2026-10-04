@@ -1,4 +1,9 @@
-import { IncidentCreatePayload, IncidentListResponse, IncidentResponse } from 'types/incidents';
+import {
+  Incident,
+  IncidentCreatePayload,
+  IncidentListResponse,
+  IncidentResponse,
+} from 'types/incidents';
 import { request, requestBlob } from './api';
 
 /**
@@ -91,3 +96,63 @@ export const publishIncident = async (schoolId: number, id: number): Promise<Inc
  */
 export const fetchIncidentPdf = (schoolId: number, id: number): Promise<Blob> =>
   requestBlob(`${base(schoolId)}/${id}/pdf`);
+
+/**
+ * "Ata" (BC7) as a family reads it. Routes nest under `me/students/:student_id`
+ * (`web/config/routes.rb`) — one child only, no cross-child listing exists at the API, so the
+ * guardian portal's "all my children" view (`MyAtas.tsx`) fetches per child and merges
+ * client-side. `IncidentPolicy::Scope`'s guardian branch already strips this down to published,
+ * guardian-visible incidents about a child in the caller's own family.
+ */
+const portalBase = (schoolId: number, studentId: number) =>
+  `/api/v1/schools/${schoolId}/me/students/${studentId}/incidents`;
+
+export interface ListMyChildIncidentsParams {
+  /** One-based, as Pagy counts pages. */
+  page?: number;
+}
+
+/** GET .../me/students/:student_id/incidents — one page of one child's published atas. */
+export const listMyChildIncidents = (
+  schoolId: number,
+  studentId: number,
+  { page = 1 }: ListMyChildIncidentsParams = {},
+) => request<IncidentListResponse>(`${portalBase(schoolId, studentId)}?${new URLSearchParams({ page: String(page) })}`);
+
+/**
+ * Every published ata about one child, walking Pagy's pages rather than asking for a bigger one
+ * — same reasoning as `listGuardianYearCharges` (`chargesApi.ts`): a child on the roll for a few
+ * years can carry more atas than fit on one page, and a view that silently stopped at page one
+ * would read as atas having gone missing.
+ */
+export const listAllMyChildIncidents = async (
+  schoolId: number,
+  studentId: number,
+): Promise<Incident[]> => {
+  const collected: Incident[] = [];
+  let page = 1;
+  let total = 0;
+
+  do {
+    const response = await listMyChildIncidents(schoolId, studentId, { page });
+    collected.push(...response.data);
+    total = response.meta.total;
+    page += 1;
+    // A page that comes back empty ends the walk even if `total` disagrees, so a miscount cannot
+    // spin this forever.
+  } while (collected.length < total && collected.length > 0 && page <= 20);
+
+  return collected;
+};
+
+/**
+ * GET .../me/students/:student_id/incidents/:id/pdf — the guardian's own copy of the document
+ * (`Academic::RenderIncidentPdfService`). `IncidentPolicy#show?`'s guardian branch gates it: a
+ * not-yet-published, `staff_only`, or another family's incident id all resolve to `404`
+ * (`IncidentsController#pdf` builds the lookup through `policy_scope`, same rigor as cross-school).
+ */
+export const fetchMyChildIncidentPdf = (
+  schoolId: number,
+  studentId: number,
+  id: number,
+): Promise<Blob> => requestBlob(`${portalBase(schoolId, studentId)}/${id}/pdf`);
