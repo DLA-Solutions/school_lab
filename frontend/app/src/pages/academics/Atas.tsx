@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { DataTable, EmptyState, ErrorBanner, PageHeader, SectionCard, SemanticChip } from 'design-system';
 import IconifyIcon from 'components/base/IconifyIcon';
@@ -14,9 +19,12 @@ import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { approveIncident, listIncidents, publishIncident } from 'services/incidentsApi';
+import { listMemberships } from 'services/peopleApi';
 import { fetchRoll } from 'services/preceptorshipApi';
 import { membershipHasPermission } from 'utils/onboarding/access';
-import { Incident, IncidentStatus, IncidentStudentOption } from 'types/incidents';
+import { Incident, IncidentGuardianSnapshot, IncidentStatus, IncidentStudentOption } from 'types/incidents';
+import { TeamMembership } from 'types/people';
+import type { MessageKey } from 'locales';
 
 const PAGE_SIZE = 25;
 
@@ -25,6 +33,20 @@ const STATUS_VARIANT: Record<IncidentStatus, 'info' | 'warning' | 'success'> = {
   approved: 'success',
   archived: 'info',
 };
+
+// Mirrors `StudentGuardian::RELATIONSHIPS` — same mapping Students.tsx already uses for its own
+// guardian column, reusing the same `students.relationship.*` catalogue keys rather than a new
+// Ata-specific set.
+const RELATIONSHIP_KEYS: Record<IncidentGuardianSnapshot['relationship'], MessageKey> = {
+  father: 'students.relationship.father',
+  mother: 'students.relationship.mother',
+  other: 'students.relationship.other',
+};
+
+// Any membership `role` other than `teacher`/`staff` (guardian, backoffice) never files an ata —
+// filtering them out of the author picker avoids offering choices that can only ever return an
+// empty list.
+const isAuthorRole = (role: TeamMembership['role']) => role === 'staff' || role === 'teacher';
 
 /**
  * "Ata" (BC7, `docs/prds/academic/incidents.md`) — the staff grid of recorded incidents, plus the
@@ -46,6 +68,12 @@ const Atas = () => {
     school?.role_template?.system_key === 'coordination' ||
     school?.role_template?.system_key === 'director';
   const canPublish = school ? membershipHasPermission(school, 'manage_academic') : false;
+  // BR-IN10 — the author filter only narrows an already-schoolwide list; a teacher's own list is
+  // already their own atas only, so there is nothing for them to filter.
+  const canFilterByAuthor = school ? membershipHasPermission(school, 'manage_academic') : false;
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const authorFilter = searchParams.get('reported_by_membership_id') ?? '';
 
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [total, setTotal] = useState(0);
@@ -54,10 +82,27 @@ const Atas = () => {
   const [error, setError] = useState('');
 
   const [teacherRoll, setTeacherRoll] = useState<IncidentStudentOption[]>([]);
+  const [authors, setAuthors] = useState<TeamMembership[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actingId, setActingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState('');
   const [previewing, setPreviewing] = useState<Incident | null>(null);
+
+  const setAuthorFilter = (value: string) => {
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (value) {
+          next.set('reported_by_membership_id', value);
+        } else {
+          next.delete('reported_by_membership_id');
+        }
+        return next;
+      },
+      { replace: true },
+    );
+    setPage(0);
+  };
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -68,7 +113,10 @@ const Atas = () => {
     setError('');
 
     try {
-      const response = await listIncidents(schoolId, { page: page + 1 });
+      const response = await listIncidents(schoolId, {
+        page: page + 1,
+        reportedByMembershipId: authorFilter ? Number(authorFilter) : undefined,
+      });
       setIncidents(response.data);
       setTotal(response.meta.total);
     } catch (err) {
@@ -78,11 +126,41 @@ const Atas = () => {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, page, t]);
+  }, [schoolId, page, authorFilter, t]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // The author picker's own roster — fetched once rather than per keystroke, same reasoning as
+  // the class/subject/teacher selects on AllLessonPlans. `manage_people` gates
+  // `people/memberships#index`; both system templates that hold `manage_academic` by default
+  // (coordination, director) also hold `manage_people` (full or partial), so this stays within
+  // what the filter's own audience can already read — a custom template missing it simply sees
+  // no author options besides "Minhas atas", which needs no fetch at all.
+  useEffect(() => {
+    if (!schoolId || !canFilterByAuthor) {
+      return;
+    }
+
+    let current = true;
+
+    listMemberships(schoolId)
+      .then((response) => {
+        if (current) {
+          setAuthors(response.data.filter((membership) => isAuthorRole(membership.role)));
+        }
+      })
+      .catch(() => {
+        if (current) {
+          setAuthors([]);
+        }
+      });
+
+    return () => {
+      current = false;
+    };
+  }, [schoolId, canFilterByAuthor]);
 
   // The teacher's own roll (BR-IN03) — the create dialog's picker for this role filters it
   // client-side rather than hitting the school-wide register, which a teacher cannot read.
@@ -153,12 +231,22 @@ const Atas = () => {
         minWidth: 180,
       },
       {
-        field: 'guardian_names',
+        field: 'guardians',
         headerName: t('atas.column.guardians'),
         flex: 1,
         minWidth: 200,
         renderCell: ({ row }: GridRenderCellParams<Incident>) =>
-          row.guardian_names.length > 0 ? row.guardian_names.join(', ') : t('common.none'),
+          row.guardians.length === 0 ? (
+            t('common.none')
+          ) : (
+            <Stack direction="column" justifyContent="center" py={1}>
+              {row.guardians.map((guardian, index) => (
+                <Typography key={guardian.guardian_id ?? `${guardian.name}-${index}`} variant="caption">
+                  {`${t(RELATIONSHIP_KEYS[guardian.relationship])}: ${guardian.name}`}
+                </Typography>
+              ))}
+            </Stack>
+          ),
       },
       {
         field: 'created_at',
@@ -249,6 +337,37 @@ const Atas = () => {
           </Button>
         }
       />
+
+      {canFilterByAuthor && (
+        <Stack direction="row" gap={1.5} flexWrap="wrap" alignItems="flex-end">
+          <TextField
+            id="atas-filter-author"
+            label={t('atas.filter.author')}
+            value={authorFilter}
+            onChange={(e) => setAuthorFilter(e.target.value)}
+            variant="filled"
+            size="small"
+            select
+            sx={{ width: 260 }}
+          >
+            <MenuItem value="">{t('atas.filter.allAuthors')}</MenuItem>
+            {authors.map((author) => (
+              <MenuItem key={author.id} value={String(author.id)}>
+                {author.display_title ? `${author.display_title} — ${author.email}` : author.email}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Chip
+            label={t('atas.filter.mine')}
+            clickable
+            color={authorFilter === String(school.id) ? 'primary' : 'default'}
+            variant={authorFilter === String(school.id) ? 'filled' : 'outlined'}
+            onClick={() =>
+              setAuthorFilter(authorFilter === String(school.id) ? '' : String(school.id))
+            }
+          />
+        </Stack>
+      )}
 
       {error && <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />}
       {actionError && <ErrorBanner message={actionError} />}
