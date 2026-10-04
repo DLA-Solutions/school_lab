@@ -42,6 +42,10 @@ const JobPositions = lazy(() => import('pages/academics/JobPositions'));
 const MyHealthProfile = lazy(() => import('pages/academics/MyHealthProfile'));
 const Preceptorship = lazy(() => import('pages/preceptorship/Preceptorship'));
 const MyPreceptorship = lazy(() => import('pages/preceptorship/MyPreceptorship'));
+const Messages = lazy(() => import('pages/communication/Messages'));
+const MyMessages = lazy(() => import('pages/communication/MyMessages'));
+const DailyRoutine = lazy(() => import('pages/academics/DailyRoutine'));
+const MyDailyRoutine = lazy(() => import('pages/academics/MyDailyRoutine'));
 const ReportCards = lazy(() => import('pages/report-cards/ReportCards'));
 const MyReportCards = lazy(() => import('pages/report-cards/MyReportCards'));
 const Requests = lazy(() => import('pages/requests/Requests'));
@@ -149,12 +153,33 @@ const router = createBrowserRouter(
               element: <Preceptorship />,
             },
             {
+              // A hidden nav entry is not the rule: coordination must not land on the family composer.
+              path: paths.messages,
+              element: (
+                <RequireTeacherRole>
+                  <Messages />
+                </RequireTeacherRole>
+              ),
+            },
+            {
+              path: paths.dailyRoutine,
+              element: <DailyRoutine />,
+            },
+            {
               path: paths.reportCards,
               element: <ReportCards />,
             },
             {
               path: paths.myPreceptorship,
               element: <MyPreceptorship />,
+            },
+            {
+              path: paths.myMessages,
+              element: <MyMessages />,
+            },
+            {
+              path: paths.myDailyRoutine,
+              element: <MyDailyRoutine />,
             },
             {
               path: paths.myReportCards,

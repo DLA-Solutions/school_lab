@@ -106,11 +106,12 @@ export interface ListSchoolClassesParams {
   year?: string;
   /** Narrows the listing to only the classes the current teacher is assigned to. No-op for staff. */
   mine?: boolean;
+  limit?: number;
 }
 
 export const listSchoolClasses = (
   schoolId: number,
-  { page = 1, q, grade_level, shift, year, mine }: ListSchoolClassesParams = {},
+  { page = 1, q, grade_level, shift, year, mine, limit }: ListSchoolClassesParams = {},
 ) => {
   const query = new URLSearchParams({ page: String(page) });
   // Only what was actually chosen: an empty parameter would narrow the listing to nothing.
@@ -119,8 +120,34 @@ export const listSchoolClasses = (
   if (shift) query.set('shift', shift);
   if (year) query.set('year', year);
   if (mine) query.set('mine', 'true');
+  if (limit) query.set('limit', String(limit));
 
   return request<Paginated<SchoolClass>>(`${base(schoolId)}/school_classes?${query}`);
+};
+
+/**
+ * Every cohort, past the default page of 25. Family messages and the routine roll need the
+ * class name for a teaching assignment, and that assignment is not what `mine=true` filters.
+ */
+export const listAllSchoolClasses = async (
+  schoolId: number,
+  params: Omit<ListSchoolClassesParams, 'page' | 'limit'> = {},
+) => {
+  const rows: SchoolClass[] = [];
+  let page = 1;
+  let total = Number.POSITIVE_INFINITY;
+
+  while (rows.length < total && page <= 20) {
+    const result = await listSchoolClasses(schoolId, { ...params, page, limit: 100 });
+    rows.push(...result.data);
+    total = result.meta.total;
+    if (result.data.length === 0) {
+      break;
+    }
+    page += 1;
+  }
+
+  return rows;
 };
 
 /**

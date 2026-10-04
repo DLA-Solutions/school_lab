@@ -96,6 +96,34 @@ const renderGuardedRoute = (
                 </RequireRouteModule>
               }
             />
+            <Route
+              path={paths.messages}
+              element={
+                <RequireRouteModule>
+                  <RequireRouteAudience>
+                    <RequireTeacherRole>
+                      <div>Messages page</div>
+                    </RequireTeacherRole>
+                  </RequireRouteAudience>
+                </RequireRouteModule>
+              }
+            />
+            <Route
+              path={paths.myMessages}
+              element={
+                <RequireRouteAudience>
+                  <div>My messages page</div>
+                </RequireRouteAudience>
+              }
+            />
+            <Route
+              path={paths.myDailyRoutine}
+              element={
+                <RequireRouteAudience>
+                  <div>My routine page</div>
+                </RequireRouteAudience>
+              }
+            />
             <Route path={paths.dashboard} element={<div>Dashboard</div>} />
           </Routes>
         </ActiveMembershipContext.Provider>
@@ -157,6 +185,80 @@ describe('RequireRouteAudience', () => {
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.queryByText('My preceptorship page')).not.toBeInTheDocument();
+  });
+
+  it('redirects staff deep-linking to the family inbox', () => {
+    renderGuardedRoute(paths.myMessages);
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.queryByText('My messages page')).not.toBeInTheDocument();
+  });
+
+  it('allows a guardian to open the family inbox', () => {
+    const auth: AuthContextValue = {
+      ...billingStaffAuth,
+      user: {
+        id: 1,
+        email: guardianMembership.email ?? 'guardian@example.com',
+        status: 'active',
+        memberships: [guardianMembership],
+        guardian_profiles: [],
+      },
+    };
+
+    renderGuardedRoute(paths.myMessages, auth, guardianMembership.id);
+
+    expect(screen.getByText('My messages page')).toBeInTheDocument();
+  });
+
+  it('allows a teacher to open family messages and bounces other staff', () => {
+    const teacherAuth: AuthContextValue = {
+      ...billingStaffAuth,
+      user: {
+        ...staffUser,
+        memberships: [
+          {
+            ...staffMembership,
+            role: 'teacher',
+            permissions: ['teach'],
+            enabled_modules: ['communication', 'academic', 'billing', 'documents'],
+          },
+        ],
+      },
+    };
+
+    renderGuardedRoute(paths.messages, teacherAuth);
+
+    expect(screen.getByText('Messages page')).toBeInTheDocument();
+  });
+
+  it('redirects non-teacher staff away from the family composer', () => {
+    renderGuardedRoute(paths.messages);
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.queryByText('Messages page')).not.toBeInTheDocument();
+  });
+
+  it('redirects a teacher when the communication module is off', () => {
+    const teacherAuth: AuthContextValue = {
+      ...billingStaffAuth,
+      user: {
+        ...staffUser,
+        memberships: [
+          {
+            ...staffMembership,
+            role: 'teacher',
+            permissions: ['teach'],
+            enabled_modules: ['academic'],
+          },
+        ],
+      },
+    };
+
+    renderGuardedRoute(paths.messages, teacherAuth);
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.queryByText('Messages page')).not.toBeInTheDocument();
   });
 
   it('allows a guardian to open guardian routes', () => {

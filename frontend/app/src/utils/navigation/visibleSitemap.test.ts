@@ -33,6 +33,12 @@ describe('visibleSitemap module filtering', () => {
   it('maps route audiences for deep-link guards', () => {
     expect(routeAudienceForPath(paths.dashboard)).toBe('shared');
     expect(routeAudienceForPath(paths.myPreceptorship)).toBe('guardian');
+    expect(routeAudienceForPath(paths.myMessages)).toBe('guardian');
+    expect(routeAudienceForPath(paths.myDailyRoutine)).toBe('guardian');
+    expect(routeAudienceForPath(paths.messages)).toBe('staff');
+    expect(routeAudienceForPath(paths.dailyRoutine)).toBe('staff');
+    expect(routeModuleKeyForPath(paths.messages)).toBe('communication');
+    expect(routeModuleKeyForPath(paths.dailyRoutine)).toBe('academic');
     expect(routeAudienceForPath(paths.myReportCards)).toBe('guardian');
     expect(routeAudienceForPath(paths.myTaxDeclarations)).toBe('guardian');
     expect(routeAudienceForPath(paths.myCharges)).toBe('guardian');
@@ -177,6 +183,8 @@ describe('visibleSitemap audience filtering', () => {
       'my-health-records',
       'my-pickups',
       'my-preceptorship',
+      'my-messages',
+      'my-daily-routine',
       'my-report-cards',
       'my-tax-declarations',
       'my-requests',
@@ -210,12 +218,16 @@ describe('visibleSitemap includeRoles filtering', () => {
     const ids = visibleSitemap(teacherMembership).map((item) => item.id);
 
     expect(ids).toContain('my-health-profile');
+    expect(ids).toContain('messages');
+    expect(ids).toContain('daily-routine');
   });
 
   it('hides the collaborator health profile entry from non-teacher staff', () => {
     const ids = visibleSitemap(staffMembership).map((item) => item.id);
 
     expect(ids).not.toContain('my-health-profile');
+    expect(ids).not.toContain('messages');
+    expect(ids).toContain('daily-routine');
   });
 
   it('hides the collaborator health profile entry from a guardian', () => {

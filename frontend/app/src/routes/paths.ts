@@ -27,6 +27,10 @@ export default {
 
   preceptorship: `/${rootPaths.academicsRoot}/preceptoria`,
   myPreceptorship: '/preceptoria',
+  messages: `/${rootPaths.academicsRoot}/mensagens`,
+  dailyRoutine: `/${rootPaths.academicsRoot}/rotina`,
+  myMessages: '/mensagens',
+  myDailyRoutine: '/rotina',
   reportCards: `/${rootPaths.academicsRoot}/boletins`,
   myReportCards: '/boletins',
 
