@@ -282,6 +282,19 @@ const enUS: Messages = {
   'lessonPlans.admin.pendingChanges': '{count} day(s) changed and not yet saved.',
   'lessonPlans.admin.readOnlyHint':
     'You can see the instructional days, but only someone who manages the school settings can change them.',
+  'nav.allLessonPlans': 'Lesson Plans — All',
+  'allLessonPlans.noAccess.description':
+    'You do not have access to every teacher’s lesson plans — this screen is for coordination staff.',
+  'allLessonPlans.loadError': 'Could not load the lesson plans.',
+  'allLessonPlans.optionsLoadError': 'Could not load the teachers, subjects and classes.',
+  'allLessonPlans.intro':
+    'Every lesson plan sent in by any teacher, filterable by teacher, subject and class.',
+  'allLessonPlans.filter.allTeachers': 'All teachers',
+  'allLessonPlans.column.date': 'Date',
+  'allLessonPlans.column.topic': 'Topic',
+  'allLessonPlans.empty.title': 'No lesson plans found',
+  'allLessonPlans.empty.description': 'No teacher has sent in a lesson plan matching these filters yet.',
+  'allLessonPlans.previewAria': 'Preview lesson plan for {subject}',
   'nav.grades': 'Grades',
   'grades.loadError': 'Could not load the grades.',
   'grades.optionsLoadError': 'Could not load the classes and subjects.',

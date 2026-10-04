@@ -202,6 +202,19 @@ const sitemap: MenuItem[] = [
     section: 'primary',
   },
   {
+    // UC-LP04/AC-LP07: coordination's own screen over every teacher's lesson plans, filterable by
+    // teacher/subject/class — a real permission key exists for this actor
+    // (`LessonPlanPolicy#manage_academic_staff?`), unlike `lesson-plans` above, which branches by
+    // role client-side because neither PRD defines one for "is a teacher".
+    id: 'all-lesson-plans',
+    subheader: 'nav.allLessonPlans',
+    path: paths.allLessonPlans,
+    icon: 'mingcute:calendar-2-line',
+    audience: 'staff',
+    requiredPermission: 'manage_academic',
+    section: 'primary',
+  },
+  {
     // "Ata" (BC7) — a teacher records for their own classes, manage_academic staff record
     // school-wide (BR-IN03). Same split as lesson-plans above: no requiredPermission/role
     // narrowing here, since either condition alone is enough and the two together aren't a
