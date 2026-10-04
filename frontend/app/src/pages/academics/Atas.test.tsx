@@ -62,7 +62,7 @@ const incidentRow = (overrides: Record<string, unknown> = {}) => ({
   director_approved_by_membership_id: null,
   student_name: 'Pedro Silva',
   incident_type_name: 'Reunião com os pais',
-  guardian_names: ['Marcela Silva'],
+  guardians: [{ guardian_id: 31, name: 'Marcela Silva', relationship: 'mother' }],
   ...overrides,
 });
 
@@ -159,7 +159,7 @@ describe('Atas page — teacher creating a "nota ata"', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
     expect(await screen.findByText('Pedro Silva')).toBeInTheDocument();
-    expect(screen.getByText('Marcela Silva')).toBeInTheDocument();
+    expect(screen.getByText('Mãe: Marcela Silva')).toBeInTheDocument();
   });
 });
 
@@ -240,11 +240,220 @@ describe('Atas page — manage_academic staff', () => {
     renderPage(directorMembership);
 
     const row = await screen.findByRole('row', { name: /pedro silva/i });
-    expect(within(row).getByText('Marcela Silva')).toBeInTheDocument();
+    expect(within(row).getByText('Mãe: Marcela Silva')).toBeInTheDocument();
     expect(within(row).getByText(/2026/)).toBeInTheDocument();
 
     await user.click(within(row).getByRole('button', { name: /aprovar/i }));
 
     await waitFor(() => expect(approved).toBe(true));
+  });
+});
+
+describe('Atas page — BR-IN10 author filter (manage_academic staff)', () => {
+  it('sends reported_by_membership_id when a specific author is picked from the Autor select', async () => {
+    const queries: URLSearchParams[] = [];
+
+    server.use(
+      http.get(apiUrl(`${BASE}/incidents`), ({ request }) => {
+        queries.push(new URL(request.url).searchParams);
+        return HttpResponse.json(page([]));
+      }),
+    );
+
+    renderPage(directorMembership);
+    await screen.findByText(/nenhuma ata registrada/i);
+
+    await user.click(screen.getByRole('combobox', { name: /^autor$/i }));
+    await user.click(await screen.findByRole('option', { name: /secretária — admin@example\.com/i }));
+
+    await waitFor(() => {
+      const last = queries[queries.length - 1];
+      expect(last.get('reported_by_membership_id')).toBe('11');
+    });
+  });
+
+  it('sets reported_by_membership_id to the caller\'s own membership id via "Minhas atas", and clears it on a second click', async () => {
+    const queries: URLSearchParams[] = [];
+
+    server.use(
+      http.get(apiUrl(`${BASE}/incidents`), ({ request }) => {
+        queries.push(new URL(request.url).searchParams);
+        return HttpResponse.json(page([]));
+      }),
+    );
+
+    renderPage(directorMembership);
+    await screen.findByText(/nenhuma ata registrada/i);
+
+    await user.click(screen.getByRole('button', { name: /minhas atas/i }));
+    await waitFor(() => {
+      const last = queries[queries.length - 1];
+      expect(last.get('reported_by_membership_id')).toBe(String(directorMembership.id));
+    });
+
+    await user.click(screen.getByRole('button', { name: /minhas atas/i }));
+    await waitFor(() => {
+      const last = queries[queries.length - 1];
+      expect(last.get('reported_by_membership_id')).toBeNull();
+    });
+  });
+
+  it('hides the author filter entirely for a teacher-role caller, whose list is already their own', async () => {
+    server.use(
+      http.get(apiUrl(`${BASE}/preceptorship_reports/roll`), () => HttpResponse.json({ data: roll })),
+      http.get(apiUrl(`${BASE}/incidents`), () => HttpResponse.json(page([]))),
+    );
+
+    renderPage(teacherMembership);
+    await screen.findByText(/nenhuma ata registrada/i);
+
+    expect(screen.queryByRole('combobox', { name: /^autor$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /minhas atas/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('Atas page — BR-IN11 guardian search & snapshot (manage_academic staff)', () => {
+  const guardianRow = (overrides: Record<string, unknown> = {}) => ({
+    id: 51,
+    school_id: SCHOOL_ID,
+    user_id: null,
+    active: true,
+    name: 'Marcela Silva',
+    cpf: '11111111111',
+    email: 'marcela@example.com',
+    phone: '',
+    zip_code: null,
+    street: null,
+    number: null,
+    complement: null,
+    neighborhood: null,
+    city: null,
+    state: null,
+    ...overrides,
+  });
+
+  const studentRow = (overrides: Record<string, unknown> = {}) => ({
+    id: 77,
+    school_id: SCHOOL_ID,
+    name: 'Pedro Silva',
+    cpf: '33333333333',
+    rg: '',
+    birth_date: '2015-01-01',
+    grade_level: null,
+    school_class_id: 1,
+    school_class_name: 'A — 2026',
+    contract_active: true,
+    status: 'active',
+    active: true,
+    guardians: [
+      { id: 51, link_id: 1, name: 'Marcela Silva', cpf: '11111111111', relationship: 'mother' },
+      { id: 52, link_id: 2, name: 'Carlos Silva', cpf: '22222222222', relationship: 'father' },
+    ],
+    ...overrides,
+  });
+
+  it('narrows the student picker by guardian name, pre-fills the checklist with relationship labels, and sends only the checked guardians', async () => {
+    const studentQueries: URLSearchParams[] = [];
+    const created: Record<string, unknown>[] = [];
+
+    server.use(
+      http.get(apiUrl(`${BASE}/incidents`), () => HttpResponse.json(page([]))),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/people/guardians`), ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('student_id')) {
+          return HttpResponse.json(page([guardianRow(), guardianRow({ id: 52, name: 'Carlos Silva' })]));
+        }
+        return HttpResponse.json(page([guardianRow()]));
+      }),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/people/students`), ({ request }) => {
+        studentQueries.push(new URL(request.url).searchParams);
+        return HttpResponse.json(page([studentRow()]));
+      }),
+      http.post(apiUrl(`${BASE}/incidents`), async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        created.push(body);
+        return HttpResponse.json({ data: incidentRow() }, { status: 201 });
+      }),
+    );
+
+    renderPage(directorMembership);
+    await screen.findByText(/nenhuma ata registrada/i);
+
+    await user.click(screen.getAllByRole('button', { name: /nova nota ata/i })[0]);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+    await user.type(screen.getByRole('combobox', { name: /buscar por respons/i }), 'Marcela');
+    await user.click(await screen.findByRole('option', { name: /marcela silva/i }));
+
+    await waitFor(() => {
+      const last = studentQueries[studentQueries.length - 1];
+      expect(last.get('guardian_id')).toBe('51');
+    });
+
+    await user.click(screen.getByRole('combobox', { name: /^aluno$/i }));
+    await user.click(await screen.findByRole('option', { name: /pedro silva/i }));
+
+    expect(await screen.findByText('Mãe: Marcela Silva')).toBeInTheDocument();
+    expect(screen.getByText('Pai: Carlos Silva')).toBeInTheDocument();
+
+    // Drop the father from this particular ata.
+    await user.click(screen.getByText('Pai: Carlos Silva'));
+
+    await user.type(screen.getByLabelText(/pontos trazidos pelos pais/i), 'Conversa de rotina.');
+    await user.click(screen.getByRole('button', { name: /salvar/i }));
+
+    await waitFor(() => expect(created).toHaveLength(1));
+    expect(created[0]).toMatchObject({ incident: { student_id: 77, guardian_ids: [51] } });
+  });
+
+  it('omits guardian_ids when the pre-filled checklist is never touched', async () => {
+    const created: Record<string, unknown>[] = [];
+
+    server.use(
+      http.get(apiUrl(`${BASE}/incidents`), () => HttpResponse.json(page([]))),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/people/guardians`), () =>
+        HttpResponse.json(page([guardianRow(), guardianRow({ id: 52, name: 'Carlos Silva' })])),
+      ),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/people/students`), () =>
+        HttpResponse.json(page([studentRow()])),
+      ),
+      http.post(apiUrl(`${BASE}/incidents`), async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        created.push(body);
+        return HttpResponse.json({ data: incidentRow() }, { status: 201 });
+      }),
+    );
+
+    renderPage(directorMembership);
+    await screen.findByText(/nenhuma ata registrada/i);
+
+    await user.click(screen.getAllByRole('button', { name: /nova nota ata/i })[0]);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('combobox', { name: /^aluno$/i }));
+    await user.click(await screen.findByRole('option', { name: /pedro silva/i }));
+
+    await screen.findByText('Mãe: Marcela Silva');
+
+    await user.type(screen.getByLabelText(/pontos trazidos pelos pais/i), 'Conversa de rotina.');
+    await user.click(screen.getByRole('button', { name: /salvar/i }));
+
+    await waitFor(() => expect(created).toHaveLength(1));
+    expect(created[0].incident).not.toHaveProperty('guardian_ids');
+  });
+
+  it('does not show the guardian search field for a teacher creating a nota ata', async () => {
+    server.use(
+      http.get(apiUrl(`${BASE}/preceptorship_reports/roll`), () => HttpResponse.json({ data: roll })),
+      http.get(apiUrl(`${BASE}/incidents`), () => HttpResponse.json(page([]))),
+    );
+
+    renderPage(teacherMembership);
+    await screen.findByText(/nenhuma ata registrada/i);
+
+    await user.click(screen.getAllByRole('button', { name: /nova nota ata/i })[0]);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+    expect(screen.queryByRole('combobox', { name: /buscar por respons/i })).not.toBeInTheDocument();
   });
 });
