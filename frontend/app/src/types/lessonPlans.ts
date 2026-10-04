@@ -6,6 +6,25 @@
  * the client actually picks — `school_class_id` + `subject_id` + `date` — rather than the
  * resolved `class_discipline_id`, which only the API knows how to look up (BR-LP01, BR-LP02).
  */
+
+/** BR-LP07 — `assessment_types` allowed values. */
+export type LessonPlanAssessmentType = 'diagnostic' | 'formative' | 'summative';
+
+/** BR-LP07 — `assessment_formats` allowed values. */
+export type LessonPlanAssessmentFormat =
+  | 'observation'
+  | 'exercises'
+  | 'participation'
+  | 'written_production'
+  | 'oral_presentation'
+  | 'practical_activity'
+  | 'test';
+
+/**
+ * The BR-LP07 structured template — supersedes the free-text `content` field from BR-LP01. Every
+ * field is optional (`[product decision]`): nothing beyond `class_discipline_id`/`date` is
+ * required to save a plan (BR-LP03).
+ */
 export interface LessonPlan {
   id: number;
   school_id: number;
@@ -13,7 +32,16 @@ export interface LessonPlan {
   subject_id: number;
   class_discipline_id: number;
   date: string;
-  content: string;
+  duration: string | null;
+  unit_stage: string | null;
+  topic: string | null;
+  general_objective: string | null;
+  specific_objectives: string | null;
+  bncc_competencies: string | null;
+  other_competencies: string | null;
+  resources_materials: string | null;
+  assessment_types: LessonPlanAssessmentType[];
+  assessment_formats: LessonPlanAssessmentFormat[];
   created_at?: string;
   updated_at?: string;
 }
@@ -23,7 +51,16 @@ export interface LessonPlanUpsertPayload {
   school_class_id: number;
   subject_id: number;
   date: string;
-  content: string;
+  duration?: string;
+  unit_stage?: string;
+  topic?: string;
+  general_objective?: string;
+  specific_objectives?: string;
+  bncc_competencies?: string;
+  other_competencies?: string;
+  resources_materials?: string;
+  assessment_types?: LessonPlanAssessmentType[];
+  assessment_formats?: LessonPlanAssessmentFormat[];
 }
 
 /**

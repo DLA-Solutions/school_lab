@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_03_135515) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_04_014815) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -624,11 +624,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_03_135515) do
   end
 
   create_table "lesson_plans", force: :cascade do |t|
+    t.string "assessment_formats", default: [], array: true
+    t.string "assessment_types", default: [], array: true
+    t.text "bncc_competencies"
     t.bigint "class_discipline_id", null: false
-    t.text "content", null: false
     t.datetime "created_at", null: false
     t.date "date", null: false
+    t.string "duration"
+    t.text "general_objective"
+    t.text "other_competencies"
+    t.text "resources_materials"
     t.bigint "school_id", null: false
+    t.text "specific_objectives"
+    t.string "topic"
+    t.string "unit_stage"
     t.datetime "updated_at", null: false
     t.index ["class_discipline_id", "date"], name: "index_lesson_plans_on_class_discipline_date", unique: true
     t.index ["class_discipline_id"], name: "index_lesson_plans_on_class_discipline_id"

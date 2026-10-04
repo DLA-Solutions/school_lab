@@ -79,8 +79,9 @@ Requirements with no further market anchor beyond the stakeholder's own note are
 BR-LP01 — `capability_id`: `academic.manage_lesson_plan`
 
 A **lesson plan** (`lesson_plans`) belongs to exactly one `class_discipline_id` (which already
-fixes school, school class, subject, and assigned teacher — curriculum BC5) and one `date`. Content
-is free text (`[product decision]` — rich text deferred, same open item as `diary.md`).
+fixes school, school class, subject, and assigned teacher — curriculum BC5) and one `date`. The
+plan body follows the structured template in BR-LP07 — there is no separate free-text `content`
+field (superseded; see BR-LP07).
 
 BR-LP02
 
@@ -111,6 +112,35 @@ BR-LP06
 
 All queries scoped by `school_id` (NFR-003); a lesson plan is never visible across schools.
 
+BR-LP07 *(structured template — supersedes the free-text `content` field from BR-LP01)*
+
+The plan body follows the school's standard printed template (the stakeholder's own paper form).
+Professor/Disciplina/Turma/Data are **not** duplicated here — they resolve from
+`class_discipline_id` + `date` per BR-LP01. The template adds these fields, all free text unless
+noted, all optional (`[product decision]` — no field beyond `class_discipline_id`/`date` is
+required to save a plan, matching BR-LP03's "nothing else is required to exist"):
+
+| Field | Template label | Type |
+|-------|-----------------|------|
+| `duration` | Duração | string (free text, e.g. "50 minutos" — not a structured numeric/unit pair `[product decision]`) |
+| `unit_stage` | Unidade/Etapa | string |
+| `topic` | Tema da Aula | string |
+| `general_objective` | Objetivo geral | text |
+| `specific_objectives` | Objetivos específicos | text |
+| `bncc_competencies` | Competências e habilidades (Código BNCC) | text — free text, not validated against a catalog; no BNCC code catalog exists in the system yet (`[product decision]`, same deferred scope as `curriculum.md`'s "full BNCC tagging" open item) |
+| `other_competencies` | Outras competências | text |
+| `resources_materials` | Recursos, Materiais e estratégias metodológicas | text |
+| `assessment_types` | Tipo de avaliação | string array, multi-select checkboxes — allowed values: `diagnostic`, `formative`, `summative` |
+| `assessment_formats` | (format checkboxes under Avaliação) | string array, multi-select checkboxes — allowed values: `observation`, `exercises`, `participation`, `written_production`, `oral_presentation`, `practical_activity`, `test` |
+
+BR-LP08
+
+A saved lesson plan can be previewed as a **PDF**, rendered from the template fields (BR-LP07) plus
+the resolved teacher/subject/class/date, via a popup triggered by an action button — same UX
+pattern as the Ata/incident PDF preview (`academic/incidents.md` — `Academic::RenderIncidentPdfService`
++ unsandboxed blob-URL iframe). No notification or event is emitted on preview; this is a read-only
+render of already-saved data, not a new workflow step.
+
 ---
 
 ## Use Cases
@@ -127,7 +157,8 @@ Flow
 ### UC-LP02 — Write/send a lesson plan (teacher)
 
 Input: `school_class_id`, `date` (from the calendar click), then in the popup: `subject_id`
-(scoped to the teacher's own `class_discipline` rows for that class — BR-LP02) and `content`.
+(scoped to the teacher's own `class_discipline` rows for that class — BR-LP02) and the BR-LP07
+template fields.
 
 Flow
 
@@ -135,6 +166,17 @@ Flow
    teacher, or staff with `manage_academic` (BR-LP02).
 2. Verify `date` is instructional (BR-LP03).
 3. Upsert by `(class_discipline_id, date)` (BR-LP04).
+
+### UC-LP05 — Preview a lesson plan as PDF (BR-LP08)
+
+Input: `lesson_plan_id`.
+
+Flow
+
+1. Validate the requester can read this plan (BR-LP02 scope — own plans for teachers, any for
+   `manage_academic` staff).
+2. Render the BR-LP07 template fields + resolved teacher/subject/class/date into a PDF; stream
+   inline for the popup preview.
 
 ### UC-LP03 — List my lesson plans (teacher)
 
@@ -165,6 +207,7 @@ Base: `/api/v1/schools/:school_id/academics`
 | `GET` | `/lesson_plans?school_class_id=&subject_id=&from=&to=` | List (UC-LP03 teacher-scoped, UC-LP04 staff-scoped by `policy_scope`) |
 | `GET` | `/lesson_plans/:id` | Read one |
 | `PUT` | `/lesson_plans` | Upsert by `school_class_id` + `subject_id` + `date` (UC-LP02, BR-LP04) |
+| `GET` | `/lesson_plans/:id/pdf` | PDF preview (UC-LP05, BR-LP08) — `Content-Type: application/pdf`, `disposition: inline` |
 
 Upsert request:
 
@@ -174,7 +217,16 @@ Upsert request:
     "school_class_id": 310,
     "subject_id": 12,
     "date": "2026-04-14",
-    "content": "Introdução a frações — exercícios 1 a 5 do livro."
+    "duration": "50 minutos",
+    "unit_stage": "Unidade 3 — Frações",
+    "topic": "Introdução a frações",
+    "general_objective": "Compreender o conceito de fração como parte de um todo.",
+    "specific_objectives": "Identificar numerador e denominador; representar frações simples.",
+    "bncc_competencies": "EF04MA07, EF04MA08",
+    "other_competencies": "Trabalho em dupla",
+    "resources_materials": "Livro didático, quadro, material concreto (frutas em EVA)",
+    "assessment_types": ["formative"],
+    "assessment_formats": ["exercises", "participation"]
   }
 }
 ```
@@ -188,6 +240,7 @@ Upsert request:
 | 403 | `forbidden` | Teacher not assigned to that class_discipline |
 | 404 | `not_found` | Unknown class/subject/plan, or cross-school |
 | 422 | `non_instructional_day` | `date` not marked instructional (BR-LP03) |
+| 422 | `validation_error` | `assessment_types`/`assessment_formats` value outside the allowed lists (BR-LP07) |
 
 ---
 
@@ -195,7 +248,7 @@ Upsert request:
 
 | Entity | Purpose |
 |--------|---------|
-| `lesson_plans` | One row per `(class_discipline_id, date)`: free-text content, timestamps |
+| `lesson_plans` | One row per `(class_discipline_id, date)`: BR-LP07 template fields (`duration`, `unit_stage`, `topic`, `general_objective`, `specific_objectives`, `bncc_competencies`, `other_competencies`, `resources_materials`, `assessment_types[]`, `assessment_formats[]`), timestamps |
 | `class_disciplines` *(existing, curriculum BC5)* | Resolves teacher + subject + class |
 | `school_instructional_days` *(new, owned by [`school-year.md`](../platform-and-admin/school-year.md) BR-SY10)* | Which calendar days are instructional |
 
@@ -227,8 +280,8 @@ None in this version — no downstream consumer identified yet.
 AC-LP01
 
 - [ ] Given teacher T is assigned subject S in class C, When T opens C's annual calendar and clicks
-      an instructional day, Then a popup offers S (and any other subject T teaches in C) and a
-      content field.
+      an instructional day, Then a popup offers S (and any other subject T teaches in C) and the
+      BR-LP07 template fields.
 - Source: stakeholder note, [`main-menu-description.md`](../../main-menu-description.md)
 
 AC-LP02
@@ -249,6 +302,23 @@ AC-LP04
       `(C, S, date)`, Then the API returns `403`.
 - Source: BR-LP02
 
+AC-LP05 *(structured template)*
+
+- [ ] Given a teacher saves a lesson plan with only `school_class_id`/`subject_id`/`date` and no
+      BR-LP07 fields, When the request is sent, Then it succeeds (all template fields optional).
+- [ ] Given `assessment_types`/`assessment_formats` with values outside the allowed lists in
+      BR-LP07, When submitted, Then the API returns `422`.
+- Source: BR-LP07
+
+AC-LP06 *(PDF preview)*
+
+- [ ] Given a saved lesson plan, When its owning teacher (or `manage_academic` staff) requests
+      `GET /lesson_plans/:id/pdf`, Then the response is an inline `application/pdf` rendering the
+      BR-LP07 fields.
+- [ ] Given a teacher not assigned to that `class_discipline`, When they request the PDF, Then the
+      API returns `403`.
+- Source: BR-LP08, BR-LP02
+
 ---
 
 ## Open items / pending decisions
@@ -257,7 +327,9 @@ AC-LP04
       note) is deferred, not implemented — revisit if coordination needs to gate what teachers
       send. If/when built, this likely converges with `diary.md`'s BR-D06 workflow rather than
       inventing a second one.
-- [ ] Rich text vs plain content — same open item as `diary.md`.
+- [ ] Rich text vs plain text per BR-LP07 field — same open item as `diary.md`.
+- [ ] BNCC competency catalog/validation (`bncc_competencies` is free text today, BR-LP07) — same
+      deferred scope as `curriculum.md`'s "full BNCC tagging" open item.
 - [ ] Whether `lesson_plans` and `diary.md`'s future `lessons` table should ultimately merge once
       diary is built — both key off `class_discipline_id` + `date`.
 

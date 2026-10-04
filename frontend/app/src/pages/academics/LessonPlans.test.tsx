@@ -134,7 +134,7 @@ describe('LessonPlans page — teacher view', () => {
 
     await user.click(screen.getByRole('combobox', { name: /matéria/i }));
     await user.click(await screen.findByRole('option', { name: 'Matemática' }));
-    await user.type(screen.getByLabelText(/conteúdo/i), 'Frações — exercícios 1 a 5.');
+    await user.type(screen.getByLabelText(/tema da aula/i), 'Frações — exercícios 1 a 5.');
     await user.click(screen.getByRole('button', { name: /salvar/i }));
 
     await waitFor(() => expect(saved).toHaveLength(1));
@@ -143,7 +143,7 @@ describe('LessonPlans page — teacher view', () => {
         school_class_id: schoolClass.id,
         subject_id: 12,
         date: '2026-02-10',
-        content: 'Frações — exercícios 1 a 5.',
+        topic: 'Frações — exercícios 1 a 5.',
       },
     });
 
@@ -175,7 +175,6 @@ describe('LessonPlans page — teacher view', () => {
     await user.click(await screen.findByRole('gridcell', { name: '10' }));
     await user.click(await screen.findByRole('combobox', { name: /matéria/i }));
     await user.click(await screen.findByRole('option', { name: 'Matemática' }));
-    await user.type(screen.getByLabelText(/conteúdo/i), 'Conteúdo qualquer.');
     await user.click(screen.getByRole('button', { name: /salvar/i }));
 
     expect(await screen.findByText(/este dia não é letivo/i)).toBeInTheDocument();
@@ -193,7 +192,6 @@ describe('LessonPlans page — teacher view', () => {
     await user.click(await screen.findByRole('gridcell', { name: '10' }));
     await user.click(await screen.findByRole('combobox', { name: /matéria/i }));
     await user.click(await screen.findByRole('option', { name: 'Matemática' }));
-    await user.type(screen.getByLabelText(/conteúdo/i), 'Conteúdo qualquer.');
     await user.click(screen.getByRole('button', { name: /salvar/i }));
 
     expect(await screen.findByText(/não leciona esta matéria/i)).toBeInTheDocument();

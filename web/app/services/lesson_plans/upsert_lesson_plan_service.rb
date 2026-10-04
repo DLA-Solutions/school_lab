@@ -2,17 +2,24 @@
 
 module LessonPlans
   class UpsertLessonPlanService < ApplicationService
-    def initialize(class_discipline:, date:, content:)
+    # BR-LP07 template fields — all optional (AC-LP05). `attributes` carries whichever of these
+    # the caller passed; missing keys are left untouched on an existing row rather than nulled out.
+    TEMPLATE_FIELDS = %i[
+      duration unit_stage topic general_objective specific_objectives bncc_competencies
+      other_competencies resources_materials assessment_types assessment_formats
+    ].freeze
+
+    def initialize(class_discipline:, date:, attributes: {})
       @class_discipline = class_discipline
       @date = date
-      @content = content
+      @attributes = attributes
     end
 
     def call
       return ResponseService.failure(code: :non_instructional_day) unless instructional_day?
 
       lesson_plan = LessonPlan.find_or_initialize_by(class_discipline: class_discipline, date: date)
-      lesson_plan.content = content
+      lesson_plan.assign_attributes(template_attributes)
 
       unless lesson_plan.save
         return ResponseService.failure(code: :validation_error, details: lesson_plan.errors.to_hash)
@@ -23,7 +30,11 @@ module LessonPlans
 
     private
 
-    attr_reader :class_discipline, :date, :content
+    attr_reader :class_discipline, :date, :attributes
+
+    def template_attributes
+      attributes.to_h.symbolize_keys.slice(*TEMPLATE_FIELDS)
+    end
 
     # BR-LP03: a date with no SchoolInstructionalDay row ("undecided") is treated the same as
     # `instructional: false` — never guessed as instructional.
