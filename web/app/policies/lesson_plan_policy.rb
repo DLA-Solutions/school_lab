@@ -10,6 +10,14 @@ class LessonPlanPolicy < ApplicationPolicy
     teacher_membership? || staff_with?(:manage_academic)
   end
 
+  # UC-LP04 / AC-LP07: exposed publicly (unlike `staff_with?`) so the controller can decide
+  # whether the `teacher_id` list filter should apply at all. A teacher-role request's
+  # `policy_scope` already excludes every other teacher's plans, so that filter must have no
+  # effect for them -- not narrow their own list to zero when it names someone else.
+  def manage_academic_staff?
+    staff_with?(:manage_academic)
+  end
+
   def show?
     staff_scoped?
   end

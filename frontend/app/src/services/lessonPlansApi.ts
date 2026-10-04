@@ -24,6 +24,12 @@ export interface ListLessonPlansParams {
   page?: number;
   school_class_id?: number;
   subject_id?: number;
+  /**
+   * UC-LP04/AC-LP07 — only narrows the listing for `manage_academic` staff; the API silently
+   * ignores it for a plain teacher caller, whose own `policy_scope` already excludes every other
+   * teacher's plans. No client-side branching needed beyond gating the whole screen.
+   */
+  teacher_id?: number;
   /** Inclusive date range, `YYYY-MM-DD` — UC-LP03 (teacher-scoped) and UC-LP04 (staff-scoped). */
   from?: string;
   to?: string;
@@ -32,11 +38,12 @@ export interface ListLessonPlansParams {
 /** GET .../lesson_plans — scoped by `policy_scope` server-side (own vs. whole school). */
 export const listLessonPlans = (
   schoolId: number,
-  { page = 1, school_class_id, subject_id, from, to }: ListLessonPlansParams = {},
+  { page = 1, school_class_id, subject_id, teacher_id, from, to }: ListLessonPlansParams = {},
 ) => {
   const query = new URLSearchParams({ page: String(page) });
   if (school_class_id !== undefined) query.set('school_class_id', String(school_class_id));
   if (subject_id !== undefined) query.set('subject_id', String(subject_id));
+  if (teacher_id !== undefined) query.set('teacher_id', String(teacher_id));
   if (from) query.set('from', from);
   if (to) query.set('to', to);
 

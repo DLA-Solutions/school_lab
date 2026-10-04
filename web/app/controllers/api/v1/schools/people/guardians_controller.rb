@@ -9,6 +9,7 @@ module Api
             authorize Guardian
 
             guardians = by_activation(policy_scope(Guardian)).search(params[:q]).order(:name)
+            guardians = filter_by_student(guardians)
             pagy, records = pagy(guardians)
 
             render json: {
@@ -124,6 +125,19 @@ module Api
             params.require(:guardian).permit(
               :name, :cpf, :email, :phone, :user_id, *Guardian::ADDRESS_FIELDS
             )
+          end
+
+          # BR-IN11/UC-IN06: the reverse of StudentsController#filter_by_guardian — narrows to the
+          # guardians linked to one student, what the ata's guardian picker needs to pre-fill
+          # before an incident is even saved. Discarded links do not count.
+          def filter_by_student(scope)
+            student_id = params[:student_id]
+            return scope if student_id.blank?
+
+            scope.joins(:student_guardians)
+                 .merge(StudentGuardian.kept)
+                 .where(student_guardians: { student_id: student_id })
+                 .distinct
           end
         end
       end

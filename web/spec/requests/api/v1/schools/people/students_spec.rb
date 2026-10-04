@@ -114,3 +114,30 @@ RSpec.describe "Api::V1::Schools::People::Students", type: :request do
     end
   end
 end
+
+# BR-IN11/UC-IN06 — when staff only knows a parent's name, searching guardians by name and then
+# filtering students by that guardian's id finds the right student without knowing it by name
+# first. No new search endpoint: this combines the two existing filters (GuardiansController's
+# `q`, StudentsController's `guardian_id`).
+RSpec.describe "Guardian-name search narrows the student picker (BR-IN11/UC-IN06)", type: :request do
+  let(:school) { create(:school) }
+  let(:school_admin) { create(:user) }
+  let!(:school_admin_membership) { create(:membership, :school_admin, user: school_admin, school: school) }
+  let(:headers) { auth_headers_for(school_admin) }
+
+  it "resolves a guardian by name, then narrows the student list to that guardian's children" do
+    mother = create(:guardian, school: school, name: "Marcela Silva")
+    pedro = create(:student, school: school, name: "Pedro Silva")
+    create(:student_guardian, school: school, student: pedro, guardian: mother, relationship: "mother")
+    create(:student, school: school, name: "Outro Aluno")
+
+    get "/api/v1/schools/#{school.id}/people/guardians", params: { q: "Marcela" }, headers: headers
+    expect(response.parsed_body["data"].map { |row| row["name"] }).to eq([ "Marcela Silva" ])
+    guardian_id = response.parsed_body["data"].first["id"]
+
+    get "/api/v1/schools/#{school.id}/people/students", params: { guardian_id: guardian_id }, headers: headers
+
+    names = response.parsed_body["data"].map { |row| row["name"] }
+    expect(names).to eq([ "Pedro Silva" ])
+  end
+end

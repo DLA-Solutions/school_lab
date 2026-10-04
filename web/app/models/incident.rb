@@ -22,6 +22,10 @@ class Incident < ApplicationRecord
   belongs_to :coordination_approved_by_membership, class_name: "Membership", optional: true
   belongs_to :director_approved_by_membership, class_name: "Membership", optional: true
 
+  # BR-IN11 — the guardian snapshot recorded on this incident at save time. Distinct from
+  # `student.student_guardians`: that association is live and current; this one is frozen history.
+  has_many :incident_guardians, dependent: :destroy
+
   has_many_attached :attachments
 
   validates :category, inclusion: { in: CATEGORIES }

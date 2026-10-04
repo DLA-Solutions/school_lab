@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_04_022651) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_04_142511) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -585,6 +585,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_022651) do
     t.datetime "updated_at", null: false
     t.index ["position"], name: "index_help_taxonomy_categories_on_position"
     t.index ["slug"], name: "index_help_taxonomy_categories_on_slug", unique: true, where: "(discarded_at IS NULL)"
+  end
+
+  create_table "incident_guardians", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "guardian_id"
+    t.bigint "incident_id", null: false
+    t.string "name", null: false
+    t.string "relationship", null: false
+    t.datetime "updated_at", null: false
+    t.index ["guardian_id"], name: "index_incident_guardians_on_guardian_id"
+    t.index ["incident_id"], name: "index_incident_guardians_on_incident_id"
   end
 
   create_table "incident_types", force: :cascade do |t|
@@ -1885,6 +1896,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_022651) do
   add_foreign_key "guardians", "schools"
   add_foreign_key "guardians", "users"
   add_foreign_key "guardians", "users", column: "discarded_by_id"
+  add_foreign_key "incident_guardians", "guardians", on_delete: :nullify
+  add_foreign_key "incident_guardians", "incidents"
   add_foreign_key "incident_types", "schools"
   add_foreign_key "incidents", "incident_types"
   add_foreign_key "incidents", "memberships", column: "coordination_approved_by_membership_id"

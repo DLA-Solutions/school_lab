@@ -30,6 +30,15 @@ class IncidentPolicy < ApplicationPolicy
     staff_with?(:manage_academic) || teacher_role_member?
   end
 
+  # UC-IN05 / AC-IN07 / BR-IN10: exposed publicly (unlike `staff_with?`) so the controller can
+  # decide whether the `reported_by_membership_id` list filter should apply at all. A
+  # teacher-role request's `policy_scope` already excludes every other staff/teacher's
+  # incidents, so that filter must have no effect for them -- not narrow their own list to zero
+  # when it names someone else.
+  def manage_academic_staff?
+    staff_with?(:manage_academic)
+  end
+
   # BR-IN08 / AC-IN05: only a "coordination" or "director" role template fills an approval slot —
   # `manage_academic` is necessary for most academic staff actions but not sufficient here.
   def approve?

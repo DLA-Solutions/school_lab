@@ -20,6 +20,9 @@ export default {
   lessons: `/${rootPaths.academicsRoot}/aulas`,
   grades: `/${rootPaths.academicsRoot}/notas`,
   lessonPlans: `/${rootPaths.academicsRoot}/plano-de-aula`,
+  // UC-LP04/AC-LP07 — coordination's own screen over every teacher's lesson plans; distinct from
+  // `lessonPlans` above, which stays the teacher calendar / instructional-days admin split.
+  allLessonPlans: `/${rootPaths.academicsRoot}/planos-de-aula-todos`,
   atas: `/${rootPaths.academicsRoot}/atas`,
   dailyRoutine: `/${rootPaths.academicsRoot}/rotina-diaria`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,

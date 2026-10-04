@@ -34,6 +34,7 @@ const Students = lazy(() => import('pages/people/Students'));
 const Collaborators = lazy(() => import('pages/academics/Collaborators'));
 const Grades = lazy(() => import('pages/academics/Grades'));
 const LessonPlans = lazy(() => import('pages/academics/LessonPlans'));
+const AllLessonPlans = lazy(() => import('pages/academics/AllLessonPlans'));
 const Atas = lazy(() => import('pages/academics/Atas'));
 const DailyRoutine = lazy(() => import('pages/academics/DailyRoutine'));
 const Lessons = lazy(() => import('pages/academics/Lessons'));
@@ -115,6 +116,10 @@ const router = createBrowserRouter(
             {
               path: paths.lessonPlans,
               element: <LessonPlans />,
+            },
+            {
+              path: paths.allLessonPlans,
+              element: <AllLessonPlans />,
             },
             {
               path: paths.atas,

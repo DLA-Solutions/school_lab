@@ -19,8 +19,10 @@ module Api
           def index
             authorize LessonPlan
 
-            plans = policy_scope(LessonPlan).includes(class_discipline: %i[school_class subject]).order(:date)
-            plans = plans.where(class_discipline_id: filtered_class_discipline_ids) if filter_by_class_or_subject?
+            plans = policy_scope(LessonPlan)
+                      .includes(class_discipline: %i[school_class subject teacher])
+                      .order(:date)
+            plans = plans.where(class_discipline_id: filtered_class_discipline_ids) if filter_by_class_discipline?
             plans = plans.where(date: params[:from]..) if params[:from].present?
             plans = plans.where(date: ..params[:to]) if params[:to].present?
 
@@ -32,7 +34,9 @@ module Api
           end
 
           def show
-            lesson_plan = policy_scope(LessonPlan).find(params[:id])
+            lesson_plan = policy_scope(LessonPlan)
+                            .includes(class_discipline: %i[school_class subject teacher])
+                            .find(params[:id])
             authorize lesson_plan
 
             render json: { data: LessonPlanBlueprint.render_as_hash(lesson_plan) }
@@ -100,14 +104,23 @@ module Api
             )
           end
 
-          def filter_by_class_or_subject?
-            params[:school_class_id].present? || params[:subject_id].present?
+          def filter_by_class_discipline?
+            params[:school_class_id].present? || params[:subject_id].present? || teacher_id_filter?
+          end
+
+          # UC-LP04 / AC-LP07: `teacher_id` only narrows for manage_academic staff. A teacher-role
+          # request's `policy_scope` already excludes every other teacher's plans, so honoring the
+          # param for them would wrongly narrow their own list to zero when it names someone else,
+          # instead of the "no effect" AC-LP07's third bullet requires.
+          def teacher_id_filter?
+            params[:teacher_id].present? && policy(LessonPlan).manage_academic_staff?
           end
 
           def filtered_class_discipline_ids
             scope = ClassDiscipline.kept.where(school_id: Current.school.id)
             scope = scope.where(school_class_id: params[:school_class_id]) if params[:school_class_id].present?
             scope = scope.where(subject_id: params[:subject_id]) if params[:subject_id].present?
+            scope = scope.where(teacher_id: params[:teacher_id]) if teacher_id_filter?
             scope.select(:id)
           end
         end

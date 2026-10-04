@@ -31,6 +31,13 @@ export interface LessonPlan {
   school_class_id: number;
   subject_id: number;
   class_discipline_id: number;
+  /** Denormalized by the blueprint for the coordination list (UC-LP04) — null when the
+   *  `class_discipline` has no assigned teacher. */
+  teacher_id: number | null;
+  teacher_name: string | null;
+  /** Denormalized alongside `teacher_name` so the admin table renders without N+1 lookups. */
+  subject_name: string;
+  school_class_name: string;
   date: string;
   duration: string | null;
   unit_stage: string | null;
