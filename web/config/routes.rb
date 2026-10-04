@@ -229,10 +229,31 @@ Rails.application.routes.draw do
                 get :pdf
               end
             end
+
+            # Upsert is identified by student and date in the body. Registered before the
+            # member routes so a bare PUT is the collection write.
+            put "daily_routines", to: "daily_routines#upsert"
+            resources :daily_routines, only: %i[index show] do
+              collection do
+                post :apply_meals
+              end
+              # `deliver` rather than `send`: defining `send` on a controller overrides
+              # Kernel#send and breaks action dispatch.
+              member do
+                post :send, action: :deliver
+              end
+            end
           end
 
           namespace :communication do
             resources :conversations, only: :index
+            # A nested `resources` would name this segment :conversation_student_id. The
+            # contract path key is the student id, and the thread row may not exist yet.
+            scope "conversations/:student_id" do
+              resources :messages, only: %i[index create]
+            end
+            resources :attachments, only: %i[create show]
+            resources :class_notices, only: :create
           end
 
           resources :school_years, only: %i[index show create update destroy] do
@@ -366,6 +387,12 @@ Rails.application.routes.draw do
             resources :preceptorship_reports, only: %i[index show] do
               get :pdf, on: :member
             end
+            resources :conversations, only: :index
+            scope "conversations/:student_id" do
+              resources :messages, only: %i[index create]
+            end
+            resources :attachments, only: %i[create show]
+            resources :daily_routines, only: %i[index show]
             resources :report_cards, only: %i[index show] do
               member do
                 get "snapshots/:snapshot_id", action: :snapshot

@@ -3,9 +3,9 @@
 module Api
   module V1
     module Schools
-      module Communication
-        # Children the teacher currently teaches. A thread row is optional: the first send
-        # creates it, and this list does not.
+      module Me
+        # Linked children, for the family. Same shape as the teacher's list: a child with no
+        # thread yet is still a row, and opening the list does not create one.
         class ConversationsController < BaseController
           def index
             return render_not_found unless policy(Conversation).index?
@@ -25,11 +25,8 @@ module Api
           private
 
           def visible_students
-            teacher = Current.school.teachers.kept.find_by(email: Current.user.email)
-            return Student.none if teacher.blank?
-
-            class_ids = teacher.teaching_assignments.kept.select(:school_class_id)
-            Current.school.students.kept.where(status: "active", school_class_id: class_ids)
+            linked_ids = Current.guardian.student_guardians.kept.select(:student_id)
+            Current.school.students.kept.where(id: linked_ids, status: "active")
           end
 
           def conversations_for(students)
