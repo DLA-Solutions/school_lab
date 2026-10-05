@@ -39,8 +39,9 @@ const NOTES_AUTOSAVE_DELAY = 600;
  *
  * Every icon tap or notes edit is its own immediate upsert (UC-DR02, BR-DR04) — there is no "save
  * draft" button, matching the API: each call leaves `status` as `draft` unless the row is already
- * `sent`. A dedicated "Enviar" per row (UC-DR03) is the only action that notifies guardians, and
- * is intentionally still clickable once already `sent` — the API is idempotent (BR-DR04/AC-DR04).
+ * `sent`. A dedicated "Enviar" per row (UC-DR03) is the only action that notifies guardians. Once
+ * an entry is `sent`, this surface renders its notes field and send/resend control disabled
+ * (BR-DR10/AC-DR08) — the API itself stays idempotent and unchanged for other clients (BR-DR04).
  *
  * Class listing mirrors `LessonPlanCalendar`/`Grades`: `mine: isTeacher` narrows to the teacher's
  * own assigned classes (BR-DR07); staff see every class in the school.
@@ -196,6 +197,52 @@ const DailyRoutine = () => {
     [schoolId, t],
   );
 
+  // One click replays the same per-student upsert used by a single icon tap, across the whole
+  // roster (BR-DR04) — no new semantic, just a convenience loop. Kept sequential-looking via
+  // Promise.allSettled rather than three independently-triggerable runs, since three concurrent
+  // bulk passes over the same rows would race on `savingIds`/`roster` state.
+  const [bulkField, setBulkField] = useState<'snack' | 'poop' | 'pee' | null>(null);
+
+  const handleBulkMark = useCallback(
+    async (field: 'snack' | 'poop' | 'pee') => {
+      setBulkField(field);
+      try {
+        await Promise.allSettled(
+          roster.map((row) => {
+            const entry = row.daily_routine_entry;
+            if (field === 'snack') {
+              return handleUpsert(row.student_id, { snack_eaten: true });
+            }
+            if (field === 'poop') {
+              return handleUpsert(row.student_id, { poop_count: (entry?.poop_count ?? 0) + 1 });
+            }
+            return handleUpsert(row.student_id, { pee_count: (entry?.pee_count ?? 0) + 1 });
+          }),
+        );
+      } finally {
+        setBulkField(null);
+      }
+    },
+    [roster, handleUpsert],
+  );
+
+  // Separate from `bulkField` (mark-all touches fields, this touches send) so the two can be
+  // cross-disabled against each other below — both loop over the same rows via Promise.allSettled.
+  const [sendingAll, setSendingAll] = useState(false);
+
+  const handleSendAll = useCallback(async () => {
+    setSendingAll(true);
+    try {
+      await Promise.allSettled(
+        roster
+          .filter((row) => row.daily_routine_entry?.status === 'draft')
+          .map((row) => handleSend(row)),
+      );
+    } finally {
+      setSendingAll(false);
+    }
+  }, [roster, handleSend]);
+
   const setFilter = (key: string, value: string) => {
     setSearchParams(
       (current) => {
@@ -284,6 +331,73 @@ const DailyRoutine = () => {
           />
         ) : (
           <Box px={2} py={2.5} sx={{ width: 1, overflowX: 'auto' }}>
+            <Stack direction="row" gap={1} flexWrap="wrap" mb={2}>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={bulkField !== null || sendingAll || roster.length === 0}
+                onClick={() => handleBulkMark('snack')}
+                startIcon={
+                  bulkField === 'snack' ? (
+                    <CircularProgress size={14} />
+                  ) : (
+                    <IconifyIcon icon="mingcute:cookie-fill" width={16} height={16} />
+                  )
+                }
+              >
+                {t('dailyRoutine.bulk.snack')}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={bulkField !== null || sendingAll || roster.length === 0}
+                onClick={() => handleBulkMark('poop')}
+                startIcon={
+                  bulkField === 'poop' ? (
+                    <CircularProgress size={14} />
+                  ) : (
+                    <IconifyIcon icon="mingcute:toilet-paper-fill" width={16} height={16} />
+                  )
+                }
+              >
+                {t('dailyRoutine.bulk.poop')}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={bulkField !== null || sendingAll || roster.length === 0}
+                onClick={() => handleBulkMark('pee')}
+                startIcon={
+                  bulkField === 'pee' ? (
+                    <CircularProgress size={14} />
+                  ) : (
+                    <IconifyIcon icon="mingcute:drop-fill" width={16} height={16} />
+                  )
+                }
+              >
+                {t('dailyRoutine.bulk.pee')}
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                disabled={
+                  bulkField !== null ||
+                  sendingAll ||
+                  !roster.some((row) => row.daily_routine_entry?.status === 'draft')
+                }
+                onClick={handleSendAll}
+                startIcon={
+                  sendingAll ? (
+                    <CircularProgress size={14} />
+                  ) : (
+                    <IconifyIcon icon="mingcute:send-plane-line" width={16} height={16} />
+                  )
+                }
+              >
+                {t('dailyRoutine.bulk.sendAll')}
+              </Button>
+            </Stack>
             <Table size="small" sx={{ width: 'auto' }}>
               <TableHead>
                 <TableRow>
@@ -428,7 +542,7 @@ const DailyRoutine = () => {
                                 [row.student_id]: e.target.value,
                               }))
                             }
-                            disabled={busy}
+                            disabled={busy || sent}
                           />
                         </TableCell>
 
@@ -449,7 +563,7 @@ const DailyRoutine = () => {
                           <Tooltip
                             title={
                               sent
-                                ? t('dailyRoutine.resendAria', { student: row.student_name })
+                                ? t('dailyRoutine.sentLockedAria', { student: row.student_name })
                                 : t('dailyRoutine.sendAria', { student: row.student_name })
                             }
                           >
@@ -458,7 +572,7 @@ const DailyRoutine = () => {
                                 size="small"
                                 variant={sent ? 'text' : 'outlined'}
                                 color={sent ? 'success' : 'primary'}
-                                disabled={!entry || sendBusy}
+                                disabled={!entry || sendBusy || sent}
                                 onClick={() => handleSend(row)}
                                 startIcon={
                                   sendBusy ? (
