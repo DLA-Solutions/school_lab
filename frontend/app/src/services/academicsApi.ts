@@ -12,7 +12,7 @@ import {
   TeacherPayload,
   TeachingAssignment,
 } from 'types/academics';
-import { request } from './api';
+import { request, requestBlob } from './api';
 
 const base = (schoolId: number) => `/api/v1/schools/${schoolId}/academics`;
 
@@ -206,6 +206,15 @@ export const updateTeacher = async (
 
 export const deleteTeacher = (schoolId: number, id: number) =>
   request<null>(`${base(schoolId)}/teachers/${id}`, { method: 'DELETE' });
+
+/**
+ * GET .../academics/teachers_dossier — one PDF with a section per collaborator of the school,
+ * active and discarded alike. Unlike the roster listing, this one endpoint deliberately includes
+ * desligados: the dossier is the school's full record, not the working roster. No query params —
+ * there is no column picker or search filter, by product decision.
+ */
+export const fetchTeachersDossierPdf = (schoolId: number) =>
+  requestBlob(`${base(schoolId)}/teachers_dossier`);
 
 /**
  * Attaches a teacher to one subject of one class, and returns the teacher with every assignment
