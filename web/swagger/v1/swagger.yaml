@@ -6191,6 +6191,50 @@
         ]
       }
     },
+    "/api/v1/schools/{school_id}/academics/teachers_dossier": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "The full collaborator roster as a PDF, for manage_people staff",
+        "tags": [
+          "Teachers",
+          "Academic"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "200": {
+            "description": "includes every collaborator in the school, active and discarded alike"
+          },
+          "403": {
+            "description": "staff without manage_people"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/academics/teaching_assignments": {
       "get": {
         "summary": "List teaching assignments",
