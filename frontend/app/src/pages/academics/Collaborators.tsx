@@ -1,6 +1,7 @@
 import { ChangeEvent, useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -26,9 +27,10 @@ import {
 import { useTranslation } from 'providers/I18nContext';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
-import { deleteTeacher, listTeachers } from 'services/academicsApi';
+import { deleteTeacher, fetchTeachersDossierPdf, listTeachers } from 'services/academicsApi';
 import { COLLABORATOR_DOCUMENT_TYPES } from 'services/documentsApi';
 import { Teacher } from 'types/academics';
+import { downloadBlob } from 'utils/downloadBlob';
 import { formatCpf } from 'utils/documentNumber';
 import { membershipHasPermission } from 'utils/onboarding/access';
 import { useDebouncedValue } from 'utils/useDebouncedValue';
@@ -65,6 +67,7 @@ const Collaborators = () => {
   const [healthProfileFor, setHealthProfileFor] = useState<Teacher | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Teacher | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -130,6 +133,27 @@ const Collaborators = () => {
       setPendingDelete(null);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  // Always every collaborator of the school, active and discarded alike — there is no column
+  // picker or filter to carry over from the roster: the dossier is a fixed, one-click export.
+  const handleExportPdf = async () => {
+    if (!schoolId) {
+      return;
+    }
+
+    setExportingPdf(true);
+    setError('');
+
+    try {
+      const blob = await fetchTeachersDossierPdf(schoolId);
+      const schoolSlug = (school?.school_name ?? String(schoolId)).toLowerCase().replace(/\s+/g, '-');
+      downloadBlob(blob, `colaboradores-${schoolSlug}-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('collaborators.exportPdfError'));
+    } finally {
+      setExportingPdf(false);
     }
   };
 
@@ -272,6 +296,26 @@ const Collaborators = () => {
             >
               {t('collaborators.new')}
             </Button>
+            {/* Same `manage_people` gate the dossier endpoint itself enforces — the button never
+                renders for staff who would only get a 403 from it. */}
+            {canViewHealthProfile && (
+              <Button
+                variant="outlined"
+                size="small"
+                aria-label={t('collaborators.exportPdfAria')}
+                startIcon={
+                  exportingPdf ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <IconifyIcon icon="mingcute:file-export-line" />
+                  )
+                }
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+              >
+                {t('collaborators.exportPdf')}
+              </Button>
+            )}
           </>
         }
       />
