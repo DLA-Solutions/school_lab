@@ -39,8 +39,9 @@ const NOTES_AUTOSAVE_DELAY = 600;
  *
  * Every icon tap or notes edit is its own immediate upsert (UC-DR02, BR-DR04) — there is no "save
  * draft" button, matching the API: each call leaves `status` as `draft` unless the row is already
- * `sent`. A dedicated "Enviar" per row (UC-DR03) is the only action that notifies guardians, and
- * is intentionally still clickable once already `sent` — the API is idempotent (BR-DR04/AC-DR04).
+ * `sent`. A dedicated "Enviar" per row (UC-DR03) is the only action that notifies guardians. Once
+ * an entry is `sent`, this surface renders its notes field and send/resend control disabled
+ * (BR-DR10/AC-DR08) — the API itself stays idempotent and unchanged for other clients (BR-DR04).
  *
  * Class listing mirrors `LessonPlanCalendar`/`Grades`: `mine: isTeacher` narrows to the teacher's
  * own assigned classes (BR-DR07); staff see every class in the school.
@@ -541,7 +542,7 @@ const DailyRoutine = () => {
                                 [row.student_id]: e.target.value,
                               }))
                             }
-                            disabled={busy}
+                            disabled={busy || sent}
                           />
                         </TableCell>
 
@@ -562,7 +563,7 @@ const DailyRoutine = () => {
                           <Tooltip
                             title={
                               sent
-                                ? t('dailyRoutine.resendAria', { student: row.student_name })
+                                ? t('dailyRoutine.sentLockedAria', { student: row.student_name })
                                 : t('dailyRoutine.sendAria', { student: row.student_name })
                             }
                           >
@@ -571,7 +572,7 @@ const DailyRoutine = () => {
                                 size="small"
                                 variant={sent ? 'text' : 'outlined'}
                                 color={sent ? 'success' : 'primary'}
-                                disabled={!entry || sendBusy}
+                                disabled={!entry || sendBusy || sent}
                                 onClick={() => handleSend(row)}
                                 startIcon={
                                   sendBusy ? (

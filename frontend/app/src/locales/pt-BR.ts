@@ -1403,7 +1403,7 @@ const ptBR = {
   'dailyRoutine.notesAria': 'Observações de {student}',
   'dailyRoutine.status.draft': 'Rascunho',
   'dailyRoutine.status.sent': 'Enviado',
-  'dailyRoutine.resendAria': 'Reenviar para o responsável de {student}',
+  'dailyRoutine.sentLockedAria': 'Já enviado ao responsável de {student} — bloqueado para edição',
   'dailyRoutine.sendAria': 'Enviar para o responsável de {student}',
   'dailyRoutine.send': 'Enviar',
   'dailyRoutine.sent': 'Enviado',

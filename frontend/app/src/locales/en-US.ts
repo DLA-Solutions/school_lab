@@ -1386,7 +1386,7 @@ const enUS: Messages = {
   'dailyRoutine.notesAria': 'Notes for {student}',
   'dailyRoutine.status.draft': 'Draft',
   'dailyRoutine.status.sent': 'Sent',
-  'dailyRoutine.resendAria': "Resend to {student}'s guardian",
+  'dailyRoutine.sentLockedAria': "Already sent to {student}'s guardian — locked from editing",
   'dailyRoutine.sendAria': "Send to {student}'s guardian",
   'dailyRoutine.send': 'Send',
   'dailyRoutine.sent': 'Sent',
