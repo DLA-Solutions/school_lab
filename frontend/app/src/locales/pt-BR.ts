@@ -1192,6 +1192,9 @@ const ptBR = {
   'collaborators.bankAccountAria': 'Dados bancários de {name}',
   'collaborators.healthProfile': 'Ver ficha de saúde',
   'collaborators.healthProfileAria': 'Ver ficha de saúde de {name}',
+  'collaborators.exportPdf': 'Exportar PDF',
+  'collaborators.exportPdfAria': 'Exportar PDF de todos os colaboradores',
+  'collaborators.exportPdfError': 'Não foi possível gerar o PDF dos colaboradores.',
 
   'bankAccount.title': 'Dados bancários',
   'bankAccount.description':
