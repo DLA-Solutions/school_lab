@@ -44,18 +44,37 @@ const ConversationRow = ({
         justifyContent: 'space-between',
         gap: 1,
         textAlign: 'left',
-        border: 0,
         cursor: 'pointer',
         px: 1.5,
         py: 1.25,
         borderRadius: 1,
-        bgcolor: selected ? 'surface.alt' : 'transparent',
+        // The native button face stays light under a transparent background, so dark-scheme
+        // `text.primary` disappears on it. `appearance: none` removes that face; the row then
+        // paints its own surface. Selected uses `background.default` and a `primary.main`
+        // border: `surface.alt` sits next to paper in dark, and this theme's `action.selected`
+        // is the same light scrim in both schemes.
+        appearance: 'none',
+        WebkitAppearance: 'none',
+        border: 1,
+        borderColor: selected ? 'primary.main' : 'divider',
+        bgcolor: selected ? 'background.default' : 'background.paper',
         color: 'text.primary',
         font: 'inherit',
+        '&:hover': {
+          borderColor: selected ? 'primary.main' : 'text.secondary',
+          bgcolor: selected ? 'background.default' : 'surface.alt',
+        },
+        '&:focus-visible': {
+          outline: '2px solid',
+          outlineColor: 'primary.main',
+          outlineOffset: 2,
+        },
       }}
     >
       <Box sx={{ minWidth: 0 }}>
-        <Typography variant="body2">{label}</Typography>
+        <Typography variant="body2" color="text.primary">
+          {label}
+        </Typography>
         {detail ? (
           <Typography variant="caption" color="text.secondary" display="block">
             {detail}
