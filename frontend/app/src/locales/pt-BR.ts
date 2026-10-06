@@ -291,10 +291,6 @@ const ptBR = {
   'lessonPlans.admin.pendingChanges': '{count} dia(s) alterado(s) ainda não salvos.',
   'lessonPlans.admin.readOnlyHint':
     'Você pode ver os dias letivos, mas apenas quem administra as configurações da escola pode alterá-los.',
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.allLessonPlans': 'Planos de Aula — Todos',
   'allLessonPlans.noAccess.description':
     'Você não tem acesso aos planos de aula de todos os professores — esta tela é da coordenação.',
@@ -309,8 +305,6 @@ const ptBR = {
   'allLessonPlans.empty.description':
     'Nenhum professor enviou um plano de aula com esses filtros ainda.',
   'allLessonPlans.previewAria': 'Pré-visualizar plano de aula de {subject}',
-<<<<<<< HEAD
-=======
 
   'nav.dailyRoutine': 'Rotina Infantil',
   'dailyRoutine.loadError': 'Não foi possível carregar a rotina do dia.',
@@ -341,9 +335,6 @@ const ptBR = {
   'dailyRoutine.status.draft': 'Rascunho',
   'dailyRoutine.status.sent': 'Enviado',
 
->>>>>>> origin/main
-=======
->>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.grades': 'Notas',
   'grades.loadError': 'Não foi possível carregar as notas.',
   'grades.optionsLoadError': 'Não foi possível carregar as turmas e matérias.',
@@ -1450,6 +1441,46 @@ const ptBR = {
   'dailyRoutine.bulk.poop': 'Marcar todos: cocô',
   'dailyRoutine.bulk.pee': 'Marcar todos: xixi',
   'dailyRoutine.bulk.sendAll': 'Enviar tudo',
+
+  'nav.communication': 'Comunicação',
+  'communication.title': 'Comunicação',
+  'communication.child': 'Filho',
+  'communication.class': 'Turma',
+  'communication.audience.coordination': 'Coordenação',
+  'communication.audience.secretary': 'Secretaria',
+  'communication.scope.forMe': 'Para mim',
+  'communication.scope.all': 'Todas',
+  'communication.send': 'Enviar',
+  'communication.placeholder': 'Escreva uma mensagem',
+  'communication.back': 'Voltar',
+  'communication.unread': 'Não lida',
+  'communication.loadError': 'Não foi possível carregar as conversas.',
+  'communication.sendError': 'Não foi possível enviar a mensagem.',
+  'communication.noAccess.description': 'Você não tem acesso às mensagens desta escola.',
+  'communication.destination': 'Destino',
+  'communication.audience.teacher': 'Professor',
+  'communication.inbox.heading': 'Conversas',
+  'communication.start.heading': 'Nova conversa',
+  'communication.thread.withDestination': 'Falando com {who} sobre {child}',
+  'communication.thread.asChannel': 'Falando como {channel} com {child}',
+  'communication.thread.pickDestination': 'Escolha o destino para falar com {child}',
+  'communication.sendDisabled.destination': 'Escolha um destino para enviar.',
+  'communication.empty.select.title': 'Escolha uma conversa',
+  'communication.empty.select.description': 'A conversa abre ao lado.',
+  'communication.empty.selectStudent.title': 'Escolha um aluno',
+  'communication.empty.selectStudent.description': 'A conversa abre ao lado.',
+  'communication.empty.thread.title': 'Nenhuma mensagem ainda',
+  'communication.empty.thread.description': 'Envie a primeira mensagem.',
+  'communication.empty.inbox.title': 'Nenhuma conversa',
+  'communication.empty.inbox.description':
+    'As conversas já iniciadas aparecem aqui. Comece uma nova por um destino.',
+  'communication.empty.roster.title': 'Nenhum aluno',
+  'communication.empty.roster.description': 'Esta turma não tem alunos.',
+  'communication.empty.staffInbox.description':
+    'As conversas já iniciadas aparecem aqui. Comece uma nova pela turma.',
+  'communication.empty.children.title': 'Nenhum filho vinculado',
+  'communication.empty.children.description':
+    'As conversas aparecem quando há um filho na sua família.',
 
   'error404.title': 'Página não encontrada',
   'error404.description': 'A página que você está buscando não existe ou foi movida.',

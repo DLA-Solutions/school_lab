@@ -1172,35 +1172,23 @@ Table enrollment_imports {
 
 // --- Communication (006) ---
 
+// Family chat (messages.md this delivery). Who can see a row is derived from role,
+// the guardian link, and the current teaching assignment. No participant table.
+// No Discard: a sent message is not edited or deleted.
 Table conversations {
   id integer [primary key, increment]
   school_id integer [not null]
-  conversation_type varchar [not null, note: 'direct | class | group']
-  subject_type varchar [note: 'Polymorphic — Class, Student, etc.']
-  subject_id integer
+  student_id integer [not null]
+  audience varchar [not null, note: 'coordination | secretary | teacher']
+  teacher_id integer [note: 'Required when audience = teacher; null otherwise. Check: (audience = teacher) = (teacher_id IS NOT NULL)']
   last_message_at timestamp
-  discarded_at timestamp
   created_at timestamp
   updated_at timestamp
 
   indexes {
+    (school_id, student_id, audience) [unique, note: 'DB migration: UNIQUE WHERE teacher_id IS NULL — one coordination row and one secretary row per child']
+    (school_id, student_id, teacher_id) [unique, note: 'DB migration: UNIQUE WHERE audience = teacher — one row per teacher per child']
     (school_id, last_message_at)
-  }
-}
-
-Table conversation_participants {
-  id integer [primary key, increment]
-  conversation_id integer [not null]
-  school_id integer [not null]
-  participant_type varchar [not null, note: 'Membership | Guardian']
-  participant_id integer [not null]
-  last_read_at timestamp
-  discarded_at timestamp
-  created_at timestamp
-  updated_at timestamp
-
-  indexes {
-    (conversation_id, participant_type, participant_id) [unique, note: 'WHERE discarded_at IS NULL']
   }
 }
 
@@ -1208,17 +1196,35 @@ Table messages {
   id integer [primary key, increment]
   conversation_id integer [not null]
   school_id integer [not null]
-  sender_membership_id integer [note: 'Nullable for system messages']
-  body text [not null, note: 'LGPD: message content']
+  sender_membership_id integer [not null]
+  body text [not null, note: 'LGPD: communication about a child. Immutable. No edited_at, no discard.']
   sent_at timestamp [not null]
-  edited_at timestamp
-  scheduled_for timestamp
-  discarded_at timestamp
   created_at timestamp
   updated_at timestamp
 
   indexes {
     (conversation_id, sent_at)
+  }
+}
+
+// In-app bell. Already in web/db/schema.rb for billing and other kinds.
+// This delivery adds nullable conversation_id. Billing rows leave it null.
+Table notifications {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  user_id integer [not null]
+  kind varchar [not null, note: 'message for this delivery; existing kinds such as contract_signed stay']
+  title varchar [not null]
+  body text
+  read_at timestamp
+  contract_id integer [note: 'Optional. Billing bell. Null for message bells.']
+  conversation_id integer [note: 'Optional. Set when kind = message so the bell opens that chat.']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (user_id, created_at)
+    (user_id, read_at)
   }
 }
 
@@ -1922,11 +1928,15 @@ Ref: enrollment_imports.school_id > schools.id
 Ref: enrollment_imports.uploaded_by_id > users.id
 
 Ref: conversations.school_id > schools.id
-Ref: conversation_participants.conversation_id > conversations.id
-Ref: conversation_participants.school_id > schools.id
+Ref: conversations.student_id > students.id
+Ref: conversations.teacher_id > teachers.id
 Ref: messages.conversation_id > conversations.id
 Ref: messages.school_id > schools.id
 Ref: messages.sender_membership_id > memberships.id
+Ref: notifications.school_id > schools.id
+Ref: notifications.user_id > users.id
+Ref: notifications.contract_id > contracts.id
+Ref: notifications.conversation_id > conversations.id
 Ref: announcements.school_id > schools.id
 Ref: announcements.author_membership_id > memberships.id
 Ref: notification_policies.school_id > schools.id

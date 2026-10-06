@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -13,7 +14,10 @@ import Typography from '@mui/material/Typography';
 import { listClasses } from '@mui/material';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { useTranslation } from 'providers/I18nContext';
+import { useActiveMembership } from 'providers/ActiveMembershipContext';
 import { AppNotification } from 'types/notification';
+import { membershipAudience } from 'utils/membership/audience';
+import paths from 'routes/paths';
 import {
   listNotifications,
   markAllNotificationsRead,
@@ -27,6 +31,8 @@ const POLL_INTERVAL_MS = 60_000;
 
 const NotificationsMenu = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const membership = useActiveMembership();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -73,6 +79,14 @@ const NotificationsMenu = () => {
       setUnreadCount((count) => Math.max(0, count - 1));
     }
     handleClose();
+
+    if (notification.kind === 'message' && notification.conversation_id != null && membership) {
+      const path =
+        membershipAudience(membership) === 'guardian'
+          ? paths.communication
+          : paths.staffCommunication;
+      navigate(`${path}?conversation_id=${notification.conversation_id}`);
+    }
   };
 
   const handleMarkAllAsRead = async () => {

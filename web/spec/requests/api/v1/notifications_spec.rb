@@ -30,6 +30,7 @@ RSpec.describe "Api::V1::Notifications", type: :request do
 
           expect(ids).to eq([ newer.id, older.id ])
           expect(body.dig("meta", "unread_count")).to eq(2)
+          expect(body.fetch("data")).to all(include("conversation_id" => nil, "contract_id" => nil))
         end
       end
 

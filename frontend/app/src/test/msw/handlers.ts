@@ -1010,12 +1010,48 @@ export const handlers = [
         read: true,
         school_id: SCHOOL_ID,
         contract_id: null,
+        conversation_id: null,
       },
     });
   }),
 
   http.post(apiUrl('/api/v1/notifications/mark_all_as_read'), () =>
     HttpResponse.json({ data: { unread_count: 0 } }),
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/destinations'), () =>
+    HttpResponse.json({ data: [] }),
+  ),
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations/:id/messages'), () =>
+    HttpResponse.json({ data: [] }),
+  ),
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/roster'), () =>
+    HttpResponse.json({ data: [] }),
+  ),
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations'), ({ request }) => {
+    const page = Number(new URL(request.url).searchParams.get('page') ?? 1);
+
+    return HttpResponse.json({
+      data: [],
+      meta: { page, per_page: 25, total: 0 },
+    });
+  }),
+  http.post(apiUrl('/api/v1/schools/:schoolId/communication/messages'), () =>
+    HttpResponse.json(
+      {
+        data: {
+          conversation_id: 1,
+          message: {
+            id: 1,
+            sender_membership_id: 1,
+            sender_line: '',
+            body: '',
+            sent_at: '2026-10-06T12:00:00Z',
+          },
+        },
+      },
+      { status: 201 },
+    ),
   ),
 
   http.get(apiUrl('/api/v1/schools'), ({ request }) => {
