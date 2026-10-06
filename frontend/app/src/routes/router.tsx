@@ -61,6 +61,7 @@ const MyTaxDeclarations = lazy(() => import('pages/billing/MyTaxDeclarations'));
 const MyCharges = lazy(() => import('pages/billing/MyCharges'));
 const MyHealthRecords = lazy(() => import('pages/people/MyHealthRecords'));
 const MyAuthorizedPickups = lazy(() => import('pages/people/MyAuthorizedPickups'));
+const MyAtas = lazy(() => import('pages/academics/MyAtas'));
 
 const router = createBrowserRouter(
   [
@@ -237,6 +238,10 @@ const router = createBrowserRouter(
             {
               path: paths.myPickups,
               element: <MyAuthorizedPickups />,
+            },
+            {
+              path: paths.myAtas,
+              element: <MyAtas />,
             },
           ],
         },

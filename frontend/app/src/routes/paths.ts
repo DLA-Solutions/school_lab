@@ -24,6 +24,9 @@ export default {
   // `lessonPlans` above, which stays the teacher calendar / instructional-days admin split.
   allLessonPlans: `/${rootPaths.academicsRoot}/planos-de-aula-todos`,
   atas: `/${rootPaths.academicsRoot}/atas`,
+  // The guardian's own side of the same record (BC7) — a family reading published atas across
+  // all their children, same split as preceptorship/myPreceptorship below.
+  myAtas: '/minhas-atas',
   dailyRoutine: `/${rootPaths.academicsRoot}/rotina-diaria`,
   staffCommunication: `/${rootPaths.academicsRoot}/comunicacao`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,

@@ -100,6 +100,16 @@ const sitemap: MenuItem[] = [
     section: 'family',
   },
   {
+    // The guardian's own side of "Ata" (BC7) — published incidents across all of this family's
+    // children, merged into one list rather than one page per child.
+    id: 'my-atas',
+    subheader: 'nav.myAtas',
+    path: paths.myAtas,
+    icon: 'mingcute:file-line',
+    audience: 'guardian',
+    section: 'family',
+  },
+  {
     id: 'students',
     subheader: 'nav.students',
     path: paths.students,

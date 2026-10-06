@@ -143,6 +143,17 @@ roster are implicitly infantil-relevant because they only ever show the teacher'
 classes. If a hard restriction becomes necessary, gate on
 `school_class.grade_level.start_with?("infantil")` `[product decision]`.
 
+BR-DR10 *(web SPA — immutability after send)*
+
+In the teacher-facing web SPA roster (UC-DR01/UC-DR02), once an entry's `status` is `sent`, the
+`notes` ("Observações") field and the send/resend control are rendered disabled — the teacher
+cannot edit Observações or trigger `send` again from that surface. This supersedes the earlier
+assumption in BR-DR04/BR-DR05 that post-send edits were allowed through the UI: they are not.
+This is a **client-side UI rule only** — the underlying API endpoints (`PUT
+.../daily_routine_entries`, `POST .../send`) are unchanged and remain idempotent per BR-DR04 (e.g.
+for other clients or support tooling) `[product decision, 2026-10-05, LUI-5]`. See Open items on
+whether a future "unlock to correct" staff action should be added.
+
 ---
 
 ## Use Cases
@@ -307,14 +318,22 @@ AC-DR07
       update, or send an entry for that student, Then the API returns `403`.
 - Source: BR-DR07
 
+AC-DR08
+
+- [ ] Given an entry with `status: sent`, When the teacher views it in the web SPA roster, Then the
+      Observações field is disabled (read-only) and the Enviar/Reenviar control is disabled, so no
+      further edit or resend is possible from that surface.
+- Source: BR-DR10
+
 ---
 
 ## Open items / pending decisions
 
 - [ ] Broader phase-2 fields — sleep, health, mood, photos — remain deferred; same open item as
       [`open-questions.md`](../../open-questions.md) § Early childhood education / Daily routine.
-- [ ] Whether editing a `sent` entry should re-notify guardians (currently: no, BR-DR05)
-      `[product decision]` — revisit if teachers need a correct-and-re-notify path.
+- [ ] Whether a future "unlock to correct" action (e.g. by `manage_academic` staff) should allow
+      editing a `sent` entry again from the web SPA, and if so, whether it should re-notify
+      guardians (currently: the web SPA blocks all post-send edits, BR-DR10) `[product decision]`.
 - [ ] Per-event (timestamped) granularity vs. this PRD's daily counts (BR-DR03) — still open for a
       future increment if finer detail is needed.
 - [ ] Segment-level enforcement (BR-DR09) is not built — add a `grade_level` prefix check if a hard

@@ -29,6 +29,7 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   atas: 'academic',
   communication: 'communication',
   'staff-communication': 'communication',
+  'my-atas': 'academic',
 };
 
 /** Maps SPA paths to module keys for deep-link route guards (includes off-menu academic routes). */
@@ -51,6 +52,7 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.atas]: 'academic',
   [paths.communication]: 'communication',
   [paths.staffCommunication]: 'communication',
+  [paths.myAtas]: 'academic',
   [paths.preceptorship]: 'academic',
   [paths.reportCards]: 'academic',
   [paths.requests]: 'documents',
@@ -71,6 +73,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.myCharges]: 'guardian',
   [paths.myRequests]: 'guardian',
   [paths.communication]: 'guardian',
+  [paths.myAtas]: 'guardian',
   [paths.guardians]: 'staff',
   [paths.students]: 'staff',
   [paths.users]: 'staff',

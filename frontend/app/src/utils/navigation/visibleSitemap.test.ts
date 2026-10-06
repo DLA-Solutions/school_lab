@@ -180,6 +180,7 @@ describe('visibleSitemap audience filtering', () => {
       'my-health-records',
       'my-pickups',
       'communication',
+      'my-atas',
       'my-preceptorship',
       'my-report-cards',
       'my-tax-declarations',
@@ -195,6 +196,7 @@ describe('visibleSitemap audience filtering', () => {
     expect(ids).not.toContain('my-tax-declarations');
     expect(ids).not.toContain('my-requests');
     expect(ids).not.toContain('my-charges');
+    expect(ids).not.toContain('my-atas');
   });
 
   it('hides staff searchable sub-pages from guardians', () => {

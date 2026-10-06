@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server, staffMembership } from 'test/msw';
@@ -89,6 +89,23 @@ describe('DailyRoutine page', () => {
                 recorded_by_membership_id: 1,
               },
             },
+            {
+              student_id: 3,
+              student_name: 'Pedro Lima',
+              daily_routine_entry: {
+                id: 51,
+                student_id: 3,
+                date: '2026-02-10',
+                snack_eaten: true,
+                poop_count: 2,
+                pee_count: 1,
+                notes: 'Dormiu bem.',
+                status: 'sent',
+                sent_at: '2026-02-10T12:00:00Z',
+                sent_by_membership_id: 1,
+                recorded_by_membership_id: 1,
+              },
+            },
           ],
         }),
       ),
@@ -141,5 +158,34 @@ describe('DailyRoutine page', () => {
     expect(saved[0]).toMatchObject({
       daily_routine_entry: { student_id: 1, date: '2026-02-10', poop_count: 1 },
     });
+  });
+
+  it('disables notes and the send control for a sent entry, keeps a draft entry editable (AC-DR08, BR-DR10)', async () => {
+    stub();
+    renderPage(teacherMembership, query);
+
+    await screen.findByText('Maria Silva');
+
+    // Sent entry (Pedro Lima): notes field and send/resend control are both disabled.
+    const sentNotes = screen.getByRole('textbox', { name: 'Observações de Pedro Lima' });
+    expect(sentNotes).toBeDisabled();
+
+    const sentRow = screen.getByText('Pedro Lima').closest('tr');
+    expect(sentRow).not.toBeNull();
+    const sentSendButton = within(sentRow as HTMLElement).getByRole('button', {
+      name: 'Enviado',
+    });
+    expect(sentSendButton).toBeDisabled();
+
+    // Draft entry (João Souza): both controls remain enabled — regression check.
+    const draftNotes = screen.getByRole('textbox', { name: 'Observações de João Souza' });
+    expect(draftNotes).not.toBeDisabled();
+
+    const draftRow = screen.getByText('João Souza').closest('tr');
+    expect(draftRow).not.toBeNull();
+    const draftSendButton = within(draftRow as HTMLElement).getByRole('button', {
+      name: 'Enviar',
+    });
+    expect(draftSendButton).not.toBeDisabled();
   });
 });
