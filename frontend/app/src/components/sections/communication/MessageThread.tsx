@@ -7,8 +7,11 @@ import Typography from '@mui/material/Typography';
 import { EmptyState } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { ConversationMessage } from 'types/communication';
+import { formatChatTime } from './formatChatTime';
 
 interface MessageThreadProps {
+  /** Who this thread is with, and which child. Stays visible when the list hides on a phone. */
+  heading?: string | null;
   messages: ConversationMessage[];
   loading: boolean;
   membershipId: number | null;
@@ -16,27 +19,18 @@ interface MessageThreadProps {
   sending: boolean;
   onDraftChange: (value: string) => void;
   onSend: () => void;
+  /** Direction cannot send until a destination is chosen. Defaults to ready. */
+  sendEnabled?: boolean;
+  /** Shown when send is blocked for a reason the person can act on. */
+  sendDisabledReason?: string | null;
 }
 
-const formatSentAt = (sentAt: string, locale: string) => {
-  const date = new Date(sentAt);
-  if (Number.isNaN(date.getTime())) {
-    return sentAt;
-  }
-
-  return date.toLocaleString(locale, {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
-
 /**
- * The open thread: text and time only. The current person's bubbles sit on `background.paper`;
- * the other side sits on the theme's alternate surface.
+ * The open thread. The current person's bubbles sit on `background.paper`; the other side sits
+ * on the theme's alternate surface. Each bubble names whoever spoke (`sender_line`).
  */
 const MessageThread = ({
+  heading,
   messages,
   loading,
   membershipId,
@@ -44,9 +38,12 @@ const MessageThread = ({
   sending,
   onDraftChange,
   onSend,
+  sendEnabled = true,
+  sendDisabledReason = null,
 }: MessageThreadProps) => {
   const { t, locale } = useTranslation();
-  const canSend = draft.trim().length > 0 && !sending;
+  const canSend = sendEnabled && draft.trim().length > 0 && !sending;
+  const showSpinner = loading && messages.length === 0;
 
   return (
     <Box
@@ -59,6 +56,12 @@ const MessageThread = ({
         borderRadius: 1,
       }}
     >
+      {heading ? (
+        <Typography variant="subtitle1" component="h2" sx={{ px: 1.5, pt: 1.5 }}>
+          {heading}
+        </Typography>
+      ) : null}
+
       <Box
         sx={{
           flex: 1,
@@ -69,7 +72,7 @@ const MessageThread = ({
           gap: 1,
         }}
       >
-        {loading ? (
+        {showSpinner ? (
           <Box display="flex" justifyContent="center" py={6}>
             <CircularProgress />
           </Box>
@@ -94,9 +97,14 @@ const MessageThread = ({
                   bgcolor: mine ? 'background.paper' : 'surface.alt',
                 }}
               >
+                {message.sender_line ? (
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    {message.sender_line}
+                  </Typography>
+                ) : null}
                 <Typography variant="body2">{message.body}</Typography>
                 <Typography variant="caption" color="text.secondary" display="block">
-                  {formatSentAt(message.sent_at, locale)}
+                  {formatChatTime(message.sent_at, locale)}
                 </Typography>
               </Box>
             );
@@ -104,25 +112,32 @@ const MessageThread = ({
         )}
       </Box>
 
-      <Stack direction="row" spacing={1} sx={{ p: 1.5 }} alignItems="flex-end">
-        <TextField
-          fullWidth
-          size="small"
-          placeholder={t('communication.placeholder')}
-          value={draft}
-          onChange={(event) => onDraftChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
-              if (canSend) {
-                onSend();
+      <Stack spacing={0.75} sx={{ p: 1.5 }}>
+        {sendDisabledReason ? (
+          <Typography variant="body2" color="text.secondary">
+            {sendDisabledReason}
+          </Typography>
+        ) : null}
+        <Stack direction="row" spacing={1} alignItems="flex-end">
+          <TextField
+            fullWidth
+            size="small"
+            placeholder={t('communication.placeholder')}
+            value={draft}
+            onChange={(event) => onDraftChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                if (canSend) {
+                  onSend();
+                }
               }
-            }
-          }}
-        />
-        <Button variant="contained" onClick={onSend} disabled={!canSend}>
-          {t('communication.send')}
-        </Button>
+            }}
+          />
+          <Button variant="contained" onClick={onSend} disabled={!canSend}>
+            {t('communication.send')}
+          </Button>
+        </Stack>
       </Stack>
     </Box>
   );

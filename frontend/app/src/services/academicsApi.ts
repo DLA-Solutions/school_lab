@@ -104,13 +104,18 @@ export interface ListSchoolClassesParams {
   grade_level?: string;
   shift?: string;
   year?: string;
-  /** Narrows the listing to only the classes the current teacher is assigned to. No-op for staff. */
+  /** Grade book: classes the teacher holds a class discipline for. No-op for staff. */
   mine?: boolean;
+  /**
+   * Family chat: classes the teacher holds a kept teaching assignment for.
+   * Distinct from `mine`. No-op for staff.
+   */
+  assignment?: 'teaching';
 }
 
 export const listSchoolClasses = (
   schoolId: number,
-  { page = 1, q, grade_level, shift, year, mine }: ListSchoolClassesParams = {},
+  { page = 1, q, grade_level, shift, year, mine, assignment }: ListSchoolClassesParams = {},
 ) => {
   const query = new URLSearchParams({ page: String(page) });
   // Only what was actually chosen: an empty parameter would narrow the listing to nothing.
@@ -119,6 +124,7 @@ export const listSchoolClasses = (
   if (shift) query.set('shift', shift);
   if (year) query.set('year', year);
   if (mine) query.set('mine', 'true');
+  if (assignment) query.set('assignment', assignment);
 
   return request<Paginated<SchoolClass>>(`${base(schoolId)}/school_classes?${query}`);
 };

@@ -1025,9 +1025,17 @@ export const handlers = [
   http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations/:id/messages'), () =>
     HttpResponse.json({ data: [] }),
   ),
-  http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations'), () =>
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/roster'), () =>
     HttpResponse.json({ data: [] }),
   ),
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations'), ({ request }) => {
+    const page = Number(new URL(request.url).searchParams.get('page') ?? 1);
+
+    return HttpResponse.json({
+      data: [],
+      meta: { page, per_page: 25, total: 0 },
+    });
+  }),
   http.post(apiUrl('/api/v1/schools/:schoolId/communication/messages'), () =>
     HttpResponse.json(
       {
@@ -1036,6 +1044,7 @@ export const handlers = [
           message: {
             id: 1,
             sender_membership_id: 1,
+            sender_line: '',
             body: '',
             sent_at: '2026-10-06T12:00:00Z',
           },
