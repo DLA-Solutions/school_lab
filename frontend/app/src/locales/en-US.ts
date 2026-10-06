@@ -286,10 +286,6 @@ const enUS: Messages = {
   'lessonPlans.admin.pendingChanges': '{count} day(s) changed and not yet saved.',
   'lessonPlans.admin.readOnlyHint':
     'You can see the instructional days, but only someone who manages the school settings can change them.',
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.allLessonPlans': 'Lesson Plans — All',
   'allLessonPlans.noAccess.description':
     'You do not have access to every teacher’s lesson plans — this screen is for coordination staff.',
@@ -303,8 +299,6 @@ const enUS: Messages = {
   'allLessonPlans.empty.title': 'No lesson plans found',
   'allLessonPlans.empty.description': 'No teacher has sent in a lesson plan matching these filters yet.',
   'allLessonPlans.previewAria': 'Preview lesson plan for {subject}',
-<<<<<<< HEAD
-=======
 
   'nav.dailyRoutine': 'Daily Routine',
   'dailyRoutine.loadError': 'Could not load the day’s routine.',
@@ -335,9 +329,6 @@ const enUS: Messages = {
   'dailyRoutine.status.draft': 'Draft',
   'dailyRoutine.status.sent': 'Sent',
 
->>>>>>> origin/main
-=======
->>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.grades': 'Grades',
   'grades.loadError': 'Could not load the grades.',
   'grades.optionsLoadError': 'Could not load the classes and subjects.',
@@ -1381,6 +1372,31 @@ const enUS: Messages = {
   'atas.form.guardians': 'Guardians to record on the ata',
   'atas.form.noGuardiansFound': 'No guardian linked to this student.',
   'atas.form.saveError': 'Could not save the ata note.',
+
+  'nav.communication': 'Messages',
+  'communication.title': 'Messages',
+  'communication.child': 'Child',
+  'communication.class': 'Class',
+  'communication.audience.coordination': 'Coordination',
+  'communication.audience.secretary': 'Secretary',
+  'communication.scope.forMe': 'For me',
+  'communication.scope.all': 'All',
+  'communication.send': 'Send',
+  'communication.placeholder': 'Write a message',
+  'communication.back': 'Back',
+  'communication.unread': 'Unread',
+  'communication.loadError': 'Could not load the conversations.',
+  'communication.sendError': 'Could not send the message.',
+  'communication.noAccess.description': 'You do not have access to messages at this school.',
+  'communication.empty.select.title': 'Choose a conversation',
+  'communication.empty.select.description': 'The thread opens beside the list.',
+  'communication.empty.thread.title': 'No messages yet',
+  'communication.empty.thread.description': 'Send the first message.',
+  'communication.empty.inbox.title': 'No conversations',
+  'communication.empty.inbox.description': 'When a family writes, the conversation shows up here.',
+  'communication.empty.children.title': 'No linked children',
+  'communication.empty.children.description':
+    'Conversations appear when a child is linked to you.',
 
   'error404.title': 'Page not found',
   'error404.description': 'The page you are looking for does not exist or has been moved.',

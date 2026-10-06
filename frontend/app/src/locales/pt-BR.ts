@@ -290,10 +290,6 @@ const ptBR = {
   'lessonPlans.admin.pendingChanges': '{count} dia(s) alterado(s) ainda não salvos.',
   'lessonPlans.admin.readOnlyHint':
     'Você pode ver os dias letivos, mas apenas quem administra as configurações da escola pode alterá-los.',
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.allLessonPlans': 'Planos de Aula — Todos',
   'allLessonPlans.noAccess.description':
     'Você não tem acesso aos planos de aula de todos os professores — esta tela é da coordenação.',
@@ -308,8 +304,6 @@ const ptBR = {
   'allLessonPlans.empty.description':
     'Nenhum professor enviou um plano de aula com esses filtros ainda.',
   'allLessonPlans.previewAria': 'Pré-visualizar plano de aula de {subject}',
-<<<<<<< HEAD
-=======
 
   'nav.dailyRoutine': 'Rotina Infantil',
   'dailyRoutine.loadError': 'Não foi possível carregar a rotina do dia.',
@@ -340,9 +334,6 @@ const ptBR = {
   'dailyRoutine.status.draft': 'Rascunho',
   'dailyRoutine.status.sent': 'Enviado',
 
->>>>>>> origin/main
-=======
->>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
   'nav.grades': 'Notas',
   'grades.loadError': 'Não foi possível carregar as notas.',
   'grades.optionsLoadError': 'Não foi possível carregar as turmas e matérias.',
@@ -1398,6 +1389,31 @@ const ptBR = {
   'atas.form.guardians': 'Responsáveis a registrar na ata',
   'atas.form.noGuardiansFound': 'Nenhum responsável vinculado a este aluno.',
   'atas.form.saveError': 'Não foi possível salvar a nota ata.',
+
+  'nav.communication': 'Comunicação',
+  'communication.title': 'Comunicação',
+  'communication.child': 'Filho',
+  'communication.class': 'Turma',
+  'communication.audience.coordination': 'Coordenação',
+  'communication.audience.secretary': 'Secretaria',
+  'communication.scope.forMe': 'Para mim',
+  'communication.scope.all': 'Todas',
+  'communication.send': 'Enviar',
+  'communication.placeholder': 'Escreva uma mensagem',
+  'communication.back': 'Voltar',
+  'communication.unread': 'Não lida',
+  'communication.loadError': 'Não foi possível carregar as conversas.',
+  'communication.sendError': 'Não foi possível enviar a mensagem.',
+  'communication.noAccess.description': 'Você não tem acesso às mensagens desta escola.',
+  'communication.empty.select.title': 'Escolha uma conversa',
+  'communication.empty.select.description': 'A conversa abre ao lado.',
+  'communication.empty.thread.title': 'Nenhuma mensagem ainda',
+  'communication.empty.thread.description': 'Envie a primeira mensagem.',
+  'communication.empty.inbox.title': 'Nenhuma conversa',
+  'communication.empty.inbox.description': 'Quando uma família escrever, a conversa aparece aqui.',
+  'communication.empty.children.title': 'Nenhum filho vinculado',
+  'communication.empty.children.description':
+    'As conversas aparecem quando há um filho na sua família.',
 
   'error404.title': 'Página não encontrada',
   'error404.description': 'A página que você está buscando não existe ou foi movida.',

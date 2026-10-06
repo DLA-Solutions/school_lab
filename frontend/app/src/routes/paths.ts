@@ -25,6 +25,7 @@ export default {
   allLessonPlans: `/${rootPaths.academicsRoot}/planos-de-aula-todos`,
   atas: `/${rootPaths.academicsRoot}/atas`,
   dailyRoutine: `/${rootPaths.academicsRoot}/rotina-diaria`,
+  staffCommunication: `/${rootPaths.academicsRoot}/comunicacao`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,
   subjects: `/${rootPaths.academicsRoot}/materias`,
   jobPositions: `/${rootPaths.academicsRoot}/cargos`,
@@ -44,6 +45,7 @@ export default {
   // above: different audience, different page, one profile instead of one per child.
   myHealthProfile: '/ficha-de-saude-colaborador',
   myPickups: '/quem-pode-buscar',
+  communication: '/comunicacao',
   myTaxDeclarations: '/imposto-de-renda',
 
   charges: '/boletos',

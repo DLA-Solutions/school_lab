@@ -1010,12 +1010,39 @@ export const handlers = [
         read: true,
         school_id: SCHOOL_ID,
         contract_id: null,
+        conversation_id: null,
       },
     });
   }),
 
   http.post(apiUrl('/api/v1/notifications/mark_all_as_read'), () =>
     HttpResponse.json({ data: { unread_count: 0 } }),
+  ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/destinations'), () =>
+    HttpResponse.json({ data: [] }),
+  ),
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations/:id/messages'), () =>
+    HttpResponse.json({ data: [] }),
+  ),
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations'), () =>
+    HttpResponse.json({ data: [] }),
+  ),
+  http.post(apiUrl('/api/v1/schools/:schoolId/communication/messages'), () =>
+    HttpResponse.json(
+      {
+        data: {
+          conversation_id: 1,
+          message: {
+            id: 1,
+            sender_membership_id: 1,
+            body: '',
+            sent_at: '2026-10-06T12:00:00Z',
+          },
+        },
+      },
+      { status: 201 },
+    ),
   ),
 
   http.get(apiUrl('/api/v1/schools'), ({ request }) => {
