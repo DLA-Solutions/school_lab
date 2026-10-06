@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_04_142511) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_06_135002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -330,6 +330,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_142511) do
     t.index ["student_id"], name: "index_contracts_on_student_id"
     t.check_constraint "negotiated_amount_cents IS NULL OR negotiated_amount_cents >= 0", name: "contracts_negotiated_amount_cents_non_negative"
     t.check_constraint "signature_status::text = ANY (ARRAY['pending_signature'::character varying, 'signed'::character varying, 'cancelled'::character varying]::text[])", name: "contracts_signature_status_valid"
+  end
+
+  create_table "conversations", force: :cascade do |t|
+    t.string "audience", null: false
+    t.datetime "created_at", null: false
+    t.datetime "last_message_at"
+    t.bigint "school_id", null: false
+    t.bigint "student_id", null: false
+    t.bigint "teacher_id"
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "last_message_at"], name: "index_conversations_on_school_id_and_last_message_at"
+    t.index ["school_id", "student_id", "audience"], name: "index_conversations_on_school_student_audience_no_teacher", unique: true, where: "(teacher_id IS NULL)"
+    t.index ["school_id", "student_id", "teacher_id"], name: "index_conversations_on_school_student_teacher", unique: true, where: "((audience)::text = 'teacher'::text)"
+    t.index ["school_id"], name: "index_conversations_on_school_id"
+    t.index ["student_id"], name: "index_conversations_on_student_id"
+    t.index ["teacher_id"], name: "index_conversations_on_teacher_id"
+    t.check_constraint "(audience::text = 'teacher'::text) = (teacher_id IS NOT NULL)", name: "conversations_teacher_matches_audience"
+    t.check_constraint "audience::text = ANY (ARRAY['coordination'::character varying, 'secretary'::character varying, 'teacher'::character varying]::text[])", name: "conversations_audience_valid"
   end
 
   create_table "daily_routine_entries", force: :cascade do |t|
@@ -724,6 +742,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_142511) do
     t.index ["user_id"], name: "index_memberships_on_user_id"
   end
 
+  create_table "messages", force: :cascade do |t|
+    t.text "body", null: false
+    t.bigint "conversation_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "school_id", null: false
+    t.bigint "sender_membership_id", null: false
+    t.datetime "sent_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_id", "sent_at"], name: "index_messages_on_conversation_id_and_sent_at"
+    t.index ["conversation_id"], name: "index_messages_on_conversation_id"
+    t.index ["school_id"], name: "index_messages_on_school_id"
+    t.index ["sender_membership_id"], name: "index_messages_on_sender_membership_id"
+  end
+
   create_table "notification_deliveries", force: :cascade do |t|
     t.integer "attempts", default: 0, null: false
     t.string "channel", null: false
@@ -768,6 +800,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_142511) do
   create_table "notifications", force: :cascade do |t|
     t.text "body"
     t.bigint "contract_id"
+    t.bigint "conversation_id"
     t.datetime "created_at", null: false
     t.string "kind", null: false
     t.datetime "read_at"
@@ -776,6 +809,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_142511) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["contract_id"], name: "index_notifications_on_contract_id"
+    t.index ["conversation_id"], name: "index_notifications_on_conversation_id"
     t.index ["school_id"], name: "index_notifications_on_school_id"
     t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
     t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
@@ -1850,6 +1884,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_142511) do
   add_foreign_key "contracts", "plan_discounts"
   add_foreign_key "contracts", "schools"
   add_foreign_key "contracts", "students"
+  add_foreign_key "conversations", "schools"
+  add_foreign_key "conversations", "students"
+  add_foreign_key "conversations", "teachers"
   add_foreign_key "daily_routine_entries", "memberships", column: "recorded_by_membership_id"
   add_foreign_key "daily_routine_entries", "memberships", column: "sent_by_membership_id"
   add_foreign_key "daily_routine_entries", "schools"
@@ -1917,12 +1954,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_04_142511) do
   add_foreign_key "memberships", "schools"
   add_foreign_key "memberships", "users"
   add_foreign_key "memberships", "users", column: "suspended_by_id"
+  add_foreign_key "messages", "conversations"
+  add_foreign_key "messages", "memberships", column: "sender_membership_id"
+  add_foreign_key "messages", "schools"
   add_foreign_key "notification_deliveries", "notification_intents"
   add_foreign_key "notification_deliveries", "schools"
   add_foreign_key "notification_deliveries", "users"
   add_foreign_key "notification_intents", "schools"
   add_foreign_key "notification_policies", "schools"
   add_foreign_key "notifications", "contracts"
+  add_foreign_key "notifications", "conversations"
   add_foreign_key "notifications", "schools"
   add_foreign_key "notifications", "users"
   add_foreign_key "payments", "charges"

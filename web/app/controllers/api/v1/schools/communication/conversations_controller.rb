@@ -8,7 +8,19 @@ module Api
           before_action :set_school_context!
 
           def index
-            render_not_implemented
+            authorize Conversation
+
+            conversations = policy_scope(Conversation).includes(
+              student: [ :school_class, { student_guardians: :guardian } ]
+            ).recent_first
+            conversations = conversations.where(audience: params[:audience]) if params[:audience].present?
+            pagy, records = pagy(conversations)
+            Conversation.preload_last_speakers(records)
+
+            render json: {
+              data: ConversationBlueprint.render_as_hash(records),
+              meta: { page: pagy.page, per_page: pagy.limit, total: pagy.count }
+            }
           end
         end
       end

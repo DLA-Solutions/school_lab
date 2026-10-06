@@ -246,7 +246,11 @@ Rails.application.routes.draw do
           end
 
           namespace :communication do
-            resources :conversations, only: :index
+            resources :destinations, only: :index
+            resources :conversations, only: :index do
+              resources :messages, only: :index
+            end
+            resources :messages, only: :create
           end
 
           resources :school_years, only: %i[index show create update destroy] do
