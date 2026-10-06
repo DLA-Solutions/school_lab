@@ -58,6 +58,8 @@ RSpec.describe ConversationPolicy do
 
     it "sees every conversation of the linked child and permits the inbox" do
       expect(policy.index?).to be(true)
+      expect(policy.destinations?).to be(true)
+      expect(policy.roster?).to be(false)
       expect(policy.show?).to be(true)
       expect(described_class.new(user, secretary_thread).show?).to be(true)
       expect(described_class.new(user, teacher_thread).show?).to be(true)
@@ -94,6 +96,7 @@ RSpec.describe ConversationPolicy do
 
       expect(described_class.new(unlinked, Conversation).index?).to be(true)
       expect(described_class.new(unlinked, Conversation).destinations?).to be(true)
+      expect(described_class.new(unlinked, Conversation).roster?).to be(false)
       expect(resolved_for(unlinked)).to be_empty
     end
 
@@ -119,6 +122,7 @@ RSpec.describe ConversationPolicy do
       expect(described_class.new(user, teacher_thread).show?).to be(false)
       expect(described_class.new(user, coordination_thread).show?).to be(false)
       expect(policy.destinations?).to be(false)
+      expect(policy.roster?).to be(true)
       expect(resolved_for(user)).to contain_exactly(secretary_thread, other_secretary_thread)
     end
   end
@@ -150,6 +154,7 @@ RSpec.describe ConversationPolicy do
       expect(described_class.new(user, other_thread).show?).to be(false)
       expect(described_class.new(user, secretary_thread).show?).to be(false)
       expect(policy.destinations?).to be(false)
+      expect(policy.roster?).to be(true)
       expect(resolved_for(user)).to contain_exactly(own_thread)
     end
 
@@ -199,6 +204,7 @@ RSpec.describe ConversationPolicy do
       expect(described_class.new(actor, other_school_thread).show?).to be(false)
       expect(described_class.new(actor, Conversation).index?).to be(true)
       expect(described_class.new(actor, Conversation).destinations?).to be(false)
+      expect(described_class.new(actor, Conversation).roster?).to be(true)
       expect(resolved_for(actor)).to contain_exactly(secretary_thread, coordination_thread, teacher_thread)
     end
 
@@ -213,6 +219,7 @@ RSpec.describe ConversationPolicy do
       expect(described_class.new(actor, other_school_thread).show?).to be(false)
       expect(described_class.new(actor, Conversation).index?).to be(true)
       expect(described_class.new(actor, Conversation).destinations?).to be(false)
+      expect(described_class.new(actor, Conversation).roster?).to be(true)
       expect(resolved_for(actor)).to contain_exactly(secretary_thread, coordination_thread, teacher_thread)
     end
   end
@@ -233,6 +240,7 @@ RSpec.describe ConversationPolicy do
       expect(policy.index?).to be(false)
       expect(policy.show?).to be(false)
       expect(policy.destinations?).to be(false)
+      expect(policy.roster?).to be(false)
       expect(policy.create?).to be(false)
       expect(resolved_for(user)).to be_empty
       expect(resolved_for(user)).not_to include(secretary_thread)
@@ -250,6 +258,7 @@ RSpec.describe ConversationPolicy do
       expect(described_class.new(actor, thread).show?).to be(false)
       expect(described_class.new(actor, Conversation).index?).to be(false)
       expect(described_class.new(actor, Conversation).destinations?).to be(false)
+      expect(described_class.new(actor, Conversation).roster?).to be(false)
       expect(resolved_for(actor)).to be_empty
     end
 
@@ -261,6 +270,7 @@ RSpec.describe ConversationPolicy do
 
       expect(described_class.new(actor, thread).show?).to be(false)
       expect(described_class.new(actor, Conversation).index?).to be(false)
+      expect(described_class.new(actor, Conversation).roster?).to be(false)
       expect(resolved_for(actor)).to be_empty
     end
   end

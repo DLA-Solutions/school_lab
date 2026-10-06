@@ -8,10 +8,13 @@ module Api
           before_action :set_school_context!
 
           def index
-            conversation = policy_scope(Conversation).find(params[:conversation_id])
+            conversation = policy_scope(Conversation).includes(
+              student: [ :school_class, { student_guardians: :guardian } ]
+            ).find(params[:conversation_id])
             authorize conversation, :show?
 
             pagy, records = pagy(messages_for(conversation))
+            Message.preload_sender_lines(records, conversation: conversation)
 
             render json: {
               data: MessageBlueprint.render_as_hash(records),
@@ -44,7 +47,9 @@ module Api
           private
 
           def messages_for(conversation)
-            conversation.messages.chronological
+            conversation.messages.chronological.includes(
+              sender_membership: [ :user, { staff_profile: :role_template } ]
+            )
           end
 
           def message_params

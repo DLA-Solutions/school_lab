@@ -83,6 +83,7 @@ pt-BR:
       body: "Mensagem sobre %{student}"
   communication:
     sender_line: "%{guardian}, %{relationship} da %{student} — %{series}"
+    student_sender_line: "%{student} — %{series}"
     staff_sender_line: "%{speaker} — %{student} — %{series}"
     relationships:
       father: "pai"

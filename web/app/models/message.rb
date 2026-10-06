@@ -22,20 +22,65 @@ class Message < ApplicationRecord
 
     link = guardian_link_for(student)
     if link
-      I18n.t(
-        "communication.sender_line",
-        guardian: link.guardian.name,
-        relationship: relationship_label(link.relationship),
-        student: student.name,
-        series: series_label(student)
-      )
+      self.class.guardian_line(student: student, link: link)
     else
-      I18n.t(
-        "communication.staff_sender_line",
-        speaker: staff_speaker,
-        student: student.name,
-        series: series_label(student)
-      )
+      self.class.staff_line(student: student, speaker: staff_speaker)
+    end
+  end
+
+  def self.guardian_line(student:, link:)
+    I18n.t(
+      "communication.sender_line",
+      guardian: link.guardian.name,
+      relationship: relationship_word(link.relationship),
+      student: student.name,
+      series: series_label(student)
+    )
+  end
+
+  # Child and series when the conversation has messages but no kept guardian link.
+  def self.student_only_line(student:)
+    I18n.t(
+      "communication.student_sender_line",
+      student: student.name,
+      series: series_label(student)
+    )
+  end
+
+  def self.staff_line(student:, speaker:)
+    I18n.t(
+      "communication.staff_sender_line",
+      speaker: speaker,
+      student: student.name,
+      series: series_label(student)
+    )
+  end
+
+  def self.relationship_word(relationship)
+    I18n.t(
+      "communication.relationships.#{relationship}",
+      default: I18n.t("communication.relationships.other")
+    )
+  end
+
+  def self.series_label(student)
+    grade_level = student.school_class&.grade_level
+    SchoolClass::GRADE_LABELS.dig(grade_level, 1).presence || grade_level.to_s
+  end
+
+  def self.preload_sender_lines(messages, conversation:)
+    rows = Array(messages)
+    return if rows.empty?
+
+    rows.each { |message| message.association(:conversation).target = conversation }
+
+    emails = rows.filter_map { |message| message.sender_membership&.user&.email }.uniq
+    teachers = Teacher.kept.where(school_id: conversation.school_id, email: emails)
+    teachers_by_email = teachers.index_by(&:email)
+
+    rows.each do |message|
+      email = message.sender_membership&.user&.email
+      message.teacher_on_file = email.present? ? teachers_by_email[email] : nil
     end
   end
 
@@ -52,18 +97,6 @@ class Message < ApplicationRecord
     student.student_guardians
       .select { |link| link.kept? && link.guardian&.kept? && link.guardian.user_id == user_id }
       .min_by(&:id)
-  end
-
-  def relationship_label(relationship)
-    I18n.t(
-      "communication.relationships.#{relationship}",
-      default: I18n.t("communication.relationships.other")
-    )
-  end
-
-  def series_label(student)
-    grade_level = student.school_class&.grade_level
-    SchoolClass::GRADE_LABELS.dig(grade_level, 1).presence || grade_level.to_s
   end
 
   # Office roles name the desk. A teacher is named as a person. Anything else stays a teacher line

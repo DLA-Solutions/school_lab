@@ -82,6 +82,7 @@ en:
       body: "Message about %{student}"
   communication:
     sender_line: "%{guardian}, %{relationship} of %{student} — %{series}"
+    student_sender_line: "%{student} — %{series}"
     staff_sender_line: "%{speaker} — %{student} — %{series}"
     relationships:
       father: "father"

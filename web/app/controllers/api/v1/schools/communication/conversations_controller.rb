@@ -11,11 +11,12 @@ module Api
             authorize Conversation
 
             conversations = policy_scope(Conversation).includes(
+              :teacher,
               student: [ :school_class, { student_guardians: :guardian } ]
             ).recent_first
             conversations = conversations.where(audience: params[:audience]) if params[:audience].present?
             pagy, records = pagy(conversations)
-            Conversation.preload_last_speakers(records)
+            Conversation.preload_inbox_fields(records)
 
             render json: {
               data: ConversationBlueprint.render_as_hash(records),

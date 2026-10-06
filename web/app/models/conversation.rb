@@ -36,12 +36,27 @@ class Conversation < ApplicationRecord
     audience == "teacher"
   end
 
-  # Who last spoke. No message means no line — a linked father is not a stand-in.
+  # Who last spoke. The roster still uses this. No message means no line.
   def sender_line
     message = last_speaker_message
     return if message.blank?
 
     message.sender_line
+  end
+
+  # Inbox identity: always the family, never the staff role of the last speaker.
+  # No message yet means no line. A linked guardian who has written wins, most recent first.
+  # Staff-only threads use the primary kept link, then the first kept link. No link names the child.
+  def family_sender_line
+    return if last_speaker_message.blank?
+
+    guardian_message = latest_guardian_message
+    return guardian_message.sender_line if guardian_message
+
+    link = preferred_guardian_link
+    return Message.student_only_line(student: student) if link.blank?
+
+    Message.guardian_line(student: student, link: link)
   end
 
   def last_speaker_message=(message)
@@ -52,6 +67,23 @@ class Conversation < ApplicationRecord
     return @last_speaker_message if instance_variable_defined?(:@last_speaker_message)
 
     messages.order(sent_at: :desc, id: :desc).first
+  end
+
+  def latest_guardian_message=(message)
+    @latest_guardian_message = message
+  end
+
+  def latest_guardian_message
+    return @latest_guardian_message if instance_variable_defined?(:@latest_guardian_message)
+
+    self.class.preload_latest_guardian_messages([ self ])
+    @latest_guardian_message
+  end
+
+  def self.preload_inbox_fields(conversations)
+    rows = Array(conversations)
+    preload_last_speakers(rows)
+    preload_latest_guardian_messages(rows)
   end
 
   # One query for the latest message of each row, so the inbox does not load the whole thread.
@@ -87,7 +119,52 @@ class Conversation < ApplicationRecord
     end
   end
 
+  # Latest message in each conversation whose sender is still a kept guardian of that child.
+  def self.preload_latest_guardian_messages(conversations)
+    rows = Array(conversations)
+    return if rows.empty?
+
+    latest_ids = Message
+      .joins(:sender_membership)
+      .joins(GUARDIAN_MESSAGE_JOIN)
+      .where(conversation_id: rows.map(&:id))
+      .select("DISTINCT ON (messages.conversation_id) messages.id")
+      .order(Arel.sql("messages.conversation_id, messages.sent_at DESC, messages.id DESC"))
+
+    latest = Message.where(id: latest_ids).includes(sender_membership: :user).to_a
+    rows_by_id = rows.index_by(&:id)
+
+    latest.each do |message|
+      parent = rows_by_id[message.conversation_id]
+      message.association(:conversation).target = parent if parent
+    end
+
+    indexed = latest.index_by(&:conversation_id)
+    rows.each do |conversation|
+      conversation.latest_guardian_message = indexed[conversation.id]
+    end
+  end
+
+  GUARDIAN_MESSAGE_JOIN = <<~SQL.squish.freeze
+    INNER JOIN conversations ON conversations.id = messages.conversation_id
+    INNER JOIN student_guardians
+      ON student_guardians.student_id = conversations.student_id
+      AND student_guardians.school_id = messages.school_id
+      AND student_guardians.discarded_at IS NULL
+    INNER JOIN guardians
+      ON guardians.id = student_guardians.guardian_id
+      AND guardians.user_id = memberships.user_id
+      AND guardians.school_id = messages.school_id
+      AND guardians.discarded_at IS NULL
+  SQL
+  private_constant :GUARDIAN_MESSAGE_JOIN
+
   private
+
+  def preferred_guardian_link
+    links = student.student_guardians.select { |link| link.kept? && link.guardian&.kept? }
+    links.select { |link| link.primary_guardian == true }.min_by(&:id) || links.min_by(&:id)
+  end
 
   def teacher_matches_audience
     if audience == "teacher"

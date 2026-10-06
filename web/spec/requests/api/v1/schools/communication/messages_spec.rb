@@ -81,6 +81,11 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
     membership
   end
 
+  def staff_sender_line_for(actor)
+    speaker = actor == director_user ? "direção" : "coordenação"
+    "#{speaker} — Lara Costa — 1º ano"
+  end
+
   def reply_on_every_audience(actor, membership)
     headers = auth_headers_for(actor)
     conversations = {
@@ -118,8 +123,9 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
       expect(response.parsed_body.dig("data", "conversation_id")).to eq(conversation.id)
       expect(response.parsed_body.dig("data", "message", "sender_membership_id")).to eq(membership.id)
       expect(response.parsed_body.dig("data", "message", "body")).to eq("Reply from the school")
+      expect(response.parsed_body.dig("data", "message", "sender_line")).to eq(staff_sender_line_for(actor))
       expect(response.parsed_body.dig("data", "message").keys).to match_array(
-        %w[id sender_membership_id body sent_at]
+        %w[id sender_membership_id sender_line body sent_at]
       )
     end
   end
@@ -153,10 +159,11 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
           expect(body["conversation_id"]).to eq(stored.conversation_id)
           expect(message).to include(
             "sender_membership_id" => guardian_membership.id,
+            "sender_line" => "Diego, pai da Lara Costa — 1º ano",
             "body" => "Hello"
           )
           expect(message["sent_at"]).to be_present
-          expect(message.keys).to match_array(%w[id sender_membership_id body sent_at])
+          expect(message.keys).to match_array(%w[id sender_membership_id sender_line body sent_at])
 
           get "/api/v1/schools/#{school.id}/communication/conversations/#{body.fetch("conversation_id")}/messages",
               headers: auth_headers_for(guardian_user)
@@ -164,7 +171,8 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
           expect(response).to have_http_status(:ok)
           listed = response.parsed_body.fetch("data")
           expect(listed.map { |row| row["id"] }).to eq([ stored.id ])
-          expect(listed.first.keys).to match_array(%w[id sender_membership_id body sent_at])
+          expect(listed.first).to include("sender_line" => "Diego, pai da Lara Costa — 1º ano")
+          expect(listed.first.keys).to match_array(%w[id sender_membership_id sender_line body sent_at])
         end
       end
 
@@ -289,10 +297,11 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
           expect(body.fetch("data").first).to include(
             "id" => older.id,
             "sender_membership_id" => guardian_membership.id,
+            "sender_line" => "Diego, pai da Lara Costa — 1º ano",
             "body" => "First"
           )
           expect(body.fetch("data").first.keys).to match_array(
-            %w[id sender_membership_id body sent_at]
+            %w[id sender_membership_id sender_line body sent_at]
           )
         end
       end

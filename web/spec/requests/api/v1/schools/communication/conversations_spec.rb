@@ -11,12 +11,26 @@ RSpec.describe "Api::V1::Schools::Communication::Conversations", type: :request 
   let(:guardian) { create(:guardian, school: school, user: guardian_user, name: "Diego") }
   let!(:guardian_membership) { create(:membership, user: guardian_user, school: school, role: "guardian") }
   let!(:family_link) do
-    create(:student_guardian, school: school, student: student, guardian: guardian, relationship: "father")
+    create(
+      :student_guardian,
+      school: school,
+      student: student,
+      guardian: guardian,
+      relationship: "father",
+      primary_guardian: true
+    )
   end
   let(:mother_user) { create(:user) }
   let(:mother) { create(:guardian, school: school, user: mother_user, name: "Marina") }
   let!(:mother_link) do
-    create(:student_guardian, school: school, student: student, guardian: mother, relationship: "mother")
+    create(
+      :student_guardian,
+      school: school,
+      student: student,
+      guardian: mother,
+      relationship: "mother",
+      primary_guardian: false
+    )
   end
   let!(:mother_membership) { create(:membership, user: mother_user, school: school, role: "guardian") }
   let(:teacher) { create(:teacher, school: school, name: "Ana Lima") }
@@ -185,13 +199,19 @@ RSpec.describe "Api::V1::Schools::Communication::Conversations", type: :request 
 
           expect(row).to include(
             "student_id" => student.id,
+            "student_name" => "Lara Costa",
             "audience" => "coordination",
             "teacher_id" => nil,
+            "teacher_name" => nil,
+            "last_message_body" => "From the mother",
             "school_class_id" => school_class.id,
             "sender_line" => "Marina, mãe da Lara Costa — 1º ano"
           )
           expect(row.keys).to match_array(
-            %w[id student_id audience teacher_id last_message_at school_class_id sender_line]
+            %w[
+              id student_id student_name audience teacher_id teacher_name
+              last_message_at last_message_body school_class_id sender_line
+            ]
           )
         end
       end
@@ -213,25 +233,40 @@ RSpec.describe "Api::V1::Schools::Communication::Conversations", type: :request 
           expect(ids).not_to include(other_school_conversation.id)
           expect(body.dig("meta", "total")).to eq(6)
           expect(rows[coordination_conversation.id]).to include(
+            "student_name" => "Lara Costa",
+            "teacher_name" => nil,
+            "last_message_body" => "From the mother",
             "sender_line" => "Marina, mãe da Lara Costa — 1º ano"
           )
           expect(rows[secretary_conversation.id]).to include(
-            "sender_line" => "secretaria — Lara Costa — 1º ano"
+            "teacher_name" => nil,
+            "last_message_body" => "From the secretary",
+            "sender_line" => "Diego, pai da Lara Costa — 1º ano"
           )
           expect(rows[teacher_conversation.id]).to include(
             "audience" => "teacher",
             "teacher_id" => teacher.id,
+            "teacher_name" => "Ana Lima",
             "school_class_id" => school_class.id,
-            "sender_line" => "Ana Lima — Lara Costa — 1º ano"
+            "last_message_body" => "From the teacher",
+            "sender_line" => "Diego, pai da Lara Costa — 1º ano"
           )
           expect(rows[direction_conversation.id]).to include(
-            "sender_line" => "direção — Lara Costa — 1º ano"
+            "teacher_name" => "Bruno Lima",
+            "last_message_body" => "From direction",
+            "sender_line" => "Diego, pai da Lara Costa — 1º ano"
           )
           expect(rows[coordination_staff_conversation.id]).to include(
-            "sender_line" => "coordenação — Lara Costa — 1º ano"
+            "teacher_name" => "Davi Souza",
+            "last_message_body" => "From coordination",
+            "sender_line" => "Diego, pai da Lara Costa — 1º ano"
           )
-          expect(rows[quiet_conversation.id]).to include("sender_line" => nil)
-          expect(rows[quiet_conversation.id].keys).to include("sender_line")
+          expect(rows[quiet_conversation.id]).to include(
+            "teacher_name" => "Carla Nunes",
+            "last_message_body" => nil,
+            "sender_line" => nil
+          )
+          expect(rows[quiet_conversation.id].keys).to include("sender_line", "last_message_body", "student_name")
         end
       end
 

@@ -69,6 +69,144 @@ RSpec.describe Conversation, type: :model do
     expect(duplicate.errors[:teacher_id]).to be_present
   end
 
+  it "names the family on the inbox line and the last speaker on the roster line" do
+    school = create(:school)
+    school_class = create(:school_class, school: school, grade_level: "fundamental_i_1")
+    student = create(:student, school: school, school_class: school_class, name: "Lara")
+    father_user = create(:user)
+    father = create(:guardian, school: school, user: father_user, name: "Diego")
+    mother_user = create(:user)
+    mother = create(:guardian, school: school, user: mother_user, name: "Marina")
+    create(
+      :student_guardian,
+      school: school,
+      student: student,
+      guardian: father,
+      relationship: "father",
+      primary_guardian: true
+    )
+    create(
+      :student_guardian,
+      school: school,
+      student: student,
+      guardian: mother,
+      relationship: "mother",
+      primary_guardian: false
+    )
+    father_membership = create(:membership, user: father_user, school: school, role: "guardian")
+    mother_membership = create(:membership, user: mother_user, school: school, role: "guardian")
+    staff_membership = create(:membership, user: create(:user), school: school, role: "school")
+    conversation = create(:conversation, :secretary, school: school, student: student)
+    create(
+      :message,
+      conversation: conversation,
+      school: school,
+      sender_membership: father_membership,
+      body: "Do pai",
+      sent_at: 3.hours.ago
+    )
+    create(
+      :message,
+      conversation: conversation,
+      school: school,
+      sender_membership: mother_membership,
+      body: "Da mãe",
+      sent_at: 2.hours.ago
+    )
+    create(
+      :message,
+      conversation: conversation,
+      school: school,
+      sender_membership: staff_membership,
+      body: "Da secretaria",
+      sent_at: 1.hour.ago
+    )
+
+    I18n.with_locale(:"pt-BR") do
+      expect(conversation.family_sender_line).to eq("Marina, mãe da Lara — 1º ano")
+      expect(conversation.sender_line).to eq("professor — Lara — 1º ano")
+    end
+  end
+
+  it "uses the primary guardian when only staff has written" do
+    school = create(:school)
+    school_class = create(:school_class, school: school, grade_level: "fundamental_i_1")
+    student = create(:student, school: school, school_class: school_class, name: "Lara")
+    father = create(:guardian, school: school, name: "Diego")
+    mother = create(:guardian, school: school, name: "Marina")
+    create(
+      :student_guardian,
+      school: school,
+      student: student,
+      guardian: mother,
+      relationship: "mother",
+      primary_guardian: false
+    )
+    create(
+      :student_guardian,
+      school: school,
+      student: student,
+      guardian: father,
+      relationship: "father",
+      primary_guardian: true
+    )
+    conversation = create(:conversation, school: school, student: student)
+    create(:message, conversation: conversation, school: school, body: "Da escola")
+
+    I18n.with_locale(:"pt-BR") do
+      expect(conversation.family_sender_line).to eq("Diego, pai da Lara — 1º ano")
+    end
+  end
+
+  it "uses the first kept guardian when none is primary" do
+    school = create(:school)
+    school_class = create(:school_class, school: school, grade_level: "fundamental_i_1")
+    student = create(:student, school: school, school_class: school_class, name: "Lara")
+    father = create(:guardian, school: school, name: "Diego")
+    mother = create(:guardian, school: school, name: "Marina")
+    create(
+      :student_guardian,
+      school: school,
+      student: student,
+      guardian: father,
+      relationship: "father",
+      primary_guardian: false
+    )
+    create(
+      :student_guardian,
+      school: school,
+      student: student,
+      guardian: mother,
+      relationship: "mother",
+      primary_guardian: false
+    )
+    conversation = create(:conversation, school: school, student: student)
+    create(:message, conversation: conversation, school: school, body: "Da escola")
+
+    I18n.with_locale(:"pt-BR") do
+      expect(conversation.family_sender_line).to eq("Diego, pai da Lara — 1º ano")
+    end
+  end
+
+  it "names the child and series when no guardian is linked" do
+    school = create(:school)
+    school_class = create(:school_class, school: school, grade_level: "fundamental_i_1")
+    student = create(:student, school: school, school_class: school_class, name: "Lara")
+    conversation = create(:conversation, school: school, student: student)
+    create(:message, conversation: conversation, school: school, body: "Da escola")
+
+    I18n.with_locale(:"pt-BR") do
+      expect(conversation.family_sender_line).to eq("Lara — 1º ano")
+    end
+  end
+
+  it "has no inbox line before any message" do
+    conversation = create(:conversation)
+
+    expect(conversation.family_sender_line).to be_nil
+    expect(conversation.sender_line).to be_nil
+  end
+
   it "rejects a student from another school" do
     conversation = build(:conversation, school: create(:school), student: create(:student))
 

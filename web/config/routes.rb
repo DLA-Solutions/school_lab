@@ -247,6 +247,7 @@ Rails.application.routes.draw do
 
           namespace :communication do
             resources :destinations, only: :index
+            resources :roster, only: :index
             resources :conversations, only: :index do
               resources :messages, only: :index
             end

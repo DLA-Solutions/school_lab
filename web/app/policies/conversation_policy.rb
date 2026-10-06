@@ -68,6 +68,10 @@ class ConversationPolicy < ApplicationPolicy
     active_kept_in_school? && guardian_role?
   end
 
+  def roster?
+    active_kept_in_school? && (teacher_role? || secretary? || leadership?)
+  end
+
   def create?
     false
   end
