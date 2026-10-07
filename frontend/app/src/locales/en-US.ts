@@ -1178,6 +1178,9 @@ const enUS: Messages = {
   'collaborators.bankAccountAria': "{name}'s bank details",
   'collaborators.healthProfile': 'View health record',
   'collaborators.healthProfileAria': "View {name}'s health record",
+  'collaborators.exportPdf': 'Export PDF',
+  'collaborators.exportPdfAria': 'Export a PDF of every collaborator',
+  'collaborators.exportPdfError': 'Could not generate the collaborators PDF.',
 
   'bankAccount.title': 'Bank details',
   'bankAccount.description':
