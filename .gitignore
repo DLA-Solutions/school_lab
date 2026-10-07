@@ -5,6 +5,7 @@ web/.env.*
 app/.env
 app/.env.*
 !app/.env.example
+.playwright-mcp/*
 
 # OS
 .DS_Store

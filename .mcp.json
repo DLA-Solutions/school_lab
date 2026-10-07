@@ -3,6 +3,10 @@
     "context7": {
       "url": "https://mcp.context7.com/mcp/oauth"
     },
+    "linear": {
+      "type": "http",
+      "url": "https://mcp.linear.app/mcp"
+    },
     "github": {
       "command": "bash",
       "args": ["${workspaceFolder}/.claude/scripts/run-github-mcp.sh"]
