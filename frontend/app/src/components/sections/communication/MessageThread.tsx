@@ -70,6 +70,21 @@ const MessageThread = ({
           display: 'flex',
           flexDirection: 'column',
           gap: 1,
+          // The app hides the webkit scrollbar until hover (theme/styles/scrollbar.ts); this pane
+          // is height-capped by its ChatColumns parent (see chatPanelLayout.ts) so it needs the
+          // same at-rest affordance as the list column beside it — otherwise a thread with more
+          // messages above the fold looks like it has nothing more to scroll to. `neutral.main`
+          // for the thumb (not the base `background.paper`, which is too close to this pane's own
+          // `background.default` to read as a distinct thumb) — same color the theme already
+          // picked for a scrollbar that must stay visible (scrollbar.ts's `@supports
+          // (-moz-appearance:none)` branch).
+          '&::-webkit-scrollbar': {
+            visibility: 'visible',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            visibility: 'visible',
+            bgcolor: 'neutral.main',
+          },
         }}
       >
         {showSpinner ? (
@@ -118,7 +133,15 @@ const MessageThread = ({
             {sendDisabledReason}
           </Typography>
         ) : null}
-        <Stack direction="row" spacing={1} alignItems="flex-end">
+        {/*
+          Measured live (MuiOutlinedInput-root vs. the Button's own box, both border-box):
+          size="small" renders this app's themed OutlinedInput at ~35px tall, while a
+          size="medium" contained Button renders at ~40px — close enough to look like a typo, far
+          enough to visibly step down against the input beside it. Pinning both to the same
+          explicit `height` (rather than hunting for a `size` pairing that happens to match) is
+          the one value that cannot drift as either component's theme padding changes later.
+        */}
+        <Stack direction="row" spacing={1} alignItems="center">
           <TextField
             fullWidth
             size="small"
@@ -133,13 +156,14 @@ const MessageThread = ({
                 }
               }
             }}
+            slotProps={{ input: { sx: { height: 40 } } }}
           />
           <Button
             variant="contained"
             size="medium"
             onClick={onSend}
             disabled={!canSend}
-            sx={{ px: 3.5, flexShrink: 0 }}
+            sx={{ px: 3.5, flexShrink: 0, height: 40 }}
           >
             {t('communication.send')}
           </Button>

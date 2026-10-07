@@ -19,6 +19,7 @@ import {
   SearchField,
   SectionCard,
 } from 'design-system';
+import { CHAT_PANEL_HEIGHT_PX } from 'components/sections/communication/chatPanelLayout';
 import ChatColumns from 'components/sections/communication/ChatColumns';
 import ConversationRow from 'components/sections/communication/ConversationRow';
 import MessageThread from 'components/sections/communication/MessageThread';
@@ -784,15 +785,21 @@ const StaffCommunication = () => {
                   </Stack>
                 )}
 
+                {/*
+                  Both start-a-conversation buttons are `fullWidth` — same width as the Turma
+                  select and the search field below them — so they read as a matched pair instead
+                  of each shrink-wrapping to its own label length ("Nova conversa" vs. "Enviar
+                  para toda a turma").
+                */}
                 <Button
                   size="small"
                   variant="contained"
+                  fullWidth
                   onClick={() => {
                     setOpen(null);
                     setDraft('');
                     setSearchQuery('');
                   }}
-                  sx={{ alignSelf: 'flex-start' }}
                 >
                   {t('communication.start.heading')}
                 </Button>
@@ -801,6 +808,7 @@ const StaffCommunication = () => {
                   <Button
                     size="small"
                     variant="contained"
+                    fullWidth
                     disabled={bulkSending}
                     onClick={() => {
                       setBulkDraft('');
@@ -808,7 +816,6 @@ const StaffCommunication = () => {
                       setBulkOpen(true);
                     }}
                     startIcon={bulkSending ? <CircularProgress size={14} /> : undefined}
-                    sx={{ alignSelf: 'flex-start' }}
                   >
                     {t('communication.bulk.button')}
                   </Button>
@@ -839,35 +846,64 @@ const StaffCommunication = () => {
 
                 {/*
                   Browse-by-class path: the Turma dropdown above and this roster list are how
-                  someone without an exact name to search picks a student to start with.
+                  someone without an exact name to search picks a student to start with. Capped
+                  and independently scrollable (see chatPanelLayout.ts) so a big Turma scrolls
+                  here instead of growing the page.
                 */}
-                {!isSearching &&
-                  (rosterLoading ? (
-                    <Box display="flex" justifyContent="center" py={4}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : classId != null && roster.length === 0 ? (
-                    <EmptyState
-                      title={t('communication.empty.roster.title')}
-                      description={t('communication.empty.roster.description')}
-                    />
-                  ) : (
-                    starters.map((row) => (
-                      <ConversationRow
-                        key={row.student_id}
-                        label={row.student_name}
-                        selected={open?.source === 'roster' && open.studentId === row.student_id}
-                        onClick={() => {
-                          setOpen({
-                            source: 'roster',
-                            studentId: row.student_id,
-                            destinationKey: null,
-                          });
-                          setDraft('');
-                        }}
+                {!isSearching && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1.5,
+                      maxHeight: CHAT_PANEL_HEIGHT_PX,
+                      overflow: 'auto',
+                      // The app hides the webkit scrollbar until hover (theme/styles/scrollbar.ts)
+                      // — fine when more content below the fold is a safe assumption, but a capped
+                      // list sitting next to a fixed-height thread pane needs its own "there's more
+                      // here" affordance at rest, same reasoning as StudentsByClass.tsx. The base
+                      // thumb color is `background.paper`, which is also this card's own surface
+                      // (SectionCard) — same color on same color is invisible regardless of
+                      // `visibility`, so the thumb also needs `neutral.main`, the color the theme
+                      // already picked for a scrollbar that must stay visible (see the `@supports
+                      // (-moz-appearance:none)` branch in scrollbar.ts).
+                      '&::-webkit-scrollbar': {
+                        visibility: 'visible',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        visibility: 'visible',
+                        bgcolor: 'neutral.main',
+                      },
+                    }}
+                  >
+                    {rosterLoading ? (
+                      <Box display="flex" justifyContent="center" py={4}>
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : classId != null && roster.length === 0 ? (
+                      <EmptyState
+                        title={t('communication.empty.roster.title')}
+                        description={t('communication.empty.roster.description')}
                       />
-                    ))
-                  ))}
+                    ) : (
+                      starters.map((row) => (
+                        <ConversationRow
+                          key={row.student_id}
+                          label={row.student_name}
+                          selected={open?.source === 'roster' && open.studentId === row.student_id}
+                          onClick={() => {
+                            setOpen({
+                              source: 'roster',
+                              studentId: row.student_id,
+                              destinationKey: null,
+                            });
+                            setDraft('');
+                          }}
+                        />
+                      ))
+                    )}
+                  </Box>
+                )}
 
                 <SearchField
                   value={searchQuery}
@@ -889,73 +925,98 @@ const StaffCommunication = () => {
                   `rosterThreadId`) — filtering it out here would hide the very conversation the
                   search box exists to find.
                 */}
-                {isSearching ? (
-                  searchLoading ? (
+                {/*
+                  Capped and independently scrollable (see chatPanelLayout.ts) so a long inbox —
+                  or many search hits — scrolls here instead of growing the page.
+                */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.5,
+                    maxHeight: CHAT_PANEL_HEIGHT_PX,
+                    overflow: 'auto',
+                    // See the roster box above — same at-rest scrollbar affordance (visibility +
+                    // `neutral.main` thumb, since the default thumb color matches this card's own
+                    // background.paper surface) so the capped inbox/search list does not look like
+                    // a complete, un-scrollable set.
+                    '&::-webkit-scrollbar': {
+                      visibility: 'visible',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      visibility: 'visible',
+                      bgcolor: 'neutral.main',
+                    },
+                  }}
+                >
+                  {isSearching ? (
+                    searchLoading ? (
+                      <Box display="flex" justifyContent="center" py={2}>
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : searchResults.length === 0 ? (
+                      <EmptyState
+                        title={t('communication.search.empty.title')}
+                        description={t('communication.search.empty.description', {
+                          query: trimmedSearchQuery,
+                        })}
+                      />
+                    ) : (
+                      searchResults.map((row) => (
+                        <ConversationRow
+                          key={row.student_id}
+                          label={row.student_name}
+                          detail={guardianDetail(row, t)}
+                          selected={open?.source === 'roster' && open.studentId === row.student_id}
+                          onClick={() => {
+                            setOpen({
+                              source: 'roster',
+                              studentId: row.student_id,
+                              destinationKey: null,
+                            });
+                            setDraft('');
+                          }}
+                        />
+                      ))
+                    )
+                  ) : conversationsLoading ? (
                     <Box display="flex" justifyContent="center" py={2}>
                       <CircularProgress size={24} />
                     </Box>
-                  ) : searchResults.length === 0 ? (
+                  ) : inbox.length === 0 ? (
                     <EmptyState
-                      title={t('communication.search.empty.title')}
-                      description={t('communication.search.empty.description', {
-                        query: trimmedSearchQuery,
-                      })}
+                      title={t('communication.empty.inbox.title')}
+                      description={t('communication.empty.staffInbox.description')}
                     />
                   ) : (
-                    searchResults.map((row) => (
-                      <ConversationRow
-                        key={row.student_id}
-                        label={row.student_name}
-                        detail={guardianDetail(row, t)}
-                        selected={open?.source === 'roster' && open.studentId === row.student_id}
-                        onClick={() => {
-                          setOpen({
-                            source: 'roster',
-                            studentId: row.student_id,
-                            destinationKey: null,
-                          });
-                          setDraft('');
-                        }}
-                      />
-                    ))
-                  )
-                ) : conversationsLoading ? (
-                  <Box display="flex" justifyContent="center" py={2}>
-                    <CircularProgress size={24} />
-                  </Box>
-                ) : inbox.length === 0 ? (
-                  <EmptyState
-                    title={t('communication.empty.inbox.title')}
-                    description={t('communication.empty.staffInbox.description')}
-                  />
-                ) : (
-                  inbox.map((conversation) => {
-                    const detailParts = [
-                      severalChildren ? conversation.student_name : null,
-                      showChannel
-                        ? channelLabel(conversation.audience, conversation.teacher_name, t)
-                        : null,
-                    ].filter((part): part is string => Boolean(part));
+                    inbox.map((conversation) => {
+                      const detailParts = [
+                        severalChildren ? conversation.student_name : null,
+                        showChannel
+                          ? channelLabel(conversation.audience, conversation.teacher_name, t)
+                          : null,
+                      ].filter((part): part is string => Boolean(part));
 
-                    return (
-                      <ConversationRow
-                        key={conversation.id}
-                        label={conversation.sender_line || conversation.student_name}
-                        detail={detailParts.length > 0 ? detailParts.join(' · ') : null}
-                        preview={conversation.last_message_body}
-                        sentAt={conversation.last_message_at}
-                        selected={
-                          open?.source === 'inbox' && open.conversationId === conversation.id
-                        }
-                        unreadLabel={unreadIds.has(conversation.id) ? unreadLabel : null}
-                        onClick={() => {
-                          setOpen({ source: 'inbox', conversationId: conversation.id });
-                          setDraft('');
-                        }}
-                      />
-                    );
-                  })
-                )}
+                      return (
+                        <ConversationRow
+                          key={conversation.id}
+                          label={conversation.sender_line || conversation.student_name}
+                          detail={detailParts.length > 0 ? detailParts.join(' · ') : null}
+                          preview={conversation.last_message_body}
+                          sentAt={conversation.last_message_at}
+                          selected={
+                            open?.source === 'inbox' && open.conversationId === conversation.id
+                          }
+                          unreadLabel={unreadIds.has(conversation.id) ? unreadLabel : null}
+                          onClick={() => {
+                            setOpen({ source: 'inbox', conversationId: conversation.id });
+                            setDraft('');
+                          }}
+                        />
+                      );
+                    })
+                  )}
+                </Box>
               </>
             }
             thread={
