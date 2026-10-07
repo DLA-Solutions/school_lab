@@ -83,6 +83,33 @@ module DemoSchool
         )
       end
     end
+
+    assign_logged_in_teacher_to_demo_class!(
+      school: school,
+      teacher: roster_teachers.find { |row| row.email == TEACHER_EMAIL },
+      subjects: subjects
+    )
+  end
+
+  # Class index 0 stays with Carla. Juliana (the loggable teacher) also teaches Pedro's class
+  # so the family destination list includes someone a tester can sign in as.
+  def assign_logged_in_teacher_to_demo_class!(school:, teacher:, subjects:)
+    return if teacher.blank?
+
+    student = Student.kept.find_by(school: school, cpf: DEMO_STUDENT_CPF)
+    school_class = student&.school_class
+    return if school_class.blank?
+
+    subjects_for_grade(school_class.grade_level).each do |subject_name|
+      assignment = TeachingAssignment.find_or_initialize_by(
+        school: school,
+        teacher: teacher,
+        school_class: school_class,
+        subject: subjects.fetch(subject_name)
+      )
+      assignment.undiscard if assignment.discarded?
+      assignment.save!
+    end
   end
 
   def subjects_for_grade(grade_level)

@@ -27,6 +27,8 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   'report-cards': 'academic',
   'my-report-cards': 'academic',
   atas: 'academic',
+  communication: 'communication',
+  'staff-communication': 'communication',
   'my-atas': 'academic',
 };
 
@@ -48,6 +50,8 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.lessonPlans]: 'academic',
   [paths.allLessonPlans]: 'academic',
   [paths.atas]: 'academic',
+  [paths.communication]: 'communication',
+  [paths.staffCommunication]: 'communication',
   [paths.myAtas]: 'academic',
   [paths.preceptorship]: 'academic',
   [paths.reportCards]: 'academic',
@@ -68,6 +72,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.myTaxDeclarations]: 'guardian',
   [paths.myCharges]: 'guardian',
   [paths.myRequests]: 'guardian',
+  [paths.communication]: 'guardian',
   [paths.myAtas]: 'guardian',
   [paths.guardians]: 'staff',
   [paths.students]: 'staff',
@@ -78,6 +83,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.lessonPlans]: 'staff',
   [paths.allLessonPlans]: 'staff',
   [paths.atas]: 'staff',
+  [paths.staffCommunication]: 'staff',
   [paths.schoolClasses]: 'staff',
   [paths.subjects]: 'staff',
   [paths.jobPositions]: 'staff',
@@ -130,8 +136,28 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
 
     // The inverse: only these roles see the entry, even though others in the same audience
     // bucket would otherwise match (e.g. a `staff`-audience item only `teacher` should reach).
-    if (item.includeRoles && (membership === null || !item.includeRoles.includes(membership.role))) {
-      return false;
+    // `includeSystemKeys` is the same idea for a role-template system key. When both are set,
+    // either match is enough (a teacher role, or secretary / coordination / director).
+    if (item.includeRoles || item.includeSystemKeys) {
+      const roleMatch =
+        item.includeRoles != null &&
+        membership !== null &&
+        item.includeRoles.includes(membership.role);
+      const systemKey = membership?.role_template?.system_key ?? null;
+      const systemKeyMatch =
+        item.includeSystemKeys != null &&
+        systemKey !== null &&
+        item.includeSystemKeys.includes(systemKey);
+      const allowed =
+        item.includeRoles && item.includeSystemKeys
+          ? roleMatch || systemKeyMatch
+          : item.includeRoles
+            ? roleMatch
+            : systemKeyMatch;
+
+      if (!allowed) {
+        return false;
+      }
     }
 
     const moduleKey = menuItemModuleKey(item);

@@ -45,6 +45,12 @@ export interface MenuItem {
    * permission key, which any role holding it would also see.
    */
   includeRoles?: MembershipRole[];
+  /**
+   * Staff-profile role template `system_key`s that may see the entry (secretary, coordination,
+   * director). When set together with `includeRoles`, either match is enough — a teacher is a
+   * membership role, and those offices are system keys on a staff membership.
+   */
+  includeSystemKeys?: string[];
   /** Sidebar grouping — operational vs billing vs school platform settings. */
   section?: NavSection;
 }
@@ -82,6 +88,14 @@ const sitemap: MenuItem[] = [
     subheader: 'nav.myPickups',
     path: paths.myPickups,
     icon: 'mingcute:user-follow-line',
+    audience: 'guardian',
+    section: 'family',
+  },
+  {
+    id: 'communication',
+    subheader: 'nav.communication',
+    path: paths.communication,
+    icon: 'mingcute:message-2-line',
     audience: 'guardian',
     section: 'family',
   },
@@ -246,6 +260,18 @@ const sitemap: MenuItem[] = [
     path: paths.dailyRoutine,
     icon: 'mingcute:baby-line',
     audience: 'staff',
+    section: 'primary',
+  },
+  {
+    // Family chat for the school side. A teacher is a membership role; secretary, coordination,
+    // and director are role-template system keys — the same split incident approval uses.
+    id: 'staff-communication',
+    subheader: 'nav.communication',
+    path: paths.staffCommunication,
+    icon: 'mingcute:message-2-line',
+    audience: 'staff',
+    includeRoles: ['teacher'],
+    includeSystemKeys: ['secretary', 'coordination', 'director'],
     section: 'primary',
   },
   {

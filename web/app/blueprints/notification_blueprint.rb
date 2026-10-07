@@ -11,4 +11,5 @@ class NotificationBlueprint < Blueprinter::Base
 
   field :school_id
   field :contract_id
+  field :conversation_id
 end

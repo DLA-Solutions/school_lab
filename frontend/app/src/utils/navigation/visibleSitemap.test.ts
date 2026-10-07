@@ -36,6 +36,9 @@ describe('visibleSitemap module filtering', () => {
     expect(routeAudienceForPath(paths.myReportCards)).toBe('guardian');
     expect(routeAudienceForPath(paths.myTaxDeclarations)).toBe('guardian');
     expect(routeAudienceForPath(paths.myCharges)).toBe('guardian');
+    expect(routeAudienceForPath(paths.communication)).toBe('guardian');
+    expect(routeAudienceForPath(paths.staffCommunication)).toBe('staff');
+    expect(routeModuleKeyForPath(paths.communication)).toBe('communication');
     expect(routeAudienceForPath(paths.reportCards)).toBe('staff');
     expect(routeAudienceForPath(paths.myHealthProfile)).toBe('staff');
   });
@@ -176,6 +179,7 @@ describe('visibleSitemap audience filtering', () => {
       'my-charges',
       'my-health-records',
       'my-pickups',
+      'communication',
       'my-atas',
       'my-preceptorship',
       'my-report-cards',
@@ -232,5 +236,39 @@ describe('visibleSitemap includeRoles filtering', () => {
     ]).map((item) => item.id);
 
     expect(ids).toEqual([]);
+  });
+});
+
+describe('visibleSitemap communication', () => {
+  const withSystemKey = (systemKey: string) => ({
+    ...staffMembership,
+    role_template: staffMembership.role_template
+      ? { ...staffMembership.role_template, system_key: systemKey }
+      : null,
+  });
+
+  it('shows the family chat to a guardian and the school inbox to the offices that answer it', () => {
+    expect(visibleSitemap(guardianMembership).map((item) => item.id)).toContain('communication');
+    expect(visibleSitemap(guardianMembership).map((item) => item.id)).not.toContain(
+      'staff-communication',
+    );
+
+    expect(visibleSitemap(staffMembership).map((item) => item.id)).toContain('staff-communication');
+    expect(visibleSitemap({ ...staffMembership, role: 'teacher' }).map((item) => item.id)).toContain(
+      'staff-communication',
+    );
+    expect(visibleSitemap(withSystemKey('coordination')).map((item) => item.id)).toContain(
+      'staff-communication',
+    );
+    expect(visibleSitemap(withSystemKey('director')).map((item) => item.id)).toContain(
+      'staff-communication',
+    );
+  });
+
+  it('hides the school inbox from staff who are not teacher, secretary, coordination, or direction', () => {
+    const ids = visibleSitemap(withSystemKey('receptionist')).map((item) => item.id);
+
+    expect(ids).not.toContain('staff-communication');
+    expect(ids).not.toContain('communication');
   });
 });

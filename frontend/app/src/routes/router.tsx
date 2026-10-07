@@ -37,6 +37,8 @@ const LessonPlans = lazy(() => import('pages/academics/LessonPlans'));
 const AllLessonPlans = lazy(() => import('pages/academics/AllLessonPlans'));
 const Atas = lazy(() => import('pages/academics/Atas'));
 const DailyRoutine = lazy(() => import('pages/academics/DailyRoutine'));
+const FamilyCommunication = lazy(() => import('pages/communication/FamilyCommunication'));
+const StaffCommunication = lazy(() => import('pages/communication/StaffCommunication'));
 const Lessons = lazy(() => import('pages/academics/Lessons'));
 const SchoolClasses = lazy(() => import('pages/academics/SchoolClasses'));
 const Subjects = lazy(() => import('pages/academics/Subjects'));
@@ -131,6 +133,10 @@ const router = createBrowserRouter(
               element: <DailyRoutine />,
             },
             {
+              path: paths.staffCommunication,
+              element: <StaffCommunication />,
+            },
+            {
               // Kept at its own address though it left the menu: it is a tab inside Aulas now, and
               // an existing link to a class listing should still land somewhere.
               path: paths.schoolClasses,
@@ -178,6 +184,10 @@ const router = createBrowserRouter(
             {
               path: paths.myRequests,
               element: <MyRequests />,
+            },
+            {
+              path: paths.communication,
+              element: <FamilyCommunication />,
             },
             {
               path: paths.charges,

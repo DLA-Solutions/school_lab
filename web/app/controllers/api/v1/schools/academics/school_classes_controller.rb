@@ -16,6 +16,7 @@ module Api
             classes = classes.for_grade_level(params[:grade_level]) if params[:grade_level].present?
             classes = classes.search(params[:q])
             classes = classes.where(id: mine_class_ids) if mine_only?
+            classes = classes.where(id: teaching_class_ids) if teaching_assignment_only?
 
             pagy, records = pagy(classes)
 
@@ -78,11 +79,33 @@ module Api
           end
 
           def mine_class_ids
-            teacher = Current.school.teachers.kept.find_by(email: Current.user.email)
+            teacher = teacher_for_current_user
             return [] if teacher.blank?
 
             Current.school.class_disciplines.kept.where(teacher_id: teacher.id)
                    .select(:school_class_id)
+          end
+
+          # Family chat lists the classes a teacher actually teaches. That link is a kept
+          # teaching assignment, not a grade-book class discipline. `mine=true` stays on
+          # class disciplines so the grade book is unchanged. Opt-in, and a no-op unless
+          # the caller is a teacher — `teach` is enough; `manage_people` is not required.
+          def teaching_assignment_only?
+            params[:assignment] == "teaching" && Current.membership&.role == "teacher"
+          end
+
+          def teaching_class_ids
+            teacher = teacher_for_current_user
+            return [] if teacher.blank?
+
+            Current.school.teaching_assignments.kept.where(teacher_id: teacher.id)
+                   .select(:school_class_id)
+          end
+
+          def teacher_for_current_user
+            return if Current.user&.email.blank?
+
+            Current.school.teachers.kept.find_by(email: Current.user.email)
           end
 
           def save_and_render(school_class, status: :ok)

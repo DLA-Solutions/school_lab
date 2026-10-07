@@ -78,6 +78,22 @@ pt-BR:
       daily_routine_sent:
         title: "Rotina do dia disponível"
         body: "A rotina de %{student} já está disponível."
+    message:
+      title: "Nova mensagem"
+      body: "Mensagem sobre %{student}"
+  communication:
+    sender_line: "%{guardian}, %{relationship} da %{student} — %{series}"
+    student_sender_line: "%{student} — %{series}"
+    staff_sender_line: "%{speaker} — %{student} — %{series}"
+    relationships:
+      father: "pai"
+      mother: "mãe"
+      other: "responsável"
+    roles:
+      coordination: "coordenação"
+      secretary: "secretaria"
+      director: "direção"
+      teacher: "professor"
   reports:
     issued_on: "Emitido em"
     empty: "Nenhum registro para os filtros escolhidos."
@@ -202,6 +218,8 @@ pt-BR:
       module_disabled: "Este módulo está desativado para esta escola."
       backoffice_only: "Esta ação é restrita a operadores do backoffice."
       not_found: "Não encontrado."
+      empty_content: "Escreva uma mensagem antes de enviar."
+      teacher_not_assigned: "Este professor não leciona na turma atual da criança."
       not_implemented: "Recurso ainda não implementado."
       portal_not_supported: "O portal de cobrança hospedado não está disponível para este provedor."
       subscription_exists: "Esta escola já possui uma assinatura da plataforma."

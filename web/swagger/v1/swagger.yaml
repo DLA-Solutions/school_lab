@@ -9320,7 +9320,70 @@
         }
       ],
       "get": {
-        "summary": "List conversations (phase 2)",
+        "summary": "List conversations the actor may see",
+        "tags": [
+          "Communication"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "audience",
+            "in": "query",
+            "required": false,
+            "description": "Optional audience filter. Coordination uses coordination for For me.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "omitting audience returns every conversation coordination can see"
+          },
+          "403": {
+            "description": "a school role without an inbox cannot list conversations"
+          },
+          "404": {
+            "description": "another school"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/communication/conversations/{conversation_id}/messages": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "conversation_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List messages in a conversation",
         "tags": [
           "Communication"
         ],
@@ -9339,8 +9402,202 @@
           }
         ],
         "responses": {
-          "501": {
-            "description": "not implemented"
+          "200": {
+            "description": "secretary reads a secretary conversation"
+          },
+          "404": {
+            "description": "another school"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/communication/destinations": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List who a linked guardian can write to",
+        "tags": [
+          "Communication"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "student_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "a child with no teaching assignment lists coordination and secretary only"
+          },
+          "404": {
+            "description": "unknown student"
+          },
+          "403": {
+            "description": "secretary cannot list destinations"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/communication/messages": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Send a message",
+        "tags": [
+          "Communication"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "a second send to the same child and teacher appends"
+          },
+          "422": {
+            "description": "teacher is not assigned to the child's current class"
+          },
+          "403": {
+            "description": "a school role without an inbox cannot send"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "student_id": {
+                    "type": "integer"
+                  },
+                  "audience": {
+                    "type": "string",
+                    "enum": [
+                      "coordination",
+                      "secretary",
+                      "teacher"
+                    ]
+                  },
+                  "teacher_id": {
+                    "type": "integer",
+                    "nullable": true
+                  },
+                  "body": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "student_id",
+                  "audience",
+                  "body"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/communication/roster": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List children of a class for the family-chat roster",
+        "tags": [
+          "Communication"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "school_class_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "director lists destinations and does not attach a conversation"
+          },
+          "404": {
+            "description": "a class from another school"
+          },
+          "403": {
+            "description": "a linked guardian"
+          },
+          "401": {
+            "description": "unauthenticated"
           }
         }
       }

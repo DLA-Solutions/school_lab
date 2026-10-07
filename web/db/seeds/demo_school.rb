@@ -48,6 +48,7 @@ require_relative "demo_school/staff"
 require_relative "demo_school/people"
 require_relative "demo_school/academics"
 require_relative "demo_school/billing"
+require_relative "demo_school/communication"
 
 module DemoSchool
   module_function
@@ -61,6 +62,7 @@ module DemoSchool
     staff = seed_staff_users!(school)
     people = seed_people!(school)
     seed_academics!(school, people.fetch(:school_classes), logged_in_teacher_user: staff.fetch(:teacher))
+    seed_family_chat!(school)
     seed_billing!(school, people.fetch(:students), people.fetch(:guardians))
 
     school

@@ -1172,35 +1172,23 @@ Table enrollment_imports {
 
 // --- Communication (006) ---
 
+// Family chat (messages.md this delivery). Who can see a row is derived from role,
+// the guardian link, and the current teaching assignment. No participant table.
+// No Discard: a sent message is not edited or deleted.
 Table conversations {
   id integer [primary key, increment]
   school_id integer [not null]
-  conversation_type varchar [not null, note: 'direct | class | group']
-  subject_type varchar [note: 'Polymorphic — Class, Student, etc.']
-  subject_id integer
+  student_id integer [not null]
+  audience varchar [not null, note: 'coordination | secretary | teacher']
+  teacher_id integer [note: 'Required when audience = teacher; null otherwise. Check: (audience = teacher) = (teacher_id IS NOT NULL)']
   last_message_at timestamp
-  discarded_at timestamp
   created_at timestamp
   updated_at timestamp
 
   indexes {
+    (school_id, student_id, audience) [unique, note: 'DB migration: UNIQUE WHERE teacher_id IS NULL — one coordination row and one secretary row per child']
+    (school_id, student_id, teacher_id) [unique, note: 'DB migration: UNIQUE WHERE audience = teacher — one row per teacher per child']
     (school_id, last_message_at)
-  }
-}
-
-Table conversation_participants {
-  id integer [primary key, increment]
-  conversation_id integer [not null]
-  school_id integer [not null]
-  participant_type varchar [not null, note: 'Membership | Guardian']
-  participant_id integer [not null]
-  last_read_at timestamp
-  discarded_at timestamp
-  created_at timestamp
-  updated_at timestamp
-
-  indexes {
-    (conversation_id, participant_type, participant_id) [unique, note: 'WHERE discarded_at IS NULL']
   }
 }
 
@@ -1208,17 +1196,35 @@ Table messages {
   id integer [primary key, increment]
   conversation_id integer [not null]
   school_id integer [not null]
-  sender_membership_id integer [note: 'Nullable for system messages']
-  body text [not null, note: 'LGPD: message content']
+  sender_membership_id integer [not null]
+  body text [not null, note: 'LGPD: communication about a child. Immutable. No edited_at, no discard.']
   sent_at timestamp [not null]
-  edited_at timestamp
-  scheduled_for timestamp
-  discarded_at timestamp
   created_at timestamp
   updated_at timestamp
 
   indexes {
     (conversation_id, sent_at)
+  }
+}
+
+// In-app bell. Already in web/db/schema.rb for billing and other kinds.
+// This delivery adds nullable conversation_id. Billing rows leave it null.
+Table notifications {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  user_id integer [not null]
+  kind varchar [not null, note: 'message for this delivery; existing kinds such as contract_signed stay']
+  title varchar [not null]
+  body text
+  read_at timestamp
+  contract_id integer [note: 'Optional. Billing bell. Null for message bells.']
+  conversation_id integer [note: 'Optional. Set when kind = message so the bell opens that chat.']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (user_id, created_at)
+    (user_id, read_at)
   }
 }
 
@@ -1733,6 +1739,7 @@ Table incident_guardians {
   guardian_id integer [note: 'Nullable: a later guardian deletion nullifies rather than cascades, so the historical ata row survives (BR-IN11)']
   name varchar [not null, note: 'Denormalized snapshot of guardian.name at save time — does not follow later changes to the guardian or to the student\'s student_guardians links (BR-IN11)']
   relationship varchar [not null, note: 'Denormalized snapshot of student_guardians.relationship at save time — same non-live note as name (BR-IN11)']
+<<<<<<< HEAD
   created_at timestamp
   updated_at timestamp
 
@@ -1741,6 +1748,38 @@ Table incident_guardians {
   }
 
   Note: 'BR-IN11 snapshot of the guardians recorded on an incident ("ata") at save time — one row per guardian. Distinct from the live student_guardians association: editing or removing a student_guardians link later does not change an already-saved incident_guardians row, since the ata is a historical record, not a derived view.'
+}
+
+Table daily_routine_entries {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  student_id integer [not null]
+  date date [not null]
+  snack_eaten boolean [note: 'null means not yet recorded, distinct from "recorded as not eaten" (false) — BR-DR03 [product decision]']
+  poop_count integer [not null, default: 0]
+  pee_count integer [not null, default: 0]
+  notes text [note: 'LGPD: child-sensitive diaper/toileting content, same NFR-002 scope as incidents.description']
+  status varchar [not null, default: 'draft', note: 'draft | sent — plain two-state flag (BR-DR04), not AASM']
+  sent_at timestamp [note: 'Set on the draft -> sent transition (UC-DR03); never touched by an upsert']
+  sent_by_membership_id integer
+  recorded_by_membership_id integer
+=======
+>>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+<<<<<<< HEAD
+    (student_id, date) [unique, note: 'One entry per student per day (BR-DR01) — upserting again updates the row in place']
+  }
+
+  Note: 'Daily routine note (BC11, "Rotina Infantil"): snack, diaper/bathroom counts, and free-text notes for one child on one day. No discarded_at — rows are upserted in place, never soft-deleted. Sending (status: sent) notifies the student\'s linked guardians once (BR-DR05); editing after send does not revert status or re-notify.'
+=======
+    (incident_id)
+  }
+
+  Note: 'BR-IN11 snapshot of the guardians recorded on an incident ("ata") at save time — one row per guardian. Distinct from the live student_guardians association: editing or removing a student_guardians link later does not change an already-saved incident_guardians row, since the ata is a historical record, not a derived view.'
+>>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
 }
 
 // --- Documents & archive (008) ---
@@ -1889,11 +1928,15 @@ Ref: enrollment_imports.school_id > schools.id
 Ref: enrollment_imports.uploaded_by_id > users.id
 
 Ref: conversations.school_id > schools.id
-Ref: conversation_participants.conversation_id > conversations.id
-Ref: conversation_participants.school_id > schools.id
+Ref: conversations.student_id > students.id
+Ref: conversations.teacher_id > teachers.id
 Ref: messages.conversation_id > conversations.id
 Ref: messages.school_id > schools.id
 Ref: messages.sender_membership_id > memberships.id
+Ref: notifications.school_id > schools.id
+Ref: notifications.user_id > users.id
+Ref: notifications.contract_id > contracts.id
+Ref: notifications.conversation_id > conversations.id
 Ref: announcements.school_id > schools.id
 Ref: announcements.author_membership_id > memberships.id
 Ref: notification_policies.school_id > schools.id

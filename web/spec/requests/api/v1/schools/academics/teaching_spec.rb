@@ -449,4 +449,40 @@ RSpec.describe "Academics: teachers, classes and subjects", type: :request do
       expect(ids).to eq([ maths.id ])
     end
   end
+
+  # Family chat must not use `mine=true`: that filter is class disciplines (the grade book).
+  # A stock teacher only has `teach` and is linked to classes through teaching assignments.
+  describe "assignment=teaching narrowing" do
+    let!(:assigned_class) { create(:school_class, school: school, name: "A") }
+    let!(:other_class) { create(:school_class, school: school, name: "B") }
+    let(:portuguese) { create(:subject, school: school, name: "Português") }
+    let(:maths) { create(:subject, school: school, name: "Matemática") }
+    let(:teacher_user) { create(:user, email: "juliana@example.com") }
+    let!(:teacher_membership) { create(:membership, user: teacher_user, school: school, role: "teacher") }
+    let!(:juliana) { create(:teacher, school: school, email: "juliana@example.com", name: "Juliana Costa") }
+    let(:teacher_headers) { auth_headers_for(teacher_user) }
+
+    before do
+      teacher_template = create_system_templates_for(school).find { |template| template.system_key == "teacher" }
+      create(:staff_profile, membership: teacher_membership, school: school, role_template: teacher_template)
+      create(:teaching_assignment, school: school, teacher: juliana, school_class: assigned_class, subject: portuguese)
+      create(:teaching_assignment, school: school, teacher: juliana, school_class: assigned_class, subject: maths)
+      create(:student, school: school, school_class: assigned_class, name: "Lara Costa")
+      create(:teaching_assignment, school: school, school_class: other_class, subject: maths)
+    end
+
+    it "returns each class a teach-only teacher is assigned to, once" do
+      get "#{base}/school_classes?assignment=teaching", headers: teacher_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"].map { |row| row["id"] }).to eq([ assigned_class.id ])
+    end
+
+    it "does not treat a teaching assignment as a class discipline" do
+      get "#{base}/school_classes?mine=true", headers: teacher_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"]).to eq([])
+    end
+  end
 end

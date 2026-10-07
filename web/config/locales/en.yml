@@ -77,6 +77,22 @@ en:
       daily_routine_sent:
         title: "Daily routine available"
         body: "%{student}'s daily routine is now available."
+    message:
+      title: "New message"
+      body: "Message about %{student}"
+  communication:
+    sender_line: "%{guardian}, %{relationship} of %{student} — %{series}"
+    student_sender_line: "%{student} — %{series}"
+    staff_sender_line: "%{speaker} — %{student} — %{series}"
+    relationships:
+      father: "father"
+      mother: "mother"
+      other: "guardian"
+    roles:
+      coordination: "coordination"
+      secretary: "secretary"
+      director: "direction"
+      teacher: "teacher"
   reports:
     issued_on: "Issued on"
     empty: "No records for the chosen filters."
@@ -172,6 +188,8 @@ en:
       module_disabled: "This module is disabled for this school."
       backoffice_only: "This action is restricted to backoffice operators."
       not_found: "Not found."
+      empty_content: "Write a message before sending."
+      teacher_not_assigned: "This teacher does not teach the child's current class."
       not_implemented: "Not implemented yet."
       portal_not_supported: "Hosted billing portal is not available for this provider."
       subscription_exists: "This school already has a platform subscription."

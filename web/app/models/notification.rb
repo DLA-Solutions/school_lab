@@ -6,6 +6,7 @@ class Notification < ApplicationRecord
   belongs_to :user
   belongs_to :school
   belongs_to :contract, optional: true
+  belongs_to :conversation, optional: true
 
   validates :kind, :title, presence: true
 
