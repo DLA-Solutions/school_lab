@@ -39,6 +39,7 @@ Base: `/api/v1/schools/:school_id/communication`
 |--------|------|-----|----------|
 | `GET` | `/destinations?student_id=` | Linked guardian | Coordination, secretary, and the teachers of the child's current class. Each teacher is one object (`teacher_id`, `name`) even with two subjects. No teacher object when the child has no teacher. |
 | `GET` | `/roster?school_class_id=` | Teacher, secretary, coordination, or director | Children of that class. A teacher sees only a class they have a kept teaching assignment for. Teachers do not use `GET /students` and do not need `manage_people`. Secretary, coordination, and director see any class in the school. |
+| `GET` | `/search?q=` | Teacher, secretary, coordination, or director | Type-ahead, cross-class roster lookup matched by the student's name or any of their guardians' names. Same visibility as `/roster`, widened from one class to every class the actor may see: a teacher only gets hits from classes they currently teach; secretary, coordination, and director get school-wide hits. |
 | `GET` | `/conversations` | Actor's inbox | Rows that actor may see. Optional `audience=coordination` is coordination's "For me" list (pt-BR **Para mim**). Omit `audience` for every conversation that actor may see. |
 | `GET` | `/conversations/:id/messages` | Actor who may see it | Messages in `sent_at` order. |
 | `POST` | `/messages` | Actor who may reply | Find or create the conversation, insert the message, insert bell rows, one transaction. |
@@ -100,6 +101,40 @@ A director does not attach one conversation. `conversation_id` and `sender_line`
 
 An empty class that actor may see returns `200` with `{ "data": [] }`.
 
+`GET /search?q=` — additive UX improvement on top of the roster above, not a change to family-chat
+visibility or business rules (see `messages.md` § Open items). `q` under 2 characters (including
+blank or omitted) returns `200` with `{ "data": [] }` rather than a `422` — this is a type-ahead,
+not a form field. Matching is case-insensitive, on the student's own name or the name of any of
+their kept guardians (reusing the same `name`/`cpf` search behavior as `GET /people/students` and
+`GET /people/guardians`). Results are capped at 20 rows, ordered by student name — this is a
+type-ahead list, not a paginated one, so there is no Pagy envelope.
+
+Each item has the same shape as a `/roster` item for that actor (teacher rows keep `teacher_id`;
+director rows swap it for `destinations`, computed per hit against that hit's own
+`school_class_id` since a search page can mix classes), plus `guardians`: that student's kept
+guardians, each `{ "name": "...", "relationship": "father" | "mother" | "other" }`, ordered
+father, then mother, then other.
+
+```json
+{
+  "data": [
+    {
+      "student_id": 9,
+      "student_name": "Lara Costa",
+      "school_class_id": 310,
+      "conversation_id": null,
+      "sender_line": null,
+      "teacher_id": 12,
+      "guardians": [
+        { "name": "Diego Costa", "relationship": "father" }
+      ]
+    }
+  ]
+}
+```
+
+`/roster` items never include `guardians` — this field is specific to `/search`.
+
 `GET /conversations` items:
 
 ```json
@@ -156,6 +191,10 @@ Errors for these five routes:
 | `403` | `forbidden` | A guardian, or other staff who cannot open the roster |
 | `422` | `teacher_not_assigned` | Requested teacher has no kept teaching assignment on the child's current class |
 | `422` | `empty_content` | Blank `body` |
+
+`GET /search` uses the same `403 forbidden` as the roster for a guardian or other staff who may
+not browse it. It never `404`s or `422`s — a query with no visible match (short query, no hit, a
+foreign school) is simply `200` with `{ "data": [] }`.
 
 Policy denies by default. An unlinked guardian does not create a conversation (`404`). Secretary reads only secretary conversations. A teacher reads only conversations whose `teacher_id` is themselves, and only while assigned to the child's current class. Coordination and director read and reply on every audience. Director is not a destination.
 

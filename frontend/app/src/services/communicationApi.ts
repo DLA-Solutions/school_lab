@@ -74,6 +74,18 @@ export const listRoster = (schoolId: number, schoolClassId: number) => {
   return request<{ data: CommunicationRosterItem[] }>(`${base(schoolId)}/roster?${query}`);
 };
 
+/**
+ * GET /communication/search?q= — cross-class, type-ahead roster lookup by the student's own
+ * name or any of their guardians' names. `q` under 2 characters always returns `{ data: [] }`
+ * (never an error status). Capped at 20 rows, ordered by student name — a type-ahead, not a
+ * paginated list, so there is no `meta`.
+ */
+export const searchRoster = (schoolId: number, q: string) => {
+  const query = new URLSearchParams({ q });
+
+  return request<{ data: CommunicationRosterItem[] }>(`${base(schoolId)}/search?${query}`);
+};
+
 /** GET /communication/conversations/:id/messages — `sent_at` order. */
 export const listMessages = (schoolId: number, conversationId: number) =>
   request<{ data: ConversationMessage[] }>(

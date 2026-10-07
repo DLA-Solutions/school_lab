@@ -115,6 +115,20 @@ const sentMessage = (body: string) => ({
   },
 });
 
+/** Records the `q` of every `/search` request, in order, and answers with `results`. */
+const stubSearch = (results: Record<string, unknown>[] = []) => {
+  const queries: string[] = [];
+
+  server.use(
+    http.get(apiUrl(`${BASE}/search`), ({ request }) => {
+      queries.push(new URL(request.url).searchParams.get('q') ?? '');
+      return HttpResponse.json({ data: results });
+    }),
+  );
+
+  return queries;
+};
+
 const captureSend = () => {
   const posts: unknown[] = [];
   const messageIds: string[] = [];
@@ -531,5 +545,228 @@ describe('StaffCommunication', () => {
     expect(await screen.findByText('Diego, pai da Lara — 1º ano')).toBeInTheDocument();
     expect(pages).toContain('2');
     expect(screen.getByText('Nenhum aluno')).toBeInTheDocument();
+  });
+
+  it('sends one message to every roster student after the teacher confirms a bulk send', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [
+        rosterItem({ student_id: 9, student_name: 'Lara Nogueira', teacher_id: 12 }),
+        rosterItem({ student_id: 10, student_name: 'Theo Nogueira', teacher_id: 12 }),
+      ],
+      conversations: [],
+    });
+    const { posts } = captureSend();
+
+    renderPage([teacherMembership]);
+
+    await user.click(await screen.findByRole('button', { name: 'Enviar para toda a turma' }));
+    expect(
+      screen.getByRole('heading', { name: 'Mensagem para toda a turma' }),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Prova amanhã');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    // The fan-out is gated behind a second, explicit confirmation naming the class and count —
+    // nothing is posted until the teacher confirms it.
+    expect(
+      await screen.findByRole('heading', { name: 'Enviar para toda a turma?' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/enviada para 2 alunos/)).toBeInTheDocument();
+    expect(posts).toEqual([]);
+
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await waitFor(() => {
+      expect(posts).toHaveLength(2);
+    });
+    const sorted = [...(posts as Array<{ student_id: number }>)].sort(
+      (left, right) => left.student_id - right.student_id,
+    );
+    expect(sorted).toEqual([
+      { student_id: 9, audience: 'teacher', teacher_id: 12, body: 'Prova amanhã' },
+      { student_id: 10, audience: 'teacher', teacher_id: 12, body: 'Prova amanhã' },
+    ]);
+  });
+
+  it('keeps the draft when the teacher cancels the bulk send confirmation', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [rosterItem({ student_id: 9, student_name: 'Lara Nogueira', teacher_id: 12 })],
+      conversations: [],
+    });
+    const { posts } = captureSend();
+
+    renderPage([teacherMembership]);
+
+    await user.click(await screen.findByRole('button', { name: 'Enviar para toda a turma' }));
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Reunião hoje');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await user.click(await screen.findByRole('button', { name: 'Cancelar' }));
+
+    expect(posts).toEqual([]);
+    expect(
+      await screen.findByRole('heading', { name: 'Mensagem para toda a turma' }),
+    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toHaveValue('Reunião hoje');
+  });
+
+  it('surfaces which students a bulk send failed for, without blocking the ones that succeeded', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [
+        rosterItem({ student_id: 9, student_name: 'Lara Nogueira', teacher_id: 12 }),
+        rosterItem({ student_id: 10, student_name: 'Theo Nogueira', teacher_id: 12 }),
+      ],
+      conversations: [],
+    });
+
+    server.use(
+      http.get(apiUrl(`${BASE}/conversations/:id/messages`), () => HttpResponse.json({ data: [] })),
+      http.post(apiUrl(`${BASE}/messages`), async ({ request }) => {
+        const payload = (await request.json()) as { student_id: number; body: string };
+        if (payload.student_id === 10) {
+          return HttpResponse.json(
+            {
+              error: {
+                code: 'teacher_not_assigned',
+                message: 'O professor não está vinculado a esse aluno.',
+              },
+            },
+            { status: 422 },
+          );
+        }
+
+        return HttpResponse.json({ data: sentMessage(payload.body) }, { status: 201 });
+      }),
+    );
+
+    renderPage([teacherMembership]);
+
+    await user.click(await screen.findByRole('button', { name: 'Enviar para toda a turma' }));
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Aviso');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await user.click(await screen.findByRole('button', { name: 'Enviar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Theo Nogueira');
+    // The composer reopens with the draft intact so the teacher can see what happened and retry.
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toHaveValue('Aviso');
+  });
+});
+
+describe('StaffCommunication search', () => {
+  it('waits for typing to settle before calling search, then shows guardians on a hit', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [],
+    });
+    const queries = stubSearch([
+      rosterItem({
+        student_id: 9,
+        student_name: 'Lara Nogueira',
+        guardians: [
+          { name: 'Carlos Barbosa', relationship: 'father' },
+          { name: 'Mariana Barbosa', relationship: 'mother' },
+        ],
+      }),
+    ]);
+
+    renderPage();
+
+    await screen.findByRole('combobox', { name: 'Turma' });
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'Buscar aluno ou responsável' }),
+      'Mariana',
+    );
+
+    await waitFor(() => expect(queries).toContain('Mariana'));
+    // One call for the settled term — not one per keystroke.
+    expect(queries).toEqual(['Mariana']);
+
+    expect(await screen.findByText('Lara Nogueira')).toBeInTheDocument();
+    expect(screen.getByText('Pai: Carlos Barbosa · Mãe: Mariana Barbosa')).toBeInTheDocument();
+    // Cross-class search replaces the single-class picker while it is active.
+    expect(screen.queryByRole('combobox', { name: 'Turma' })).not.toBeInTheDocument();
+  });
+
+  it('opens a search hit the same way a class roster row opens', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [],
+    });
+    stubSearch([
+      rosterItem({
+        student_id: 9,
+        student_name: 'Lara Nogueira',
+        guardians: [{ name: 'Carlos Barbosa', relationship: 'father' }],
+      }),
+    ]);
+    const { posts } = captureSend();
+
+    renderPage();
+    await screen.findByRole('combobox', { name: 'Turma' });
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar aluno ou responsável' }), 'Lara');
+    await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Oi');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await waitFor(() => {
+      expect(posts).toEqual([{ student_id: 9, audience: 'secretary', body: 'Oi' }]);
+    });
+  });
+
+  it('tells the user nothing matched instead of leaving the list blank', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [],
+    });
+    stubSearch([]);
+
+    renderPage();
+    await screen.findByRole('combobox', { name: 'Turma' });
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'Buscar aluno ou responsável' }),
+      'Ninguém',
+    );
+
+    expect(await screen.findByText('Nenhum resultado')).toBeInTheDocument();
+    expect(screen.getByText('Nada encontrado para "Ninguém".')).toBeInTheDocument();
+  });
+
+  it('falls back to the Turma-filtered roster once the search box is cleared', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [rosterItem({ student_id: 11, student_name: 'Ana Souza' })],
+      conversations: [],
+    });
+    stubSearch([
+      rosterItem({ student_id: 9, student_name: 'Lara Nogueira', guardians: [] }),
+    ]);
+
+    renderPage();
+    const searchField = await screen.findByRole('textbox', {
+      name: 'Buscar aluno ou responsável',
+    });
+
+    await user.type(searchField, 'Lara');
+    expect(await screen.findByRole('button', { name: 'Lara Nogueira' })).toBeInTheDocument();
+
+    await user.clear(searchField);
+
+    expect(await screen.findByRole('combobox', { name: 'Turma' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ana Souza' })).toBeInTheDocument();
   });
 });

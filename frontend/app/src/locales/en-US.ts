@@ -1438,6 +1438,18 @@ const enUS: Messages = {
   'communication.empty.children.title': 'No linked children',
   'communication.empty.children.description':
     'Conversations appear when a child is linked to you.',
+  'communication.bulk.button': 'Send to the whole class',
+  'communication.bulk.composerTitle': 'Message to the whole class',
+  'communication.bulk.composerHelp':
+    'This message will be sent individually to each of the {count} students in {class}.',
+  'communication.bulk.confirmTitle': 'Send to the whole class?',
+  'communication.bulk.confirmMessage':
+    'This message will be sent to {count} students in {class}. Sent messages cannot be edited or deleted.',
+  'communication.bulk.partialError': 'Could not send to {count} student(s): {names}.',
+  'communication.search.placeholder': 'Search by student, mother, or father',
+  'communication.search.aria': 'Search student or guardian',
+  'communication.search.empty.title': 'No results',
+  'communication.search.empty.description': 'Nothing found for "{query}".',
 
   'error404.title': 'Page not found',
   'error404.description': 'The page you are looking for does not exist or has been moved.',

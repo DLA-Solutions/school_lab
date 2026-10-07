@@ -363,6 +363,12 @@ AC-M12
 - [ ] Whether staff reads of a family thread are access-audited — same LGPD section. Not built here.
 - [ ] `student_guardians.relationship` in `schema.dbml` still says `parent | guardian | other`. Live rows and BR-M04 use `father | mother | other`. This cut does not migrate that column.
 - [x] Bell recipients are every user who can see the conversation, except the sender. Coordination and director are notified on every audience. Secretary only when `audience` is `secretary`. The named teacher only while they still have a kept `teaching_assignment` on the child's current class. Linked guardians always, except the sender.
+- [x] `GET /communication/search?q=` was added after this PRD was frozen — a staff-facing,
+  name-based type-ahead (student name or a guardian's name) so staff can jump to starting a
+  conversation without first picking a `Turma`. It is additive UX only: visibility mirrors
+  `GET /roster` widened from one class to every class the actor may see, and it changes no
+  conversation semantics, business rule, or access boundary defined above. See
+  [`communication.md`](../../api/v1/communication.md) § Family chat for the contract.
 
 ---
 

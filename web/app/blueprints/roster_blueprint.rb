@@ -10,4 +10,10 @@ class RosterBlueprint < Blueprinter::Base
   field :destinations, if: ->(_field_name, row, _options) { !row.destinations.nil? } do |row|
     DestinationBlueprint.render_as_hash(row.destinations)
   end
+
+  # Only SearchRosterService::Row carries this — ListRosterService::Row has no `guardians`
+  # member, so the by-class roster response shape is unchanged.
+  field :guardians, if: ->(_field_name, row, _options) { row.respond_to?(:guardians) } do |row|
+    RosterGuardianBlueprint.render_as_hash(row.guardians)
+  end
 end

@@ -112,7 +112,7 @@ const MessageThread = ({
         )}
       </Box>
 
-      <Stack spacing={0.75} sx={{ p: 1.5 }}>
+      <Stack direction="column" spacing={0.75} sx={{ p: 1.5 }}>
         {sendDisabledReason ? (
           <Typography variant="body2" color="text.secondary">
             {sendDisabledReason}
@@ -134,7 +134,13 @@ const MessageThread = ({
               }
             }}
           />
-          <Button variant="contained" onClick={onSend} disabled={!canSend}>
+          <Button
+            variant="contained"
+            size="medium"
+            onClick={onSend}
+            disabled={!canSend}
+            sx={{ px: 3.5, flexShrink: 0 }}
+          >
             {t('communication.send')}
           </Button>
         </Stack>

@@ -1455,6 +1455,18 @@ const ptBR = {
   'communication.empty.children.title': 'Nenhum filho vinculado',
   'communication.empty.children.description':
     'As conversas aparecem quando há um filho na sua família.',
+  'communication.bulk.button': 'Enviar para toda a turma',
+  'communication.bulk.composerTitle': 'Mensagem para toda a turma',
+  'communication.bulk.composerHelp':
+    'Esta mensagem será enviada individualmente para cada um dos {count} alunos de {class}.',
+  'communication.bulk.confirmTitle': 'Enviar para toda a turma?',
+  'communication.bulk.confirmMessage':
+    'Esta mensagem será enviada para {count} alunos de {class}. Mensagens enviadas não podem ser editadas nem excluídas.',
+  'communication.bulk.partialError': 'Não foi possível enviar para {count} aluno(s): {names}.',
+  'communication.search.placeholder': 'Buscar por aluno, mãe ou pai',
+  'communication.search.aria': 'Buscar aluno ou responsável',
+  'communication.search.empty.title': 'Nenhum resultado',
+  'communication.search.empty.description': 'Nada encontrado para "{query}".',
 
   'error404.title': 'Página não encontrada',
   'error404.description': 'A página que você está buscando não existe ou foi movida.',
