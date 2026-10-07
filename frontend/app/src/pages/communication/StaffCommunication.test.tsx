@@ -726,6 +726,69 @@ describe('StaffCommunication search', () => {
     });
   });
 
+  it('still shows a search hit that already has a conversation, and opens that existing thread', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [
+        {
+          id: 3,
+          student_id: 9,
+          student_name: 'Lara Nogueira',
+          audience: 'secretary',
+          teacher_id: null,
+          teacher_name: null,
+          last_message_at: '2026-10-06T14:00:00.000Z',
+          last_message_body: 'Pode buscar mais cedo?',
+          school_class_id: 310,
+          sender_line: 'Diego, pai da Lara — 1º ano',
+        },
+      ],
+    });
+    stubSearch([
+      rosterItem({
+        student_id: 9,
+        student_name: 'Lara Nogueira',
+        guardians: [{ name: 'Carlos Barbosa', relationship: 'father' }],
+      }),
+    ]);
+    const messageIds: string[] = [];
+    server.use(
+      http.get(apiUrl(`${BASE}/conversations/:id/messages`), ({ params }) => {
+        messageIds.push(String(params.id));
+        return HttpResponse.json({
+          data: [
+            {
+              id: 1,
+              sender_membership_id: 11,
+              sender_line: 'Diego, pai da Lara',
+              body: 'Pode buscar mais cedo?',
+              sent_at: '2026-10-06T14:00:00.000Z',
+            },
+          ],
+        });
+      }),
+    );
+
+    renderPage();
+    await screen.findByRole('combobox', { name: 'Turma' });
+
+    await user.type(screen.getByRole('textbox', { name: 'Buscar aluno ou responsável' }), 'Lara');
+    // The hit still shows even though a conversation for this student already exists — search
+    // replaces the inbox list while active, so filtering it out here would hide the very
+    // conversation the search box exists to find.
+    await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
+    ).toBeInTheDocument();
+    // Opens the existing conversation (id 3) with its prior message — not a blank new thread.
+    expect(await screen.findByText('Pode buscar mais cedo?')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(messageIds).toEqual(['3']);
+    });
+  });
+
   it('tells the user nothing matched instead of leaving the list blank', async () => {
     stubInbox({
       classes: [schoolClass(310, 'matutino', 'A')],

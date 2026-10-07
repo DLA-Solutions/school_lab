@@ -682,7 +682,6 @@ const StaffCommunication = () => {
       );
     });
   const starters = filterStarters(roster);
-  const searchStarters = filterStarters(searchResults);
 
   const currentSchoolClass = classes.find((item) => item.id === classId) ?? null;
   const currentClassLabel = currentSchoolClass ? schoolClassLabel(currentSchoolClass, t) : '';
@@ -733,18 +732,7 @@ const StaffCommunication = () => {
 
   return (
     <Stack direction="column" gap={3.5}>
-      <PageHeader
-        title={t('communication.title')}
-        actions={
-          <SearchField
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder={t('communication.search.placeholder')}
-            ariaLabel={t('communication.search.aria')}
-            sx={{ width: 280 }}
-          />
-        }
-      />
+      <PageHeader title={t('communication.title')} />
 
       {pageError && (
         <ErrorBanner
@@ -796,8 +784,142 @@ const StaffCommunication = () => {
                   </Stack>
                 )}
 
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                    setOpen(null);
+                    setDraft('');
+                    setSearchQuery('');
+                  }}
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  {t('communication.start.heading')}
+                </Button>
+
+                {canBulkSend && (
+                  <Button
+                    size="small"
+                    variant="contained"
+                    disabled={bulkSending}
+                    onClick={() => {
+                      setBulkDraft('');
+                      setBulkError(null);
+                      setBulkOpen(true);
+                    }}
+                    startIcon={bulkSending ? <CircularProgress size={14} /> : undefined}
+                    sx={{ alignSelf: 'flex-start' }}
+                  >
+                    {t('communication.bulk.button')}
+                  </Button>
+                )}
+
+                {!isSearching && classes.length > 0 && (
+                  <TextField
+                    id="communication-class"
+                    label={t('communication.class')}
+                    value={classId == null ? '' : String(classId)}
+                    onChange={(event) => {
+                      setClassId(Number(event.target.value));
+                      setOpen((current) => (current?.source === 'roster' ? null : current));
+                      setDraft('');
+                    }}
+                    variant="filled"
+                    size="small"
+                    select
+                    fullWidth
+                  >
+                    {classes.map((schoolClass) => (
+                      <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
+                        {schoolClassLabel(schoolClass, t)}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+
+                {/*
+                  Browse-by-class path: the Turma dropdown above and this roster list are how
+                  someone without an exact name to search picks a student to start with.
+                */}
+                {!isSearching &&
+                  (rosterLoading ? (
+                    <Box display="flex" justifyContent="center" py={4}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : classId != null && roster.length === 0 ? (
+                    <EmptyState
+                      title={t('communication.empty.roster.title')}
+                      description={t('communication.empty.roster.description')}
+                    />
+                  ) : (
+                    starters.map((row) => (
+                      <ConversationRow
+                        key={row.student_id}
+                        label={row.student_name}
+                        selected={open?.source === 'roster' && open.studentId === row.student_id}
+                        onClick={() => {
+                          setOpen({
+                            source: 'roster',
+                            studentId: row.student_id,
+                            destinationKey: null,
+                          });
+                          setDraft('');
+                        }}
+                      />
+                    ))
+                  ))}
+
+                <SearchField
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={t('communication.search.placeholder')}
+                  ariaLabel={t('communication.search.aria')}
+                  fullWidth
+                />
+
                 <Typography variant="subtitle2">{t('communication.inbox.heading')}</Typography>
-                {conversationsLoading ? (
+
+                {/*
+                  Search narrows this list the same way it narrows Students.tsx/Guardians.tsx: a
+                  hit is just another CommunicationRosterItem, so it reuses the exact
+                  onClick/selection logic a roster row uses to open — or start — a conversation.
+                  Unlike the browse-by-class list above, this one is not filtered against the
+                  inbox: it *replaces* the inbox while searching, so a hit with an existing
+                  conversation must still show (and opening it resolves to that thread via
+                  `rosterThreadId`) — filtering it out here would hide the very conversation the
+                  search box exists to find.
+                */}
+                {isSearching ? (
+                  searchLoading ? (
+                    <Box display="flex" justifyContent="center" py={2}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : searchResults.length === 0 ? (
+                    <EmptyState
+                      title={t('communication.search.empty.title')}
+                      description={t('communication.search.empty.description', {
+                        query: trimmedSearchQuery,
+                      })}
+                    />
+                  ) : (
+                    searchResults.map((row) => (
+                      <ConversationRow
+                        key={row.student_id}
+                        label={row.student_name}
+                        detail={guardianDetail(row, t)}
+                        selected={open?.source === 'roster' && open.studentId === row.student_id}
+                        onClick={() => {
+                          setOpen({
+                            source: 'roster',
+                            studentId: row.student_id,
+                            destinationKey: null,
+                          });
+                          setDraft('');
+                        }}
+                      />
+                    ))
+                  )
+                ) : conversationsLoading ? (
                   <Box display="flex" justifyContent="center" py={2}>
                     <CircularProgress size={24} />
                   </Box>
@@ -833,110 +955,6 @@ const StaffCommunication = () => {
                       />
                     );
                   })
-                )}
-
-                <Typography variant="subtitle2">{t('communication.start.heading')}</Typography>
-
-                {!isSearching && classes.length > 0 && (
-                  <TextField
-                    id="communication-class"
-                    label={t('communication.class')}
-                    value={classId == null ? '' : String(classId)}
-                    onChange={(event) => {
-                      setClassId(Number(event.target.value));
-                      setOpen((current) => (current?.source === 'roster' ? null : current));
-                      setDraft('');
-                    }}
-                    variant="filled"
-                    size="small"
-                    select
-                    fullWidth
-                  >
-                    {classes.map((schoolClass) => (
-                      <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
-                        {schoolClassLabel(schoolClass, t)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-
-                {canBulkSend && (
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    disabled={bulkSending}
-                    onClick={() => {
-                      setBulkDraft('');
-                      setBulkError(null);
-                      setBulkOpen(true);
-                    }}
-                    startIcon={bulkSending ? <CircularProgress size={14} /> : undefined}
-                    sx={{ alignSelf: 'flex-start' }}
-                  >
-                    {t('communication.bulk.button')}
-                  </Button>
-                )}
-
-                {/*
-                  Search is additive on top of the Turma-filtered roster below, not a parallel
-                  "opening" path — a hit is just another CommunicationRosterItem, so the row below
-                  reuses the exact same onClick/selection logic as a class roster row.
-                */}
-                {isSearching ? (
-                  searchLoading ? (
-                    <Box display="flex" justifyContent="center" py={4}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : searchResults.length === 0 ? (
-                    <EmptyState
-                      title={t('communication.search.empty.title')}
-                      description={t('communication.search.empty.description', {
-                        query: trimmedSearchQuery,
-                      })}
-                    />
-                  ) : (
-                    searchStarters.map((row) => (
-                      <ConversationRow
-                        key={row.student_id}
-                        label={row.student_name}
-                        detail={guardianDetail(row, t)}
-                        selected={open?.source === 'roster' && open.studentId === row.student_id}
-                        onClick={() => {
-                          setOpen({
-                            source: 'roster',
-                            studentId: row.student_id,
-                            destinationKey: null,
-                          });
-                          setDraft('');
-                        }}
-                      />
-                    ))
-                  )
-                ) : rosterLoading ? (
-                  <Box display="flex" justifyContent="center" py={4}>
-                    <CircularProgress size={24} />
-                  </Box>
-                ) : classId != null && roster.length === 0 ? (
-                  <EmptyState
-                    title={t('communication.empty.roster.title')}
-                    description={t('communication.empty.roster.description')}
-                  />
-                ) : (
-                  starters.map((row) => (
-                    <ConversationRow
-                      key={row.student_id}
-                      label={row.student_name}
-                      selected={open?.source === 'roster' && open.studentId === row.student_id}
-                      onClick={() => {
-                        setOpen({
-                          source: 'roster',
-                          studentId: row.student_id,
-                          destinationKey: null,
-                        });
-                        setDraft('');
-                      }}
-                    />
-                  ))
                 )}
               </>
             }
