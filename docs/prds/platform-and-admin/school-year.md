@@ -40,10 +40,11 @@ holidays** that academic, billing, enrollment, and archive domains use as their 
 
 | Actor | Surfaces | Notes |
 |-------|----------|-------|
-| director, owner | Web SPA (`/app`) | Create, activate, and archive school years; manage periods and holidays (`manage_school_settings`) |
+| director, owner | Web SPA (`/app`) | Create, activate, and archive school years; manage periods (`manage_school_settings`) |
+| director, coordenação, secretaria | Web SPA (`/app`) | Manage holidays and instructional days (`manage_calendar`, BR-SY05/BR-SY10) `[product decision 2026-10-07]` — broader than year/period structural settings |
 | staff, teacher | Web SPA + mobile | Read active year, periods, and holidays |
 | backoffice | Web SPA (`/backoffice`) | Create first school year during provisioning (`provision_school`) |
-| guardian | — | No Platform W1 access — `403 forbidden` on all routes |
+| guardian | — | No direct Platform route access — `403 forbidden` on `/school_years/*`. Holidays and instructional days still reach guardians read-only through the merged feed in [`calendar.md`](calendar.md) BR-CA07, not through this BC's own routes |
 
 Detail: [`docs/actors-and-surfaces.md`](../../actors-and-surfaces.md).
 
@@ -86,8 +87,11 @@ may switch to `bimester` at year create; infantil may use fewer periods via `cus
 
 BR-SY05
 
-**Holidays** (`school_holidays`): `date`, `name`, optional `applies_to_attendance` boolean.
-Holidays suppress attendance expectations in academic BC1 `[product decision]`.
+**Holidays** (`school_holidays`): `date`, `name`, optional `applies_to_attendance` boolean, and
+`category` ∈ `holiday | recess | other` (default `holiday`) `[product decision 2026-10-07]` — display
+grouping only ("feriado" vs "recesso" vs other non-school days); `category` does not change
+`applies_to_attendance` semantics, which remains an independent field. Holidays suppress attendance
+expectations in academic BC1 `[product decision]`.
 
 BR-SY06
 
@@ -146,12 +150,13 @@ Flow
 
 ### UC-SY03 — Manage holidays
 
-Input: holiday list CRUD.
+Input: holiday list CRUD, including `category` (BR-SY05).
 
 Flow
 
-1. Upsert holidays for active or draft year.
-2. Academic attendance jobs consult holiday table.
+1. Validate `manage_calendar` `[product decision 2026-10-07]`.
+2. Upsert holidays for active or draft year.
+3. Academic attendance jobs consult holiday table.
 
 ### UC-SY04 — Resolve active year (internal)
 
@@ -167,7 +172,8 @@ a time from the admin's day-by-day screen.
 
 Flow
 
-1. Validate `manage_school_settings`.
+1. Validate `manage_calendar` `[product decision 2026-10-07]` — was `manage_school_settings`; widened
+   so coordenação and secretaria, not only director/owner, can keep the calendar current.
 2. Upsert `school_instructional_days` rows for the given dates (BR-SY10); dates not included are
    left as they were (still undecided, if they always were).
 3. Academic BC's lesson-plan calendar (`academic/lesson-plans.md` UC-LP01) reads this per class's
@@ -177,18 +183,23 @@ Flow
 
 ## API
 
-**Frozen contract (Phase 4C.1):** [`docs/api/v1/platform-and-admin.md`](../../api/v1/platform-and-admin.md) § School years, Academic periods, Holidays.
+**Frozen contract (Phase 4C.1):** [`docs/api/v1/platform-and-admin.md`](../../api/v1/platform-and-admin.md) § School years, Academic periods, Holidays. Routes and payload shapes are unchanged by this
+PRD's 2026-10-07 update — only the **authorization key** for the holidays and instructional-days
+rows narrows from `manage_school_settings` to the new `manage_calendar` key (plus `category` added
+to the holiday payload); the frozen API narrative doc needs the matching edit before/alongside the
+`web/` policy change.
 
-All routes are tenant-scoped under `/api/v1/schools/:school_id`. Mutations require
-`manage_school_settings` (director system template or owner). Reads require any active staff
-membership.
+All routes are tenant-scoped under `/api/v1/schools/:school_id`. School year and period mutations
+require `manage_school_settings` (director system template or owner); holiday and instructional-day
+mutations require `manage_calendar` `[product decision 2026-10-07]` (director, coordenação, or
+secretaria system template, or owner). Reads require any active staff membership.
 
 | Area | Summary |
 |------|---------|
-| School years | List, create, show, update (draft only), delete, activate, archive, `GET /school_years/active` |
-| Academic periods | List/create under year; PATCH dates on draft year only — closure via Academic BC6 |
-| Holidays | Nested CRUD under `/school_years/:year_id/holidays`; flat PATCH/DELETE on `/holidays/:id` |
-| Instructional days *(new, BR-SY10/UC-SY05)* | `GET/PUT /school_years/:year_id/instructional_days` — bulk read/write `{date, instructional}` pairs |
+| School years | List, create, show, update (draft only), delete, activate, archive, `GET /school_years/active` — `manage_school_settings` |
+| Academic periods | List/create under year; PATCH dates on draft year only — closure via Academic BC6 — `manage_school_settings` |
+| Holidays | Nested CRUD under `/school_years/:year_id/holidays`; flat PATCH/DELETE on `/holidays/:id` — `manage_calendar`, includes `category` (BR-SY05) |
+| Instructional days *(BR-SY10/UC-SY05)* | `GET/PUT /school_years/:year_id/instructional_days` — bulk read/write `{date, instructional}` pairs — `manage_calendar` |
 
 Do not implement flat `/api/v1/school_years` paths — superseded by tenant-scoped routes above.
 
@@ -220,7 +231,7 @@ Standard envelope per [`docs/api/README.md`](../../api/README.md). Full catalog 
 |--------|---------|
 | `school_years` | Ano letivo container |
 | `academic_periods` | Bimester/trimester boundaries |
-| `school_holidays` | Non-school days |
+| `school_holidays` | Non-school days; `category` ∈ `holiday \| recess \| other` (BR-SY05) |
 | `school_instructional_days` *(new, BR-SY10)* | Explicit day-by-day instructional marking, consumed by `academic/lesson-plans.md` |
 | `schools.timezone` | IANA timezone inherited by year/calendar operations |
 
@@ -248,7 +259,8 @@ Academic BC6 owns closure transitions.
 
 | Action | Permission key |
 |--------|----------------|
-| CRUD years, periods, holidays | `manage_school_settings` — director system template or owner (see permissions PRD appendix) |
+| CRUD years, periods | `manage_school_settings` — director system template or owner (see permissions PRD appendix) |
+| CRUD holidays, instructional days | `manage_calendar` — director, coordenação, or secretaria system template, or owner `[product decision 2026-10-07]` (see permissions PRD appendix) |
 | Read active year | All active staff memberships |
 
 Backoffice may configure during `provisioning` via `provision_school` (identity BR-O03).
@@ -291,6 +303,15 @@ AC-SY05 *(BR-SY10)*
       never defaults to instructional.
 - Source: `[product decision]`, consumed by [`academic/lesson-plans.md`](../academic/lesson-plans.md) AC-LP02
 
+AC-SY06 *(`manage_calendar`, product decision 2026-10-07)*
+
+- [ ] Given a staff member holds the coordenação or secretaria system template (not director, not
+      owner), When they upsert a holiday (with `category`) or mark instructional days, Then the
+      request succeeds — `manage_school_settings` is not required for these two actions.
+- [ ] Given a plain teacher membership (no `manage_calendar`), When they attempt either mutation,
+      Then the API returns `403`.
+- Source: `[product decision 2026-10-07]`
+
 ---
 
 ## Open items
@@ -300,6 +321,14 @@ AC-SY05 *(BR-SY10)*
 - [ ] Whether financial year can diverge from academic year — MVP: same container.
 - [ ] Whether marking a date instructional that is also a `school_holidays` row should be blocked
       outright or just flagged in the admin UI (BR-SY10).
+- [ ] **Code gap (2026-10-07):** `web/app/policies/school_instructional_day_policy.rb` and
+      `web/app/policies/holiday_policy.rb` still gate on `manage_school_settings`; no
+      `manage_calendar` permission key exists yet in `web/` (only `manage_school_settings`,
+      `manage_billing`, `manage_people`, `manage_enrollment`, `manage_documents`, `manage_academic`,
+      `approve_lesson_plans`, `moderate_messages`, `teach`, `view_billing_summary` are implemented).
+      Shipping AC-SY06 needs: the new permission key in code + `SYSTEM_TEMPLATES` registry, a
+      migration adding `school_holidays.category`, and both policies updated to `manage_calendar` —
+      follow-up for **migration-agent** + **policy-agent** via **rails-implementer**.
 
 ---
 

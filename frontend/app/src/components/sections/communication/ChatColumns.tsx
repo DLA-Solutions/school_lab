@@ -5,6 +5,8 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { CHAT_PANEL_HEIGHT_PX } from './chatPanelLayout';
 
+const THREAD_HEIGHT = { xs: CHAT_PANEL_HEIGHT_PX, md: '100%' } as const;
+
 interface ChatColumnsProps {
   list: ReactNode;
   thread: ReactNode;
@@ -14,13 +16,19 @@ interface ChatColumnsProps {
   backLabel: string;
 }
 
-// The thread pane's messages only scroll inside their own pane when something in this ancestor
-// chain actually stops growing — an `overflow: auto` box under an unbounded parent just grows
-// forever. `CHAT_PANEL_HEIGHT_PX` is that bound, and it is the exact same number the conversation
-// list next to it caps its own scroll area at (chatPanelLayout.ts) — fixed, not viewport-relative
-// — so the two columns render as one matched pair at the same height instead of two numbers that
-// happen to look close. `alignItems: 'start'` keeps the list column (sized to its own content,
-// capped independently below) from being stretched to match this height, or vice versa.
+// On a computer the list column's real height is whatever it stacks today — scope toggles,
+// start-conversation buttons, the Turma select, two independently-capped scroll boxes
+// (chatPanelLayout.ts), the search field — which varies by role and is taller than any single one
+// of those boxes. Rather than guess that total, the grid row is left to size itself to the taller
+// column (`alignItems` defaults to `stretch`, so we don't override it to `start` here), and the
+// thread column stretches to match at `md` and up — `height: '100%'` of the grid area, not a
+// number. Below `md` only one column shows at a time (`showList`/`showThread`), so there is no
+// taller sibling to stretch to match; the thread pane keeps the fixed `CHAT_PANEL_HEIGHT_PX` there,
+// same as before, so its message pane still has a bound to scroll inside of.
+//
+// `minHeight: 0` is required either way — without it a stretched flex/grid item sizes to its
+// content's natural height instead of the constraint it was just given, which would let the
+// message pane's `overflow: auto` box grow to fit every message instead of actually scrolling.
 
 /**
  * Two columns on a computer, one on a phone: the list, then the thread, with a way back.
@@ -37,7 +45,6 @@ const ChatColumns = ({ list, thread, threadOpen, onBack, backLabel }: ChatColumn
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: 'minmax(220px, 320px) minmax(0, 1fr)' },
         gap: 2,
-        alignItems: 'start',
       }}
     >
       {showList && (
@@ -55,7 +62,7 @@ const ChatColumns = ({ list, thread, threadOpen, onBack, backLabel }: ChatColumn
             minWidth: 0,
             minHeight: 0,
             gap: 1,
-            height: CHAT_PANEL_HEIGHT_PX,
+            height: THREAD_HEIGHT,
           }}
         >
           {narrow && threadOpen && (

@@ -125,7 +125,7 @@ ownership to `frontend/backoffice`.
 | `Comunicação` | MVP on web and mobile; mobile is priority for push-driven use, while any web destination stays hidden until implemented | [`communication/`](prds/communication/index.md) |
 | `Falar com o Professor` | One family-scoped conversation entry point; recipient must be an assigned teacher | Communication composer/thread contract |
 | `Falar com a Coordenação` | Same conversation entry point with a school/coordination recipient; not a separate authorization model | Communication composer/thread contract |
-| `Calendário` | MVP read-only target, hidden until a guardian calendar-read contract and route exist | School calendar/event feed; no staff calendar-edit route is exposed |
+| `Calendário` | MVP read-only target; contract specified 2026-10-07 (`GET /me/calendar/events`), still hidden until the route and frontend screen are implemented | [`platform-and-admin/calendar.md`](prds/platform-and-admin/calendar.md) BR-CA07/UC-CA04; no guardian calendar-edit route is exposed |
 | `Financeiro` | Group label; no standalone route | **Meus boletos**, payment history, and **Imposto de renda** |
 | `Meus boletos` | MVP, web first; visible when implemented | [`billing/guardian-portal.md`](prds/billing/guardian-portal.md) |
 | `Histórico de pagamento` | MVP within **Meus boletos**, not a duplicate top-level item | Paid/history filter in the guardian billing portal |

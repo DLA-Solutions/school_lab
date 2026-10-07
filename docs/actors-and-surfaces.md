@@ -108,6 +108,9 @@ memberships. Authorization remains server-side through Pundit and family/school 
   [elementary/high school]
 - Send and receive messages with the teacher and the school (text + image).
   [all segments — priority in early childhood]
+- View the school calendar read-only — holidays, instructional days, and institutional events
+  (internal games, exams, pedagogical days); no staff-only events, no edit access
+  (`[product decision 2026-10-07]`, [`prds/platform-and-admin/calendar.md`](prds/platform-and-admin/calendar.md) BR-CA07).
 - Receive push notifications (messages, attendance absence, notices).
 - View and pay boletos.
 - Access the student's documents.

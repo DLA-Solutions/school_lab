@@ -132,9 +132,15 @@ BR-P02
 
 Permission keys are a **fixed enum versioned in code** — schools cannot invent custom keys.
 Initial keys: `manage_school_settings`, `manage_billing`, `manage_people`, `manage_enrollment`,
-`manage_documents`, `manage_academic`, `approve_lesson_plans`, `moderate_messages`, `teach`,
-`view_billing_summary`. `manage_academic` is the staff key for school-wide academic configuration,
-attendance review/override, grade launch/override, period closure, and report-card publication.
+`manage_documents`, `manage_academic`, `manage_calendar`, `approve_lesson_plans`,
+`moderate_messages`, `teach`, `view_billing_summary`. `manage_academic` is the staff key for
+school-wide academic configuration, attendance review/override, grade launch/override, period
+closure, and report-card publication. `manage_calendar` is the staff key for school-year holidays
+and instructional days ([`platform-and-admin/school-year.md`](../platform-and-admin/school-year.md)
+BR-SY05/BR-SY10) and institutional calendar events
+([`platform-and-admin/calendar.md`](../platform-and-admin/calendar.md) BR-CA01/BR-CA03) — deliberately
+broader than `manage_school_settings` (director/owner only) so coordenação and secretaria can keep
+the calendar current `[product decision 2026-10-07]`.
 Teacher write actions still require `teach` plus class/subject assignment; canonical capability ids
 such as `academic.record_attendance` and `academic.enter_grades` are not permission keys. Catalog is
 exposed read-only via `GET permission_definitions` (from code registry in MVP).
@@ -287,6 +293,7 @@ Provisioned per school from `SYSTEM_TEMPLATES` registry. Schools may edit these 
 | `manage_enrollment` | ✓ | ✓ | — | — |
 | `manage_documents` | ✓ | ✓ | segment | — |
 | `manage_academic` | ✓ | — | ✓ | — |
+| `manage_calendar` | ✓ | ✓ | ✓ | — |
 | `approve_lesson_plans` | ✓ | — | ✓ | — |
 | `moderate_messages` | ✓ | — | ✓ | — |
 | `teach` | — | — | if teaches | ✓ |

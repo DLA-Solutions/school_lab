@@ -1680,10 +1680,10 @@ capabilities:
     label: "Configure school year and calendar periods"
     domain: platform
     actors: [staff]
-    staff_templates: [secretary]
+    staff_templates: [secretary, coordinator]
     surfaces: [web, mobile]
     phase: MVP
-    school_lab_decision: "Ano letivo, feriados, and period boundaries drive academic and billing cycles."
+    school_lab_decision: "Ano letivo, feriados, and period boundaries drive academic and billing cycles. Holidays/instructional days (not year/period creation) also open to coordenação via `manage_calendar` [product decision 2026-10-07]."
     prd_target: prds/platform-and-admin/school-year.md
     aliases: []
   - id: platform.manage_multi_unit
@@ -1708,10 +1708,11 @@ capabilities:
   - id: platform.manage_school_calendar
     label: "Manage school calendar and personal events"
     domain: platform
-    actors: [staff, teacher]
+    actors: [staff, teacher, guardian]
+    staff_templates: [director, secretary, coordinator]
     surfaces: [web, mobile]
     phase: MVP
-    school_lab_decision: "Institutional calendar plus staff personal events; comms events sync later."
+    school_lab_decision: "Institutional calendar plus staff personal events; comms events sync later. Guardians get read-only institutional-event access; institutional CRUD open to director, secretaria, and coordenação via `manage_calendar` [product decision 2026-10-07]."
     prd_target: prds/platform-and-admin/calendar.md
     aliases: []
   - id: platform.view_analytics_dashboard

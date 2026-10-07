@@ -5,7 +5,9 @@
 > Capability IDs: `academic.manage_lesson_plan`
 > Related BCs: [`diary.md`](diary.md) (BC4 — intentionally separate, see Context),
 > [`curriculum.md`](curriculum.md) (`class_discipline`), platform
-> [`school-year.md`](../platform-and-admin/school-year.md) (instructional-days calendar, BR-SY10)
+> [`school-year.md`](../platform-and-admin/school-year.md) (instructional-days calendar, BR-SY10),
+> [`platform-and-admin/calendar.md`](../platform-and-admin/calendar.md) (holidays, institutional
+> events — BR-LP09)
 > Modeling: *(pending — `docs/modeling/007-academic.md`)*
 > API narrative: *(pending — `docs/api/v1/academic.md`)*
 
@@ -15,7 +17,10 @@
 
 Let a teacher write and send a short **lesson plan** (plano de aula) for one class, one subject,
 and one instructional day, from a yearly calendar view — and let an administrator mark which
-calendar days are instructional for teachers to plan against.
+calendar days are instructional for teachers to plan against. That same yearly view also surfaces
+holidays, recesses, and institutional events (internal games, exams) so the teacher sees the
+**complete** school calendar while planning, not just the instructional/non-instructional split
+(BR-LP09) `[product decision 2026-10-07]`.
 
 ---
 
@@ -141,6 +146,16 @@ pattern as the Ata/incident PDF preview (`academic/incidents.md` — `Academic::
 + unsandboxed blob-URL iframe). No notification or event is emitted on preview; this is a read-only
 render of already-saved data, not a new workflow step.
 
+BR-LP09 *(product decision 2026-10-07)*
+
+UC-LP01's annual calendar additionally annotates each date with holiday/recess names
+([`school-year.md`](../platform-and-admin/school-year.md) BR-SY05) and `school`-visibility
+institutional events ([`platform-and-admin/calendar.md`](../platform-and-admin/calendar.md) BR-CA01
+— `internal_game`, `exam`, etc.) alongside the instructional/non-instructional marking. This is
+read-only overlay data from those two BCs — it does not change BR-LP03's instructional-day gate for
+writing a plan, and this PRD's own `instructional_days` endpoint is unchanged; the frontend merges
+the annotation by also reading calendar.md's feed for the same date range.
+
 ---
 
 ## Use Cases
@@ -153,6 +168,8 @@ Flow
 
 1. Resolve the class's school year and its marked instructional days (BR-SY10).
 2. Render a year calendar; instructional days are clickable, everything else is not.
+3. Overlay holiday/recess names and institutional event labels for the same date range (BR-LP09) —
+   display only, does not affect which dates are clickable.
 
 ### UC-LP02 — Write/send a lesson plan (teacher)
 
@@ -255,6 +272,7 @@ Upsert request:
 | `lesson_plans` | One row per `(class_discipline_id, date)`: BR-LP07 template fields (`duration`, `unit_stage`, `topic`, `general_objective`, `specific_objectives`, `bncc_competencies`, `other_competencies`, `resources_materials`, `assessment_types[]`, `assessment_formats[]`), timestamps |
 | `class_disciplines` *(existing, curriculum BC5)* | Resolves teacher + subject + class |
 | `school_instructional_days` *(new, owned by [`school-year.md`](../platform-and-admin/school-year.md) BR-SY10)* | Which calendar days are instructional |
+| `school_holidays`, `calendar_events` *(owned by [`school-year.md`](../platform-and-admin/school-year.md) / [`platform-and-admin/calendar.md`](../platform-and-admin/calendar.md))* | Read-only overlay labels for BR-LP09 — not written here |
 
 ---
 
@@ -333,6 +351,13 @@ AC-LP07 *(coordination list + filters)*
 - [ ] Given a teacher (no `manage_academic`) calls `GET /lesson_plans` with a `teacher_id` other
       than their own, When the request resolves, Then the `teacher_id` filter has no effect beyond
       their own already-scoped plans (BR-LP02/BR-LP06 — `policy_scope` still wins).
+
+AC-LP08 *(complete calendar overlay, BR-LP09, product decision 2026-10-07)*
+
+- [ ] Given a holiday, recess, internal game, or exam falls on a date in the class's school year,
+      When a teacher opens UC-LP01's annual calendar, Then that date shows the corresponding label
+      alongside (not instead of) the instructional/non-instructional marking from BR-SY10.
+- Source: `[product decision 2026-10-07]`
 - Source: UC-LP04
 
 ---
@@ -348,6 +373,13 @@ AC-LP07 *(coordination list + filters)*
       deferred scope as `curriculum.md`'s "full BNCC tagging" open item.
 - [ ] Whether `lesson_plans` and `diary.md`'s future `lessons` table should ultimately merge once
       diary is built — both key off `class_discipline_id` + `date`.
+- [ ] **Code gap (2026-10-07, BR-LP09):** the existing `InstructionalDaysAdminCalendar.tsx` /
+      `LessonPlanCalendar.tsx` frontend and `instructional_days_controller.rb` backend only render
+      the instructional/non-instructional boolean today — no holiday/recess/event overlay exists
+      yet. Depends on [`platform-and-admin/calendar.md`](../platform-and-admin/calendar.md)'s
+      `calendar_events` BC shipping first (see that PRD's own code-gap open item) plus a
+      `category` column on `school_holidays` — follow-up for **frontend-implementer** once both
+      backend contracts exist.
 
 ---
 
