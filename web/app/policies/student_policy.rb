@@ -38,6 +38,7 @@ class StudentPolicy < ApplicationPolicy
 
       if Current.membership&.role == "guardian" && Current.guardian
         base.joins(:student_guardians)
+            .merge(StudentGuardian.kept)
             .where(student_guardians: { guardian_id: Current.guardian.id })
             .distinct
       elsif staff_with?(:manage_people)
