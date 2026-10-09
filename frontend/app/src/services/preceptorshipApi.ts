@@ -82,9 +82,13 @@ export const publishReport = async (schoolId: number, id: number) => {
   return response.data;
 };
 
-/** GET .../me/preceptorship_reports — only what the school has published. */
-export const listMyReports = (schoolId: number) =>
-  request<PreceptorshipListResponse>(familyPath(schoolId));
+/**
+ * GET .../me/preceptorship_reports — only what the school has published.
+ *
+ * `page` defaults to 1 so callers that omit it keep reading the first page.
+ */
+export const listMyReports = (schoolId: number, page = 1) =>
+  request<PreceptorshipListResponse>(`${familyPath(schoolId)}?page=${page}`);
 
 /**
  * The PDF, from whichever side is asking. Both endpoints render the same bytes — a teacher who
