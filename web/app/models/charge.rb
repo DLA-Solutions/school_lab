@@ -33,8 +33,14 @@ class Charge < ApplicationRecord
   # without one has nothing to have been generated from.
   validates :contract, presence: true, if: -> { kind == "tuition" }
 
+  # Guardians read pending, overdue, and paid charges in one list; cancelled charges are never
+  # shown to a family (mirrors the staff-only `cancel` action — there is nothing for them to do
+  # about a charge the school called off).
+  GUARDIAN_VISIBLE_STATUSES = %w[pending overdue paid].freeze
+
   scope :open, -> { kept.where(status: %w[pending overdue]) }
   scope :one_off, -> { kept.where(kind: "one_off") }
+  scope :guardian_visible, -> { kept.where(status: GUARDIAN_VISIBLE_STATUSES) }
 
   def current_issuance
     charge_issuances.where.not(status: "cancelled").order(created_at: :desc).first

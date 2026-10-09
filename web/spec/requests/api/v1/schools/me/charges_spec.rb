@@ -31,27 +31,108 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
   path "/api/v1/schools/{school_id}/me/charges" do
     parameter name: :school_id, in: :path, type: :integer
 
-    get "List open charges" do
+    get "List charges (unified: pending, overdue, paid)" do
       tags "Guardian Me"
       produces "application/json"
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :student_id, in: :query, type: :integer, required: false,
                 description: "Optional linked child filter"
+      parameter name: :status, in: :query, type: :string, required: false,
+                description: "Optional filter: pending, overdue, or paid"
+      parameter name: :due_date_from, in: :query, type: :string, required: false,
+                description: "Optional due date range start (ISO 8601 date)"
+      parameter name: :due_date_to, in: :query, type: :string, required: false,
+                description: "Optional due date range end (ISO 8601 date)"
 
-      response "200", "family open charges only" do
-        let!(:charge_c1) do
+      response "200", "family charges across pending, overdue, and paid" do
+        let!(:charge_pending) do
           create(:charge, :issued, school: school, contract: contract, guardian: guardian)
         end
-        let!(:charge_c2) do
+        let!(:charge_overdue) do
+          create(:charge, :issued, :overdue, school: school, contract: contract, guardian: guardian)
+        end
+        let!(:charge_paid) do
+          create(:charge, :issued, :paid, school: school, contract: contract, guardian: guardian)
+        end
+        let!(:charge_cancelled) do
+          create(:charge, :issued, :cancelled, school: school, contract: contract, guardian: guardian)
+        end
+        let!(:charge_other_family) do
           create(:charge, school: school, contract: other_contract, guardian: other_guardian)
         end
 
         run_test! do |response|
           body = JSON.parse(response.body)
           ids = body.fetch("data").map { |row| row["id"] }
-          expect(ids).to contain_exactly(charge_c1.id)
-          expect(ids).not_to include(charge_c2.id)
+          expect(ids).to contain_exactly(charge_pending.id, charge_overdue.id, charge_paid.id)
+          expect(ids).not_to include(charge_cancelled.id, charge_other_family.id)
+        end
+      end
+
+      response "200", "orders ascending by due date" do
+        let!(:charge_due_later) do
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian,
+                           due_date: 60.days.from_now.to_date)
+        end
+        let!(:charge_due_sooner) do
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian,
+                           due_date: 10.days.from_now.to_date)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          ids = body.fetch("data").map { |row| row["id"] }
+          expect(ids).to eq([ charge_due_sooner.id, charge_due_later.id ])
+        end
+      end
+
+      response "200", "filters by status" do
+        let(:status) { "overdue" }
+        let!(:charge_pending) do
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian)
+        end
+        let!(:charge_overdue) do
+          create(:charge, :issued, :overdue, school: school, contract: contract, guardian: guardian)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          ids = body.fetch("data").map { |row| row["id"] }
+          expect(ids).to contain_exactly(charge_overdue.id)
+          expect(ids).not_to include(charge_pending.id)
+        end
+      end
+
+      response "200", "status filter never surfaces cancelled charges" do
+        let(:status) { "cancelled" }
+        let!(:charge_cancelled) do
+          create(:charge, :issued, :cancelled, school: school, contract: contract, guardian: guardian)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.fetch("data")).to be_empty
+        end
+      end
+
+      response "200", "filters by due_date range" do
+        let(:due_date_from) { 5.days.from_now.to_date.iso8601 }
+        let(:due_date_to) { 15.days.from_now.to_date.iso8601 }
+        let!(:charge_in_range) do
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian,
+                           due_date: 10.days.from_now.to_date)
+        end
+        let!(:charge_out_of_range) do
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian,
+                           due_date: 60.days.from_now.to_date)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          ids = body.fetch("data").map { |row| row["id"] }
+          expect(ids).to contain_exactly(charge_in_range.id)
+          expect(ids).not_to include(charge_out_of_range.id)
         end
       end
 
@@ -163,7 +244,7 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
   path "/api/v1/schools/{school_id}/me/charges/history" do
     parameter name: :school_id, in: :path, type: :integer
 
-    get "List paid charge history" do
+    get "List paid charge history (legacy — superseded by the unified index; kept for mobile)" do
       tags "Guardian Me"
       produces "application/json"
       security [ bearer_auth: [] ]
