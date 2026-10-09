@@ -95,6 +95,12 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
                 type: :string,
                 description: "Client identifier issued by the provider"
               },
+              client_secret: {
+                type: :string,
+                description: "Client secret issued by the provider, when its OAuth flow needs one. " \
+                             "Not required by any provider the API currently accepts (cora); accepted " \
+                             "and passed through harmlessly if sent."
+              },
               certificate: {
                 type: :string,
                 format: :binary,
@@ -124,6 +130,7 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
       parameter name: :provider, in: :formData, required: true
       parameter name: :instrument, in: :formData, required: true
       parameter name: :client_id, in: :formData, required: true
+      parameter name: :client_secret, in: :formData, required: false
       parameter name: :certificate, in: :formData, required: true
       parameter name: :private_key, in: :formData, required: true
 
@@ -159,6 +166,26 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
           expect(body["active"]).to be(true)
           expect(body.keys).not_to include("certificate_pem", "private_key_pem", "environment")
           expect(SchoolPaymentProvider.find(body["id"]).uploaded_by_id).to eq(backoffice_user.id)
+        end
+      end
+
+      # `client_secret` is only needed by providers with an OAuth flow (e.g. inter, not yet
+      # API-selectable). Cora doesn't use it, so an upload that sends it anyway must still
+      # succeed and behave exactly like one that omits it — the field is accepted and ignored.
+      response "201", "accepts client_secret for a provider that doesn't need it" do
+        let(:provider) { "cora" }
+        let(:instrument) { "bank_slip" }
+        let(:client_id) { "client-stage-003" }
+        let(:client_secret) { "unused-secret-value" }
+        let(:certificate) { uploaded_pem(pair[:certificate_pem], "cert.pem") }
+        let(:private_key) { uploaded_pem(pair[:private_key_pem], "key.pem") }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["provider"]).to eq("cora")
+          expect(body["active"]).to be(true)
+          expect(body.keys).not_to include("client_secret")
+          expect(SchoolPaymentProvider.find(body["id"]).client_secret).to eq("unused-secret-value")
         end
       end
 

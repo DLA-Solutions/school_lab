@@ -22,6 +22,7 @@ module Api
             provider: upload_params[:provider],
             instrument: upload_params[:instrument],
             client_id: upload_params[:client_id],
+            client_secret: upload_params[:client_secret],
             certificate_io: params[:certificate],
             private_key_io: params[:private_key]
           )
@@ -52,7 +53,7 @@ module Api
         end
 
         def upload_params
-          params.permit(:provider, :instrument, :client_id)
+          params.permit(:provider, :instrument, :client_id, :client_secret)
         end
       end
     end
