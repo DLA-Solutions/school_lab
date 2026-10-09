@@ -32,7 +32,7 @@ contract ([`platform-and-admin.md`](platform-and-admin.md) § Cross-domain contr
 | Area | fintech-first status | billing PRD extension |
 |------|---------------------|------------------------|
 | Charges, boletos, Cora | **implemented** | Adjustments, plan bands, batch pay |
-| Guardian portal | **implemented** | Forward-only history (unchanged) |
+| Guardian portal | **implemented** | Unified pending/overdue/paid list — see below |
 | Dunning dashboard | **partial** | Summary + filters — régua deferred |
 | NFS-e | — | **implemented (BC7 v1)** — [`invoices.md`](../../prds/billing/invoices.md) |
 | Card/Pix checkout | stub | W4+ per [`payments.md`](../../prds/billing/payments.md) |
@@ -49,6 +49,38 @@ See [`fintech-first.md`](fintech-first.md) for request/response examples:
 - `GET /schools/:id/me/charges` (guardian)
 - `school_payment_providers`, `school_billing_settings`
 - Webhooks: `POST /webhooks/:provider/:token`
+
+---
+
+### Guardian charges — unified list (`GET /schools/:id/me/charges`)
+
+The guardian portal shows one list instead of separate open/history tabs. `GET
+/schools/:school_id/me/charges` now returns `pending`, `overdue`, **and** `paid` charges together
+(never `cancelled`), always ordered ascending by `due_date`. `status` is driven by the existing
+provider webhook → reconciliation flow (`Billing::IngestProviderWebhookService`) — this endpoint
+only reads the already-computed column.
+
+Query params (all optional):
+
+| Param | Type | Notes |
+|-------|------|-------|
+| `student_id` | integer | Narrows to one linked child; unlinked child → `404` |
+| `status` | string | One of `pending`, `overdue`, `paid`. Any other value (including `cancelled`) yields an empty result — it never leaks outside the guardian-visible set |
+| `due_date_from` | date (ISO 8601) | Inclusive lower bound on `due_date` |
+| `due_date_to` | date (ISO 8601) | Inclusive upper bound on `due_date` |
+
+Naming follows the existing `due_date_from`/`due_date_to` convention already used by the staff
+billing index (`Api::V1::Schools::Billing::ChargesController`), not the `date_from`/`date_to`
+convention used by analytics/audit endpoints.
+
+Response shape — one `ChargeBlueprint` view (`:guardian`) for both list and detail now, with:
+`due_date`, `status`, `payment_methods` (`boleto_url`, `pix_copy_paste`), `interest_rate_percent`,
+and `paid_at` (`null` until the charge is paid), plus the shared identity/amount fields.
+
+`GET /schools/:id/me/charges/history` **still exists** (paid-only, `:guardian_history` view,
+`updated_at desc`) — kept as a legacy route because `mobile/` (React Native) still calls it
+directly. It was **not** removed; the web SPA simply stops calling it in favor of the unified
+`index` above. Do not remove `history` until `mobile/` migrates off it.
 
 ---
 
