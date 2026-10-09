@@ -1433,6 +1433,9 @@ const enUS: Messages = {
     'Conversations that already exist show up here. Start a new one from a destination.',
   'communication.empty.roster.title': 'No students',
   'communication.empty.roster.description': 'This class has no students.',
+  'communication.empty.rosterStarted.title': 'Everyone already has a conversation',
+  'communication.empty.rosterStarted.description':
+    'Every student in this class already has a conversation started. Check Conversations.',
   'communication.empty.staffInbox.description':
     'Conversations that already exist show up here. Start a new one from the class roster.',
   'communication.empty.children.title': 'No linked children',

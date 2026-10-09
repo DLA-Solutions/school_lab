@@ -1450,6 +1450,9 @@ const ptBR = {
     'As conversas já iniciadas aparecem aqui. Comece uma nova por um destino.',
   'communication.empty.roster.title': 'Nenhum aluno',
   'communication.empty.roster.description': 'Esta turma não tem alunos.',
+  'communication.empty.rosterStarted.title': 'Todos já têm conversa',
+  'communication.empty.rosterStarted.description':
+    'Todos os alunos desta turma já têm uma conversa iniciada. Veja em Conversas.',
   'communication.empty.staffInbox.description':
     'As conversas já iniciadas aparecem aqui. Comece uma nova pela turma.',
   'communication.empty.children.title': 'Nenhum filho vinculado',

@@ -176,6 +176,7 @@ const StaffCommunication = () => {
   const [open, setOpen] = useState<OpenThread | null>(null);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [starterOpen, setStarterOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkDraft, setBulkDraft] = useState('');
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
@@ -192,6 +193,9 @@ const StaffCommunication = () => {
   const audienceRef = useRef<ConversationAudience | undefined>(
     isCoordination ? 'coordination' : undefined,
   );
+  // Tracks the previous `isSearching` value so the reset effect below fires only on the
+  // false -> true transition (entering search), not on every render while it stays true.
+  const wasSearchingRef = useRef(false);
 
   const audienceFilter: ConversationAudience | undefined =
     isCoordination && scope === 'mine' ? 'coordination' : undefined;
@@ -441,6 +445,21 @@ const StaffCommunication = () => {
       cancelled = true;
     };
   }, [schoolId, isSearching, trimmedSearchQuery, t]);
+
+  // Bug fix: entering search mode must drop whatever thread `open` was pointing at. The right
+  // panel always reads `open`, but the "Conversas" box swaps from `inbox` to `searchResults`
+  // the moment `isSearching` flips true — without this, the header/thread could keep showing a
+  // student from the data source the list is no longer rendering, while nothing in the visible
+  // list is actually marked `selected`. Only fires on the false -> true transition: a thread
+  // opened from a search hit (or re-confirmed by a later keystroke while still searching) must
+  // not be cleared on every subsequent render.
+  useEffect(() => {
+    if (isSearching && !wasSearchingRef.current) {
+      setOpen(null);
+      setDraft('');
+    }
+    wasSearchingRef.current = isSearching;
+  }, [isSearching]);
 
   useEffect(() => {
     if (linkApplied.current || linkedId == null || conversationsLoading || classesLoading) {
@@ -786,10 +805,10 @@ const StaffCommunication = () => {
                 )}
 
                 {/*
-                  Both start-a-conversation buttons are `fullWidth` — same width as the Turma
-                  select and the search field below them — so they read as a matched pair instead
-                  of each shrink-wrapping to its own label length ("Nova conversa" vs. "Enviar
-                  para toda a turma").
+                  Both start-a-conversation buttons are `fullWidth` — same width as the search
+                  field below them — so they read as a matched pair instead of each
+                  shrink-wrapping to its own label length ("Nova conversa" vs. "Enviar para toda
+                  a turma").
                 */}
                 <Button
                   size="small"
@@ -799,6 +818,7 @@ const StaffCommunication = () => {
                     setOpen(null);
                     setDraft('');
                     setSearchQuery('');
+                    setStarterOpen(true);
                   }}
                 >
                   {t('communication.start.heading')}
@@ -821,89 +841,13 @@ const StaffCommunication = () => {
                   </Button>
                 )}
 
-                {!isSearching && classes.length > 0 && (
-                  <TextField
-                    id="communication-class"
-                    label={t('communication.class')}
-                    value={classId == null ? '' : String(classId)}
-                    onChange={(event) => {
-                      setClassId(Number(event.target.value));
-                      setOpen((current) => (current?.source === 'roster' ? null : current));
-                      setDraft('');
-                    }}
-                    variant="filled"
-                    size="small"
-                    select
-                    fullWidth
-                  >
-                    {classes.map((schoolClass) => (
-                      <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
-                        {schoolClassLabel(schoolClass, t)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-
                 {/*
-                  Browse-by-class path: the Turma dropdown above and this roster list are how
-                  someone without an exact name to search picks a student to start with. Capped
-                  and independently scrollable (see chatPanelLayout.ts) so a big Turma scrolls
-                  here instead of growing the page.
+                  The Turma picker and the browse-by-class roster list used to sit here,
+                  permanently rendered above the inbox. They now live inside the "Nova conversa"
+                  dialog (below, outside this list) so this column shows exactly one list of
+                  conversations — the inbox, or search results while searching — never a second,
+                  always-visible roster browser mixed in above it.
                 */}
-                {!isSearching && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 1.5,
-                      maxHeight: CHAT_PANEL_HEIGHT_PX,
-                      overflow: 'auto',
-                      // The app hides the webkit scrollbar until hover (theme/styles/scrollbar.ts)
-                      // — fine when more content below the fold is a safe assumption, but a capped
-                      // list sitting next to a fixed-height thread pane needs its own "there's more
-                      // here" affordance at rest, same reasoning as StudentsByClass.tsx. The base
-                      // thumb color is `background.paper`, which is also this card's own surface
-                      // (SectionCard) — same color on same color is invisible regardless of
-                      // `visibility`, so the thumb also needs `neutral.main`, the color the theme
-                      // already picked for a scrollbar that must stay visible (see the `@supports
-                      // (-moz-appearance:none)` branch in scrollbar.ts).
-                      '&::-webkit-scrollbar': {
-                        visibility: 'visible',
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        visibility: 'visible',
-                        bgcolor: 'neutral.main',
-                      },
-                    }}
-                  >
-                    {rosterLoading ? (
-                      <Box display="flex" justifyContent="center" py={4}>
-                        <CircularProgress size={24} />
-                      </Box>
-                    ) : classId != null && roster.length === 0 ? (
-                      <EmptyState
-                        title={t('communication.empty.roster.title')}
-                        description={t('communication.empty.roster.description')}
-                      />
-                    ) : (
-                      starters.map((row) => (
-                        <ConversationRow
-                          key={row.student_id}
-                          label={row.student_name}
-                          selected={open?.source === 'roster' && open.studentId === row.student_id}
-                          onClick={() => {
-                            setOpen({
-                              source: 'roster',
-                              studentId: row.student_id,
-                              destinationKey: null,
-                            });
-                            setDraft('');
-                          }}
-                        />
-                      ))
-                    )}
-                  </Box>
-                )}
 
                 <SearchField
                   value={searchQuery}
@@ -919,11 +863,11 @@ const StaffCommunication = () => {
                   Search narrows this list the same way it narrows Students.tsx/Guardians.tsx: a
                   hit is just another CommunicationRosterItem, so it reuses the exact
                   onClick/selection logic a roster row uses to open — or start — a conversation.
-                  Unlike the browse-by-class list above, this one is not filtered against the
-                  inbox: it *replaces* the inbox while searching, so a hit with an existing
-                  conversation must still show (and opening it resolves to that thread via
-                  `rosterThreadId`) — filtering it out here would hide the very conversation the
-                  search box exists to find.
+                  Unlike the "Nova conversa" dialog's roster list, this one is not filtered
+                  against the inbox: it *replaces* the inbox while searching, so a hit with an
+                  existing conversation must still show (and opening it resolves to that thread
+                  via `rosterThreadId`) — filtering it out here would hide the very conversation
+                  the search box exists to find.
                 */}
                 {/*
                   Capped and independently scrollable (see chatPanelLayout.ts) so a long inbox —
@@ -1076,6 +1020,94 @@ const StaffCommunication = () => {
           />
         )}
       </SectionCard>
+
+      {/*
+        "Nova conversa" opens this instead of permanently showing the Turma select + roster list
+        in the sidebar (see the comment above the removed block). Same two pieces, same reused
+        onClick as the old inline roster row — just scoped to a dialog so starting a conversation
+        is a deliberate Turma -> student flow instead of always-on clutter above the inbox.
+      */}
+      <Dialog open={starterOpen} onClose={() => setStarterOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('communication.start.heading')}</DialogTitle>
+        <DialogContent>
+          <Stack direction="column" spacing={1.5} sx={{ pt: 0.5 }}>
+            {classes.length > 0 && (
+              <TextField
+                id="communication-start-class"
+                label={t('communication.class')}
+                value={classId == null ? '' : String(classId)}
+                onChange={(event) => setClassId(Number(event.target.value))}
+                variant="filled"
+                size="small"
+                select
+                fullWidth
+              >
+                {classes.map((schoolClass) => (
+                  <MenuItem key={schoolClass.id} value={String(schoolClass.id)}>
+                    {schoolClassLabel(schoolClass, t)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.5,
+                maxHeight: CHAT_PANEL_HEIGHT_PX,
+                overflow: 'auto',
+                '&::-webkit-scrollbar': {
+                  visibility: 'visible',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  visibility: 'visible',
+                  bgcolor: 'neutral.main',
+                },
+              }}
+            >
+              {rosterLoading ? (
+                <Box display="flex" justifyContent="center" py={4}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : classId != null && roster.length === 0 ? (
+                <EmptyState
+                  title={t('communication.empty.roster.title')}
+                  description={t('communication.empty.roster.description')}
+                />
+              ) : classId != null && starters.length === 0 ? (
+                <EmptyState
+                  title={t('communication.empty.rosterStarted.title')}
+                  description={t('communication.empty.rosterStarted.description')}
+                />
+              ) : (
+                starters.map((row) => (
+                  <ConversationRow
+                    key={row.student_id}
+                    label={row.student_name}
+                    selected={open?.source === 'roster' && open.studentId === row.student_id}
+                    onClick={() => {
+                      setOpen({
+                        source: 'roster',
+                        studentId: row.student_id,
+                        destinationKey: null,
+                      });
+                      setDraft('');
+                      setSearchQuery('');
+                      setStarterOpen(false);
+                    }}
+                  />
+                ))
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setStarterOpen(false)} color="inherit">
+            {t('common.cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {isTeacher && (
         <Dialog
