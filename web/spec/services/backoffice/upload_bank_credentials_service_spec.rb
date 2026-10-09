@@ -7,13 +7,14 @@ RSpec.describe Backoffice::UploadBankCredentialsService do
   let(:actor) { create(:user) }
   let(:pair) { OpensslCertificateHelper.generate_certificate_pair }
 
-  def upload(client_id: "client-001", provider: "cora")
+  def upload(client_id: "client-001", provider: "cora", client_secret: nil)
     described_class.call(
       school: school,
       actor: actor,
       provider: provider,
       instrument: "bank_slip",
       client_id: client_id,
+      client_secret: client_secret,
       certificate_io: StringIO.new(pair[:certificate_pem]),
       private_key_io: StringIO.new(pair[:private_key_pem])
     )
@@ -57,5 +58,19 @@ RSpec.describe Backoffice::UploadBankCredentialsService do
     configs = school.school_payment_providers.where(instrument: "bank_slip")
     expect(configs.count).to eq(2)
     expect(configs.active.pluck(:id)).to eq([ result.data.id ])
+  end
+
+  # Isolates "does this service correctly persist client_secret" from "is inter currently
+  # gated" (covered by Registry/Gateways::BankSlip::Registry specs) — stub api_selectable?
+  # just for inter so this test does not depend on the registry flipping it live.
+  it "persists client_secret, round-tripping through encryption, when the provider is selectable" do
+    allow(Gateways::BankSlip::Registry).to receive(:api_selectable?).and_call_original
+    allow(Gateways::BankSlip::Registry).to receive(:api_selectable?).with("inter").and_return(true)
+
+    result = upload(client_id: "inter-client-001", provider: "inter", client_secret: "inter-secret-001")
+
+    expect(result).to be_success
+    expect(result.data.client_secret).to eq("inter-secret-001")
+    expect(result.data.reload.client_secret).to eq("inter-secret-001")
   end
 end
