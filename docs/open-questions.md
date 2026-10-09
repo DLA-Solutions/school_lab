@@ -472,6 +472,12 @@ does not assume indefinite storage.
   and phone on bank-slip issuance requests. Cora acts as a personal-data
   processor for this flow — contractual and privacy-policy implications remain
   open.
+- **Provider payload (personal data sent to Banco Inter):** same shape as
+  Cora above — guardian name, CPF, email, phone, and address on bank-slip
+  issuance requests (`POST /cobranca/v3/cobrancas` `pagador` object). Inter is
+  registered (`Gateways::BankSlip::Registry::ADAPTERS`) but not yet
+  API-selectable, so no school is live on it today; the same contractual and
+  privacy-policy implications noted for Cora apply once a school is onboarded.
 - **Provider payload (school data sent to Asaas):** school CNPJ and director/owner
   email on DLA→school subscription checkout. Asaas is a processor for that flow —
   legal agreement open; see [`platform-subscription-billing.md`](prds/platform-and-admin/platform-subscription-billing.md)
