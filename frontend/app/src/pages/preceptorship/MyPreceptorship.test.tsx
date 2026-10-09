@@ -171,6 +171,33 @@ describe('Preceptorship, as the family reads it', () => {
     expect(copyStack?.parentElement).toHaveStyle({ flexDirection: 'column' });
   });
 
+  it('asks for the next page and counts every published report', async () => {
+    const pages: string[] = [];
+
+    server.use(
+      http.get(apiUrl(BASE), ({ request }) => {
+        const page = new URL(request.url).searchParams.get('page') ?? '1';
+        pages.push(page);
+        const current = Number(page);
+
+        return HttpResponse.json({
+          data: current === 1 ? [pedroReport] : [anaReport],
+          meta: { page: current, per_page: 25, total: 26 },
+        });
+      }),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText('Pedro Silva')).toBeInTheDocument();
+    expect(screen.getByText('1-25 de 26')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /go to page 2/i }));
+
+    expect(await screen.findByText('Ana Silva')).toBeInTheDocument();
+    expect(pages).toContain('2');
+  });
+
   it('shows a spinner until the list arrives, not the empty state', async () => {
     let release!: () => void;
     const gate = new Promise<void>((resolve) => {

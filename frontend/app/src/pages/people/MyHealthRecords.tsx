@@ -1,11 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { useSearchParams } from 'react-router';
-import { EmptyState, ErrorBanner, PageHeader, SectionCard, SemanticChip } from 'design-system';
+import {
+  DataTable,
+  EmptyState,
+  ErrorBanner,
+  PageHeader,
+  SectionCard,
+  SemanticChip,
+} from 'design-system';
 import HealthProfileSection from 'components/sections/people/students/HealthProfileSection';
 import HealthRecordsList from 'components/sections/people/students/HealthRecordsList';
 import { useTranslation } from 'providers/I18nContext';
@@ -21,6 +28,16 @@ interface ChildHealth {
   filled: boolean;
   recordCount: number;
 }
+
+/** One row of the family list. `id` is the student id the grid and `?student=` both use. */
+interface HealthListRow {
+  id: number;
+  name: string;
+  filled: boolean;
+  recordCount: number;
+}
+
+const PAGE_SIZE = 25;
 
 const profileHasData = (profile: Awaited<ReturnType<typeof getHealthProfile>>) =>
   Boolean(
@@ -47,6 +64,8 @@ const MyHealthRecords = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [children, setChildren] = useState<ChildHealth[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -63,7 +82,7 @@ const MyHealthRecords = () => {
     setError('');
 
     try {
-      const response = await listMyStudents(schoolId);
+      const response = await listMyStudents(schoolId, page + 1);
 
       const rows = await Promise.all(
         response.data.map(async (student) => {
@@ -84,13 +103,15 @@ const MyHealthRecords = () => {
       );
 
       setChildren(rows);
+      setTotal(response.meta.total);
     } catch (err) {
       setChildren([]);
+      setTotal(0);
       setError(err instanceof ApiError ? err.message : t('health.myChildren.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, t]);
+  }, [schoolId, page, t]);
 
   useEffect(() => {
     load();
@@ -117,13 +138,16 @@ const MyHealthRecords = () => {
     }
   };
 
-  const openChild = (studentId: number) => {
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      next.set('student', String(studentId));
-      return next;
-    });
-  };
+  const openChild = useCallback(
+    (studentId: number) => {
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        next.set('student', String(studentId));
+        return next;
+      });
+    },
+    [setSearchParams],
+  );
 
   const showAllChildren = () => {
     setSearchParams((current) => {
@@ -133,15 +157,87 @@ const MyHealthRecords = () => {
     });
   };
 
-  const recordCountLabel = (count: number) => {
-    if (count === 0) {
-      return t('health.recordCount.none');
-    }
-    if (count === 1) {
-      return t('health.recordCount.one');
-    }
-    return t('health.recordCount.other', { count });
-  };
+  const recordCountLabel = useCallback(
+    (count: number) => {
+      if (count === 0) {
+        return t('health.recordCount.none');
+      }
+      if (count === 1) {
+        return t('health.recordCount.one');
+      }
+      return t('health.recordCount.other', { count });
+    },
+    [t],
+  );
+
+  const rows = useMemo<HealthListRow[]>(
+    () =>
+      children.map(({ student, filled, recordCount }) => ({
+        id: student.id,
+        name: student.name,
+        filled,
+        recordCount,
+      })),
+    [children],
+  );
+
+  const columns = useMemo<GridColDef<HealthListRow>[]>(
+    () => [
+      {
+        field: 'name',
+        headerName: t('common.student'),
+        flex: 1,
+        minWidth: 180,
+        sortable: false,
+        renderCell: ({ row }: GridRenderCellParams<HealthListRow>) => (
+          <Typography variant="body2">{row.name}</Typography>
+        ),
+      },
+      {
+        field: 'recordCount',
+        headerName: t('health.records.title'),
+        flex: 1,
+        minWidth: 160,
+        sortable: false,
+        renderCell: ({ row }: GridRenderCellParams<HealthListRow>) => (
+          <Typography variant="body2" color="text.secondary">
+            {recordCountLabel(row.recordCount)}
+          </Typography>
+        ),
+      },
+      {
+        field: 'filled',
+        headerName: t('common.status'),
+        width: 170,
+        sortable: false,
+        renderCell: ({ row }: GridRenderCellParams<HealthListRow>) => (
+          <SemanticChip
+            variant={row.filled ? 'success' : 'warning'}
+            label={row.filled ? t('health.filled') : t('health.empty')}
+          />
+        ),
+      },
+      {
+        field: 'actions',
+        headerName: t('common.actions'),
+        width: 150,
+        sortable: false,
+        filterable: false,
+        renderCell: ({ row }: GridRenderCellParams<HealthListRow>) => (
+          <Button
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation();
+              openChild(row.id);
+            }}
+          >
+            {row.filled ? t('health.open') : t('health.fill')}
+          </Button>
+        ),
+      },
+    ],
+    [openChild, recordCountLabel, t],
+  );
 
   const selectedChild =
     requestedStudentId == null
@@ -153,6 +249,7 @@ const MyHealthRecords = () => {
   const showSheet = !loading && selectedChild != null && schoolId != null;
   const showUnknown =
     !loading && !error && children.length > 0 && studentQuery != null && selectedChild == null;
+  const showEmpty = !loading && !error && children.length === 0;
 
   const allChildrenButton = (
     <Button variant="outlined" size="small" onClick={showAllChildren}>
@@ -210,53 +307,40 @@ const MyHealthRecords = () => {
     <Stack direction="column" gap={3.5}>
       <PageHeader title={t('health.myChildren.title')} />
 
-      <SectionCard>
-        <Stack direction="column" gap={2}>
-          <Typography variant="body2" color="text.secondary">
-            {t('health.myChildren.description')}
-          </Typography>
+      {!showEmpty && (
+        <Typography variant="body2" color="text.secondary">
+          {t('health.myChildren.description')}
+        </Typography>
+      )}
 
-          {error && (
-            <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />
-          )}
+      {error && <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />}
 
-          {loading ? (
-            <Stack alignItems="center" py={6}>
-              <CircularProgress size={28} />
-            </Stack>
-          ) : children.length === 0 ? (
-            <EmptyState
-              title={t('health.myChildren.empty')}
-              description={t('health.myChildren.description')}
-              headingLevel={2}
+      <SectionCard padding={0}>
+        {showEmpty ? (
+          <EmptyState
+            title={t('health.myChildren.empty')}
+            description={t('health.myChildren.description')}
+            headingLevel={2}
+          />
+        ) : (
+          <Box px={3.5} py={3.5} sx={{ height: 594, width: 1 }}>
+            <DataTable
+              rows={rows}
+              columns={columns}
+              loading={loading}
+              disableRowSelectionOnClick
+              getRowHeight={() => 'auto'}
+              paginationMode="server"
+              rowCount={total}
+              pageSizeOptions={[PAGE_SIZE]}
+              paginationModel={{ page, pageSize: PAGE_SIZE }}
+              onPaginationModelChange={(model) => setPage(model.page)}
+              onRowClick={({ row }) => openChild(row.id)}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
+              sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
             />
-          ) : (
-            <Stack direction="column" gap={1}>
-              {children.map(({ student, filled, recordCount }) => (
-                <ListItemButton
-                  key={student.id}
-                  onClick={() => openChild(student.id)}
-                  aria-label={t('health.aria', { name: student.name })}
-                  sx={{ gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}
-                >
-                  <Typography variant="subtitle1" sx={{ minWidth: 180 }}>
-                    {student.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {recordCountLabel(recordCount)}
-                  </Typography>
-                  <SemanticChip
-                    variant={filled ? 'success' : 'warning'}
-                    label={filled ? t('health.filled') : t('health.empty')}
-                  />
-                  <Typography variant="body2" sx={{ ml: 'auto', fontWeight: 600 }}>
-                    {filled ? t('health.open') : t('health.fill')}
-                  </Typography>
-                </ListItemButton>
-              ))}
-            </Stack>
-          )}
-        </Stack>
+          </Box>
+        )}
       </SectionCard>
     </Stack>
   );

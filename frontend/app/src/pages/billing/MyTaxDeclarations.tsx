@@ -11,7 +11,9 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import {
+  DataTable,
   EmptyState,
   ErrorBanner,
   PageHeader,
@@ -38,6 +40,8 @@ type GenerateState =
   | { kind: 'configuration_incomplete' }
   | { kind: 'year_not_closed' }
   | { kind: 'generation_in_progress' };
+
+const PAGE_SIZE = 25;
 
 /** Closed Gregorian calendar years the guardian may request (current year is still open). */
 const closedCalendarYears = (count = 5) => {
@@ -67,7 +71,9 @@ const MyTaxDeclarations = () => {
   const [calendarYear, setCalendarYear] = useState(String(yearOptions[0] ?? new Date().getFullYear() - 1));
 
   const [rows, setRows] = useState<TaxDeclarationListItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -93,15 +99,17 @@ const MyTaxDeclarations = () => {
     setError('');
 
     try {
-      const response = await listMyTaxDeclarations({ schoolId });
+      const response = await listMyTaxDeclarations({ schoolId, page: page + 1 });
       setRows(response.data);
+      setTotal(response.meta.total);
     } catch (err) {
       setRows([]);
+      setTotal(0);
       setError(err instanceof ApiError ? err.message : t('myTaxDeclarations.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, t]);
+  }, [schoolId, page, t]);
 
   useEffect(() => {
     load();
@@ -297,6 +305,139 @@ const MyTaxDeclarations = () => {
     );
   }
 
+  const missingValue = () => (
+    <Typography variant="body2" color="text.secondary">
+      {t('common.none')}
+    </Typography>
+  );
+
+  const columns: GridColDef<TaxDeclarationListItem>[] = [
+    {
+      field: 'calendar_year',
+      headerName: t('myTaxDeclarations.year'),
+      width: 150,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<TaxDeclarationListItem>) => (
+        <Typography variant="subtitle2">
+          {t('myTaxDeclarations.calendarYear', { year: String(row.calendar_year) })}
+        </Typography>
+      ),
+    },
+    {
+      field: 'lifecycle',
+      headerName: t('common.status'),
+      width: 140,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<TaxDeclarationListItem>) =>
+        row.version ? (
+          <SemanticChip
+            variant={row.version.lifecycle === 'active' ? 'success' : 'info'}
+            label={t(`myTaxDeclarations.lifecycle.${row.version.lifecycle}`)}
+          />
+        ) : (
+          missingValue()
+        ),
+    },
+    {
+      field: 'amount',
+      headerName: t('common.amount'),
+      width: 140,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<TaxDeclarationListItem>) =>
+        row.version ? (
+          <Typography variant="body2">
+            {formatCents(row.version.total_declared_principal_amount_cents)}
+          </Typography>
+        ) : (
+          missingValue()
+        ),
+    },
+    {
+      field: 'version_number',
+      headerName: t('myTaxDeclarations.versionNumber', { number: '' }).trim(),
+      width: 120,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<TaxDeclarationListItem>) =>
+        row.version ? (
+          <Typography variant="body2" color="text.secondary">
+            {t('myTaxDeclarations.versionNumber', { number: String(row.version.number) })}
+          </Typography>
+        ) : (
+          missingValue()
+        ),
+    },
+    {
+      field: 'issued_at',
+      headerName: t('myTaxDeclarations.issuedAt', { date: '' }).trim(),
+      flex: 1,
+      minWidth: 180,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<TaxDeclarationListItem>) =>
+        row.version ? (
+          <Typography variant="body2" color="text.secondary">
+            {t('myTaxDeclarations.issuedAt', {
+              date: formatIssuedAt(row.version.issued_at, locale),
+            })}
+          </Typography>
+        ) : (
+          missingValue()
+        ),
+    },
+    {
+      field: 'view_detail',
+      headerName: t('myTaxDeclarations.viewDetail'),
+      width: 150,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<TaxDeclarationListItem>) => (
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => openDetail(row)}
+          disabled={!row.active_version_id}
+        >
+          {t('myTaxDeclarations.viewDetail')}
+        </Button>
+      ),
+    },
+    {
+      field: 'download_pdf',
+      headerName: t('myTaxDeclarations.downloadPdf'),
+      width: 140,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<TaxDeclarationListItem>) => (
+        <Button
+          size="small"
+          onClick={() => downloadPdf(row)}
+          disabled={downloadingId === row.tax_declaration_id || !row.version}
+        >
+          {t('myTaxDeclarations.downloadPdf')}
+        </Button>
+      ),
+    },
+    {
+      field: 'regenerate',
+      headerName: t('myTaxDeclarations.regenerate'),
+      width: 210,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<TaxDeclarationListItem>) => (
+        <Button
+          size="small"
+          variant="text"
+          onClick={() => {
+            setCalendarYear(String(row.calendar_year));
+            void handleEnsure(row.calendar_year);
+          }}
+          disabled={generating}
+        >
+          {t('myTaxDeclarations.regenerate')}
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader title={t('nav.myTaxDeclarations')} />
@@ -312,83 +453,30 @@ const MyTaxDeclarations = () => {
         {generateState.kind !== 'idle' && <Box mt={3}>{generateStatePanel()}</Box>}
       </SectionCard>
 
-      <SectionCard title={t('myTaxDeclarations.listSection.title')}>
-        {loading ? (
-          <Stack alignItems="center" py={6}>
-            <CircularProgress />
-          </Stack>
-        ) : rows.length === 0 ? (
+      <SectionCard title={t('myTaxDeclarations.listSection.title')} padding={0}>
+        {!loading && rows.length === 0 && !error ? (
           <EmptyState
             title={t('myTaxDeclarations.empty.title')}
             description={t('myTaxDeclarations.empty.description')}
             headingLevel={3}
           />
         ) : (
-          <Stack direction="column" divider={<Divider />}>
-            {rows.map((row) => {
-              const version = row.version;
-
-              return (
-                <Stack
-                  key={row.tax_declaration_id}
-                  direction="row"
-                  gap={1.5}
-                  alignItems="center"
-                  flexWrap="wrap"
-                  py={2}
-                >
-                  <Typography variant="subtitle2">
-                    {t('myTaxDeclarations.calendarYear', { year: String(row.calendar_year) })}
-                  </Typography>
-                  {version && (
-                    <>
-                      <SemanticChip
-                        variant={version.lifecycle === 'active' ? 'success' : 'info'}
-                        label={t(`myTaxDeclarations.lifecycle.${version.lifecycle}`)}
-                      />
-                      <Typography variant="body2" sx={{ minWidth: 96 }}>
-                        {formatCents(version.total_declared_principal_amount_cents)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('myTaxDeclarations.versionNumber', { number: String(version.number) })}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('myTaxDeclarations.issuedAt', {
-                          date: formatIssuedAt(version.issued_at, locale),
-                        })}
-                      </Typography>
-                    </>
-                  )}
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => openDetail(row)}
-                    disabled={!row.active_version_id}
-                  >
-                    {t('myTaxDeclarations.viewDetail')}
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => downloadPdf(row)}
-                    disabled={downloadingId === row.tax_declaration_id || !version}
-                  >
-                    {t('myTaxDeclarations.downloadPdf')}
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="text"
-                    onClick={() => {
-                      setCalendarYear(String(row.calendar_year));
-                      void handleEnsure(row.calendar_year);
-                    }}
-                    disabled={generating}
-                  >
-                    {t('myTaxDeclarations.regenerate')}
-                  </Button>
-                </Stack>
-              );
-            })}
-          </Stack>
+          <Box px={3.5} py={3.5} sx={{ height: 594, width: 1 }}>
+            <DataTable
+              rows={rows}
+              columns={columns}
+              loading={loading}
+              getRowId={(row) => row.tax_declaration_id}
+              disableRowSelectionOnClick
+              getRowHeight={() => 'auto'}
+              paginationMode="server"
+              rowCount={total}
+              pageSizeOptions={[PAGE_SIZE]}
+              paginationModel={{ page, pageSize: PAGE_SIZE }}
+              onPaginationModelChange={(model) => setPage(model.page)}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
+            />
+          </Box>
         )}
       </SectionCard>
 

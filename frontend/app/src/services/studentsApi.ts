@@ -38,9 +38,14 @@ export const listStudents = ({ schoolId, page = 1, guardianId, q, status }: List
  *
  * A narrower payload than the register's: the blueprint's `guardian` view carries the name and
  * nothing else, which is all a guardian needs to say which child a form is about.
+ *
+ * `page` is one-based, as Pagy counts pages. Callers that omit it still ask for the first page.
  */
-export const listMyStudents = (schoolId: number) =>
-  request<StudentListResponse>(`/api/v1/schools/${schoolId}/me/students`);
+export const listMyStudents = (schoolId: number, page = 1) => {
+  const query = new URLSearchParams({ page: String(page) });
+
+  return request<StudentListResponse>(`/api/v1/schools/${schoolId}/me/students?${query}`);
+};
 
 /** POST /api/v1/schools/:school_id/people/students */
 export const createStudent = async (

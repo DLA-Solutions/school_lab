@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { GridColDef } from '@mui/x-data-grid';
 import {
+  DataTable,
   EmptyState,
   ErrorBanner,
   PageHeader,
@@ -25,6 +26,8 @@ import {
   GuardianRequestStatus,
 } from 'types/guardianRequest';
 import { Student } from 'types/student';
+
+const PAGE_SIZE = 25;
 
 const STATUS_VARIANT: Record<GuardianRequestStatus, 'info' | 'warning' | 'success' | 'error'> = {
   pending: 'info',
@@ -52,6 +55,8 @@ const MyRequests = () => {
 
   const [students, setStudents] = useState<Student[]>([]);
   const [rows, setRows] = useState<GuardianRequest[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -71,15 +76,17 @@ const MyRequests = () => {
     setError('');
 
     try {
-      const response = await listMyRequests(schoolId);
+      const response = await listMyRequests(schoolId, page + 1);
       setRows(response.data);
+      setTotal(response.meta.total);
     } catch (err) {
       setRows([]);
+      setTotal(0);
       setError(err instanceof ApiError ? err.message : t('myRequests.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, t]);
+  }, [schoolId, page, t]);
 
   useEffect(() => {
     load();
@@ -126,13 +133,86 @@ const MyRequests = () => {
       setNotice(t('myRequests.sent'));
       setDetails('');
       setReferenceDate('');
-      await load();
+      // A new ask belongs on the first page. Reloading the page already on screen would leave
+      // it sitting on an older slice of the list.
+      if (page === 0) {
+        await load();
+      } else {
+        setPage(0);
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('myRequests.sendError'));
     } finally {
       setSaving(false);
     }
   };
+
+  const columns = useMemo<GridColDef<GuardianRequest>[]>(
+    () => [
+      {
+        field: 'kind',
+        headerName: t('requests.column.kind'),
+        flex: 0.8,
+        minWidth: 150,
+        renderCell: ({ row }) => t(`requests.kind.${row.kind}`),
+      },
+      {
+        field: 'status',
+        headerName: t('requests.column.status'),
+        width: 150,
+        renderCell: ({ row }) => (
+          <SemanticChip
+            variant={STATUS_VARIANT[row.status]}
+            label={t(`requests.status.${row.status}`)}
+          />
+        ),
+      },
+      {
+        field: 'student_name',
+        headerName: t('common.student'),
+        flex: 0.8,
+        minWidth: 160,
+      },
+      {
+        field: 'created_at',
+        headerName: t('requests.column.openedOn'),
+        width: 130,
+        renderCell: ({ row }) => new Date(row.created_at).toLocaleDateString(),
+      },
+      {
+        field: 'details',
+        headerName: t('requests.field.details'),
+        flex: 1.4,
+        minWidth: 220,
+        sortable: false,
+        renderCell: ({ row }) => (
+          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', py: 1 }}>
+            {row.details}
+          </Typography>
+        ),
+      },
+      {
+        field: 'resolution_note',
+        headerName: t('requests.field.resolution'),
+        flex: 1.4,
+        minWidth: 220,
+        sortable: false,
+        renderCell: ({ row }) =>
+          row.resolution_note ? (
+            // The school's answer, where it has given one. A guardian refused reads why here
+            // rather than telephoning to ask.
+            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', py: 1 }}>
+              {row.resolution_note}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              {t('common.none')}
+            </Typography>
+          ),
+      },
+    ],
+    [t],
+  );
 
   if (!school) {
     return (
@@ -243,8 +323,8 @@ const MyRequests = () => {
         </Stack>
       </SectionCard>
 
-      <SectionCard>
-        <Typography variant="subtitle1" component="h2" gutterBottom>
+      <SectionCard padding={0}>
+        <Typography variant="subtitle1" component="h2" sx={{ px: 3.5, pt: 3.5 }} gutterBottom>
           {t('myRequests.list.title')}
         </Typography>
 
@@ -255,34 +335,21 @@ const MyRequests = () => {
             headingLevel={3}
           />
         ) : (
-          <Stack direction="column" divider={<Divider />}>
-            {rows.map((row) => (
-              <Stack key={row.id} direction="column" gap={0.5} py={2}>
-                <Stack direction="row" gap={1.5} alignItems="center" flexWrap="wrap">
-                  <Typography variant="subtitle2">{t(`requests.kind.${row.kind}`)}</Typography>
-                  <SemanticChip
-                    variant={STATUS_VARIANT[row.status]}
-                    label={t(`requests.status.${row.status}`)}
-                  />
-                  <Typography variant="caption" color="text.secondary">
-                    {row.student_name} · {new Date(row.created_at).toLocaleDateString()}
-                  </Typography>
-                </Stack>
-
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {row.details}
-                </Typography>
-
-                {/* The school's answer, where it has given one. A guardian refused reads why here
-                    rather than telephoning to ask. */}
-                {row.resolution_note && (
-                  <Typography variant="body2" color="text.secondary">
-                    {t('requests.field.resolution')}: {row.resolution_note}
-                  </Typography>
-                )}
-              </Stack>
-            ))}
-          </Stack>
+          <Box px={3.5} py={3.5} sx={{ height: 594, width: 1 }}>
+            <DataTable
+              rows={rows}
+              columns={columns}
+              loading={loading}
+              disableRowSelectionOnClick
+              getRowHeight={() => 'auto'}
+              paginationMode="server"
+              rowCount={total}
+              pageSizeOptions={[PAGE_SIZE]}
+              paginationModel={{ page, pageSize: PAGE_SIZE }}
+              onPaginationModelChange={(model) => setPage(model.page)}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
+            />
+          </Box>
         )}
       </SectionCard>
     </Stack>

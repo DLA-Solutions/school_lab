@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import {
@@ -56,6 +56,12 @@ const renderPage = (path = '/ficha-de-saude') =>
       <MyHealthRecords />
     </MemoryRouter>,
   );
+
+/** Opens that child's sheet from the action cell in their grid row. */
+const openListedChild = async (name: string) => {
+  const row = await screen.findByRole('row', { name: new RegExp(name, 'i') });
+  await user.click(within(row).getByRole('button', { name: /^(abrir|preencher)$/i }));
+};
 
 const stubChildren = (rows: ReturnType<typeof child>[]) =>
   server.use(
@@ -126,13 +132,13 @@ describe('MyHealthRecords', () => {
 
     renderPage();
 
-    expect(
-      await screen.findByRole('button', { name: 'Ficha de saúde de Mariana Sales' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Mariana Sales')).toBeInTheDocument();
+    expect(screen.getByText('Preenchida')).toBeInTheDocument();
+    expect(screen.getByText('1 registro')).toBeInTheDocument();
     expect(screen.queryByText('Dados gerais')).not.toBeInTheDocument();
     expect(screen.queryByText('Alergia a amendoim')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Ficha de saúde de Mariana Sales' }));
+    await openListedChild('Mariana Sales');
 
     expect(await screen.findByText('Dados gerais')).toBeInTheDocument();
     expect(screen.getByText('Registros de saúde')).toBeInTheDocument();
@@ -149,7 +155,7 @@ describe('MyHealthRecords', () => {
     expect(await screen.findByText('Mariana Sales')).toBeInTheDocument();
     expect(screen.queryByText('Dados gerais')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Ficha de saúde de Mariana Sales' }));
+    await openListedChild('Mariana Sales');
 
     expect(await screen.findByText('Alergia a amendoim')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Mariana Sales' })).toBeInTheDocument();
@@ -228,7 +234,7 @@ describe('MyHealthRecords', () => {
     expect(await screen.findByText('Não preenchida')).toBeInTheDocument();
     expect(screen.getByText('Nenhum registro')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Ficha de saúde de Mariana Sales' }));
+    await openListedChild('Mariana Sales');
 
     const bloodType = await screen.findByLabelText('Tipo sanguíneo');
     await user.click(bloodType);
@@ -263,7 +269,7 @@ describe('MyHealthRecords', () => {
     expect(await screen.findByText('Nenhum registro')).toBeInTheDocument();
     expect(screen.getByText('Não preenchida')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Ficha de saúde de Mariana Sales' }));
+    await openListedChild('Mariana Sales');
     await user.click(await screen.findByRole('button', { name: 'Adicionar registro' }));
     await user.type(await screen.findByLabelText(/^Título/), 'Alergia a amendoim');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
@@ -282,9 +288,7 @@ describe('MyHealthRecords', () => {
 
     renderPage();
 
-    await user.click(
-      await screen.findByRole('button', { name: 'Ficha de saúde de Mariana Sales' }),
-    );
+    await openListedChild('Mariana Sales');
     await user.click(await screen.findByRole('button', { name: 'Adicionar registro' }));
 
     expect(await screen.findByLabelText(/^Título/)).toBeInTheDocument();
