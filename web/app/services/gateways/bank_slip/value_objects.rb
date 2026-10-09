@@ -71,8 +71,13 @@ module Gateways
         :status,
         :amount_cents
       ) do
-        def initialize(provider_invoice_id:, boleto_url:, digitable_line:, barcode:, our_number:, pix_emv:, status:,
-                       amount_cents: nil)
+        # Cora/Fake always pass all five presentation fields — their issuance call is
+        # synchronous and the provider hands back a complete boleto+Pix immediately. Inter's
+        # issuance is asynchronous: the only synchronous response is a request id, so its
+        # adapter builds an Issuance with these left nil and backfills them later from a
+        # reconciliation re-fetch (see Billing::ReconcileInvoicePaymentService).
+        def initialize(provider_invoice_id:, status:, boleto_url: nil, digitable_line: nil, barcode: nil,
+                       our_number: nil, pix_emv: nil, amount_cents: nil)
           StatusNormalizer::INTERNAL_STATUSES.include?(status.to_s) || raise(ArgumentError, "invalid status: #{status}")
 
           super(
@@ -114,9 +119,20 @@ module Gateways
         :status,
         :total_amount_cents,
         :due_date,
-        :payments
+        :payments,
+        :boleto_url,
+        :digitable_line,
+        :barcode,
+        :our_number,
+        :pix_emv
       ) do
-        def initialize(provider_invoice_id:, status:, total_amount_cents:, due_date:, payments: [])
+        # Cora never carries presentation fields here — issuance already captured them via
+        # Issuance, and fetch_invoice's payload has no boleto/Pix block. Inter's single
+        # GET /cobranca/v3/cobrancas/{id} response carries both the invoice status and the
+        # boleto/Pix presentation in one payload, and that same GET backs fetch_invoice — so
+        # its adapter passes these through here to backfill ChargeIssuance after the fact.
+        def initialize(provider_invoice_id:, status:, total_amount_cents:, due_date:, payments: [],
+                       boleto_url: nil, digitable_line: nil, barcode: nil, our_number: nil, pix_emv: nil)
           StatusNormalizer::INTERNAL_STATUSES.include?(status.to_s) || raise(ArgumentError, "invalid status: #{status}")
 
           super(
@@ -124,7 +140,12 @@ module Gateways
             status: status.to_s,
             total_amount_cents: IntegerCents.coerce!(total_amount_cents, :total_amount_cents),
             due_date: due_date,
-            payments: payments
+            payments: payments,
+            boleto_url: boleto_url,
+            digitable_line: digitable_line,
+            barcode: barcode,
+            our_number: our_number,
+            pix_emv: pix_emv
           )
         end
       end

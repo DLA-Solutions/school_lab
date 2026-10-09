@@ -17,6 +17,11 @@ RSpec.describe Gateways::BankSlip::Registry do
     expect(described_class.api_selectable?("cora")).to be(true)
   end
 
+  it "registers inter but keeps it out of what the API may register (no go-live yet)" do
+    expect(described_class.registered?("inter")).to be(true)
+    expect(described_class.api_selectable?("inter")).to be(false)
+  end
+
   it "raises for unknown providers without constantize" do
     expect do
       described_class.resolve(school: school, provider: "unknown_bank")
