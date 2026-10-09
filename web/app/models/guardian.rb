@@ -20,7 +20,10 @@ class Guardian < ApplicationRecord
   belongs_to :discarded_by, class_name: "User", optional: true
 
   has_many :student_guardians, dependent: :destroy
-  has_many :students, through: :student_guardians
+  # Portal access follows a live link. Discarded rows stay on `student_guardians` — that
+  # association owns `dependent: :destroy` — and staff lists filter kept links on their own query.
+  has_many :kept_student_guardians, -> { kept }, class_name: "StudentGuardian", inverse_of: :guardian
+  has_many :students, through: :kept_student_guardians, source: :student
   has_many :charges, dependent: :destroy
   has_many :documents, as: :documentable, dependent: :destroy
   has_many :guardian_requests, dependent: :destroy
