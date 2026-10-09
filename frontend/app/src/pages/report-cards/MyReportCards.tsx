@@ -6,24 +6,22 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
+import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import { DataTable, EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { useGuardianSchool } from 'providers/useGuardianSchool';
 import { ApiError } from 'services/api';
-import {
-  fetchMyReportCardPdf,
-  getMyReportCard,
-  listMyReportCards,
-} from 'services/reportCardsApi';
+import { fetchMyReportCardPdf, getMyReportCard, listMyReportCards } from 'services/reportCardsApi';
 import { listMyStudents } from 'services/studentsApi';
 import { MyReportCardListItem, ReportCardPublication } from 'types/reportCard';
 import { Student } from 'types/student';
 import { downloadBlob } from 'utils/downloadBlob';
+
+const PAGE_SIZE = 25;
 
 /**
  * Boletins as a guardian reads them: released snapshots per child and period, with metadata and
@@ -38,6 +36,9 @@ const MyReportCards = () => {
   const [studentId, setStudentId] = useState('');
 
   const [rows, setRows] = useState<MyReportCardListItem[]>([]);
+  const [total, setTotal] = useState(0);
+  // The grid counts pages from zero; the API counts them from one.
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,7 +47,8 @@ const MyReportCards = () => {
   const [detailError, setDetailError] = useState('');
   const [downloading, setDownloading] = useState(false);
 
-  const studentName = (id: number) => students.find((student) => student.id === id)?.name ?? `#${id}`;
+  const studentName = (id: number) =>
+    students.find((student) => student.id === id)?.name ?? `#${id}`;
 
   const formatReleasedAt = (iso: string | null) => {
     if (!iso) {
@@ -67,15 +69,21 @@ const MyReportCards = () => {
     const studentFilter = studentId ? Number(studentId) : undefined;
 
     try {
-      const response = await listMyReportCards({ schoolId, studentId: studentFilter });
+      const response = await listMyReportCards({
+        schoolId,
+        studentId: studentFilter,
+        page: page + 1,
+      });
       setRows(response.data);
+      setTotal(response.meta.total);
     } catch (err) {
       setRows([]);
+      setTotal(0);
       setError(err instanceof ApiError ? err.message : t('myReportCards.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, studentId, t]);
+  }, [schoolId, studentId, page, t]);
 
   useEffect(() => {
     load();
@@ -139,6 +147,89 @@ const MyReportCards = () => {
     }
   };
 
+  // The catalogue stores these as full row sentences. The header is that sentence without the value.
+  const columnTitle = (
+    key: 'myReportCards.period' | 'myReportCards.releasedAt' | 'myReportCards.version',
+  ) => t(key, { periodId: '', date: '', version: '' }).trim();
+
+  const columns: GridColDef<MyReportCardListItem>[] = [
+    {
+      field: 'student',
+      headerName: t('common.student'),
+      flex: 1,
+      minWidth: 160,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyReportCardListItem>) => (
+        <Typography variant="subtitle2">{studentName(row.student_id)}</Typography>
+      ),
+    },
+    {
+      field: 'period',
+      headerName: columnTitle('myReportCards.period'),
+      flex: 1,
+      minWidth: 140,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyReportCardListItem>) => (
+        <Typography variant="body2" color="text.secondary">
+          {t('myReportCards.period', { periodId: String(row.academic_period_id) })}
+        </Typography>
+      ),
+    },
+    {
+      field: 'released_at',
+      headerName: columnTitle('myReportCards.releasedAt'),
+      flex: 1,
+      minWidth: 180,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyReportCardListItem>) => (
+        <Typography variant="body2" color="text.secondary">
+          {t('myReportCards.releasedAt', { date: formatReleasedAt(row.released_at) })}
+        </Typography>
+      ),
+    },
+    {
+      field: 'version',
+      headerName: columnTitle('myReportCards.version'),
+      width: 140,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyReportCardListItem>) => (
+        <Typography variant="body2" color="text.secondary">
+          {row.version === null
+            ? t('common.none')
+            : t('myReportCards.version', { version: String(row.version) })}
+        </Typography>
+      ),
+    },
+    {
+      field: 'detail',
+      headerName: t('myReportCards.viewDetail'),
+      width: 160,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyReportCardListItem>) => (
+        <Button size="small" variant="outlined" onClick={() => openDetail(row)}>
+          {t('myReportCards.viewDetail')}
+        </Button>
+      ),
+    },
+    {
+      field: 'pdf',
+      headerName: t('myReportCards.downloadPdf'),
+      width: 150,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyReportCardListItem>) => (
+        <Button
+          size="small"
+          onClick={() => downloadPdf(row)}
+          disabled={downloading || !row.snapshot_id}
+        >
+          {t('myReportCards.downloadPdf')}
+        </Button>
+      ),
+    },
+  ];
+
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
@@ -160,14 +251,17 @@ const MyReportCards = () => {
 
       {error && <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />}
 
-      <SectionCard title={t('myReportCards.listSection.title')}>
+      <SectionCard title={t('myReportCards.listSection.title')} padding={0}>
         {students.length > 1 && (
-          <Box mb={2}>
+          <Box px={3.5} pb={2}>
             <TextField
               id="my-report-cards-child"
               label={t('myReportCards.child')}
               value={studentId}
-              onChange={(event) => setStudentId(event.target.value)}
+              onChange={(event) => {
+                setStudentId(event.target.value);
+                setPage(0);
+              }}
               variant="filled"
               size="small"
               select
@@ -183,52 +277,29 @@ const MyReportCards = () => {
           </Box>
         )}
 
-        {loading ? (
-          <Stack alignItems="center" py={6}>
-            <CircularProgress />
-          </Stack>
-        ) : rows.length === 0 ? (
+        {!loading && rows.length === 0 ? (
           <EmptyState
             title={t('myReportCards.empty.title')}
             description={t('myReportCards.empty.description')}
             headingLevel={3}
           />
         ) : (
-          <Stack direction="column" divider={<Divider />}>
-            {rows.map((row) => (
-              <Stack
-                key={row.publication_id}
-                direction="row"
-                gap={1.5}
-                alignItems="center"
-                flexWrap="wrap"
-                py={2}
-              >
-                <Typography variant="subtitle2">{studentName(row.student_id)}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {t('myReportCards.period', { periodId: String(row.academic_period_id) })}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {t('myReportCards.releasedAt', { date: formatReleasedAt(row.released_at) })}
-                </Typography>
-                {row.version !== null && (
-                  <Typography variant="body2" color="text.secondary">
-                    {t('myReportCards.version', { version: String(row.version) })}
-                  </Typography>
-                )}
-                <Button size="small" variant="outlined" onClick={() => openDetail(row)}>
-                  {t('myReportCards.viewDetail')}
-                </Button>
-                <Button
-                  size="small"
-                  onClick={() => downloadPdf(row)}
-                  disabled={downloading || !row.snapshot_id}
-                >
-                  {t('myReportCards.downloadPdf')}
-                </Button>
-              </Stack>
-            ))}
-          </Stack>
+          <Box px={3.5} py={3.5} sx={{ height: 594, width: 1 }}>
+            <DataTable
+              rows={rows}
+              columns={columns}
+              loading={loading}
+              getRowId={(row) => row.publication_id}
+              disableRowSelectionOnClick
+              getRowHeight={() => 'auto'}
+              paginationMode="server"
+              rowCount={total}
+              pageSizeOptions={[PAGE_SIZE]}
+              paginationModel={{ page, pageSize: PAGE_SIZE }}
+              onPaginationModelChange={(model) => setPage(model.page)}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
+            />
+          </Box>
         )}
       </SectionCard>
 
@@ -238,7 +309,9 @@ const MyReportCards = () => {
           {detailError && (
             <ErrorBanner
               message={detailError}
-              onRetry={() => detail && openDetail({ publication_id: detail.id } as MyReportCardListItem)}
+              onRetry={() =>
+                detail && openDetail({ publication_id: detail.id } as MyReportCardListItem)
+              }
               retryLabel={t('common.tryAgain')}
             />
           )}
