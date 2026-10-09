@@ -228,6 +228,57 @@ in `docs/prds/fintech-first.md` (Open items).
       reminders are the bank's native behaviour until phase 2. **Future channel:** email via
       `Billing::CollectionReguaNotifier` and `notification_schedule`. WhatsApp/SMS out of
       MVP.
+- [x] **Banco Inter bank-slip adapter — registered, not yet go-live (Oct 2026):** second
+      `Gateways::BankSlip` adapter alongside Cora, added to `Registry::ADAPTERS` but
+      deliberately **not** added to `Registry::API_SELECTABLE_PROVIDERS` — no school may be
+      pointed at it yet; that is a one-line follow-up once sign-off happens. Implemented in
+      `Gateways::BankSlip::Inter::Adapter` (`web/app/services/gateways/bank_slip/inter/`) and
+      `SchoolLab::Integrations::Inter` (`web/lib/school_lab/integrations/inter/`).
+  - **Asynchronous issuance (decided):** Inter's `POST /cobranca/v3/cobrancas` only returns
+    `{"codigoSolicitacao": "..."}` synchronously — no `boleto_url`/`digitable_line`/`barcode`/
+    `our_number`/`pix_emv` yet, unlike Cora's synchronous response. `ValueObjects::Issuance`'s
+    presentation fields were loosened to default to `nil` (purely additive — Cora/Fake still
+    pass all five), and `ValueObjects::RemoteInvoice` gained the same five fields as optional
+    passthrough, because Inter's single `GET /cobranca/v3/cobrancas/{id}` carries both invoice
+    status and boleto/Pix presentation in one payload. `Billing::ReconcileInvoicePaymentService`
+    gained an always-run `backfill_presentation_fields!` step (independent of payment status)
+    that copies those fields from the webhook-triggered `fetch_invoice` re-read onto the
+    `ChargeIssuance` and calls `charge.sync_invoice_cache!` — a no-op for every other provider
+    since Cora/Fake already populate them at issue time.
+  - **Webhook body shape (decided):** Inter's webhook callback body is a JSON **array** of
+    status-transition entries (unlike Cora's header-only/no-body notification, and Spedy's
+    single JSON object). Rather than change the singular parser→`IngestProviderWebhookService`
+    contract, `Webhooks::Parsers::Inter#parse` returns `ResponseService.success(data:)` carrying
+    an **array** of `Event`s; the controller normalizes with `Array(parse_result.data)` and
+    loops. `Kernel#Array()` on a lone `Event` (a plain `Data.define`, no `#to_a`) wraps it as a
+    one-element array, so Cora/Spedy/Fake's still-singular parsers are unaffected.
+  - **`mora` (interest) — decided:** `mora.codigo = "TAXAMENSAL"` for the monthly rate from
+    `school_billing_settings.interest_rate_percent`, same gating as Cora (issuance already
+    blocked upstream without a configured rate).
+  - **`multa`/`desconto` (fine/early-payment discount) — open, stubbed intentionally:** the
+    `codigo` enum values for Inter's fine and discount types were **not** confirmed with
+    confidence in this PR — developers.inter.co's API reference renders client-side and could
+    not be fetched by automated tooling; no independent source turned up the exact enum
+    strings either. `Gateways::BankSlip::Inter::RequestPayload#multa_payload` and
+    `#desconto_payload` are left as explicit no-ops (`# TODO`, returning `nil`) rather than
+    guessing a vendor code that could silently misconfigure a real boleto's fine/discount.
+    Mirrors Cora's own fine/discount being PR2-scope per the late-fee decision above. Needs a
+    follow-up PR once the exact enum is confirmed (official docs, vendor support, or a sandbox
+    trace).
+  - **`GET /cobranca/v3/cobrancas` (list/search) — moderately confirmed, not firsthand:** the
+    collection-listing endpoint behind `Gateways::BankSlip::Inter::Adapter#list_invoices`
+    (query params `dataInicial`/`dataFinal`/`tamanhoPagina`, paginated `{cobrancas: [...]}`
+    response) was not part of the single-resource endpoints (`POST`, `GET {id}`, `POST
+    {id}/cancelar`) confirmed for this PR. Confirmed instead via an independent third-party
+    TypeScript client (`lourenzoavelar/mcp-banco-inter`, reverse-engineered against the live
+    API) since the official portal was unreachable to automated fetch during this PR. Treat as
+    reasonably likely correct, not verified firsthand against Inter's own docs or a sandbox
+    call — flagging for whoever does the sandbox validation pass (see the existing "Cora
+    sandbox validation" item above, which should be extended to Inter before go-live).
+  - **`origemRecebimento` (`BOLETO`/`PIX`) — inferred, not firsthand-confirmed:** mapped to our
+    `"boleto"`/`"pix"` payment_method strings by analogy with Inter's confirmed
+    `formasRecebimento` vocabulary on the same resource; not independently verified against a
+    real settled cobrança.
 
 ### Annual tax declarations — release blockers
 
