@@ -5,13 +5,18 @@ module Api
     module Schools
       module Me
         class ChargesController < BaseController
+          # Unified guardian list — pending, overdue, and paid together (never cancelled), always
+          # ascending by due date. Replaces the old open/history tab split; optional `status` and
+          # `due_date_from`/`due_date_to` let a family narrow it without a second endpoint.
           def index
             authorize Charge
 
             charges = filter_charges_by_student(
-              policy_scope(Charge).open
-                                  .includes(contract: :student)
-                                  .order(due_date: :asc)
+              apply_charge_filters(
+                policy_scope(Charge).guardian_visible
+                                    .includes(:payments, contract: :student)
+                                    .order(due_date: :asc)
+              )
             )
             pagy, records = pagy(charges)
 
@@ -21,6 +26,9 @@ module Api
             }
           end
 
+          # Legacy endpoint kept alive for mobile (`mobile/src/services/charges.ts`), which still
+          # calls it for paid-only history. The web SPA no longer uses this — it reads paid
+          # charges from the unified `index` list above instead.
           def history
             authorize Charge, :index?
 
@@ -61,6 +69,21 @@ module Api
 
             student = policy_scope(Student).find(params[:student_id])
             scope.joins(:contract).where(contracts: { student_id: student.id })
+          end
+
+          # `status` narrows within the already-guardian_visible set, so an unknown value (or
+          # `cancelled`) simply yields no rows rather than ever leaking outside it. Date bounds
+          # follow the same `due_date_from`/`due_date_to` convention as the staff billing index
+          # (`Api::V1::Schools::Billing::ChargesController#apply_filters`).
+          def apply_charge_filters(scope)
+            scope = scope.where(status: params[:status]) if params[:status].present?
+            if params[:due_date_from].present?
+              scope = scope.where(due_date: Date.parse(params[:due_date_from])..)
+            end
+            if params[:due_date_to].present?
+              scope = scope.where(due_date: ..Date.parse(params[:due_date_to]))
+            end
+            scope
           end
         end
       end

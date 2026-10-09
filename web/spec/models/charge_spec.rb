@@ -9,6 +9,18 @@ RSpec.describe Charge, type: :model do
   let(:billing_plan) { create(:billing_plan, school: school) }
   let(:contract) { create(:contract, school: school, student: student, billing_plan: billing_plan) }
 
+  describe ".guardian_visible" do
+    it "includes pending, overdue, and paid but never cancelled" do
+      pending_charge = create(:charge, school: school, contract: contract, guardian: guardian)
+      overdue_charge = create(:charge, :overdue, school: school, contract: contract, guardian: guardian)
+      paid_charge = create(:charge, :paid, school: school, contract: contract, guardian: guardian)
+      cancelled_charge = create(:charge, :cancelled, school: school, contract: contract, guardian: guardian)
+
+      expect(Charge.guardian_visible).to contain_exactly(pending_charge, overdue_charge, paid_charge)
+      expect(Charge.guardian_visible).not_to include(cancelled_charge)
+    end
+  end
+
   describe "AASM timestamps" do
     it "sets paid_at when transitioning to paid" do
       charge = create(:charge, school: school, contract: contract, guardian: guardian)

@@ -23,8 +23,12 @@ class ChargeBlueprint < Blueprinter::Base
 
   association :applied_discounts, blueprint: AppliedDiscountBlueprint
 
+  # The guardian's unified charges list (and detail view) — pending, overdue, and paid together.
+  # `paid_at` stays nil until the webhook/reconciliation flow marks the charge paid.
   view :guardian do
     excludes :original_amount_cents, :discount_amount_cents, :guardian, :applied_discounts
+
+    field :paid_at
 
     field :interest_rate_percent do |charge|
       Billing::SchoolSettings.for(charge.school).interest_rate_percent&.to_f
@@ -38,11 +42,11 @@ class ChargeBlueprint < Blueprinter::Base
     end
   end
 
+  # Legacy endpoint (`/me/charges/history`) kept for mobile backward compatibility; the web SPA
+  # now reads paid charges from the unified `:guardian` list instead.
   view :guardian_history do
     include_view :guardian
     excludes :payment_methods, :due_date
-
-    field :paid_at
 
     field :source do |_charge|
       "platform"
