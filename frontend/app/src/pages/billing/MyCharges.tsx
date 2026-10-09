@@ -14,9 +14,11 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
 import BoletoPreviewDialog from 'components/sections/billing/charges/BoletoPreviewDialog';
 import {
+  DataTable,
   EmptyState,
   ErrorBanner,
   PageHeader,
@@ -45,6 +47,15 @@ import type { MessageKey } from 'locales';
 
 type TabValue = 'open' | 'history';
 
+/** Pagy's default. The API ignores a client page size, so the grid asks for the same 25. */
+const PAGE_SIZE = 25;
+
+/**
+ * Invoices are ordered differently from paid charges. A miscounted total must not walk forever:
+ * 20 pages is 500 notes at the default size.
+ */
+const INVOICE_PAGE_CAP = 20;
+
 const STATUS_VARIANT: Record<MyCharge['status'], 'success' | 'warning' | 'error' | 'info'> = {
   paid: 'success',
   pending: 'warning',
@@ -67,6 +78,40 @@ const chargeLabel = (charge: MyCharge | MyChargeHistory, t: (key: MessageKey) =>
   charge.kind === 'one_off'
     ? (charge.description ?? t('charges.kind.oneOff'))
     : (charge.student?.name ?? t('charges.kind.tuition'));
+
+/**
+ * Paid boletos and NFS-e are separate paginated lists. Matching only invoice page 1 would hide
+ * Baixar NFS-e once a charge's note sits further down. Stop when every charge on this history
+ * page has been seen, the invoice list runs out, or the cap is hit.
+ */
+const invoicesCoveringCharges = async (schoolId: number, chargeIds: number[]) => {
+  const pending = new Set(chargeIds);
+  const collected: ServiceInvoice[] = [];
+
+  if (pending.size === 0) {
+    return collected;
+  }
+
+  for (let invoicePage = 1; invoicePage <= INVOICE_PAGE_CAP; invoicePage += 1) {
+    const response = await listMyServiceInvoices({ schoolId, page: invoicePage });
+    const batch = response.data ?? [];
+    collected.push(...batch);
+
+    for (const invoice of batch) {
+      pending.delete(invoice.charge_id);
+    }
+
+    const perPage = response.meta.per_page;
+    const shortPage = batch.length === 0 || perPage <= 0 || batch.length < perPage;
+    const reachedEnd = response.meta.total > 0 && collected.length >= response.meta.total;
+
+    if (pending.size === 0 || shortPage || reachedEnd) {
+      break;
+    }
+  }
+
+  return collected;
+};
 
 /** Maps guardian detail into the staff preview dialog's expected shape. */
 const toPreviewCharge = (charge: MyCharge): Charge => ({
@@ -104,11 +149,13 @@ const MyCharges = () => {
   const [tab, setTab] = useState<TabValue>('open');
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState('');
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
 
   const [openRows, setOpenRows] = useState<MyCharge[]>([]);
   const [historyRows, setHistoryRows] = useState<MyChargeHistory[]>([]);
   const [historyInvoices, setHistoryInvoices] = useState<ServiceInvoice[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
@@ -129,28 +176,42 @@ const MyCharges = () => {
     setError('');
 
     const studentFilter = studentId ? Number(studentId) : undefined;
+    const apiPage = page + 1;
 
     try {
       if (tab === 'open') {
-        const response = await listMyOpenCharges({ schoolId, studentId: studentFilter });
+        const response = await listMyOpenCharges({
+          schoolId,
+          studentId: studentFilter,
+          page: apiPage,
+        });
         setOpenRows(response.data);
+        setTotal(response.meta.total);
         setHistoryInvoices([]);
       } else {
-        const [historyResponse, invoicesResponse] = await Promise.all([
-          listMyChargeHistory({ schoolId, studentId: studentFilter }),
-          listMyServiceInvoices({ schoolId }),
-        ]);
+        const historyResponse = await listMyChargeHistory({
+          schoolId,
+          studentId: studentFilter,
+          page: apiPage,
+        });
+        const invoices = await invoicesCoveringCharges(
+          schoolId,
+          historyResponse.data.map((row) => row.id),
+        );
         setHistoryRows(historyResponse.data);
-        setHistoryInvoices(invoicesResponse.data);
+        setTotal(historyResponse.meta.total);
+        setHistoryInvoices(invoices);
       }
     } catch (err) {
       setOpenRows([]);
       setHistoryRows([]);
+      setHistoryInvoices([]);
+      setTotal(0);
       setError(err instanceof ApiError ? err.message : t('myCharges.loadError'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, tab, studentId, t]);
+  }, [schoolId, tab, studentId, page, t]);
 
   useEffect(() => {
     load();
@@ -172,6 +233,16 @@ const MyCharges = () => {
 
     loadStudents();
   }, [schoolId]);
+
+  // A different tab or child is a different list; page 4 of the previous one is not this list.
+  const resetListing = () => {
+    setPage(0);
+    setLoading(true);
+    setOpenRows([]);
+    setHistoryRows([]);
+    setHistoryInvoices([]);
+    setTotal(0);
+  };
 
   const openDetail = async (id: number) => {
     if (!schoolId) {
@@ -254,6 +325,132 @@ const MyCharges = () => {
     }
   };
 
+  const openColumns: GridColDef<MyCharge>[] = [
+    {
+      field: 'status',
+      headerName: t('common.status'),
+      width: 130,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
+        <SemanticChip variant={STATUS_VARIANT[row.status]} label={t(`charges.status.${row.status}`)} />
+      ),
+    },
+    {
+      field: 'total_amount_cents',
+      headerName: t('common.amount'),
+      width: 130,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
+        <Typography variant="body2">{formatCents(row.total_amount_cents)}</Typography>
+      ),
+    },
+    {
+      field: 'due_date',
+      headerName: t('charges.column.due'),
+      width: 140,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
+        <Typography variant="body2">{formatDate(row.due_date, locale)}</Typography>
+      ),
+    },
+    {
+      field: 'label',
+      headerName: t('common.student'),
+      flex: 1,
+      minWidth: 160,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
+        <Typography variant="body2" color="text.secondary">
+          {chargeLabel(row, t)}
+        </Typography>
+      ),
+    },
+    {
+      field: 'pay',
+      headerName: t('common.actions'),
+      width: 160,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
+        <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>
+          {t('myCharges.viewDetail')}
+        </Button>
+      ),
+    },
+  ];
+
+  const historyColumns: GridColDef<MyChargeHistory>[] = [
+    {
+      field: 'status',
+      headerName: t('common.status'),
+      width: 130,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => (
+        <SemanticChip variant={STATUS_VARIANT[row.status]} label={t(`charges.status.${row.status}`)} />
+      ),
+    },
+    {
+      field: 'total_amount_cents',
+      headerName: t('common.amount'),
+      width: 130,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => (
+        <Typography variant="body2">{formatCents(row.total_amount_cents)}</Typography>
+      ),
+    },
+    {
+      field: 'paid_at',
+      headerName: t('myCharges.paidAt'),
+      width: 160,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => (
+        <Typography variant="body2" color="text.secondary">
+          {new Date(row.paid_at).toLocaleDateString(locale === 'en-US' ? 'en-US' : 'pt-BR')}
+        </Typography>
+      ),
+    },
+    {
+      field: 'label',
+      headerName: t('common.student'),
+      flex: 1,
+      minWidth: 160,
+      sortable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => (
+        <Typography variant="body2" color="text.secondary">
+          {chargeLabel(row, t)}
+        </Typography>
+      ),
+    },
+    {
+      field: 'invoice',
+      headerName: t('common.actions'),
+      width: 200,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => {
+        const invoice = invoiceForCharge(row.id);
+
+        if (!invoice) {
+          return null;
+        }
+
+        return (
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={downloadingInvoiceId === invoice.id}
+            startIcon={<IconifyIcon icon="mingcute:file-line" />}
+            onClick={() => downloadInvoice(invoice)}
+          >
+            {downloadingInvoiceId === invoice.id
+              ? t('myCharges.invoiceDownloading')
+              : t('myCharges.downloadInvoice')}
+          </Button>
+        );
+      },
+    },
+  ];
+
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
@@ -270,6 +467,7 @@ const MyCharges = () => {
   }
 
   const rows = tab === 'open' ? openRows : historyRows;
+  const columns = tab === 'open' ? openColumns : historyColumns;
 
   return (
     <Stack direction="column" gap={3.5}>
@@ -278,39 +476,46 @@ const MyCharges = () => {
       {error && <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />}
       {notice && <SuccessBanner message={notice} />}
 
-      <SectionCard>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2} flexWrap="wrap">
-          <Tabs value={tab} onChange={(_, value: TabValue) => setTab(value)}>
-            <Tab value="open" label={t('myCharges.tab.open')} />
-            <Tab value="history" label={t('myCharges.tab.history')} />
-          </Tabs>
-
-          {students.length > 1 && (
-            <TextField
-              id="my-charges-child"
-              label={t('guardians.charges.child')}
-              value={studentId}
-              onChange={(event) => setStudentId(event.target.value)}
-              variant="filled"
-              size="small"
-              select
-              sx={{ minWidth: 200 }}
+      <SectionCard padding={0}>
+        <Box px={3.5} pt={3.5}>
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2} flexWrap="wrap">
+            <Tabs
+              value={tab}
+              onChange={(_, value: TabValue) => {
+                setTab(value);
+                resetListing();
+              }}
             >
-              <MenuItem value="">{t('guardians.charges.allChildren')}</MenuItem>
-              {students.map((student) => (
-                <MenuItem key={student.id} value={String(student.id)}>
-                  {student.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        </Stack>
+              <Tab value="open" label={t('myCharges.tab.open')} />
+              <Tab value="history" label={t('myCharges.tab.history')} />
+            </Tabs>
 
-        {loading ? (
-          <Stack alignItems="center" py={6}>
-            <CircularProgress />
+            {students.length > 1 && (
+              <TextField
+                id="my-charges-child"
+                label={t('guardians.charges.child')}
+                value={studentId}
+                onChange={(event) => {
+                  setStudentId(event.target.value);
+                  resetListing();
+                }}
+                variant="filled"
+                size="small"
+                select
+                sx={{ minWidth: 200 }}
+              >
+                <MenuItem value="">{t('guardians.charges.allChildren')}</MenuItem>
+                {students.map((student) => (
+                  <MenuItem key={student.id} value={String(student.id)}>
+                    {student.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
           </Stack>
-        ) : rows.length === 0 ? (
+        </Box>
+
+        {!loading && rows.length === 0 && !error ? (
           <EmptyState
             title={tab === 'open' ? t('myCharges.empty.open.title') : t('myCharges.empty.history.title')}
             description={
@@ -321,75 +526,21 @@ const MyCharges = () => {
             headingLevel={3}
           />
         ) : (
-          <Stack direction="column" divider={<Divider />} mt={2}>
-            {tab === 'open'
-              ? openRows.map((row) => (
-                  <Stack
-                    key={row.id}
-                    direction="row"
-                    gap={1.5}
-                    alignItems="center"
-                    flexWrap="wrap"
-                    py={2}
-                  >
-                    <SemanticChip
-                      variant={STATUS_VARIANT[row.status]}
-                      label={t(`charges.status.${row.status}`)}
-                    />
-                    <Typography variant="body2" sx={{ minWidth: 96 }}>
-                      {formatCents(row.total_amount_cents)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('charges.column.due')} {formatDate(row.due_date, locale)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {chargeLabel(row, t)}
-                    </Typography>
-                    <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>
-                      {t('myCharges.viewDetail')}
-                    </Button>
-                  </Stack>
-                ))
-              : historyRows.map((row) => {
-                  const invoice = invoiceForCharge(row.id);
-
-                  return (
-                  <Stack
-                    key={row.id}
-                    direction="row"
-                    gap={1.5}
-                    alignItems="center"
-                    flexWrap="wrap"
-                    py={2}
-                  >
-                    <SemanticChip variant="success" label={t('charges.status.paid')} />
-                    <Typography variant="body2" sx={{ minWidth: 96 }}>
-                      {formatCents(row.total_amount_cents)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('myCharges.paidAt')}{' '}
-                      {new Date(row.paid_at).toLocaleDateString(locale === 'en-US' ? 'en-US' : 'pt-BR')}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {chargeLabel(row, t)}
-                    </Typography>
-                    {invoice ? (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        disabled={downloadingInvoiceId === invoice.id}
-                        startIcon={<IconifyIcon icon="mingcute:file-line" />}
-                        onClick={() => downloadInvoice(invoice)}
-                      >
-                        {downloadingInvoiceId === invoice.id
-                          ? t('myCharges.invoiceDownloading')
-                          : t('myCharges.downloadInvoice')}
-                      </Button>
-                    ) : null}
-                  </Stack>
-                  );
-                })}
-          </Stack>
+          <Box px={3.5} py={3.5} sx={{ height: 594, width: 1 }}>
+            <DataTable
+              rows={rows}
+              columns={columns}
+              loading={loading}
+              disableRowSelectionOnClick
+              getRowHeight={() => 'auto'}
+              paginationMode="server"
+              rowCount={total}
+              pageSizeOptions={[PAGE_SIZE]}
+              paginationModel={{ page, pageSize: PAGE_SIZE }}
+              onPaginationModelChange={(model) => setPage(model.page)}
+              rangeLabel={({ from, to, count }) => t('common.range', { from, to, count })}
+            />
+          </Box>
         )}
       </SectionCard>
 
