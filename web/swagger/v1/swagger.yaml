@@ -3154,6 +3154,10 @@
                     "type": "string",
                     "description": "Client identifier issued by the provider"
                   },
+                  "client_secret": {
+                    "type": "string",
+                    "description": "Client secret issued by the provider, when its OAuth flow needs one. Not required by any provider the API currently accepts (cora); accepted and passed through harmlessly if sent."
+                  },
                   "certificate": {
                     "type": "string",
                     "format": "binary",

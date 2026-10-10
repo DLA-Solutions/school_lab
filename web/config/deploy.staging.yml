@@ -13,6 +13,8 @@ env:
   clear:
     CORA_API_BASE_URL: https://matls-clients.api.stage.cora.com.br
     CORA_TOKEN_URL: https://matls-clients.api.stage.cora.com.br/token
+    INTER_API_BASE_URL: https://cdpj-sandbox.partners.uatinter.co
+    INTER_TOKEN_URL: https://cdpj-sandbox.partners.uatinter.co/oauth/v2/token
     CORS_ORIGINS: https://staging.scholarpremium.com.br
     APP_HOST: staging.scholarpremium.com.br
     WEB_CONCURRENCY: 1

@@ -400,6 +400,18 @@ FactoryBot.define do
       private_key_pem { pair[:private_key_pem] }
     end
 
+    trait :inter do
+      provider { "inter" }
+      client_secret { "client-secret-test-456" }
+
+      transient do
+        pair { OpensslCertificateHelper.generate_certificate_pair }
+      end
+
+      certificate_pem { pair[:certificate_pem] }
+      private_key_pem { pair[:private_key_pem] }
+    end
+
     trait :active do
       active { true }
     end

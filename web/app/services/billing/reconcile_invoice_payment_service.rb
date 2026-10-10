@@ -17,6 +17,7 @@ module Billing
       end
 
       invoice = adapter.fetch_invoice(provider_invoice_id: issuance.provider_invoice_id)
+      backfill_presentation_fields!(issuance, invoice)
       result = ReconcilePaidInvoiceService.call(charge: issuance.charge, invoice: invoice)
       return result if result.failure?
 
@@ -32,6 +33,25 @@ module Billing
     private
 
     attr_reader :webhook_event
+
+    # Closes the loop on Inter's asynchronous issuance: adapter#issue leaves boleto/Pix fields
+    # nil on the ChargeIssuance, and they only arrive once this reconciliation re-fetch runs.
+    # Independent of payment status — runs whether the invoice is still open, late, or paid.
+    # Short-circuits immediately for every other provider (Cora/Fake already populate these at
+    # issue time), so this is purely additive.
+    def backfill_presentation_fields!(issuance, invoice)
+      return if issuance.digitable_line.present?
+      return unless invoice.respond_to?(:digitable_line) && invoice.digitable_line.present?
+
+      issuance.update!(
+        boleto_url: invoice.boleto_url,
+        digitable_line: invoice.digitable_line,
+        barcode: invoice.barcode,
+        our_number: invoice.our_number,
+        pix_emv: invoice.pix_emv
+      )
+      issuance.charge.sync_invoice_cache!
+    end
 
     def adapter
       @adapter ||= Gateways::BankSlip::Registry.resolve(

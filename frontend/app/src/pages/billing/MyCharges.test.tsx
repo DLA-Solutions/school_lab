@@ -163,4 +163,102 @@ describe('MyCharges', () => {
 
     expect(await screen.findByText(/nenhum pagamento ainda/i)).toBeInTheDocument();
   });
+
+  it('requests the next page of open boletos', async () => {
+    const pages: string[] = [];
+
+    server.use(
+      http.get(apiUrl(`${BASE}/charges`), ({ request }) => {
+        const url = new URL(request.url);
+        const page = url.searchParams.get('page') ?? '1';
+        pages.push(page);
+
+        return HttpResponse.json({
+          data: [
+            {
+              ...myOpenCharges[0],
+              id: page === '1' ? 101 : 201,
+              total_amount_cents: page === '1' ? 85_000 : 12_300,
+            },
+          ],
+          meta: { page: Number(page), per_page: 25, total: 26 },
+        });
+      }),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText('R$ 850,00')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Go to page 2' }));
+
+    await waitFor(() => {
+      expect(pages).toContain('2');
+    });
+    expect(await screen.findByText('R$ 123,00')).toBeInTheDocument();
+  });
+
+  it('keeps NFS-e download when the invoice is past the first invoice page', async () => {
+    const invoicePages: string[] = [];
+    const filler = Array.from({ length: 25 }, (_, index) => ({
+      id: 1000 + index,
+      status: 'authorized',
+      integration_id: `pay-${index}`,
+      provider: 'fake',
+      provider_document_id: null,
+      invoice_number: String(index),
+      verification_code: null,
+      access_key: null,
+      payment_id: 8000 + index,
+      charge_id: 9000 + index,
+      authorized_at: '2025-12-08T15:00:00Z',
+      enqueued_at: null,
+      failed_at: null,
+      pdf_available: true,
+    }));
+
+    server.use(
+      http.get(apiUrl(`${BASE}/service_invoices`), ({ request }) => {
+        const url = new URL(request.url);
+        const page = url.searchParams.get('page') ?? '1';
+        invoicePages.push(page);
+
+        if (page === '1') {
+          return HttpResponse.json({
+            data: filler,
+            meta: { page: 1, per_page: 25, total: 26 },
+          });
+        }
+
+        return HttpResponse.json({
+          data: [
+            {
+              id: 501,
+              status: 'authorized',
+              integration_id: 'pay-9001',
+              provider: 'fake',
+              provider_document_id: 'fake-si-001',
+              invoice_number: '12345',
+              verification_code: 'ABCD1234',
+              access_key: null,
+              payment_id: 9001,
+              charge_id: 88,
+              authorized_at: '2025-12-08T15:00:00Z',
+              enqueued_at: '2025-12-08T14:35:00Z',
+              failed_at: null,
+              pdf_available: true,
+            },
+          ],
+          meta: { page: Number(page), per_page: 25, total: 26 },
+        });
+      }),
+    );
+
+    renderPage();
+
+    await screen.findAllByText('R$ 850,00');
+    await user.click(screen.getByRole('tab', { name: /histórico/i }));
+
+    expect(await screen.findByRole('button', { name: /baixar nfs-e/i })).toBeInTheDocument();
+    expect(invoicePages).toEqual(['1', '2']);
+  });
 });

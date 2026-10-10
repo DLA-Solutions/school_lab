@@ -7,14 +7,17 @@ module Gateways
 
       ADAPTERS = {
         "fake" => Fake,
-        "cora" => Cora::Adapter
+        "cora" => Cora::Adapter,
+        "inter" => Inter::Adapter
       }.freeze
 
       # Which of those an API caller may register for a school. `fake` stays a registered adapter
       # — seeds and factories create rows with it — but it reports success and fabricates a boleto
       # that collects nothing, so letting a caller point a school at it would silently stop that
       # school from being paid. Listed explicitly instead of derived from ADAPTERS: a new adapter
-      # is not offered to callers until someone decides it collects real money.
+      # is not offered to callers until someone decides it collects real money. `inter` is
+      # registered (credentials can be uploaded and validated) but deliberately not selectable
+      # yet — no go-live sign-off for this PR.
       API_SELECTABLE_PROVIDERS = %w[cora].freeze
 
       class UnknownProviderError < Gateways::BankSlip::Error; end

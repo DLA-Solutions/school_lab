@@ -6,7 +6,8 @@ module Webhooks
       PARSERS = {
         "cora" => Cora,
         "fake" => Fake,
-        "spedy" => Spedy
+        "spedy" => Spedy,
+        "inter" => Inter
       }.freeze
 
       class UnknownProviderError < StandardError; end
