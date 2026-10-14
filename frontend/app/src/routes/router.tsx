@@ -48,6 +48,7 @@ const Preceptorship = lazy(() => import('pages/preceptorship/Preceptorship'));
 const MyPreceptorship = lazy(() => import('pages/preceptorship/MyPreceptorship'));
 const ReportCards = lazy(() => import('pages/report-cards/ReportCards'));
 const MyReportCards = lazy(() => import('pages/report-cards/MyReportCards'));
+const CrmContacts = lazy(() => import('pages/crm/CrmContacts'));
 const Requests = lazy(() => import('pages/requests/Requests'));
 const MyRequests = lazy(() => import('pages/requests/MyRequests'));
 const Charges = lazy(() => import('pages/billing/Charges'));
@@ -95,6 +96,10 @@ const router = createBrowserRouter(
             {
               path: paths.guardians,
               element: <Guardians />,
+            },
+            {
+              path: paths.crm,
+              element: <CrmContacts />,
             },
             {
               path: paths.users,

@@ -38,6 +38,9 @@ export default {
   reportCards: `/${rootPaths.academicsRoot}/boletins`,
   myReportCards: '/boletins',
 
+  // Prospects (leads) before enrollment — staff with `manage_enrollment`.
+  crm: '/crm',
+
   requests: '/solicitacoes',
   // The guardian's own side of the same queue, on its own address: the two are different jobs
   // and sharing a path would mean one screen deciding which it is on every render.

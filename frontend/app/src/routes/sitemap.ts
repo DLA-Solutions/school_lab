@@ -170,6 +170,17 @@ const sitemap: MenuItem[] = [
     section: 'family',
   },
   {
+    // Prospects before enrollment. Gated on the same `manage_enrollment` key `CrmContactPolicy`
+    // checks, so the entry never shows for staff who would only get a 403.
+    id: 'crm',
+    subheader: 'nav.crm',
+    path: paths.crm,
+    icon: 'mingcute:contacts-line',
+    audience: 'staff',
+    requiredPermission: 'manage_enrollment',
+    section: 'primary',
+  },
+  {
     id: 'requests',
     subheader: 'nav.requests',
     path: paths.requests,

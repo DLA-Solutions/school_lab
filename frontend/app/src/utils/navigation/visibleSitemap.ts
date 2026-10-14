@@ -90,6 +90,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.preceptorship]: 'staff',
   [paths.reportCards]: 'staff',
   [paths.requests]: 'staff',
+  [paths.crm]: 'staff',
   [paths.myHealthProfile]: 'staff',
   [paths.charges]: 'staff',
   [paths.plans]: 'staff',
