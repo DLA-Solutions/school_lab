@@ -1783,6 +1783,27 @@ Table daily_routine_entries {
 >>>>>>> 9a20f7f4fe03b56e95f8714d309b9d41ab9fafd1
 }
 
+// --- CRM (no PRD yet — see docs/open-questions.md "CRM contacts") ---
+
+Table crm_contacts {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null]
+  phone varchar [note: 'LGPD: prospect personal data, free-form']
+  email varchar [note: 'LGPD: prospect personal data']
+  notes text [note: 'LGPD: free-text about a prospect; may mention a child']
+  temperature varchar [not null, default: 'cold', note: 'Lead classification: cold | warm | hot — plain inclusion validation, not AASM']
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, temperature)
+  }
+
+  Note: 'Minimal CRM contact (prospect/lead) for the school surface. Tenant-scoped, soft-deleted, change-audited. Provisional: no approved PRD; retention and consent basis are open (docs/open-questions.md, LGPD).'
+}
+
 // --- Documents & archive (008) ---
 
 Table archive_document_types {
@@ -2031,6 +2052,7 @@ Ref: daily_routine_entries.school_id > schools.id
 Ref: daily_routine_entries.student_id > students.id
 Ref: daily_routine_entries.sent_by_membership_id > memberships.id
 Ref: daily_routine_entries.recorded_by_membership_id > memberships.id
+Ref: crm_contacts.school_id > schools.id
 Ref: incidents.reported_by_membership_id > memberships.id
 Ref: incidents.coordination_approved_by_membership_id > memberships.id
 Ref: incidents.director_approved_by_membership_id > memberships.id

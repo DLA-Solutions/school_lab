@@ -18,6 +18,7 @@ class School < ApplicationRecord
   has_many :class_disciplines, dependent: :destroy
   has_many :teachers, dependent: :destroy
   has_many :job_positions, dependent: :destroy
+  has_many :crm_contacts, dependent: :destroy
   has_many :teaching_assignments, dependent: :destroy
   has_many :billing_plans, dependent: :destroy
   has_many :billing_purposes, dependent: :destroy
