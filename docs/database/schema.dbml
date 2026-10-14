@@ -1801,7 +1801,7 @@ Table crm_contacts {
     (school_id, temperature)
   }
 
-  Note: 'Minimal CRM contact (prospect/lead) for the school surface. Tenant-scoped, soft-deleted, change-audited. Provisional: no approved PRD; retention and consent basis are open (docs/open-questions.md, LGPD).'
+  Note: 'Minimal CRM contact (prospect/lead) for the school surface. Tenant-scoped, soft-deleted, change-audited. PRD: docs/prds/crm.md; retention and consent basis are open (docs/open-questions.md, LGPD).'
 }
 
 // --- Documents & archive (008) ---

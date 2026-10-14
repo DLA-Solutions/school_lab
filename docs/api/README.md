@@ -221,6 +221,7 @@ Do not "restore" HMAC verification here assuming it was left out by mistake.
 | `schools/:id/archive/*`, documents | Documents & archive | [`v1/documents-and-archive.md`](v1/documents-and-archive.md) |
 | `schools/:id/communication/*` | Communication | [`v1/communication.md`](v1/communication.md) |
 | `schools/:id/academic/*` | Academic | [`v1/academic.md`](v1/academic.md) |
+| `schools/:id/crm_contacts` (provisional, no PRD) | CRM contacts | [`v1/crm.md`](v1/crm.md) |
 | `schools/:id/me/*` | Guardian portal | [`v1/fintech-first.md`](v1/fintech-first.md), domain `me/*` sections above |
 
 ## Related documents

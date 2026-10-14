@@ -383,6 +383,24 @@ PRD: [`academic/incidents.md`](prds/academic/incidents.md) (**validated**); mode
 - [ ] **Explicit "when it happened" date distinct from `created_at`** — UC-IN01's input list has no
       such field; the grid shows `created_at`. Flagged rather than guessed into the schema.
 
+## CRM contacts
+
+A minimal CRM contact list (name, phone, email, notes, lead temperature cold/warm/hot) was
+implemented for the school surface at the product owner's request; the PRD was written after the
+fact: [`prds/crm.md`](prds/crm.md). It is provisional: [`api/v1/crm.md`](api/v1/crm.md), table `crm_contacts` in
+[`database/schema.dbml`](database/schema.dbml).
+
+- [x] **Write the CRM PRD** — [`prds/crm.md`](prds/crm.md). Still to decide (funnel scope): pipeline stages beyond temperature,
+      conversion of a contact into a guardian/student/enrollment, contact history/interactions,
+      owner/assignee, import/export, relation to `GuardianRequest`/enrollment flows.
+- [ ] **Permission** — the API is gated on the existing `manage_enrollment` key (director and
+      secretary). Decide whether CRM needs its own permission key (`manage_crm`?), and whether
+      coordination/teachers may ever see leads.
+- [ ] **Lead classification vocabulary** — API values are English `cold | warm | hot`; pt-BR UI
+      labels "Frio / Morno / Quente". Confirm the terms and whether more levels are wanted.
+- [ ] **Duplicate handling** — no uniqueness on email/phone (a family may share one). Confirm.
+- [ ] **LGPD** — see the CRM item under LGPD / Privacy.
+
 ## Early childhood education / Daily routine (phase 2)
 
 - [ ] Record fields: meals, sleep, hygiene/diaper, health, mood, photos, notes
@@ -462,6 +480,13 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
       PDFs be logged (who accessed which child's health attachment and when)? MVP ships
       `SchoolAuditable` change history only; read/download audit deferred
       ([`health-records.md`](prds/students-and-enrollments/health-records.md)).
+
+- [ ] **CRM contacts (prospect data)** — `crm_contacts` stores name, phone, email and free-text
+      notes of people who are not yet guardians and have given no recorded consent. Define the legal
+      basis (consent vs. legitimate interest for pre-enrollment contact), a retention window for cold
+      leads, and whether `notes` may mention a child. MVP ships `SchoolAuditable` change history and
+      soft delete only; no read-access audit, no hard-purge job
+      ([`v1/crm.md`](api/v1/crm.md)).
 
 ### Billing integration (Cora) — recorded Aug 2026
 

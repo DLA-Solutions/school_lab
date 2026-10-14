@@ -114,6 +114,7 @@ Historical records and cross-cutting PRDs. **Normative billing scope** is
 
 | PRD | Parent domain | Status | Capabilities | Modeling | API |
 |-----|---------------|--------|--------------|----------|-----|
+| [`crm.md`](crm.md) | students-and-enrollments (pre-enrollment) | implemented (minimal slice) | `students.capture_prospect` (P2, early minimal slice) | — | [`crm`](../api/v1/crm.md) |
 | [`fintech-first/resend-boleto.md`](fintech-first/resend-boleto.md) | fintech-first / billing | absorbed | `billing.*` resend — merged into [`billing/boletos.md`](billing/boletos.md) | — | [`billing.md`](../api/v1/billing.md) |
 | [`platform-and-admin/school-module-flags.md`](platform-and-admin/school-module-flags.md) | backoffice / evolution E1 | approved | `platform.manage_backoffice_ops` | — | [`platform-and-admin.md`](../api/v1/platform-and-admin.md) |
 | [`platform-and-admin/backoffice-module-flags-ui.md`](platform-and-admin/backoffice-module-flags-ui.md) | backoffice-evolution E1 | draft | `platform.manage_backoffice_ops` | — | — |
