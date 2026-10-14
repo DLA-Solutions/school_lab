@@ -97,6 +97,7 @@ Rails.application.routes.draw do
           end
           resources :platform_plans, only: :index
           resources :bank_credentials, only: %i[index create]
+          resources :crm_contacts, only: %i[index show create update destroy]
           resources :signature_credentials, only: %i[index create]
           namespace :people do
             resources :guardians do

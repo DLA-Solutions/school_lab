@@ -267,6 +267,7 @@ pt-BR:
       template_in_use: "Este modelo está em uso por %{count} colaborador(es)."
       last_admin_template: "A escola precisa manter ao menos um modelo com permissões de administrador."
       job_position_in_use: "Este cargo está em uso por %{count} colaborador(es). Altere o cargo deles antes de removê-lo."
+      crm_contact_invalid_temperature: "Classificação inválida. Use frio, morno ou quente."
       invalid_permission_for_role: "Esta permissão não é permitida para o papel deste membro."
       import_validation_failed: "Não foi possível processar a importação do CSV."
       provisioning_import_missing_file: "Envie um arquivo CSV no campo de arquivo."

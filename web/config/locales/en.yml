@@ -237,6 +237,7 @@ en:
       template_in_use: "This template is in use by %{count} staff member(s)."
       last_admin_template: "The school must keep at least one template with admin permissions."
       job_position_in_use: "This position is held by %{count} collaborator(s). Move them before removing it."
+      crm_contact_invalid_temperature: "Invalid classification. Use cold, warm or hot."
       invalid_permission_for_role: "This permission is not allowed for the member's role."
       import_validation_failed: "The CSV import could not be processed."
       provisioning_import_missing_file: "Upload a CSV file in the file field."

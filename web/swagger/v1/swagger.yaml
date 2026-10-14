@@ -4415,6 +4415,324 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/crm_contacts": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List CRM contacts",
+        "tags": [
+          "CRM"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "temperature",
+            "in": "query",
+            "required": false,
+            "description": "cold | warm | hot",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Case-insensitive match on name, email or phone",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "forbidden for a guardian"
+          },
+          "404": {
+            "description": "school the user does not belong to"
+          },
+          "200": {
+            "description": "searches by name, email or phone"
+          },
+          "422": {
+            "description": "unknown temperature filter"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a CRM contact",
+        "tags": [
+          "CRM"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "creates a contact in the current school, cold by default"
+          },
+          "422": {
+            "description": "temperature must be cold, warm or hot"
+          },
+          "403": {
+            "description": "forbidden for a teacher"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "crm_contact": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "phone": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "email": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "notes": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "temperature": {
+                        "type": "string",
+                        "enum": [
+                          "cold",
+                          "warm",
+                          "hot"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "crm_contact"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/crm_contacts/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show a CRM contact",
+        "tags": [
+          "CRM"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns the detail view"
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "forbidden for a teacher"
+          },
+          "404": {
+            "description": "discarded contact"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a CRM contact",
+        "tags": [
+          "CRM"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "updates fields and reclassifies the lead"
+          },
+          "422": {
+            "description": "invalid temperature"
+          },
+          "403": {
+            "description": "forbidden for a teacher"
+          },
+          "404": {
+            "description": "contact of another school"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "crm_contact": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "phone": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "email": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "notes": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "temperature": {
+                        "type": "string",
+                        "enum": [
+                          "cold",
+                          "warm",
+                          "hot"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "crm_contact"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove (soft-delete) a CRM contact",
+        "tags": [
+          "CRM"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "discards the contact"
+          },
+          "403": {
+            "description": "forbidden for a teacher"
+          },
+          "404": {
+            "description": "contact of another school"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/documents": {
       "parameters": [
         {
