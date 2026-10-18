@@ -10,6 +10,10 @@
     "discord-deploy": {
       "command": "bash",
       "args": ["${workspaceFolder}/.claude/scripts/run-discord-mcp.sh"]
+    },
+    "kamal-logs": {
+      "command": "bash",
+      "args": ["${workspaceFolder}/.claude/scripts/run-kamal-logs-mcp.sh"]
     }
   }
 }
