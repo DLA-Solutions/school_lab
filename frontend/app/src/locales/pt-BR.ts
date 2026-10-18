@@ -1199,6 +1199,9 @@ const ptBR = {
   'collaborators.bankAccountAria': 'Dados bancários de {name}',
   'collaborators.healthProfile': 'Ver ficha de saúde',
   'collaborators.healthProfileAria': 'Ver ficha de saúde de {name}',
+  'collaborators.exportPdf': 'Exportar PDF',
+  'collaborators.exportPdfAria': 'Exportar PDF de todos os colaboradores',
+  'collaborators.exportPdfError': 'Não foi possível gerar o PDF dos colaboradores.',
 
   'bankAccount.title': 'Dados bancários',
   'bankAccount.description':
@@ -1453,15 +1456,65 @@ const ptBR = {
     'As conversas já iniciadas aparecem aqui. Comece uma nova por um destino.',
   'communication.empty.roster.title': 'Nenhum aluno',
   'communication.empty.roster.description': 'Esta turma não tem alunos.',
+  'communication.empty.rosterStarted.title': 'Todos já têm conversa',
+  'communication.empty.rosterStarted.description':
+    'Todos os alunos desta turma já têm uma conversa iniciada. Veja em Conversas.',
   'communication.empty.staffInbox.description':
     'As conversas já iniciadas aparecem aqui. Comece uma nova pela turma.',
   'communication.empty.children.title': 'Nenhum filho vinculado',
   'communication.empty.children.description':
     'As conversas aparecem quando há um filho na sua família.',
+  'communication.bulk.button': 'Enviar para toda a turma',
+  'communication.bulk.composerTitle': 'Mensagem para toda a turma',
+  'communication.bulk.composerHelp':
+    'Esta mensagem será enviada individualmente para cada um dos {count} alunos de {class}.',
+  'communication.bulk.confirmTitle': 'Enviar para toda a turma?',
+  'communication.bulk.confirmMessage':
+    'Esta mensagem será enviada para {count} alunos de {class}. Mensagens enviadas não podem ser editadas nem excluídas.',
+  'communication.bulk.partialError': 'Não foi possível enviar para {count} aluno(s): {names}.',
+  'communication.search.placeholder': 'Buscar por aluno, mãe ou pai',
+  'communication.search.aria': 'Buscar aluno ou responsável',
+  'communication.search.empty.title': 'Nenhum resultado',
+  'communication.search.empty.description': 'Nada encontrado para "{query}".',
 
   'error404.title': 'Página não encontrada',
   'error404.description': 'A página que você está buscando não existe ou foi movida.',
   'error404.home': 'Voltar ao início',
+
+  'nav.crm': 'CRM',
+
+  'crm.title': 'CRM',
+  'crm.noAccess.description': 'Você não tem permissão para ver os contatos de CRM desta escola.',
+  'crm.loadError': 'Não foi possível carregar os contatos. Verifique sua conexão.',
+  'crm.new': 'Novo contato',
+  'crm.edit': 'Editar contato',
+  'crm.searchPlaceholder': 'Buscar por nome, e-mail ou telefone',
+  'crm.searchAria': 'Buscar contatos',
+  'crm.filter.label': 'Classificação',
+  'crm.filter.all': 'Todas',
+  'crm.temperature.cold': 'Frio',
+  'crm.temperature.warm': 'Morno',
+  'crm.temperature.hot': 'Quente',
+  'crm.column.name': 'Nome',
+  'crm.column.phone': 'Telefone',
+  'crm.column.email': 'E-mail',
+  'crm.column.notes': 'Observações',
+  'crm.column.temperature': 'Classificação',
+  'crm.empty.title': 'Nenhum contato cadastrado',
+  'crm.empty.description': 'Cadastre os interessados da escola para acompanhar cada contato.',
+  'crm.empty.searchTitle': 'Nenhum contato encontrado',
+  'crm.empty.searchDescription': 'Nenhum contato corresponde à busca ou ao filtro aplicado.',
+  'crm.form.nameLabel': 'Nome',
+  'crm.form.nameRequired': 'Informe o nome do contato.',
+  'crm.form.phoneLabel': 'Telefone',
+  'crm.form.emailLabel': 'E-mail',
+  'crm.form.notesLabel': 'Observações',
+  'crm.form.temperatureLabel': 'Classificação',
+  'crm.deleteTitle': 'Excluir contato',
+  'crm.deleteMessage': 'Excluir o contato {name}? Esta ação remove o contato da lista.',
+  'crm.deleteError': 'Não foi possível excluir o contato.',
+  'crm.editAria': 'Editar {name}',
+  'crm.deleteAria': 'Excluir {name}',
 } as const;
 
 export default ptBR;

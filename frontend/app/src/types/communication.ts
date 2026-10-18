@@ -67,7 +67,7 @@ export interface SentMessage {
 }
 
 /**
- * One student on `GET /communication/roster?school_class_id=`.
+ * One student on `GET /communication/roster?school_class_id=` or `GET /communication/search?q=`.
  *
  * Used only to start a thread that does not exist yet. `conversation_id` and `sender_line` are
  * null until someone has written. A teacher's row includes `teacher_id` (that teacher) even then.
@@ -83,4 +83,9 @@ export interface CommunicationRosterItem {
   /** The signed-in teacher. Null for secretary and coordination. Omitted for a director. */
   teacher_id?: number | null;
   destinations?: CommunicationDestination[];
+  /**
+   * Present only on `/search` rows (undefined on `/roster` rows). That student's kept guardians,
+   * ordered father, then mother, then other.
+   */
+  guardians?: { name: string; relationship: 'father' | 'mother' | 'other' }[];
 }

@@ -40,6 +40,28 @@ RSpec.describe Billing::IssueChargeService do
     expect(charge.provider_invoice_id).to eq("fake-invoice-123")
   end
 
+  it "tolerates an adapter whose issue returns nil boleto/Pix fields (Inter's asynchronous " \
+     "issuance — those arrive later via reconciliation, not from issue itself)" do
+    pending_issuance_result = Gateways::BankSlip::ValueObjects::Issuance.new(
+      provider_invoice_id: "inter-req-123",
+      status: "draft",
+      amount_cents: charge.total_amount_cents
+    )
+    allow(adapter).to receive(:issue).and_return(pending_issuance_result)
+
+    expect { result }.not_to raise_error
+    expect(result).to be_success
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("issued")
+    expect(issuance.provider_invoice_id).to eq("inter-req-123")
+    expect(issuance.boleto_url).to be_nil
+    expect(issuance.digitable_line).to be_nil
+    expect(issuance.barcode).to be_nil
+    expect(issuance.our_number).to be_nil
+    expect(issuance.pix_emv).to be_nil
+  end
+
   it "passes the persisted idempotency key to the adapter" do
     result
 

@@ -12,9 +12,16 @@ class Webhooks::ProvidersController < ActionController::API
     parse_result = parser.parse(request)
     return head :bad_request if parse_result.failure?
 
-    result = Billing::IngestProviderWebhookService.call(config: config, event: parse_result.data)
-    return head :ok if result.success?
+    # Cora/Spedy/Fake each return a single Event; Inter's body is itself an array of
+    # status-transition entries. Array() wraps a lone Event (a plain Data.define with no
+    # #to_a/#to_ary) as a one-element array instead of exploding its fields, so this loop
+    # normalizes both shapes without changing behavior for the single-event providers.
+    events = Array(parse_result.data)
+    return head :bad_request if events.empty?
 
-    head :unprocessable_content
+    results = events.map { |event| Billing::IngestProviderWebhookService.call(config: config, event: event) }
+    return head :unprocessable_content if results.any?(&:failure?)
+
+    head :ok
   end
 end

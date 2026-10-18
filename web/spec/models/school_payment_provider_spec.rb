@@ -83,6 +83,30 @@ RSpec.describe SchoolPaymentProvider, type: :model do
       expect(build_provider(provider: "cora", client_id: nil)).not_to be_valid
     end
 
+    it "rejects an inter configuration without credentials" do
+      provider = build(:school_payment_provider, school: school, provider: "inter",
+                                                 client_id: nil,
+                                                 client_secret: nil,
+                                                 certificate_pem: nil,
+                                                 private_key_pem: nil)
+
+      expect(provider).not_to be_valid
+      expect(provider.errors[:client_id]).to be_present
+      expect(provider.errors[:client_secret]).to be_present
+      expect(provider.errors[:certificate_pem]).to be_present
+      expect(provider.errors[:private_key_pem]).to be_present
+    end
+
+    it "rejects an inter configuration missing only the client secret" do
+      expect(build_provider(provider: "inter", client_id: "client-id", client_secret: nil)).not_to be_valid
+    end
+
+    it "accepts a complete inter configuration" do
+      provider = build_provider(provider: "inter", client_id: "client-id", client_secret: "client-secret")
+
+      expect(provider).to be_valid
+    end
+
     it "accepts a fake configuration with no credentials" do
       provider = build(:school_payment_provider, school: school, provider: "fake",
                                                  client_id: nil,

@@ -115,6 +115,20 @@ const sentMessage = (body: string) => ({
   },
 });
 
+/** Records the `q` of every `/search` request, in order, and answers with `results`. */
+const stubSearch = (results: Record<string, unknown>[] = []) => {
+  const queries: string[] = [];
+
+  server.use(
+    http.get(apiUrl(`${BASE}/search`), ({ request }) => {
+      queries.push(new URL(request.url).searchParams.get('q') ?? '');
+      return HttpResponse.json({ data: results });
+    }),
+  );
+
+  return queries;
+};
+
 const captureSend = () => {
   const posts: unknown[] = [];
   const messageIds: string[] = [];
@@ -225,9 +239,16 @@ describe('StaffCommunication', () => {
     expect(screen.getByText('Pode buscar mais cedo?')).toBeInTheDocument();
     expect(screen.getByText('Lara Nogueira')).toBeInTheDocument();
     expect(screen.getAllByText('Não lida')).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'Ana Souza' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Diego, pai da Lara — 1º ano' }));
+    // The Turma-filtered roster now lives inside the "Nova conversa" dialog instead of sitting
+    // permanently in the sidebar.
+    await user.click(screen.getByRole('button', { name: 'Nova conversa' }));
+    expect(screen.getByRole('button', { name: 'Ana Souza' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Awaited: the dialog's exit transition keeps the rest of the page `aria-hidden` for a
+    // moment after Cancelar is clicked.
+    await user.click(await screen.findByRole('button', { name: 'Diego, pai da Lara — 1º ano' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
@@ -262,9 +283,50 @@ describe('StaffCommunication', () => {
 
     renderPage([teacherMembership]);
 
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
     expect(await screen.findByRole('button', { name: 'Lara Nogueira' })).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Turma' })).toBeInTheDocument();
     expect(screen.queryByText('Nenhum aluno')).not.toBeInTheDocument();
+  });
+
+  it('tells staff everyone in the class already has a conversation, instead of showing nothing', async () => {
+    // Regression: the dialog's roster box only checked `roster.length === 0` for its empty
+    // state, not `starters.length === 0` (what actually renders after filterStarters excludes
+    // rows that already have a matching conversation). A class whose roster is non-empty but
+    // fully covered fell through to `starters.map(...)` rendering zero rows — a blank gap under
+    // the Turma select instead of any empty state.
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [rosterItem({ student_id: 9, student_name: 'Lara Nogueira' })],
+      conversations: [
+        {
+          id: 3,
+          student_id: 9,
+          student_name: 'Lara Nogueira',
+          audience: 'secretary',
+          teacher_id: null,
+          teacher_name: null,
+          last_message_at: '2026-10-06T14:00:00.000Z',
+          last_message_body: 'Pode buscar mais cedo?',
+          school_class_id: 310,
+          sender_line: 'Diego, pai da Lara — 1º ano',
+        },
+      ],
+    });
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
+
+    expect(await screen.findByText('Todos já têm conversa')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Todos os alunos desta turma já têm uma conversa iniciada. Veja em Conversas.',
+      ),
+    ).toBeInTheDocument();
+    // Not the "this class has no students" empty state, and not a (non-existent) starter row.
+    expect(screen.queryByText('Nenhum aluno')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Lara Nogueira' })).not.toBeInTheDocument();
   });
 
   it('lets a teacher with more than one class pick it, shift included in the name', async () => {
@@ -275,6 +337,7 @@ describe('StaffCommunication', () => {
 
     renderPage([teacherMembership]);
 
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
     await user.click(await screen.findByRole('combobox', { name: 'Turma' }));
 
     expect(
@@ -296,12 +359,14 @@ describe('StaffCommunication', () => {
     stubInbox({ conversations: [] });
     renderPage([directorMembership]);
 
-    expect(await screen.findByText('Nenhum aluno')).toBeInTheDocument();
     expect(
       screen.queryByText('Quando uma família escrever, a conversa aparece aqui.'),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Para mim' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Todas' })).not.toBeInTheDocument();
+
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
+    expect(await screen.findByText('Nenhum aluno')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Turma' })).toBeInTheDocument();
   });
 
@@ -314,11 +379,12 @@ describe('StaffCommunication', () => {
 
     renderPage();
 
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
     await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
+    // Awaited: the dialog's exit transition keeps the rest of the page `aria-hidden` briefly.
     expect(
-      screen.getByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
+      await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Turma' })).toBeInTheDocument();
     await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Bom dia');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
@@ -326,8 +392,12 @@ describe('StaffCommunication', () => {
       expect(posts).toEqual([{ student_id: 9, audience: 'secretary', body: 'Bom dia' }]);
     });
 
-    await user.click(screen.getByRole('button', { name: 'Theo Nogueira' }));
-    await user.click(screen.getByRole('button', { name: 'Lara Nogueira' }));
+    // Lara now has a conversation, so the dialog's roster list no longer offers her as a
+    // starter — only the inbox row (below) resolves back to that same thread.
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
+    await user.click(await screen.findByRole('button', { name: 'Theo Nogueira' }));
+    // Awaited: the dialog's exit transition keeps the rest of the page `aria-hidden` briefly.
+    await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
 
     await waitFor(() => {
       expect(messageIds).toContain('77');
@@ -344,9 +414,11 @@ describe('StaffCommunication', () => {
 
     renderPage([teacherMembership]);
 
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
     await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
     await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Pode vir mais cedo?');
-    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    // Awaited: the dialog's exit transition keeps the rest of the page `aria-hidden` briefly.
+    await user.click(await screen.findByRole('button', { name: 'Enviar' }));
 
     await waitFor(() => {
       expect(posts).toEqual([
@@ -377,14 +449,19 @@ describe('StaffCommunication', () => {
 
     renderPage([directorMembership]);
 
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
     await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
+
+    // Awaited: the "Nova conversa" dialog is still closing (its exit transition keeps the rest
+    // of the page `aria-hidden` for a moment), so this is the sync point before the background
+    // role queries below are reliable.
+    expect(
+      await screen.findByRole('heading', { name: 'Escolha o destino para falar com Lara Nogueira' }),
+    ).toBeInTheDocument();
     await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Olá');
 
     expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled();
     expect(screen.getByText('Escolha um destino para enviar.')).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Escolha o destino para falar com Lara Nogueira' }),
-    ).toBeInTheDocument();
     expect(posts).toEqual([]);
 
     await user.click(screen.getByRole('combobox', { name: 'Destino' }));
@@ -458,14 +535,17 @@ describe('StaffCommunication', () => {
 
     expect(await screen.findByText('Diego, pai da Lara — 1º ano')).toBeInTheDocument();
     expect(screen.queryByText('Marina, mãe do Theo — 2º ano')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Ana Souza' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Todas' }));
 
     expect(await screen.findByText('Marina, mãe do Theo — 2º ano')).toBeInTheDocument();
     expect(screen.getByText('Diego, pai da Lara — 1º ano')).toBeInTheDocument();
     expect(screen.getByText(/Marina Alves/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Ana Souza' })).toBeInTheDocument();
+
+    // The Turma-filtered roster (Ana Souza has no conversation yet) now lives inside the "Nova
+    // conversa" dialog, not permanently in the sidebar next to the inbox.
+    await user.click(screen.getByRole('button', { name: 'Nova conversa' }));
+    expect(await screen.findByRole('button', { name: 'Ana Souza' })).toBeInTheDocument();
   });
 
   it('lists a conversation that is not on the first page for direction', async () => {
@@ -530,6 +610,364 @@ describe('StaffCommunication', () => {
 
     expect(await screen.findByText('Diego, pai da Lara — 1º ano')).toBeInTheDocument();
     expect(pages).toContain('2');
-    expect(screen.getByText('Nenhum aluno')).toBeInTheDocument();
+
+    // The empty Turma roster now shows inside the "Nova conversa" dialog, not the sidebar.
+    await user.click(screen.getByRole('button', { name: 'Nova conversa' }));
+    expect(await screen.findByText('Nenhum aluno')).toBeInTheDocument();
+  });
+
+  it('sends one message to every roster student after the teacher confirms a bulk send', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [
+        rosterItem({ student_id: 9, student_name: 'Lara Nogueira', teacher_id: 12 }),
+        rosterItem({ student_id: 10, student_name: 'Theo Nogueira', teacher_id: 12 }),
+      ],
+      conversations: [],
+    });
+    const { posts } = captureSend();
+
+    renderPage([teacherMembership]);
+
+    await user.click(await screen.findByRole('button', { name: 'Enviar para toda a turma' }));
+    expect(
+      screen.getByRole('heading', { name: 'Mensagem para toda a turma' }),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Prova amanhã');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    // The fan-out is gated behind a second, explicit confirmation naming the class and count —
+    // nothing is posted until the teacher confirms it.
+    expect(
+      await screen.findByRole('heading', { name: 'Enviar para toda a turma?' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/enviada para 2 alunos/)).toBeInTheDocument();
+    expect(posts).toEqual([]);
+
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await waitFor(() => {
+      expect(posts).toHaveLength(2);
+    });
+    const sorted = [...(posts as Array<{ student_id: number }>)].sort(
+      (left, right) => left.student_id - right.student_id,
+    );
+    expect(sorted).toEqual([
+      { student_id: 9, audience: 'teacher', teacher_id: 12, body: 'Prova amanhã' },
+      { student_id: 10, audience: 'teacher', teacher_id: 12, body: 'Prova amanhã' },
+    ]);
+  });
+
+  it('keeps the draft when the teacher cancels the bulk send confirmation', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [rosterItem({ student_id: 9, student_name: 'Lara Nogueira', teacher_id: 12 })],
+      conversations: [],
+    });
+    const { posts } = captureSend();
+
+    renderPage([teacherMembership]);
+
+    await user.click(await screen.findByRole('button', { name: 'Enviar para toda a turma' }));
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Reunião hoje');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await user.click(await screen.findByRole('button', { name: 'Cancelar' }));
+
+    expect(posts).toEqual([]);
+    expect(
+      await screen.findByRole('heading', { name: 'Mensagem para toda a turma' }),
+    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toHaveValue('Reunião hoje');
+  });
+
+  it('surfaces which students a bulk send failed for, without blocking the ones that succeeded', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [
+        rosterItem({ student_id: 9, student_name: 'Lara Nogueira', teacher_id: 12 }),
+        rosterItem({ student_id: 10, student_name: 'Theo Nogueira', teacher_id: 12 }),
+      ],
+      conversations: [],
+    });
+
+    server.use(
+      http.get(apiUrl(`${BASE}/conversations/:id/messages`), () => HttpResponse.json({ data: [] })),
+      http.post(apiUrl(`${BASE}/messages`), async ({ request }) => {
+        const payload = (await request.json()) as { student_id: number; body: string };
+        if (payload.student_id === 10) {
+          return HttpResponse.json(
+            {
+              error: {
+                code: 'teacher_not_assigned',
+                message: 'O professor não está vinculado a esse aluno.',
+              },
+            },
+            { status: 422 },
+          );
+        }
+
+        return HttpResponse.json({ data: sentMessage(payload.body) }, { status: 201 });
+      }),
+    );
+
+    renderPage([teacherMembership]);
+
+    await user.click(await screen.findByRole('button', { name: 'Enviar para toda a turma' }));
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Aviso');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+    await user.click(await screen.findByRole('button', { name: 'Enviar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Theo Nogueira');
+    // The composer reopens with the draft intact so the teacher can see what happened and retry.
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toHaveValue('Aviso');
+  });
+});
+
+describe('StaffCommunication search', () => {
+  it('waits for typing to settle before calling search, then shows guardians on a hit', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [],
+    });
+    const queries = stubSearch([
+      rosterItem({
+        student_id: 9,
+        student_name: 'Lara Nogueira',
+        guardians: [
+          { name: 'Carlos Barbosa', relationship: 'father' },
+          { name: 'Mariana Barbosa', relationship: 'mother' },
+        ],
+      }),
+    ]);
+
+    renderPage();
+
+    await user.type(
+      await screen.findByRole('textbox', { name: 'Buscar aluno ou responsável' }),
+      'Mariana',
+    );
+
+    await waitFor(() => expect(queries).toContain('Mariana'));
+    // One call for the settled term — not one per keystroke.
+    expect(queries).toEqual(['Mariana']);
+
+    expect(await screen.findByText('Lara Nogueira')).toBeInTheDocument();
+    expect(screen.getByText('Pai: Carlos Barbosa · Mãe: Mariana Barbosa')).toBeInTheDocument();
+  });
+
+  it('opens a search hit the same way a class roster row opens', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [],
+    });
+    stubSearch([
+      rosterItem({
+        student_id: 9,
+        student_name: 'Lara Nogueira',
+        guardians: [{ name: 'Carlos Barbosa', relationship: 'father' }],
+      }),
+    ]);
+    const { posts } = captureSend();
+
+    renderPage();
+
+    await user.type(
+      await screen.findByRole('textbox', { name: 'Buscar aluno ou responsável' }),
+      'Lara',
+    );
+    await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Oi');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await waitFor(() => {
+      expect(posts).toEqual([{ student_id: 9, audience: 'secretary', body: 'Oi' }]);
+    });
+  });
+
+  it('still shows a search hit that already has a conversation, and opens that existing thread', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [
+        {
+          id: 3,
+          student_id: 9,
+          student_name: 'Lara Nogueira',
+          audience: 'secretary',
+          teacher_id: null,
+          teacher_name: null,
+          last_message_at: '2026-10-06T14:00:00.000Z',
+          last_message_body: 'Pode buscar mais cedo?',
+          school_class_id: 310,
+          sender_line: 'Diego, pai da Lara — 1º ano',
+        },
+      ],
+    });
+    stubSearch([
+      rosterItem({
+        student_id: 9,
+        student_name: 'Lara Nogueira',
+        guardians: [{ name: 'Carlos Barbosa', relationship: 'father' }],
+      }),
+    ]);
+    const messageIds: string[] = [];
+    server.use(
+      http.get(apiUrl(`${BASE}/conversations/:id/messages`), ({ params }) => {
+        messageIds.push(String(params.id));
+        return HttpResponse.json({
+          data: [
+            {
+              id: 1,
+              sender_membership_id: 11,
+              sender_line: 'Diego, pai da Lara',
+              body: 'Pode buscar mais cedo?',
+              sent_at: '2026-10-06T14:00:00.000Z',
+            },
+          ],
+        });
+      }),
+    );
+
+    renderPage();
+
+    await user.type(
+      await screen.findByRole('textbox', { name: 'Buscar aluno ou responsável' }),
+      'Lara',
+    );
+    // The hit still shows even though a conversation for this student already exists — search
+    // replaces the inbox list while active, so filtering it out here would hide the very
+    // conversation the search box exists to find.
+    await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
+    ).toBeInTheDocument();
+    // Opens the existing conversation (id 3) with its prior message — not a blank new thread.
+    expect(await screen.findByText('Pode buscar mais cedo?')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(messageIds).toEqual(['3']);
+    });
+  });
+
+  it('tells the user nothing matched instead of leaving the list blank', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [],
+    });
+    stubSearch([]);
+
+    renderPage();
+
+    await user.type(
+      await screen.findByRole('textbox', { name: 'Buscar aluno ou responsável' }),
+      'Ninguém',
+    );
+
+    expect(await screen.findByText('Nenhum resultado')).toBeInTheDocument();
+    expect(screen.getByText('Nada encontrado para "Ninguém".')).toBeInTheDocument();
+  });
+
+  it('clears the open thread once the user starts searching for someone else', async () => {
+    // Regression for a bug where `open` (the single source of truth for the header/thread on
+    // the right) was never reset when typing into search: the sidebar list swaps from `inbox`
+    // to `searchResults`, but the header kept showing whichever conversation was open before —
+    // a student who, by then, is not even in the list the sidebar is rendering.
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [],
+      conversations: [
+        {
+          id: 3,
+          student_id: 9,
+          student_name: 'Lara Nogueira',
+          audience: 'secretary',
+          teacher_id: null,
+          teacher_name: null,
+          last_message_at: '2026-10-06T14:00:00.000Z',
+          last_message_body: 'Pode buscar mais cedo?',
+          school_class_id: 310,
+          sender_line: 'Diego, pai da Lara — 1º ano',
+        },
+      ],
+    });
+    stubSearch([rosterItem({ student_id: 20, student_name: 'Pedro Alves', guardians: [] })]);
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Diego, pai da Lara — 1º ano' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'Buscar aluno ou responsável' }),
+      'Pedro',
+    );
+
+    // A different student now matches the search — the header/thread must go back to the
+    // neutral "pick someone" state, not keep showing Lara, who is no longer in any list the
+    // sidebar is currently rendering.
+    await screen.findByRole('button', { name: 'Pedro Alves' });
+    expect(
+      screen.queryByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Escolha um aluno')).toBeInTheDocument();
+  });
+
+  it('falls back to the inbox — not the Turma-filtered roster — once the search box is cleared', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [rosterItem({ student_id: 11, student_name: 'Ana Souza' })],
+      conversations: [
+        {
+          id: 3,
+          student_id: 9,
+          student_name: 'Lara Nogueira',
+          audience: 'secretary',
+          teacher_id: null,
+          teacher_name: null,
+          last_message_at: '2026-10-06T14:00:00.000Z',
+          last_message_body: 'Pode buscar mais cedo?',
+          school_class_id: 310,
+          sender_line: 'Diego, pai da Lara — 1º ano',
+        },
+      ],
+    });
+    stubSearch([
+      rosterItem({ student_id: 9, student_name: 'Lara Nogueira', guardians: [] }),
+    ]);
+
+    renderPage();
+    const searchField = await screen.findByRole('textbox', {
+      name: 'Buscar aluno ou responsável',
+    });
+
+    // Before searching, the single "Conversas" list is the inbox — the Turma roster (Ana
+    // Souza has no conversation yet) is not interleaved with it.
+    expect(await screen.findByText('Diego, pai da Lara — 1º ano')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ana Souza' })).not.toBeInTheDocument();
+
+    await user.type(searchField, 'Lara');
+    // Search replaces the inbox with results while active.
+    expect(await screen.findByRole('button', { name: 'Lara Nogueira' })).toBeInTheDocument();
+    expect(screen.queryByText('Diego, pai da Lara — 1º ano')).not.toBeInTheDocument();
+
+    await user.clear(searchField);
+
+    // Clearing the query falls back to the inbox, not the Turma-filtered roster — that picker
+    // now lives only inside the "Nova conversa" dialog.
+    expect(await screen.findByText('Diego, pai da Lara — 1º ano')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Turma' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ana Souza' })).not.toBeInTheDocument();
   });
 });

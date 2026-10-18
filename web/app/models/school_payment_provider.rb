@@ -10,16 +10,17 @@ class SchoolPaymentProvider < ApplicationRecord
   REQUIRED_CREDENTIALS = {
     "cora" => %i[client_id certificate_pem private_key_pem],
     "fake" => [],
-    "spedy" => %i[api_key]
+    "spedy" => %i[api_key],
+    "inter" => %i[client_id client_secret certificate_pem private_key_pem]
   }.freeze
 
   belongs_to :school
   belongs_to :uploaded_by, class_name: "User", optional: true
 
-  encrypts :certificate_pem, :private_key_pem, :api_key
+  encrypts :certificate_pem, :private_key_pem, :api_key, :client_secret
 
   audited associated_with: :school,
-          except: SchoolAuditable::AUDITED_EXCEPT + %w[certificate_pem private_key_pem api_key settings]
+          except: SchoolAuditable::AUDITED_EXCEPT + %w[certificate_pem private_key_pem api_key client_secret settings]
 
   validates :instrument, inclusion: { in: INSTRUMENTS }
   validates :provider, presence: true, inclusion: { in: REQUIRED_CREDENTIALS.keys }

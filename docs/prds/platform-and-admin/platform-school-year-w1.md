@@ -8,7 +8,7 @@
 
 | Field | Answer |
 |-------|--------|
-| Actor | Director/owner with `manage_school_settings` on school SPA `/app`; backoffice operator with `provision_school` during `school.provisioning?`; staff/teacher read-only where documented; guardian **403** on all W1 routes |
+| Actor | Director/owner with `manage_school_settings` on school SPA `/app` for school years and academic periods; holidays and instructional days additionally open to coordenação/secretaria via `manage_calendar` (`[product decision 2026-10-07]`, not yet implemented — see [`school-year.md`](school-year.md) Open items); backoffice operator with `provision_school` during `school.provisioning?`; staff/teacher read-only where documented; guardian **403** on all W1 routes directly (read-only access to holidays/instructional days via `calendar.md` BR-CA07 instead) |
 | Trigger and precondition | School exists; year created in `draft` with valid date range; activate requires ≥1 academic period; at most one `active` year per school (BR-SY01); financial year equals academic year container in MVP |
 | Observable outcome | CRUD on `school_years`, `academic_periods`, `school_holidays`; `POST …/activate` archives prior active year; `GET …/active` returns embedded periods/holidays or `422 no_active_school_year`; domain events `SchoolYearActivated` / `SchoolYearArchived` emitted |
 | Adversarial cases | Guardian 403 on reads; cross-school 404; `409 year_in_use` on discard when enrollments/charges reference year; period overlap `422`; PATCH on active/archived year rejected; archived year blocks downstream enrollment mutations |

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_135002) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_162834) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -348,6 +348,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_135002) do
     t.index ["teacher_id"], name: "index_conversations_on_teacher_id"
     t.check_constraint "(audience::text = 'teacher'::text) = (teacher_id IS NOT NULL)", name: "conversations_teacher_matches_audience"
     t.check_constraint "audience::text = ANY (ARRAY['coordination'::character varying, 'secretary'::character varying, 'teacher'::character varying]::text[])", name: "conversations_audience_valid"
+  end
+
+  create_table "crm_contacts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "email"
+    t.string "name", null: false
+    t.text "notes"
+    t.string "phone"
+    t.bigint "school_id", null: false
+    t.string "temperature", default: "cold", null: false
+    t.datetime "updated_at", null: false
+    t.index ["school_id", "temperature"], name: "index_crm_contacts_on_school_id_and_temperature"
+    t.index ["school_id"], name: "index_crm_contacts_on_school_id"
   end
 
   create_table "daily_routine_entries", force: :cascade do |t|
@@ -1208,6 +1222,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_135002) do
     t.string "certificate_fingerprint"
     t.text "certificate_pem"
     t.string "client_id"
+    t.text "client_secret"
     t.datetime "created_at", null: false
     t.string "instrument", null: false
     t.text "private_key_pem"
@@ -1887,6 +1902,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_135002) do
   add_foreign_key "conversations", "schools"
   add_foreign_key "conversations", "students"
   add_foreign_key "conversations", "teachers"
+  add_foreign_key "crm_contacts", "schools"
   add_foreign_key "daily_routine_entries", "memberships", column: "recorded_by_membership_id"
   add_foreign_key "daily_routine_entries", "memberships", column: "sent_by_membership_id"
   add_foreign_key "daily_routine_entries", "schools"

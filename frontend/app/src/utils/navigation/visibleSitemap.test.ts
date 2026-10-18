@@ -272,3 +272,17 @@ describe('visibleSitemap communication', () => {
     expect(ids).not.toContain('communication');
   });
 });
+
+describe('visibleSitemap CRM entry', () => {
+  it('shows CRM only to staff holding manage_enrollment', () => {
+    const withPermission = { ...staffMembership, permissions: ['manage_enrollment'] };
+
+    expect(visibleSitemap(withPermission).map((item) => item.id)).toContain('crm');
+    expect(visibleSitemap(staffMembership).map((item) => item.id)).not.toContain('crm');
+    expect(visibleSitemap(guardianMembership).map((item) => item.id)).not.toContain('crm');
+  });
+
+  it('maps the CRM path to the staff audience for deep-link guards', () => {
+    expect(routeAudienceForPath(paths.crm)).toBe('staff');
+  });
+});

@@ -13,6 +13,7 @@ import Collaborators from './Collaborators';
 const TEACHERS_PATH = `/api/v1/schools/${SCHOOL_ID}/academics/teachers`;
 const DOCUMENTS_PATH = `/api/v1/schools/${SCHOOL_ID}/documents`;
 const POSITIONS_PATH = `/api/v1/schools/${SCHOOL_ID}/academics/job_positions`;
+const DOSSIER_PATH = `/api/v1/schools/${SCHOOL_ID}/academics/teachers_dossier`;
 const healthProfilePath = (teacherId: number) =>
   `/api/v1/schools/${SCHOOL_ID}/academics/teachers/${teacherId}/health_profile`;
 
@@ -277,6 +278,87 @@ describe('Collaborators page', () => {
       ).toHaveTextContent('B+');
       expect(within(dialog).getByLabelText('Plano de saúde')).toBeDisabled();
       expect(within(dialog).queryByRole('button', { name: 'Salvar' })).not.toBeInTheDocument();
+    });
+  });
+
+  // LUI-6 — same `manage_people` gate as the health profile button; the dossier itself answers
+  // to the identical Pundit check on the API (`TeacherPolicy#dossier?`).
+  describe('export PDF (LUI-6)', () => {
+    it('shows the export button to staff with manage_people', async () => {
+      authenticate();
+      stubListing();
+
+      renderPage([staffMembership]);
+      await screen.findByText('Carla Nogueira');
+
+      expect(
+        screen.getByRole('button', { name: 'Exportar PDF de todos os colaboradores' }),
+      ).toBeInTheDocument();
+    });
+
+    it('hides the export button from staff without manage_people', async () => {
+      authenticate();
+      stubListing();
+
+      renderPage([{ ...staffMembership, permissions: [] }]);
+      await screen.findByText('Carla Nogueira');
+
+      expect(
+        screen.queryByRole('button', { name: 'Exportar PDF de todos os colaboradores' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('downloads the dossier PDF for the whole school', async () => {
+      authenticate();
+      stubListing();
+
+      const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:dossier');
+      const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+      let requestedUrl = '';
+      server.use(
+        http.get(apiUrl(DOSSIER_PATH), ({ request }) => {
+          requestedUrl = request.url;
+          return new HttpResponse('%PDF-1.4 dossier', {
+            headers: { 'Content-Type': 'application/pdf' },
+          });
+        }),
+      );
+
+      renderPage([staffMembership]);
+      await screen.findByText('Carla Nogueira');
+
+      await user.click(
+        screen.getByRole('button', { name: 'Exportar PDF de todos os colaboradores' }),
+      );
+
+      await waitFor(() => expect(createObjectURL).toHaveBeenCalled());
+      expect(requestedUrl).toContain('/academics/teachers_dossier');
+      expect(screen.queryByText('Não foi possível gerar o PDF dos colaboradores.')).not.toBeInTheDocument();
+
+      createObjectURL.mockRestore();
+      revokeObjectURL.mockRestore();
+    });
+
+    it('surfaces an error when the dossier cannot be generated', async () => {
+      authenticate();
+      stubListing();
+
+      // A network-level failure (not a `{ error: ... }` envelope) is what exercises the generic
+      // fallback message — an API error response carries its own `message` and that is shown
+      // instead, same as every other PDF button in this codebase.
+      server.use(http.get(apiUrl(DOSSIER_PATH), () => HttpResponse.error()));
+
+      renderPage([staffMembership]);
+      await screen.findByText('Carla Nogueira');
+
+      await user.click(
+        screen.getByRole('button', { name: 'Exportar PDF de todos os colaboradores' }),
+      );
+
+      expect(
+        await screen.findByText('Não foi possível gerar o PDF dos colaboradores.'),
+      ).toBeInTheDocument();
     });
   });
 });

@@ -114,6 +114,7 @@ Historical records and cross-cutting PRDs. **Normative billing scope** is
 
 | PRD | Parent domain | Status | Capabilities | Modeling | API |
 |-----|---------------|--------|--------------|----------|-----|
+| [`crm.md`](crm.md) | students-and-enrollments (pre-enrollment) | implemented (minimal slice) | `students.capture_prospect` (P2, early minimal slice) | — | [`crm`](../api/v1/crm.md) |
 | [`fintech-first/resend-boleto.md`](fintech-first/resend-boleto.md) | fintech-first / billing | absorbed | `billing.*` resend — merged into [`billing/boletos.md`](billing/boletos.md) | — | [`billing.md`](../api/v1/billing.md) |
 | [`platform-and-admin/school-module-flags.md`](platform-and-admin/school-module-flags.md) | backoffice / evolution E1 | approved | `platform.manage_backoffice_ops` | — | [`platform-and-admin.md`](../api/v1/platform-and-admin.md) |
 | [`platform-and-admin/backoffice-module-flags-ui.md`](platform-and-admin/backoffice-module-flags-ui.md) | backoffice-evolution E1 | draft | `platform.manage_backoffice_ops` | — | — |
@@ -187,7 +188,7 @@ Platform BC1 school year API is **frozen** for engineering:
 |------|--------|
 | Narrative | [`platform-and-admin.md`](../api/v1/platform-and-admin.md) — header `frozen (Phase 4C.1)` |
 | Scope | `school_years`, `academic_periods`, `school_holidays` + cross-domain `school_year_id` |
-| Permissions | `manage_school_settings` mutations; active staff reads |
+| Permissions | `manage_school_settings` for year/period mutations; `manage_calendar` for holiday/instructional-day mutations (`[product decision 2026-10-07]`, not yet in `web/` — see [`school-year.md`](platform-and-admin/school-year.md) Open items); active staff reads |
 | Cross-domain patches | enrollments, academic, communication, billing, archive narratives |
 | Deferred | W2–W5 (calendar, backoffice, staff roster, product access) → **Phase 4C.1b** |
 

@@ -111,6 +111,51 @@ RSpec.describe Billing::ReconcileInvoicePaymentService do
     )
   end
 
+  it "backfills boleto/Pix presentation fields once the invoice is refetched (simulating " \
+     "Inter's asynchronous issuance, where they are nil right after issue)" do
+    async_issuance = charge.charge_issuances.create!(
+      school: school,
+      provider: "fake",
+      idempotency_key: "async-key-#{charge.id}",
+      amount_cents: charge.total_amount_cents,
+      due_date: charge.due_date,
+      provider_invoice_id: "fake-async-1"
+    )
+    async_issuance.issue! if async_issuance.may_issue?
+    charge.sync_invoice_cache!
+
+    expect(async_issuance.digitable_line).to be_nil
+    expect(charge.reload.boleto_url).to be_nil
+
+    remote_invoice = Gateways::BankSlip::ValueObjects::RemoteInvoice.new(
+      provider_invoice_id: "fake-async-1",
+      status: "open",
+      total_amount_cents: charge.total_amount_cents,
+      due_date: charge.due_date,
+      boleto_url: "https://fake-psp.example/boleto/fake-async-1",
+      digitable_line: "23793.38128 60000.000003 00000.000400 1 93480000085000",
+      barcode: "23793934800000850003381286000000000000400000",
+      our_number: "00000004",
+      pix_emv: "00020126580014br.gov.bcb.pixfake-async-1"
+    )
+    allow(adapter).to receive(:fetch_invoice).and_return(remote_invoice)
+
+    async_event = create(:webhook_event, school: school, provider: "fake", provider_resource_id: "fake-async-1")
+
+    result = described_class.call(webhook_event: async_event, adapter: adapter)
+
+    expect(result).to be_success
+    async_issuance.reload
+    expect(async_issuance.boleto_url).to eq(remote_invoice.boleto_url)
+    expect(async_issuance.digitable_line).to eq(remote_invoice.digitable_line)
+    expect(async_issuance.barcode).to eq(remote_invoice.barcode)
+    expect(async_issuance.our_number).to eq(remote_invoice.our_number)
+    expect(async_issuance.pix_emv).to eq(remote_invoice.pix_emv)
+
+    expect(charge.reload.boleto_url).to eq(remote_invoice.boleto_url)
+    expect(charge.pix_copy_paste).to eq(remote_invoice.pix_emv)
+  end
+
   it "leaves the event unprocessed when fetch_invoice raises TransientError" do
     allow(adapter).to receive(:fetch_invoice).and_raise(Gateways::BankSlip::TransientError, "timeout")
 

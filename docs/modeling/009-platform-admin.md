@@ -62,8 +62,13 @@ The MVP uses one `calendar_events` table:
   `(school_id, user_id)` and takes precedence over `visibility`.
 - `school_year_id` is nullable because date-window queries may include events outside the active
   year.
-- `visibility` is `school | staff_only` and defaults to `school`. In MVP, `school` means all
-  authenticated staff/teacher memberships in that school; it does not grant guardian access.
+- `visibility` is `school | staff_only` and defaults to `school`. `school` means all authenticated
+  staff/teacher memberships in that school **and** guardians with a kept `student_guardians` link
+  to it, read-only (`calendar.md` BR-CA07, `[product decision 2026-10-07]` — supersedes the earlier
+  "no guardian access" framing); `staff_only` excludes guardians.
+- `category` ∈ `meeting | pedagogical_day | internal_game | exam | other` on institutional rows
+  (`calendar.md` BR-CA01, `[product decision 2026-10-07]`) — not yet a DBML column; pending the
+  migration tracked in `calendar.md`'s Open items.
 - Timestamps are stored in UTC and displayed using `schools.timezone`.
 
 This unified representation replaces the earlier conceptual `personal_calendar_events` table for
@@ -98,7 +103,7 @@ GET /api/v1/schools/:school_id/academic/attendance_sessions?school_year_id=:id
 | BR-SY02 | OK | Year fields plus inherited `schools.timezone` |
 | BR-SY03 | OK | `academic_periods`; overlap/range checks recorded as migration intent |
 | BR-SY04 | OK | `period_template`, default `trimester` |
-| BR-SY05 | OK | `school_holidays.applies_to_attendance` |
+| BR-SY05 | Pending | `school_holidays.applies_to_attendance` documented; `category` column (`[product decision 2026-10-07]`) not yet in DBML — see `school-year.md` Open items |
 | BR-SY06 | OK | Lifecycle and transactional activation documented; service-owned |
 | BR-SY07 | OK | Archive restrictions documented; enforced by consuming services |
 | BR-SY08 | OK | FK-preserving soft delete plus `year_in_use` service guard |
@@ -108,6 +113,7 @@ GET /api/v1/schools/:school_id/academic/attendance_sessions?school_year_id=:id
 | AC-SY03 | OK | Holiday attendance flag is explicit |
 | AC-SY04 | OK | References remain preserved and delete guard is explicit |
 | BR-CA01–06 | OK for stub | Unified events satisfy fields, ownership, tenancy, visibility, soft delete, and no recurrence |
+| BR-CA01 `category`, BR-CA07 | Pending | Guardian read scope and event `category` are `[product decision 2026-10-07]`; no DBML column or guardian route yet — see `calendar.md` Open items |
 
 No unresolved schema blocker remains for 009 Wave 1 itself. Period overlap is intentionally a
 PostgreSQL migration concern, not a missing DBML entity; legacy billing-year resolution remains a

@@ -1184,6 +1184,9 @@ const enUS: Messages = {
   'collaborators.bankAccountAria': "{name}'s bank details",
   'collaborators.healthProfile': 'View health record',
   'collaborators.healthProfileAria': "View {name}'s health record",
+  'collaborators.exportPdf': 'Export PDF',
+  'collaborators.exportPdfAria': 'Export a PDF of every collaborator',
+  'collaborators.exportPdfError': 'Could not generate the collaborators PDF.',
 
   'bankAccount.title': 'Bank details',
   'bankAccount.description':
@@ -1436,15 +1439,65 @@ const enUS: Messages = {
     'Conversations that already exist show up here. Start a new one from a destination.',
   'communication.empty.roster.title': 'No students',
   'communication.empty.roster.description': 'This class has no students.',
+  'communication.empty.rosterStarted.title': 'Everyone already has a conversation',
+  'communication.empty.rosterStarted.description':
+    'Every student in this class already has a conversation started. Check Conversations.',
   'communication.empty.staffInbox.description':
     'Conversations that already exist show up here. Start a new one from the class roster.',
   'communication.empty.children.title': 'No linked children',
   'communication.empty.children.description':
     'Conversations appear when a child is linked to you.',
+  'communication.bulk.button': 'Send to the whole class',
+  'communication.bulk.composerTitle': 'Message to the whole class',
+  'communication.bulk.composerHelp':
+    'This message will be sent individually to each of the {count} students in {class}.',
+  'communication.bulk.confirmTitle': 'Send to the whole class?',
+  'communication.bulk.confirmMessage':
+    'This message will be sent to {count} students in {class}. Sent messages cannot be edited or deleted.',
+  'communication.bulk.partialError': 'Could not send to {count} student(s): {names}.',
+  'communication.search.placeholder': 'Search by student, mother, or father',
+  'communication.search.aria': 'Search student or guardian',
+  'communication.search.empty.title': 'No results',
+  'communication.search.empty.description': 'Nothing found for "{query}".',
 
   'error404.title': 'Page not found',
   'error404.description': 'The page you are looking for does not exist or has been moved.',
   'error404.home': 'Go back home',
+
+  'nav.crm': 'CRM',
+
+  'crm.title': 'CRM',
+  'crm.noAccess.description': 'You do not have permission to view this school\'s CRM contacts.',
+  'crm.loadError': 'Could not load the contacts. Check your connection.',
+  'crm.new': 'New contact',
+  'crm.edit': 'Edit contact',
+  'crm.searchPlaceholder': 'Search by name, email or phone',
+  'crm.searchAria': 'Search contacts',
+  'crm.filter.label': 'Classification',
+  'crm.filter.all': 'All',
+  'crm.temperature.cold': 'Cold',
+  'crm.temperature.warm': 'Warm',
+  'crm.temperature.hot': 'Hot',
+  'crm.column.name': 'Name',
+  'crm.column.phone': 'Phone',
+  'crm.column.email': 'Email',
+  'crm.column.notes': 'Notes',
+  'crm.column.temperature': 'Classification',
+  'crm.empty.title': 'No contacts yet',
+  'crm.empty.description': 'Add the school\'s prospects to keep track of each contact.',
+  'crm.empty.searchTitle': 'No contacts found',
+  'crm.empty.searchDescription': 'No contact matches the search or filter applied.',
+  'crm.form.nameLabel': 'Name',
+  'crm.form.nameRequired': 'Enter the contact name.',
+  'crm.form.phoneLabel': 'Phone',
+  'crm.form.emailLabel': 'Email',
+  'crm.form.notesLabel': 'Notes',
+  'crm.form.temperatureLabel': 'Classification',
+  'crm.deleteTitle': 'Delete contact',
+  'crm.deleteMessage': 'Delete the contact {name}? This removes the contact from the list.',
+  'crm.deleteError': 'Could not delete the contact.',
+  'crm.editAria': 'Edit {name}',
+  'crm.deleteAria': 'Delete {name}',
 } as const;
 
 export default enUS;

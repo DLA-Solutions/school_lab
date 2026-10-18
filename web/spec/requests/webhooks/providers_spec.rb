@@ -128,6 +128,62 @@ RSpec.describe "POST /webhooks/:provider/:token", type: :request do
     end
   end
 
+  # Inter's callback body is itself a JSON array of status-transition entries — unlike Cora's
+  # header-only notification or the fake/Spedy single-JSON-object body, a single retry can carry
+  # several entries for the same codigoSolicitacao. The controller normalizes with Array(...) and
+  # ingests each entry as its own WebhookEvent, so a batch of two distinct transitions enqueues
+  # reconciliation twice.
+  context "with the Banco Inter batch array parser" do
+    let(:inter_school) { create(:school) }
+    let!(:inter_config) { create(:school_payment_provider, :inter, school: inter_school) }
+    let!(:inter_charge) { create(:charge, :issued, school: inter_school) }
+    let(:inter_issuance) do
+      inter_charge.current_issuance.tap do |issuance|
+        issuance.update!(provider: "inter", provider_invoice_id: "req-batch-1")
+      end
+    end
+
+    def post_inter_webhook(entries, token:)
+      post "/webhooks/inter/#{token}",
+           params: entries.to_json,
+           headers: { "CONTENT_TYPE" => "application/json" }
+    end
+
+    it "stores one WebhookEvent per entry and enqueues reconciliation for each" do
+      adapter = instance_double(Gateways::BankSlip::Inter::Adapter)
+      allow(Gateways::BankSlip::Registry).to receive(:resolve).and_return(adapter)
+
+      expect do
+        post_inter_webhook(
+          [
+            { codigoSolicitacao: inter_issuance.provider_invoice_id, situacao: "A_RECEBER",
+              dataHoraSituacao: "2026-10-01T10:00:00Z" },
+            { codigoSolicitacao: inter_issuance.provider_invoice_id, situacao: "RECEBIDO",
+              dataHoraSituacao: "2026-10-02T09:00:00Z" }
+          ],
+          token: inter_config.webhook_endpoint_token
+        )
+      end.to have_enqueued_job(Billing::ReconcileWebhookEventJob).exactly(2).times
+
+      expect(response).to have_http_status(:ok)
+      events = WebhookEvent.where(provider: "inter")
+      expect(events.count).to eq(2)
+      expect(events.pluck(:provider_event_id).uniq.size).to eq(2)
+    end
+
+    it "returns 400 and stores nothing when every entry is missing codigoSolicitacao" do
+      expect do
+        post_inter_webhook(
+          [ { situacao: "RECEBIDO" }, { situacao: "A_RECEBER" } ],
+          token: inter_config.webhook_endpoint_token
+        )
+      end.not_to have_enqueued_job(Billing::ReconcileWebhookEventJob)
+
+      expect(response).to have_http_status(:bad_request)
+      expect(WebhookEvent.where(provider: "inter").count).to eq(0)
+    end
+  end
+
   it "does not expose the legacy psp webhook route" do
     expect(Rails.application.routes.url_helpers).not_to respond_to(:webhooks_psp_path)
   end

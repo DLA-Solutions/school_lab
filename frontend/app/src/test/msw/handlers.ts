@@ -1028,6 +1028,9 @@ export const handlers = [
   http.get(apiUrl('/api/v1/schools/:schoolId/communication/roster'), () =>
     HttpResponse.json({ data: [] }),
   ),
+  http.get(apiUrl('/api/v1/schools/:schoolId/communication/search'), () =>
+    HttpResponse.json({ data: [] }),
+  ),
   http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations'), ({ request }) => {
     const page = Number(new URL(request.url).searchParams.get('page') ?? 1);
 

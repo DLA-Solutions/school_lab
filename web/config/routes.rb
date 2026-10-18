@@ -97,6 +97,7 @@ Rails.application.routes.draw do
           end
           resources :platform_plans, only: :index
           resources :bank_credentials, only: %i[index create]
+          resources :crm_contacts, only: %i[index show create update destroy]
           resources :signature_credentials, only: %i[index create]
           namespace :people do
             resources :guardians do
@@ -155,6 +156,10 @@ Rails.application.routes.draw do
               resource :health_profile, only: :show, controller: "teacher_health_profiles"
             end
             resources :teaching_assignments, only: %i[index destroy]
+            # LUI-6: the full collaborator roster (active + discarded) as one PDF -- a singular
+            # resource, same idiom as `operational_summary`/`dashboard` above, since there is one
+            # dossier per school rather than a collection to index into.
+            resource :teachers_dossier, only: :show, controller: "teachers_dossier"
 
             # The teacher's own self-service view of their health profile (BC6) — resolved by
             # email match against Current.user, never by a :teacher_id param, so a teacher cannot
@@ -248,6 +253,7 @@ Rails.application.routes.draw do
           namespace :communication do
             resources :destinations, only: :index
             resources :roster, only: :index
+            resources :search, only: :index
             resources :conversations, only: :index do
               resources :messages, only: :index
             end

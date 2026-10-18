@@ -20,7 +20,7 @@ Routes not yet in `web/` return `501` with `not_implemented` until engineering s
 | **PRD** | [`school-year.md`](../../prds/platform-and-admin/school-year.md) — validated |
 | **Modeling** | [`009-platform-admin.md`](../../modeling/009-platform-admin.md) — Wave 1 validated |
 | **DBML** | `school_years`, `academic_periods`, `school_holidays` in [`schema.dbml`](../../database/schema.dbml) |
-| **Permissions** | `manage_school_settings` for mutations; any active staff for reads |
+| **Permissions** | `manage_school_settings` for school year/period mutations; `manage_calendar` for holiday and instructional-day mutations (director, coordenação, or secretaria system template, or owner — `[product decision 2026-10-07]`, see [`school-year.md`](../../prds/platform-and-admin/school-year.md) Open items); any active staff for reads |
 | **Cross-domain** | `school_year_id` contract patched in enrollments, academic, communication, billing, archive narratives |
 | **Deferred** | W2–W5 — calendar, backoffice modules, staff roster, product access (Phase **4C.1b**) |
 
@@ -88,8 +88,14 @@ Base: `/api/v1/schools/:school_id`
 
 **Staff read rule:** any membership with `status: active` and role `staff`, `teacher`, or
 backoffice context with school access. **Guardian** memberships receive `403 forbidden` on all
-Platform W1 routes. Mutations require effective `manage_school_settings` (director system
-template or owner per permissions PRD — secretary template does not include this key by default).
+Platform W1 routes directly — they still reach holiday/instructional-day data read-only through
+[`calendar.md`](../../prds/platform-and-admin/calendar.md)'s separate `GET /me/calendar/events`
+(BR-CA07). School year and period mutations require effective `manage_school_settings` (director
+system template or owner per permissions PRD — secretary and coordenação templates do not include
+this key by default). Holiday and instructional-day mutations require `manage_calendar` instead
+(director, secretaria, and coordenação system templates, or owner —
+`[product decision 2026-10-07]`; see § Holidays below and [`school-year.md`](../../prds/platform-and-admin/school-year.md)
+Open items — this permission key is not yet implemented in `web/`).
 
 **Backoffice provisioning:** during `school.onboarding_status == provisioning`, backoffice JWT
 with `provision_school` may create the first school year without a staff membership.
@@ -256,9 +262,13 @@ Periods must stay within parent year bounds and must not overlap siblings (BR-SY
 | Method | Path | Permission | Description |
 |--------|------|------------|-------------|
 | `GET` | `/school_years/:year_id/holidays` | active staff | List holidays |
-| `POST` | `/school_years/:year_id/holidays` | `manage_school_settings` | Create — draft or active year (UC-SY03) |
-| `PATCH` | `/holidays/:id` | `manage_school_settings` | Update name, date, `applies_to_attendance` |
-| `DELETE` | `/holidays/:id` | `manage_school_settings` | Soft delete |
+| `POST` | `/school_years/:year_id/holidays` | `manage_calendar`* | Create — draft or active year (UC-SY03) |
+| `PATCH` | `/holidays/:id` | `manage_calendar`* | Update name, date, `applies_to_attendance`, `category` |
+| `DELETE` | `/holidays/:id` | `manage_calendar`* | Soft delete |
+
+\* `[product decision 2026-10-07]` — was `manage_school_settings`; widened to director, secretaria,
+or coordenação system template, or owner, so calendar upkeep isn't director/owner-only. Not yet
+implemented in `web/` — see [`school-year.md`](../../prds/platform-and-admin/school-year.md) Open items.
 
 Flat holiday paths are relative to base `/api/v1/schools/:school_id`.
 
@@ -270,11 +280,14 @@ Holiday `date` must fall within the parent school year bounds (`starts_on`–`en
 {
   "date": "2026-04-21",
   "name": "Tiradentes",
-  "applies_to_attendance": true
+  "applies_to_attendance": true,
+  "category": "holiday"
 }
 ```
 
 `applies_to_attendance: true` suppresses attendance expectations on that date (BR-SY05).
+`category` ∈ `holiday | recess | other` (default `holiday`) is display grouping only and does not
+change `applies_to_attendance` semantics — `[product decision 2026-10-07]`, not yet a DBML column.
 
 ---
 

@@ -82,13 +82,14 @@ delegation guidance.
 
 ## Skills
 
-Twenty-two skills live in `.claude/skills/`, mirroring `.cursor/skills/`
+Twenty-three skills live in `.claude/skills/`, mirroring `.cursor/skills/`
 folder-for-folder (`core/`, `web/`, `web-ui/`, `mobile/`, `docs/`,
 `codelet-loop/`, `codelet-requirements/`). Each `SKILL.md` already carries
 `name` + `description` frontmatter in the format Claude Code's Skill tool
 expects, so they were ported with only internal path references rewritten
 (`.cursor/...` → `.claude/...`). Invoke by name via the Skill tool, e.g.
-`write-rspec-spec`, `create-pull-request`, `deploy-kamal`, `review-api`.
+`write-rspec-spec`, `create-pull-request`, `deploy-kamal`, `review-api`,
+`pr-review`.
 
 ## MCP servers
 

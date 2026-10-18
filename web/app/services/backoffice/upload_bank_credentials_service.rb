@@ -5,7 +5,7 @@ module Backoffice
     MAX_FILE_BYTES = 64.kilobytes
 
     def initialize(school:, actor:, provider:, instrument:, client_id:,
-                   certificate_io:, private_key_io:)
+                   certificate_io:, private_key_io:, client_secret: nil)
       @school = school
       @actor = actor
       @provider = provider
@@ -13,6 +13,7 @@ module Backoffice
       @client_id = client_id
       @certificate_io = certificate_io
       @private_key_io = private_key_io
+      @client_secret = client_secret
     end
 
     def call
@@ -36,6 +37,7 @@ module Backoffice
           provider: provider,
           active: true,
           client_id: client_id,
+          client_secret: client_secret,
           certificate_pem: certificate_pem,
           private_key_pem: private_key_pem,
           uploaded_at: Time.current,
@@ -51,7 +53,7 @@ module Backoffice
     private
 
     attr_reader :school, :actor, :provider, :instrument, :client_id,
-                :certificate_io, :private_key_io
+                :certificate_io, :private_key_io, :client_secret
 
     def api_error_details(record)
       record.errors.to_hash.transform_keys do |key|
