@@ -1335,7 +1335,7 @@ const ptBR = {
   'platformSubscription.paymentMethod.pix': 'Pix',
   'platformSubscription.overdue': 'Em atraso',
 
-  'nav.atas': 'Ata',
+  'nav.atas': 'Atas de reuniões',
   'atas.new': 'Nova nota ata',
   'atas.loadError': 'Não foi possível carregar as atas.',
   'atas.noAccess.description': 'Você não tem acesso às atas desta escola.',
