@@ -100,6 +100,20 @@ const renderPage = (membership: Membership) => {
   );
 };
 
+describe('Atas page — header', () => {
+  it('titles the page "Atas de reuniões"', async () => {
+    server.use(
+      http.get(apiUrl(`${BASE}/preceptorship_reports/roll`), () => HttpResponse.json({ data: roll })),
+      http.get(apiUrl(`${BASE}/incidents`), () => HttpResponse.json(page([]))),
+    );
+
+    renderPage(teacherMembership);
+
+    await screen.findByText(/nenhuma ata registrada/i);
+    expect(screen.getByRole('heading', { name: 'Atas de reuniões' })).toBeInTheDocument();
+  });
+});
+
 describe('Atas page — teacher creating a "nota ata"', () => {
   it('records one for a student from the roll and lists it right after', async () => {
     const created: Record<string, unknown>[] = [];
