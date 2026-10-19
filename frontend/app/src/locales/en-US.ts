@@ -232,7 +232,7 @@ const enUS: Messages = {
   'lessons.subjectRequired': 'Select the subject.',
   'lessons.empty.title': 'No lessons yet',
   'lessons.empty.description': 'Assign a teacher to a subject of a class to begin.',
-  'nav.lessonPlans': 'Lesson Plan',
+  'nav.lessonPlans': 'School Year',
   'lessonPlans.new': 'New Plan',
   'lessonPlans.newDialog.title': 'New lesson plan',
   'lessonPlans.newDialog.saveDisabledHint':

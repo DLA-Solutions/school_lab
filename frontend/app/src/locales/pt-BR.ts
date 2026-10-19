@@ -236,7 +236,7 @@ const ptBR = {
   'lessons.subjectRequired': 'Selecione a matéria.',
   'lessons.empty.title': 'Nenhuma aula cadastrada',
   'lessons.empty.description': 'Atribua um professor a uma matéria de uma turma para começar.',
-  'nav.lessonPlans': 'Plano de Aula',
+  'nav.lessonPlans': 'Ano letivo',
   'lessonPlans.new': 'Novo Plano',
   'lessonPlans.newDialog.title': 'Novo plano de aula',
   'lessonPlans.newDialog.saveDisabledHint':
