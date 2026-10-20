@@ -33,6 +33,12 @@ export interface Conversation {
   last_message_body: string | null;
   school_class_id: number | null;
   sender_line: string;
+  /**
+   * False when the child is no longer enrolled (transferred or removed): the thread stays
+   * readable but closed to new messages. Absent is read as enrolled; only an explicit `false`
+   * closes the chat.
+   */
+  student_active?: boolean;
 }
 
 /** Page envelope for `GET /communication/conversations`. */
@@ -40,6 +46,15 @@ export interface ConversationPageMeta {
   page: number;
   per_page: number;
   total: number;
+}
+
+/** `meta` of `GET /communication/conversations/:id/messages`. */
+export interface MessagesPageMeta {
+  page?: number;
+  per_page?: number;
+  total?: number;
+  /** Same meaning as `Conversation.student_active`. */
+  student_active?: boolean;
 }
 
 /** One row of `GET /communication/conversations/:id/messages`, in `sent_at` order. */
@@ -88,4 +103,6 @@ export interface CommunicationRosterItem {
    * ordered father, then mother, then other.
    */
   guardians?: { name: string; relationship: 'father' | 'mother' | 'other' }[];
+  /** False when the child was transferred: listed so staff can read history, but chat is closed. */
+  student_active?: boolean;
 }

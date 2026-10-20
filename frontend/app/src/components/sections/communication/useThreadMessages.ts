@@ -12,12 +12,18 @@ import { ConversationMessage } from 'types/communication';
  * replacing it with an empty fetch that has not caught up yet. The focus refresh does not
  * consult `loadedFor`, so an open thread still picks up messages that arrived while the tab
  * was in the background.
+ *
+ * `studentActive` mirrors `meta.student_active` of the last load: an explicit `false` means the
+ * child is no longer enrolled and the thread is closed to new messages.
  */
 export const useThreadMessages = (schoolId: number | null, conversationId: number | null) => {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [activity, setActivity] = useState<{ conversationId: number; active?: boolean } | null>(
+    null,
+  );
   const loadedFor = useRef<number | null>(null);
   const pendingIds = useRef<Set<number>>(new Set());
   const conversationRef = useRef<number | null>(conversationId);
@@ -58,6 +64,7 @@ export const useThreadMessages = (schoolId: number | null, conversationId: numbe
         }
 
         mergeMessages(response.data);
+        setActivity({ conversationId: id, active: response.meta?.student_active });
       } catch (err) {
         if (conversationRef.current !== id) {
           return;
@@ -85,6 +92,7 @@ export const useThreadMessages = (schoolId: number | null, conversationId: numbe
       setMessages([]);
       setLoading(false);
       setError('');
+      setActivity(null);
       return;
     }
 
@@ -140,5 +148,9 @@ export const useThreadMessages = (schoolId: number | null, conversationId: numbe
     void fetchMessages(conversationId, false);
   }, [conversationId, fetchMessages]);
 
-  return { messages, loading, error, rememberSent, retry };
+  // Only trust the flag for the thread it came from; undefined until the first load answers.
+  const studentActive =
+    activity != null && activity.conversationId === conversationId ? activity.active : undefined;
+
+  return { messages, loading, error, studentActive, rememberSent, retry };
 };

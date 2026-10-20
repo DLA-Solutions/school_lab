@@ -5,6 +5,7 @@ import {
   ConversationAudience,
   ConversationMessage,
   ConversationPageMeta,
+  MessagesPageMeta,
   SendMessagePayload,
   SentMessage,
 } from 'types/communication';
@@ -86,9 +87,12 @@ export const searchRoster = (schoolId: number, q: string) => {
   return request<{ data: CommunicationRosterItem[] }>(`${base(schoolId)}/search?${query}`);
 };
 
-/** GET /communication/conversations/:id/messages — `sent_at` order. */
+/**
+ * GET /communication/conversations/:id/messages — `sent_at` order. `meta.student_active` is
+ * false when the child is no longer enrolled (history is still returned).
+ */
 export const listMessages = (schoolId: number, conversationId: number) =>
-  request<{ data: ConversationMessage[] }>(
+  request<{ data: ConversationMessage[]; meta?: MessagesPageMeta }>(
     `${base(schoolId)}/conversations/${conversationId}/messages`,
   );
 

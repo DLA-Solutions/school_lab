@@ -1023,7 +1023,10 @@ export const handlers = [
     HttpResponse.json({ data: [] }),
   ),
   http.get(apiUrl('/api/v1/schools/:schoolId/communication/conversations/:id/messages'), () =>
-    HttpResponse.json({ data: [] }),
+    HttpResponse.json({
+      data: [],
+      meta: { page: 1, per_page: 50, total: 0, student_active: true },
+    }),
   ),
   http.get(apiUrl('/api/v1/schools/:schoolId/communication/roster'), () =>
     HttpResponse.json({ data: [] }),
