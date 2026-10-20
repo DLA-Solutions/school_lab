@@ -156,6 +156,33 @@ BR-ARC15
 **Sensitive types:** `health`, `incident`, `identity_document` flagged `sensitive: true` — stricter
 permission `view_sensitive_archive` for staff beyond default `view_archive`.
 
+BR-ARC16
+
+**Guardian self-service upload ("Meus documentos")** `[product decision]`: a guardian may upload
+personal documents for a linked child (the family's proof of address, the child's vaccination card,
+medical reports, a transfer record from another school). The document is bound to the **child**
+(`subject_type: student`), never to the individual parent, so it is **shared by every kept guardian
+linked to that child** (father, mother, others). A guardian sees documents uploaded by any co-guardian
+of the same child and by staff; a guardian never sees documents of a child they are not linked to
+(404, BR-ARC11). A family document needed for two children is uploaded once per child.
+
+BR-ARC17
+
+**Guardian upload types** (closed list, chosen by the guardian in a select at upload time; sent as
+`document_type`): `address_proof` ("Comprovante de endereço"), `vaccination_card` ("Cartão de
+vacina"), `medical_report` ("Laudos"), `school_transfer` ("Transferência de outra escola"), `other`
+("Outros"). Any other value from a guardian returns `422`. Staff uploads keep the wider seed list
+(BR-ARC03). `vaccination_card` and `medical_report` are health data: `sensitive: true` (BR-ARC15) and
+LGPD-flagged in [`open-questions.md`](../../open-questions.md).
+
+BR-ARC18
+
+**Guardian-uploaded documents start `pending`** and stay visible to the child's guardians and to
+staff with `manage_archive`/`manage_documents` while staff review them (approve/reject, UC-DA02).
+A rejected document disappears from the guardian list and shows the rejection reason to staff only.
+Only students enrolled (`Student#enrolled?`) accept new guardian uploads; a guardian whose
+children are all non-enrolled has no portal access anyway.
+
 ---
 
 ## Use Cases
@@ -244,6 +271,20 @@ Flow
 3. Return `archive_entry_id` without review when `source: enrollment` or `academic` and caller
    specifies staff-initiated `[product decision]`.
 
+### UC-DA09 — Upload family document as guardian ("Meus documentos")
+
+Input: `student_id`, `document_type` (BR-ARC17), `file`, optional `title`.
+
+Flow
+
+1. Resolve guardian profile; require a kept `student_guardians` link to an enrolled `student_id`
+   (BR-ARC16, BR-ARC18). Unlinked or other-school student → `404`.
+2. Validate `document_type` against the guardian list and the file against BR-ARC07.
+3. Store blob; create the entry with `uploaded_by` = guardian's user, bound to the student,
+   `review_status: pending` (BR-ARC18).
+4. Emit `DocumentStored`; staff see it in the archive/review queue; every co-guardian sees it in
+   their own "Meus documentos".
+
 ---
 
 ## API
@@ -303,6 +344,13 @@ Signatory config (UC-DA07).
 Guardian list (UC-DA04) — supersedes fintech-first `me/documents`.
 
 Query: `student_id` optional.
+
+### POST /api/v1/schools/:school_id/me/documents
+
+Guardian multipart upload (UC-DA09). Fields: `student_id`, `document_type` (one of
+`address_proof | vaccination_card | medical_report | school_transfer | other`), `file`, optional
+`title`. Response `201` with the entry. `404` for a child outside the guardian's family; `422` for an
+unsupported type, file constraints, or a non-enrolled child.
 
 ### Fintech-first compatibility (migration)
 
@@ -449,6 +497,26 @@ AC-DA10
 - [ ] Given staff uploads new version of document, When upload completes, Then prior entry is `superseded` and new entry has `supersedes_id` set
 - Source: BR-ARC06 `[product decision]`
 
+AC-DA11
+
+- [ ] Given guardian A (mother) linked to student S, When she uploads a PDF of type `address_proof`, Then the entry is bound to S with status `pending`, and guardian B (father) linked to S lists and downloads it in `GET /me/documents`
+- Source: `[product decision]` — BR-ARC16
+
+AC-DA12
+
+- [ ] Given a guardian not linked to student S, When they upload a document for S or request one of S's documents, Then the API returns 404 and nothing is stored
+- Source: NFR-002
+
+AC-DA13
+
+- [ ] Given a guardian upload with `document_type` outside the five guardian types, When submitted, Then `422` and nothing is stored; each of the five types is accepted
+- Source: `[product decision]` — BR-ARC17
+
+AC-DA14
+
+- [ ] Given a guardian opens "Meus documentos" in the school SPA, When they pick a child, a type from the select and a file, Then the document appears in the list for both parents with its type, date and who sent it
+- Source: `[product decision]` — BR-ARC16
+
 ---
 
 ## Open items / pending decisions
@@ -460,6 +528,9 @@ AC-DA10
 - [ ] "Save comms attachment to archive" staff action — MVP or defer
 - [ ] Exact Conselho manifest schema — legal review
 - [ ] Fintech-first route deprecation timeline
+- [ ] Guardian "Meus documentos": may a guardian delete their own upload? (MVP: no — staff only)
+- [ ] Guardian "Meus documentos": one upload covering several siblings (MVP: once per child)
+- [ ] LGPD: retention and access audit for guardian-uploaded health documents (`vaccination_card`, `medical_report`)
 
 ---
 

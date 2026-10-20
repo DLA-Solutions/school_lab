@@ -32,3 +32,27 @@ export interface DocumentListResponse {
 export interface DocumentResponse {
   data: SchoolDocument;
 }
+
+/** Who put a family document in the archive: a parent through "Meus documentos", or the school. */
+export type GuardianDocumentUploaderKind = 'guardian' | 'school';
+
+/**
+ * A row of the guardian's "Meus documentos" — the shared document plus the child it hangs off and
+ * who sent it. Mirrors `Me::DocumentBlueprint`.
+ */
+export interface GuardianDocument extends SchoolDocument {
+  student_id: number;
+  student_name: string | null;
+  /** The parent's name; `null` when school staff uploaded the file. */
+  uploaded_by_name: string | null;
+  uploaded_by_kind: GuardianDocumentUploaderKind;
+}
+
+export interface GuardianDocumentListResponse {
+  data: GuardianDocument[];
+  meta: DocumentListMeta;
+}
+
+export interface GuardianDocumentResponse {
+  data: GuardianDocument;
+}

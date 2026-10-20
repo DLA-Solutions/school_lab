@@ -45,6 +45,8 @@ export default {
   // The guardian's own side of the same queue, on its own address: the two are different jobs
   // and sharing a path would mean one screen deciding which it is on every render.
   myRequests: '/meus-pedidos',
+  // The guardian's family papers (BR-ARC16): shared per child, so mother and father see one list.
+  myDocuments: '/meus-documentos',
   myCharges: '/meus-boletos',
   myHealthRecords: '/ficha-de-saude',
   // The collaborator's own side of the same idea (BC6) — a distinct address from the guardian's

@@ -24,6 +24,12 @@ const GuardianDashboard = () => {
       to: paths.myRequests,
     },
     {
+      key: 'myDocuments',
+      title: t('dashboard.guardian.link.myDocuments'),
+      description: t('dashboard.guardian.link.myDocumentsDescription'),
+      to: paths.myDocuments,
+    },
+    {
       key: 'myCharges',
       title: t('dashboard.guardian.link.myCharges'),
       description: t('dashboard.guardian.link.myChargesDescription'),

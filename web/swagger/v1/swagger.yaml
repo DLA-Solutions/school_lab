@@ -5341,12 +5341,73 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "student_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "linked children documents only"
+            "description": "filters by child"
+          },
+          "404": {
+            "description": "filter by a child outside the family"
+          },
+          "401": {
+            "description": "unauthenticated"
           }
+        }
+      },
+      "post": {
+        "summary": "Upload a family document",
+        "tags": [
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "accepts a PNG image"
+          },
+          "404": {
+            "description": "child whose link to this guardian was discarded"
+          },
+          "422": {
+            "description": "file larger than 10 MB"
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "staff member cannot use the guardian endpoint"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "integer"
+              }
+            }
+          },
+          "required": true
         }
       }
     },
