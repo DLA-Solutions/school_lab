@@ -47,6 +47,20 @@ Storage: Active Storage → S3 in production ([`008-documents-archive.md`](../..
 
 Supersedes fintech-first `GET /me/documents`.
 
+### Guardian "Meus documentos" (upload, shared by co-guardians)
+
+PRD: [`archive.md`](../../prds/documents-and-archive/archive.md) UC-DA09, BR-ARC16–18.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/me/documents` | Documents of every linked child, shared across co-guardians; `?student_id=` optional |
+| `POST` | `/me/documents` | Multipart upload: `student_id`, `document_type`, `file`, optional `title` |
+
+`document_type` for guardians: `address_proof`, `vaccination_card`, `medical_report`,
+`school_transfer`, `other`. Uploads bind to the child (not the parent) so father and mother see the
+same documents; they start `pending` and stay visible while staff review. Errors: `404` child not
+linked / other school, `422` invalid type, file, or non-enrolled child, `401`/`403` otherwise.
+
 ---
 
 ## Guardian requests (implemented backfill)

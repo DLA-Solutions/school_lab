@@ -480,6 +480,9 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
       PDFs be logged (who accessed which child's health attachment and when)? MVP ships
       `SchoolAuditable` change history only; read/download audit deferred
       ([`health-records.md`](prds/students-and-enrollments/health-records.md)).
+- [ ] **Guardian "Meus documentos" retention/audit** — retention window and download-audit for
+      guardian-uploaded `vaccination_card` and `medical_report` documents (shared by co-guardians;
+      [`archive.md`](prds/documents-and-archive/archive.md) BR-ARC16/17).
 
 - [ ] **CRM contacts (prospect data)** — `crm_contacts` stores name, phone, email and free-text
       notes of people who are not yet guardians and have given no recorded consent. Define the legal
