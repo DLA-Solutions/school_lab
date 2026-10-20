@@ -211,6 +211,7 @@ The bell resource already exists. Its payload gains `conversation_id` for `kind 
 | 404 | `not_found` | Other family, other school, unknown student for this actor, or a conversation BR-M05 hides |
 | 422 | `teacher_not_assigned` | `audience` is `teacher` and that teacher has no kept `teaching_assignment` on the child's current class |
 | 422 | `empty_content` | `body` is blank |
+| 409 | `student_inactive` | The child is no longer enrolled (removed from the roll or transferred); history stays readable, new messages are rejected |
 
 ---
 
