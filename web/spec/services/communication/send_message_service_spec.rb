@@ -251,4 +251,53 @@ RSpec.describe Communication::SendMessageService do
       expect(result.error_code).to eq(:not_found)
     end
   end
+
+  describe "a child who is no longer enrolled" do
+    it "returns student_inactive for a transferred child and writes nothing" do
+      student.update!(status: "transferred")
+      result = nil
+
+      expect {
+        result = send_message(membership: coordination_membership, audience: "coordination")
+      }.not_to change { [ Conversation.count, Message.count, Notification.count ] }
+
+      expect(result).to be_failure
+      expect(result.error_code).to eq(:student_inactive)
+    end
+
+    it "returns student_inactive for a removed child, not not_found, to an allowed actor" do
+      student.discard
+      result = nil
+
+      expect {
+        result = send_message(membership: secretary_membership, audience: "secretary")
+      }.not_to change { [ Conversation.count, Message.count, Notification.count ] }
+
+      expect(result).to be_failure
+      expect(result.error_code).to eq(:student_inactive)
+    end
+
+    it "keeps answering not_found to an actor who could not write to that child anyway" do
+      student.discard
+
+      result = send_message(membership: secretary_membership, audience: "teacher", teacher_id: named_teacher.id)
+
+      expect(result.error_code).to eq(:not_found)
+    end
+
+    it "still lets the same actor write once the child is enrolled" do
+      result = send_message(membership: coordination_membership, audience: "coordination")
+
+      expect(result).to be_success
+    end
+
+    it "does not reveal a removed child from another school" do
+      foreign_student = create(:student, school: create(:school))
+      foreign_student.discard
+
+      result = send_message(membership: coordination_membership, audience: "coordination", student_id: foreign_student.id)
+
+      expect(result.error_code).to eq(:not_found)
+    end
+  end
 end

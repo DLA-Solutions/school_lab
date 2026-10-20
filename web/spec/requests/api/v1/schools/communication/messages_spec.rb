@@ -235,6 +235,47 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
         end
       end
 
+      response "409", "the child was transferred, so the chat is closed" do
+        let(:Authorization) { auth_headers_for(coordination_user)["Authorization"] }
+        let(:payload) { { student_id: student.id, audience: "coordination", body: "Hello" } }
+        let!(:conversation_count) { Conversation.count }
+        let!(:message_count) { Message.count }
+
+        before { student.update!(status: "transferred") }
+
+        run_test! do |post_response|
+          body = JSON.parse(post_response.body)
+
+          expect(body.dig("error", "code")).to eq("student_inactive")
+          expect(body.dig("error", "message")).to be_present
+          expect(Conversation.count).to eq(conversation_count)
+          expect(Message.count).to eq(message_count)
+        end
+      end
+
+      response "409", "the child was removed from the roll, so the chat is closed" do
+        let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
+        let(:payload) { { student_id: student.id, audience: "secretary", body: "Hello" } }
+        let!(:message_count) { Message.count }
+
+        before { student.discard }
+
+        run_test! do |post_response|
+          expect(JSON.parse(post_response.body).dig("error", "code")).to eq("student_inactive")
+          expect(Message.count).to eq(message_count)
+        end
+      end
+
+      response "404", "a removed child from another school is not revealed" do
+        let(:Authorization) { auth_headers_for(coordination_user)["Authorization"] }
+        let(:foreign_student) { create(:student).tap(&:discard) }
+        let(:payload) { { student_id: foreign_student.id, audience: "coordination", body: "Hello" } }
+
+        run_test! do |post_response|
+          expect(JSON.parse(post_response.body).dig("error", "code")).to eq("not_found")
+        end
+      end
+
       response "403", "a school role without an inbox cannot send" do
         let(:Authorization) { auth_headers_for(outsider)["Authorization"] }
 

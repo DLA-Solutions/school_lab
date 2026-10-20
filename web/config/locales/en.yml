@@ -190,6 +190,7 @@ en:
       not_found: "Not found."
       empty_content: "Write a message before sending."
       teacher_not_assigned: "This teacher does not teach the child's current class."
+      student_inactive: "This student is no longer enrolled; the conversation is closed and accepts no new messages."
       not_implemented: "Not implemented yet."
       portal_not_supported: "Hosted billing portal is not available for this provider."
       subscription_exists: "This school already has a platform subscription."
