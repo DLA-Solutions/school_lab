@@ -205,14 +205,39 @@ RSpec.describe "Api::V1::Schools::Communication::Conversations", type: :request 
             "teacher_name" => nil,
             "last_message_body" => "From the mother",
             "school_class_id" => school_class.id,
-            "sender_line" => "Marina, mãe da Lara Costa — 1º ano"
+            "sender_line" => "Marina, mãe da Lara Costa — 1º ano",
+            "student_active" => true
           )
           expect(row.keys).to match_array(
             %w[
               id student_id student_name audience teacher_id teacher_name
-              last_message_at last_message_body school_class_id sender_line
+              last_message_at last_message_body school_class_id sender_line student_active
             ]
           )
+        end
+      end
+
+      response "200", "conversations of transferred and removed children stay listed and flagged closed" do
+        let(:audience) { "coordination" }
+        let(:transferred_student) do
+          create(:student, school: school, school_class: school_class, status: "transferred")
+        end
+        let(:removed_student) { create(:student, school: school, school_class: school_class) }
+        let!(:transferred_conversation) do
+          create(:conversation, school: school, student: transferred_student, last_message_at: 3.hours.ago)
+        end
+        let!(:removed_conversation) do
+          create(:conversation, school: school, student: removed_student, last_message_at: 4.hours.ago)
+        end
+
+        before { removed_student.discard }
+
+        run_test! do |response|
+          rows = JSON.parse(response.body).fetch("data").index_by { |row| row["id"] }
+
+          expect(rows[coordination_conversation.id]).to include("student_active" => true)
+          expect(rows[transferred_conversation.id]).to include("student_active" => false)
+          expect(rows[removed_conversation.id]).to include("student_active" => false)
         end
       end
 

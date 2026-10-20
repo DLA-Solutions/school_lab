@@ -347,6 +347,39 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
         end
       end
 
+      response "200", "history of a transferred or removed child stays readable and flagged closed" do
+        let(:Authorization) { auth_headers_for(coordination_user)["Authorization"] }
+        let!(:conversation) { create(:conversation, school: school, student: student) }
+        let(:conversation_id) { conversation.id }
+        let!(:history) do
+          create(
+            :message,
+            conversation: conversation,
+            school: school,
+            sender_membership: guardian_membership,
+            body: "Before leaving"
+          )
+        end
+
+        run_test! do |first_response|
+          body = JSON.parse(first_response.body)
+          expect(body.dig("meta", "student_active")).to be(true)
+
+          student.update!(status: "transferred")
+          get "/api/v1/schools/#{school.id}/communication/conversations/#{conversation.id}/messages",
+              headers: auth_headers_for(coordination_user)
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body.dig("meta", "student_active")).to be(false)
+          expect(response.parsed_body.fetch("data").map { |row| row["body"] }).to eq([ "Before leaving" ])
+
+          student.discard
+          get "/api/v1/schools/#{school.id}/communication/conversations/#{conversation.id}/messages",
+              headers: auth_headers_for(coordination_user)
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body.dig("meta", "student_active")).to be(false)
+        end
+      end
+
       response "200", "secretary reads a secretary conversation" do
         let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
         let!(:conversation) { create(:conversation, :secretary, school: school, student: student) }

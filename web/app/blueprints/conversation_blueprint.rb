@@ -26,6 +26,12 @@ class ConversationBlueprint < Blueprinter::Base
     conversation.student.school_class_id
   end
 
+  # False once the child is removed or transferred: the thread stays readable but is closed
+  # to new messages (POST /messages answers 409 `student_inactive`).
+  field :student_active do |conversation|
+    conversation.student.enrolled?
+  end
+
   # Family identity. The roster keeps Conversation#sender_line, which names the last speaker.
   field :sender_line do |conversation|
     conversation.family_sender_line
