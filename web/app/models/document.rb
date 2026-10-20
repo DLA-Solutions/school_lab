@@ -7,6 +7,9 @@ class Document < ApplicationRecord
 
   DOCUMENTABLE_TYPES = %w[School Guardian Student Teacher].freeze
   GUARDIAN_VISIBLE_STATUSES = %w[pending approved].freeze
+  # The closed list a guardian picks from in "Meus documentos" (BR-ARC17). Staff keep the wider,
+  # free-form `document_type`, so this is enforced by the guardian upload service, not here.
+  GUARDIAN_DOCUMENT_TYPES = %w[address_proof vaccination_card medical_report school_transfer other].freeze
 
   belongs_to :school
   belongs_to :documentable, polymorphic: true
