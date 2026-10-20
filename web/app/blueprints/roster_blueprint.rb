@@ -3,6 +3,9 @@
 class RosterBlueprint < Blueprinter::Base
   fields :student_id, :student_name, :school_class_id, :conversation_id, :sender_line
 
+  # False for a transferred child: the row stays listed but the chat is closed to new messages.
+  field :student_active
+
   # Director rows keep destinations and omit teacher_id. Other actors always
   # include it, null for secretary and coordination.
   field :teacher_id, if: ->(_field_name, row, _options) { row.destinations.nil? }

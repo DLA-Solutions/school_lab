@@ -7,6 +7,7 @@ module Communication
     Row = Struct.new(
       :student_id,
       :student_name,
+      :student_active,
       :school_class_id,
       :conversation_id,
       :sender_line,
@@ -45,6 +46,7 @@ module Communication
       Row.new(
         student_id: student.id,
         student_name: student.name,
+        student_active: student.enrolled?,
         school_class_id: school_class.id,
         conversation_id: spoken ? conversation.id : nil,
         # Last speaker, including a staff role. The inbox uses the family line instead.

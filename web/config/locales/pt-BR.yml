@@ -220,6 +220,7 @@ pt-BR:
       not_found: "Não encontrado."
       empty_content: "Escreva uma mensagem antes de enviar."
       teacher_not_assigned: "Este professor não leciona na turma atual da criança."
+      student_inactive: "Este aluno não está mais matriculado; a conversa está encerrada e não aceita novas mensagens."
       not_implemented: "Recurso ainda não implementado."
       portal_not_supported: "O portal de cobrança hospedado não está disponível para este provedor."
       subscription_exists: "Esta escola já possui uma assinatura da plataforma."

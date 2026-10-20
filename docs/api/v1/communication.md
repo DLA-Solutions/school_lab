@@ -76,11 +76,14 @@ Teacher item:
   "conversation_id": null,
   "school_class_id": 310,
   "sender_line": null,
+  "student_active": true,
   "student_id": 9,
   "student_name": "Lara Costa",
   "teacher_id": 12
 }
 ```
+
+`student_active` (boolean) is on every `/roster` and `/search` row: `false` when the child was transferred (`status` `transferred`). The row stays listed so staff can open the history, but the chat is closed and `POST /messages` is rejected with `409` `student_inactive`. Children removed from the roll (discarded) are not listed by `/roster` or `/search` at all.
 
 A director does not attach one conversation. `conversation_id` and `sender_line` stay null, the item omits `teacher_id`, and the item includes `destinations` in the same shape as `GET /destinations` (coordination, secretary, then each class teacher once):
 
@@ -94,6 +97,7 @@ A director does not attach one conversation. `conversation_id` and `sender_line`
   ],
   "school_class_id": 310,
   "sender_line": null,
+  "student_active": true,
   "student_id": 9,
   "student_name": "Lara Costa"
 }
@@ -148,15 +152,16 @@ father, then mother, then other.
   "last_message_at": "2026-10-06T14:00:00.000Z",
   "last_message_body": "Pode buscar mais cedo?",
   "school_class_id": 310,
-  "sender_line": "Diego, pai da Lara — 1º ano"
+  "sender_line": "Diego, pai da Lara — 1º ano",
+  "student_active": true
 }
 ```
 
-`student_name` is the child's name. `teacher_name` is the teacher name when `audience` is `teacher`, and null otherwise. `last_message_body` is the full body of the latest message, and null only when the conversation has no message. `school_class_id` is the child's current class, derived at read time.
+`student_active` is `false` when the child is no longer enrolled (removed from the roll or transferred). Those conversations stay listed and readable to staff who could see them before; the school SPA should show a closed-chat notice and disable the composer. `student_name` is the child's name. `teacher_name` is the teacher name when `audience` is `teacher`, and null otherwise. `last_message_body` is the full body of the latest message, and null only when the conversation has no message. `school_class_id` is the child's current class, derived at read time.
 
 `sender_line` on a conversation is always the family identity, derived at read time, never the staff role of the last speaker. If a linked guardian has sent in the conversation, the line is the guardian who sent most recently: that guardian's name, the relationship word on `student_guardians`, the child's name, and the series of the current class. Example: "Diego, pai da Lara — 1º ano". Relationship words: `father` → pai, `mother` → mãe, `other` → responsável. If only staff has written, the line uses the primary kept guardian link (`primary_guardian`), otherwise the first kept link, with the same shape. If there is no kept guardian link, the line is the child's name and the series only. When the conversation has no message yet, `sender_line` is null.
 
-`GET /conversations/:id/messages` items, in `sent_at` order. `sender_line` on a message names who spoke on that row: the guardian line above, or the staff line (coordenação, secretaria, direção, or the teacher name), then the child and the series.
+`GET /conversations/:id/messages` returns `meta.student_active` (boolean, same meaning as on the conversation) next to `page`, `per_page` and `total`, so a thread opened by id knows whether it is closed. History of a closed thread is still returned. Items are in `sent_at` order. `sender_line` on a message names who spoke on that row: the guardian line above, or the staff line (coordenação, secretaria, direção, or the teacher name), then the child and the series.
 
 ```json
 { "id": 8, "sender_membership_id": 3, "sender_line": "Diego, pai da Lara — 1º ano", "body": "Hello", "sent_at": "2026-10-06T14:00:00.000Z" }
@@ -191,6 +196,7 @@ Errors for these five routes:
 | `403` | `forbidden` | A guardian, or other staff who cannot open the roster |
 | `422` | `teacher_not_assigned` | Requested teacher has no kept teaching assignment on the child's current class |
 | `422` | `empty_content` | Blank `body` |
+| `409` | `student_inactive` | `POST /messages` for a child who is no longer enrolled (removed from the roll or transferred). Only returned to an actor who could otherwise write to that child (checked after destination and teacher-assignment rules); anyone else still gets `404`. No conversation or message is created. |
 
 `GET /search` uses the same `403 forbidden` as the roster for a guardian or other staff who may
 not browse it. It never `404`s or `422`s — a query with no visible match (short query, no hit, a
@@ -234,7 +240,7 @@ Family chat is deny-by-default from role and link, not from `send_messages` or `
 
 ## Errors
 
-Family chat errors are in the section above (`404` `not_found`, `403` `forbidden`, `422` `teacher_not_assigned`, `422` `empty_content`). This delivery does not use `403` `family_isolation_violation` or an attachment size error on those five routes. The roster uses the existing `forbidden` code.
+Family chat errors are in the section above (`404` `not_found`, `403` `forbidden`, `422` `teacher_not_assigned`, `422` `empty_content`, `409` `student_inactive`). This delivery does not use `403` `family_isolation_violation` or an attachment size error on those five routes. The roster uses the existing `forbidden` code.
 
 ---
 

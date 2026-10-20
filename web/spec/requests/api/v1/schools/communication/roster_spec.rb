@@ -79,7 +79,7 @@ RSpec.describe "Api::V1::Schools::Communication::Roster", type: :request do
     item = body.fetch("data").sole
 
     expect(item.keys).to match_array(
-      %w[student_id student_name school_class_id conversation_id sender_line teacher_id]
+      %w[student_id student_name school_class_id conversation_id sender_line teacher_id student_active]
     )
     item
   end
@@ -106,7 +106,8 @@ RSpec.describe "Api::V1::Schools::Communication::Roster", type: :request do
             "school_class_id" => school_class.id,
             "conversation_id" => nil,
             "sender_line" => nil,
-            "teacher_id" => teacher.id
+            "teacher_id" => teacher.id,
+            "student_active" => true
           )
         end
       end
@@ -172,8 +173,24 @@ RSpec.describe "Api::V1::Schools::Communication::Roster", type: :request do
             "school_class_id" => school_class.id,
             "conversation_id" => nil,
             "sender_line" => nil,
-            "teacher_id" => nil
+            "teacher_id" => nil,
+            "student_active" => true
           )
+        end
+      end
+
+      response "200", "a transferred child stays listed flagged closed and a removed child is not listed" do
+        let!(:removed_student) { create(:student, school: school, school_class: school_class, name: "Removed") }
+
+        before do
+          student.update!(status: "transferred")
+          removed_student.discard
+        end
+
+        run_test! do |response|
+          item = roster_item_without_destinations(JSON.parse(response.body))
+
+          expect(item).to include("student_id" => student.id, "student_active" => false)
         end
       end
 
@@ -201,7 +218,7 @@ RSpec.describe "Api::V1::Schools::Communication::Roster", type: :request do
 
           expect(teacher.teaching_assignments.kept.where(school_class: school_class).count).to eq(2)
           expect(item.keys).to match_array(
-            %w[student_id student_name school_class_id conversation_id sender_line destinations]
+            %w[student_id student_name school_class_id conversation_id sender_line destinations student_active]
           )
           expect(item).to include(
             "student_id" => student.id,

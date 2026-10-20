@@ -4,7 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { EmptyState } from 'design-system';
+import { EmptyState, ErrorBanner } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { ConversationMessage } from 'types/communication';
 import { formatChatTime } from './formatChatTime';
@@ -23,6 +23,11 @@ interface MessageThreadProps {
   sendEnabled?: boolean;
   /** Shown when send is blocked for a reason the person can act on. */
   sendDisabledReason?: string | null;
+  /**
+   * When set the chat is closed (the child is no longer enrolled): the text shows as a red notice
+   * at the foot of the thread and the composer is disabled. History stays readable.
+   */
+  closedNotice?: string | null;
 }
 
 /**
@@ -40,9 +45,11 @@ const MessageThread = ({
   onSend,
   sendEnabled = true,
   sendDisabledReason = null,
+  closedNotice = null,
 }: MessageThreadProps) => {
   const { t, locale } = useTranslation();
-  const canSend = sendEnabled && draft.trim().length > 0 && !sending;
+  const closed = closedNotice != null && closedNotice !== '';
+  const canSend = sendEnabled && !closed && draft.trim().length > 0 && !sending;
   const showSpinner = loading && messages.length === 0;
 
   return (
@@ -128,7 +135,8 @@ const MessageThread = ({
       </Box>
 
       <Stack direction="column" spacing={0.75} sx={{ p: 1.5 }}>
-        {sendDisabledReason ? (
+        {closed ? <ErrorBanner message={closedNotice} /> : null}
+        {!closed && sendDisabledReason ? (
           <Typography variant="body2" color="text.secondary">
             {sendDisabledReason}
           </Typography>
@@ -147,6 +155,7 @@ const MessageThread = ({
             size="small"
             placeholder={t('communication.placeholder')}
             value={draft}
+            disabled={closed}
             onChange={(event) => onDraftChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {

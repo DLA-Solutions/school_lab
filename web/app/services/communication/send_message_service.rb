@@ -2,7 +2,8 @@
 
 module Communication
   # Posts one line into the child's conversation with a destination and writes in-app bell
-  # rows for everyone who can see that conversation, except the sender.
+  # rows for everyone who can see that conversation, except the sender. A child who is no longer
+  # enrolled (removed or transferred) keeps a readable thread but cannot receive new messages.
   class SendMessageService < ApplicationService
     def initialize(school:, actor_membership:, student_id:, audience:, teacher_id: nil, body:)
       @school = school
@@ -18,6 +19,8 @@ module Communication
       return failure(:not_found) if student.blank?
       return failure(:not_found) unless destination_allowed?
       return failure(:teacher_not_assigned) if teacher_audience? && !teacher_assigned?
+      # Last, so only an actor who could otherwise write to this child learns the chat is closed.
+      return failure(:student_inactive) unless student.enrolled?
 
       persist_message
     end
@@ -242,7 +245,9 @@ module Communication
     def student
       return @student if defined?(@student)
 
-      @student = school.students.kept.find_by(id: student_id)
+      # Discarded students are loaded too (still inside this school) so a removed child answers
+      # `student_inactive` instead of `not_found` once the actor is otherwise allowed to write.
+      @student = school.students.find_by(id: student_id)
     end
 
     def teacher_audience?

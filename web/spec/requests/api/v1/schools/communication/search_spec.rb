@@ -82,7 +82,7 @@ RSpec.describe "Api::V1::Schools::Communication::Search", type: :request do
           item = body.fetch("data").sole
 
           expect(item.keys).to match_array(
-            %w[student_id student_name school_class_id conversation_id sender_line teacher_id guardians]
+            %w[student_id student_name school_class_id conversation_id sender_line teacher_id guardians student_active]
           )
           expect(item).to include(
             "student_id" => student.id,
@@ -90,7 +90,8 @@ RSpec.describe "Api::V1::Schools::Communication::Search", type: :request do
             "school_class_id" => school_class.id,
             "conversation_id" => nil,
             "sender_line" => nil,
-            "teacher_id" => teacher.id
+            "teacher_id" => teacher.id,
+            "student_active" => true
           )
           expect(item.fetch("guardians")).to eq([
             { "name" => "Diego Costa", "relationship" => "father" }
@@ -105,6 +106,16 @@ RSpec.describe "Api::V1::Schools::Communication::Search", type: :request do
           item = JSON.parse(response.body).fetch("data").sole
 
           expect(item.fetch("student_id")).to eq(student.id)
+        end
+      end
+
+      response "200", "a transferred child is found and flagged closed" do
+        before { student.update!(status: "transferred") }
+
+        run_test! do |response|
+          item = JSON.parse(response.body).fetch("data").sole
+
+          expect(item).to include("student_id" => student.id, "student_active" => false)
         end
       end
 
@@ -123,7 +134,7 @@ RSpec.describe "Api::V1::Schools::Communication::Search", type: :request do
           item = JSON.parse(response.body).fetch("data").sole
 
           expect(item.keys).to match_array(
-            %w[student_id student_name school_class_id conversation_id sender_line destinations guardians]
+            %w[student_id student_name school_class_id conversation_id sender_line destinations guardians student_active]
           )
           expect(item.fetch("destinations")).to eq([
             { "audience" => "coordination", "teacher_id" => nil, "name" => nil },

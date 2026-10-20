@@ -235,6 +235,47 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
         end
       end
 
+      response "409", "the child was transferred, so the chat is closed" do
+        let(:Authorization) { auth_headers_for(coordination_user)["Authorization"] }
+        let(:payload) { { student_id: student.id, audience: "coordination", body: "Hello" } }
+        let!(:conversation_count) { Conversation.count }
+        let!(:message_count) { Message.count }
+
+        before { student.update!(status: "transferred") }
+
+        run_test! do |post_response|
+          body = JSON.parse(post_response.body)
+
+          expect(body.dig("error", "code")).to eq("student_inactive")
+          expect(body.dig("error", "message")).to be_present
+          expect(Conversation.count).to eq(conversation_count)
+          expect(Message.count).to eq(message_count)
+        end
+      end
+
+      response "409", "the child was removed from the roll, so the chat is closed" do
+        let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
+        let(:payload) { { student_id: student.id, audience: "secretary", body: "Hello" } }
+        let!(:message_count) { Message.count }
+
+        before { student.discard }
+
+        run_test! do |post_response|
+          expect(JSON.parse(post_response.body).dig("error", "code")).to eq("student_inactive")
+          expect(Message.count).to eq(message_count)
+        end
+      end
+
+      response "404", "a removed child from another school is not revealed" do
+        let(:Authorization) { auth_headers_for(coordination_user)["Authorization"] }
+        let(:foreign_student) { create(:student).tap(&:discard) }
+        let(:payload) { { student_id: foreign_student.id, audience: "coordination", body: "Hello" } }
+
+        run_test! do |post_response|
+          expect(JSON.parse(post_response.body).dig("error", "code")).to eq("not_found")
+        end
+      end
+
       response "403", "a school role without an inbox cannot send" do
         let(:Authorization) { auth_headers_for(outsider)["Authorization"] }
 
@@ -303,6 +344,39 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
           expect(body.fetch("data").first.keys).to match_array(
             %w[id sender_membership_id sender_line body sent_at]
           )
+        end
+      end
+
+      response "200", "history of a transferred or removed child stays readable and flagged closed" do
+        let(:Authorization) { auth_headers_for(coordination_user)["Authorization"] }
+        let!(:conversation) { create(:conversation, school: school, student: student) }
+        let(:conversation_id) { conversation.id }
+        let!(:history) do
+          create(
+            :message,
+            conversation: conversation,
+            school: school,
+            sender_membership: guardian_membership,
+            body: "Before leaving"
+          )
+        end
+
+        run_test! do |first_response|
+          body = JSON.parse(first_response.body)
+          expect(body.dig("meta", "student_active")).to be(true)
+
+          student.update!(status: "transferred")
+          get "/api/v1/schools/#{school.id}/communication/conversations/#{conversation.id}/messages",
+              headers: auth_headers_for(coordination_user)
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body.dig("meta", "student_active")).to be(false)
+          expect(response.parsed_body.fetch("data").map { |row| row["body"] }).to eq([ "Before leaving" ])
+
+          student.discard
+          get "/api/v1/schools/#{school.id}/communication/conversations/#{conversation.id}/messages",
+              headers: auth_headers_for(coordination_user)
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body.dig("meta", "student_active")).to be(false)
         end
       end
 

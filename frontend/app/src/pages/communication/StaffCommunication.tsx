@@ -23,6 +23,7 @@ import { CHAT_PANEL_HEIGHT_PX } from 'components/sections/communication/chatPane
 import ChatColumns from 'components/sections/communication/ChatColumns';
 import ConversationRow from 'components/sections/communication/ConversationRow';
 import MessageThread from 'components/sections/communication/MessageThread';
+import { isStudentInactiveError } from 'components/sections/communication/studentInactive';
 import { useThreadMessages } from 'components/sections/communication/useThreadMessages';
 import {
   unreadMessageNotices,
@@ -187,6 +188,8 @@ const StaffCommunication = () => {
   const [rosterLoading, setRosterLoading] = useState(true);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
+  // Students a send just answered `409 student_inactive` for, so a stale list still closes the chat.
+  const [inactiveStudentIds, setInactiveStudentIds] = useState<number[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [widenedForLink, setWidenedForLink] = useState(false);
   const linkApplied = useRef(false);
@@ -274,6 +277,17 @@ const StaffCommunication = () => {
 
   const showThread =
     open != null && (open.source === 'inbox' ? selectedConversation != null : selectedRow != null);
+  // Only an explicit `false` closes the chat. The thread's own `meta` is the freshest answer, then
+  // the inbox / roster row it was opened from.
+  const openStudentId =
+    open?.source === 'inbox'
+      ? (selectedConversation?.student_id ?? null)
+      : (selectedRow?.student_id ?? null);
+  const listedActive =
+    open?.source === 'inbox' ? selectedConversation?.student_active : selectedRow?.student_active;
+  const studentClosed =
+    (thread.studentActive ?? listedActive) === false ||
+    (openStudentId != null && inactiveStudentIds.includes(openStudentId));
   const sendEnabled = !isDirector || open?.source !== 'roster' || selectedDestination != null;
 
   useEffect(() => {
@@ -582,7 +596,14 @@ const StaffCommunication = () => {
         });
       });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('communication.sendError'));
+      if (isStudentInactiveError(err)) {
+        const closedStudentId = studentId;
+        setInactiveStudentIds((current) =>
+          current.includes(closedStudentId) ? current : [...current, closedStudentId],
+        );
+      } else {
+        setError(err instanceof ApiError ? err.message : t('communication.sendError'));
+      }
     } finally {
       setSending(false);
     }
@@ -601,7 +622,10 @@ const StaffCommunication = () => {
     }
 
     const body = bulkDraft.trim();
-    if (!body || roster.length === 0) {
+    // A transferred child's chat is closed (`student_active: false`), so the class send skips them
+    // instead of reporting a guaranteed failure.
+    const targets = roster.filter((row) => row.student_active !== false);
+    if (!body || targets.length === 0) {
       return;
     }
 
@@ -610,7 +634,7 @@ const StaffCommunication = () => {
     setBulkError(null);
 
     const results = await Promise.allSettled(
-      roster.map((row) =>
+      targets.map((row) =>
         sendMessage(schoolId, {
           student_id: row.student_id,
           audience: 'teacher',
@@ -647,7 +671,7 @@ const StaffCommunication = () => {
 
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
-        failedNames.push(roster[index].student_name);
+        failedNames.push(targets[index].student_name);
       }
     });
 
@@ -1006,6 +1030,7 @@ const StaffCommunication = () => {
                     sendDisabledReason={
                       sendEnabled ? null : t('communication.sendDisabled.destination')
                     }
+                    closedNotice={studentClosed ? t('communication.studentInactive.notice') : null}
                     onDraftChange={setDraft}
                     onSend={handleSend}
                   />

@@ -18,7 +18,12 @@ module Api
 
             render json: {
               data: MessageBlueprint.render_as_hash(records),
-              meta: { page: pagy.page, per_page: pagy.limit, total: pagy.count }
+              meta: {
+                page: pagy.page,
+                per_page: pagy.limit,
+                total: pagy.count,
+                student_active: conversation.student.enrolled?
+              }
             }
           end
 

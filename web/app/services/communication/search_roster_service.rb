@@ -18,6 +18,7 @@ module Communication
     Row = Struct.new(
       :student_id,
       :student_name,
+      :student_active,
       :school_class_id,
       :conversation_id,
       :sender_line,
@@ -60,6 +61,7 @@ module Communication
       Row.new(
         student_id: student.id,
         student_name: student.name,
+        student_active: student.enrolled?,
         school_class_id: student.school_class_id,
         conversation_id: spoken ? conversation.id : nil,
         sender_line: spoken ? conversation.sender_line : nil,
