@@ -388,7 +388,7 @@ Rails.application.routes.draw do
               # BC11 "Rotina Infantil" — sent-only entries about this child only (BR-DR06/UC-DR04).
               resources :daily_routine_entries, only: :index
             end
-            resources :documents, only: :index
+            resources :documents, only: %i[index create]
             resources :requests, only: %i[index show create]
             resources :preceptorship_reports, only: %i[index show] do
               get :pdf, on: :member
