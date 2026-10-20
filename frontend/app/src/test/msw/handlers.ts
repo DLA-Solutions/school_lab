@@ -1264,8 +1264,13 @@ export const handlers = [
       return jsonError(404, 'not_found', 'Recurso não encontrado.');
     }
 
-    const form = await request.formData();
-    const file = form.get('file');
+    // `request.formData()` throws under this test environment, so the multipart body is read as
+    // text and the flat fields are picked out of it.
+    const body = new TextDecoder('latin1').decode(await request.arrayBuffer());
+    const field = (name: string) =>
+      new RegExp(`name="${name}"\\r\\n\\r\\n([^\\r]*)`).exec(body)?.[1] ?? '';
+    const studentId = Number(field('student_id'));
+    const hasFile = body.includes('name="file"');
 
     return HttpResponse.json(
       {
@@ -1273,18 +1278,18 @@ export const handlers = [
           id: 2,
           school_id: SCHOOL_ID,
           documentable_type: 'Student',
-          documentable_id: Number(form.get('student_id')),
-          document_type: String(form.get('document_type')),
+          documentable_id: studentId,
+          document_type: field('document_type'),
           status: 'pending',
           rejection_reason: null,
           reviewed_at: null,
           created_at: '2026-08-11T12:00:00Z',
           updated_at: '2026-08-11T12:00:00Z',
-          filename: file instanceof File ? file.name : null,
-          content_type: file instanceof File ? file.type : null,
-          byte_size: file instanceof File ? file.size : null,
+          filename: hasFile ? 'arquivo.pdf' : null,
+          content_type: hasFile ? 'application/pdf' : null,
+          byte_size: hasFile ? body.length : null,
           file_url: '/rails/active_storage/blobs/redirect/signed/new.pdf',
-          student_id: Number(form.get('student_id')),
+          student_id: studentId,
           student_name: 'Pedro Silva',
           uploaded_by_name: 'Maria Silva',
           uploaded_by_kind: 'guardian',
