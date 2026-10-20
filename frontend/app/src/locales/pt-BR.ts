@@ -1445,6 +1445,8 @@ const ptBR = {
   'communication.thread.asChannel': 'Falando como {channel} com {child}',
   'communication.thread.pickDestination': 'Escolha o destino para falar com {child}',
   'communication.sendDisabled.destination': 'Escolha um destino para enviar.',
+  'communication.studentInactive.notice':
+    'Este aluno não está mais matriculado. Não é possível enviar novas mensagens nesta conversa.',
   'communication.empty.select.title': 'Escolha uma conversa',
   'communication.empty.select.description': 'A conversa abre ao lado.',
   'communication.empty.selectStudent.title': 'Escolha um aluno',

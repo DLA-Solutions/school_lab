@@ -971,3 +971,135 @@ describe('StaffCommunication search', () => {
     expect(screen.queryByRole('button', { name: 'Ana Souza' })).not.toBeInTheDocument();
   });
 });
+
+describe('StaffCommunication closed chat (student no longer enrolled)', () => {
+  const NOTICE =
+    'Este aluno não está mais matriculado. Não é possível enviar novas mensagens nesta conversa.';
+
+  const conversation = (overrides: Record<string, unknown> = {}) => ({
+    id: 3,
+    student_id: 9,
+    student_name: 'Lara Nogueira',
+    audience: 'secretary',
+    teacher_id: null,
+    teacher_name: null,
+    last_message_at: '2026-10-06T14:00:00.000Z',
+    last_message_body: 'Pode buscar mais cedo?',
+    school_class_id: 310,
+    sender_line: 'Diego, pai da Lara — 1º ano',
+    ...overrides,
+  });
+
+  const history = [
+    {
+      id: 21,
+      sender_membership_id: 99,
+      sender_line: 'Diego, pai da Lara — 1º ano',
+      body: 'Pode buscar mais cedo?',
+      sent_at: '2026-10-06T14:00:00Z',
+    },
+  ];
+
+  const stubHistory = (meta: Record<string, unknown> = {}) =>
+    server.use(
+      http.get(apiUrl(`${BASE}/conversations/:id/messages`), () =>
+        HttpResponse.json({
+          data: history,
+          meta: { page: 1, per_page: 50, total: 1, ...meta },
+        }),
+      ),
+    );
+
+  const openInboxThread = async () => {
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: /Diego, pai da Lara/ }));
+    await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' });
+  };
+
+  it('closes a thread whose conversation is flagged student_active: false, history still readable', async () => {
+    stubInbox({ conversations: [conversation({ student_active: false })] });
+    const { posts } = captureSend();
+    stubHistory();
+
+    await openInboxThread();
+
+    expect(await screen.findByText(NOTICE)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(NOTICE);
+    expect(screen.getAllByText('Pode buscar mais cedo?').length).toBeGreaterThan(1);
+    const input = screen.getByPlaceholderText('Escreva uma mensagem');
+    expect(input).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled();
+
+    await user.type(input, 'Oi{Enter}');
+    expect(posts).toEqual([]);
+  });
+
+  it('closes the thread when the messages meta says student_active: false', async () => {
+    stubInbox({ conversations: [conversation()] });
+    stubHistory({ student_active: false });
+
+    await openInboxThread();
+
+    expect(await screen.findByText(NOTICE)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toBeDisabled();
+  });
+
+  it('leaves an enrolled student, or one with no flag at all, writable', async () => {
+    stubInbox({ conversations: [conversation({ student_active: true })] });
+    stubHistory({ student_active: true });
+
+    await openInboxThread();
+
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toBeEnabled();
+    expect(screen.queryByText(NOTICE)).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('closes a thread opened from the roster using the roster row flag', async () => {
+    stubInbox({
+      classes: [schoolClass(310, 'matutino', 'A')],
+      roster: [rosterItem({ student_active: false })],
+    });
+    const { posts } = captureSend();
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Nova conversa' }));
+    await user.click(await screen.findByRole('button', { name: 'Lara Nogueira' }));
+    await screen.findByRole('heading', { name: 'Falando como Secretaria com Lara Nogueira' });
+
+    expect(await screen.findByText(NOTICE)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled();
+    expect(posts).toEqual([]);
+  });
+
+  it('shows the notice, without a message or generic error, when send answers 409 student_inactive', async () => {
+    stubInbox({ conversations: [conversation()] });
+    stubHistory();
+    server.use(
+      http.post(apiUrl(`${BASE}/messages`), () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'student_inactive',
+              message: 'O aluno não está matriculado.',
+              details: {},
+            },
+          },
+          { status: 409 },
+        ),
+      ),
+    );
+
+    await openInboxThread();
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Bom dia');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    expect(await screen.findByText(NOTICE)).toBeInTheDocument();
+    expect(screen.queryByText('Bom dia', { selector: 'p' })).not.toBeInTheDocument();
+    expect(screen.queryByText('O aluno não está matriculado.')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toBeDisabled();
+  });
+});

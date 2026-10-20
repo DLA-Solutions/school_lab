@@ -1428,6 +1428,8 @@ const enUS: Messages = {
   'communication.thread.asChannel': 'Speaking as {channel} with {child}',
   'communication.thread.pickDestination': 'Choose a destination to talk with {child}',
   'communication.sendDisabled.destination': 'Choose a destination before sending.',
+  'communication.studentInactive.notice':
+    'This student is no longer enrolled. New messages cannot be sent in this conversation.',
   'communication.empty.select.title': 'Choose a conversation',
   'communication.empty.select.description': 'The thread opens beside the list.',
   'communication.empty.selectStudent.title': 'Choose a student',

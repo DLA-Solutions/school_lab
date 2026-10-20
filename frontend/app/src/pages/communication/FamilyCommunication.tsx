@@ -10,6 +10,7 @@ import { EmptyState, ErrorBanner, PageHeader, SectionCard } from 'design-system'
 import ChatColumns from 'components/sections/communication/ChatColumns';
 import ConversationRow from 'components/sections/communication/ConversationRow';
 import MessageThread from 'components/sections/communication/MessageThread';
+import { isStudentInactiveError } from 'components/sections/communication/studentInactive';
 import { useThreadMessages } from 'components/sections/communication/useThreadMessages';
 import {
   unreadMessageNotices,
@@ -89,6 +90,8 @@ const FamilyCommunication = () => {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Students a send just answered `409 student_inactive` for, so a stale list still closes the chat.
+  const [inactiveStudentIds, setInactiveStudentIds] = useState<number[]>([]);
 
   const inbox = conversations
     .filter((conversation) => studentId == null || conversation.student_id === studentId)
@@ -111,6 +114,11 @@ const FamilyCommunication = () => {
   const thread = useThreadMessages(schoolId, openConversationId);
   useMarkOpenConversationRead(notices, setNotices, openConversationId);
   const unreadIds = new Set(notices.map((notice) => notice.conversationId));
+
+  // Only an explicit `false` closes the chat; the thread's own `meta` is the freshest answer.
+  const studentClosed =
+    (thread.studentActive ?? openConversation?.student_active) === false ||
+    (studentId != null && inactiveStudentIds.includes(studentId));
 
   const load = useCallback(async () => {
     if (!schoolId) {
@@ -297,7 +305,13 @@ const FamilyCommunication = () => {
         return [...current, next];
       });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('communication.sendError'));
+      if (isStudentInactiveError(err)) {
+        setInactiveStudentIds((current) =>
+          current.includes(studentId) ? current : [...current, studentId],
+        );
+      } else {
+        setError(err instanceof ApiError ? err.message : t('communication.sendError'));
+      }
     } finally {
       setSending(false);
     }
@@ -456,6 +470,7 @@ const FamilyCommunication = () => {
                   sending={sending}
                   onDraftChange={setDraft}
                   onSend={handleSend}
+                  closedNotice={studentClosed ? t('communication.studentInactive.notice') : null}
                 />
               ) : (
                 <EmptyState

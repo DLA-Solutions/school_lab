@@ -372,3 +372,76 @@ describe('FamilyCommunication', () => {
     expect(screen.getAllByText('Bom dia').length).toBeGreaterThan(0);
   });
 });
+
+describe('FamilyCommunication closed chat (student no longer enrolled)', () => {
+  const NOTICE =
+    'Este aluno não está mais matriculado. Não é possível enviar novas mensagens nesta conversa.';
+
+  const conversation = (overrides: Record<string, unknown> = {}) => ({
+    id: 8,
+    student_id: 1,
+    student_name: 'Lara Nogueira',
+    audience: 'coordination',
+    teacher_id: null,
+    teacher_name: null,
+    last_message_at: '2026-10-06T15:00:00Z',
+    last_message_body: 'Já escrevemos',
+    school_class_id: 310,
+    sender_line: 'Diego, pai da Lara — 1º ano',
+    ...overrides,
+  });
+
+  it('shows the notice and a disabled composer when the conversation is closed', async () => {
+    stubFamily({
+      students: [child(1, 'Lara Nogueira')],
+      destinations: [destination('coordination'), destination('secretary')],
+      conversations: [conversation({ student_active: false })],
+    });
+
+    renderPage('/comunicacao?conversation_id=8');
+
+    expect(await screen.findByText(NOTICE)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(NOTICE);
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled();
+  });
+
+  it('keeps an active conversation writable', async () => {
+    stubFamily({
+      students: [child(1, 'Lara Nogueira')],
+      destinations: [destination('coordination'), destination('secretary')],
+      conversations: [conversation({ student_active: true })],
+    });
+
+    renderPage('/comunicacao?conversation_id=8');
+
+    expect(await screen.findByPlaceholderText('Escreva uma mensagem')).toBeEnabled();
+    expect(screen.queryByText(NOTICE)).not.toBeInTheDocument();
+  });
+
+  it('closes the thread on a 409 student_inactive and appends no message', async () => {
+    stubFamily({
+      students: [child(1, 'Lara Nogueira')],
+      destinations: [destination('coordination'), destination('secretary')],
+    });
+    server.use(
+      http.post(apiUrl(`${BASE}/messages`), () =>
+        HttpResponse.json(
+          { error: { code: 'student_inactive', message: 'Matrícula encerrada.', details: {} } },
+          { status: 409 },
+        ),
+      ),
+    );
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Coordenação' }));
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Bom dia');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    expect(await screen.findByText(NOTICE)).toBeInTheDocument();
+    expect(screen.queryByText('Matrícula encerrada.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Bom dia', { selector: 'p' })).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escreva uma mensagem')).toBeDisabled();
+  });
+});
