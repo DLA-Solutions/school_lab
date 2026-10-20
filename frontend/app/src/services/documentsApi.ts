@@ -1,4 +1,11 @@
-import { DocumentListResponse, DocumentResponse, SchoolDocument } from 'types/document';
+import {
+  DocumentListResponse,
+  DocumentResponse,
+  GuardianDocument,
+  GuardianDocumentListResponse,
+  GuardianDocumentResponse,
+  SchoolDocument,
+} from 'types/document';
 import { apiAssetUrl, request } from './api';
 
 const collectionPath = (schoolId: number) => `/api/v1/schools/${schoolId}/documents`;
@@ -76,3 +83,60 @@ export const deleteDocument = (schoolId: number, id: number) =>
 
 /** The blueprint returns `file_url` host-relative; `apiAssetUrl` puts the API origin back on. */
 export const documentDownloadUrl = (document: SchoolDocument) => apiAssetUrl(document.file_url);
+
+/** The guardian's own side of the archive ("Meus documentos"), shared with the co-guardians. */
+const minePath = (schoolId: number) => `/api/v1/schools/${schoolId}/me/documents`;
+
+/**
+ * What a guardian may send, in the order the form offers it — mirrors the API's closed list.
+ * `label` is a catalogue key, resolved where it is shown.
+ */
+export const GUARDIAN_DOCUMENT_TYPES = [
+  { value: 'address_proof', label: 'myDocuments.type.address_proof' },
+  { value: 'vaccination_card', label: 'myDocuments.type.vaccination_card' },
+  { value: 'medical_report', label: 'myDocuments.type.medical_report' },
+  { value: 'school_transfer', label: 'myDocuments.type.school_transfer' },
+  { value: 'other', label: 'myDocuments.type.other' },
+] as const;
+
+/** What the API accepts, checked here too so a wrong file is refused before the upload starts. */
+export const GUARDIAN_DOCUMENT_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'] as const;
+export const GUARDIAN_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+/** GET /api/v1/schools/:school_id/me/documents, optionally narrowed to one linked child. */
+export const listMyDocuments = (
+  schoolId: number,
+  { studentId, page = 1 }: { studentId?: number | null; page?: number } = {},
+) => {
+  const params = new URLSearchParams();
+  if (studentId) params.set('student_id', String(studentId));
+  if (page > 1) params.set('page', String(page));
+
+  const encoded = params.toString();
+
+  return request<GuardianDocumentListResponse>(`${minePath(schoolId)}${encoded ? `?${encoded}` : ''}`);
+};
+
+/**
+ * POST /api/v1/schools/:school_id/me/documents as multipart. Unlike the staff endpoint the fields
+ * are flat, and the API has no title: the type and the child say what the file is.
+ */
+export const uploadMyDocument = async (
+  schoolId: number,
+  { studentId, documentType, file }: { studentId: number; documentType: string; file: File },
+): Promise<GuardianDocument> => {
+  const body = new FormData();
+  body.append('student_id', String(studentId));
+  body.append('document_type', documentType);
+  body.append('file', file);
+
+  const response = await request<GuardianDocumentResponse>(minePath(schoolId), {
+    method: 'POST',
+    body,
+  });
+
+  return response.data;
+};
+
+/** The signed Active Storage URL downloads without a bearer token, so it opens in a new tab. */
+export const guardianDocumentUrl = (document: GuardianDocument) => apiAssetUrl(document.file_url);

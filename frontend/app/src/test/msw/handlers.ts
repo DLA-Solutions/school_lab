@@ -1219,6 +1219,81 @@ export const handlers = [
     return paginated(students, new URL(request.url));
   }),
 
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/documents'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const studentId = new URL(request.url).searchParams.get('student_id');
+    const documents = [
+      {
+        id: 1,
+        school_id: SCHOOL_ID,
+        documentable_type: 'Student',
+        documentable_id: 1,
+        document_type: 'vaccination_card',
+        status: 'pending',
+        rejection_reason: null,
+        reviewed_at: null,
+        created_at: '2026-08-10T12:00:00Z',
+        updated_at: '2026-08-10T12:00:00Z',
+        filename: 'cartao-vacina.pdf',
+        content_type: 'application/pdf',
+        byte_size: 120_000,
+        file_url: '/rails/active_storage/blobs/redirect/signed/cartao-vacina.pdf',
+        student_id: 1,
+        student_name: 'Pedro Silva',
+        uploaded_by_name: 'Maria Silva',
+        uploaded_by_kind: 'guardian',
+      },
+    ].filter((document) => !studentId || String(document.student_id) === studentId);
+
+    return paginated(documents, new URL(request.url));
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/me/documents'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const form = await request.formData();
+    const file = form.get('file');
+
+    return HttpResponse.json(
+      {
+        data: {
+          id: 2,
+          school_id: SCHOOL_ID,
+          documentable_type: 'Student',
+          documentable_id: Number(form.get('student_id')),
+          document_type: String(form.get('document_type')),
+          status: 'pending',
+          rejection_reason: null,
+          reviewed_at: null,
+          created_at: '2026-08-11T12:00:00Z',
+          updated_at: '2026-08-11T12:00:00Z',
+          filename: file instanceof File ? file.name : null,
+          content_type: file instanceof File ? file.type : null,
+          byte_size: file instanceof File ? file.size : null,
+          file_url: '/rails/active_storage/blobs/redirect/signed/new.pdf',
+          student_id: Number(form.get('student_id')),
+          student_name: 'Pedro Silva',
+          uploaded_by_name: 'Maria Silva',
+          uploaded_by_kind: 'guardian',
+        },
+      },
+      { status: 201 },
+    );
+  }),
+
   http.get(apiUrl('/api/v1/schools/:schoolId/me/report_cards'), ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
