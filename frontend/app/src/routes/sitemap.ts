@@ -198,6 +198,14 @@ const sitemap: MenuItem[] = [
     section: 'family',
   },
   {
+    id: 'my-documents',
+    subheader: 'nav.myDocuments',
+    path: paths.myDocuments,
+    icon: 'mingcute:folder-open-line',
+    audience: 'guardian',
+    section: 'family',
+  },
+  {
     // The collaborator's own side of the health profile (BC6) — scoped to the teacher role
     // specifically via `includeRoles`, not a permission key: any staff holding `manage_people`
     // would otherwise also pass a `staff`-audience filter, but only the teacher named on a

@@ -185,6 +185,7 @@ describe('visibleSitemap audience filtering', () => {
       'my-report-cards',
       'my-tax-declarations',
       'my-requests',
+      'my-documents',
     ]);
   });
 
@@ -195,8 +196,20 @@ describe('visibleSitemap audience filtering', () => {
     expect(ids).not.toContain('my-report-cards');
     expect(ids).not.toContain('my-tax-declarations');
     expect(ids).not.toContain('my-requests');
+    expect(ids).not.toContain('my-documents');
     expect(ids).not.toContain('my-charges');
     expect(ids).not.toContain('my-atas');
+  });
+
+  it('gates Meus documentos on the documents module and keeps it guardian-only', () => {
+    const withoutDocuments = {
+      ...guardianMembership,
+      enabled_modules: ['communication', 'academic', 'billing'] as SchoolModuleKey[],
+    };
+
+    expect(visibleSitemap(withoutDocuments).map((item) => item.id)).not.toContain('my-documents');
+    expect(routeModuleKeyForPath(paths.myDocuments)).toBe('documents');
+    expect(routeAudienceForPath(paths.myDocuments)).toBe('guardian');
   });
 
   it('hides staff searchable sub-pages from guardians', () => {

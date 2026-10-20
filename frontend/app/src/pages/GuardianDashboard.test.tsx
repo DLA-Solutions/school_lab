@@ -32,5 +32,9 @@ describe('GuardianDashboard layout', () => {
 
     expect(screen.getByRole('link', { name: 'Preceptoria' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Meus boletos' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Meus documentos' })).toHaveAttribute(
+      'href',
+      '/meus-documentos',
+    );
   });
 });
