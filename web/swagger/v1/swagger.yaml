@@ -4216,6 +4216,12 @@
           "422": {
             "description": "teacher is not assigned to the child's current class"
           },
+          "409": {
+            "description": "the child was removed from the roll, so the chat is closed"
+          },
+          "404": {
+            "description": "a removed child from another school is not revealed"
+          },
           "403": {
             "description": "a school role without an inbox cannot send"
           },
