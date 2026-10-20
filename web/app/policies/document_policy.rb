@@ -15,6 +15,12 @@ class DocumentPolicy < ApplicationPolicy
     staff_with?(:manage_documents)
   end
 
+  # "Meus documentos": a guardian uploading for a child of the family. Which child is not decided
+  # here — the service resolves it through the guardian's own links.
+  def create_family_document?
+    guardian_member?
+  end
+
   def update?
     staff_with?(:manage_documents) && record.school_id == school_id
   end
