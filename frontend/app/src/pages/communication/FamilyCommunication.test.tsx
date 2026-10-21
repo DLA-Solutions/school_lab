@@ -70,12 +70,13 @@ beforeEach(() => {
 });
 
 describe('FamilyCommunication', () => {
-  it('lists coordination, secretary, and each teacher when the family has one child', async () => {
+  it('lists coordination, secretary, director, and each teacher when the family has one child', async () => {
     stubFamily({
       students: [child(1, 'Lara Nogueira')],
       destinations: [
         destination('coordination'),
         destination('secretary'),
+        destination('director'),
         destination('teacher', 4, 'Marina Alves'),
         destination('teacher', 5, 'Carlos Mendes'),
       ],
@@ -85,6 +86,14 @@ describe('FamilyCommunication', () => {
 
     expect(await screen.findByRole('button', { name: 'Coordenação' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Secretaria' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Direção' })).toBeInTheDocument();
+    expect(
+      screen
+        .getAllByRole('button', {
+          name: /^(Coordenação|Secretaria|Direção|Marina Alves|Carlos Mendes)$/,
+        })
+        .map((button) => button.textContent),
+    ).toEqual(['Coordenação', 'Secretaria', 'Direção', 'Marina Alves', 'Carlos Mendes']);
     expect(screen.getByRole('button', { name: 'Marina Alves' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Carlos Mendes' })).toBeInTheDocument();
     expect(screen.queryByRole('combobox', { name: 'Filho' })).not.toBeInTheDocument();
@@ -370,6 +379,118 @@ describe('FamilyCommunication', () => {
       expect(messageCalls).toBeGreaterThan(afterSend);
     });
     expect(screen.getAllByText('Bom dia').length).toBeGreaterThan(0);
+  });
+});
+
+describe('FamilyCommunication destinations send', () => {
+  const stubSend = () => {
+    const posts: Record<string, unknown>[] = [];
+    server.use(
+      http.post(apiUrl(`${BASE}/messages`), async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        posts.push(body);
+        return HttpResponse.json(
+          {
+            data: {
+              conversation_id: 90,
+              message: {
+                id: 60,
+                sender_membership_id: 11,
+                sender_line: 'Diego, pai da Lara — 1º ano',
+                body: String(body.body ?? ''),
+                sent_at: '2026-10-06T12:00:00Z',
+              },
+            },
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    return posts;
+  };
+
+  it('sends to the director without a teacher_id', async () => {
+    stubFamily({
+      students: [child(1, 'Lara Nogueira')],
+      destinations: [
+        destination('coordination'),
+        destination('secretary'),
+        destination('director'),
+        destination('teacher', 4, 'Marina Alves'),
+      ],
+    });
+    const posts = stubSend();
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Direção' }));
+    expect(
+      screen.getByRole('heading', { name: 'Falando com Direção sobre Lara Nogueira' }),
+    ).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Bom dia, direção');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await waitFor(() => {
+      expect(posts).toEqual([{ student_id: 1, audience: 'director', body: 'Bom dia, direção' }]);
+    });
+  });
+
+  it('still sends to a teacher with teacher_id', async () => {
+    stubFamily({
+      students: [child(1, 'Lara Nogueira')],
+      destinations: [
+        destination('coordination'),
+        destination('secretary'),
+        destination('director'),
+        destination('teacher', 4, 'Marina Alves'),
+      ],
+    });
+    const posts = stubSend();
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Marina Alves' }));
+    await user.type(screen.getByPlaceholderText('Escreva uma mensagem'), 'Olá professora');
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    await waitFor(() => {
+      expect(posts).toEqual([
+        { student_id: 1, audience: 'teacher', teacher_id: 4, body: 'Olá professora' },
+      ]);
+    });
+  });
+
+  it('labels a director conversation in the inbox and keeps it selected', async () => {
+    stubFamily({
+      students: [child(1, 'Lara Nogueira')],
+      destinations: [
+        destination('coordination'),
+        destination('secretary'),
+        destination('director'),
+      ],
+      conversations: [
+        {
+          id: 12,
+          student_id: 1,
+          student_name: 'Lara Nogueira',
+          audience: 'director',
+          teacher_id: null,
+          teacher_name: null,
+          last_message_at: '2026-10-06T15:00:00Z',
+          last_message_body: 'Recado para a direção',
+          school_class_id: 310,
+          sender_line: 'Diego, pai da Lara — 1º ano',
+        },
+      ],
+    });
+
+    renderPage('/comunicacao?conversation_id=12');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Falando com Direção sobre Lara Nogueira' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Direção' })).toHaveAttribute('aria-current', 'true');
   });
 });
 
