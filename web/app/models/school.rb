@@ -33,6 +33,10 @@ class School < ApplicationRecord
   has_many :payments, dependent: :destroy
   has_many :school_transactions, dependent: :destroy
   has_many :documents, dependent: :destroy
+  # Declared children-first: participants and entries must go before the books that hold them.
+  has_many :minutes_participants, dependent: :destroy
+  has_many :minutes_entries, dependent: :destroy
+  has_many :minutes_books, dependent: :destroy
   has_many :school_payment_providers, dependent: :destroy
   has_one :school_signature_provider, dependent: :destroy
   has_one :contract_template, dependent: :destroy
