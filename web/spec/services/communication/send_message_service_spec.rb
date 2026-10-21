@@ -172,6 +172,63 @@ RSpec.describe Communication::SendMessageService do
     end
   end
 
+  describe "a linked guardian writing to the Direção" do
+    it "opens one director conversation with no teacher and rings the other guardian, coordination, and director" do
+      result = send_message(audience: "director", body: "Preciso falar com a direção")
+
+      expect(result).to be_success
+      conversation = result.data[:conversation]
+      expect(conversation).to have_attributes(audience: "director", teacher_id: nil, student_id: student.id)
+      expect(Conversation.where(school: school, student: student, audience: "director").count).to eq(1)
+      expect(message_bells(conversation).pluck(:user_id)).to contain_exactly(
+        other_user.id,
+        coordination_user.id,
+        director_user.id
+      )
+      expect(message_bells(conversation).pluck(:user_id)).not_to include(
+        sender_user.id,
+        secretary_user.id,
+        named_teacher_user.id,
+        other_teacher_user.id
+      )
+    end
+
+    it "appends a second send to the same director conversation" do
+      first = send_message(audience: "director", body: "Primeira")
+      second = send_message(audience: "director", body: "Segunda")
+
+      expect(second.data[:conversation].id).to eq(first.data[:conversation].id)
+      expect(Conversation.where(school: school, student: student, audience: "director").count).to eq(1)
+    end
+
+    it "is refused to the secretary and to a teacher of the class with not_found and no row" do
+      result = nil
+
+      expect {
+        result = send_message(membership: secretary_membership, audience: "director")
+      }.not_to change { [ Conversation.count, Message.count, Notification.count ] }
+      expect(result.error_code).to eq(:not_found)
+
+      expect {
+        result = send_message(membership: named_teacher_membership, audience: "director")
+      }.not_to change { [ Conversation.count, Message.count, Notification.count ] }
+      expect(result.error_code).to eq(:not_found)
+    end
+  end
+
+  describe "the director writing to the Direção" do
+    it "rings the linked guardians and coordination, but not the director who sent it" do
+      result = send_message(membership: director_membership, audience: "director", body: "Resposta da direção")
+
+      expect(result).to be_success
+      expect(message_bells(result.data[:conversation]).pluck(:user_id)).to contain_exactly(
+        sender_user.id,
+        other_user.id,
+        coordination_user.id
+      )
+    end
+  end
+
   describe "a second send to the same teacher" do
     it "appends a message on the same conversation" do
       first = send_message(audience: "teacher", teacher_id: named_teacher.id, body: "Primeira")

@@ -5,7 +5,8 @@
 class Conversation < ApplicationRecord
   include SchoolAuditable
 
-  AUDIENCES = %w[coordination secretary teacher].freeze
+  # director is the school's Direção: a guardian-selectable audience with teacher_id null.
+  AUDIENCES = %w[coordination secretary director teacher].freeze
 
   belongs_to :school
   belongs_to :student

@@ -274,4 +274,60 @@ RSpec.describe ConversationPolicy do
       expect(resolved_for(actor)).to be_empty
     end
   end
+
+  describe "Direção (director audience) conversation" do
+    let(:guardian) { create(:guardian, school: school, user: user) }
+    let(:other_user) { create(:user) }
+    let(:other_guardian) { create(:guardian, school: school, user: other_user) }
+    let(:other_child) { create(:student, school: school, school_class: school_class) }
+    let!(:membership) { create(:membership, user: user, school: school, role: "guardian") }
+    let!(:other_membership) { create(:membership, user: other_user, school: school, role: "guardian") }
+    let!(:direction_thread) { create(:conversation, :director, school: school, student: student) }
+    let(:record) { direction_thread }
+
+    before do
+      create(:student_guardian, school: school, student: student, guardian: guardian)
+      create(:student_guardian, school: school, student: other_child, guardian: other_guardian)
+      set_current!(membership)
+    end
+
+    it "is visible to every linked guardian of the child and listed in their resolved scope" do
+      expect(policy.show?).to be(true)
+      expect(resolved_for(user)).to contain_exactly(direction_thread)
+    end
+
+    it "is hidden from another family" do
+      set_current!(other_membership)
+
+      expect(described_class.new(other_user, direction_thread).show?).to be(false)
+      expect(resolved_for(other_user)).to be_empty
+    end
+
+    it "is hidden from secretary and from a teacher of the child's current class" do
+      secretary_user = create(:user)
+      set_current!(staff_membership!(secretary_user, "secretary"))
+
+      expect(described_class.new(secretary_user, direction_thread).show?).to be(false)
+      expect(resolved_for(secretary_user)).to be_empty
+
+      teacher = create(:teacher, school: school, email: "direction.teacher@example.com")
+      teacher_user = create(:user, email: teacher.email)
+      create(:teaching_assignment, school: school, teacher: teacher, school_class: school_class, subject: maths)
+      teacher_membership = create(:membership, user: teacher_user, school: school, role: "teacher")
+      set_current!(teacher_membership)
+
+      expect(described_class.new(teacher_user, direction_thread).show?).to be(false)
+      expect(resolved_for(teacher_user)).to be_empty
+    end
+
+    it "is readable and replyable by coordination and by director" do
+      %w[coordination director].each do |system_key|
+        actor = create(:user)
+        set_current!(staff_membership!(actor, system_key))
+
+        expect(described_class.new(actor, direction_thread).show?).to be(true)
+        expect(resolved_for(actor)).to contain_exactly(direction_thread)
+      end
+    end
+  end
 end

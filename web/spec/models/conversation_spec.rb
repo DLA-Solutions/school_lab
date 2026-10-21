@@ -39,6 +39,40 @@ RSpec.describe Conversation, type: :model do
     expect(duplicate.errors[:audience]).to be_present
   end
 
+  it "is valid for the director audience without a teacher" do
+    conversation = build(:conversation, :director, teacher: nil)
+
+    expect(conversation).to be_valid
+  end
+
+  it "rejects a teacher on a director conversation" do
+    conversation = build(:conversation, :director)
+    conversation.teacher = create(:teacher, school: conversation.school)
+
+    expect(conversation).not_to be_valid
+    expect(conversation.errors[:teacher]).to be_present
+  end
+
+  it "allows one director row next to the coordination and secretary rows of the same child" do
+    coordination = create(:conversation, audience: "coordination")
+    create(:conversation, :secretary, school: coordination.school, student: coordination.student)
+    director = build(:conversation, :director, school: coordination.school, student: coordination.student)
+
+    expect(director).to be_valid
+  end
+
+  it "rejects a second director row for the same child" do
+    existing = create(:conversation, :director)
+    duplicate = build(:conversation, :director, school: existing.school, student: existing.student)
+
+    expect(duplicate).not_to be_valid
+    expect(duplicate.errors[:audience]).to be_present
+  end
+
+  it "stores the director audience past the database audience check" do
+    expect { create(:conversation, :director) }.to change(Conversation, :count).by(1)
+  end
+
   it "allows one row per teacher for the same child" do
     school = create(:school)
     student = create(:student, school: school)
