@@ -127,6 +127,8 @@ require_gha_env_for_layer() {
       else
         require_env JWT_SECRET_KEY_PRODUCTION
         require_env POSTMARK_API_TOKEN_PRODUCTION
+        require_env R2_ACCESS_KEY_ID_PRODUCTION
+        require_env R2_SECRET_ACCESS_KEY_PRODUCTION
       fi
       ;;
   esac
@@ -171,6 +173,8 @@ EOF
         write_secrets_file "$dir/.kamal/secrets.production" <<'EOF'
 JWT_SECRET_KEY=$JWT_SECRET_KEY_PRODUCTION
 POSTMARK_API_TOKEN=$POSTMARK_API_TOKEN_PRODUCTION
+R2_ACCESS_KEY_ID=$R2_ACCESS_KEY_ID_PRODUCTION
+R2_SECRET_ACCESS_KEY=$R2_SECRET_ACCESS_KEY_PRODUCTION
 GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID
 DATABASE_URL=postgres://scholarpremium:$POSTGRES_PASSWORD@10.0.0.3:5432/scholarpremium_production
 CABLE_DATABASE_URL=postgres://scholarpremium:$POSTGRES_PASSWORD@10.0.0.3:5432/scholarpremium_production_cable
