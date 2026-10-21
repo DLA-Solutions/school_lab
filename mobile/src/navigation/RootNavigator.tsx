@@ -4,7 +4,7 @@ import { colors } from '../theme/colors';
 import { useAuth } from '../providers/AuthContext';
 import { navigationRef } from '../services/pushNotifications';
 import AuthStack from './AuthStack';
-import MainDrawer from './MainDrawer';
+import MainTabs from './MainTabs';
 
 const navigationTheme = {
   ...DarkTheme,
@@ -29,7 +29,7 @@ const RootNavigator = () => {
 
   return (
     <NavigationContainer ref={navigationRef} theme={navigationTheme}>
-      {status === 'loading' ? <Splash /> : status === 'authenticated' ? <MainDrawer /> : <AuthStack />}
+      {status === 'loading' ? <Splash /> : status === 'authenticated' ? <MainTabs /> : <AuthStack />}
     </NavigationContainer>
   );
 };
