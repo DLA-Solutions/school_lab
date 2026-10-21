@@ -52,11 +52,10 @@ AI agents easier and keeps clients, API, and docs cohesive. Stack finalized in
 
 ### mobile/
 
-- React Native: teachers, guardians; school staff where mobile applies.
+- React Native for guardians only (product UI: **Responsável**; technical role `guardian`) on iOS and Android.
+- Teachers and staff stay on the school SPA (`frontend/app/`).
 - Consumes the same API; refresh token in secure device storage.
-- MVP: communication (messages with images), push notifications, boletos
-  (Brazilian bank payment slips), and academic queries for parents; messages and
-  attendance for teachers.
+- Guardian surfaces: messages, announcements, boletos, report cards, preceptorship, documents, and the sent infant routine (snack, poop count, pee count, notes).
 
 ### docs/
 

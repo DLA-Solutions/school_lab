@@ -53,7 +53,7 @@ strategy label.
 | [`billing/`](../prds/billing/) | Full MVP billing domain | validated | [`001-fintech-first`](../modeling/001-fintech-first.md) *(baseline + PRD delta)* | [`billing.md`](../api/v1/billing.md) | Extends fintech-first; régua automation deferred Aug 2026; MVP gap tables in DBML Phase 4B.3 |
 | [`fintech-first/resend-boleto`](../prds/fintech-first/resend-boleto.md) | Feature slice | absorbed | — | [`billing.md`](../api/v1/billing.md) | Merged into [`billing/boletos.md`](../prds/billing/boletos.md) |
 | [`layer-web-spa`](../prds/layer-web-spa.md) | Frontend design system + MVP menus | draft | — | — | Layer PRD |
-| [`layer-mobile-app`](../prds/layer-mobile-app.md) | Mobile guardian/teacher MVP | draft | — | — | Layer PRD |
+| [`layer-mobile-app`](../prds/layer-mobile-app.md) | Mobile guardian-only iOS and Android | validated | — | — | Layer PRD |
 
 ## Suggested maturation order (implementation)
 

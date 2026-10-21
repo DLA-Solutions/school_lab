@@ -37,31 +37,33 @@ Product **surfaces** (deployable clients) map to monorepo folders and URL paths 
 **Channels** (for the role matrix below):
 
 - **web** — browser SPAs above plus the API.
-- **app** — React Native mobile.
+- **app** — React Native mobile for guardians only, on iOS and Android.
 
 ## 3. Role × channel matrix (MVP)
 
 | Role         | web         | app         | Note                                 |
 |--------------|-------------|-------------|--------------------------------------|
 | Backoffice   | Yes         | No (phase 2)| Operation is primarily desktop       |
-| Staff        | Yes         | Yes         | System role templates: director, secretary, etc. |
-| Teacher      | Yes         | Yes         | Grades and lesson plans on web; messages on app |
-| Guardian     | Yes         | Yes         | Web-first guardian portal; mobile parity after each stable API/web contract |
+| Staff        | Yes         | No          | School SPA only. Role templates: director, secretary, etc. |
+| Teacher      | Yes         | No          | Grades, lesson plans, messages, and attendance on the school SPA |
+| Guardian     | Yes         | Yes         | School SPA plus iOS and Android app. Product UI: **Responsável** |
 | Student      | No (phase 2)| No (phase 2)| MVP: no student login; record managed by staff/guardian surfaces |
 
-> **Decided Aug 2026:** Guardians use **both** web SPA and mobile in MVP
-> ([`docs/product/mvp-scope.md`](product/mvp-scope.md) § Executive summary). The guardian portal is
-> delivered web first; mobile follows stable domain contracts and remains primary for push-driven
-> flows. Product UI always says **Responsável** while repository identifiers remain `guardian`.
+> **Decided Oct 2026:** The mobile app (`mobile/`) is **guardian-only**, on **iOS and Android**.
+> Product UI says **Responsável**; the technical role is `guardian`. Teachers and staff stay on
+> the school SPA (`frontend/app/`). Guardians also keep that web portal. See
+> [`docs/product/mvp-scope.md`](product/mvp-scope.md) § Executive summary.
 
 ### Active profile and school context
 
 One account may hold multiple memberships across roles and schools. The active product context is
 one explicit `membership.id` from `GET /api/v1/me`; it determines both audience and `school_id`.
 A dual-role user switches between staff/teacher and Responsável profiles instead of receiving a
-merged menu. A multi-school user likewise chooses the school explicitly. Clients persist only the
-membership id, clear school-scoped state on switch, and reject stale, suspended, or removed
-memberships. Authorization remains server-side through Pundit and family/school scopes.
+merged menu. The mobile app builds a menu only for a membership whose role is `guardian`; a staff
+or teacher membership never builds one there. A multi-school user likewise chooses the school
+explicitly. Clients persist only the membership id, clear school-scoped state on switch, and
+reject stale, suspended, or removed memberships. Authorization remains server-side through Pundit
+and family/school scopes.
 
 ## 4. High-level capabilities by role
 
@@ -99,8 +101,10 @@ memberships. Authorization remains server-side through Pundit and family/school 
 - View classes, students, and the calendar.
 - (Phase 2) Take part in minutes (e.g., Conselho de Classe — class council) with
   a digital signature.
-- (Phase 2) Record a structured daily routine — meals, sleep, hygiene, health,
-  mood. [early childhood education]
+- Record the infant routine slice (snack, poop count, pee count, notes) on the school SPA
+  ([`prds/academic/routine.md`](prds/academic/routine.md)).
+- (Phase 2) Record the broader early-childhood diary — sleep, health, mood, photos, and
+  per-event hygiene. [early childhood education]
 
 ### Guardians (UI: Responsáveis)
 
@@ -119,9 +123,11 @@ memberships. Authorization remains server-side through Pundit and family/school 
 - Generate/download one annual income-tax declaration per payer and school, consolidated across
   every child represented by eligible charges that payer settled; payer ownership, not a live
   guardian-child link at generation time, controls inclusion.
+- Read the sent infant daily routine for a linked child (snack eaten, poop count, pee count,
+  notes) on the school SPA and the mobile app. Sleep, mood, health, photos, and per-event
+  fields stay open ([`open-questions.md`](open-questions.md)).
 - (Phase 2) Sign minutes digitally (family meetings, events).
-- (Phase 2) Receive mass announcements with read receipts; follow the child's
-  structured daily routine. [early childhood education]
+- (Phase 2) Receive mass announcements with read receipts. [early childhood education]
 
 ### Student
 
