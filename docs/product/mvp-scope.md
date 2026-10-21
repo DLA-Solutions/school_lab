@@ -45,7 +45,7 @@ python3 .cursor/skills/docs/corpus-concorrente/scripts/capabilities.py \
 4. **Digital archive** — document repository per student/school.
 5. **Identity & students** — multi-school tenancy, roles, base records (students, guardians,
    classes, subjects).
-6. **Surfaces** — web SPA and mobile app for all MVP roles.
+6. **Surfaces** — school SPA for staff, teachers, and guardians; mobile app (iOS and Android) for guardians only.
 
 **Build order:** validated MVP priority is communication → academic → billing;
 the billing-first partner slice (historical) inverted that order for the validating school only.

@@ -54,7 +54,7 @@ school_lab/
 | `frontend/backoffice/` | DLA platform UI; same auth; deployed at `/backoffice` |
 | `site/` | Static marketing placeholder; no API dependency |
 | `frontend/base` | Upstream template (`dashdark-x`); reference only |
-| `mobile/` | Same API; refresh in secure device storage |
+| `mobile/` | Guardian-only iOS and Android app; same API; refresh in secure device storage |
 | `packages/design-tokens` | Color/shadow tokens shared by web SPAs and mobile |
 
 All product controllers delegate to the same service objects — rules are not duplicated.
@@ -123,7 +123,7 @@ v7). Deployed at `/backoffice` (`VITE_BASE_PATH=/backoffice/`).
 
 ## 5. Mobile frontend (`mobile/`)
 
-React Native consuming the same `/api/v1` contract.
+React Native app for guardians only (product UI: **Responsável**; technical role `guardian`), on iOS and Android. Teachers and staff stay on the school SPA. Same `/api/v1` contract.
 
 | Concern | Approach |
 |---------|----------|
@@ -236,9 +236,9 @@ Behavior-focused testing philosophy and conventions: `docs/guidelines/web/testin
 | Surface | Folder | Channel | MVP |
 |---------|--------|---------|-----|
 | DLA backoffice | `frontend/backoffice/` | Web SPA at `/backoffice` | Yes |
-| School admin | `frontend/app/` | Web SPA at `/app` (+ light mobile) | Yes |
-| Teacher | `frontend/app/` + `mobile/` | Web + mobile | Yes |
-| Guardian (UI: Responsável) | `frontend/app/` + `mobile/` | Web-first portal; mobile parity after stable contracts, mobile primary for push | Yes |
+| School admin | `frontend/app/` | Web SPA at `/app` | Yes |
+| Teacher | `frontend/app/` | Web SPA at `/app` | Yes |
+| Guardian (UI: Responsável) | `frontend/app/` + `mobile/` | School SPA plus guardian-only iOS and Android app | Yes |
 
 ## 12. Conventions
 

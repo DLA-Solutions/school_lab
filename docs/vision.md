@@ -96,7 +96,7 @@ as the main focus, with academic stability and billing as complementary pillars.
   structured daily routine (meals, sleep, etc.) is left for a later phase.
 - Billing: generation and tracking of boletos; parent view.
 - Digital archive: document repository per student/school.
-- Web and app (both channels in the MVP).
+- School SPA for staff, teachers, and guardians; mobile app (iOS and Android) for guardians only.
 
 **Out of the MVP (later phases)**
 

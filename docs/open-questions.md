@@ -31,7 +31,7 @@ Recorded from a conversation with the partner director (escola NSR). Details in
       API.
 - [x] **Real-time is not needed** — information must arrive in a timely manner,
       not in real time. Solid Cable / Turbo Streams are left for phase 2.
-- [x] **Web and app in the MVP** — both channels from the start.
+- [x] **Web and app in the MVP** — the school SPA is the staff and teacher surface; the mobile app is guardian-only, iOS and Android.
 - [x] **Registration and login** — all roles need registration and
       authentication.
 - [x] **Early childhood education in the MVP** — communication covers the main
@@ -44,8 +44,8 @@ Recorded from a conversation with the partner director (escola NSR). Details in
       signature**. The Conselho de Educação (Board of Education) audits these
       records frequently.
 
-- [x] **Teacher in the MVP: web and app together** — grades and lesson plans on
-      web; messages and attendance on app (both channels available).
+- [x] **Teacher in the MVP: school SPA only** — grades, lesson plans, messages, and
+      attendance stay on the web SPA. The mobile app is not a teacher surface.
 - [x] **Repository language is English** — code, API, docs, and branch names use
       English identifiers. Product UI stays `pt-BR` via i18n. Portuguese
       identifiers only for approved domain exceptions (`docs/glossary.md`); ask
@@ -149,17 +149,18 @@ See [`onboarding.md`](prds/identity-and-onboarding/onboarding.md) § Future inte
 - [x] **Backoffice in the MVP** — school registration, module flags, white-glove provisioning
       dashboard only — **not** platform SaaS billing to schools (phase 2). See
       [`platform-and-admin/backoffice.md`](prds/platform-and-admin/backoffice.md).
-- [x] **Responsáveis in the MVP: web and app** — guardian portal delivery is web first, followed
-      by mobile parity after each stable contract; mobile remains primary for push/messaging. Aligned across
-      [`actors-and-surfaces.md`](actors-and-surfaces.md), [`mvp-scope.md`](product/mvp-scope.md),
-      [`layer-mobile-app.md`](prds/layer-mobile-app.md).
+- [x] **Mobile app is guardian-only, iOS and Android** — product UI label Responsável;
+      technical role `guardian`. Guardians also keep the school SPA. Teachers and staff do not
+      use `mobile/`. Recorded in [`actors-and-surfaces.md`](actors-and-surfaces.md),
+      [`mvp-scope.md`](product/mvp-scope.md), and [`layer-mobile-app.md`](prds/layer-mobile-app.md).
 - [x] **Student login in MVP** — **record-only** through MVP; no student app login. Staff and
       guardian surfaces proxy student data. Phase 2 minimal student portal (diary, grades read-only).
       See [`actors-and-surfaces.md`](actors-and-surfaces.md) §1.
 - [x] **Guardian portal terminology and context** — pt-BR UI uses **Responsável** while technical
       identifiers remain `guardian`; Responsável financeiro is a payer relationship, not a role.
       Dual-role/multi-school users explicitly select one `membership.id` profile/school context;
-      menus are never merged. Web portal ships before mobile parity. See
+      menus are never merged. Staff and teacher menus stay on the school SPA; the mobile app
+      never builds one for those memberships. See
       [`layer-web-spa.md`](prds/layer-web-spa.md) § MVP product menus.
 
 ## Billing

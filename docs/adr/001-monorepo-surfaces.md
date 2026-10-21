@@ -12,7 +12,7 @@ School Lab has three product clients and one backend:
 
 - **DLA operators** (backoffice actor) — register schools, white-glove provisioning, platform support.
 - **School staff** (owner, secretary, coordination, direction) — day-to-day school operations on web.
-- **Teachers and guardians** — primarily mobile; guardian web is phase 2.
+- **Guardians** — school SPA and the iOS/Android app (`mobile/`). Teachers and staff stay on the school SPA. This audience supersedes the earlier “teachers and guardians, primarily mobile; guardian web is phase 2” framing (Oct 2026; see `docs/actors-and-surfaces.md`).
 
 Today the monorepo layout does not mirror those surfaces:
 
@@ -65,7 +65,7 @@ school_lab/
 |---------|-------|----------|
 | `frontend/app` | Users **inside** a school | Dashboard, people, academics, school billing, `/invite/accept`, `/onboarding/owner` |
 | `frontend/backoffice` | Users **operating the platform** | `/schools`, `/schools/:id/provisioning`, future platform billing |
-| `mobile` | Native app | Teachers, guardians; school staff where mobile applies |
+| `mobile` | Native app | Guardians only, iOS and Android. Teachers and staff stay on the school SPA |
 | `web` | Business rules + server infra | Services, policies, jobs, integrations; optional Rails-mounted ops UI (Flipper) |
 
 **Invite accept** stays in `frontend/app` — the invitee is a school user, not DLA.
