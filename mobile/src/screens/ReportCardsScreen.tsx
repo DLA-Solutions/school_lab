@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { useAuth } from '../providers/AuthContext';
-import { fetchGuardianStudents, fetchReportCards } from '../services/reportCards';
-import { GuardianStudent, ReportCardListItem as ReportCardListItemData } from '../types/reportCards';
+import { useGuardianContext } from '../providers/GuardianContext';
+import { fetchReportCards } from '../services/reportCards';
+import { ReportCardListItem as ReportCardListItemData } from '../types/reportCards';
 import ReportCardListItem from '../components/reportCards/ReportCardListItem';
 import ReportCardDetailScreen from './ReportCardDetailScreen';
 
@@ -24,11 +24,12 @@ interface ReportCardSection {
 }
 
 const ReportCardsScreen = () => {
-  const { user } = useAuth();
-  const schoolId = user?.memberships?.[0]?.school_id;
-
-  const [students, setStudents] = useState<GuardianStudent[]>([]);
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  const {
+    activeSchoolId: schoolId,
+    activeStudentId,
+    activeStudentName,
+    generation,
+  } = useGuardianContext();
 
   const [items, setItems] = useState<ReportCardListItemData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,36 +37,26 @@ const ReportCardsScreen = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedPublicationId, setSelectedPublicationId] = useState<number | null>(null);
+  const requestSeq = useRef(0);
 
-  // Best-effort — the list/detail payloads only carry `student_id`, so this resolves it to a
-  // name for the filter chips and each row. If it fails, rows fall back to "Aluno #<id>".
-  useEffect(() => {
-    if (!schoolId) {
-      return;
-    }
-
-    let cancelled = false;
-
-    fetchGuardianStudents(schoolId)
-      .then((response) => {
-        if (!cancelled) {
-          setStudents(response.data);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setStudents([]);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [schoolId]);
+  const contextKey = `${generation}:${schoolId ?? ''}:${activeStudentId ?? ''}`;
+  const [seenContextKey, setSeenContextKey] = useState(contextKey);
+  if (seenContextKey !== contextKey) {
+    setSeenContextKey(contextKey);
+    setItems([]);
+    setError(null);
+    setSelectedPublicationId(null);
+  }
 
   const fetchData = useCallback(
     async (refresh = false) => {
-      if (!schoolId) return;
+      if (!schoolId || activeStudentId == null) {
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const seq = ++requestSeq.current;
 
       if (!refresh) {
         setLoading(true);
@@ -75,11 +66,15 @@ const ReportCardsScreen = () => {
       setError(null);
 
       try {
-        const response = await fetchReportCards(schoolId, {
-          studentId: selectedStudentId ?? undefined,
-        });
+        const response = await fetchReportCards(schoolId, { studentId: activeStudentId });
+        if (requestSeq.current !== seq) {
+          return;
+        }
         setItems(response.data);
       } catch (err) {
+        if (requestSeq.current !== seq) {
+          return;
+        }
         let message = 'Erro ao carregar boletins';
         if (err instanceof Error) {
           message = err.message;
@@ -87,24 +82,26 @@ const ReportCardsScreen = () => {
         setError(message);
         console.error('Failed to fetch report cards:', err);
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (requestSeq.current === seq) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
-    [schoolId, selectedStudentId],
+    [schoolId, activeStudentId],
   );
 
   useEffect(() => {
     void fetchData();
-  }, [fetchData]);
+  }, [fetchData, generation]);
 
   const handleRefresh = () => {
     void fetchData(true);
   };
 
   const studentName = useCallback(
-    (id: number) => students.find((student) => student.id === id)?.name ?? `Aluno #${id}`,
-    [students],
+    (id: number) => (id === activeStudentId && activeStudentName ? activeStudentName : `Aluno #${id}`),
+    [activeStudentId, activeStudentName],
   );
 
   // Grouped by academic period — the API gives us `academic_period_id` only (no name) on
@@ -149,43 +146,6 @@ const ReportCardsScreen = () => {
 
   return (
     <View style={styles.container}>
-      {students.length > 1 && (
-        <View style={styles.filterContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterContent}
-          >
-            <Pressable
-              style={[styles.filterChip, selectedStudentId === null && styles.filterChipActive]}
-              onPress={() => setSelectedStudentId(null)}
-            >
-              <Text
-                style={[styles.filterChipText, selectedStudentId === null && styles.filterChipTextActive]}
-              >
-                Todos
-              </Text>
-            </Pressable>
-            {students.map((student) => (
-              <Pressable
-                key={student.id}
-                style={[styles.filterChip, selectedStudentId === student.id && styles.filterChipActive]}
-                onPress={() => setSelectedStudentId(student.id)}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    selectedStudentId === student.id && styles.filterChipTextActive,
-                  ]}
-                >
-                  {student.name}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -240,35 +200,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  filterContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  filterContent: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 8,
-    flexDirection: 'row',
-  },
-  filterChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceAlt,
-    marginRight: 8,
-  },
-  filterChipActive: {
-    backgroundColor: colors.primary,
-  },
-  filterChipText: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  filterChipTextActive: {
-    color: '#fff',
   },
   sectionHeader: {
     color: colors.textSecondary,
