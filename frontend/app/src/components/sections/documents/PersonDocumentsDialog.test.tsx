@@ -123,6 +123,15 @@ describe('PersonDocumentsDialog', () => {
       uploaded_by_name: null,
       uploaded_by_kind: 'school',
     };
+    const signedContract: FamilyDocument = {
+      ...childBound,
+      id: 34,
+      document_type: 'signed_contract',
+      status: 'approved',
+      filename: 'contrato-assinado-pedro-silva.pdf',
+      uploaded_by_name: null,
+      uploaded_by_kind: null,
+    };
     const own: FamilyDocument = {
       ...storedDocument,
       student_id: null,
@@ -134,8 +143,8 @@ describe('PersonDocumentsDialog', () => {
     server.use(
       http.get(apiUrl(DOCUMENTS_PATH), () =>
         HttpResponse.json({
-          data: [own, childBound, fromSchool],
-          meta: { page: 1, per_page: 25, total: 3 },
+          data: [own, childBound, fromSchool, signedContract],
+          meta: { page: 1, per_page: 25, total: 4 },
         }),
       ),
     );
@@ -150,6 +159,13 @@ describe('PersonDocumentsDialog', () => {
     const identity = screen.getByText('rg-cpf.pdf').closest('li') as HTMLElement;
     expect(within(identity).getByText(/rg e cpf dos responsáveis/i)).toBeInTheDocument();
     expect(within(identity).getByText(/enviado pela escola/i)).toBeInTheDocument();
+
+    // Filed by the system on signature: a proper type label and a system sender, not an empty one.
+    const contract = screen
+      .getByText('contrato-assinado-pedro-silva.pdf')
+      .closest('li') as HTMLElement;
+    expect(within(contract).getByText(/contrato assinado/i)).toBeInTheDocument();
+    expect(within(contract).getByText(/gerado pela assinatura eletrônica/i)).toBeInTheDocument();
 
     // A file attached to the guardian itself has no child to name.
     const ownItem = screen.getByText('rg-maria.pdf').closest('li') as HTMLElement;

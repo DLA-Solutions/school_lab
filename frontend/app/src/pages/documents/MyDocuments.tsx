@@ -27,6 +27,7 @@ import {
   GUARDIAN_DOCUMENT_MAX_BYTES,
   GUARDIAN_DOCUMENT_MIME_TYPES,
   GUARDIAN_DOCUMENT_TYPES,
+  SYSTEM_DOCUMENT_TYPES,
   guardianDocumentUrl,
   listMyDocuments,
   uploadMyDocument,
@@ -271,7 +272,11 @@ const MyDocuments = () => {
         flex: 0.9,
         minWidth: 180,
         renderCell: ({ row }) => {
-          const known = GUARDIAN_DOCUMENT_TYPES.find((type) => type.value === row.document_type);
+          // The upload list plus the kinds only the system files (the signed contract), which
+          // a guardian cannot send and so are not offered in the form.
+          const known = [...GUARDIAN_DOCUMENT_TYPES, ...SYSTEM_DOCUMENT_TYPES].find(
+            (type) => type.value === row.document_type,
+          );
 
           // A type the API carries that this build does not know keeps its raw value: better an
           // unfamiliar word than an empty cell.
@@ -306,10 +311,16 @@ const MyDocuments = () => {
         headerName: t('myDocuments.column.sentBy'),
         flex: 0.8,
         minWidth: 150,
-        renderCell: ({ row }) =>
-          row.uploaded_by_kind === 'school'
+        renderCell: ({ row }) => {
+          // No uploader at all: the system filed it (the e-signed contract).
+          if (row.uploaded_by_kind === null) {
+            return t('myDocuments.sentBy.system');
+          }
+
+          return row.uploaded_by_kind === 'school'
             ? t('myDocuments.sentBy.school')
-            : (row.uploaded_by_name ?? t('common.none')),
+            : (row.uploaded_by_name ?? t('common.none'));
+        },
       },
       {
         field: 'status',

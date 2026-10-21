@@ -48,15 +48,26 @@ export const GUARDIAN_DOCUMENT_TYPES = [
 ] as const;
 
 /**
+ * Kinds the system files on the family's behalf. They show in "Meus documentos" but are not in
+ * the upload picklist — the API refuses a guardian sending one (422). Display labels only.
+ */
+export const SYSTEM_DOCUMENT_TYPES = [
+  { value: 'signed_contract', label: 'myDocuments.type.signed_contract' },
+] as const;
+
+/**
  * The catalogue key for a stored document type, or `null` when the API carries one this build
  * does not know — the raw value is shown then, which is better than an empty cell. The staff
  * dialog also lists what guardians sent, so their kinds resolve here too; `other` keeps the
  * shared label because it comes first.
  */
 export const documentTypeKey = (value: string) =>
-  [...PERSONAL_DOCUMENT_TYPES, ...COLLABORATOR_DOCUMENT_TYPES, ...GUARDIAN_DOCUMENT_TYPES].find(
-    (type) => type.value === value,
-  )?.label ?? null;
+  [
+    ...PERSONAL_DOCUMENT_TYPES,
+    ...COLLABORATOR_DOCUMENT_TYPES,
+    ...GUARDIAN_DOCUMENT_TYPES,
+    ...SYSTEM_DOCUMENT_TYPES,
+  ].find((type) => type.value === value)?.label ?? null;
 
 /** GET /api/v1/schools/:school_id/documents, narrowed to one owner. */
 export const listPersonDocuments = (
