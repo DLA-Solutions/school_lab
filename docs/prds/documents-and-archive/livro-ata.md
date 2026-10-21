@@ -1,6 +1,6 @@
 # PRD — Documents & Archive: Livro Ata (BC4)
 
-> Status: draft  
+> Status: implemented (API + SPA, pending product-owner review)  
 > Parent PRD: [`index.md`](index.md)  
 > Capability IDs: `documents.generate_official_minutes`, `documents.collect_minutes_signatures`  
 > Related BCs: [`archive.md`](archive.md) *(signed PDF is filed here)*, [`../academic/incidents.md`](../academic/incidents.md) *(legacy "Atas de reuniões")*  
@@ -101,7 +101,7 @@ BR-LA06 *(PDF and signature)*
 On send, the service renders the entry to PDF (school header, book name/year, kind, title, date,
 body, participant list) and creates the document in Autentique through `Gateways::Signature`. The
 entry is marked `pending_signature` only after the provider accepts it (same rule as contracts).
-Webhook/reconcile mark it `signed` and file the signed PDF as the entry's stored copy.
+Webhook/reconcile mark it `signed` and store the signed PDF on the entry itself (`has_one_attached :pdf`; the student-bound archive is not used).
 
 BR-LA07 *(search)*
 
@@ -146,8 +146,7 @@ Validates signers, renders PDF, calls Autentique, moves to `pending_signature`, 
 
 ### UC-LA05 — Signature received
 
-Autentique webhook / reconcile job marks the entry `signed`, stores the signed PDF, files it
-in the archive.
+Autentique webhook / reconcile job marks the entry `signed` and stores the signed PDF on the entry.
 
 ### UC-LA06 — Cancel
 
@@ -184,7 +183,7 @@ Tenant routes under `/api/v1/schools/:school_id` (narrative in
 | 404 | `not_found` | Cross-school id |
 | 409 | `invalid_state_transition` | Edit/send/cancel from a state that disallows it |
 | 422 | `validation_error` | Missing signer e-mail/CPF, no signers, duplicate book |
-| 502 | `provider_error` | Autentique unavailable |
+| 502 | `provider_error` | Autentique unavailable (minutes endpoints only) |
 
 ---
 
@@ -216,14 +215,14 @@ Roles come from `Current.membership.role_template.system_key`, not params.
 
 ## Acceptance Criteria
 
-- [ ] Given a `director`, `coordination`, or `secretary` membership, the staff menu shows "Atas da Escola" and no longer shows "Atas de reuniões"; teachers and guardians see neither.
+- [ ] Given a `director`, `coordination`, or `secretary` membership, the staff menu shows "Atas da Escola" and no longer shows "Atas de reuniões"; teachers and guardians do not see "Atas da Escola". Other staff (teachers included) keep a relabelled "Notas de ocorrência" entry for the BC7 page, so they do not lose access to it `[product decision]`.
 - [ ] Creating a book with a name and a year lists it; the same name+year again returns `422`.
 - [ ] "Nova ata" (top-right of the list) opens a chooser with "Ata de reunião", "Ata de Conselho de Classe", "Ata de resultados finais".
 - [ ] Searching by year or by a participant's name narrows the list; other schools' atas never appear.
 - [ ] Sending a draft with a signer lacking e-mail or CPF fails with `422` naming the person and sends nothing.
 - [ ] Sending a valid draft moves it to `pending_signature` and creates the Autentique document; a signed webhook moves it to `signed` and a signed PDF is retrievable.
 - [ ] A signed or pending entry cannot be edited (`409`).
-- [ ] The legacy incident atas screen stays reachable inside Atas da Escola.
+- [ ] The legacy incident atas screen stays reachable inside Atas da Escola ("Notas de ocorrência").
 
 ---
 
