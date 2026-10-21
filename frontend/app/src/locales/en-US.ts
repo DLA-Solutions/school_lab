@@ -1380,8 +1380,8 @@ const enUS: Messages = {
   'platformSubscription.paymentMethod.pix': 'Pix',
   'platformSubscription.overdue': 'Overdue',
 
-  'nav.atas': 'Meeting minutes',
   'nav.schoolMinutes': 'School minutes',
+  'nav.incidentNotes': 'Incident notes',
   'atas.new': 'New ata note',
   'atas.loadError': 'Could not load the atas.',
   'atas.noAccess.description': "You do not have access to this school's atas.",
