@@ -6,13 +6,28 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-# amazon:
-#   service: S3
-#   access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-#   secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-#   region: us-east-1
-#   bucket: your_own_bucket-<%= Rails.env %>
+# Cloudflare R2 (S3-compatible) — the production backend for every Active Storage attachment.
+# The bucket is private: files are only ever read through short-lived signed URLs, handed out by
+# Pundit-authorized API endpoints (see docs/guidelines/web/storage.md).
+#
+# Credentials come from ENV only (Kamal secrets) — never commit them. ENV is read with `[]` so
+# development and test, which never select this service, still load the file; the
+# `active_storage_service` initializer fails the boot when `r2` is selected with a value missing.
+#
+# aws-sdk-s3 >= 1.178 sends CRC32 checksums by default, which R2 rejects (`x-amz-checksum-crc32`
+# not implemented), so both checksum modes are limited to "when required". `region: auto` is the
+# only region R2 accepts; path-style keeps the bucket out of the hostname so the signed URL
+# needs no wildcard DNS.
+r2:
+  service: S3
+  access_key_id: <%= ENV["R2_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["R2_SECRET_ACCESS_KEY"] %>
+  endpoint: https://<%= ENV["R2_ACCOUNT_ID"] %>.r2.cloudflarestorage.com
+  bucket: <%= ENV["R2_BUCKET"] %>
+  region: auto
+  force_path_style: true
+  request_checksum_calculation: when_required
+  response_checksum_validation: when_required
 
 # Remember not to checkin your GCS keyfile to a repository
 # google:
