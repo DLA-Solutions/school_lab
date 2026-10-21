@@ -1808,6 +1808,7 @@ Table minutes_entries {
   provider_document_id varchar [note: 'Set only once the provider accepted the document (BR-LA06)']
   signature_requested_at timestamp
   signed_at timestamp
+  cancelled_at timestamp [note: 'Set by the AASM cancel event (BR-LA05)']
   signed_document_url varchar [note: 'Provider address of the signed PDF; the file is copied to Active Storage']
   created_by_membership_id integer
   discarded_at timestamp
