@@ -22,7 +22,7 @@ class MinutesEntry < ApplicationRecord
   belongs_to :school_class, optional: true
   belongs_to :created_by_membership, class_name: "Membership", optional: true
 
-  has_many :minutes_participants, dependent: :destroy
+  has_many :minutes_participants, -> { order(:id) }, dependent: :destroy, inverse_of: :minutes_entry
   # The signed copy once the provider returns it; before that, the preview render is never stored.
   has_one_attached :pdf
 
