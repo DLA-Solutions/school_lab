@@ -78,7 +78,7 @@ Coordination, secretary, and director use `"teacher_id": null` and `"name": null
 
 A child with no teaching assignment returns coordination, secretary, and director only. `director` is a destination (an audience), not a person, so it does not depend on whether the school currently has a director membership.
 
-`GET /roster` items for a teacher, secretary, or coordination. `conversation_id` and `sender_line` are null when that actor's conversation has no message yet, including when no conversation row exists. Once a message exists, those two fields are the attached conversation: teacher → audience `teacher` with that teacher's `teacher_id`; secretary → audience `secretary`; coordination → audience `coordination`.
+`GET /roster` items for a teacher, secretary, or coordination. `conversation_id` and `sender_line` are null when that actor's conversation has no message yet, including when no conversation row exists. Once a message exists, those two fields are the attached conversation: teacher → audience `teacher` with that teacher's `teacher_id`; secretary → audience `secretary`; coordination → audience `coordination`. Director conversations (`audience` `director`) are never attached to a roster or search row, for any actor; the roster does not show them (follow-up tracked in `messages.md` § Open items).
 
 Each teacher row includes `teacher_id` set to the acting teacher's id, including when `conversation_id` and `sender_line` are null, so the school SPA can send the first message from an empty inbox. Secretary and coordination rows set `teacher_id` to null.
 
@@ -98,7 +98,7 @@ Teacher item:
 
 `student_active` (boolean) is on every `/roster` and `/search` row: `false` when the child was transferred (`status` `transferred`). The row stays listed so staff can open the history, but the chat is closed and `POST /messages` is rejected with `409` `student_inactive`. Children removed from the roll (discarded) are not listed by `/roster` or `/search` at all.
 
-A director does not attach one conversation. `conversation_id` and `sender_line` stay null, the item omits `teacher_id`, and the item includes `destinations` in the same shape as `GET /destinations` (coordination, secretary, then each class teacher once):
+A director-role viewer does not attach one conversation. `conversation_id` and `sender_line` stay null, the item omits `teacher_id`, and the item includes `destinations` (coordination, secretary, then each class teacher once). Unlike `GET /destinations`, this list omits `director`: the staff-side roster does not offer the Direção destination yet (see `messages.md` § Open items).
 
 ```json
 {
