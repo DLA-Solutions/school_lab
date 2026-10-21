@@ -13,6 +13,7 @@ Use when implementing code that follows official library or framework documentat
 - Writing rswag request specs, Pundit policies, blueprinter serializers
 - Integrating a gem whose API you are unsure about
 - Any time `docs/web-stack.md` references a tool but not the specific pattern
+- A mobile task in `mobile/`: look up Expo, React Navigation, `expo-notifications`, and `expo-secure-store`
 
 ## Steps
 
@@ -21,6 +22,7 @@ Use when implementing code that follows official library or framework documentat
 3. **Cross-check** with project docs:
    - `docs/web-stack.md` — locked stack wins
    - `docs/guidelines/web/` — coding standards
+   - `docs/guidelines/mobile/README.md` — for a mobile task. Indexed Expo docs may lag SDK 57. When they disagree with `docs/guidelines/mobile/README.md`, that file wins
    - `docs/open-questions.md` — unresolved decisions
 4. **Implement** following official best practices, adapted to project conventions.
 5. If Context7 contradicts a project decision, follow the project doc and flag the conflict.

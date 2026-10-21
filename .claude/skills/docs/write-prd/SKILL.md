@@ -74,7 +74,7 @@ Use for **one monorepo layer** without duplicating business rules that belong in
 |-------|--------|------|
 | `web` | `web/` | `/api/v1`, service objects, models, jobs, OpenAPI (rswag) |
 | `web-spa` | `frontend/app` | React SPA — backoffice, school, teacher, guardian web surfaces |
-| `mobile` | `mobile/` | React Native — school, teacher, guardian mobile |
+| `mobile` | `mobile/` | Guardian-only on iOS and Android. Read `docs/prds/layer-mobile-app.md` and `docs/guidelines/mobile/README.md` |
 
 `frontend/base` is the upstream template the SPA started from — never the subject of a layer PRD.
 
@@ -85,7 +85,7 @@ Use for **one monorepo layer** without duplicating business rules that belong in
 3. Pull technical constraints from `web-stack.md` (auth, tokens, stack versions).
 4. Define layer-specific acceptance criteria (e.g. refresh token storage, offline behavior, job reliability).
 5. Reference Domain PRDs for feature scope; do not redefine BR-NNN rules.
-6. Save as `docs/prds/layer-<layer>.md` (`layer-web.md`, `layer-web-spa.md`, `layer-app.md`). No layer PRD exists yet — these are output paths, not files to read.
+6. For the mobile layer, read `docs/prds/layer-mobile-app.md` and `docs/guidelines/mobile/README.md`, then update `docs/prds/layer-mobile-app.md`. The mobile audience is guardian-only on iOS and Android. For the school SPA, read `docs/prds/layer-web-spa.md`. Do not create `docs/prds/layer-app.md`.
 
 ### Section template
 

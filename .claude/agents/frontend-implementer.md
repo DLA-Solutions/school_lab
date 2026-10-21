@@ -22,7 +22,7 @@ Parent agents must **not** implement these paths directly. You must **not** edit
 |-----------|-------------|
 | No API contract doc | Block UI implementation; ask parent to run **rails-implementer** first |
 | Contract in `docs/api/v1/`; API not shipped | May proceed with MSW handlers matching the contract; run in parallel with **rails-implementer** |
-| API already on branch | Wire real endpoints; run `npm run test:run` + lint in affected package |
+| API already on branch | Wire real endpoints. In SPA packages, run `npm run test:run` and lint. In `mobile/`, run only scripts that exist (`start`, `android`, `ios`, `web`) |
 | Design-system-only (no API) | Proceed without rails-implementer |
 | OpenAPI changed on branch | Re-read contract; update types and MSW handlers |
 
@@ -36,7 +36,7 @@ When running parallel with **rails-implementer**, prefer MSW until integration; 
 | Platform SPA | `frontend/backoffice/` | `/backoffice` |
 | Design tokens | `packages/design-tokens/` | npm `file:` dep in SPAs + mobile |
 | Catalog | `frontend/design-system-docs/` → `docs/design-system/` | static, `make design-system-docs` |
-| Mobile | `mobile/` | Expo managed |
+| Mobile | `mobile/` | Guardian-only iOS and Android. One active `membership.id` with role `guardian`. Product label Responsável. Teachers and staff stay on the school SPA |
 | Out of scope | `frontend/base/` | upstream template — reference only |
 
 Default target is **`frontend/app/`** unless the PRD or task explicitly names backoffice or mobile.
@@ -54,8 +54,8 @@ Run in **dependency order** when a feature spans multiple layers:
 | 4 | **Pages + sections (you)** | `src/pages/`, `src/components/sections/` — list/form/detail patterns |
 | 5 | **Design system (you, when needed)** | tokens → theme override → pattern → catalog page |
 | 6 | **Backoffice mirror (you, when needed)** | Same API module pattern under `frontend/backoffice/src/` until shared package extraction |
-| 7 | **Mobile (you, when PRD requires)** | `mobile/src/screens/`, secure token storage, parity with SPA auth flow |
-| 8 | **Tests (you)** | Vitest + RTL + MSW per `docs/guidelines/web-ui/testing.md` |
+| 7 | **Mobile (you, when PRD requires)** | Guardian-only iOS and Android. One active `membership.id` with role `guardian` (product label Responsável). Teachers and staff stay on the school SPA (`frontend/app`). Screens under `mobile/src/screens/`; refresh token in `expo-secure-store` |
+| 8 | **Tests (you)** | SPA packages: Vitest + RTL + MSW per `docs/guidelines/web-ui/testing.md`. Do not require a Jest run in `mobile/` while `mobile/package.json` has no `test` script |
 
 Never hand-roll fetch outside `src/services/api.ts`. Never persist access or refresh tokens to `localStorage` / `sessionStorage`.
 
@@ -77,13 +77,13 @@ Design-system addition:
   → catalog page in design-system-docs → rebuild docs/design-system → contrast tests
 
 Cross-surface (web + mobile):
-  confirm API → school SPA (or backoffice) → mobile screen with Keychain/Keystore refresh
+  confirm API → school SPA for teachers and staff (or backoffice) → guardian-only iOS/Android screen with refresh in expo-secure-store
 ```
 
 ## Cross-cutting requirements
 
 - **Stack:** React 19, Vite 7, TypeScript, MUI v7 + Emotion, React Router v7, ECharts where charts exist.
-- **Auth:** Access JWT in memory; refresh httpOnly cookie (`client: "web"`); `credentials: 'include'`; one 401 retry then logout. Mobile: refresh in secure storage (`client: "mobile"`).
+- **Auth:** Access JWT in memory; refresh httpOnly cookie (`client: "web"`); `credentials: 'include'`; one 401 retry then logout. Mobile: one active `membership.id` with role `guardian` (product label Responsável); refresh in `expo-secure-store` (`client: "mobile"`). Teachers and staff stay on the school SPA.
 - **API:** Standard envelope `{ error: { code, message, details } }`; Pagy lists (`data` + `meta`); `Accept-Language` from `localeStore`; tenant paths `/api/v1/schools/:school_id/...`; guardian routes `.../me/...`.
 - **School context:** From `GET /me` memberships via `useCurrentSchool()` — not hardcoded. Cross-school / cross-family → trust API 404/403; never leak another tenant's IDs in UI.
 - **LGPD:** No real child/guardian/CPF in test fixtures; guardian views only own family data; no sensitive data in console/analytics.
@@ -94,7 +94,7 @@ Cross-surface (web + mobile):
 ## Skills and tools
 
 - Design system rule: `rules/web-ui/design-system.mdc` → `docs/guidelines/web-ui/`
-- Library docs: skill `consult-context7` (React 19, MUI v7, React Router v7, Vitest, MSW, React Native as needed)
+- Library docs: skill `consult-context7` (React 19, MUI v7, React Router v7, Vitest, MSW; for `mobile/`: Expo, React Navigation, `expo-notifications`, `expo-secure-store`)
 - Web UI review: skill `review-web-ui`
 - Mobile review: skill `review-mobile`
 - API contract review: skill `review-api`
@@ -108,8 +108,15 @@ Context7 **before** flagging framework misuse. **Project docs win** over generic
 
 When implementation is complete:
 
-1. **Lint + typecheck:** `npm run lint` and `npm run build` in the affected package (`frontend/app`, `frontend/backoffice`, or `mobile/`)
+SPA packages (`frontend/app`, `frontend/backoffice`):
+
+1. **Lint + typecheck:** `npm run lint` and `npm run build` in the affected package
 2. **Tests:** `npm run test:run` in the affected package; add MSW handlers for new endpoints in `src/test/msw/handlers.ts`
+
+`mobile/` — run only scripts that exist in `mobile/package.json`: `start`, `android`, `ios`, and `web`. Do not run `npm run lint`, `npm run build`, or `npm run test:run` there. Do not require a Jest run while `mobile/package.json` has no `test` script. A Jest run becomes required only after that script exists.
+
+Then, for any surface:
+
 3. **Design system:** If tokens/patterns/catalog changed — `make design-system-docs` and confirm `docs/design-system/` rebuilt
 4. **Token version:** If `packages/design-tokens` values changed — bump per `docs/guidelines/web-ui/versioning.md`
 5. **Manual smoke:** auth flow, school-scoped API call, loading/error/empty states, role guard if applicable
