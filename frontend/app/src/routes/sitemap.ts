@@ -118,6 +118,16 @@ const sitemap: MenuItem[] = [
     section: 'family',
   },
   {
+    // Guardian read of BC11 — sent infant routine for a linked child (UC-DR04). Recording stays
+    // on `daily-routine` for staff and teachers.
+    id: 'my-daily-routine',
+    subheader: 'nav.myDailyRoutine',
+    path: paths.myDailyRoutine,
+    icon: 'mingcute:baby-line',
+    audience: 'guardian',
+    section: 'family',
+  },
+  {
     id: 'students',
     subheader: 'nav.students',
     path: paths.students,

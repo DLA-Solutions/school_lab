@@ -31,6 +31,7 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   communication: 'communication',
   'staff-communication': 'communication',
   'my-atas': 'academic',
+  'my-daily-routine': 'academic',
   'my-documents': 'documents',
 };
 
@@ -56,6 +57,7 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.communication]: 'communication',
   [paths.staffCommunication]: 'communication',
   [paths.myAtas]: 'academic',
+  [paths.myDailyRoutine]: 'academic',
   [paths.preceptorship]: 'academic',
   [paths.reportCards]: 'academic',
   [paths.requests]: 'documents',
@@ -79,6 +81,8 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.myDocuments]: 'guardian',
   [paths.communication]: 'guardian',
   [paths.myAtas]: 'guardian',
+  [paths.myDailyRoutine]: 'guardian',
+  [paths.dailyRoutine]: 'staff',
   [paths.guardians]: 'staff',
   [paths.students]: 'staff',
   [paths.users]: 'staff',

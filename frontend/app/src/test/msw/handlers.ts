@@ -2337,6 +2337,99 @@ export const handlers = [
     },
   ),
 
+  // UC-DR04 — sent entries only. Ids 1 and 2 are the children on GET /me/students above;
+  // any other student id is another family and answers 404, not an empty diary.
+  http.get(
+    apiUrl('/api/v1/schools/:schoolId/me/students/:studentId/daily_routine_entries'),
+    ({ request, params }) => {
+      if (!hasFreshToken(request)) {
+        return expiredToken();
+      }
+
+      if (params.schoolId !== String(SCHOOL_ID)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const linkedStudentIds = new Set([1, 2]);
+      const studentId = Number(params.studentId);
+      if (!linkedStudentIds.has(studentId)) {
+        return jsonError(404, 'not_found', 'Recurso não encontrado.');
+      }
+
+      const url = new URL(request.url);
+      const from = url.searchParams.get('from');
+      const to = url.searchParams.get('to');
+
+      const entries = [
+        {
+          id: 41,
+          student_id: 1,
+          date: '2026-10-15',
+          snack_eaten: true,
+          poop_count: 2,
+          pee_count: 3,
+          notes: 'Fruta da manhã sem pressa.',
+          status: 'sent' as const,
+          sent_at: '2026-10-15T18:00:00Z',
+          sent_by_membership_id: 11,
+          recorded_by_membership_id: 11,
+        },
+        {
+          id: 42,
+          student_id: 1,
+          date: '2026-10-16',
+          snack_eaten: false,
+          poop_count: 0,
+          pee_count: 0,
+          notes: null,
+          status: 'sent' as const,
+          sent_at: '2026-10-16T18:00:00Z',
+          sent_by_membership_id: 11,
+          recorded_by_membership_id: 11,
+        },
+        {
+          id: 43,
+          student_id: 1,
+          date: '2026-10-17',
+          snack_eaten: null,
+          poop_count: 1,
+          pee_count: 4,
+          notes: null,
+          status: 'sent' as const,
+          sent_at: '2026-10-17T18:00:00Z',
+          sent_by_membership_id: 11,
+          recorded_by_membership_id: 11,
+        },
+        {
+          id: 44,
+          student_id: 1,
+          date: '2026-10-15',
+          snack_eaten: false,
+          poop_count: 9,
+          pee_count: 9,
+          notes: 'Rascunho invisível da rotina',
+          status: 'draft' as const,
+          sent_at: null,
+          sent_by_membership_id: null,
+          recorded_by_membership_id: 11,
+        },
+      ].filter((entry) => {
+        if (entry.student_id !== studentId || entry.status !== 'sent') {
+          return false;
+        }
+        if (from && entry.date < from) {
+          return false;
+        }
+        if (to && entry.date > to) {
+          return false;
+        }
+        return true;
+      });
+
+      return HttpResponse.json({ data: entries });
+    },
+  ),
+
   /* ----------------------------------------- instructional days admin (BR-SY10) ---------------- */
 
   http.get(apiUrl('/api/v1/schools/:schoolId/school_years/active'), ({ request, params }) => {
