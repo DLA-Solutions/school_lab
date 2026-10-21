@@ -29,6 +29,8 @@ export default {
   // The guardian's own side of the same record (BC7) — a family reading published atas across
   // all their children, same split as preceptorship/myPreceptorship below.
   myAtas: '/minhas-atas',
+  // Guardian read of the infant routine (UC-DR04). Staff keep recording on `dailyRoutine`.
+  myDailyRoutine: '/minha-rotina',
   dailyRoutine: `/${rootPaths.academicsRoot}/rotina-diaria`,
   staffCommunication: `/${rootPaths.academicsRoot}/comunicacao`,
   schoolClasses: `/${rootPaths.academicsRoot}/turmas`,
