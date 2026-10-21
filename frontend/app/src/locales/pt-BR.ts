@@ -534,6 +534,8 @@ const ptBR = {
   'myDocuments.loadError': 'Não foi possível carregar os documentos.',
   'myDocuments.noAccess.description': 'Você não tem acesso aos documentos desta escola.',
   'myDocuments.type.address_proof': 'Comprovante de endereço',
+  'myDocuments.type.school_transcript': 'Histórico escolar',
+  'myDocuments.type.guardian_identity': 'RG e CPF dos responsáveis',
   'myDocuments.type.vaccination_card': 'Cartão de vacina',
   'myDocuments.type.medical_report': 'Laudos',
   'myDocuments.type.school_transfer': 'Transferência de outra escola',
@@ -1278,6 +1280,9 @@ const ptBR = {
   'documents.empty.collaborator':
     'Envie RG, CPF, contrato de trabalho ou diploma deste colaborador.',
   'documents.empty.default': 'Envie CPF, RG ou comprovante de residência desta pessoa.',
+  'documents.child': 'Aluno: {name}',
+  'documents.sentBy.guardian': 'Enviado por {name}',
+  'documents.sentBy.school': 'Enviado pela escola',
   'documents.empty.title': 'Nenhum documento enviado',
 
   'plans.title': 'Planos',

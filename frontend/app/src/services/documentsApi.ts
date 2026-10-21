@@ -1,6 +1,7 @@
 import {
   DocumentListResponse,
   DocumentResponse,
+  FamilyDocumentListResponse,
   GuardianDocument,
   GuardianDocumentListResponse,
   GuardianDocumentResponse,
@@ -33,11 +34,27 @@ export const COLLABORATOR_DOCUMENT_TYPES = [
 ] as const;
 
 /**
+ * What a guardian may send, in the order the form offers it — mirrors the API's closed list.
+ * `label` is a catalogue key, resolved where it is shown.
+ */
+export const GUARDIAN_DOCUMENT_TYPES = [
+  { value: 'address_proof', label: 'myDocuments.type.address_proof' },
+  { value: 'school_transcript', label: 'myDocuments.type.school_transcript' },
+  { value: 'guardian_identity', label: 'myDocuments.type.guardian_identity' },
+  { value: 'vaccination_card', label: 'myDocuments.type.vaccination_card' },
+  { value: 'medical_report', label: 'myDocuments.type.medical_report' },
+  { value: 'school_transfer', label: 'myDocuments.type.school_transfer' },
+  { value: 'other', label: 'myDocuments.type.other' },
+] as const;
+
+/**
  * The catalogue key for a stored document type, or `null` when the API carries one this build
- * does not know — the raw value is shown then, which is better than an empty cell.
+ * does not know — the raw value is shown then, which is better than an empty cell. The staff
+ * dialog also lists what guardians sent, so their kinds resolve here too; `other` keeps the
+ * shared label because it comes first.
  */
 export const documentTypeKey = (value: string) =>
-  [...PERSONAL_DOCUMENT_TYPES, ...COLLABORATOR_DOCUMENT_TYPES].find(
+  [...PERSONAL_DOCUMENT_TYPES, ...COLLABORATOR_DOCUMENT_TYPES, ...GUARDIAN_DOCUMENT_TYPES].find(
     (type) => type.value === value,
   )?.label ?? null;
 
@@ -51,6 +68,16 @@ export const listPersonDocuments = (
   request<DocumentListResponse>(
     `${collectionPath(schoolId)}?documentable_type=${documentableType}` +
       `&documentable_id=${documentableId}&page=${page}`,
+  );
+
+/**
+ * GET /api/v1/schools/:school_id/documents?guardian_id=… — the guardian's own files plus the
+ * child-bound ones of their linked students. The API refuses this filter combined with
+ * `documentable_*`, so the two queries stay separate.
+ */
+export const listGuardianDocuments = (schoolId: number, guardianId: number, page = 1) =>
+  request<FamilyDocumentListResponse>(
+    `${collectionPath(schoolId)}?guardian_id=${guardianId}&page=${page}`,
   );
 
 /**
@@ -87,18 +114,6 @@ export const documentDownloadUrl = (document: SchoolDocument) => apiAssetUrl(doc
 /** The guardian's own side of the archive ("Meus documentos"), shared with the co-guardians. */
 const minePath = (schoolId: number) => `/api/v1/schools/${schoolId}/me/documents`;
 
-/**
- * What a guardian may send, in the order the form offers it — mirrors the API's closed list.
- * `label` is a catalogue key, resolved where it is shown.
- */
-export const GUARDIAN_DOCUMENT_TYPES = [
-  { value: 'address_proof', label: 'myDocuments.type.address_proof' },
-  { value: 'vaccination_card', label: 'myDocuments.type.vaccination_card' },
-  { value: 'medical_report', label: 'myDocuments.type.medical_report' },
-  { value: 'school_transfer', label: 'myDocuments.type.school_transfer' },
-  { value: 'other', label: 'myDocuments.type.other' },
-] as const;
-
 /** What the API accepts, checked here too so a wrong file is refused before the upload starts. */
 export const GUARDIAN_DOCUMENT_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'] as const;
 export const GUARDIAN_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
@@ -114,7 +129,9 @@ export const listMyDocuments = (
 
   const encoded = params.toString();
 
-  return request<GuardianDocumentListResponse>(`${minePath(schoolId)}${encoded ? `?${encoded}` : ''}`);
+  return request<GuardianDocumentListResponse>(
+    `${minePath(schoolId)}${encoded ? `?${encoded}` : ''}`,
+  );
 };
 
 /**

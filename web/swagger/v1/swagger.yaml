@@ -4750,6 +4750,65 @@
           }
         }
       ],
+      "get": {
+        "summary": "List documents",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentable_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentable_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "guardian_id",
+            "in": "query",
+            "required": false,
+            "description": "Everything about one guardian: their own files plus those of linked children. Cannot be combined with documentable_type/documentable_id. Rows carry student_id, student_name, uploaded_by_name and uploaded_by_kind.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "an unknown guardian_id matches nothing"
+          },
+          "422": {
+            "description": "guardian_id cannot be combined with the owner filter"
+          },
+          "403": {
+            "description": "guardians cannot use the staff list"
+          },
+          "401": {
+            "description": "unauthenticated"
+          }
+        }
+      },
       "post": {
         "summary": "Upload document",
         "tags": [
@@ -4830,6 +4889,54 @@
         "responses": {
           "200": {
             "description": "pending document approved"
+          }
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/documents/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "delete": {
+        "summary": "Discard document",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "staff discards a document a parent sent for a child"
+          },
+          "404": {
+            "description": "document of another school"
           }
         }
       }

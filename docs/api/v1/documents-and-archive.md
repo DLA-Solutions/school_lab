@@ -56,8 +56,10 @@ PRD: [`archive.md`](../../prds/documents-and-archive/archive.md) UC-DA09, BR-ARC
 | `GET` | `/me/documents` | Documents of every linked child, shared across co-guardians; `?student_id=` optional |
 | `POST` | `/me/documents` | Multipart upload: `student_id`, `document_type`, `file`, optional `title` |
 
-`document_type` for guardians: `address_proof`, `vaccination_card`, `medical_report`,
-`school_transfer`, `other`. Uploads bind to the child (not the parent) so father and mother see the
+`document_type` for guardians, in display order: `address_proof`, `school_transcript` ("Histórico
+escolar"), `guardian_identity` ("RG e CPF dos responsáveis"; identity data, shared by both parents
+like every family document), `vaccination_card`, `medical_report`, `school_transfer`, `other`. Any
+other value is `422`. Uploads bind to the child (not the parent) so father and mother see the
 same documents; they start `pending` and stay visible while staff review. Errors: `404` child not
 linked / other school, `422` invalid type, file, or non-enrolled child, `401`/`403` otherwise.
 
@@ -77,6 +79,31 @@ linked / other school, `422` invalid type, file, or non-enrolled child, `401`/`4
 - Errors: `404 not_found`; `422 validation_error` (`details.document_type` or `details.file`),
   `422 student_inactive`, `422 unsupported_media_type`, `422 file_too_large`; `401` unauthenticated;
   `403` for a non-guardian membership.
+
+---
+
+### Staff list by guardian ("Meus documentos" seen from the guardians list)
+
+PRD: [`archive.md`](../../prds/documents-and-archive/archive.md) BR-ARC19.
+
+`GET /api/v1/schools/:school_id/documents` (staff with `manage_documents`; `403` for guardians,
+`401` unauthenticated) is paginated (`{ data, meta: { page, per_page, total } }`, newest first) and
+accepts two mutually exclusive filters:
+
+- `documentable_type` + `documentable_id` (both required, otherwise ignored; unknown type returns an
+  empty list) — unchanged.
+- `guardian_id` — returns the union of documents whose documentable is that guardian and documents
+  whose documentable is a kept student linked to that guardian by a kept `student_guardians` row,
+  same school only, excluding discarded documents. An unknown guardian id, or one from another
+  school, returns `200` with an empty `data` (no existence leak).
+
+Sending `guardian_id` together with `documentable_type` or `documentable_id` returns
+`422 validation_error` with `details.guardian_id`. Rows for a `guardian_id` query use the same shape
+as the guardian "Meus documentos" rows (the base `Document` fields plus `student_id`, `student_name`,
+`uploaded_by_name`, `uploaded_by_kind`); the extra fields are `null` for documents attached to the
+guardian itself. Responses to the other queries are unchanged and do not carry the extra fields.
+Staff approve, reject or delete these rows through the existing `POST /documents/:id/approve`,
+`POST /documents/:id/reject` and `DELETE /documents/:id`.
 
 ---
 

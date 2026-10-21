@@ -169,11 +169,18 @@ of the same child and by staff; a guardian never sees documents of a child they 
 BR-ARC17
 
 **Guardian upload types** (closed list, chosen by the guardian in a select at upload time; sent as
-`document_type`): `address_proof` ("Comprovante de endereço"), `vaccination_card` ("Cartão de
-vacina"), `medical_report` ("Laudos"), `school_transfer` ("Transferência de outra escola"), `other`
-("Outros"). Any other value from a guardian returns `422`. Staff uploads keep the wider seed list
-(BR-ARC03). `vaccination_card` and `medical_report` are health data: `sensitive: true` (BR-ARC15) and
-LGPD-flagged in [`open-questions.md`](../../open-questions.md).
+`document_type`, in this order): `address_proof` ("Comprovante de endereço"), `school_transcript`
+("Histórico escolar" — the child's school history), `guardian_identity` ("RG e CPF dos responsáveis" —
+one scan or photo of the guardians' RG and CPF, a single PDF may hold both), `vaccination_card`
+("Cartão de vacina"), `medical_report` ("Laudos"), `school_transfer` ("Transferência de outra
+escola" — distinct from `school_transcript`), `other` ("Outros"). Any other value from a guardian
+returns `422`. Staff uploads keep the wider seed list (BR-ARC03). `vaccination_card` and
+`medical_report` are health data and `guardian_identity` is identity data
+(`identity_document`): all three are `sensitive: true` (BR-ARC15) and LGPD-flagged in
+[`open-questions.md`](../../open-questions.md). `school_transcript` is not sensitive. Like every
+other family document, `guardian_identity` is bound to the child and shared by all kept co-guardians
+(BR-ARC16) — no per-parent privacy split `[product decision]`. Same file rules for all types
+(BR-ARC07: PDF/JPEG/PNG sniffed from the bytes, ≤ 10 MB).
 
 BR-ARC18
 
@@ -182,6 +189,17 @@ staff with `manage_archive`/`manage_documents` while staff review them (approve/
 A rejected document disappears from the guardian list and shows the rejection reason to staff only.
 Only students enrolled (`Student#enrolled?`) accept new guardian uploads; a guardian whose
 children are all non-enrolled has no portal access anyway.
+
+BR-ARC19
+
+**Staff view of a family's documents from the guardian row** `[product decision]`: there is no
+separate menu item for family documents. The "documents" action on the school's guardians list shows,
+for that guardian, the union of (a) documents attached to the guardian and (b) documents attached to
+any kept student linked to that guardian through a kept `student_guardians` row, same school only.
+Each row identifies the child and the sender (`student_id`, `student_name`, `uploaded_by_name`,
+`uploaded_by_kind`). Staff with `manage_documents` approve, reject or discard those rows through the
+usual document actions (UC-DA02). Authorization is unchanged; a guardian id from another school
+matches nothing.
 
 ---
 
@@ -282,8 +300,8 @@ Flow
 2. Validate `document_type` against the guardian list and the file against BR-ARC07.
 3. Store blob; create the entry with `uploaded_by` = guardian's user, bound to the student,
    `review_status: pending` (BR-ARC18).
-4. Emit `DocumentStored`; staff see it in the archive/review queue; every co-guardian sees it in
-   their own "Meus documentos".
+4. Emit `DocumentStored`; staff see it in the archive/review queue and, per BR-ARC19, from the
+   guardian row of any linked guardian; every co-guardian sees it in their own "Meus documentos".
 
 ---
 
@@ -348,7 +366,8 @@ Query: `student_id` optional.
 ### POST /api/v1/schools/:school_id/me/documents
 
 Guardian multipart upload (UC-DA09). Fields: `student_id`, `document_type` (one of
-`address_proof | vaccination_card | medical_report | school_transfer | other`), `file`, optional
+`address_proof | school_transcript | guardian_identity | vaccination_card | medical_report |
+school_transfer | other`), `file`, optional
 `title`. Response `201` with the entry. `404` for a child outside the guardian's family; `422` for an
 unsupported type, file constraints, or a non-enrolled child.
 

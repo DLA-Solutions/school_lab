@@ -221,6 +221,15 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
         end
       end
 
+      response "422", "a near-miss spelling of a new type" do
+        let(:document_type) { "school_transcripts" }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "details")).to have_key("document_type")
+          expect(Document.count).to eq(0)
+        end
+      end
+
       response "422", "child no longer enrolled" do
         before { linked_student.update!(status: "transferred") }
 

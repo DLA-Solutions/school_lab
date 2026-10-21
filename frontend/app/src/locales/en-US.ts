@@ -531,6 +531,8 @@ const enUS: Messages = {
   'myDocuments.loadError': 'Could not load the documents.',
   'myDocuments.noAccess.description': 'You do not have access to this school’s documents.',
   'myDocuments.type.address_proof': 'Proof of address',
+  'myDocuments.type.school_transcript': 'School transcript',
+  'myDocuments.type.guardian_identity': 'Guardians’ ID and CPF',
   'myDocuments.type.vaccination_card': 'Vaccination card',
   'myDocuments.type.medical_report': 'Medical reports',
   'myDocuments.type.school_transfer': 'Transfer from another school',
@@ -1263,6 +1265,9 @@ const enUS: Messages = {
   'documents.empty.collaborator':
     'Upload ID, CPF, employment contract or diploma for this collaborator.',
   'documents.empty.default': 'Upload CPF, ID or proof of residence for this person.',
+  'documents.child': 'Student: {name}',
+  'documents.sentBy.guardian': 'Sent by {name}',
+  'documents.sentBy.school': 'Sent by the school',
   'documents.empty.title': 'No documents uploaded',
 
   'plans.title': 'Plans',
