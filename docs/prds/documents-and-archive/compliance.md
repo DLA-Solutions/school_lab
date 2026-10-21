@@ -1,6 +1,6 @@
 # PRD — Documents & Archive: Compliance (BC5)
 
-> Status: draft  
+> Status: implemented (API + SPA, pending product-owner review)  
 > Parent PRD: [`index.md`](index.md)  
 > Capability IDs: `documents.store_compliance_document`  
 > Related BCs: [`archive.md`](archive.md) *(shared `documents` storage)*, [`retention.md`](retention.md)  
