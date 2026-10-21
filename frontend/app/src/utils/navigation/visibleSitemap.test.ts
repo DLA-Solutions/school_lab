@@ -245,7 +245,12 @@ describe('visibleSitemap includeRoles filtering', () => {
 
   it('hides an includeRoles entry when there is no active membership', () => {
     const ids = visibleMenuItems(null, [
-      { id: 'teacher-only', subheader: 'nav.myHealthProfile', audience: 'staff' as const, includeRoles: ['teacher'] },
+      {
+        id: 'teacher-only',
+        subheader: 'nav.myHealthProfile',
+        audience: 'staff' as const,
+        includeRoles: ['teacher'],
+      },
     ]).map((item) => item.id);
 
     expect(ids).toEqual([]);
@@ -267,9 +272,9 @@ describe('visibleSitemap communication', () => {
     );
 
     expect(visibleSitemap(staffMembership).map((item) => item.id)).toContain('staff-communication');
-    expect(visibleSitemap({ ...staffMembership, role: 'teacher' }).map((item) => item.id)).toContain(
-      'staff-communication',
-    );
+    expect(
+      visibleSitemap({ ...staffMembership, role: 'teacher' }).map((item) => item.id),
+    ).toContain('staff-communication');
     expect(visibleSitemap(withSystemKey('coordination')).map((item) => item.id)).toContain(
       'staff-communication',
     );
@@ -297,5 +302,46 @@ describe('visibleSitemap CRM entry', () => {
 
   it('maps the CRM path to the staff audience for deep-link guards', () => {
     expect(routeAudienceForPath(paths.crm)).toBe('staff');
+  });
+});
+
+describe('visibleSitemap Compliance entry', () => {
+  const complianceStaff = { ...staffMembership, permissions: ['manage_documents'] };
+  const ids = (membership: Parameters<typeof visibleSitemap>[0]) =>
+    visibleSitemap(membership).map((item) => item.id);
+
+  it('shows Compliance to staff holding manage_documents with the documents module on', () => {
+    expect(ids(complianceStaff)).toContain('compliance');
+  });
+
+  it('hides it from staff without manage_documents', () => {
+    expect(ids(staffMembership)).not.toContain('compliance');
+  });
+
+  it('hides it when the documents module is off', () => {
+    const withoutDocuments = {
+      ...complianceStaff,
+      enabled_modules: ['communication', 'academic', 'billing'] as SchoolModuleKey[],
+    };
+
+    expect(ids(withoutDocuments)).not.toContain('compliance');
+  });
+
+  it('hides it from teachers lacking the permission', () => {
+    const teacher = { ...staffMembership, role: 'teacher' as const, permissions: [] };
+
+    expect(ids(teacher)).not.toContain('compliance');
+  });
+
+  it('hides it from guardians', () => {
+    expect(ids(guardianMembership)).not.toContain('compliance');
+    expect(ids({ ...guardianMembership, permissions: ['manage_documents'] })).not.toContain(
+      'compliance',
+    );
+  });
+
+  it('gates the deep link on the documents module and the staff audience', () => {
+    expect(routeModuleKeyForPath(paths.compliance)).toBe('documents');
+    expect(routeAudienceForPath(paths.compliance)).toBe('staff');
   });
 });

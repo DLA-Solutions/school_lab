@@ -190,6 +190,18 @@ const sitemap: MenuItem[] = [
     section: 'primary',
   },
   {
+    // The school's own regulatory files (BC5) for audits. Same `manage_documents` key
+    // `DocumentPolicy#manage_compliance?` checks; the `documents` module gate lives in
+    // `visibleSitemap`.
+    id: 'compliance',
+    subheader: 'nav.compliance',
+    path: paths.compliance,
+    icon: 'mingcute:certificate-line',
+    audience: 'staff',
+    requiredPermission: 'manage_documents',
+    section: 'primary',
+  },
+  {
     id: 'my-requests',
     subheader: 'nav.myRequests',
     path: paths.myRequests,

@@ -41,6 +41,9 @@ export default {
   // Prospects (leads) before enrollment — staff with `manage_enrollment`.
   crm: '/crm',
 
+  // The school's own regulatory documents (BC5) — staff with `manage_documents`.
+  compliance: '/compliance',
+
   requests: '/solicitacoes',
   // The guardian's own side of the same queue, on its own address: the two are different jobs
   // and sharing a path would mean one screen deciding which it is on every render.
