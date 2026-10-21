@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_162834) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_185602) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -347,7 +347,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_162834) do
     t.index ["student_id"], name: "index_conversations_on_student_id"
     t.index ["teacher_id"], name: "index_conversations_on_teacher_id"
     t.check_constraint "(audience::text = 'teacher'::text) = (teacher_id IS NOT NULL)", name: "conversations_teacher_matches_audience"
-    t.check_constraint "audience::text = ANY (ARRAY['coordination'::character varying, 'secretary'::character varying, 'teacher'::character varying]::text[])", name: "conversations_audience_valid"
+    t.check_constraint "audience::text = ANY (ARRAY['coordination'::character varying, 'secretary'::character varying, 'director'::character varying, 'teacher'::character varying]::text[])", name: "conversations_audience_valid"
   end
 
   create_table "crm_contacts", force: :cascade do |t|

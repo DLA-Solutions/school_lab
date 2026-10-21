@@ -1180,14 +1180,14 @@ Table conversations {
   id integer [primary key, increment]
   school_id integer [not null]
   student_id integer [not null]
-  audience varchar [not null, note: 'coordination | secretary | teacher']
+  audience varchar [not null, note: 'coordination | secretary | director | teacher. director = Direção (family chat destination); teacher_id null']
   teacher_id integer [note: 'Required when audience = teacher; null otherwise. Check: (audience = teacher) = (teacher_id IS NOT NULL)']
   last_message_at timestamp
   created_at timestamp
   updated_at timestamp
 
   indexes {
-    (school_id, student_id, audience) [unique, note: 'DB migration: UNIQUE WHERE teacher_id IS NULL — one coordination row and one secretary row per child']
+    (school_id, student_id, audience) [unique, note: 'DB migration: UNIQUE WHERE teacher_id IS NULL — one coordination row, one secretary row, and one director row per child']
     (school_id, student_id, teacher_id) [unique, note: 'DB migration: UNIQUE WHERE audience = teacher — one row per teacher per child']
     (school_id, last_message_at)
   }
