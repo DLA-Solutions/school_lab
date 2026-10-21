@@ -123,6 +123,8 @@ No auto-registration — eligibility rules in auth PRD (BR-GO01–BR-GO09) gate 
 | `GET` | `/api/v1/me` | Access |
 | `POST` | `/api/v1/me/device_tokens` | Access — FCM registration |
 
+The value for `ios` and `android` is an FCM registration token; a raw APNs token and an Expo push token are rejected; iOS must not use `getDevicePushTokenAsync`; and `platform: web`, which this app never sends, stays valid on `DeviceToken` for a future web push.
+
 ### Login request
 
 ```json

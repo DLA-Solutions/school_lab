@@ -16,6 +16,10 @@ Staff and teacher memberships never build a menu in this app. Product UI calls t
 
 iOS and Android only. There is no Expo web target.
 
+## Push
+
+The value for `ios` and `android` is an FCM registration token from a development build; a raw APNs token and an Expo push token are rejected; iOS must not use `getDevicePushTokenAsync`; and `platform: web`, which this app never sends, stays valid on `DeviceToken` for a future web push.
+
 ## Navigation
 
 Four tabs: **Início**, **Mensagens**, **Boletos**, **Filho**. This is not a drawer cloned from
