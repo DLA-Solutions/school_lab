@@ -56,4 +56,34 @@ namespace :signature do
     Signatures::ReconcilePendingContractsJob.perform_now
     puts "Done. See the signature.sweep.completed log line for what changed."
   end
+
+  # Files the signed PDF of every signed contract that has the provider's file on record but no
+  # document yet — the contracts signed before the signed copy was filed into "Meus documentos".
+  # Idempotent: a contract that already has its document is skipped, so it can be re-run safely.
+  #
+  #   bin/rails signature:backfill_signed_documents          # every school
+  #   bin/rails signature:backfill_signed_documents[3]       # one school
+  desc "File signed contract PDFs into Meus documentos (optional arg: school_id)"
+  task :backfill_signed_documents, [ :school_id ] => :environment do |_task, args|
+    contracts = Contract.signed
+                        .where.not(signed_document_url: nil)
+                        .where.not(id: Document.where.not(contract_id: nil).select(:contract_id))
+    contracts = contracts.where(school_id: School.kept.find(args[:school_id]).id) if args[:school_id].present?
+
+    filed = 0
+    failed = []
+
+    contracts.find_each do |contract|
+      result = Documents::AttachSignedContractService.call(contract: contract)
+
+      if result.success?
+        filed += 1
+      else
+        failed << "contract #{contract.id} (school #{contract.school_id}): #{result.error_code}"
+      end
+    end
+
+    puts "Filed #{filed} signed contract(s)."
+    puts "Failed:\n  #{failed.join("\n  ")}" if failed.any?
+  end
 end

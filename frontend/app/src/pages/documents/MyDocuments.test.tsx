@@ -56,6 +56,17 @@ const fromSchool = document_({
   uploaded_by_kind: 'school',
 });
 
+// Filed by the system once the contract is e-signed: no uploader, always approved.
+const signedContract = document_({
+  id: 4,
+  document_type: 'signed_contract',
+  status: 'approved',
+  filename: 'contrato-assinado-pedro-silva.pdf',
+  file_url: 'http://localhost:3000/rails/active_storage/blobs/redirect/signed/contrato.pdf',
+  uploaded_by_name: null,
+  uploaded_by_kind: null,
+});
+
 interface Sent {
   /** The text fields of the multipart body, by name. */
   fields: Record<string, string>;
@@ -182,6 +193,30 @@ describe('A guardian’s documents', () => {
     expect(screen.getByText('Cartão de vacina')).toBeInTheDocument();
     expect(screen.getByText('Comprovante de endereço')).toBeInTheDocument();
     expect(screen.getByText('Laudos')).toBeInTheDocument();
+  });
+
+  it('shows the signed contract the system filed, with no uploader', async () => {
+    stub({ rows: [signedContract] });
+    renderPage();
+
+    expect(await screen.findByText('contrato-assinado-pedro-silva.pdf')).toBeInTheDocument();
+    expect(screen.getByText('Contrato assinado')).toBeInTheDocument();
+    expect(screen.getByText('Assinatura eletrônica')).toBeInTheDocument();
+    expect(screen.getByText('Aprovado')).toBeInTheDocument();
+
+    const link = screen.getByRole('link', { name: /abrir contrato-assinado-pedro-silva\.pdf/i });
+    expect(link).toHaveAttribute('href', signedContract.file_url);
+  });
+
+  it('does not offer the signed contract as a type to upload', async () => {
+    stub({ rows: [signedContract] });
+    renderPage();
+
+    await screen.findByText('contrato-assinado-pedro-silva.pdf');
+    await user.click(screen.getByLabelText(/tipo de documento/i));
+
+    expect(await screen.findByRole('option', { name: 'Cartão de vacina' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Contrato assinado' })).not.toBeInTheDocument();
   });
 
   it('tells the guardian the documents are shared', async () => {

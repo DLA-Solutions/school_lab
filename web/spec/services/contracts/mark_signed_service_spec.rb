@@ -38,4 +38,30 @@ RSpec.describe Contracts::MarkSignedService do
 
     expect(contract.reload.signed_at).to eq(first_signed_at)
   end
+
+  describe "filing the signed copy into the student's documents" do
+    it "enqueues it when the signed file's address was already on record" do
+      contract.update!(signed_document_url: "https://autentique.example/doc-1/assinado.pdf")
+
+      expect do
+        described_class.call(contract: contract)
+      end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id)
+    end
+
+    # The reconcile path records the address right after marking signed, and that is what enqueues.
+    it "waits for the address when it is not on record yet" do
+      expect do
+        described_class.call(contract: contract)
+      end.not_to have_enqueued_job(Documents::AttachSignedContractJob)
+    end
+
+    it "does not enqueue it again when the contract was already signed" do
+      contract.update!(signature_status: "signed", signed_at: 1.day.ago,
+                       signed_document_url: "https://autentique.example/doc-1/assinado.pdf")
+
+      expect do
+        described_class.call(contract: contract)
+      end.not_to have_enqueued_job(Documents::AttachSignedContractJob)
+    end
+  end
 end

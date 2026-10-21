@@ -484,6 +484,12 @@ Scope decision finalized (enters the MVP). Detailing to be resolved:
       guardian-uploaded `vaccination_card`, `medical_report` and `guardian_identity` (the guardians' RG and
       CPF, identity data shared by both parents) documents (shared by co-guardians;
       [`archive.md`](prds/documents-and-archive/archive.md) BR-ARC16/17).
+- [ ] **Signed contract copy in "Meus documentos"** — the signed contract PDF is now copied from
+      the e-signature provider into our own storage (`document_type: signed_contract`, no uploader)
+      and is visible to every kept guardian linked to the student, not only the signers. Define
+      its retention window (contract term plus the legal limitation period) and whether a
+      download-audit is required; a copy staff discard is never re-filed automatically
+      ([`archive.md`](prds/documents-and-archive/archive.md) BR-ARC20).
 
 - [ ] **CRM contacts (prospect data)** — `crm_contacts` stores name, phone, email and free-text
       notes of people who are not yet guardians and have given no recorded consent. Define the legal

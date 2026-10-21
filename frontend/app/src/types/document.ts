@@ -33,7 +33,10 @@ export interface DocumentResponse {
   data: SchoolDocument;
 }
 
-/** Who put a family document in the archive: a parent through "Meus documentos", or the school. */
+/**
+ * Who put a family document in the archive: a parent through "Meus documentos", or the school.
+ * System-generated files (the signed contract) have no uploader and carry `null` instead.
+ */
 export type GuardianDocumentUploaderKind = 'guardian' | 'school';
 
 /**
@@ -43,9 +46,10 @@ export type GuardianDocumentUploaderKind = 'guardian' | 'school';
 export interface FamilyDocument extends SchoolDocument {
   student_id: number | null;
   student_name: string | null;
-  /** The parent's name; `null` when school staff uploaded the file. */
+  /** The parent's name; `null` when school staff uploaded the file or the system filed it. */
   uploaded_by_name: string | null;
-  uploaded_by_kind: GuardianDocumentUploaderKind;
+  /** `null` for system-generated documents, such as the e-signed contract. */
+  uploaded_by_kind: GuardianDocumentUploaderKind | null;
 }
 
 export interface FamilyDocumentListResponse {

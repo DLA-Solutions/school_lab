@@ -246,7 +246,8 @@ const ptBR = {
   'lessonPlans.choose.title': 'Escolha a turma',
   'lessonPlans.choose.description':
     'O calendário de dias letivos é por turma — escolha uma para ver os dias em que é possível planejar.',
-  'lessonPlans.calendar.instructionalHint': 'Dias letivos aparecem em destaque e podem ser clicados.',
+  'lessonPlans.calendar.instructionalHint':
+    'Dias letivos aparecem em destaque e podem ser clicados.',
   'lessonPlans.calendar.noInstructionalDays':
     'Nenhum dia letivo foi marcado ainda para o ano letivo desta turma.',
   'lessonPlans.dialog.title': 'Plano de aula — {date}',
@@ -255,7 +256,8 @@ const ptBR = {
   'lessonPlans.dialog.noSubjects': 'Você não leciona nenhuma matéria nesta turma.',
   'lessonPlans.dialog.saveError': 'Não foi possível salvar o plano de aula.',
   'lessonPlans.dialog.nonInstructionalDay': 'Este dia não está marcado como letivo.',
-  'lessonPlans.dialog.existingLoadError': 'Não foi possível carregar os planos já enviados para este dia.',
+  'lessonPlans.dialog.existingLoadError':
+    'Não foi possível carregar os planos já enviados para este dia.',
   'lessonPlans.dialog.durationLabel': 'Duração',
   'lessonPlans.dialog.unitStageLabel': 'Unidade/Etapa',
   'lessonPlans.dialog.topicLabel': 'Tema da Aula',
@@ -522,6 +524,7 @@ const ptBR = {
   'myDocuments.column.sentBy': 'Enviado por',
   'myDocuments.column.status': 'Situação',
   'myDocuments.sentBy.school': 'Escola',
+  'myDocuments.sentBy.system': 'Assinatura eletrônica',
   'myDocuments.status.pending': 'Em análise',
   'myDocuments.status.approved': 'Aprovado',
   'myDocuments.status.rejected': 'Recusado',
@@ -540,6 +543,7 @@ const ptBR = {
   'myDocuments.type.medical_report': 'Laudos',
   'myDocuments.type.school_transfer': 'Transferência de outra escola',
   'myDocuments.type.other': 'Outros',
+  'myDocuments.type.signed_contract': 'Contrato assinado',
   'myDocuments.error.documentTypeRequired': 'Escolha o tipo de documento.',
   'myDocuments.error.fileRequired': 'Escolha o arquivo a enviar.',
   'myDocuments.error.unsupportedMediaType': 'Envie um arquivo PDF, JPEG ou PNG.',
@@ -659,8 +663,7 @@ const ptBR = {
   'signature.secret.missing': 'Ausente — os callbacks da Autentique serão recusados com 401',
   'signature.loadError': 'Não foi possível carregar a configuração de assinatura.',
   'signature.saveError': 'Não foi possível registrar o token. Verifique sua conexão.',
-  'signature.noAccess.description':
-    'A assinatura eletrônica é administrada pelo dono da escola.',
+  'signature.noAccess.description': 'A assinatura eletrônica é administrada pelo dono da escola.',
   'signature.school.title': 'Dados da escola para assinatura',
   'signature.school.status.active': 'Pronta para assinar',
   'signature.school.status.missing': 'Incompleto',
@@ -1283,6 +1286,7 @@ const ptBR = {
   'documents.child': 'Aluno: {name}',
   'documents.sentBy.guardian': 'Enviado por {name}',
   'documents.sentBy.school': 'Enviado pela escola',
+  'documents.sentBy.system': 'Gerado pela assinatura eletrônica',
   'documents.empty.title': 'Nenhum documento enviado',
 
   'plans.title': 'Planos',
