@@ -98,6 +98,14 @@ Rails.application.routes.draw do
           resources :platform_plans, only: :index
           resources :bank_credentials, only: %i[index create]
           resources :crm_contacts, only: %i[index show create update destroy]
+          resources :minutes_books, only: %i[index create]
+          resources :minutes_entries, only: %i[index show create update] do
+            member do
+              get :pdf
+              post :send_for_signature
+              post :cancel
+            end
+          end
           resources :signature_credentials, only: %i[index create]
           namespace :people do
             resources :guardians do
