@@ -1469,6 +1469,7 @@ const enUS: Messages = {
   'communication.class': 'Class',
   'communication.audience.coordination': 'Coordination',
   'communication.audience.secretary': 'Secretary',
+  'communication.audience.director': 'Director',
   'communication.scope.forMe': 'For me',
   'communication.scope.all': 'All',
   'communication.send': 'Send',

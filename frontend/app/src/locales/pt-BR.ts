@@ -1486,6 +1486,7 @@ const ptBR = {
   'communication.class': 'Turma',
   'communication.audience.coordination': 'Coordenação',
   'communication.audience.secretary': 'Secretaria',
+  'communication.audience.director': 'Direção',
   'communication.scope.forMe': 'Para mim',
   'communication.scope.all': 'Todas',
   'communication.send': 'Enviar',

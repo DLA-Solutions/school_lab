@@ -1,13 +1,14 @@
 /** Family chat (`docs/api/v1/communication.md` § Family chat). */
 
-export type ConversationAudience = 'coordination' | 'secretary' | 'teacher';
+export type ConversationAudience = 'coordination' | 'secretary' | 'director' | 'teacher';
 
 /**
  * One row of `GET /communication/destinations`.
  *
- * Coordination and secretary are always present. Each teacher of the child's current class is
- * one object (`teacher_id`, `name`), even when they teach two subjects. `name` is null for the
- * two offices — the screen labels those from the catalogue.
+ * Coordination, secretary, and director are always present, in that order, before the teachers.
+ * Each teacher of the child's current class is one object (`teacher_id`, `name`), even when they
+ * teach two subjects. `name` is null for the three offices — the screen labels those from the
+ * catalogue.
  */
 export interface CommunicationDestination {
   audience: ConversationAudience;
