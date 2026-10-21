@@ -166,6 +166,15 @@ en:
       agency: "Branch"
       account_number: "Account"
       not_filled: "Not filled in"
+  documents:
+    compliance_types:
+      sanitary_inspection: "Health inspection"
+      fire_department_certificate: "Fire department certificate"
+      municipal_education_council_resolution: "Municipal Education Council resolution"
+      state_education_council_resolution: "State Education Council resolution"
+      pest_control: "Pest control"
+      water_tank_cleaning: "Water tank cleaning"
+      first_aid_certificate: "First aid certificate"
   api:
     errors:
       unauthorized: "Not authorized."
