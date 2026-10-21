@@ -86,6 +86,7 @@ Traceability: [`docs/product/traceability.md`](../product/traceability.md). Road
 | [`index.md`](documents-and-archive/index.md) | Integration, vision grounding, MVP vs P2, fintech-first supersede | validated |
 | [`archive.md`](documents-and-archive/archive.md) | BC1 — store, search, guardian view, audit export, signatories | validated |
 | [`retention.md`](documents-and-archive/retention.md) | BC2 — P2 retention policy hooks; MVP default retain | validated |
+| [`livro-ata.md`](documents-and-archive/livro-ata.md) | BC4 — Atas da Escola: yearly books, typed minutes, Autentique signature | implemented |
 | [`guardian-requests.md`](documents-and-archive/guardian-requests.md) | BC3 — implemented Meus pedidos / Solicitações lifecycle and isolation | implemented |
 
 ### Domain folder — platform & admin

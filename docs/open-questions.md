@@ -319,6 +319,14 @@ signature infrastructure with contracts.
       remains outside product scope.
 - [ ] Legal requirements for legal validity in Brazil — confirm with a
       specialized lawyer before deciding proprietary vs. third party.
+- [x] **First Livro Ata slice (2026-10-21)** — three kinds (`meeting`, `class_council`,
+      `final_results`), yearly books, rich-text body + participants, Autentique signature, access
+      for director/coordination/secretary. See
+      [`livro-ata.md`](prds/documents-and-archive/livro-ata.md).
+- [ ] BC7 incident atas ("Atas de reuniões") are not migrated into `meeting` minutes; the old
+      screen stays reachable inside Atas da Escola. Migrate them (and drop the BC7 approval gate
+      or keep it as a pre-signature step)? Confirm with the product owner.
+- [ ] Minutes retention/LGPD: participant CPF retention and who may export signed minutes.
 - [ ] Types of minutes in the initial scope: enrollment, Conselho de Classe
       (class council), final results, parent meetings, events that occurred at
       the school (incidents, falls, etc.) — do they all come in together or in
