@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 module Signatures
-  # Turns a verified callback into a state change on the contract it belongs to.
+  # Turns a verified callback into a state change on the contract — or the Livro Ata minutes entry —
+  # it belongs to. A document id is looked up among the school's contracts first, then among its
+  # minutes entries; the same provider document can only ever belong to one of them.
   #
   # Autentique nests the event one level down, under `event` — the top level describes the webhook
   # registration itself, not what happened:
@@ -41,50 +43,74 @@ module Signatures
       # Acknowledged, not acted upon — the provider must not retry an event we simply ignore.
       return ResponseService.success unless reconcilable?(type) && document_id.present?
 
-      contract = config.school.contracts.kept.find_by(provider_document_id: document_id)
+      record = find_record(document_id)
 
       # Same reasoning: a document this school does not know about is not a failure to retry.
-      unless contract
+      unless record
         log(event: "signature.webhook_unknown_document", document_id: document_id, type: type)
         return ResponseService.success
       end
 
-      reconcile(contract, type)
+      reconcile(record, type)
     end
 
     private
 
     attr_reader :config, :payload
 
-    def reconcile(contract, type)
+    def find_record(document_id)
+      config.school.contracts.kept.find_by(provider_document_id: document_id) ||
+        config.school.minutes_entries.kept.find_by(provider_document_id: document_id)
+    end
+
+    def reconcile(record, type)
       finished = type == FINISHED_EVENT
-      result = ::Contracts::ReconcileSignatureService.call(contract: contract)
+      result = reconcile_record(record)
 
       unless result.success?
         # The provider is unreachable. A finished event reached us over a channel we verified, so
         # it stands on its own; anything else asks for redelivery, and the sweep is the backstop
         # if the retries run out.
-        return finish(contract, type, "signed") if finished
+        return finish(record, type, "signed") if finished
 
-        log(event: "signature.webhook_reconcile_failed", contract_id: contract.id, type: type)
+        log(event: "signature.webhook_reconcile_failed", **record_ids(record), type: type)
         return result
       end
 
       status = result.data.fetch(:status)
-      return finish(contract, type, "signed") if finished && status != "signed"
+      return finish(record, type, "signed") if finished && status != "signed"
 
-      log(event: "signature.webhook_reconciled", contract_id: contract.id, type: type, status: status)
+      log(event: "signature.webhook_reconciled", **record_ids(record), type: type, status: status)
 
-      ResponseService.success(data: contract)
+      ResponseService.success(data: record)
     end
 
-    def finish(contract, type, status)
-      ::Contracts::MarkSignedService.call(contract: contract)
+    def finish(record, type, status)
+      mark_signed(record)
 
-      log(event: "signature.webhook_finished_event", contract_id: contract.id, type: type,
+      log(event: "signature.webhook_finished_event", **record_ids(record), type: type,
           status: status)
 
-      ResponseService.success(data: contract)
+      ResponseService.success(data: record)
+    end
+
+    # The two kinds of document go through their own services, which own what "signed" sets off.
+    def reconcile_record(record)
+      case record
+      when MinutesEntry then ::Minutes::ReconcileSignatureService.call(entry: record)
+      else ::Contracts::ReconcileSignatureService.call(contract: record)
+      end
+    end
+
+    def mark_signed(record)
+      case record
+      when MinutesEntry then ::Minutes::MarkSignedService.call(entry: record)
+      else ::Contracts::MarkSignedService.call(contract: record)
+      end
+    end
+
+    def record_ids(record)
+      record.is_a?(MinutesEntry) ? { minutes_entry_id: record.id } : { contract_id: record.id }
     end
 
     def reconcilable?(type)
