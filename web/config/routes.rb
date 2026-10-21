@@ -340,6 +340,9 @@ Rails.application.routes.draw do
             end
           end
 
+          # "Compliance" (BC5): the school's own regulatory files, stored as School documents.
+          resources :compliance_documents, only: %i[index show create destroy]
+
           # Solicitações: what guardians have asked the school for. Worked as one queue, so the
           # state changes are members rather than a status field anyone can write.
           resources :requests, only: %i[index show create destroy] do
