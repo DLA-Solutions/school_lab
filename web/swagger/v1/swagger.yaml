@@ -4422,6 +4422,256 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/compliance_documents": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List compliance documents",
+        "tags": [
+          "Compliance"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "document_type",
+            "in": "query",
+            "required": false,
+            "description": "One of the catalog keys returned in meta.types",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "answers in English when asked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "per_page": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "types": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "label": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "documents module disabled for the school"
+          },
+          "404": {
+            "description": "school the user does not belong to"
+          }
+        }
+      },
+      "post": {
+        "summary": "Upload a compliance document",
+        "tags": [
+          "Compliance"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "a second upload under the same type keeps the first"
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "guardian"
+          },
+          "404": {
+            "description": "school the user does not belong to"
+          },
+          "422": {
+            "description": "file that is not a PDF or image"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/schools/{school_id}/compliance_documents/{id}": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show a compliance document",
+        "tags": [
+          "Compliance"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns metadata and the file URL"
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "guardian"
+          },
+          "404": {
+            "description": "discarded file"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove a compliance document",
+        "tags": [
+          "Compliance"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "discards the file and records who did it"
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "guardian"
+          },
+          "404": {
+            "description": "already discarded"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/crm_contacts": {
       "parameters": [
         {
