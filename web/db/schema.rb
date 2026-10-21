@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_162834) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_175231) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -409,6 +409,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_162834) do
   end
 
   create_table "documents", force: :cascade do |t|
+    t.bigint "contract_id"
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.bigint "discarded_by_id"
@@ -421,6 +422,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_162834) do
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.bigint "uploaded_by_id"
+    t.index ["contract_id"], name: "index_documents_on_contract_id_unique", unique: true, where: "(contract_id IS NOT NULL)"
     t.index ["discarded_by_id"], name: "index_documents_on_discarded_by_id"
     t.index ["documentable_type", "documentable_id"], name: "index_documents_on_documentable"
     t.index ["documentable_type", "documentable_id"], name: "index_documents_on_documentable_type_and_documentable_id"
@@ -1909,6 +1911,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_162834) do
   add_foreign_key "daily_routine_entries", "students"
   add_foreign_key "device_tokens", "users"
   add_foreign_key "document_signatories", "schools"
+  add_foreign_key "documents", "contracts"
   add_foreign_key "documents", "schools"
   add_foreign_key "documents", "users", column: "discarded_by_id"
   add_foreign_key "documents", "users", column: "uploaded_by_id"

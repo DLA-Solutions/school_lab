@@ -925,7 +925,8 @@ Table documents {
   document_type varchar
   status varchar [not null, default: 'pending', note: 'pending | approved | rejected']
   rejection_reason varchar
-  uploaded_by_id integer
+  uploaded_by_id integer [note: 'users.id — null for system-generated documents (e.g. signed_contract)']
+  contract_id integer [note: 'Set only for the signed copy of a contract (document_type = signed_contract); at most one document per contract']
   reviewed_at timestamp
   discarded_at timestamp [note: 'Discard gem — removed from active archive']
   discarded_by_id integer [note: 'users.id — who discarded; nullable for system/job']
@@ -935,6 +936,7 @@ Table documents {
   indexes {
     (documentable_type, documentable_id)
     (school_id, status)
+    contract_id [unique, note: 'DB migration: UNIQUE WHERE contract_id IS NOT NULL — one signed copy per contract']
   }
 }
 
@@ -2149,6 +2151,7 @@ Ref: service_invoice_attempts.school_id > schools.id
 
 Ref: documents.school_id > schools.id
 Ref: documents.uploaded_by_id > users.id
+Ref: documents.contract_id > contracts.id
 Ref: documents.discarded_by_id > users.id
 
 // --- Change auditing (audited gem) ---
