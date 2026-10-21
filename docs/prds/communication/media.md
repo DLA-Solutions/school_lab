@@ -51,8 +51,9 @@ ClassApp **Momentos** is a social feed — School Lab uses **album/timeline per 
 without public reactions ([`DIV-communication-005`](../../ref/divergencias.md)). Likes/comments
 are P2 and off by default.
 
-**Storage:** Active Storage with S3 target per [`web-stack.md`](../../web-stack.md) — production
-backend open item in [`open-questions.md`](../../open-questions.md) Infrastructure.
+**Storage:** Active Storage on Cloudflare R2 (S3-compatible) per [`web-stack.md`](../../web-stack.md);
+see [`open-questions.md`](../../open-questions.md) Infrastructure and
+[`guidelines/web/storage.md`](../../guidelines/web/storage.md).
 
 ---
 
@@ -282,7 +283,7 @@ AC-D06
 
 - [ ] Exact MB/resolution limits ([`open-questions.md`](../../open-questions.md) § Communication).
 - [ ] Retention windows and post-withdrawal deletion ([`open-questions.md`](../../open-questions.md) § LGPD).
-- [ ] S3 migration from local Active Storage in production.
+- [ ] Move existing local Active Storage files to R2 (`storage:migrate_blobs`, see [`open-questions.md`](../../open-questions.md) Infrastructure).
 - [ ] Image compression/transcoding pipeline.
 - [ ] Guardian-initiated photo upload — defer MVP.
 

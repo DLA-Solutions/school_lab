@@ -50,6 +50,15 @@ module SchoolLab
     end
 
     config.api_only = true
+
+    # Active Storage is served under /api so kamal-proxy (path_prefixes: /api, /up, /api-docs,
+    # /webhooks) routes the blob links to Rails; the default /rails/active_storage prefix would
+    # land on the static site instead. The signed ids inside those links expire, so a link copied
+    # out of an API response stops working after `urls_expire_in`; the redirect it resolves to is
+    # re-signed per request and lives `service_urls_expire_in` (bucket stays private — LGPD).
+    config.active_storage.routes_prefix = "/api/active_storage"
+    config.active_storage.urls_expire_in = 15.minutes
+    config.active_storage.service_urls_expire_in = 5.minutes
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore
 

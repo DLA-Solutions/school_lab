@@ -6,7 +6,7 @@
 
 Rails 8.1 API monolith with a versioned JSON REST API consumed by **React web** and
 **React Native** clients. Many schools in the same system. Minimal infrastructure in
-the MVP: app + PostgreSQL + S3.
+the MVP: app + PostgreSQL + Cloudflare R2 (S3-compatible).
 
 ## 1. Summary
 
@@ -23,7 +23,7 @@ the MVP: app + PostgreSQL + S3.
 | Database | PostgreSQL 16+ |
 | Background jobs | Solid Queue (PostgreSQL) |
 | Cache | Solid Cache in the MVP; Redis optional at scale |
-| Storage | Active Storage → S3 |
+| Storage | Active Storage → Cloudflare R2 (S3-compatible, private bucket) |
 | Push notifications | Firebase Cloud Messaging (FCM) |
 | Locale | pt-BR (API errors via i18n) |
 
@@ -172,7 +172,7 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Forms** | ActiveModel form objects | Student registration with guardian |
 | **Jobs** | ActiveJob + Solid Queue | Boleto issuance, email, push (FCM) |
 | **Notifications** | FCM + state machine | Reliable push |
-| **Uploads** | Active Storage + S3 | Documents, message images |
+| **Uploads** | Active Storage + Cloudflare R2 (S3-compatible) | Documents, message images |
 | **Auditing** | **audited** | Change history on domain records (`audits` table, jsonb) |
 | **State machines** | **aasm** | Domain lifecycles (`status` column — charges, documents, push delivery) |
 | **Pagination** | Pagy | List endpoints |
@@ -189,7 +189,7 @@ Details: `docs/modeling/002-api-auth.md`.
 | **Real-time** | WebSocket client (phase 2) | Polling or push-first in MVP |
 | **Push** | FCM via Solid Queue | Async delivery |
 | **Outbound HTTP** | **Faraday** via `SchoolLab::Http` + `SchoolLab::Integrations::*` | Transport + vendor clients; see `docs/guidelines/web/http-client.md` and `integrations.md` |
-| **Storage** | Active Storage → S3 | Documents |
+| **Storage** | Active Storage → Cloudflare R2 (S3-compatible) | Documents; private bucket, signed short-lived links — `guidelines/web/storage.md` |
 | **Server** | Puma | Rails default |
 | **CORS** | rack-cors | Web SPA origins |
 
@@ -200,7 +200,7 @@ kamal-proxy
   ├── site/ (nginx)     → /
   ├── frontend/ (nginx) → /app
   └── web/ (Rails)      → /api, /up, …
-PostgreSQL, S3
+PostgreSQL, Cloudflare R2
 React Native → stores
 ```
 
@@ -280,7 +280,7 @@ flowchart TB
     subgraph infra [Infra]
         PG[(PostgreSQL)]
         Redis[(Redis — optional)]
-        S3[(S3)]
+        R2[(Cloudflare R2)]
         FCM[FCM]
     end
 
@@ -299,7 +299,7 @@ flowchart TB
     Jobs --> FCM
 
     Models --> PG
-    Models --> S3
+    Models --> R2
 
     Services -.->|cache MVP| PG
     Services -.->|cache scale| Redis
@@ -334,7 +334,7 @@ flowchart TB
 
     subgraph data [Data]
         PG[(PostgreSQL)]
-        S3[(S3)]
+        R2[(Cloudflare R2)]
     end
 
     WebUI --> API
@@ -349,7 +349,7 @@ flowchart TB
     SolidQueue --> PG
 
     Models --> PG
-    Models --> S3
+    Models --> R2
 ```
 
 ## 15. Pending decisions

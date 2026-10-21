@@ -94,6 +94,8 @@ Environment `production`:
 
 - `JWT_SECRET_KEY_PRODUCTION`
 - `POSTMARK_API_TOKEN_PRODUCTION`
+- `R2_ACCESS_KEY_ID_PRODUCTION`
+- `R2_SECRET_ACCESS_KEY_PRODUCTION`
 
 `KAMAL_REGISTRY_PASSWORD` must be that classic PAT. Do not use `GITHUB_TOKEN`
 (the Actions token or a general-purpose token). Those tokens normally lack the
@@ -284,7 +286,7 @@ Per-environment values live in `config/deploy.production.yml` and `config/deploy
 | Solid Cable database | `scholarpremium_production_cable` | `scholarpremium_staging_cable` |
 | Redis logical db | `0` | `1` |
 | Cora | production API | sandbox API |
-| Active Storage volume | `scholarpremium_storage` | `scholarpremium_staging_storage` |
+| Active Storage | Cloudflare R2 bucket `scholarpremium` (`ACTIVE_STORAGE_SERVICE: r2`); legacy volume `scholarpremium_storage` until migrated | `local` on volume `scholarpremium_staging_storage` |
 | `WEB_CONCURRENCY` | 2 | 1 |
 
 **Always pass `-d`.** `require_destination: true` makes a bare `kamal deploy` fail
@@ -404,6 +406,8 @@ no raw credentials — they interpolate environment variables you export before 
 | `API_DOCS_PASSWORD` | HTTP Basic Auth password for `/api-docs` on staging |
 | `POSTMARK_API_TOKEN_STAGING` | Postmark Server API token for transactional e-mail on staging |
 | `POSTMARK_API_TOKEN_PRODUCTION` | Postmark Server API token for transactional e-mail on production |
+| `R2_ACCESS_KEY_ID_PRODUCTION` | Cloudflare R2 API token Access Key ID (Object Read & Write, production bucket only) |
+| `R2_SECRET_ACCESS_KEY_PRODUCTION` | Cloudflare R2 API token Secret Access Key |
 
 URL-encode the database and Redis passwords. A literal `@`, `:`, `/`, `?`, or `#` inside
 a password breaks `DATABASE_URL` parsing, and the failure looks like a wrong host rather
@@ -647,5 +651,8 @@ Uncomment `builder.remote` in `config/deploy.yml` only for that local case.
   `docs/guidelines/process/local-ci.md`. The deploy workflow does not run them.
   Push to `staging` or `main` runs `bin/deploy` on `ubuntu-latest`. Local
   `bin/deploy` is the fallback when `.kamal/secrets*` already exist.
-- **Active Storage** writes to a Kamal volume on the app server. That disk is not
-  backed up by the deploy process; migrating to S3 is an open decision.
+- **Active Storage** — production writes to the private Cloudflare R2 bucket
+  (`ACTIVE_STORAGE_SERVICE: r2`); staging writes to its own Kamal volume, which is not backed up
+  by the deploy process. Files uploaded before the switch stay on the production volume until
+  `bin/rails storage:migrate_blobs` runs — never remove the `scholarpremium_storage` volume
+  before then. Runbook: [`../web/storage.md`](../web/storage.md).

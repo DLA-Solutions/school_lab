@@ -17,6 +17,12 @@ env:
     INTER_TOKEN_URL: https://cdpj.partners.bancointer.com.br/oauth/v2/token
     CORS_ORIGINS: https://scholarpremium.com.br,https://www.scholarpremium.com.br
     APP_HOST: scholarpremium.com.br
+    # Active Storage lives in the private Cloudflare R2 bucket. Files written before the switch
+    # stay readable from the volume below until `bin/rails storage:migrate_blobs` moves them
+    # (docs/guidelines/web/storage.md).
+    ACTIVE_STORAGE_SERVICE: r2
+    R2_ACCOUNT_ID: 1cc0ece9ca4f60e9f0a77630ebc5186d
+    R2_BUCKET: scholarpremium
     MARKETING_DEMO_REQUEST_RECIPIENTS: contato@diegonovais.com.br,luizcalaca@gmail.com
 
 volumes:

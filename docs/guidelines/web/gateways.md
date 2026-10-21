@@ -28,7 +28,7 @@ adapter owns port mapping and error translation.
 | Card (checkout, capture, refund) | *Future sibling port* | Not started | — |
 | FCM push | TBD | Decided (FCM) | Not yet extracted |
 | Email (transactional templates) | `Gateways::Email` | Active (Postmark) | `postmark`, `fake` |
-| S3 | — | Active Storage | `config/storage.yml` |
+| Object storage (Cloudflare R2, S3-compatible) | — | Active Storage | `config/storage.yml` — see `storage.md` |
 
 All **school→guardian boleto** code uses `Gateways::BankSlip`. DLA→school SaaS collection
 uses `Gateways::PlatformSubscription` ([ADR 002](../../adr/002-platform-billing-gateway.md)).
@@ -347,7 +347,7 @@ Never allow-list `api.postmarkapp.com` in CI. See `mailers.md`.
 
 ## When not to add a gateway
 
-- Active Storage S3 — use Rails configuration.
+- Active Storage (Cloudflare R2) — use Rails configuration; see `storage.md`.
 - One-off scripts — not product code paths.
 
 Extract a gateway on the **second provider** or when test doubles become painful — not

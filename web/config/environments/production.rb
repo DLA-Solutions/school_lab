@@ -21,9 +21,11 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Store uploaded files on the Kamal volume (see config/storage.yml). Moving to S3 is
-  # still an open decision — see docs/open-questions.md.
-  config.active_storage.service = :local
+  # Active Storage backend, chosen per Kamal destination: production sets ACTIVE_STORAGE_SERVICE=r2
+  # (Cloudflare R2, see config/storage.yml); anything else — including staging, which runs with
+  # RAILS_ENV=production too — stays on the Kamal volume so staging data never reaches the
+  # production bucket. A missing variable falls back to `local`, never to the bucket.
+  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "local").to_sym
 
   # TLS is terminated by kamal-proxy (proxy.ssl: true in config/deploy.yml).
   config.assume_ssl = true

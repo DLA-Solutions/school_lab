@@ -19,6 +19,11 @@ env:
     APP_HOST: staging.scholarpremium.com.br
     WEB_CONCURRENCY: 1
     EXPOSE_API_DOCS: "true"
+    # Staging keeps its uploads on its own volume. There is deliberately no R2 bucket here: the
+    # production bucket must never receive staging data. To move staging to R2, create a separate
+    # bucket and token, set ACTIVE_STORAGE_SERVICE=r2, R2_ACCOUNT_ID and R2_BUCKET below, and add
+    # R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY to the secret list.
+    ACTIVE_STORAGE_SERVICE: local
     SEED_DEMO_DATA: "true"
     SEED_SCHOOL_NAME: "Colégio Demo Staging"
     MARKETING_DEMO_REQUEST_RECIPIENTS: contato@diegonovais.com.br,luizcalaca@gmail.com

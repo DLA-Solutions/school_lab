@@ -224,7 +224,7 @@ Base paths (school-scoped):
     "title": "Peanut allergy",
     "content": "Uses inhaler.",
     "has_document": true,
-    "document_url": "/rails/active_storage/blobs/redirect/...",
+    "document_url": "/api/active_storage/blobs/redirect/...",
     "document_filename": "prescription.pdf",
     "created_by_name": "carolina@email.com",
     "updated_by_name": "carolina@email.com",
@@ -307,7 +307,7 @@ Cross-cutting: [`docs/product/non-functional-requirements.md`](../../product/non
 - **NFR-002 (LGPD)** — health data is sensitive; per-family isolation on all `/me` routes; minimize
   fields collected; consent recorded in identity BC.
 - **NFR-003** — `school_id` on both tables; `policy_scope` filters by school.
-- **NFR-005** — `SchoolAuditable` on profile and records; PDF storage on Active Storage (S3 in production).
+- **NFR-005** — `SchoolAuditable` on profile and records; PDF storage on Active Storage (Cloudflare R2 in production).
 
 Domain-specific:
 

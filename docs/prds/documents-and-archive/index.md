@@ -28,7 +28,7 @@ here are **vision-led** with selective Proesc/ClassApp grounding where documente
 - No school-year or document-type taxonomy, search, or audit package export.
 - No shared **blob storage contract** for cross-domain attachments (enrollment contract PDFs,
   absence justifications, incident files).
-- Active Storage production backend unresolved ([`open-questions.md`](../../open-questions.md) § Infrastructure).
+- Active Storage production backend decided: Cloudflare R2 ([`open-questions.md`](../../open-questions.md) § Infrastructure); the shared contract for cross-domain attachments is still undefined.
 
 **Dependencies satisfied**
 
@@ -334,7 +334,7 @@ Domain-specific:
 - [ ] Official Conselho/Secretaria required document list — [`open-questions.md`](../../open-questions.md) § Digital archive
 - [ ] Archive organization: by student vs class vs school year — [`open-questions.md`](../../open-questions.md) § Digital archive
 - [ ] Retention windows and versioning policy — [`open-questions.md`](../../open-questions.md) § Digital archive; [`retention.md`](retention.md)
-- [ ] Production object storage (S3) before document-heavy onboarding — [`open-questions.md`](../../open-questions.md) § Infrastructure
+- [ ] Move existing local files to production object storage (Cloudflare R2) before document-heavy onboarding — [`open-questions.md`](../../open-questions.md) § Infrastructure
 - [ ] E-sign provider (Authentic vs Clicksign vs proprietary) — phase 2 — [`DIV-financial-007`](../../ref/divergencias.md)
 - [ ] Livro Ata types and generation flow — phase 2 — [`open-questions.md`](../../open-questions.md) § Contracts, signature, and Livro Ata
 

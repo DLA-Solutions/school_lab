@@ -59,6 +59,10 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# S3-compatible Active Storage client — Cloudflare R2 in production (config/storage.yml `r2`).
+# Loaded on demand by ActiveStorage::Service::S3Service, so dev/test never require it.
+gem "aws-sdk-s3", require: false
+
 # Change history for domain records (LGPD / audit trail) — see docs/guidelines/web/auditing.md
 gem "audited"
 
