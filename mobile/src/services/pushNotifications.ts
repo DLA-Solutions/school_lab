@@ -96,7 +96,7 @@ export const registerDeviceToken = async (): Promise<void> => {
 
 /**
  * Routes not yet built (e.g. a message thread or a charge detail screen — see
- * `mobile/src/navigation/MainDrawer.tsx`) have no mapping here on purpose: navigating
+ * `mobile/src/navigation/MainTabs.tsx`) have no mapping here on purpose: navigating
  * to an unregistered route name throws. Extend this map as those screens ship instead
  * of guessing their eventual names.
  */
