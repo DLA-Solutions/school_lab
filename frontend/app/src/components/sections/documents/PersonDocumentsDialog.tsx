@@ -26,10 +26,11 @@ import {
   deleteDocument,
   documentDownloadUrl,
   documentTypeKey,
+  listGuardianDocuments,
   listPersonDocuments,
   uploadPersonDocument,
 } from 'services/documentsApi';
-import { SchoolDocument } from 'types/document';
+import { FamilyDocument, SchoolDocument } from 'types/document';
 
 export interface PersonDocumentsDialogProps {
   open: boolean;
@@ -59,6 +60,12 @@ const STATUS_VARIANTS: Record<SchoolDocument['status'], 'warning' | 'success' | 
   approved: 'success',
   rejected: 'error',
 };
+
+/** Only the guardian listing carries the child and the sender, and only for child-bound files. */
+const isChildBound = (
+  document: SchoolDocument,
+): document is FamilyDocument & { student_name: string } =>
+  'student_name' in document && Boolean(document.student_name);
 
 const formatBytes = (bytes: number | null) => {
   if (!bytes) {
@@ -91,6 +98,15 @@ const PersonDocumentsDialog = ({
 
     return key ? t(key as MessageKey) : value;
   };
+  const senderLabel = (document: FamilyDocument) => {
+    if (document.uploaded_by_kind === 'school') {
+      return t('documents.sentBy.school');
+    }
+
+    return document.uploaded_by_name
+      ? t('documents.sentBy.guardian', { name: document.uploaded_by_name })
+      : '';
+  };
   const [documents, setDocuments] = useState<SchoolDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -104,7 +120,12 @@ const PersonDocumentsDialog = ({
     setError('');
 
     try {
-      const response = await listPersonDocuments(schoolId, documentableType, documentableId);
+      // A guardian's file also covers the children's documents the family sent, so the director
+      // reads the whole picture here; students and collaborators keep the per-owner query.
+      const response =
+        documentableType === 'Guardian'
+          ? await listGuardianDocuments(schoolId, documentableId)
+          : await listPersonDocuments(schoolId, documentableType, documentableId);
       setDocuments(response.data);
     } catch (err) {
       setDocuments([]);
@@ -288,10 +309,27 @@ const PersonDocumentsDialog = ({
                         </Stack>
                       }
                       secondary={
-                        <Typography variant="caption" color="text.secondary">
-                          {typeLabel(document.document_type)}
-                          {document.byte_size ? ` — ${formatBytes(document.byte_size)}` : ''}
-                        </Typography>
+                        <>
+                          <Typography variant="caption" color="text.secondary" component="span">
+                            {typeLabel(document.document_type)}
+                            {document.byte_size ? ` — ${formatBytes(document.byte_size)}` : ''}
+                          </Typography>
+                          {isChildBound(document) && (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              component="span"
+                              display="block"
+                            >
+                              {[
+                                t('documents.child', { name: document.student_name }),
+                                senderLabel(document),
+                              ]
+                                .filter(Boolean)
+                                .join(' — ')}
+                            </Typography>
+                          )}
+                        </>
                       }
                     />
                   </ListItem>

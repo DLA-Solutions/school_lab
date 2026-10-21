@@ -228,6 +228,7 @@ pt-BR:
       publication_in_progress: "Já existe uma publicação em andamento."
       batch_release_failed: "A publicação em lote falhou; nenhum estudante foi liberado."
       republish_reason_required: "Informe o motivo da correção para republicar."
+      documents_filter_conflict: "Envie guardian_id ou documentable_type com documentable_id, não ambos."
       validation_error: "Dados inválidos."
       student_inactive: "Este aluno não está mais matriculado."
       unsupported_media_type: "Apenas arquivos PDF, JPEG ou PNG são aceitos."

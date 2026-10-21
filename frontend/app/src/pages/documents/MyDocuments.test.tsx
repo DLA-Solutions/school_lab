@@ -261,6 +261,45 @@ describe('A guardian’s documents', () => {
       await waitFor(() => expect(listQueries.length).toBeGreaterThanOrEqual(2));
     });
 
+    it('offers the guardian document kinds in the API order', async () => {
+      stub();
+      renderPage();
+
+      await waitFor(() =>
+        expect(screen.getByLabelText(/^aluno/i)).toHaveTextContent('Pedro Silva'),
+      );
+      await user.click(screen.getByLabelText(/tipo de documento/i));
+
+      const options = (await screen.findAllByRole('option')).map((option) => option.textContent);
+      expect(options.slice(-7)).toEqual([
+        'Comprovante de endereço',
+        'Histórico escolar',
+        'RG e CPF dos responsáveis',
+        'Cartão de vacina',
+        'Laudos',
+        'Transferência de outra escola',
+        'Outros',
+      ]);
+    });
+
+    it.each([
+      ['Histórico escolar', 'school_transcript'],
+      ['RG e CPF dos responsáveis', 'guardian_identity'],
+    ])('sends %s as %s', async (label, value) => {
+      const { sent } = stub();
+      renderPage();
+
+      await waitFor(() =>
+        expect(screen.getByLabelText(/^aluno/i)).toHaveTextContent('Pedro Silva'),
+      );
+      await chooseType(label);
+      await user.upload(fileInput(), pdf());
+      await user.click(screen.getByRole('button', { name: /enviar documento/i }));
+
+      await waitFor(() => expect(sent.length).toBe(1));
+      expect(sent[0].fields.document_type).toBe(value);
+    });
+
     it('asks for the type and the file before sending anything', async () => {
       const { sent } = stub();
       renderPage();

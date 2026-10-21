@@ -95,12 +95,53 @@ RSpec.describe Documents::CreateGuardianDocumentService do
     end
   end
 
+  it "offers the types in the order the app shows them" do
+    expect(Document::GUARDIAN_DOCUMENT_TYPES).to eq(
+      %w[address_proof school_transcript guardian_identity vaccination_card medical_report school_transfer other]
+    )
+  end
+
   Document::GUARDIAN_DOCUMENT_TYPES.each do |type|
     context "with type #{type}" do
       let(:params) { { student_id: student.id, document_type: type } }
 
       it "succeeds" do
         expect(result).to be_success
+      end
+    end
+  end
+
+  %w[school_transcript guardian_identity].each do |type|
+    context "with type #{type}" do
+      let(:params) { { student_id: student.id, document_type: type } }
+
+      it "is stored pending, bound to the child, and shared with the co-guardian" do
+        other_user = create(:user)
+        other_membership = create(:membership, user: other_user, school: school, role: "guardian")
+        other = create(:guardian, school: school, user: other_user)
+        create(:student_guardian, school: school, student: student, guardian: other)
+
+        expect(result).to be_success
+        document = result.data
+        expect(document).to have_attributes(
+          document_type: type, status: "pending", documentable: student, uploaded_by: user
+        )
+
+        Current.user = other_user
+        Current.school = school
+        Current.membership = other_membership
+        Current.guardian = other
+        expect(DocumentPolicy::Scope.new(other_user, Document).resolve).to include(document)
+      ensure
+        Current.reset
+      end
+
+      context "with a text file claiming to be a PDF" do
+        let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/files/note.txt"), "application/pdf") }
+
+        it "is refused like any other type" do
+          expect(result.error_code).to eq(:unsupported_media_type)
+        end
       end
     end
   end

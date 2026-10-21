@@ -1255,6 +1255,72 @@ export const handlers = [
     return paginated(documents, new URL(request.url));
   }),
 
+  http.get(apiUrl('/api/v1/schools/:schoolId/documents'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const url = new URL(request.url);
+    const guardianId = url.searchParams.get('guardian_id');
+
+    // The API refuses `guardian_id` together with the owner filter.
+    if (guardianId && url.searchParams.has('documentable_type')) {
+      return jsonError(422, 'validation_error', 'Filtros incompatíveis.');
+    }
+
+    // By guardian: the guardian's own file plus a child-bound one sent by a parent.
+    const documents = guardianId
+      ? [
+          {
+            id: 10,
+            school_id: SCHOOL_ID,
+            documentable_type: 'Guardian',
+            documentable_id: Number(guardianId),
+            document_type: 'rg',
+            status: 'approved',
+            rejection_reason: null,
+            reviewed_at: '2026-08-09T12:00:00Z',
+            created_at: '2026-08-08T12:00:00Z',
+            updated_at: '2026-08-08T12:00:00Z',
+            filename: 'rg-responsavel.pdf',
+            content_type: 'application/pdf',
+            byte_size: 20480,
+            file_url: '/rails/active_storage/blobs/redirect/signed/rg-responsavel.pdf',
+            student_id: null,
+            student_name: null,
+            uploaded_by_name: null,
+            uploaded_by_kind: 'school',
+          },
+          {
+            id: 11,
+            school_id: SCHOOL_ID,
+            documentable_type: 'Student',
+            documentable_id: 1,
+            document_type: 'school_transcript',
+            status: 'pending',
+            rejection_reason: null,
+            reviewed_at: null,
+            created_at: '2026-08-10T12:00:00Z',
+            updated_at: '2026-08-10T12:00:00Z',
+            filename: 'historico.pdf',
+            content_type: 'application/pdf',
+            byte_size: 90000,
+            file_url: '/rails/active_storage/blobs/redirect/signed/historico.pdf',
+            student_id: 1,
+            student_name: 'Pedro Silva',
+            uploaded_by_name: 'Maria Silva',
+            uploaded_by_kind: 'guardian',
+          },
+        ]
+      : [];
+
+    return paginated(documents, url);
+  }),
+
   http.post(apiUrl('/api/v1/schools/:schoolId/me/documents'), async ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();

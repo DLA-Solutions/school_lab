@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { HttpResponse, SCHOOL_ID, apiUrl, http, server } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { setAccessToken } from 'services/tokenStore';
-import { SchoolDocument } from 'types/document';
+import { FamilyDocument, SchoolDocument } from 'types/document';
+import { DocumentableType } from 'services/documentsApi';
 import PersonDocumentsDialog from './PersonDocumentsDialog';
 
 const DOCUMENTS_PATH = `/api/v1/schools/${SCHOOL_ID}/documents`;
@@ -33,14 +34,14 @@ const storedDocument: SchoolDocument = {
 
 const emptyList = { data: [], meta: { page: 1, per_page: 25, total: 0 } };
 
-const renderDialog = () => {
+const renderDialog = (documentableType: DocumentableType = 'Guardian') => {
   const onClose = vi.fn();
 
   renderWithTheme(
     <PersonDocumentsDialog
       open
       schoolId={SCHOOL_ID}
-      documentableType="Guardian"
+      documentableType={documentableType}
       documentableId={guardian.id}
       title={guardian.name}
       onClose={onClose}
@@ -53,14 +54,17 @@ const renderDialog = () => {
 const authenticate = () => setAccessToken('fresh-access-token', '2026-08-04T23:20:00Z');
 
 describe('PersonDocumentsDialog', () => {
-  it('asks the API only for this guardian’s documents', async () => {
+  it('asks the API for the guardian’s family documents, not for the owner filter', async () => {
     authenticate();
 
     let requestedUrl = '';
     server.use(
       http.get(apiUrl(DOCUMENTS_PATH), ({ request }) => {
         requestedUrl = request.url;
-        return HttpResponse.json({ data: [storedDocument], meta: { page: 1, per_page: 25, total: 1 } });
+        return HttpResponse.json({
+          data: [storedDocument],
+          meta: { page: 1, per_page: 25, total: 1 },
+        });
       }),
     );
 
@@ -68,9 +72,98 @@ describe('PersonDocumentsDialog', () => {
 
     expect(await screen.findByText('rg-maria.pdf')).toBeInTheDocument();
 
+    // Combining `guardian_id` with `documentable_*` is a 422, so only the first is sent.
     const query = new URL(requestedUrl).searchParams;
-    expect(query.get('documentable_type')).toBe('Guardian');
+    expect(query.get('guardian_id')).toBe(String(guardian.id));
+    expect(query.has('documentable_type')).toBe(false);
+    expect(query.has('documentable_id')).toBe(false);
+  });
+
+  it('keeps the per-owner query for a student', async () => {
+    authenticate();
+
+    let requestedUrl = '';
+    server.use(
+      http.get(apiUrl(DOCUMENTS_PATH), ({ request }) => {
+        requestedUrl = request.url;
+        return HttpResponse.json(emptyList);
+      }),
+    );
+
+    renderDialog('Student');
+
+    expect(await screen.findByText(/nenhum documento enviado/i)).toBeInTheDocument();
+
+    const query = new URL(requestedUrl).searchParams;
+    expect(query.get('documentable_type')).toBe('Student');
     expect(query.get('documentable_id')).toBe(String(guardian.id));
+    expect(query.has('guardian_id')).toBe(false);
+  });
+
+  it('shows which child a guardian’s file belongs to, who sent it and its type', async () => {
+    authenticate();
+
+    const childBound: FamilyDocument = {
+      ...storedDocument,
+      id: 32,
+      documentable_type: 'Student',
+      documentable_id: 4,
+      document_type: 'school_transcript',
+      filename: 'historico.pdf',
+      student_id: 4,
+      student_name: 'Pedro Silva',
+      uploaded_by_name: 'Maria Silva',
+      uploaded_by_kind: 'guardian',
+    };
+    const fromSchool: FamilyDocument = {
+      ...childBound,
+      id: 33,
+      document_type: 'guardian_identity',
+      filename: 'rg-cpf.pdf',
+      uploaded_by_name: null,
+      uploaded_by_kind: 'school',
+    };
+    const own: FamilyDocument = {
+      ...storedDocument,
+      student_id: null,
+      student_name: null,
+      uploaded_by_name: null,
+      uploaded_by_kind: 'school',
+    };
+
+    server.use(
+      http.get(apiUrl(DOCUMENTS_PATH), () =>
+        HttpResponse.json({
+          data: [own, childBound, fromSchool],
+          meta: { page: 1, per_page: 25, total: 3 },
+        }),
+      ),
+    );
+
+    renderDialog();
+
+    const transcript = (await screen.findByText('historico.pdf')).closest('li') as HTMLElement;
+    expect(within(transcript).getByText(/histórico escolar/i)).toBeInTheDocument();
+    expect(within(transcript).getByText(/aluno: pedro silva/i)).toBeInTheDocument();
+    expect(within(transcript).getByText(/enviado por maria silva/i)).toBeInTheDocument();
+
+    const identity = screen.getByText('rg-cpf.pdf').closest('li') as HTMLElement;
+    expect(within(identity).getByText(/rg e cpf dos responsáveis/i)).toBeInTheDocument();
+    expect(within(identity).getByText(/enviado pela escola/i)).toBeInTheDocument();
+
+    // A file attached to the guardian itself has no child to name.
+    const ownItem = screen.getByText('rg-maria.pdf').closest('li') as HTMLElement;
+    expect(within(ownItem).queryByText(/aluno:/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the empty state when the guardian’s family has no documents', async () => {
+    authenticate();
+
+    server.use(http.get(apiUrl(DOCUMENTS_PATH), () => HttpResponse.json(emptyList)));
+
+    renderDialog();
+
+    expect(await screen.findByText(/nenhum documento enviado/i)).toBeInTheDocument();
   });
 
   it('uploads the picked file as multipart, tagged with the chosen type', async () => {
@@ -197,7 +290,10 @@ describe('PersonDocumentsDialog', () => {
     renderDialog();
 
     const link = await screen.findByRole('link', { name: 'rg-maria.pdf' });
-    expect(link).toHaveAttribute('href', expect.stringContaining(storedDocument.file_url as string));
+    expect(link).toHaveAttribute(
+      'href',
+      expect.stringContaining(storedDocument.file_url as string),
+    );
   });
 
   it('removes a document and refreshes', async () => {

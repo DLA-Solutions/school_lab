@@ -198,6 +198,7 @@ en:
       publication_in_progress: "A publication is already in progress."
       batch_release_failed: "Batch release failed; no students were published."
       republish_reason_required: "A correction reason is required to republish."
+      documents_filter_conflict: "Send either guardian_id or documentable_type with documentable_id, not both."
       validation_error: "Invalid data."
       student_inactive: "This student is no longer enrolled."
       unsupported_media_type: "Only PDF, JPEG or PNG files are accepted."

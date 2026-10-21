@@ -37,15 +37,27 @@ export interface DocumentResponse {
 export type GuardianDocumentUploaderKind = 'guardian' | 'school';
 
 /**
- * A row of the guardian's "Meus documentos" — the shared document plus the child it hangs off and
- * who sent it. Mirrors `Me::DocumentBlueprint`.
+ * A document with the child it hangs off and who sent it. Staff see these when listing by
+ * guardian, where a file attached to the guardian itself has no child (and no parent sender).
  */
-export interface GuardianDocument extends SchoolDocument {
-  student_id: number;
+export interface FamilyDocument extends SchoolDocument {
+  student_id: number | null;
   student_name: string | null;
   /** The parent's name; `null` when school staff uploaded the file. */
   uploaded_by_name: string | null;
   uploaded_by_kind: GuardianDocumentUploaderKind;
+}
+
+export interface FamilyDocumentListResponse {
+  data: FamilyDocument[];
+  meta: DocumentListMeta;
+}
+
+/**
+ * A row of the guardian's "Meus documentos" — always child-bound. Mirrors `Me::DocumentBlueprint`.
+ */
+export interface GuardianDocument extends FamilyDocument {
+  student_id: number;
 }
 
 export interface GuardianDocumentListResponse {

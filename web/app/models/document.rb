@@ -9,7 +9,11 @@ class Document < ApplicationRecord
   GUARDIAN_VISIBLE_STATUSES = %w[pending approved].freeze
   # The closed list a guardian picks from in "Meus documentos" (BR-ARC17). Staff keep the wider,
   # free-form `document_type`, so this is enforced by the guardian upload service, not here.
-  GUARDIAN_DOCUMENT_TYPES = %w[address_proof vaccination_card medical_report school_transfer other].freeze
+  # `guardian_identity` is a scan of the guardians' RG and CPF (identity data, BR-ARC15);
+  # `school_transcript` is the child's school history and is distinct from `school_transfer`.
+  GUARDIAN_DOCUMENT_TYPES = %w[
+    address_proof school_transcript guardian_identity vaccination_card medical_report school_transfer other
+  ].freeze
 
   belongs_to :school
   belongs_to :documentable, polymorphic: true
@@ -22,6 +26,20 @@ class Document < ApplicationRecord
   validates :documentable_type, inclusion: { in: DOCUMENTABLE_TYPES }
   validate :documentable_belongs_to_school
   validate :file_attached
+
+  # Everything the school holds about one guardian: files attached to the guardian and files
+  # attached to a child still linked to them (what a parent sends through "Meus documentos").
+  # Both halves are bound to `school_id`, so a guardian id from another school matches nothing.
+  scope :about_guardian, lambda { |guardian_id, school_id|
+    student_ids = Student.kept
+                         .joins(:student_guardians)
+                         .merge(StudentGuardian.kept.where(guardian_id: guardian_id, school_id: school_id))
+                         .where(school_id: school_id)
+                         .select(:id)
+
+    where(school_id: school_id, documentable_type: "Guardian", documentable_id: guardian_id)
+      .or(where(school_id: school_id, documentable_type: "Student", documentable_id: student_ids))
+  }
 
   private
 
