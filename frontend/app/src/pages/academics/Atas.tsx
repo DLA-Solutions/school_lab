@@ -315,7 +315,7 @@ const Atas = () => {
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
-        <PageHeader title={t('nav.atas')} />
+        <PageHeader title={t('nav.incidentNotes')} />
         <SectionCard>
           <EmptyState
             title={t('common.noAccess.title')}
@@ -330,7 +330,7 @@ const Atas = () => {
   return (
     <Stack direction="column" gap={3.5}>
       <PageHeader
-        title={t('nav.atas')}
+        title={t('nav.incidentNotes')}
         actions={
           <Button variant="contained" size="small" onClick={() => setDialogOpen(true)}>
             {t('atas.new')}

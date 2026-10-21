@@ -231,6 +231,18 @@ en:
       signature_provider_missing: "No signature integration configured for this school."
       signature_provider_unauthorized: "Autentique rejected this school's credentials."
       signature_provider_unavailable: "Autentique is unavailable right now. Try again shortly."
+      minutes_book_not_found: "Choose one of this school's minutes books."
+      minutes_school_class_not_found: "Choose one of this school's classes."
+      minutes_link_not_found: "A linked person does not belong to this school."
+      minutes_entry_not_editable: "Only a draft ata can be edited."
+      minutes_entry_not_sendable: "Only a draft ata can be sent for signature."
+      minutes_entry_not_cancellable: "Only a draft or pending ata can be cancelled."
+      minutes_entry_not_pending: "This ata is not awaiting signature."
+      minutes_entry_not_signed: "This ata has not been signed yet."
+      minutes_without_signers: "Mark at least one participant as a signer before sending the ata."
+      minutes_cancel_provider_failed: "The document could not be cancelled at Autentique. The ata is still awaiting signature — try again."
+      minutes_pdf_unsupported_characters: "The ata contains characters the PDF font cannot render. Contact support."
+      minutes_signed_pdf_unavailable: "The signed ata could not be fetched from the signature provider."
       charge_without_payer: "Name the guardian this boleto is registered against."
       charge_batch_no_contracts: "Select at least one contract to bill."
       charge_batch_invalid_period: "Provide a valid billing period, formatted YYYY-MM."
@@ -273,12 +285,14 @@ en:
       contract_template_missing: "This school has no agreement of its own. The built-in one will be used, without the school's clauses."
   signature:
     contract_message: "Please review and sign the educational services agreement for %{student}."
+    minutes_message: "Please review and sign the minutes \"%{title}\" of %{school}."
   # `validation_error` responses carry ActiveModel messages verbatim under `details`, and the SPA
   # prints them under each field — so these are user-facing strings, not developer output.
   errors:
     messages:
       blank: "can't be blank"
       invalid: "is invalid"
+      immutable: "cannot be changed once created"
       taken: "is already taken"
       inclusion: "is not an allowed value"
       not_a_number: "is not a number"

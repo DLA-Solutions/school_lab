@@ -51,9 +51,17 @@ export interface MenuItem {
    * membership role, and those offices are system keys on a staff membership.
    */
   includeSystemKeys?: string[];
+  /**
+   * The inverse of `includeSystemKeys`: staff holding one of these role templates do not see the
+   * entry (they reach the same page another way — see `incident-notes`).
+   */
+  excludeSystemKeys?: string[];
   /** Sidebar grouping — operational vs billing vs school platform settings. */
   section?: NavSection;
 }
+
+/** Role templates that may use Atas da Escola (`docs/prds/documents-and-archive/livro-ata.md`). */
+export const MINUTES_SYSTEM_KEYS = ['director', 'coordination', 'secretary'] as const;
 
 const sitemap: MenuItem[] = [
   {
@@ -258,16 +266,30 @@ const sitemap: MenuItem[] = [
     section: 'primary',
   },
   {
-    // "Ata" (BC7) — a teacher records for their own classes, manage_academic staff record
-    // school-wide (BR-IN03). Same split as lesson-plans above: no requiredPermission/role
-    // narrowing here, since either condition alone is enough and the two together aren't a
-    // single permission key — the page itself branches by role and degrades gracefully for staff
-    // who hold neither.
-    id: 'atas',
-    subheader: 'nav.atas',
+    // "Atas da Escola" (BC4 Livro Ata) — yearly books of minutes signed through Autentique. It
+    // replaced the staff "Atas de reuniões" entry; the offices that may use it are role-template
+    // system keys on a staff membership, the same split `staff-communication` uses.
+    id: 'school-minutes',
+    subheader: 'nav.schoolMinutes',
+    path: paths.schoolMinutes,
+    icon: 'mingcute:book-2-line',
+    audience: 'staff',
+    includeSystemKeys: [...MINUTES_SYSTEM_KEYS],
+    section: 'primary',
+  },
+  {
+    // "Notas de ocorrência" — the BC7 incident "Ata" screen (a teacher records for their own
+    // classes, manage_academic staff school-wide, BR-IN03). It left the menu for director,
+    // coordination and secretary: BR-LA08 moves their entry inside Atas da Escola as a secondary
+    // link. Everyone else on staff (teachers above all, who have no other way in) keeps this
+    // entry, so nobody loses a screen they had. The page degrades gracefully for staff who hold
+    // neither role, same as before.
+    id: 'incident-notes',
+    subheader: 'nav.incidentNotes',
     path: paths.atas,
     icon: 'mingcute:file-line',
     audience: 'staff',
+    excludeSystemKeys: [...MINUTES_SYSTEM_KEYS],
     section: 'primary',
   },
   {

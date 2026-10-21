@@ -36,6 +36,7 @@ const Grades = lazy(() => import('pages/academics/Grades'));
 const LessonPlans = lazy(() => import('pages/academics/LessonPlans'));
 const AllLessonPlans = lazy(() => import('pages/academics/AllLessonPlans'));
 const Atas = lazy(() => import('pages/academics/Atas'));
+const SchoolMinutes = lazy(() => import('pages/documents/SchoolMinutes'));
 const DailyRoutine = lazy(() => import('pages/academics/DailyRoutine'));
 const FamilyCommunication = lazy(() => import('pages/communication/FamilyCommunication'));
 const StaffCommunication = lazy(() => import('pages/communication/StaffCommunication'));
@@ -133,6 +134,10 @@ const router = createBrowserRouter(
             {
               path: paths.atas,
               element: <Atas />,
+            },
+            {
+              path: paths.schoolMinutes,
+              element: <SchoolMinutes />,
             },
             {
               path: paths.dailyRoutine,

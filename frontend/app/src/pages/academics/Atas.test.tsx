@@ -101,7 +101,7 @@ const renderPage = (membership: Membership) => {
 };
 
 describe('Atas page — header', () => {
-  it('titles the page "Atas de reuniões"', async () => {
+  it('titles the page "Notas de ocorrência"', async () => {
     server.use(
       http.get(apiUrl(`${BASE}/preceptorship_reports/roll`), () => HttpResponse.json({ data: roll })),
       http.get(apiUrl(`${BASE}/incidents`), () => HttpResponse.json(page([]))),
@@ -110,7 +110,7 @@ describe('Atas page — header', () => {
     renderPage(teacherMembership);
 
     await screen.findByText(/nenhuma ata registrada/i);
-    expect(screen.getByRole('heading', { name: 'Atas de reuniões' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Notas de ocorrência' })).toBeInTheDocument();
   });
 });
 

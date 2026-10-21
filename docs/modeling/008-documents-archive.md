@@ -61,6 +61,19 @@ Migration path: existing `documents` rows map to `archive_documents` with
 | `review_status` | `pending` \| `approved` \| `rejected` — KYC subset |
 | Active Storage | `has_one_attached :file` |
 
+## Livro Ata (BC4)
+
+PRD: [`livro-ata.md`](../prds/documents-and-archive/livro-ata.md). Three tenant tables, all with
+`school_id`:
+
+| Table | Role |
+|-------|------|
+| `minutes_books` | Yearly book (`name`, `year`), unique per school while kept |
+| `minutes_entries` | Typed ata (`meeting` \| `class_council` \| `final_results`), AASM `status`, Autentique fields mirror the contract signature columns, `has_one_attached :pdf` |
+| `minutes_participants` | Snapshot of each person involved; `signs` marks Autentique signers; `cpf` is LGPD-redacted |
+
+BC7 incident atas stay in `incidents` — not migrated (BR-LA08).
+
 ## Conselho audit list (MVP minimum)
 
 Document types seeded per school template: enrollment form, guardian ID copy, medical authorization,
@@ -84,4 +97,4 @@ calculations remain in billing; documents/archive may only store or index the fi
 
 ## Out of scope (P2)
 
-- Livro Ata generation, e-signatures, semantic search (pgvector).
+- Semantic search (pgvector). Livro Ata generation and e-signatures: see [`livro-ata.md`](../prds/documents-and-archive/livro-ata.md).

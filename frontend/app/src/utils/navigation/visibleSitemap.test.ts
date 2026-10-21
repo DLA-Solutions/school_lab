@@ -299,3 +299,65 @@ describe('visibleSitemap CRM entry', () => {
     expect(routeAudienceForPath(paths.crm)).toBe('staff');
   });
 });
+
+describe('visibleSitemap Atas da Escola entry', () => {
+  const withKey = (systemKey: string | null) => ({
+    ...staffMembership,
+    role_template: systemKey
+      ? { id: 900, name: systemKey, system_key: systemKey, is_system: true }
+      : null,
+  });
+  const idsFor = (membership: Parameters<typeof visibleSitemap>[0]) =>
+    visibleSitemap(membership).map((item) => item.id);
+
+  it.each(['director', 'coordination', 'secretary'])(
+    'shows Atas da Escola, and not the incident-notes entry, to %s',
+    (systemKey) => {
+      const ids = idsFor(withKey(systemKey));
+
+      expect(ids).toContain('school-minutes');
+      expect(ids).not.toContain('incident-notes');
+    },
+  );
+
+  it('removes the old "Atas de reuniões" entry for everyone', () => {
+    expect(sitemap.find((item) => item.id === 'atas')).toBeUndefined();
+    expect(sitemap.map((item) => item.subheader)).not.toContain('nav.atas');
+  });
+
+  it('keeps the incident screen in the menu for teachers, who have no other way in', () => {
+    const teacher = { ...withKey(null), role: 'teacher' as const };
+    const ids = idsFor(teacher);
+
+    expect(ids).toContain('incident-notes');
+    expect(ids).not.toContain('school-minutes');
+  });
+
+  it('keeps the incident screen for other staff templates and hides Atas da Escola from them', () => {
+    const ids = idsFor(withKey('receptionist'));
+
+    expect(ids).toContain('incident-notes');
+    expect(ids).not.toContain('school-minutes');
+  });
+
+  it('shows neither to a guardian', () => {
+    const ids = idsFor(guardianMembership);
+
+    expect(ids).not.toContain('school-minutes');
+    expect(ids).not.toContain('incident-notes');
+  });
+
+  it('hides Atas da Escola when the documents module is off', () => {
+    const ids = idsFor({
+      ...withKey('director'),
+      enabled_modules: ['communication', 'academic', 'billing'] as SchoolModuleKey[],
+    });
+
+    expect(ids).not.toContain('school-minutes');
+  });
+
+  it('maps the route for deep-link guards', () => {
+    expect(routeAudienceForPath(paths.schoolMinutes)).toBe('staff');
+    expect(routeModuleKeyForPath(paths.schoolMinutes)).toBe('documents');
+  });
+});
