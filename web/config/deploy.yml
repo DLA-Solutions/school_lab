@@ -58,6 +58,10 @@ env:
     - REDIS_URL
     - POSTMARK_API_TOKEN
     - GOOGLE_OAUTH_CLIENT_ID
+    # Cloudflare R2 (Active Storage). Resolved from the production secrets only: staging repeats
+    # its own secret list and keeps its files on the Kamal volume.
+    - R2_ACCESS_KEY_ID
+    - R2_SECRET_ACCESS_KEY
 
 # Bridge fingerprinted assets between versions so in-flight requests don't 404.
 asset_path: /rails/public/assets
