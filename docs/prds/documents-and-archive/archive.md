@@ -201,6 +201,16 @@ Each row identifies the child and the sender (`student_id`, `student_name`, `upl
 usual document actions (UC-DA02). Authorization is unchanged; a guardian id from another school
 matches nothing.
 
+BR-ARC20
+
+**Signed contract copy** `[product decision]`: when a contract is signed through the e-signature
+provider and its signed file is retrievable, the system files that PDF as a `Document` of the
+contract's student (`document_type: signed_contract`, `contract_id` set, no uploader, status
+`approved` without review). Every kept guardian linked to the student sees it in "Meus documentos".
+There is at most one such document per contract; replays of the provider callback or the
+reconciliation sweep never create a second one, and a copy staff discarded is not re-filed.
+`signed_contract` is a system type: it is not in the guardian upload list (BR-ARC17).
+
 ---
 
 ## Use Cases
