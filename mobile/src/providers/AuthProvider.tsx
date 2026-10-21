@@ -2,6 +2,7 @@ import { PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } 
 import { AuthUser } from '../types/auth';
 import { refreshAccessToken } from '../services/api';
 import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from '../services/authApi';
+import { clearStoredGuardianContext } from '../services/guardianContextStore';
 import { clearAccessToken, clearRefreshToken, setAccessToken, setRefreshToken } from '../services/tokenStore';
 import { AuthContext, AuthStatus, LoginCredentials } from './AuthContext';
 
@@ -30,6 +31,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
       } catch {
         clearAccessToken();
         await clearRefreshToken();
+        await clearStoredGuardianContext();
         setUser(null);
         setStatus('unauthenticated');
       }
@@ -55,6 +57,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     } finally {
       clearAccessToken();
       await clearRefreshToken();
+      await clearStoredGuardianContext();
       setUser(null);
       setStatus('unauthenticated');
     }

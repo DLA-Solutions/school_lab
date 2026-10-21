@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { useAuth } from '../providers/AuthContext';
+import { useGuardianContext } from '../providers/GuardianContext';
 import { fetchOpenCharges, fetchChargeHistory } from '../services/charges';
 import { Charge, ChargeHistoryItem } from '../types/charges';
 import ChargeListItem from '../components/charges/ChargeListItem';
@@ -19,8 +19,7 @@ import ChargeListItem from '../components/charges/ChargeListItem';
 type Tab = 'open' | 'history';
 
 const BoletosScreen = () => {
-  const { user } = useAuth();
-  const schoolId = user?.memberships?.[0]?.school_id;
+  const { activeSchoolId: schoolId, activeStudentId: studentId, generation } = useGuardianContext();
 
   const [activeTab, setActiveTab] = useState<Tab>('open');
   const [openCharges, setOpenCharges] = useState<Charge[]>([]);
@@ -28,10 +27,26 @@ const BoletosScreen = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestSeq = useRef(0);
+
+  const contextKey = `${generation}:${schoolId ?? ''}:${studentId ?? ''}`;
+  const [seenContextKey, setSeenContextKey] = useState(contextKey);
+  if (seenContextKey !== contextKey) {
+    setSeenContextKey(contextKey);
+    setOpenCharges([]);
+    setChargeHistory([]);
+    setError(null);
+  }
 
   const fetchData = useCallback(
     async (refresh = false) => {
-      if (!schoolId) return;
+      if (!schoolId || studentId == null) {
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      const seq = ++requestSeq.current;
 
       if (!refresh) {
         setLoading(true);
@@ -42,13 +57,22 @@ const BoletosScreen = () => {
 
       try {
         if (activeTab === 'open') {
-          const response = await fetchOpenCharges(schoolId);
+          const response = await fetchOpenCharges(schoolId, studentId);
+          if (requestSeq.current !== seq) {
+            return;
+          }
           setOpenCharges(response.data);
         } else {
-          const response = await fetchChargeHistory(schoolId);
+          const response = await fetchChargeHistory(schoolId, studentId);
+          if (requestSeq.current !== seq) {
+            return;
+          }
           setChargeHistory(response.data);
         }
       } catch (err) {
+        if (requestSeq.current !== seq) {
+          return;
+        }
         let message = 'Erro ao carregar boletos';
         if (err instanceof Error) {
           message = err.message;
@@ -56,16 +80,18 @@ const BoletosScreen = () => {
         setError(message);
         console.error('Failed to fetch charges:', err);
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (requestSeq.current === seq) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
-    [schoolId, activeTab],
+    [schoolId, studentId, activeTab],
   );
 
   useEffect(() => {
     void fetchData();
-  }, [fetchData]);
+  }, [fetchData, generation]);
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
