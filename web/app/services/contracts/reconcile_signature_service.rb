@@ -56,6 +56,10 @@ module Contracts
       return if url.blank? || contract.signed_document_url == url
 
       contract.update_column(:signed_document_url, url)
+
+      # The signed copy can only be filed once its address is on record, so this is the moment —
+      # whichever of marking signed and recording the address came first.
+      Documents::AttachSignedContractJob.perform_later(contract.id, contract.school_id)
     end
 
     def not_sent

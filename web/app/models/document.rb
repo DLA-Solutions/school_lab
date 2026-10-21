@@ -14,16 +14,23 @@ class Document < ApplicationRecord
   GUARDIAN_DOCUMENT_TYPES = %w[
     address_proof school_transcript guardian_identity vaccination_card medical_report school_transfer other
   ].freeze
+  # Filed by the system, never picked by a guardian or staff: the signed copy of a contract
+  # that the e-signature provider returned. Deliberately not in GUARDIAN_DOCUMENT_TYPES.
+  SIGNED_CONTRACT_TYPE = "signed_contract"
 
   belongs_to :school
   belongs_to :documentable, polymorphic: true
   belongs_to :uploaded_by, class_name: "User", optional: true
+  # Only the signed copy of a contract carries this; the DB allows one such document per contract.
+  belongs_to :contract, optional: true
   belongs_to :discarded_by, class_name: "User", optional: true
 
   has_one_attached :file
 
   validates :document_type, presence: true
   validates :documentable_type, inclusion: { in: DOCUMENTABLE_TYPES }
+  validates :contract_id, uniqueness: true, allow_nil: true
+  validate :contract_belongs_to_school
   validate :documentable_belongs_to_school
   validate :file_attached
 
@@ -54,6 +61,12 @@ class Document < ApplicationRecord
     else
       errors.add(:documentable, :invalid)
     end
+  end
+
+  def contract_belongs_to_school
+    return if contract.blank? || school_id.blank?
+
+    errors.add(:contract, :invalid) unless contract.school_id == school_id
   end
 
   def file_attached

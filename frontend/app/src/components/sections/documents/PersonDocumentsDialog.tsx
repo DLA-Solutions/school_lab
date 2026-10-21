@@ -103,6 +103,10 @@ const PersonDocumentsDialog = ({
       return t('documents.sentBy.school');
     }
 
+    if (document.uploaded_by_kind === null) {
+      return t('documents.sentBy.system');
+    }
+
     return document.uploaded_by_name
       ? t('documents.sentBy.guardian', { name: document.uploaded_by_name })
       : '';
@@ -181,9 +185,7 @@ const PersonDocumentsDialog = ({
       await deleteDocument(schoolId, document.id);
       await load();
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Não foi possível remover o documento.',
-      );
+      setError(err instanceof ApiError ? err.message : 'Não foi possível remover o documento.');
     } finally {
       setRemovingId(null);
     }

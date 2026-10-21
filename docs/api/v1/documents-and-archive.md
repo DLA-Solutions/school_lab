@@ -73,7 +73,8 @@ linked / other school, `422` invalid type, file, or non-enrolled child, `401`/`4
   `id, school_id, document_type, status, rejection_reason, reviewed_at, created_at, updated_at,
   documentable_type, documentable_id, filename, content_type, byte_size, file_url` plus
   `student_id`, `student_name`, `uploaded_by_name` (the parent's name; `null` for staff uploads)
-  and `uploaded_by_kind` (`guardian` | `school`).
+  and `uploaded_by_kind` (`guardian` | `school`; `null` when the system filed the document, see
+  below).
 - `file_url` is a signed Active Storage redirect URL under `/api/active_storage/blobs/redirect/...`
   that downloads without a bearer token; it expires 15 minutes after the response that carried it
   (re-list to get a fresh one) and redirects to a bucket URL valid for 5 minutes. There is no
@@ -81,6 +82,28 @@ linked / other school, `422` invalid type, file, or non-enrolled child, `401`/`4
 - Errors: `404 not_found`; `422 validation_error` (`details.document_type` or `details.file`),
   `422 student_inactive`, `422 unsupported_media_type`, `422 file_too_large`; `401` unauthenticated;
   `403` for a non-guardian membership.
+
+**System-generated rows: `signed_contract`**
+
+When a contract is signed through the e-signature provider (Autentique) and its signed file is
+retrievable, the API files that PDF as a document of the contract's student, asynchronously (it can
+lag the signature by a few minutes). It appears in `GET /me/documents` for every guardian linked to
+the child, with this shape:
+
+| Field | Value |
+|-------|-------|
+| `document_type` | `signed_contract` (system-only; never accepted by `POST /me/documents`, which answers `422`) |
+| `status` | `approved` (no review step; never `pending` or `rejected`) |
+| `documentable_type` / `student_id` / `student_name` | `Student` / the contract's student |
+| `uploaded_by_kind`, `uploaded_by_name` | `null` and `null` — render a "system" sender |
+| `content_type`, `filename` | `application/pdf`, `contrato-assinado-<student-name>.pdf` |
+| `file_url` | same signed redirect URL as any other document |
+
+One document per contract: provider replays or re-runs never duplicate it. Staff see the same row in
+`GET /documents` (including the `guardian_id` filter below) and can discard it with
+`DELETE /documents/:id`; a discarded copy is not re-filed. `approve`/`reject` answer `409` because
+the row is already `approved`. Backfill for contracts signed earlier: `bin/rails
+signature:backfill_signed_documents[school_id]` (idempotent; `school_id` optional).
 
 ---
 

@@ -25,6 +25,8 @@ class Contract < ApplicationRecord
 
   has_many :charges, dependent: :destroy
   has_many :notifications, dependent: :nullify
+  # The signed PDF filed into the family's "Meus documentos" once the provider has returned it.
+  has_one :signed_document, class_name: "Document", dependent: :nullify
 
   validates :status, inclusion: { in: STATUSES }
   validates :signature_status, inclusion: { in: SIGNATURE_STATUSES }
