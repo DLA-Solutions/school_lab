@@ -190,6 +190,25 @@ Default seed: enrollment form, guardian ID, medical authorization, transfer cert
 
 ---
 
+## Compliance
+
+Staff with `manage_documents`; school-level files only. PRD:
+[`compliance.md`](../../prds/documents-and-archive/compliance.md). Exact shapes are fixed by the
+implementation and its request spec.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/compliance_documents` | List (`document_type`, page); newest first |
+| `POST` | `/compliance_documents` | Multipart: `document_type`, `file`, optional `title` |
+| `GET` | `/compliance_documents/:id` | Show with file URL |
+| `DELETE` | `/compliance_documents/:id` | Discard |
+
+`document_type` ∈ `sanitary_inspection`, `fire_department_certificate`,
+`municipal_education_council_resolution`, `state_education_council_resolution`, `pest_control`,
+`water_tank_cleaning`, `first_aid_certificate`.
+
+---
+
 ## Migration from fintech-first
 
 | Legacy route | Archive route |
@@ -204,4 +223,4 @@ UC-07 in fintech-first PRD marked **deprecated** — behaviour preserved until W
 
 ## OpenAPI tags
 
-`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`
+`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`, `Compliance`

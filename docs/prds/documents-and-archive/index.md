@@ -3,7 +3,7 @@
 > Status: validated  
 > Relation to School Lab: core MVP domain #8 per [`docs/product-map.md`](../../product-map.md) §5  
 > Capability IDs: see [Competitive grounding](#competitive-grounding) — **12** canonical `documents.*` rows in [`capability-taxonomy.yaml`](../../product/capability-taxonomy.yaml) (**5** MVP)  
-> Domain PRDs: [`archive.md`](archive.md) (BC1 — MVP), [`retention.md`](retention.md) (BC2 — P2 hooks), [`guardian-requests.md`](guardian-requests.md) (BC3 — implemented backfill)
+> Domain PRDs: [`archive.md`](archive.md) (BC1 — MVP), [`retention.md`](retention.md) (BC2 — P2 hooks), [`guardian-requests.md`](guardian-requests.md) (BC3 — implemented backfill), [`compliance.md`](compliance.md) (BC5 — school regulatory documents)
 > Modeling: [`docs/modeling/008-documents-archive.md`](../../modeling/008-documents-archive.md)  
 > API: [`docs/api/v1/documents-and-archive.md`](../../api/v1/documents-and-archive.md)  
 > Traceability: BR-/UC-/AC- IDs per bounded context — see [`traceability.md`](../../product/traceability.md)
@@ -83,6 +83,7 @@ Competitor presence: [`parity-matrix.md`](../../product/parity-matrix.md#documen
 | Manage retention policy | `documents.manage_retention_policy` | P2 | [`retention.md`](retention.md) | NFR-002; [`open-questions.md`](../../open-questions.md) § Digital archive |
 | Generate official minutes (Livro Ata) | `documents.generate_official_minutes` | P2 | — *(future `livro-ata.md`)* | [`vision.md`](../../vision.md) §6 — high priority phase 2 |
 | Collect minutes signatures | `documents.collect_minutes_signatures` | P2 | — *(future `livro-ata.md`)* | Valid digital signature for Conselho audits |
+| Store school compliance document | `documents.store_compliance_document` | MVP | [`compliance.md`](compliance.md) | `[product decision]` — stakeholder request 2026-10-21 |
 | Semantic archive search | `documents.search_archive_semantic` | P2 | — *(future `livro-ata.md`)* | Vision stakeholder interest; pgvector TBD |
 | Issue school transcript | `documents.issue_transcript` | P2 | — *(future `certificates.md`)* | Under-represented in competitor catalog |
 | Issue official declarations | `documents.issue_official_declaration` | P2 | — *(future `certificates.md`)* | Enrollment, quitação, formal certificates |
@@ -159,6 +160,7 @@ MVP matches **out**: Livro Ata, digital signatures, semantic search — **phase 
 | **BC1 — Archive** | [`archive.md`](archive.md) | How are files stored, typed, searched, shared with guardians, and exported for audit? |
 | **BC2 — Retention** | [`retention.md`](retention.md) | What retention hooks exist in MVP? What is deferred for configurable policy (P2)? |
 | **BC3 — Guardian requests** | [`guardian-requests.md`](guardian-requests.md) | How do Responsáveis create/follow Meus pedidos and staff work the Solicitações queue? |
+| **BC5 — Compliance** | [`compliance.md`](compliance.md) | Where does staff keep the school's own regulatory documents (health inspection, fire certificate, council resolutions, pest control, water tank, first aid)? |
 
 **Future P2 bounded contexts** (not in this increment):
 

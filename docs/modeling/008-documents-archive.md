@@ -61,6 +61,15 @@ Migration path: existing `documents` rows map to `archive_documents` with
 | `review_status` | `pending` \| `approved` \| `rejected` — KYC subset |
 | Active Storage | `has_one_attached :file` |
 
+## Compliance (BC5)
+
+PRD: [`compliance.md`](../prds/documents-and-archive/compliance.md). No new table: rows in
+`documents` with `documentable_type = "School"`, `documentable_id = school_id`, `status = approved`
+and `document_type` from the closed compliance catalog (`sanitary_inspection`,
+`fire_department_certificate`, `municipal_education_council_resolution`,
+`state_education_council_resolution`, `pest_control`, `water_tank_cleaning`,
+`first_aid_certificate`). Guardian-facing queries already exclude `School` documentables.
+
 ## Conselho audit list (MVP minimum)
 
 Document types seeded per school template: enrollment form, guardian ID copy, medical authorization,
