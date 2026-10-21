@@ -190,6 +190,24 @@ Default seed: enrollment form, guardian ID, medical authorization, transfer cert
 
 ---
 
+## Livro Ata
+
+Tenant routes; roles `director` / `coordination` / `secretary` only. PRD:
+[`livro-ata.md`](../../prds/documents-and-archive/livro-ata.md).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/minutes_books` | List books (`year` filter) |
+| `POST` | `/minutes_books` | Create book (`name`, `year`) |
+| `GET` | `/minutes_entries` | List; `q` (participant name), `year`, `kind`, `status`, `minutes_book_id` |
+| `POST` | `/minutes_entries` | Create draft (`minutes_book_id`, `kind`, `title`, `held_on`, `body`, `participants[]`) |
+| `GET` / `PATCH` | `/minutes_entries/:id` | Show / edit draft |
+| `GET` | `/minutes_entries/:id/pdf` | Preview or signed PDF |
+| `POST` | `/minutes_entries/:id/send_for_signature` | Render PDF, create Autentique document |
+| `POST` | `/minutes_entries/:id/cancel` | Cancel draft / pending |
+
+---
+
 ## Migration from fintech-first
 
 | Legacy route | Archive route |
@@ -204,4 +222,4 @@ UC-07 in fintech-first PRD marked **deprecated** — behaviour preserved until W
 
 ## OpenAPI tags
 
-`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`
+`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`, `Minutes`
