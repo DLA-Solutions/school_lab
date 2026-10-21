@@ -477,6 +477,63 @@ describe('StaffCommunication', () => {
     });
   });
 
+  it('labels a director conversation Direção on All and keeps it out of For me', async () => {
+    const coordinationThread = {
+      id: 3,
+      student_id: 9,
+      student_name: 'Lara Nogueira',
+      audience: 'coordination',
+      teacher_id: null,
+      teacher_name: null,
+      last_message_at: '2026-10-06T14:00:00.000Z',
+      last_message_body: 'Para a coordenação',
+      school_class_id: 310,
+      sender_line: 'Diego, pai da Lara — 1º ano',
+    };
+    const directorThread = {
+      id: 5,
+      student_id: 10,
+      student_name: 'Theo Nogueira',
+      audience: 'director',
+      teacher_id: null,
+      teacher_name: null,
+      last_message_at: '2026-10-06T13:00:00.000Z',
+      last_message_body: 'Para a direção',
+      school_class_id: 310,
+      sender_line: 'Marina, mãe do Theo — 2º ano',
+    };
+
+    server.use(
+      http.get(apiUrl(`${BASE}/conversations`), ({ request }) => {
+        const audience = new URL(request.url).searchParams.get('audience');
+        const data =
+          audience === 'coordination' ? [coordinationThread] : [coordinationThread, directorThread];
+        return HttpResponse.json({
+          data,
+          meta: { page: 1, per_page: 25, total: data.length },
+        });
+      }),
+      http.get(apiUrl(`${BASE}/conversations/:id/messages`), () => HttpResponse.json({ data: [] })),
+      http.get(apiUrl('/api/v1/notifications'), () =>
+        HttpResponse.json({
+          data: [],
+          meta: { page: 1, per_page: 25, total: 0, unread_count: 0 },
+        }),
+      ),
+    );
+
+    renderPage([coordinationMembership]);
+
+    expect(await screen.findByText('Diego, pai da Lara — 1º ano')).toBeInTheDocument();
+    expect(screen.queryByText('Marina, mãe do Theo — 2º ano')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Direção/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Todas' }));
+
+    expect(await screen.findByText('Marina, mãe do Theo — 2º ano')).toBeInTheDocument();
+    expect(screen.getByText(/Direção/)).toBeInTheDocument();
+  });
+
   it('shows coordination every conversation on All and only its own channel on For me', async () => {
     const coordinationThread = {
       id: 3,

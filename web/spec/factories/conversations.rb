@@ -11,6 +11,10 @@ FactoryBot.define do
       audience { "secretary" }
     end
 
+    trait :director do
+      audience { "director" }
+    end
+
     trait :with_teacher do
       audience { "teacher" }
       teacher { association :teacher, school: school }

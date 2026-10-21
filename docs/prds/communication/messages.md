@@ -14,7 +14,9 @@
 
 ## Objective
 
-Let a family talk with the school about one child. The family chooses **coordination** (`coordination`), **secretary** (`secretary`), or **one teacher by name**. Every guardian linked to that child shares those conversations. The school side answers according to role. Notice of a new message is the existing in-app bell only.
+Let a family talk with the school about one child. The family chooses **coordination** (`coordination`), **secretary** (`secretary`), the school's **Direção** (`director`), or **one teacher by name**. Every guardian linked to that child shares those conversations. The school side answers according to role. Notice of a new message is the existing in-app bell only.
+
+> **Product decision (change request, 2026-10-21).** The user asked that guardians can also write to the Direção, not only to coordination, secretary, and the child's teachers. `director` is now a guardian-selectable audience. The earlier text that said director is "not a destination" is superseded by this section and by BR-M01, BR-M02, BR-M03, BR-M05, BR-M07, UC-M01 to UC-M03, the Permissions table, and AC-M02, AC-M03, and AC-M13 to AC-M16. The teacher destination was already in this PRD and is unchanged.
 
 ---
 
@@ -38,14 +40,14 @@ The current class and the teaching assignment are the live records (`students.sc
 
 | Capability | `capability_id` | This delivery | Evidence |
 |------------|-----------------|---------------|----------|
-| Send direct message | `communication.send_direct_message` | yes — family to coordination, secretary, or one named teacher | [`proesc/comunicacao/funcionalidades-por-ator.md`](../../ref/proesc/comunicacao/funcionalidades-por-ator.md) (recados), [`agenda-edu/comunicacao/funcionalidades-por-ator.md`](../../ref/agenda-edu/comunicacao/funcionalidades-por-ator.md), [`classapp/comunicacao/funcionalidades-por-ator.md`](../../ref/classapp/comunicacao/funcionalidades-por-ator.md) |
+| Send direct message | `communication.send_direct_message` | yes — family to coordination, secretary, Direção (`director`), or one named teacher | [`proesc/comunicacao/funcionalidades-por-ator.md`](../../ref/proesc/comunicacao/funcionalidades-por-ator.md) (recados), [`agenda-edu/comunicacao/funcionalidades-por-ator.md`](../../ref/agenda-edu/comunicacao/funcionalidades-por-ator.md), [`classapp/comunicacao/funcionalidades-por-ator.md`](../../ref/classapp/comunicacao/funcionalidades-por-ator.md) |
 | Manage message inbox | `communication.manage_message_inbox` | yes — role-scoped inbox | Agenda Edu inbox; ClassApp conversation list |
 | Send group message | `communication.send_group_message` | no — class threads are out of this delivery | [`DIV-communication-001`](../../ref/divergencias.md) |
 | Edit message content | `communication.edit_message_content` | no — a sent message stays as sent | Agenda Edu, ClassApp edit history (not adopted here) |
 | Schedule message delivery | `communication.schedule_message_delivery` | no | ClassApp deferred send (not adopted here) |
 | General operations | `communication.manage_communication_operations` | no — this delivery is the four endpoints in the API narrative | Catch-all pending a finer split |
 
-Market evidence justifies a parent↔school thread. The destination list, the shared guardian thread, the role matrix, and the refusal to edit or approve are `[product decision]`.
+Market evidence justifies a parent↔school thread. The destination list, the Direção destination (added by the user's change request, 2026-10-21), the shared guardian thread, the role matrix, and the refusal to edit or approve are `[product decision]`.
 
 ---
 
@@ -53,11 +55,11 @@ Market evidence justifies a parent↔school thread. The destination list, the sh
 
 | Actor | Surfaces | Notes |
 |-------|----------|-------|
-| guardian (UI: **Responsável**) | Web SPA, API | Chooses coordination, secretary, or a named teacher for one child. Shares each conversation with the other guardians of that child. |
+| guardian (UI: **Responsável**) | Web SPA, API | Chooses coordination, secretary, Direção, or a named teacher for one child. Shares each conversation with the other guardians of that child. |
 | teacher | Web SPA, API | Sees and replies only where `conversations.teacher_id` is that teacher, and only while they have a kept `teaching_assignment` on the child's current class. |
 | secretary (`system_key` `secretary`) | Web SPA, API | Sees and replies only on `audience = secretary`. |
 | coordination (`system_key` `coordination`) | Web SPA, API | Inbox "For me" (pt-BR **Para mim**) is `audience = coordination`. Also sees every other conversation and can reply in any of them. |
-| director (`system_key` `director`, UI: **Direção**) | Web SPA, API | Not a destination. Reads and replies in every conversation. |
+| director (`system_key` `director`, UI: **Direção**) | Web SPA, API | A guardian can address the Direção (`audience = director`). Reads and replies in every conversation, including the Direção conversation. |
 | student | — | No login. |
 
 School routes and the bell deep link are specified with the SPA work. This PRD freezes who may read and write.
@@ -79,15 +81,15 @@ School routes and the bell deep link are specified with the SPA work. This PRD f
 
 BR-M01 — `capability_id`: `communication.send_direct_message`
 
-A **conversation** belongs to one school and one student. `audience` is `coordination`, `secretary`, or `teacher`. A message sent to secretary is a different conversation from one sent to coordination or to a teacher, and from one sent to another teacher of the same child.
+A **conversation** belongs to one school and one student. `audience` is `coordination`, `secretary`, `director`, or `teacher`. A message sent to secretary is a different conversation from one sent to coordination, to director, or to a teacher, and from one sent to another teacher of the same child.
 
 BR-M02
 
-`teacher_id` is required when `audience` is `teacher` and null otherwise. There is at most one conversation per `(school_id, student_id, audience)` when `teacher_id` is null, and at most one per `(school_id, student_id, teacher_id)` when `audience` is `teacher`. The first successful send creates the row. A later send appends a message on that same row.
+`teacher_id` is required when `audience` is `teacher` and null otherwise (`coordination`, `secretary`, and `director` rows have `teacher_id` null). There is at most one conversation per `(school_id, student_id, audience)` when `teacher_id` is null, so one `director` row per child, and at most one per `(school_id, student_id, teacher_id)` when `audience` is `teacher`. The first successful send creates the row. A later send appends a message on that same row.
 
 BR-M03
 
-The family chooses the destination. The destination list is coordination, secretary, and the teachers of the child's **current class**. A teacher who teaches two subjects in that class appears once. When the child has no teacher, the teacher destination is absent. Coordination and director do not receive an empty teacher conversation.
+The family chooses the destination. The destination list is coordination, secretary, Direção (`director`), and the teachers of the child's **current class**. Direção is always listed, for every child, including a child with no teacher and a school with no active director membership: it is an audience, not a person, so it does not depend on who holds the role. A teacher who teaches two subjects in that class appears once. When the child has no teacher, the teacher destination is absent. Coordination and director do not receive an empty teacher conversation.
 
 BR-M04
 
@@ -105,7 +107,7 @@ Who can read and reply:
 | Secretary | `audience = secretary` only |
 | Teacher | `audience = teacher` and `teacher_id` is that teacher, and only while a kept `teaching_assignment` exists on the child's current class |
 | Coordination | `audience = coordination` ("For me") and every other conversation; may reply in any |
-| Director | Every conversation; may reply in any. Director is not an `audience` value |
+| Director | Every conversation, including `audience = director` (Direção); may reply in any |
 
 A teacher who no longer has that assignment does not see or reply, including on a conversation that already exists. The row stays for the family, coordination, and director.
 
@@ -122,9 +124,9 @@ Recipients are every user who can see the conversation, except the sender. Rows 
 - Linked guardians of the child, except the sender.
 - Secretary: active kept staff memberships whose role template `system_key` is `secretary`, only when `audience` is `secretary`.
 - The named teacher: the user of `teacher_id`, only while that teacher still has a kept `teaching_assignment` on the child's current class.
-- Coordination (`system_key` `coordination`) and director (`system_key` `director`) on every audience, because both can see every conversation.
+- Coordination (`system_key` `coordination`) and director (`system_key` `director`) on every audience, because both can see every conversation. On `audience = director` this is the director memberships.
 
-Secretary memberships are notified only for secretary conversations. A teacher is notified only for the conversation where they are `teacher_id`, and only while the assignment still holds.
+Secretary memberships are notified only for secretary conversations. A teacher is notified only for the conversation where they are `teacher_id`, and only while the assignment still holds. A `director` conversation rings the linked guardians (except the sender), coordination, and director memberships; it never rings secretary or a teacher.
 
 BR-M08
 
@@ -143,9 +145,9 @@ Input: `student_id` for a guardian linked to that child.
 Flow
 
 1. Confirm the guardian link and the school. Otherwise `404`.
-2. Always include coordination and secretary.
-3. Include each teacher who has a kept `teaching_assignment` on the child's current class, once per teacher, with id and name.
-4. Omit the teacher destination when that set is empty.
+2. Always include coordination, secretary, and director (Direção), in that order, with `teacher_id` and `name` null.
+3. Include each teacher who has a kept `teaching_assignment` on the child's current class, once per teacher, with id and name, after director. Teachers are ordered by id.
+4. Omit the teacher destination when that set is empty. Never omit director.
 
 ### UC-M02 — Send a message
 
@@ -253,7 +255,7 @@ Deny by default. This delivery does not gate on `send_messages`, `moderate_messa
 | `secretary` | — | Secretary conversations |
 | Teacher with a current-class assignment | — | Own `teacher_id` only |
 | `coordination` | — | All; may limit the list to `audience=coordination` |
-| `director` | — | All |
+| `director` | — | All, including `audience = director` |
 | Anyone else | no | no |
 
 An active kept membership is `memberships.status = active` and `discarded_at` null. Secretary, coordination, and director match `staff_profiles.role_template.system_key`.
@@ -283,14 +285,14 @@ AC-M02
 
 - [ ] Given Lara's class has teacher Ana (two subjects) and teacher Bruno  
       When a linked guardian loads destinations  
-      Then Ana appears once, Bruno appears once, and coordination and secretary are present  
+      Then Ana appears once, Bruno appears once, and coordination, secretary, and director are present  
 - Source: `[product decision]` BR-M03
 
 AC-M03
 
 - [ ] Given Lara has no teaching assignment  
       When a linked guardian loads destinations  
-      Then coordination and secretary are present and there is no teacher destination  
+      Then coordination, secretary, and director are present and there is no teacher destination  
 - Source: `[product decision]` BR-M03
 
 AC-M04
@@ -356,14 +358,44 @@ AC-M12
       Then bell rows exist for the other linked guardians, coordination memberships, and director memberships, and not for the sender and not for secretary  
 - Source: `[product decision]` BR-M07
 
+AC-M13
+
+- [ ] Given Lara's school has no active director membership, and Lara has no teaching assignment  
+      When a linked guardian loads destinations  
+      Then `director` is listed with `teacher_id` null and `name` null, after secretary, and the guardian can still send to it  
+- Source: `[product decision]` (change request 2026-10-21) BR-M03
+
+AC-M14
+
+- [ ] Given a linked guardian of Lara sends to `audience = director`  
+      When the transaction commits  
+      Then one conversation exists with `teacher_id` null, bell rows with `kind=message` exist for the other linked guardians, coordination memberships, and director memberships, and none exist for the sender, for secretary, or for a teacher of Lara  
+- Source: `[product decision]` (change request 2026-10-21) BR-M02, BR-M07
+
+AC-M15
+
+- [ ] Given a Direção conversation for Lara  
+      When another linked guardian of Lara reads it, and a coordination and a director membership read and reply on it  
+      Then the guardian and both staff reads succeed and the replies append; a secretary membership and Ana (a teacher of Lara) receive `404`; a guardian of another family receives `404`  
+- Source: `[product decision]` (change request 2026-10-21) BR-M05, BR-M08
+
+AC-M16
+
+- [ ] Given Lara's class has teacher Ana, and a linked guardian has already sent to Ana  
+      When the same guardian loads destinations and then sends to `audience = director`  
+      Then the teacher row for Ana is still listed once with her `teacher_id`, the teacher send still appends to the existing teacher conversation, and the director send creates a separate conversation  
+- Source: `[product decision]` (change request 2026-10-21) BR-M02, BR-M03 (regression of AC-M02, AC-M08)
+
 ---
 
 ## Open items / pending decisions
 
 - [ ] How long message bodies are kept, and what happens when the child leaves — [`open-questions.md`](../../open-questions.md) LGPD retention. This delivery does not discard messages in the meantime.
+- [ ] Staff-side Direção from the roster: `GET /roster` and `GET /search` do not attach or offer the `director` audience. Decide whether a staff member (for example coordination) should open or start a Direção thread from the roster, and which row the roster shows for it. Not decided; the guardian path is complete.
 - [ ] Whether staff reads of a family thread are access-audited — same LGPD section. Not built here.
 - [ ] `student_guardians.relationship` in `schema.dbml` still says `parent | guardian | other`. Live rows and BR-M04 use `father | mother | other`. This cut does not migrate that column.
 - [x] Bell recipients are every user who can see the conversation, except the sender. Coordination and director are notified on every audience. Secretary only when `audience` is `secretary`. The named teacher only while they still have a kept `teaching_assignment` on the child's current class. Linked guardians always, except the sender.
+- [x] **Direção as a family-chat destination** (`audience = director`, UI **Direção**). Product decision from the user's change request on 2026-10-21, replacing the earlier "director is not a destination" wording. Decisions taken with it: (a) Direção is an audience, not a person, so it is always listed in `GET /destinations` for every child, even with no active director membership, and the `director` conversation is still writable; (b) the destination has `name` null, because the UI label comes from the `communication.audience.director` locale key; (c) the bell goes to the linked guardians, coordination, and director memberships, never to secretary or teachers; (d) the staff-side roster and search keep their current destination lists (coordination, secretary, teachers), so Direção is offered to guardians only in this change. Staff-side Direção threads are a follow-up, not part of this change; see the open item below.
 - [x] `GET /communication/search?q=` was added after this PRD was frozen — a staff-facing,
   name-based type-ahead (student name or a guardian's name) so staff can jump to starting a
   conversation without first picking a `Turma`. It is additive UX only: visibility mirrors

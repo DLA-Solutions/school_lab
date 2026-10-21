@@ -90,6 +90,7 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
     headers = auth_headers_for(actor)
     conversations = {
       "secretary" => create(:conversation, :secretary, school: school, student: student),
+      "director" => create(:conversation, :director, school: school, student: student),
       "coordination" => create(:conversation, school: school, student: student),
       "teacher" => create(:conversation, :with_teacher, school: school, student: student, teacher: teacher)
     }
@@ -143,7 +144,7 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
         type: :object,
         properties: {
           student_id: { type: :integer },
-          audience: { type: :string, enum: %w[coordination secretary teacher] },
+          audience: { type: :string, enum: %w[coordination secretary director teacher] },
           teacher_id: { type: :integer, nullable: true },
           body: { type: :string }
         },
@@ -173,6 +174,18 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
           expect(listed.map { |row| row["id"] }).to eq([ stored.id ])
           expect(listed.first).to include("sender_line" => "Diego, pai da Lara Costa — 1º ano")
           expect(listed.first.keys).to match_array(%w[id sender_membership_id sender_line body sent_at])
+        end
+      end
+
+      response "201", "a linked guardian writes to the Direção with no teacher" do
+        let(:payload) { { student_id: student.id, audience: "director", body: "Preciso falar com a direção" } }
+
+        run_test! do |post_response|
+          body = JSON.parse(post_response.body).fetch("data")
+          conversation = Conversation.find(body.fetch("conversation_id"))
+
+          expect(conversation).to have_attributes(audience: "director", teacher_id: nil)
+          expect(body.dig("message", "sender_line")).to eq("Diego, pai da Lara Costa — 1º ano")
         end
       end
 
@@ -380,6 +393,34 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
         end
       end
 
+      response "200", "a linked guardian reads the Direção conversation of her child" do
+        let!(:conversation) { create(:conversation, :director, school: school, student: student) }
+        let(:conversation_id) { conversation.id }
+
+        run_test! do |response|
+          expect(response).to have_http_status(:ok)
+          expect(JSON.parse(response.body)).to include("data", "meta")
+        end
+      end
+
+      response "404", "secretary cannot read a Direção conversation" do
+        let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
+        let(:conversation_id) { create(:conversation, :director, school: school, student: student).id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("not_found")
+        end
+      end
+
+      response "404", "a teacher of the class cannot read a Direção conversation" do
+        let(:Authorization) { auth_headers_for(teacher_user)["Authorization"] }
+        let(:conversation_id) { create(:conversation, :director, school: school, student: student).id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("not_found")
+        end
+      end
+
       response "200", "secretary reads a secretary conversation" do
         let(:Authorization) { auth_headers_for(secretary_user)["Authorization"] }
         let!(:conversation) { create(:conversation, :secretary, school: school, student: student) }
@@ -443,11 +484,11 @@ RSpec.describe "Api::V1::Schools::Communication::Messages", type: :request do
     end
   end
 
-  it "lets coordination read and reply on secretary, coordination, and teacher conversations" do
+  it "lets coordination read and reply on secretary, Direção, coordination, and teacher conversations" do
     reply_on_every_audience(coordination_user, coordination_membership)
   end
 
-  it "lets the director read and reply on secretary, coordination, and teacher conversations" do
+  it "lets the director read and reply on secretary, Direção, coordination, and teacher conversations" do
     reply_on_every_audience(director_user, director_membership)
   end
 end

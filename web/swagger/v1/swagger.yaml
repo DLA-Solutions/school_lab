@@ -4165,7 +4165,7 @@
         ],
         "responses": {
           "200": {
-            "description": "a child with no teaching assignment lists coordination and secretary only"
+            "description": "a child with no teaching assignment lists coordination, secretary, and director only"
           },
           "404": {
             "description": "unknown student"
@@ -4243,6 +4243,7 @@
                     "enum": [
                       "coordination",
                       "secretary",
+                      "director",
                       "teacher"
                     ]
                   },

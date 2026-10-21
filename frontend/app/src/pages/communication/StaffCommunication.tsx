@@ -61,12 +61,14 @@ type OpenThread =
 const AUDIENCE_ORDER: Record<ConversationAudience, number> = {
   coordination: 0,
   secretary: 1,
-  teacher: 2,
+  director: 2,
+  teacher: 3,
 };
 
 const AUDIENCE_LABEL: Record<Exclude<ConversationAudience, 'teacher'>, MessageKey> = {
   coordination: 'communication.audience.coordination',
   secretary: 'communication.audience.secretary',
+  director: 'communication.audience.director',
 };
 
 const destinationKeyOf = (audience: ConversationAudience, teacherId: number | null) =>

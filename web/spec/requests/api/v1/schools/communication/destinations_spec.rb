@@ -63,7 +63,7 @@ RSpec.describe "Api::V1::Schools::Communication::Destinations", type: :request d
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :student_id, in: :query, type: :integer, required: true
 
-      response "200", "coordination, secretary, and each class teacher once" do
+      response "200", "coordination, secretary, director, and each class teacher once" do
         run_test! do |response|
           body = JSON.parse(response.body)
 
@@ -71,12 +71,23 @@ RSpec.describe "Api::V1::Schools::Communication::Destinations", type: :request d
           expect(body.fetch("data")).to eq([
             { "audience" => "coordination", "teacher_id" => nil, "name" => nil },
             { "audience" => "secretary", "teacher_id" => nil, "name" => nil },
+            { "audience" => "director", "teacher_id" => nil, "name" => nil },
             { "audience" => "teacher", "teacher_id" => teacher.id, "name" => "Ana Lima" }
           ])
         end
       end
 
-      response "200", "a child with no teaching assignment lists coordination and secretary only" do
+      response "200", "director is listed once even when the school has a director membership" do
+        let!(:director_membership) { staff_membership("director", create(:user)) }
+
+        run_test! do |response|
+          audiences = JSON.parse(response.body).fetch("data").map { |row| row["audience"] }
+
+          expect(audiences).to eq(%w[coordination secretary director teacher])
+        end
+      end
+
+      response "200", "a child with no teaching assignment lists coordination, secretary, and director only" do
         let(:student_id) { unassigned_student.id }
 
         run_test! do |response|
@@ -84,7 +95,8 @@ RSpec.describe "Api::V1::Schools::Communication::Destinations", type: :request d
 
           expect(body.fetch("data")).to eq([
             { "audience" => "coordination", "teacher_id" => nil, "name" => nil },
-            { "audience" => "secretary", "teacher_id" => nil, "name" => nil }
+            { "audience" => "secretary", "teacher_id" => nil, "name" => nil },
+            { "audience" => "director", "teacher_id" => nil, "name" => nil }
           ])
         end
       end
