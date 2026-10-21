@@ -577,6 +577,23 @@ export const jsonError = (
 ) => HttpResponse.json({ error: { code, message, details } }, { status });
 
 /** Pagy-style envelope: `page` / `per_page` off the query string, `total` before slicing. */
+/** The closed compliance catalogue the API ships in the list `meta.types`, in display order. */
+export const COMPLIANCE_TYPES = [
+  { key: 'sanitary_inspection', label: 'Vigilância sanitária' },
+  { key: 'fire_department_certificate', label: 'Certificado dos bombeiros' },
+  {
+    key: 'municipal_education_council_resolution',
+    label: 'Resolução do Conselho Municipal de Educação',
+  },
+  {
+    key: 'state_education_council_resolution',
+    label: 'Resolução do Conselho Estadual de Educação',
+  },
+  { key: 'pest_control', label: 'Dedetização' },
+  { key: 'water_tank_cleaning', label: "Limpeza da caixa d'água" },
+  { key: 'first_aid_certificate', label: 'Certificado de primeiros socorros' },
+];
+
 export const paginated = <T>(rows: T[], url: URL) => {
   const page = Number(url.searchParams.get('page') ?? 1);
   const perPage = Number(url.searchParams.get('per_page') ?? 25);
@@ -1256,6 +1273,41 @@ export const handlers = [
     ].filter((document) => !studentId || String(document.student_id) === studentId);
 
     return paginated(documents, new URL(request.url));
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/compliance_documents'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const url = new URL(request.url);
+    const documentType = url.searchParams.get('document_type');
+    const documents = [
+      {
+        id: 41,
+        document_type: 'pest_control',
+        document_type_label: 'Dedetização',
+        status: 'approved',
+        uploaded_by_id: 1,
+        filename: 'dedetizacao-2026.pdf',
+        content_type: 'application/pdf',
+        byte_size: 183_204,
+        file_url: '/rails/active_storage/blobs/redirect/signed/dedetizacao-2026.pdf',
+        created_at: '2026-10-21T19:07:58.908-03:00',
+        updated_at: '2026-10-21T19:07:59.355-03:00',
+      },
+    ].filter((document) => !documentType || document.document_type === documentType);
+    const page = Number(url.searchParams.get('page') ?? 1);
+    const perPage = Number(url.searchParams.get('per_page') ?? 25);
+
+    return HttpResponse.json({
+      data: documents.slice((page - 1) * perPage, page * perPage),
+      meta: { page, per_page: perPage, total: documents.length, types: COMPLIANCE_TYPES },
+    });
   }),
 
   http.get(apiUrl('/api/v1/schools/:schoolId/documents'), ({ request, params }) => {
