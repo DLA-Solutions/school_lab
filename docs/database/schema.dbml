@@ -1775,6 +1775,78 @@ Table daily_routine_entries {
   Note: 'Daily routine note (BC11, "Rotina Infantil"): snack, diaper/bathroom counts, and free-text notes for one child on one day. No discarded_at — rows are upserted in place, never soft-deleted. Sending (status: sent) notifies the student\'s linked guardians once (BR-DR05); editing after send does not revert status or re-notify.'
 }
 
+// --- Livro Ata (BC4 — docs/prds/documents-and-archive/livro-ata.md) ---
+
+Table minutes_books {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  name varchar [not null]
+  year integer [not null]
+  created_by_membership_id integer
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, year, name) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL (BR-LA01)']
+  }
+
+  Note: 'Yearly Livro Ata container (BR-LA01). Groups minutes_entries; no workflow of its own.'
+}
+
+Table minutes_entries {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  minutes_book_id integer [not null]
+  school_class_id integer [note: 'Optional — only for kind = class_council']
+  kind varchar [not null, note: 'meeting | class_council | final_results (BR-LA02) — fixed at creation']
+  title varchar [not null]
+  held_on date [not null]
+  body text [note: 'Sanitized rich-text HTML (BR-LA03). LGPD: may contain children/family data']
+  status varchar [not null, default: 'draft', note: 'draft | pending_signature | signed | cancelled — AASM (BR-LA05)']
+  signature_provider varchar
+  provider_document_id varchar [note: 'Set only once the provider accepted the document (BR-LA06)']
+  signature_requested_at timestamp
+  signed_at timestamp
+  signed_document_url varchar [note: 'Provider address of the signed PDF; the file is copied to Active Storage']
+  created_by_membership_id integer
+  discarded_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, minutes_book_id)
+    (school_id, status)
+    provider_document_id
+  }
+
+  Note: 'Typed minutes (ata) written in the product, rendered to PDF and signed via Autentique. has_one_attached :pdf (Active Storage). BC7 incident atas are NOT rows here (BR-LA08).'
+}
+
+Table minutes_participants {
+  id integer [primary key, increment]
+  minutes_entry_id integer [not null]
+  school_id integer [not null]
+  membership_id integer [note: 'Nullable live link — name/email/cpf are the snapshot (BR-LA04)']
+  guardian_id integer
+  student_id integer
+  name varchar [not null, note: 'Snapshot — searchable (BR-LA07)']
+  role_label varchar
+  email varchar
+  cpf varchar [note: 'LGPD: redacted from audits and list payloads (BR-LA09). Required when signs = true']
+  signs boolean [not null, default: false, note: 'Becomes an Autentique signer; never true for students']
+  signed_at timestamp
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    minutes_entry_id
+    (school_id, name)
+  }
+
+  Note: 'Person involved in a minutes entry (BR-LA04): historical snapshot, not a live view of staff/guardian/student.'
+}
+
 // --- CRM (no PRD yet — see docs/open-questions.md "CRM contacts") ---
 
 Table crm_contacts {
