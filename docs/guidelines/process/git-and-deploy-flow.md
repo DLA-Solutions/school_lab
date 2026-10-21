@@ -52,7 +52,8 @@ Environment `staging`: `JWT_SECRET_KEY_STAGING`, `POSTMARK_API_TOKEN_STAGING`,
 `API_DOCS_USERNAME`, `API_DOCS_PASSWORD`.
 
 Environment `production`: `JWT_SECRET_KEY_PRODUCTION`,
-`POSTMARK_API_TOKEN_PRODUCTION`. The production JWT does not go in the staging
+`POSTMARK_API_TOKEN_PRODUCTION`, `R2_ACCESS_KEY_ID_PRODUCTION`,
+`R2_SECRET_ACCESS_KEY_PRODUCTION`. The production JWT does not go in the staging
 environment.
 
 ### Local fallback

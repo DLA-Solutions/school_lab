@@ -715,8 +715,23 @@ Deploy setup is documented in `docs/guidelines/process/deployment.md`.
       in the same transaction as the domain writes. Only Solid Cable uses a separate
       database (`*_cable`).
 - [x] **Active Storage backend in production** — **Decided:** S3-compatible object storage for
-      production (`:amazon` service); local volume acceptable staging/dev only. Aligns with
-      [`web-stack.md`](web-stack.md) and [`008-documents-archive.md`](modeling/008-documents-archive.md).
+      production; local volume acceptable staging/dev only. **Chosen provider (Oct 2026):
+      Cloudflare R2**, private bucket `scholarpremium`, Active Storage service `r2`
+      (`aws-sdk-s3`, `region: auto`). Staging stays on its own volume (no R2 bucket yet). Aligns
+      with [`web-stack.md`](web-stack.md), [`008-documents-archive.md`](modeling/008-documents-archive.md)
+      and [`guidelines/web/storage.md`](guidelines/web/storage.md).
+      - [ ] **R2 data migration** — blobs written to the Kamal volume before the switch stay on
+            `local` until `bin/rails storage:migrate_blobs` runs on production; then verify and
+            delete the volume copies. Not yet executed.
+      - [ ] **R2 backup / versioning** — no cross-region replica by default; decide object
+            versioning or a periodic copy to a second bucket (the old volume was not backed up either).
+      - [ ] **R2 lifecycle / retention** — configure lifecycle rules only after the LGPD retention
+            windows are signed off (§ LGPD).
+      - [ ] **Separate staging bucket** — optional; create a distinct bucket and token if staging
+            should exercise R2 (never reuse the production bucket).
+      - [ ] **Blob link re-authorization** — `file_url` links are 15-minute bearer links, not
+            checked again on click; a Pundit-gated streaming endpoint per attachment (bearer
+            header, object-URL in the SPA) would close that gap at the cost of client changes.
 - [ ] **`schema_format = :sql` for pgvector** — the extension is available in the
       databases but no `vector` column exists, so `schema.rb` loses nothing today. The
       first embedding migration (arriving with `ruby_llm`) requires switching to

@@ -205,6 +205,6 @@ the push delivery PRD ships — the `integrations/` slot is reserved; do not pre
 
 ## Out of scope
 
-- Active Storage S3 — Rails / AWS SDK configuration.
+- Active Storage (Cloudflare R2, S3-compatible) — Rails / AWS SDK configuration; see `storage.md`.
 - Inbound webhooks — Rack controllers + parsers, not outbound HTTP.
 - Email — mailer + provider env until a second email provider forces abstraction.

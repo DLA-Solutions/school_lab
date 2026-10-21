@@ -7,8 +7,9 @@
 
 ## Storage decision (Aug 2026)
 
-**Production:** **S3-compatible object storage** via Active Storage (`:amazon` service) — not
-local Kamal volume. Staging may use `:local` for dev economy. See
+**Production:** **Cloudflare R2** (S3-compatible, private bucket) via Active Storage (`:r2`
+service) — not local Kamal volume. Staging uses `:local` (own volume) for dev economy; see
+[`guidelines/web/storage.md`](../guidelines/web/storage.md). See
 [`open-questions.md`](../open-questions.md) § Infrastructure.
 
 Shared blob contract for: archive documents, message attachments, absence justifications,

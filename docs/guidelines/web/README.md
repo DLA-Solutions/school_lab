@@ -27,6 +27,7 @@ and architecture) — it does not repeat it.
 | **Auditing** | [`auditing.md`](auditing.md) | `auditing` | — |
 | **Jobs** | [`jobs.md`](jobs.md) | `jobs` | — |
 | **Serializers** | [`serializers.md`](serializers.md) | `serializers` | `review-api` |
+| **Storage (R2)** | [`storage.md`](storage.md) | `web-rails` | — |
 | **Mailers** | [`mailers.md`](mailers.md) | `mailers` | `write-rspec-spec` |
 | **Gateways** | [`gateways.md`](gateways.md) | `gateways` | `use-vendor-integration`, `review-vendor-integration` |
 | **Integrations** | [`integrations.md`](integrations.md) | `integrations` | `use-vendor-integration`, `review-vendor-integration` |

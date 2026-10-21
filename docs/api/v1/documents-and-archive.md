@@ -35,7 +35,7 @@ Base: `/api/v1/schools/:school_id/archive`
 | `POST` | `/documents/:id/approve` | Review queue (KYC subset) |
 | `POST` | `/documents/:id/reject` | With reason |
 
-Storage: Active Storage → S3 in production ([`008-documents-archive.md`](../../modeling/008-documents-archive.md)).
+Storage: Active Storage → Cloudflare R2 (private bucket) in production ([`008-documents-archive.md`](../../modeling/008-documents-archive.md)).
 
 ---
 
@@ -74,8 +74,10 @@ linked / other school, `422` invalid type, file, or non-enrolled child, `401`/`4
   documentable_type, documentable_id, filename, content_type, byte_size, file_url` plus
   `student_id`, `student_name`, `uploaded_by_name` (the parent's name; `null` for staff uploads)
   and `uploaded_by_kind` (`guardian` | `school`).
-- `file_url` is a signed Active Storage redirect URL that downloads without a bearer token; there
-  is no `GET /me/documents/:id`.
+- `file_url` is a signed Active Storage redirect URL under `/api/active_storage/blobs/redirect/...`
+  that downloads without a bearer token; it expires 15 minutes after the response that carried it
+  (re-list to get a fresh one) and redirects to a bucket URL valid for 5 minutes. There is no
+  `GET /me/documents/:id`.
 - Errors: `404 not_found`; `422 validation_error` (`details.document_type` or `details.file`),
   `422 student_inactive`, `422 unsupported_media_type`, `422 file_too_large`; `401` unauthenticated;
   `403` for a non-guardian membership.

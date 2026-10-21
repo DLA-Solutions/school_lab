@@ -33,7 +33,7 @@ Mark in DBML notes and restrict serialization:
 
 ## Storage
 
-- Production files: S3 via Active Storage ([`008-documents-archive.md`](../modeling/008-documents-archive.md)).
+- Production files: private Cloudflare R2 bucket via Active Storage, short-lived signed links only ([`storage.md`](../web/storage.md), [`008-documents-archive.md`](../modeling/008-documents-archive.md)).
 - Encrypt credentials: Active Record Encryption on Cora PEM fields.
 - Webhook payload retention: 180 days processed ([`open-questions.md`](../open-questions.md)).
 

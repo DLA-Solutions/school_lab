@@ -458,9 +458,9 @@ Cross-cutting: [`non-functional-requirements.md`](../../product/non-functional-r
 - **NFR-005:** Audit on upload, review, visibility change, supersede, export request.
 - **NFR-001:** Audit export job idempotent; hash verification in manifest.
 
-**Storage:** resolve S3 (or compatible) production backend before scale onboarding
-([`open-questions.md`](../../open-questions.md) § Infrastructure). MVP development may use
-local disk; PRD assumes object storage for production.
+**Storage:** production backend decided — Cloudflare R2 (S3-compatible) via Active Storage
+([`open-questions.md`](../../open-questions.md) § Infrastructure, [`storage.md`](../../guidelines/web/storage.md)).
+MVP development may use local disk; PRD assumes object storage for production.
 
 ---
 
