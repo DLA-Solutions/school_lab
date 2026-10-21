@@ -68,7 +68,9 @@ PRD: [`compliance.md`](../prds/documents-and-archive/compliance.md). No new tabl
 and `document_type` from the closed compliance catalog (`sanitary_inspection`,
 `fire_department_certificate`, `municipal_education_council_resolution`,
 `state_education_council_resolution`, `pest_control`, `water_tank_cleaning`,
-`first_aid_certificate`). Guardian-facing queries already exclude `School` documentables.
+`first_aid_certificate`). Guardian-facing queries already exclude `School` documentables, and a
+catalog `document_type` is only valid on a `School` documentable (model validation). `title` is
+accepted by the API but not stored (no column), as for the guardian upload.
 
 ## Conselho audit list (MVP minimum)
 

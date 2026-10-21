@@ -127,7 +127,7 @@ Tenant routes under `/api/v1/schools/:school_id` (shapes in
 | `POST` | `/compliance_documents` | UC-CP02 (multipart) |
 | `GET` | `/compliance_documents/:id` | UC-CP03 |
 | `DELETE` | `/compliance_documents/:id` | UC-CP04 |
-| `GET` | `/compliance_documents/types` | Catalog (`key`, `label`) — or expose via the list `meta` |
+| — | *(no `/types` route)* | Catalog (`key`, `label`) is returned in the list `meta.types` |
 
 ---
 

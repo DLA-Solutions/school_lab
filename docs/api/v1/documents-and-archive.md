@@ -192,20 +192,108 @@ Default seed: enrollment form, guardian ID, medical authorization, transfer cert
 
 ## Compliance
 
-Staff with `manage_documents`; school-level files only. PRD:
-[`compliance.md`](../../prds/documents-and-archive/compliance.md). Exact shapes are fixed by the
-implementation and its request spec.
+Staff with `manage_documents` only; school-level files only (BC5). PRD:
+[`compliance.md`](../../prds/documents-and-archive/compliance.md). Files are `documents` rows with
+`documentable_type = "School"`, `documentable_id = :school_id`, `status = approved`. Requires the
+`documents` module enabled for the school (`403 module_disabled` otherwise).
+
+Base: `/api/v1/schools/:school_id/compliance_documents`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/compliance_documents` | List (`document_type`, page); newest first |
-| `POST` | `/compliance_documents` | Multipart: `document_type`, `file`, optional `title` |
-| `GET` | `/compliance_documents/:id` | Show with file URL |
-| `DELETE` | `/compliance_documents/:id` | Discard |
+| `GET` | `/compliance_documents` | List kept files, newest first (`document_type`, `page`); catalog in `meta.types` |
+| `POST` | `/compliance_documents` | Multipart: `document_type`, `file`, optional `title` (accepted, not stored) |
+| `GET` | `/compliance_documents/:id` | Metadata with file URL |
+| `DELETE` | `/compliance_documents/:id` | Discard (`204`); sets `discarded_at` and `discarded_by_id` |
+
+There is no separate `types` endpoint: the closed catalog travels in the list `meta`, so the SPA can
+render a type with no file yet in the same request.
 
 `document_type` ∈ `sanitary_inspection`, `fire_department_certificate`,
 `municipal_education_council_resolution`, `state_education_council_resolution`, `pest_control`,
-`water_tank_cleaning`, `first_aid_certificate`.
+`water_tank_cleaning`, `first_aid_certificate` (labels from `documents.compliance_types.<key>`,
+`Accept-Language` aware: pt-BR default, `en`).
+
+### `GET /compliance_documents`
+
+Pagy params `page`/`per_page`. The `document_type` filter does not narrow `meta.types`; an unknown
+value returns an empty list.
+
+```json
+{
+  "data": [
+    {
+      "id": 41,
+      "document_type": "pest_control",
+      "document_type_label": "Dedetização",
+      "status": "approved",
+      "uploaded_by_id": 7,
+      "filename": "dedetizacao-2026.pdf",
+      "content_type": "application/pdf",
+      "byte_size": 183204,
+      "file_url": "/rails/active_storage/blobs/redirect/<signed_id>/dedetizacao-2026.pdf",
+      "created_at": "2026-10-21T19:07:58.908-03:00",
+      "updated_at": "2026-10-21T19:07:59.355-03:00"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 25,
+    "total": 1,
+    "types": [
+      { "key": "sanitary_inspection", "label": "Vigilância sanitária" },
+      { "key": "fire_department_certificate", "label": "Certificado dos bombeiros" },
+      { "key": "municipal_education_council_resolution", "label": "Resolução do Conselho Municipal de Educação" },
+      { "key": "state_education_council_resolution", "label": "Resolução do Conselho Estadual de Educação" },
+      { "key": "pest_control", "label": "Dedetização" },
+      { "key": "water_tank_cleaning", "label": "Limpeza da caixa d'água" },
+      { "key": "first_aid_certificate", "label": "Certificado de primeiros socorros" }
+    ]
+  }
+}
+```
+
+Each row is the same object as `data` below. Several files per type are kept (renewals); order is
+`created_at` descending.
+
+### `POST /compliance_documents`
+
+`multipart/form-data` with flat fields `document_type`, `file`, and optional `title` (the `documents`
+table has no title column, so it is ignored, as in "Meus documentos"). `file` is a PDF, JPEG or PNG
+up to 10 MB, checked on the bytes (the same limits as the guardian upload). `201`:
+
+```json
+{ "data": { "id": 41, "document_type": "pest_control", "document_type_label": "Dedetização",
+            "status": "approved", "uploaded_by_id": 7, "filename": "dedetizacao-2026.pdf",
+            "content_type": "application/pdf", "byte_size": 183204, "file_url": "/rails/active_storage/...",
+            "created_at": "...", "updated_at": "..." } }
+```
+
+### `GET /compliance_documents/:id`
+
+`200` with the same `{ "data": { ... } }` object. Another school's id, a student's file, a
+non-catalog document and a discarded file are all `404`.
+
+### Errors
+
+Standard envelope `{ "error": { "code", "message", "details" } }`.
+
+| Status | `error.code` | Condition |
+|--------|--------------|-----------|
+| 401 | `unauthorized` | No or invalid token |
+| 403 | `forbidden` | Guardian, or staff without `manage_documents` |
+| 403 | `module_disabled` | School has the `documents` module off |
+| 404 | `not_found` | Unknown school for the user, cross-school id, non-compliance or discarded id |
+| 422 | `validation_error` | Unknown `document_type` (`details.document_type`), missing/invalid `file` (`details.file`) |
+| 422 | `unsupported_media_type` | File bytes are not PDF/JPEG/PNG |
+| 422 | `file_too_large` | File over 10 MB |
+
+### Isolation from the archive
+
+Guardian surfaces (`/me/documents`, `GET /documents`, the policy scope) only ever resolve `Student`
+and `Guardian` owners, so compliance files never reach a family. The staff archive
+(`POST /documents`) refuses a compliance `document_type` unless the owner is the School
+(`422`, `details.documentable_type`).
 
 ---
 
