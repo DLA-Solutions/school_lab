@@ -37,7 +37,7 @@ Base: `/api/v1/schools/:school_id/communication`
 
 | Method | Path | Who | Behavior |
 |--------|------|-----|----------|
-| `GET` | `/destinations?student_id=` | Linked guardian | Coordination, secretary, and the teachers of the child's current class. Each teacher is one object (`teacher_id`, `name`) even with two subjects. No teacher object when the child has no teacher. |
+| `GET` | `/destinations?student_id=` | Linked guardian | Coordination, secretary, Direção (`director`), and the teachers of the child's current class, in that order. Direção is always present, even with no active director membership. Each teacher is one object (`teacher_id`, `name`) even with two subjects. No teacher object when the child has no teacher. |
 | `GET` | `/roster?school_class_id=` | Teacher, secretary, coordination, or director | Children of that class. A teacher sees only a class they have a kept teaching assignment for. Teachers do not use `GET /students` and do not need `manage_people`. Secretary, coordination, and director see any class in the school. |
 | `GET` | `/search?q=` | Teacher, secretary, coordination, or director | Type-ahead, cross-class roster lookup matched by the student's name or any of their guardians' names. Same visibility as `/roster`, widened from one class to every class the actor may see: a teacher only gets hits from classes they currently teach; secretary, coordination, and director get school-wide hits. |
 | `GET` | `/conversations` | Actor's inbox | Rows that actor may see. Optional `audience=coordination` is coordination's "For me" list (pt-BR **Para mim**). Omit `audience` for every conversation that actor may see. |
@@ -55,7 +55,7 @@ Base: `/api/v1/schools/:school_id/communication`
 }
 ```
 
-`teacher_id` is present only when `audience` is `teacher`. `audience` is `coordination`, `secretary`, or `teacher`.
+`teacher_id` is present only when `audience` is `teacher`. `audience` is `coordination`, `secretary`, `director`, or `teacher`. `director` is the school's Direção (UI label Direção); it is one conversation per child, with `teacher_id` null.
 
 `GET /destinations` items:
 
@@ -63,7 +63,20 @@ Base: `/api/v1/schools/:school_id/communication`
 { "audience": "teacher", "teacher_id": 12, "name": "Ana Lima" }
 ```
 
-Coordination and secretary use `"teacher_id": null` and `"name": null`.
+Coordination, secretary, and director use `"teacher_id": null` and `"name": null`. The list is always in this order: coordination, secretary, director, then each teacher of the current class once, ordered by teacher id. The director item is always present, for every child:
+
+```json
+{
+  "data": [
+    { "audience": "coordination", "teacher_id": null, "name": null },
+    { "audience": "secretary", "teacher_id": null, "name": null },
+    { "audience": "director", "teacher_id": null, "name": null },
+    { "audience": "teacher", "teacher_id": 12, "name": "Ana Lima" }
+  ]
+}
+```
+
+A child with no teaching assignment returns coordination, secretary, and director only. `director` is a destination (an audience), not a person, so it does not depend on whether the school currently has a director membership.
 
 `GET /roster` items for a teacher, secretary, or coordination. `conversation_id` and `sender_line` are null when that actor's conversation has no message yet, including when no conversation row exists. Once a message exists, those two fields are the attached conversation: teacher → audience `teacher` with that teacher's `teacher_id`; secretary → audience `secretary`; coordination → audience `coordination`.
 
@@ -202,7 +215,7 @@ Errors for these five routes:
 not browse it. It never `404`s or `422`s — a query with no visible match (short query, no hit, a
 foreign school) is simply `200` with `{ "data": [] }`.
 
-Policy denies by default. An unlinked guardian does not create a conversation (`404`). Secretary reads only secretary conversations. A teacher reads only conversations whose `teacher_id` is themselves, and only while assigned to the child's current class. Coordination and director read and reply on every audience. Director is not a destination.
+Policy denies by default. An unlinked guardian does not create a conversation (`404`). Secretary reads only secretary conversations. A teacher reads only conversations whose `teacher_id` is themselves, and only while assigned to the child's current class. Coordination and director read and reply on every audience. Linked guardians read every conversation of their child, including `director`. A `director` conversation is hidden with `404` from secretary and from teachers. Bell rows for `audience` `director` go to linked guardians (except the sender), coordination, and director memberships only.
 
 ---
 

@@ -8,11 +8,11 @@
 
 ### Messages (BC1) — this delivery
 
-Family chat from [`messages.md`](../prds/communication/messages.md). One conversation per child per destination. Participants are not stored.
+Family chat from [`messages.md`](../prds/communication/messages.md). One conversation per child per destination (coordination, secretary, Direção, or a teacher). Participants are not stored.
 
 | Table | Role |
 |-------|------|
-| `conversations` | Child + destination. `audience` is `coordination`, `secretary`, or `teacher`. `teacher_id` only for `teacher`. |
+| `conversations` | Child + destination. `audience` is `coordination`, `secretary`, `director`, or `teacher`. `teacher_id` only for `teacher`. |
 | `messages` | Immutable body, `sender_membership_id`, `sent_at`. No `edited_at`, no discard. |
 | `notifications` | Existing in-app bell. This delivery adds nullable `conversation_id`. |
 
@@ -51,13 +51,14 @@ Not part of this messages cut. Future attachments stay with the documents archiv
 |--------|-------|
 | `school_id` | Required. Tenant scope. |
 | `student_id` | Required. The child the thread is about. |
-| `audience` | `coordination` \| `secretary` \| `teacher` |
+| `audience` | `coordination` \| `secretary` \| `director` \| `teacher` |
 | `teacher_id` | Required when `audience` is `teacher`; null otherwise. FK `teachers.id`. |
 | `last_message_at` | Set when a message is inserted. Inbox sort. |
 
 Uniqueness (partial indexes):
 
-- `(school_id, student_id, audience)` where `teacher_id` is null — one coordination row and one secretary row per child.
+- `(school_id, student_id, audience)` where `teacher_id` is null — one coordination row, one secretary row, and one director (Direção) row per child.
+- `audience` is also constrained in the database by the check `conversations_audience_valid`. Adding `director` changed that check (migration `AddDirectorAudienceToConversations`).
 - `(school_id, student_id, teacher_id)` where `audience` is `teacher` — one row per teacher per child, even when that teacher has two subjects.
 
 No `discarded_at`. A conversation is created on the first successful send and kept. The child's class is not a column: the series label and the teacher's right to see the row are derived from the child's current class at read time.
@@ -86,7 +87,8 @@ Derived, not stored:
 - Secretary: `audience = secretary` only (`staff_profiles` → role template `system_key = secretary`).
 - Teacher: `audience = teacher` and `teacher_id` is that teacher, and only while a kept `teaching_assignment` exists on the child's current class (`students.school_class_id` in the running schema).
 - Coordination (`system_key = coordination`): every audience, including `coordination`.
-- Director (`system_key = director`): every audience. Director is not a destination.
+- Director (`system_key = director`): every audience, including `audience = director`.
+- Linked guardians: every audience of their child, including `director`.
 
 Another family or another school is `404`. A hidden conversation is `404` as well.
 
@@ -104,6 +106,7 @@ On send, one `notifications` row per user who can see the conversation, except t
 - Secretary memberships (`system_key` `secretary`) only when `audience` is `secretary`.
 - The teacher user only when `audience` is `teacher`, they are `teacher_id`, and the assignment on the child's current class still holds.
 - Coordination (`system_key` `coordination`) and director (`system_key` `director`) on every audience, because both can see every conversation.
+- `audience = director`: linked guardians (except the sender), coordination, and director memberships. Secretary and teachers are not notified.
 
 ## Push pipeline
 
