@@ -20,6 +20,33 @@ iOS and Android only. There is no Expo web target.
 
 The value for `ios` and `android` is an FCM registration token from a development build; a raw APNs token and an Expo push token are rejected; iOS must not use `getDevicePushTokenAsync`; and `platform: web`, which this app never sends, stays valid on `DeviceToken` for a future web push.
 
+## Firebase app config
+
+Obtain the guardian iOS and Android client config from the Firebase project named by
+`FCM_PROJECT_ID`. `SchoolLab::Integrations::Fcm::Configuration`
+(`web/lib/school_lab/integrations/fcm/configuration.rb`) reads that variable; the example
+key is in `web/.env.example`. The push gateway
+(`web/app/services/gateways/push/fcm/adapter.rb`) sends through that same project.
+Register the guardian iOS app and the guardian Android app in that project, using the ids in
+`mobile/app.json`:
+
+| Platform | App id |
+|----------|--------|
+| iOS bundle identifier | `im.schoollab.app` |
+| Android application id | `im.schoollab.app` |
+
+Download `GoogleService-Info.plist` and `google-services.json` from those apps and store
+them at:
+
+- `mobile/GoogleService-Info.plist`
+- `mobile/google-services.json`
+
+Those filenames are gitignored in `mobile/.gitignore` and in the repository `.gitignore`.
+They contain API keys, so they stay on that gitignored path or in the team secrets store
+a development build can read. The build uses this local config to obtain an FCM
+registration token. The files are app config. The value stored by
+`POST /api/v1/me/device_tokens` remains the FCM registration token in the Push section.
+
 ## Navigation
 
 Four tabs: **Início**, **Mensagens**, **Boletos**, **Filho**. This is not a drawer cloned from

@@ -133,6 +133,8 @@ React Native app for guardians only (product UI: **Responsável**; technical rol
 
 The value for `ios` and `android` is an FCM registration token, so `web/app/services/gateways/push/fcm/adapter.rb` can deliver to both platforms because both values are FCM registration tokens; a raw APNs token and an Expo push token are rejected; iOS must not use `getDevicePushTokenAsync`; the client needs a development build; and `platform: web`, which this app never sends, stays valid on `DeviceToken` for a future web push.
 
+Guardian iOS and Android client files (`GoogleService-Info.plist`, `google-services.json`) are downloaded from the Firebase project named by `FCM_PROJECT_ID` (`SchoolLab::Integrations::Fcm::Configuration`). They stay gitignored. Obtain steps and the guardian app ids are in `docs/guidelines/mobile/README.md`.
+
 ## 6. Authentication and authorization
 
 | Channel | Mechanism |
