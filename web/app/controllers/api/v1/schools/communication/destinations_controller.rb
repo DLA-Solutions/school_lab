@@ -30,10 +30,13 @@ module Api
               .exists?(guardians: { user_id: Current.user.id })
           end
 
+          # Order is stable: coordination, secretary, director, then teachers by id. Director is an
+          # audience, not a person, so the row is always present for a linked child.
           def destination_rows(student)
             [
               destination_row("coordination"),
               destination_row("secretary"),
+              destination_row("director"),
               *teacher_rows(student)
             ]
           end
