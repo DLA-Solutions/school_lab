@@ -8,6 +8,15 @@ module Billing
 
     module_function
 
+    # What an on-time family is rewarded with: `percent` of the tuition, rounded to the cent. The
+    # one place that rounding lives, so a contract, the dashboard and the expected-payments report
+    # land on the same cents. No percent configured rewards nothing.
+    def punctuality_discount_cents(tuition_cents, percent)
+      return 0 if percent.blank?
+
+      (tuition_cents * percent.to_d / 100).round
+    end
+
     def for(contract)
       plan_discount = contract.plan_discount
       base = contract.billing_plan&.base_amount_cents

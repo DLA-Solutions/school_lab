@@ -8,6 +8,11 @@ class SchoolBillingSettings < ApplicationRecord
   MAX_PERCENT = 100
   FINE_TYPES = %w[percent fixed].freeze
 
+  # The punctuality discount the product assumes where a school has not configured one: reports
+  # that project "if every family paid on time" (the dashboard's average ticket) still need a
+  # figure, and 10% is what schools on the platform grant.
+  DEFAULT_EARLY_PAYMENT_DISCOUNT_PERCENT = 10
+
   belongs_to :school
 
   validates :overdue_grace_days,
