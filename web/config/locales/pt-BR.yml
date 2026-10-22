@@ -195,6 +195,15 @@ pt-BR:
       agency: "Agência"
       account_number: "Conta"
       not_filled: "Não preenchido"
+  documents:
+    compliance_types:
+      sanitary_inspection: "Vigilância sanitária"
+      fire_department_certificate: "Certificado dos bombeiros"
+      municipal_education_council_resolution: "Resolução do Conselho Municipal de Educação"
+      state_education_council_resolution: "Resolução do Conselho Estadual de Educação"
+      pest_control: "Dedetização"
+      water_tank_cleaning: "Limpeza da caixa d'água"
+      first_aid_certificate: "Certificado de primeiros socorros"
   api:
     errors:
       unauthorized: "Não autorizado."

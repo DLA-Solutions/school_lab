@@ -26,6 +26,15 @@ RSpec.describe DocumentPolicy do
       expect(policy.index?).to be(true)
       expect(policy.create?).to be(false)
     end
+
+    it "is denied the school compliance files, even though it may list its own documents" do
+      compliance = create(:document, school: school, documentable: school, document_type: "pest_control")
+
+      expect(policy.manage_compliance?).to be(false)
+      expect(described_class.new(user, compliance).manage_compliance?).to be(false)
+      expect(described_class.new(user, compliance).show?).to be(false)
+      expect(DocumentPolicy::Scope.new(user, Document).resolve).not_to include(compliance)
+    end
   end
 
   context "with a school admin" do
@@ -53,6 +62,39 @@ RSpec.describe DocumentPolicy do
 
       expect(described_class.new(user, foreign).approve?).to be(false)
       expect(DocumentPolicy::Scope.new(user, Document).resolve).not_to include(foreign)
+    end
+  end
+
+  describe "school compliance files" do
+    let(:guardian) { nil }
+
+    context "with staff holding manage_documents" do
+      let!(:membership) { create(:membership, :school_admin, user: user, school: school) }
+
+      it "may manage the files of its own school" do
+        file = create(:document, school: school, documentable: school, document_type: "pest_control")
+
+        expect(policy.manage_compliance?).to be(true)
+        expect(described_class.new(user, file).manage_compliance?).to be(true)
+      end
+
+      it "may not manage the files of another school" do
+        other = create(:school)
+        foreign = create(:document, school: other, documentable: other, document_type: "pest_control")
+
+        expect(described_class.new(user, foreign).manage_compliance?).to be(false)
+      end
+    end
+
+    context "with staff without manage_documents" do
+      let!(:membership) { create(:membership, :staff, user: user, school: school) }
+
+      it "is denied by default" do
+        file = create(:document, school: school, documentable: school, document_type: "pest_control")
+
+        expect(policy.manage_compliance?).to be(false)
+        expect(described_class.new(user, file).manage_compliance?).to be(false)
+      end
     end
   end
 end

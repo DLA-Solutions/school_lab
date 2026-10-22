@@ -53,6 +53,7 @@ const CrmContacts = lazy(() => import('pages/crm/CrmContacts'));
 const Requests = lazy(() => import('pages/requests/Requests'));
 const MyRequests = lazy(() => import('pages/requests/MyRequests'));
 const MyDocuments = lazy(() => import('pages/documents/MyDocuments'));
+const Compliance = lazy(() => import('pages/documents/Compliance'));
 const Charges = lazy(() => import('pages/billing/Charges'));
 const Plans = lazy(() => import('pages/billing/Plans'));
 const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
@@ -191,6 +192,10 @@ const router = createBrowserRouter(
             {
               path: paths.requests,
               element: <Requests />,
+            },
+            {
+              path: paths.compliance,
+              element: <Compliance />,
             },
             {
               path: paths.myRequests,
