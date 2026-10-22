@@ -148,6 +148,8 @@ en:
       subtotal: "Class subtotal"
       total: "Grand total"
       summary: "%{students} student(s), %{uncontracted} without a contract"
+      several_contracts_mark: "*"
+      several_contracts_note: "%{mark} %{count} student(s) with more than one active contract: only the most recent contract in force is counted, never their sum. Review the duplicates."
       signature_status:
         pending_signature: "Awaiting signature"
         signed: "Signed"

@@ -177,6 +177,8 @@ pt-BR:
       subtotal: "Subtotal da turma"
       total: "Total geral"
       summary: "%{students} estudante(s), %{uncontracted} sem contrato"
+      several_contracts_mark: "*"
+      several_contracts_note: "%{mark} %{count} estudante(s) com mais de um contrato ativo: foi considerado apenas o contrato em vigor mais recente, sem somar. Revise os contratos duplicados."
       signature_status:
         pending_signature: "Aguardando assinatura"
         signed: "Assinado"

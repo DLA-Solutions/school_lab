@@ -109,16 +109,19 @@ module Dashboards
       @active_students_count ||= school.students.kept.where(status: "active").count
     end
 
-    # The tuition each active contract of an active student agrees to — the one definition
-    # (`Billing::ContractTuitionAmounts`) that contracts and charge generation also use.
+    # The tuition each active student's contract agrees to — the one definition
+    # (`Billing::ContractTuitionAmounts`) that contracts and charge generation also use. One
+    # contract per child (`Billing::ExpectedTuitionContracts`, shared with the expected-payments
+    # report), so a reissued or duplicated contract is not counted twice.
     def agreed_cents_per_contract
-      @agreed_cents_per_contract ||= active_contracts.map do |contract|
-        Billing::ContractTuitionAmounts.for(contract).total_amount_cents
-      end
+      @agreed_cents_per_contract ||=
+        Billing::ExpectedTuitionContracts.chosen_by_student(candidate_contracts).values.map do |choice|
+          Billing::ContractTuitionAmounts.for(choice.contract).total_amount_cents
+        end
     end
 
-    def active_contracts
-      school.contracts.active
+    def candidate_contracts
+      school.contracts
             .joins(:student).merge(Student.kept.where(status: "active"))
             .includes(:billing_plan, :plan_discount)
     end
