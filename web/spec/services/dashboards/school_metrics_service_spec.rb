@@ -82,6 +82,23 @@ RSpec.describe Dashboards::SchoolMetricsService do
       expect(ticket).to include(total_monthly_cents: 80_000, students: 1)
     end
 
+    it "counts one contract per student: not the signature-cancelled one, and never a sum" do
+      child = create(:student, school: school)
+      contract_for(student: child, negotiated_amount_cents: 999_900, signature_status: "cancelled")
+      contract_for(student: child, negotiated_amount_cents: 80_000)
+
+      expect(ticket).to include(total_monthly_cents: 80_000)
+    end
+
+    it "takes the contract in force when a student has two live ones" do
+      child = create(:student, school: school)
+      contract_for(student: child, negotiated_amount_cents: 90_000,
+                   starts_on: Date.current - 400, ends_on: Date.current - 40)
+      contract_for(student: child, negotiated_amount_cents: 80_000, starts_on: Date.current - 30)
+
+      expect(ticket).to include(total_monthly_cents: 80_000, students: 1)
+    end
+
     it "never counts another school's contracts" do
       contract_for(negotiated_amount_cents: 80_000)
       other = create(:school)

@@ -96,21 +96,34 @@ generation and the contract template (`Billing::ContractTuitionAmounts`): what t
 **agrees the family pays** per month, not the plan's list price.
 
 ```
-Contract.active (kept, status = active)
+Contract.expected_tuition (kept, status = active, signature_status != cancelled)
+one contract per child (see below), then
 amount = plan_discount present and plan has a price -> plan price less the discount band
                                                        (100% "Bolsa integral" = 0)
          otherwise                                  -> COALESCE(negotiated_amount_cents,
                                                                 billing_plan.base_amount_cents, 0)
 ```
 
-- A child with several active contracts is the sum of them (as the dashboard counts them).
+- **One contract per child, never a sum.** Each report row is one child and shows only that
+  child's own agreed figure; nothing is added across children or across a child's contracts. The
+  rule lives in `Billing::ExpectedTuitionContracts` and is shared with the dashboard, so the
+  report's grand total equals `average_ticket.total_monthly_cents`:
+  1. contracts with `signature_status = cancelled` (called off before signing, usually reissued)
+     are not agreements and never count;
+  2. if a child still has several eligible contracts, the one whose `starts_on`..`ends_on` window
+     covers today counts (an absent bound is open); otherwise any of them; among those left, the
+     most recent (highest id);
+  3. a child left with more than one eligible contract is **flagged**, not hidden: the amount is
+     printed with `*` and a footnote at the end says how many students have more than one active
+     contract. The school should end or discard the duplicate (charge generation still bills
+     every `Contract.active`).
 - Punctuality (early-payment) discounts are **not** in this amount; the dashboard shows them
   separately (see below).
 - A child with no active contract is listed as "Sem contrato" and adds nothing to the total.
 - Students without a class (or whose class was discarded) are printed last under "Sem turma".
-- `Contract.active` does not look at `signature_status`: contracts awaiting signature, and
-  contracts whose signature was cancelled, are counted exactly as the dashboard counts them. Use
-  the `signature_status` column to see them.
+- Contracts awaiting signature (`pending_signature`) count like signed ones, as the dashboard
+  counts them; contracts whose signature was cancelled do not. Use the `signature_status` column
+  to see them.
 - Money is formatted in BRL (`R$ 1.234,56`) inside the PDF only. Any future JSON form of this
   report must carry `amount_cents` as integer cents.
 
@@ -139,7 +152,7 @@ after scholarships (bolsa), discount bands and negotiated amounts, in integer ce
 
 | Field | Meaning |
 |-------|---------|
-| `total_monthly_cents` | Sum of every active contract's agreed monthly tuition (rule above) over **active, non-discarded students**. Contracts that are not `active` or are discarded, contracts of students who are discarded or no longer `active`, and other schools' contracts are excluded |
+| `total_monthly_cents` | Sum, over **active, non-discarded students**, of each student's one counted contract's agreed monthly tuition (rules above: signature-cancelled contracts excluded, one contract per student, never summed). Contracts that are not `active` or are discarded, contracts of students who are discarded or no longer `active`, and other schools' contracts are excluded |
 | `students` | Active, non-discarded students |
 | `value` | `total_monthly_cents / students`, rounded to the cent; `0` with no students. Always contract-based, whether or not the month's charges exist yet |
 | `punctuality_total_monthly_cents` | The same sum if **every** family earns the punctuality discount. The discount is computed **per contract** and rounded to the cent (the same rounding as the contract template's `contrato.pontualidade.desconto`), then summed - it is not applied to the grand total. It stacks on the already-agreed amount (a 20% band then 10% punctuality is 72% of the table price) |

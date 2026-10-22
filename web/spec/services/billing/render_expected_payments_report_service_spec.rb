@@ -123,12 +123,97 @@ RSpec.describe Billing::RenderExpectedPaymentsReportService do
       expect(text).not_to include("R$ 1.000,00")
     end
 
-    it "adds up a child's several active contracts, as the dashboard does" do
-      contract_for(pedro, cents: 80_000)
-      contract_for(pedro, cents: 20_000)
+    it "never sums a child's contracts: the one in force counts, and the row is flagged" do
+      contract_for(pedro, cents: 80_000, starts_on: Date.current - 400, ends_on: Date.current - 40)
+      contract_for(pedro, cents: 20_000, starts_on: Date.current - 30)
 
-      expect(text).to include("R$ 1.000,00")
+      expect(text).to include("R$ 200,00 *", "Total geral: R$ 200,00")
+      expect(text).to include("1 estudante(s) com mais de um contrato ativo")
+      expect(text).not_to include("R$ 1.000,00", "R$ 800,00")
     end
+
+    it "takes the most recent contract when none (or several) is in force today" do
+      contract_for(pedro, cents: 80_000, starts_on: Date.current + 20)
+      contract_for(pedro, cents: 20_000, starts_on: Date.current + 60)
+
+      expect(text).to include("Total geral: R$ 200,00")
+    end
+
+    it "does not flag a child with a single contract" do
+      contract_for(pedro, cents: 80_000)
+
+      expect(text).not_to include("R$ 800,00 *", "mais de um contrato ativo")
+    end
+  end
+
+  describe "siblings of the same guardians" do
+    let!(:ana) { student_in(fifth, "Ana Costa") }
+    let!(:bia) { student_in(fifth, "Bia Costa") }
+    let!(:mother) { create(:guardian, school: school, name: "Jacqueline Costa") }
+    let!(:father) { create(:guardian, school: school, name: "Murilo Costa") }
+
+    before do
+      [ ana, bia ].each do |child|
+        link(child, mother)
+        link(child, father, relationship: "father")
+      end
+      contract_for(ana, cents: 112_424, payer_guardian: father)
+      contract_for(bia, cents: 118_669, payer_guardian: father)
+    end
+
+    it "gives each child their own figure, never the family's merged total" do
+      ana_line = text.lines.find { |line| line.include?("Ana Costa") }
+      bia_line = text.lines.find { |line| line.include?("Bia Costa") }
+
+      expect(ana_line).to include("R$ 1.124,24")
+      expect(ana_line).not_to include("R$ 2.310,93")
+      expect(bia_line).to include("R$ 1.186,69")
+      expect(bia_line).not_to include("R$ 2.310,93")
+      expect(text.lines.find { |line| line.include?("Subtotal da turma") }).to include("R$ 2.310,93")
+      expect(text).not_to include("mais de um contrato ativo")
+    end
+  end
+
+  describe "a contract reissued after its signature was cancelled" do
+    let!(:pedro) { student_in(fifth, "Pedro Silva") }
+
+    before do
+      contract_for(pedro, cents: 112_424, signature_status: "cancelled")
+      contract_for(pedro, cents: 112_424, signature_status: "pending_signature")
+    end
+
+    it "counts only the live contract, once, without a flag" do
+      expect(text).to include("R$ 1.124,24", "Total geral: R$ 1.124,24")
+      expect(text).not_to include("R$ 2.248,48", "mais de um contrato ativo")
+    end
+
+    it "leaves the child not contracted when the only contract was cancelled" do
+      Contract.where(signature_status: "pending_signature").delete_all
+
+      expect(text).to include("Sem contrato", "Total geral: R$ 0,00")
+    end
+  end
+
+  describe "the dashboard's figure" do
+    let!(:pedro) { student_in(fifth, "Pedro Silva") }
+    let!(:ana) { student_in(fifth, "Ana Souza") }
+
+    it "stays equal to the report's total when children have several contracts" do
+      contract_for(pedro, cents: 50_000, signature_status: "cancelled")
+      contract_for(pedro, cents: 60_000)
+      contract_for(pedro, cents: 70_000, starts_on: Date.current - 400, ends_on: Date.current - 40)
+      contract_for(ana, cents: 40_000)
+
+      dashboard = Dashboards::SchoolMetricsService.call(school: school)
+                                                  .data.dig(:average_ticket, :total_monthly_cents)
+
+      expect(dashboard).to eq(100_000)
+      expect(text).to include("Total geral: R$ 1.000,00")
+    end
+  end
+
+  describe "contracts that do not count" do
+    let!(:pedro) { student_in(fifth, "Pedro Silva") }
 
     it "ignores contracts that are not active" do
       contract_for(pedro, cents: 80_000)

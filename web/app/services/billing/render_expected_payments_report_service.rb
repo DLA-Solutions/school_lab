@@ -5,11 +5,16 @@ module Billing
   # for them, and the amount their contract says the family pays. One class per page, each closed
   # with a subtotal, and the whole report with a grand total.
   #
-  # The amount is what the contract AGREES the family pays — after a scholarship or discount band,
-  # or at the negotiated figure (`Billing::ContractTuitionAmounts`, the rule the dashboard totals
-  # with over `Contract.active`) — so a class subtotal can be added up against the number on the
-  # front page. A child with several active contracts is the sum of them, exactly as the
-  # dashboard counts them.
+  # The amount is what the child's contract AGREES the family pays — after a scholarship or
+  # discount band, or at the negotiated figure (`Billing::ContractTuitionAmounts`) — so a class
+  # subtotal can be added up against the number on the front page. Every row is one child and
+  # carries that child's own figure; nothing is ever added across children.
+  #
+  # Which contract stands for a child is decided in one place shared with the dashboard
+  # (`Billing::ExpectedTuitionContracts`): a contract whose signature was cancelled is not an
+  # agreement, and of the rest exactly one counts — never their sum. A child who still has more
+  # than one eligible contract is marked with an asterisk on the amount and a footnote, so the
+  # school can go and tidy the duplicate rather than have it hidden.
   #
   # A child with no active contract is still listed — as "not contracted" and worth nothing to the
   # total — because the gap is what a school reading this wants to see. A child with no class goes
@@ -59,7 +64,7 @@ module Billing
     end
 
     Entry = Struct.new(:student, :school_class, :cents, :contracted, :guardians, :payer_ids,
-                       :plans, :signature_statuses) do
+                       :plans, :signature_statuses, :contracts_count) do
       def sort_key = [ I18n.transliterate(student.name.to_s).downcase, student.id ]
     end
 
@@ -80,13 +85,15 @@ module Billing
     end
 
     def entry_for(student)
-      rows = contract_rows[student.id] || []
+      row = contract_rows[student.id]
+      rows = row ? [ row ] : []
       guardians = kept_guardians(student)
 
       Entry.new(
-        student, cohort_of(student), rows.sum { |row| row.expected_cents.to_i }, rows.any?,
+        student, cohort_of(student), row&.expected_cents.to_i, rows.any?,
         guardians, payer_ids(rows, guardians),
-        rows.filter_map(&:plan_name).uniq, rows.map(&:signature_status).uniq
+        rows.filter_map(&:plan_name), rows.map(&:signature_status),
+        row&.contracts_count.to_i
       )
     end
 
@@ -107,27 +114,29 @@ module Billing
       rows.filter_map { |row| row.payer_guardian_id || guardians.first&.id }.uniq
     end
 
-    Row = Struct.new(:student_id, :payer_guardian_id, :signature_status, :expected_cents, :plan_name)
+    Row = Struct.new(:student_id, :payer_guardian_id, :signature_status, :expected_cents, :plan_name,
+                     :contracts_count)
 
-    # Active contracts of the children being reported, each with the amount it agrees to, resolved
-    # by the shared rule rather than restated here. Plan and discount are preloaded so a long roll
-    # is not a query per contract.
+    # `{ student_id => Row }`: the one contract that stands for each child being reported, with the
+    # amount it agrees to, both resolved by the shared rules rather than restated here. Plan and
+    # discount are preloaded so a long roll is not a query per contract.
     def contract_rows
       @contract_rows ||= begin
-        ids = students.map(&:id)
+        scope = contracts.where(school_id: school.id, student_id: students.map(&:id))
+                         .includes(:billing_plan, :plan_discount)
 
-        contracts.active
-                 .where(school_id: school.id, student_id: ids)
-                 .includes(:billing_plan, :plan_discount)
-                 .order(:id)
-                 .map { |contract| row_for_contract(contract) }
-                 .group_by(&:student_id)
+        ExpectedTuitionContracts.chosen_by_student(scope).transform_values do |choice|
+          row_for_contract(choice)
+        end
       end
     end
 
-    def row_for_contract(contract)
+    def row_for_contract(choice)
+      contract = choice.contract
+
       Row.new(contract.student_id, contract.payer_guardian_id, contract.signature_status,
-              ContractTuitionAmounts.for(contract).total_amount_cents, contract.billing_plan&.name)
+              ContractTuitionAmounts.for(contract).total_amount_cents, contract.billing_plan&.name,
+              choice.candidates)
     end
 
     def row_for(entry)
@@ -159,7 +168,9 @@ module Billing
     def amount_cell(entry)
       return I18n.t("reports.expected_payments.not_contracted") unless entry.contracted
 
-      money(entry.cents)
+      return money(entry.cents) unless entry.contracts_count > 1
+
+      "#{money(entry.cents)} #{I18n.t('reports.expected_payments.several_contracts_mark')}"
     end
 
     # Brazilian currency whatever the interface language: the report is a document for a
@@ -208,6 +219,19 @@ module Billing
                size: 11, style: :bold
       pdf.text I18n.t("reports.expected_payments.summary",
                       students: all.size, uncontracted: all.count { |entry| !entry.contracted }),
+               size: 8, color: "666666"
+      draw_several_contracts_note(pdf, all)
+    end
+
+    # Only when it applies: the children whose figure is a pick among several eligible contracts.
+    def draw_several_contracts_note(pdf, all)
+      several = all.select { |entry| entry.contracts_count > 1 }
+      return if several.empty?
+
+      pdf.move_down 4
+      pdf.text I18n.t("reports.expected_payments.several_contracts_note",
+                      mark: I18n.t("reports.expected_payments.several_contracts_mark"),
+                      count: several.size),
                size: 8, color: "666666"
     end
   end
