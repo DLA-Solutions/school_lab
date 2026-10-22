@@ -21,6 +21,19 @@ export const ptBR = {
   'empty.messages': 'Nenhuma mensagem.',
   'empty.boletos': 'Nenhum boleto.',
   'empty.child': 'Nenhuma informação do filho.',
+  'routine.todayTitle': 'Rotina de hoje',
+  'routine.snack': 'Lanche',
+  'routine.snackEaten': 'Comeu',
+  'routine.snackNotEaten': 'Não comeu',
+  'routine.snackNotRecorded': 'Não registrado',
+  'routine.poop': 'Cocô',
+  'routine.pee': 'Xixi',
+  'routine.notes': 'Observações',
+  'routine.empty': 'Nenhuma rotina enviada hoje.',
+  'routine.notFound': 'Rotina não encontrada. Este filho não está vinculado à sua conta.',
+  'routine.loadError': 'Não foi possível carregar a rotina.',
+  'routine.networkError': 'Não foi possível conectar. Tente novamente.',
+  'routine.retry': 'Tentar novamente',
 } as const;
 
 export type MessageKey = keyof typeof ptBR;
