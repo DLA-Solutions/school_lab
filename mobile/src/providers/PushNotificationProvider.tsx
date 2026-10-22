@@ -1,7 +1,11 @@
 import { PropsWithChildren, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { useAuth } from './AuthContext';
-import { navigateFromNotificationData, registerDeviceToken } from '../services/pushNotifications';
+import {
+  clearPendingMessageDeepLink,
+  navigateFromNotificationData,
+  registerDeviceToken,
+} from '../services/pushNotifications';
 
 /**
  * Registers this device's push token once the user is authenticated (not before —
@@ -12,6 +16,7 @@ import { navigateFromNotificationData, registerDeviceToken } from '../services/p
 const PushNotificationProvider = ({ children }: PropsWithChildren) => {
   const { isAuthenticated } = useAuth();
   const registeredRef = useRef(false);
+  const authenticatedRef = useRef(false);
 
   // Register once per authenticated session; re-arms on the next login after a logout.
   useEffect(() => {
@@ -26,6 +31,20 @@ const PushNotificationProvider = ({ children }: PropsWithChildren) => {
     registeredRef.current = true;
 
     registerDeviceToken();
+  }, [isAuthenticated]);
+
+  // Drop a queued message deep link only after a real logout. The first paint is
+  // unauthenticated while the session restores, and that must not discard a cold-start tap.
+  useEffect(() => {
+    if (isAuthenticated) {
+      authenticatedRef.current = true;
+      return;
+    }
+
+    if (authenticatedRef.current) {
+      authenticatedRef.current = false;
+      clearPendingMessageDeepLink();
+    }
   }, [isAuthenticated]);
 
   useEffect(() => {
