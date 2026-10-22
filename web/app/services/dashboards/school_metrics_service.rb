@@ -99,7 +99,7 @@ module Dashboards
     def active_contracts_monthly_cents
       school.contracts.active
             .left_joins(:billing_plan)
-            .sum("COALESCE(contracts.negotiated_amount_cents, billing_plans.base_amount_cents, 0)")
+            .sum(Contract::EXPECTED_MONTHLY_CENTS_SQL)
     end
 
     # Tuition raised for the reference month, against the month before it.

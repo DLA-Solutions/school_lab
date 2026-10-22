@@ -14,6 +14,12 @@ class Contract < ApplicationRecord
   # that follows it.
   SIGNATURE_STATUSES = %w[pending_signature signed cancelled].freeze
 
+  # What the school expects to bill for a contract each month: the figure negotiated with the
+  # family, else the plan's list price, else nothing. Kept as one SQL expression because the
+  # dashboard total and the expected-payments report must agree to the cent — query it with
+  # `left_joins(:billing_plan)`.
+  EXPECTED_MONTHLY_CENTS_SQL = "COALESCE(contracts.negotiated_amount_cents, billing_plans.base_amount_cents, 0)"
+
   belongs_to :student
   belongs_to :school
   belongs_to :billing_plan
