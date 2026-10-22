@@ -7,6 +7,7 @@ import {
   readStoredGuardianContext,
   writeStoredGuardianContextIf,
 } from '../services/guardianContextStore';
+import { setRoutineChildBridge } from '../services/routineChildSwitch';
 import { useAuth } from './AuthContext';
 import {
   GuardianContext,
@@ -386,6 +387,67 @@ const GuardianContextProvider = ({ children }: PropsWithChildren) => {
         commitRef.current = false;
       });
   }, [draft]);
+
+  /**
+   * Switches the active child from a routine notification. Only a student already in
+   * `active.students` (this guardian membership) is eligible. The picker draft is not used.
+   */
+  const activateLinkedStudent = useCallback((studentId: number): Promise<boolean> => {
+    const current = activeRef.current;
+    if (!current || commitRef.current) {
+      return Promise.resolve(false);
+    }
+
+    const student = current.students.find((item) => item.id === studentId);
+    if (!student) {
+      return Promise.resolve(false);
+    }
+    if (current.student.id === studentId) {
+      return Promise.resolve(true);
+    }
+
+    const session = epoch.current;
+    const isCurrent = () => epoch.current === session;
+    commitRef.current = true;
+
+    return writeStoredGuardianContextIf(
+      { membershipId: current.membership.id, studentId: student.id },
+      isCurrent,
+    )
+      .then(() => {
+        if (!isCurrent()) {
+          return false;
+        }
+        const previous = activeRef.current;
+        const changed =
+          previous !== null &&
+          (previous.membership.id !== current.membership.id || previous.student.id !== student.id);
+        if (changed) {
+          setGeneration((value) => value + 1);
+        }
+        setActive({
+          membership: current.membership,
+          student,
+          students: current.students,
+        });
+        setDraft(null);
+        setSwitching(false);
+        setGate('ready');
+        return true;
+      })
+      .catch(() => false)
+      .finally(() => {
+        commitRef.current = false;
+      });
+  }, []);
+
+  setRoutineChildBridge({
+    activeStudentId: active?.student.id ?? null,
+    linkedStudentIds: (active?.students ?? []).map((student) => student.id),
+    activateLinkedStudent,
+  });
+
+  useEffect(() => () => setRoutineChildBridge(null), []);
 
   const retry = useCallback(() => {
     const currentUser: AuthUser | null = userRef.current;

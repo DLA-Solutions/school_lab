@@ -35,5 +35,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "./modules"
+    }
+  }
 }

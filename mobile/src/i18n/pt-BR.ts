@@ -121,6 +121,12 @@ export const ptBR = {
   'reportCards.disciplines': 'Disciplinas',
   'reportCards.noDisciplines': 'Nenhuma disciplina neste boletim',
   'reportCards.downloadPdf': 'Baixar PDF',
+  'push.channel.name': 'Geral',
+  'push.rationale.title': 'Notificações',
+  'push.rationale.body':
+    'O aplicativo avisa quando a rotina de hoje, uma mensagem ou um boleto chega. Você pode recusar e continuar usando o aplicativo.',
+  'push.rationale.continue': 'Continuar',
+  'push.rationale.notNow': 'Agora não',
 } as const;
 
 export type MessageKey = keyof typeof ptBR;

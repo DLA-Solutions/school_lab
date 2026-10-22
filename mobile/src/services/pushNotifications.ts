@@ -1,8 +1,11 @@
-import { Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { createNavigationContainerRef } from '@react-navigation/native';
+import { t } from '../i18n';
 import { MainTabParamList } from '../navigation/types';
 import { request } from './api';
+import { acceptFcmRegistrationToken, readFcmRegistrationToken } from './fcmRegistrationToken';
+import { routineChildSnapshot, switchRoutineChild } from './routineChildSwitch';
 import { DeviceTokenPlatform, PushNotificationDeepLinkData, RegisterDeviceTokenResponse } from '../types/pushNotifications';
 
 /**
@@ -28,75 +31,174 @@ Notifications.setNotificationHandler({
 
 const ANDROID_CHANNEL_ID = 'default';
 
-/** Android 8+ requires a channel before a token/permission prompt is meaningful. */
+/** Android 8+ requires a channel before a token or permission prompt is meaningful. */
 const ensureAndroidChannel = async () => {
   if (Platform.OS !== 'android') {
     return;
   }
 
   await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
-    name: 'Geral',
+    name: t('push.channel.name'),
     importance: Notifications.AndroidImportance.DEFAULT,
     vibrationPattern: [0, 250, 250, 250],
   });
 };
 
-const toBackendPlatform = (): DeviceTokenPlatform => {
+const mobilePlatform = (): Extract<DeviceTokenPlatform, 'ios' | 'android'> | null => {
   if (Platform.OS === 'ios') return 'ios';
   if (Platform.OS === 'android') return 'android';
-  return 'web';
+  return null;
+};
+
+const warnRegistrationFailed = () => {
+  if (__DEV__) {
+    console.warn('[push] device token registration failed');
+  }
+};
+
+type PostedFcmToken = { token: string; platform: 'ios' | 'android' };
+
+let lastPostedFcmToken: PostedFcmToken | null = null;
+let registeringDeviceToken = false;
+
+export const resetPostedFcmToken = (): void => {
+  lastPostedFcmToken = null;
+};
+
+const postFcmToken = async (token: string, platform: 'ios' | 'android'): Promise<void> => {
+  const accepted = acceptFcmRegistrationToken(token);
+  if (!accepted) {
+    return;
+  }
+  if (lastPostedFcmToken?.token === accepted && lastPostedFcmToken.platform === platform) {
+    return;
+  }
+
+  await request<RegisterDeviceTokenResponse>('/me/device_tokens', {
+    method: 'POST',
+    body: {
+      device_token: {
+        token: accepted,
+        platform,
+      },
+    },
+  });
+  lastPostedFcmToken = { token: accepted, platform };
+};
+
+const confirmNotificationRationale = (): Promise<boolean> =>
+  new Promise((resolve) => {
+    Alert.alert(
+      t('push.rationale.title'),
+      t('push.rationale.body'),
+      [
+        {
+          text: t('push.rationale.notNow'),
+          style: 'cancel',
+          onPress: () => resolve(false),
+        },
+        {
+          text: t('push.rationale.continue'),
+          onPress: () => resolve(true),
+        },
+      ],
+      { cancelable: false },
+    );
+  });
+
+const readAndPostFcmToken = async (platform: 'ios' | 'android'): Promise<void> => {
+  const token = await readFcmRegistrationToken();
+  if (!token) {
+    return;
+  }
+  await postFcmToken(token, platform);
 };
 
 /**
- * Requests notification permission and, if granted, registers this device's native
- * push token with the API (`POST /me/device_tokens`).
+ * Requests notification permission when it is still undetermined, then registers this
+ * device's FCM token (`POST /me/device_tokens`) for ios or android.
  *
- * Uses `getDevicePushTokenAsync` (the raw FCM registration token on Android / APNs
- * token on iOS) rather than `getExpoPushTokenAsync` (Expo's own push-service proxy
- * token). The backend `DeviceToken#token` column expects a raw platform token, and
- * the FCM send pipeline (`docs/web-stack.md` "Push notifications") talks to Firebase
- * directly rather than through Expo's push service — so the device token is the
- * right fit here. Revisit only if the gateway is deliberately changed to send via
- * Expo's push API instead (it would then need `getExpoPushTokenAsync` + a
- * `projectId`).
- *
- * Best-effort: permission denial, a simulator without push capability, or a
- * transient API failure must never block app usage, so failures are swallowed here
- * (logged in dev only) rather than thrown.
+ * Best-effort: permission denial, missing Firebase config, a simulator, or an API
+ * failure must not throw. `prompt: false` re-reads only when permission is already
+ * granted and does not show the rationale again.
  */
-export const registerDeviceToken = async (): Promise<void> => {
-  try {
-    await ensureAndroidChannel();
+export const registerDeviceToken = async (options: { prompt: boolean }): Promise<void> => {
+  if (registeringDeviceToken) {
+    return;
+  }
+  registeringDeviceToken = true;
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let status = existingStatus;
-    if (status !== 'granted') {
-      ({ status } = await Notifications.requestPermissionsAsync());
-    }
-    if (status !== 'granted') {
+  try {
+    const platform = mobilePlatform();
+    if (!platform) {
       return;
     }
 
-    const devicePushToken = await Notifications.getDevicePushTokenAsync();
+    await ensureAndroidChannel();
 
-    await request<RegisterDeviceTokenResponse>('/me/device_tokens', {
-      method: 'POST',
-      body: {
-        device_token: {
-          token: devicePushToken.data,
-          platform: toBackendPlatform(),
-        },
-      },
-    });
-  } catch (error) {
-    if (__DEV__) {
-      console.warn('[push] device token registration failed', error);
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status === 'denied') {
+      return;
     }
+
+    if (status !== 'granted') {
+      if (status !== 'undetermined' || !options.prompt) {
+        return;
+      }
+      const proceed = await confirmNotificationRationale();
+      if (!proceed) {
+        return;
+      }
+      const requested = await Notifications.requestPermissionsAsync();
+      if (requested.status !== 'granted') {
+        return;
+      }
+    }
+
+    await readAndPostFcmToken(platform);
+  } catch {
+    warnRegistrationFailed();
+  } finally {
+    registeringDeviceToken = false;
   }
 };
 
 /**
+ * Android FCM rotation. iOS listener payloads are APNs tokens and are ignored.
+ * Do not call `getDevicePushTokenAsync` here — it re-enters this listener.
+ */
+export const subscribeAndroidFcmTokenRefresh = (isSessionActive: () => boolean): (() => void) => {
+  const subscription = Notifications.addPushTokenListener((deviceToken) => {
+    if (Platform.OS !== 'android' || deviceToken.type !== 'android' || !isSessionActive()) {
+      return;
+    }
+    const token = acceptFcmRegistrationToken(deviceToken.data);
+    if (!token) {
+      return;
+    }
+    void postFcmToken(token, 'android').catch(() => {
+      warnRegistrationFailed();
+    });
+  });
+
+  return () => subscription.remove();
+};
+
+/** Re-reads the FCM token when the app becomes active and permission is already granted. */
+export const subscribeFcmTokenRefreshOnActive = (isSessionActive: () => boolean): (() => void) => {
+  const subscription = AppState.addEventListener('change', (state) => {
+    if (state !== 'active' || !isSessionActive()) {
+      return;
+    }
+    void registerDeviceToken({ prompt: false });
+  });
+
+  return () => subscription.remove();
+};
+
+/**
  * Message taps use `kind: 'message'` and are queued until MainTabs is mounted.
+ * Routine taps open Início, switching the active child only when `student_id` is already linked.
  * `type: 'charge'` queues that charge's detail, or the boletos list when it has no id.
  * A cold start can arrive before the guardian gate is ready.
  */
@@ -105,15 +207,20 @@ let pendingConversationId: number | null = null;
 let flushingMessageNavigation = false;
 let pendingChargeNavigation: PendingChargeNavigation | null = null;
 let flushingChargeNavigation = false;
+let pendingRoutineNavigation: PendingRoutineNavigation | null = null;
+let suppressRoutineSwitch = false;
+let routineSwitchInFlight: number | null = null;
 let navigationTicket = 0;
 let messageTicket = 0;
 let chargeTicket = 0;
+let routineTicket = 0;
 let flushingDeepLinks = false;
 
 type PendingChargeNavigation = { kind: 'detail'; chargeId: number } | { kind: 'list' };
+type PendingRoutineNavigation = { studentId: number | null };
 
 /** Positive integer, or a numeric string (FCM data values are often strings). */
-const parseConversationId = (value: unknown): number | null => {
+const parsePositiveId = (value: unknown): number | null => {
   if (typeof value === 'number' && Number.isSafeInteger(value) && value > 0) {
     return value;
   }
@@ -128,12 +235,26 @@ const parseConversationId = (value: unknown): number | null => {
   return null;
 };
 
+const isRoutineMarker = (value: unknown): boolean => value === 'daily_routine' || value === 'routine';
+
+const isRoutineNotification = (payload: PushNotificationDeepLinkData): boolean =>
+  isRoutineMarker(payload.kind) ||
+  isRoutineMarker(payload.channel_key) ||
+  isRoutineMarker(payload.type) ||
+  payload.source_type === 'DailyRoutineEntry';
+
 export const clearPendingMessageDeepLink = (): void => {
   pendingConversationId = null;
 };
 
 export const clearPendingChargeDeepLink = (): void => {
   pendingChargeNavigation = null;
+};
+
+export const clearPendingRoutineDeepLink = (): void => {
+  pendingRoutineNavigation = null;
+  suppressRoutineSwitch = false;
+  routineSwitchInFlight = null;
 };
 
 /** Called from MainTabs. A school/child switch remounts the tabs and flushes again. */
@@ -222,7 +343,66 @@ const flushPendingChargeNavigation = (): void => {
   }
 };
 
-/** Flushes queued message and charge taps from the same readiness path. The newer one stays on top. */
+const flushPendingRoutineNavigation = (): void => {
+  if (pendingRoutineNavigation == null || !mainTabsReady || !navigationRef.isReady()) {
+    return;
+  }
+
+  const routeNames = navigationRef.getRootState()?.routeNames;
+  if (!routeNames?.includes('Home')) {
+    return;
+  }
+
+  try {
+    navigationRef.navigate('Home');
+    pendingRoutineNavigation = null;
+    suppressRoutineSwitch = false;
+    routineSwitchInFlight = null;
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[push] failed to open home', error);
+    }
+  }
+};
+
+const routineNeedsChildSwitch = (): boolean => {
+  if (suppressRoutineSwitch || !mainTabsReady || pendingRoutineNavigation?.studentId == null) {
+    return false;
+  }
+
+  const studentId = pendingRoutineNavigation.studentId;
+  const snapshot = routineChildSnapshot();
+  if (!snapshot.linkedStudentIds.includes(studentId) || snapshot.activeStudentId === studentId) {
+    if (routineSwitchInFlight === studentId && snapshot.activeStudentId === studentId) {
+      routineSwitchInFlight = null;
+    }
+    return false;
+  }
+
+  return true;
+};
+
+const startRoutineChildSwitch = (): void => {
+  const studentId = pendingRoutineNavigation?.studentId;
+  if (studentId == null || routineSwitchInFlight != null) {
+    return;
+  }
+
+  routineSwitchInFlight = studentId;
+  void switchRoutineChild(studentId).then((switched) => {
+    if (switched) {
+      return;
+    }
+    if (pendingRoutineNavigation?.studentId !== studentId) {
+      return;
+    }
+    routineSwitchInFlight = null;
+    suppressRoutineSwitch = true;
+    flushPendingDeepLinks();
+  });
+};
+
+/** Flushes queued message, charge, and routine taps. The newer one stays on top. */
 export const flushPendingDeepLinks = (): void => {
   if (flushingDeepLinks) {
     return;
@@ -230,12 +410,24 @@ export const flushPendingDeepLinks = (): void => {
 
   flushingDeepLinks = true;
   try {
-    if (messageTicket >= chargeTicket) {
-      flushPendingChargeNavigation();
-      flushPendingMessageNavigation();
-    } else {
-      flushPendingMessageNavigation();
-      flushPendingChargeNavigation();
+    if (routineNeedsChildSwitch()) {
+      startRoutineChildSwitch();
+      return;
+    }
+
+    const steps: { ticket: number; run: () => void }[] = [];
+    if (pendingChargeNavigation != null) {
+      steps.push({ ticket: chargeTicket, run: flushPendingChargeNavigation });
+    }
+    if (pendingConversationId != null) {
+      steps.push({ ticket: messageTicket, run: flushPendingMessageNavigation });
+    }
+    if (pendingRoutineNavigation != null) {
+      steps.push({ ticket: routineTicket, run: flushPendingRoutineNavigation });
+    }
+    steps.sort((left, right) => left.ticket - right.ticket);
+    for (const step of steps) {
+      step.run();
     }
   } finally {
     flushingDeepLinks = false;
@@ -247,9 +439,9 @@ export const flushPendingDeepLinks = (): void => {
  * `charge_id` is only read when it is already on the payload. `conversation_id` is never a charge id.
  */
 const chargeIdFromPayload = (payload: PushNotificationDeepLinkData): number | null => {
-  const fromChargeId = parseConversationId(payload.charge_id);
+  const fromChargeId = parsePositiveId(payload.charge_id);
   if (payload.type === 'charge') {
-    const fromId = parseConversationId(payload.id);
+    const fromId = parsePositiveId(payload.id);
     if (fromId != null) {
       return fromId;
     }
@@ -261,10 +453,14 @@ const chargeIdFromPayload = (payload: PushNotificationDeepLinkData): number | nu
 
 /** Navigates from a tapped notification's `data` payload — queues until MainTabs is mounted. */
 export const navigateFromNotificationData = (data: unknown): void => {
-  const payload = (data ?? undefined) as PushNotificationDeepLinkData | undefined;
+  if (!data || typeof data !== 'object') {
+    return;
+  }
 
-  if (payload?.kind === 'message') {
-    const conversationId = parseConversationId(payload.conversation_id);
+  const payload = data as PushNotificationDeepLinkData;
+
+  if (payload.kind === 'message') {
+    const conversationId = parsePositiveId(payload.conversation_id);
     if (conversationId != null) {
       pendingConversationId = conversationId;
       messageTicket = ++navigationTicket;
@@ -273,7 +469,11 @@ export const navigateFromNotificationData = (data: unknown): void => {
     return;
   }
 
-  if (!payload) {
+  if (isRoutineNotification(payload)) {
+    pendingRoutineNavigation = { studentId: parsePositiveId(payload.student_id) };
+    suppressRoutineSwitch = false;
+    routineTicket = ++navigationTicket;
+    flushPendingDeepLinks();
     return;
   }
 
