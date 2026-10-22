@@ -52,6 +52,64 @@ See [`fintech-first.md`](fintech-first.md) for request/response examples:
 
 ---
 
+## Expected payments by class report (implemented)
+
+A printable PDF for the school dashboard's "Novo relatório" button: per class, each child, their
+guardians and the monthly amount their contract expects, with a subtotal per class and a grand
+total. Not paginated; there is no JSON body on success.
+
+| | |
+|---|---|
+| Request | `GET /api/v1/schools/:school_id/billing/reports/expected_payments` |
+| Auth | Bearer JWT, staff membership of `:school_id` |
+| Permission | `manage_billing` (`ExpectedPaymentsReportPolicy#show?`). `view_billing_summary` alone is **not** enough: that permission unlocks dashboard aggregates, this report exposes each family's figure |
+| Module gate | `billing` module must be enabled (`403 module_disabled` otherwise) |
+
+Query params (all optional):
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `school_class_id` | A class of this school. Another school's class, or a discarded class, is `404` | every class |
+| `status` | Student status: `active`, `transferred` or `all`. Discarded students are never listed | `active` |
+| `columns` | Comma-separated keys, drawn in the report's own order; unknown keys are dropped | `student,guardians,expected_amount` |
+
+Column keys: `student` (Estudante), `guardians` (Responsáveis, the payer marked "(pagador)"),
+`plan` (Plano), `signature_status` (Assinatura), `expected_amount` (Valor previsto (mensal)).
+Subtotal and grand total are drawn only when `expected_amount` is selected. Guardian CPF is never
+printed, whatever `columns` asks for.
+
+Success: `200`, `Content-Type: application/pdf`, `Content-Disposition: attachment`, filename
+`valores-previstos-<school-name-parameterized>-<YYYY-MM-DD>.pdf`. A caller should save the
+response as a blob (the SPA's students/guardians reports do the same).
+
+Errors (standard `{ error: { code, message, details } }` envelope):
+
+- `401` — no/invalid token.
+- `403 forbidden` — guardian, or staff without `manage_billing`; `403 module_disabled`.
+- `404 not_found` — school the caller does not belong to, or a `school_class_id` outside it.
+- `422 validation_error` — unknown `status`, or a name the PDF font cannot draw.
+
+### Expected amount rule
+
+One definition, shared with the dashboard's `average_ticket.total_monthly_cents`
+(`Contract::EXPECTED_MONTHLY_CENTS_SQL`):
+
+```
+Contract.active (kept, status = active)
+amount = COALESCE(contracts.negotiated_amount_cents, billing_plans.base_amount_cents, 0)
+```
+
+- A child with several active contracts is the sum of them (as the dashboard counts them).
+- A child with no active contract is listed as "Sem contrato" and adds nothing to the total.
+- Students without a class (or whose class was discarded) are printed last under "Sem turma".
+- `Contract.active` does not look at `signature_status`: contracts awaiting signature, and
+  contracts whose signature was cancelled, are counted exactly as the dashboard counts them. Use
+  the `signature_status` column to see them.
+- Money is formatted in BRL (`R$ 1.234,56`) inside the PDF only. Any future JSON form of this
+  report must carry `amount_cents` as integer cents.
+
+---
+
 ## Planned extensions (W2–W6)
 
 ### Charges & contracts
