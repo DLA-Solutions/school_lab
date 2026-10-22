@@ -3826,6 +3826,83 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/billing/reports/expected_payments": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Expected payments by class (PDF)",
+        "tags": [
+          "Billing"
+        ],
+        "description": "A printable report, one class per page: each child, their guardians (the payer marked) and the monthly amount their active contract expects, with a subtotal per class and a grand total. Requires `manage_billing`.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "school_class_id",
+            "in": "query",
+            "required": false,
+            "description": "Only this class",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Student status: active (default), transferred or all",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "columns",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated: student, guardians, plan, signature_status, expected_amount (default: student,guardians,expected_amount)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "the PDF, as an attachment"
+          },
+          "401": {
+            "description": "no token"
+          },
+          "403": {
+            "description": "staff without manage_billing may not read it"
+          },
+          "404": {
+            "description": "a class from another school"
+          },
+          "422": {
+            "description": "an unknown status"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/billing/settings": {
       "parameters": [
         {
