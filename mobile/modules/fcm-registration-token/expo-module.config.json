@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "apple": {
+    "modules": ["FcmRegistrationTokenModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.fcmregistrationtoken.FcmRegistrationTokenModule"]
+  }
+}

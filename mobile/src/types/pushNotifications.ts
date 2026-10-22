@@ -36,5 +36,14 @@ export interface PushNotificationDeepLinkData {
    */
   kind?: string;
   conversation_id?: number | string;
+  /**
+   * Read only when the payload already carries them. A routine tap is
+   * `kind` / `channel_key` / `type` of `daily_routine` or `routine`, or
+   * `source_type` `DailyRoutineEntry`. `student_id` is the same positive-id
+   * shape as `conversation_id`.
+   */
+  channel_key?: string;
+  source_type?: string;
+  student_id?: number | string;
   [key: string]: unknown;
 }

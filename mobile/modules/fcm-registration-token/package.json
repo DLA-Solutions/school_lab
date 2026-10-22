@@ -1,0 +1,7 @@
+{
+  "name": "fcm-registration-token",
+  "version": "1.0.0",
+  "description": "iOS FCM registration token via Firebase Messaging. The Android stub resolves null.",
+  "main": "index.ts",
+  "private": true
+}
