@@ -297,6 +297,106 @@ and `Guardian` owners, so compliance files never reach a family. The staff archi
 
 ---
 
+## Livro Ata
+
+Tenant routes under `/api/v1/schools/:school_id`; allowed only for memberships whose role template
+(`staff_profiles.role_template.system_key`) is `director`, `coordination` or `secretary` — other
+roles get `403`, another school's ids get `404`. PRD:
+[`livro-ata.md`](../../prds/documents-and-archive/livro-ata.md).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/minutes_books` | List books (`year` filter), newest year first, with `entries_count` |
+| `POST` | `/minutes_books` | Create book (`name`, `year`); same name+year in a school → `422` |
+| `GET` | `/minutes_entries` | List; `q` (participant name, case/accent-insensitive), `year` (the book's), `kind`, `status`, `minutes_book_id`, `page` |
+| `POST` | `/minutes_entries` | Create a draft with its `participants` |
+| `GET` / `PATCH` | `/minutes_entries/:id` | Show / edit a draft (`409 invalid_state_transition` otherwise) |
+| `GET` | `/minutes_entries/:id/pdf` | `application/pdf`: the signed copy once signed, otherwise a fresh preview render |
+| `POST` | `/minutes_entries/:id/send_for_signature` | Render the PDF, create the Autentique document, move to `pending_signature` |
+| `POST` | `/minutes_entries/:id/cancel` | Cancel a draft / pending entry (withdraws the provider document first) |
+
+Request bodies are wrapped: `{ "minutes_book": {...} }` and `{ "minutes_entry": {...} }`. Lists use the
+Pagy envelope `{ data: [...], meta: { page, per_page, total } }`; single resources are `{ data: {...} }`.
+
+### Books
+
+```jsonc
+// POST /minutes_books  { "minutes_book": { "name": "Livro Ata 2026", "year": 2026 } }  → 201
+// GET  /minutes_books                                                                   → 200 (items below)
+{ "id": 1, "name": "Livro Ata 2026", "year": 2026, "entries_count": 3,
+  "created_at": "2026-10-21T10:00:00Z", "updated_at": "2026-10-21T10:00:00Z" }
+```
+
+### Entries
+
+`kind`: `meeting` | `class_council` | `final_results` (fixed at creation; ignored on `PATCH`).
+`status`: `draft` | `pending_signature` | `signed` | `cancelled`.
+`school_class_id` is accepted only for `class_council`. `body` is sanitized HTML (allowlist:
+`h1`–`h4`, `p`, `ul`, `ol`, `li`, `strong`, `em`, `br`; no attributes).
+
+```jsonc
+// POST /minutes_entries → 201   (PATCH takes the same fields except kind; `participants` replaces the
+// whole list when present and leaves it alone when omitted)
+{ "minutes_entry": {
+    "minutes_book_id": 1, "kind": "meeting", "title": "Reunião de pais", "held_on": "2026-03-10",
+    "body": "<h2>Pauta</h2><p>...</p>", "school_class_id": null,
+    "participants": [
+      { "name": "Ana Souza", "role_label": "Diretora", "email": "ana@example.com",
+        "cpf": "529.982.247-25", "signs": true,
+        "membership_id": null, "guardian_id": null, "student_id": null }
+    ] } }
+```
+
+List item (`GET /minutes_entries`) — participants carry **no** e-mail or CPF:
+
+```jsonc
+{ "id": 9, "minutes_book_id": 1, "school_class_id": null, "kind": "meeting",
+  "title": "Reunião de pais", "held_on": "2026-03-10", "status": "draft",
+  "signature_requested_at": null, "signed_at": null, "cancelled_at": null,
+  "created_at": "...", "updated_at": "...",
+  "book": { "id": 1, "name": "Livro Ata 2026", "year": 2026 },
+  "participants": [ { "id": 5, "name": "Ana Souza", "role_label": "Diretora", "signs": true } ] }
+```
+
+Detail (`GET /minutes_entries/:id`, and the response of create / update / send_for_signature / cancel):
+
+```jsonc
+{ "id": 9, "minutes_book_id": 1, "school_class_id": null, "kind": "meeting",
+  "title": "Reunião de pais", "held_on": "2026-03-10", "status": "pending_signature",
+  "body": "<h2>Pauta</h2><p>...</p>", "school_id": 3,
+  "signature_provider": "autentique", "signature_requested_at": "...", "signed_at": null,
+  "cancelled_at": null, "created_by_membership_id": 12, "created_at": "...", "updated_at": "...",
+  "book": { "id": 1, "name": "Livro Ata 2026", "year": 2026 },
+  "sent_to_provider": true,
+  "has_signed_pdf": false,
+  "participants": [
+    { "id": 5, "name": "Ana Souza", "role_label": "Diretora", "signs": true,
+      "email": "ana@example.com", "cpf": "***.982.247-**", "signed_at": null,
+      "membership_id": null, "guardian_id": null, "student_id": null } ] }
+```
+
+The CPF is always masked (`***.NNN.NNN-**`) in responses; the full document is write-only. The
+provider's document id and signed-file URL are never exposed — the signed copy is served by
+`GET /minutes_entries/:id/pdf` (`has_signed_pdf` says whether it is available).
+
+### Errors
+
+| Status | `error.code` | When |
+|--------|--------------|------|
+| 401 | `unauthorized` | No / invalid token |
+| 403 | `forbidden` | Role template is not director / coordination / secretary |
+| 404 | `not_found` | Unknown or cross-school school / entry id |
+| 409 | `invalid_state_transition` | Edit, send or cancel from a state that disallows it (edit/send need `draft`; cancel needs `draft` or `pending_signature`) |
+| 422 | `validation_error` | `details` keyed by field. Participant errors are keyed `participants.<index>.<field>` (e.g. `participants.1.cpf`). Unknown `minutes_book_id` / `school_class_id` → keys `minutes_book` / `school_class`. Invalid `kind` / `status` / `year` list filters → the filter name. Send errors use `details.base`: no signer, or a signer missing e-mail/CPF (names them), no signature integration configured, provider refused |
+| 502 | `provider_error` | Autentique unreachable, or the signed copy cannot be fetched / the provider document cannot be cancelled |
+
+Webhook / reconcile: Autentique callbacks for a document id belonging to a minutes entry move it to
+`signed` through the same `/webhooks/signatures/:token` endpoint contracts use; a daily
+`Signatures::ReconcilePendingMinutesJob` sweep is the backstop, and the signed PDF is stored on the
+entry (Active Storage) by `Minutes::AttachSignedPdfJob`.
+
+---
+
 ## Migration from fintech-first
 
 | Legacy route | Archive route |
@@ -311,4 +411,4 @@ UC-07 in fintech-first PRD marked **deprecated** — behaviour preserved until W
 
 ## OpenAPI tags
 
-`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`, `Compliance`
+`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`, `Minutes`, `Compliance`

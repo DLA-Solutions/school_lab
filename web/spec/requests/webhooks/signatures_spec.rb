@@ -175,4 +175,52 @@ RSpec.describe "Autentique signature webhook", type: :request do
     expect(response).to have_http_status(:ok)
     expect(contract.reload.signed_at).to eq(first_signed_at)
   end
+
+  # The Livro Ata reuses the same provider and endpoint: a finished document is matched against the
+  # school's minutes entries as well as its contracts.
+  describe "a Livro Ata minutes entry" do
+    let(:entry) do
+      create(:minutes_entry, :pending_signature, school: school, provider_document_id: "doc-minutes-1")
+    end
+    let(:minutes_event) { autentique_payload(type: "document.finished", document_id: entry.provider_document_id) }
+
+    it "marks the entry signed on a finished event and stamps its signers" do
+      deliver(minutes_event, signature: sign(minutes_event))
+
+      expect(response).to have_http_status(:ok)
+      expect(entry.reload).to be_signed
+      expect(entry.signed_at).to be_present
+      expect(entry.minutes_participants.where(signs: true).pluck(:signed_at)).to all(be_present)
+      expect(contract.reload.signature_status).to eq("pending_signature")
+    end
+
+    it "is idempotent when the provider retries" do
+      2.times { deliver(minutes_event, signature: sign(minutes_event)) }
+      first_signed_at = entry.reload.signed_at
+
+      deliver(minutes_event, signature: sign(minutes_event))
+
+      expect(response).to have_http_status(:ok)
+      expect(entry.reload.signed_at).to eq(first_signed_at)
+    end
+
+    it "does not touch another school's entry" do
+      foreign = create(:minutes_entry, :pending_signature, provider_document_id: "doc-minutes-1")
+
+      deliver(minutes_event, signature: sign(minutes_event))
+
+      expect(response).to have_http_status(:ok)
+      expect(foreign.reload).to be_pending_signature
+      expect(entry.reload).to be_signed
+    end
+
+    it "does not revive a cancelled entry" do
+      entry.update_columns(status: "cancelled", cancelled_at: Time.current)
+
+      deliver(minutes_event, signature: sign(minutes_event))
+
+      expect(response).to have_http_status(:ok)
+      expect(entry.reload).to be_cancelled
+    end
+  end
 end

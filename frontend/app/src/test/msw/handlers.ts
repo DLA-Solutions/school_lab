@@ -638,6 +638,57 @@ export const sampleSchoolPlatformPlans = [
   },
 ];
 
+/** Livro Ata (BC4) fixtures — `docs/api/v1/documents-and-archive.md` § Livro Ata. */
+export const sampleMinutesBook = {
+  id: 1,
+  name: 'Livro Ata 2026',
+  year: 2026,
+  entries_count: 1,
+  created_at: '2026-03-01T10:00:00Z',
+  updated_at: '2026-03-01T10:00:00Z',
+};
+
+export const sampleMinutesEntrySummary = {
+  id: 9,
+  minutes_book_id: 1,
+  school_class_id: null,
+  kind: 'meeting' as const,
+  title: 'Reunião de pais',
+  held_on: '2026-03-10',
+  status: 'draft' as const,
+  signature_requested_at: null,
+  signed_at: null,
+  cancelled_at: null,
+  created_at: '2026-03-10T10:00:00Z',
+  updated_at: '2026-03-10T10:00:00Z',
+  book: { id: 1, name: 'Livro Ata 2026', year: 2026 },
+  participants: [{ id: 5, name: 'Ana Souza', role_label: 'Diretora', signs: true }],
+};
+
+export const sampleMinutesEntryDetail = {
+  ...sampleMinutesEntrySummary,
+  body: '<h2>Pauta</h2><p>Combinados do semestre.</p>',
+  school_id: SCHOOL_ID,
+  signature_provider: null,
+  created_by_membership_id: 11,
+  sent_to_provider: false,
+  has_signed_pdf: false,
+  participants: [
+    {
+      id: 5,
+      name: 'Ana Souza',
+      role_label: 'Diretora',
+      signs: true,
+      email: 'ana@example.com',
+      cpf: '***.982.247-**',
+      signed_at: null,
+      membership_id: null,
+      guardian_id: null,
+      student_id: null,
+    },
+  ],
+};
+
 export const handlers = [
   http.post(apiUrl('/api/v1/auth/login'), async ({ request }) => {
     const body = (await request.json()) as { email?: string; password?: string };
@@ -2387,4 +2438,77 @@ export const handlers = [
       return HttpResponse.json({ data: body.instructional_days });
     },
   ),
+
+  // Livro Ata (BC4). Defaults give a school with one book and one draft ata; a spec overrides what
+  // it asserts on with `server.use`.
+  http.get(apiUrl('/api/v1/schools/:schoolId/minutes_books'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return paginated([sampleMinutesBook], new URL(request.url));
+  }),
+
+  http.post(apiUrl('/api/v1/schools/:schoolId/minutes_books'), async ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const body = (await request.json()) as { minutes_book: { name: string; year: number } };
+
+    return HttpResponse.json(
+      {
+        data: { ...sampleMinutesBook, id: 2, entries_count: 0, ...body.minutes_book },
+      },
+      { status: 201 },
+    );
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/minutes_entries'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return paginated([sampleMinutesEntrySummary], new URL(request.url));
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/minutes_entries/:entryId'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID) || params.entryId !== String(sampleMinutesEntryDetail.id)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: sampleMinutesEntryDetail });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/minutes_entries/:entryId/pdf'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return new HttpResponse('%PDF-1.4 minutes', { headers: { 'Content-Type': 'application/pdf' } });
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/people/guardians'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return paginated([], new URL(request.url));
+  }),
 ];

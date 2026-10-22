@@ -81,8 +81,8 @@ Competitor presence: [`parity-matrix.md`](../../product/parity-matrix.md#documen
 | Export audit-ready package | `documents.export_audit_package` | MVP | [`archive.md`](archive.md) | `[product decision]` — Conselho audit readiness per [`vision.md`](../../vision.md) §3 |
 | Configure document signatories | `documents.configure_document_signatories` | MVP | [`archive.md`](archive.md) | [`documents-and-archive.create_adicionar_os_dados_de_secretar`](../../ref/catalogo-funcionalidades.md) — Proesc secretary/director on generated docs |
 | Manage retention policy | `documents.manage_retention_policy` | P2 | [`retention.md`](retention.md) | NFR-002; [`open-questions.md`](../../open-questions.md) § Digital archive |
-| Generate official minutes (Livro Ata) | `documents.generate_official_minutes` | P2 | — *(future `livro-ata.md`)* | [`vision.md`](../../vision.md) §6 — high priority phase 2 |
-| Collect minutes signatures | `documents.collect_minutes_signatures` | P2 | — *(future `livro-ata.md`)* | Valid digital signature for Conselho audits |
+| Generate official minutes (Livro Ata) | `documents.generate_official_minutes` | P2 → in progress | [`livro-ata.md`](livro-ata.md) | [`vision.md`](../../vision.md) §6 — high priority phase 2 |
+| Collect minutes signatures | `documents.collect_minutes_signatures` | P2 → in progress | [`livro-ata.md`](livro-ata.md) | Valid digital signature for Conselho audits |
 | Store school compliance document | `documents.store_compliance_document` | MVP | [`compliance.md`](compliance.md) | `[product decision]` — stakeholder request 2026-10-21 |
 | Semantic archive search | `documents.search_archive_semantic` | P2 | — *(future `livro-ata.md`)* | Vision stakeholder interest; pgvector TBD |
 | Issue school transcript | `documents.issue_transcript` | P2 | — *(future `certificates.md`)* | Under-represented in competitor catalog |
@@ -134,7 +134,7 @@ Requirements without market anchor: `[product decision]` or `[invented]` per [`t
 
 | Item | Phase | Target PRD |
 |------|-------|------------|
-| Livro Ata generation | P2 | `livro-ata.md` *(not written)* |
+| Livro Ata generation | P2 → in progress | [`livro-ata.md`](livro-ata.md) *(draft)* |
 | Minutes and contract e-signatures | P2 | `livro-ata.md`, `contracts.md` |
 | Semantic / vector search | P2 | `livro-ata.md` |
 | Official transcripts and declarations | P2 | `certificates.md` |

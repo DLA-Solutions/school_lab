@@ -270,6 +270,18 @@ pt-BR:
       signature_provider_missing: "Nenhuma integração de assinatura configurada para esta escola."
       signature_provider_unauthorized: "A Autentique recusou as credenciais desta escola."
       signature_provider_unavailable: "A Autentique está indisponível no momento. Tente novamente em instantes."
+      minutes_book_not_found: "Escolha um dos livros de atas desta escola."
+      minutes_school_class_not_found: "Escolha uma das turmas desta escola."
+      minutes_link_not_found: "Uma das pessoas vinculadas não pertence a esta escola."
+      minutes_entry_not_editable: "Só é possível editar uma ata em rascunho."
+      minutes_entry_not_sendable: "Só é possível enviar para assinatura uma ata em rascunho."
+      minutes_entry_not_cancellable: "Só é possível cancelar uma ata em rascunho ou aguardando assinatura."
+      minutes_entry_not_pending: "Esta ata não está aguardando assinatura."
+      minutes_entry_not_signed: "Esta ata ainda não foi assinada."
+      minutes_without_signers: "Marque ao menos um participante como signatário antes de enviar a ata."
+      minutes_cancel_provider_failed: "Não foi possível cancelar o documento na Autentique. A ata continua aguardando assinatura — tente novamente."
+      minutes_pdf_unsupported_characters: "A ata contém caracteres que a fonte do PDF não consegue desenhar. Fale com o suporte."
+      minutes_signed_pdf_unavailable: "Não foi possível obter a ata assinada do provedor de assinatura."
       charge_without_payer: "Informe o responsável financeiro que receberá o boleto."
       charge_batch_no_contracts: "Selecione ao menos um contrato para gerar os boletos."
       charge_batch_invalid_period: "Informe uma competência válida, no formato AAAA-MM."
@@ -312,12 +324,14 @@ pt-BR:
       contract_template_missing: "Esta escola não tem modelo de contrato próprio. Será usado o modelo padrão, sem as cláusulas da escola."
   signature:
     contract_message: "Segue o contrato de prestação de serviços educacionais referente a %{student}. Confira os dados e assine."
+    minutes_message: "Segue a ata \"%{title}\" da escola %{school}. Confira e assine."
   # Respostas `validation_error` carregam as mensagens do ActiveModel em `details`, e a SPA as
   # imprime sob cada campo — então são textos para o usuário, não saída para quem desenvolve.
   errors:
     messages:
       blank: "não pode ficar em branco"
       invalid: "não é válido"
+      immutable: "não pode ser alterado depois de criado"
       taken: "já está em uso"
       inclusion: "não está na lista de valores permitidos"
       not_a_number: "não é um número"

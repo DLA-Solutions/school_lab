@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_185602) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_195540) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "unaccent"
   enable_extension "vector"
 
   create_table "academic_periods", force: :cascade do |t|
@@ -770,6 +771,69 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_185602) do
     t.index ["conversation_id"], name: "index_messages_on_conversation_id"
     t.index ["school_id"], name: "index_messages_on_school_id"
     t.index ["sender_membership_id"], name: "index_messages_on_sender_membership_id"
+  end
+
+  create_table "minutes_books", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_membership_id"
+    t.datetime "discarded_at"
+    t.string "name", null: false
+    t.bigint "school_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "year", null: false
+    t.index ["created_by_membership_id"], name: "index_minutes_books_on_created_by_membership_id"
+    t.index ["school_id", "year", "name"], name: "index_minutes_books_on_school_year_name_kept", unique: true, where: "(discarded_at IS NULL)"
+    t.index ["school_id"], name: "index_minutes_books_on_school_id"
+  end
+
+  create_table "minutes_entries", force: :cascade do |t|
+    t.text "body"
+    t.datetime "cancelled_at"
+    t.datetime "created_at", null: false
+    t.bigint "created_by_membership_id"
+    t.datetime "discarded_at"
+    t.date "held_on", null: false
+    t.string "kind", null: false
+    t.bigint "minutes_book_id", null: false
+    t.string "provider_document_id"
+    t.bigint "school_class_id"
+    t.bigint "school_id", null: false
+    t.string "signature_provider"
+    t.datetime "signature_requested_at"
+    t.datetime "signed_at"
+    t.string "signed_document_url"
+    t.string "status", default: "draft", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_membership_id"], name: "index_minutes_entries_on_created_by_membership_id"
+    t.index ["minutes_book_id"], name: "index_minutes_entries_on_minutes_book_id"
+    t.index ["provider_document_id"], name: "index_minutes_entries_on_provider_document_id"
+    t.index ["school_class_id"], name: "index_minutes_entries_on_school_class_id"
+    t.index ["school_id", "minutes_book_id"], name: "index_minutes_entries_on_school_id_and_minutes_book_id"
+    t.index ["school_id", "status"], name: "index_minutes_entries_on_school_id_and_status"
+    t.index ["school_id"], name: "index_minutes_entries_on_school_id"
+  end
+
+  create_table "minutes_participants", force: :cascade do |t|
+    t.string "cpf"
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.bigint "guardian_id"
+    t.bigint "membership_id"
+    t.bigint "minutes_entry_id", null: false
+    t.string "name", null: false
+    t.string "role_label"
+    t.bigint "school_id", null: false
+    t.datetime "signed_at"
+    t.boolean "signs", default: false, null: false
+    t.bigint "student_id"
+    t.datetime "updated_at", null: false
+    t.index ["guardian_id"], name: "index_minutes_participants_on_guardian_id"
+    t.index ["membership_id"], name: "index_minutes_participants_on_membership_id"
+    t.index ["minutes_entry_id"], name: "index_minutes_participants_on_minutes_entry_id"
+    t.index ["school_id", "name"], name: "index_minutes_participants_on_school_id_and_name"
+    t.index ["school_id"], name: "index_minutes_participants_on_school_id"
+    t.index ["student_id"], name: "index_minutes_participants_on_student_id"
   end
 
   create_table "notification_deliveries", force: :cascade do |t|
@@ -1976,6 +2040,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_185602) do
   add_foreign_key "messages", "conversations"
   add_foreign_key "messages", "memberships", column: "sender_membership_id"
   add_foreign_key "messages", "schools"
+  add_foreign_key "minutes_books", "memberships", column: "created_by_membership_id"
+  add_foreign_key "minutes_books", "schools"
+  add_foreign_key "minutes_entries", "memberships", column: "created_by_membership_id"
+  add_foreign_key "minutes_entries", "minutes_books"
+  add_foreign_key "minutes_entries", "school_classes"
+  add_foreign_key "minutes_entries", "schools"
+  add_foreign_key "minutes_participants", "guardians"
+  add_foreign_key "minutes_participants", "memberships"
+  add_foreign_key "minutes_participants", "minutes_entries"
+  add_foreign_key "minutes_participants", "schools"
+  add_foreign_key "minutes_participants", "students"
   add_foreign_key "notification_deliveries", "notification_intents"
   add_foreign_key "notification_deliveries", "schools"
   add_foreign_key "notification_deliveries", "users"

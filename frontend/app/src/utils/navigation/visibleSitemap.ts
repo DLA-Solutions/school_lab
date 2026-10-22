@@ -26,7 +26,8 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   'my-tax-declarations': 'billing',
   'report-cards': 'academic',
   'my-report-cards': 'academic',
-  atas: 'academic',
+  'incident-notes': 'academic',
+  'school-minutes': 'documents',
   communication: 'communication',
   'staff-communication': 'communication',
   'my-atas': 'academic',
@@ -52,6 +53,7 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.lessonPlans]: 'academic',
   [paths.allLessonPlans]: 'academic',
   [paths.atas]: 'academic',
+  [paths.schoolMinutes]: 'documents',
   [paths.communication]: 'communication',
   [paths.staffCommunication]: 'communication',
   [paths.myAtas]: 'academic',
@@ -88,6 +90,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.lessonPlans]: 'staff',
   [paths.allLessonPlans]: 'staff',
   [paths.atas]: 'staff',
+  [paths.schoolMinutes]: 'staff',
   [paths.staffCommunication]: 'staff',
   [paths.schoolClasses]: 'staff',
   [paths.subjects]: 'staff',
@@ -165,6 +168,11 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
       if (!allowed) {
         return false;
       }
+    }
+
+    const excludedKey = membership?.role_template?.system_key ?? null;
+    if (item.excludeSystemKeys && excludedKey !== null && item.excludeSystemKeys.includes(excludedKey)) {
+      return false;
     }
 
     const moduleKey = menuItemModuleKey(item);
