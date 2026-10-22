@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { colors } from '../../theme/colors';
+import { t } from '../../i18n';
 import { fetchReportCardPdfDataUri } from '../../services/reportCards';
 import { ReportCardListItem as ReportCardListItemData } from '../../types/reportCards';
 
@@ -37,10 +38,8 @@ const ReportCardListItem = ({ item, schoolId, studentName, onPress }: ReportCard
     try {
       const dataUri = await fetchReportCardPdfDataUri(schoolId, item.publication_id, item.snapshot_id);
       await WebBrowser.openBrowserAsync(dataUri);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Não foi possível baixar o boletim.';
-      setDownloadError(message);
-      console.error('Failed to open report card PDF:', error);
+    } catch {
+      setDownloadError(t('reportCards.downloadError'));
     } finally {
       setDownloading(false);
     }
@@ -54,7 +53,10 @@ const ReportCardListItem = ({ item, schoolId, studentName, onPress }: ReportCard
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.studentName}>{studentName}</Text>
-          <Text style={styles.periodLabel}>Período #{item.academic_period_id}</Text>
+          <Text style={styles.periodLabel}>
+            {t('reportCards.periodPrefix')}
+            {item.academic_period_id}
+          </Text>
         </View>
         {item.version !== null && (
           <View style={styles.versionBadge}>
@@ -64,7 +66,9 @@ const ReportCardListItem = ({ item, schoolId, studentName, onPress }: ReportCard
       </View>
 
       <View style={styles.details}>
-        <Text style={styles.date}>Liberado em {formatReleasedAt(item.released_at)}</Text>
+        <Text style={styles.date}>
+          {t('reportCards.releasedOn')} {formatReleasedAt(item.released_at)}
+        </Text>
 
         <Pressable
           style={({ pressed }) => [
@@ -90,7 +94,7 @@ const ReportCardListItem = ({ item, schoolId, studentName, onPress }: ReportCard
         </Pressable>
       </View>
 
-      {!hasPdf && <Text style={styles.unavailableText}>Boletim ainda não disponível</Text>}
+      {!hasPdf && <Text style={styles.unavailableText}>{t('reportCards.unavailable')}</Text>}
       {downloadError && <Text style={styles.errorText}>{downloadError}</Text>}
     </Pressable>
   );
