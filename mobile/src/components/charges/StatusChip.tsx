@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { t, type MessageKey } from '../../i18n';
 import { colors } from '../../theme/colors';
 import { ChargeStatus } from '../../types/charges';
 
@@ -6,41 +7,30 @@ interface StatusChipProps {
   status: ChargeStatus;
 }
 
-const StatusChip = ({ status }: StatusChipProps) => {
-  let label: string;
-  let backgroundColor: string;
-  let textColor: string;
+const STATUS_LABELS: Record<ChargeStatus, MessageKey> = {
+  pending: 'boletos.status.pending',
+  overdue: 'boletos.status.overdue',
+  paid: 'boletos.status.paid',
+  cancelled: 'boletos.status.cancelled',
+};
 
-  switch (status) {
-    case 'pending':
-      label = 'Em aberto';
-      backgroundColor = colors.warning;
-      textColor = '#000';
-      break;
-    case 'overdue':
-      label = 'Vencido';
-      backgroundColor = colors.error;
-      textColor = '#fff';
-      break;
-    case 'paid':
-      label = 'Pago';
-      backgroundColor = colors.success;
-      textColor = '#fff';
-      break;
-    case 'cancelled':
-      label = 'Cancelado';
-      backgroundColor = colors.textDisabled;
-      textColor = '#fff';
-      break;
-    default:
-      label = status;
-      backgroundColor = colors.textDisabled;
-      textColor = '#fff';
+const STATUS_COLORS: Record<ChargeStatus, { backgroundColor: string; textColor: string }> = {
+  pending: { backgroundColor: colors.warning, textColor: '#000' },
+  overdue: { backgroundColor: colors.error, textColor: '#fff' },
+  paid: { backgroundColor: colors.success, textColor: '#fff' },
+  cancelled: { backgroundColor: colors.textDisabled, textColor: '#fff' },
+};
+
+const StatusChip = ({ status }: StatusChipProps) => {
+  const labelKey = STATUS_LABELS[status];
+  const palette = STATUS_COLORS[status];
+  if (!labelKey || !palette) {
+    return null;
   }
 
   return (
-    <View style={[styles.chip, { backgroundColor }]}>
-      <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+    <View style={[styles.chip, { backgroundColor: palette.backgroundColor }]}>
+      <Text style={[styles.label, { color: palette.textColor }]}>{t(labelKey)}</Text>
     </View>
   );
 };

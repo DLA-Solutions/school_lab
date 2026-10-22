@@ -3,7 +3,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../providers/AuthContext';
 import { useGuardianContext } from '../providers/GuardianContext';
-import { flushPendingMessageNavigation, navigationRef } from '../services/pushNotifications';
+import { flushPendingDeepLinks, navigationRef } from '../services/pushNotifications';
 import GuardianBlockedScreen from '../screens/GuardianBlockedScreen';
 import GuardianContextPickerScreen from '../screens/GuardianContextPickerScreen';
 import AuthStack from './AuthStack';
@@ -50,8 +50,8 @@ const RootNavigator = () => {
     <NavigationContainer
       ref={navigationRef}
       theme={navigationTheme}
-      onReady={flushPendingMessageNavigation}
-      onStateChange={flushPendingMessageNavigation}
+      onReady={flushPendingDeepLinks}
+      onStateChange={flushPendingDeepLinks}
     >
       {content}
     </NavigationContainer>

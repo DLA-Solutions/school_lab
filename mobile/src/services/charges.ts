@@ -1,5 +1,5 @@
 import { request } from './api';
-import { Charge, ChargeHistoryItem, ChargeListResponse } from '../types/charges';
+import { Charge, ChargeDetailResponse, ChargeHistoryItem, ChargeListResponse } from '../types/charges';
 
 /** Optional `student_id` matches the guardian charges list filter. */
 const chargesPath = (schoolId: number, suffix: string, studentId?: number) => {
@@ -21,6 +21,13 @@ export const fetchOpenCharges = (
   schoolId: number,
   studentId?: number,
 ): Promise<ChargeListResponse<Charge>> => request(chargesPath(schoolId, '', studentId));
+
+/**
+ * Fetch one charge for the guardian.
+ * GET /api/v1/schools/:school_id/me/charges/:id
+ */
+export const fetchCharge = (schoolId: number, chargeId: number): Promise<ChargeDetailResponse> =>
+  request(`/schools/${schoolId}/me/charges/${chargeId}`);
 
 /**
  * Fetch paid charge history for a guardian.

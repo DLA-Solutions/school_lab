@@ -8,6 +8,11 @@ export interface Student {
 export interface PaymentMethods {
   boleto_url: string | null;
   pix_copy_paste: string | null;
+  /**
+   * Not part of the guardian `payment_methods` contract. Read only when a detail
+   * response already includes a non-empty string; never synthesize it.
+   */
+  digitable_line?: string | null;
 }
 
 export interface Charge {
@@ -24,7 +29,16 @@ export interface Charge {
   student: Student | null;
   contract_id: number | null;
   interest_rate_percent: number | null;
+  /**
+   * Not a guardian blueprint field today. Shown only when the detail JSON
+   * already includes a non-empty string.
+   */
+  digitable_line?: string | null;
   payment_methods: PaymentMethods;
+}
+
+export interface ChargeDetailResponse {
+  data: Charge;
 }
 
 export interface ChargeHistoryItem {
