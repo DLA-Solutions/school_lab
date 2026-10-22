@@ -7,8 +7,8 @@ import { useAuth } from '../providers/AuthContext';
 import { setMainTabsNavigationReady } from '../services/pushNotifications';
 import { colors } from '../theme/colors';
 import HomeScreen from '../screens/HomeScreen';
-import BoletosTabScreen from '../screens/BoletosTabScreen';
 import ChildScreen from '../screens/ChildScreen';
+import BoletosStack from './BoletosStack';
 import MessagesStack from './MessagesStack';
 import { MainTabParamList } from './types';
 
@@ -78,8 +78,8 @@ const MainTabs = () => {
       />
       <Tab.Screen
         name="Boletos"
-        component={BoletosTabScreen}
-        options={{ tabBarLabel: t('tabs.boletos'), title: t('tabs.boletos') }}
+        component={BoletosStack}
+        options={{ headerShown: false, tabBarLabel: t('tabs.boletos'), title: t('tabs.boletos') }}
       />
       <Tab.Screen name="Child" component={ChildScreen} options={{ tabBarLabel: t('tabs.child'), title: t('tabs.child') }} />
     </Tab.Navigator>

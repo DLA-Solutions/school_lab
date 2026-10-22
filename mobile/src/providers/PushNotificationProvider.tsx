@@ -2,6 +2,7 @@ import { PropsWithChildren, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { useAuth } from './AuthContext';
 import {
+  clearPendingChargeDeepLink,
   clearPendingMessageDeepLink,
   navigateFromNotificationData,
   registerDeviceToken,
@@ -33,7 +34,7 @@ const PushNotificationProvider = ({ children }: PropsWithChildren) => {
     registerDeviceToken();
   }, [isAuthenticated]);
 
-  // Drop a queued message deep link only after a real logout. The first paint is
+  // Drop queued message and charge deep links only after a real logout. The first paint is
   // unauthenticated while the session restores, and that must not discard a cold-start tap.
   useEffect(() => {
     if (isAuthenticated) {
@@ -44,6 +45,7 @@ const PushNotificationProvider = ({ children }: PropsWithChildren) => {
     if (authenticatedRef.current) {
       authenticatedRef.current = false;
       clearPendingMessageDeepLink();
+      clearPendingChargeDeepLink();
     }
   }, [isAuthenticated]);
 

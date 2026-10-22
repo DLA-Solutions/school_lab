@@ -25,3 +25,28 @@ export const formatDateBR = (isoDate: string): string => {
   });
   return formatter.format(date);
 };
+
+/**
+ * Format a calendar date `YYYY-MM-DD` in pt-BR from its year/month/day parts.
+ * `new Date('YYYY-MM-DD')` is UTC midnight and can show the previous day in America/Sao_Paulo.
+ */
+export const formatCalendarDateBR = (value: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return '';
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+};

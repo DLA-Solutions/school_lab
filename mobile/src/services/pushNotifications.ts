@@ -96,16 +96,21 @@ export const registerDeviceToken = async (): Promise<void> => {
 };
 
 /**
- * `type: 'charge'` opens the Boletos tab. Message taps use `kind: 'message'` and are queued
- * until MainTabs is mounted — a cold start can arrive before the guardian gate is ready.
+ * Message taps use `kind: 'message'` and are queued until MainTabs is mounted.
+ * `type: 'charge'` queues that charge's detail, or the boletos list when it has no id.
+ * A cold start can arrive before the guardian gate is ready.
  */
-const DEEP_LINK_ROUTES: Partial<Record<string, keyof MainTabParamList>> = {
-  charge: 'Boletos',
-};
-
 let mainTabsReady = false;
 let pendingConversationId: number | null = null;
 let flushingMessageNavigation = false;
+let pendingChargeNavigation: PendingChargeNavigation | null = null;
+let flushingChargeNavigation = false;
+let navigationTicket = 0;
+let messageTicket = 0;
+let chargeTicket = 0;
+let flushingDeepLinks = false;
+
+type PendingChargeNavigation = { kind: 'detail'; chargeId: number } | { kind: 'list' };
 
 /** Positive integer, or a numeric string (FCM data values are often strings). */
 const parseConversationId = (value: unknown): number | null => {
@@ -127,11 +132,15 @@ export const clearPendingMessageDeepLink = (): void => {
   pendingConversationId = null;
 };
 
+export const clearPendingChargeDeepLink = (): void => {
+  pendingChargeNavigation = null;
+};
+
 /** Called from MainTabs. A school/child switch remounts the tabs and flushes again. */
 export const setMainTabsNavigationReady = (ready: boolean): void => {
   mainTabsReady = ready;
   if (ready) {
-    flushPendingMessageNavigation();
+    flushPendingDeepLinks();
   }
 };
 
@@ -172,7 +181,85 @@ export const flushPendingMessageNavigation = (): void => {
   }
 };
 
-/** Navigates from a tapped notification's `data` payload — no-ops if unmapped or not ready. */
+/**
+ * Opens the queued boleto detail, or the list when the charge notification had no id.
+ * A failed navigate is swallowed so a tap cannot crash the app.
+ */
+const flushPendingChargeNavigation = (): void => {
+  if (
+    flushingChargeNavigation ||
+    pendingChargeNavigation == null ||
+    !mainTabsReady ||
+    !navigationRef.isReady()
+  ) {
+    return;
+  }
+
+  const routeNames = navigationRef.getRootState()?.routeNames;
+  if (!routeNames?.includes('Boletos')) {
+    return;
+  }
+
+  const pending = pendingChargeNavigation;
+  flushingChargeNavigation = true;
+  try {
+    if (pending.kind === 'detail') {
+      navigationRef.navigate('Boletos', {
+        screen: 'Detail',
+        params: { chargeId: pending.chargeId },
+        initial: false,
+      });
+    } else {
+      navigationRef.navigate('Boletos', { screen: 'List' });
+    }
+    pendingChargeNavigation = null;
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[push] failed to open boleto', error);
+    }
+  } finally {
+    flushingChargeNavigation = false;
+  }
+};
+
+/** Flushes queued message and charge taps from the same readiness path. The newer one stays on top. */
+export const flushPendingDeepLinks = (): void => {
+  if (flushingDeepLinks) {
+    return;
+  }
+
+  flushingDeepLinks = true;
+  try {
+    if (messageTicket >= chargeTicket) {
+      flushPendingChargeNavigation();
+      flushPendingMessageNavigation();
+    } else {
+      flushPendingMessageNavigation();
+      flushPendingChargeNavigation();
+    }
+  } finally {
+    flushingDeepLinks = false;
+  }
+};
+
+/**
+ * Charge id from a notification. `id` wins when `type` is `charge`.
+ * `charge_id` is only read when it is already on the payload. `conversation_id` is never a charge id.
+ */
+const chargeIdFromPayload = (payload: PushNotificationDeepLinkData): number | null => {
+  const fromChargeId = parseConversationId(payload.charge_id);
+  if (payload.type === 'charge') {
+    const fromId = parseConversationId(payload.id);
+    if (fromId != null) {
+      return fromId;
+    }
+    return fromChargeId;
+  }
+
+  return fromChargeId;
+};
+
+/** Navigates from a tapped notification's `data` payload — queues until MainTabs is mounted. */
 export const navigateFromNotificationData = (data: unknown): void => {
   const payload = (data ?? undefined) as PushNotificationDeepLinkData | undefined;
 
@@ -180,31 +267,26 @@ export const navigateFromNotificationData = (data: unknown): void => {
     const conversationId = parseConversationId(payload.conversation_id);
     if (conversationId != null) {
       pendingConversationId = conversationId;
-      flushPendingMessageNavigation();
+      messageTicket = ++navigationTicket;
+      flushPendingDeepLinks();
     }
     return;
   }
 
-  const routeName = payload?.type ? DEEP_LINK_ROUTES[payload.type] : undefined;
+  if (!payload) {
+    return;
+  }
 
-  if (!routeName) {
-    if (__DEV__ && payload?.type) {
+  const chargeId = chargeIdFromPayload(payload);
+  const isChargeNotification = payload.type === 'charge' || chargeId != null;
+  if (!isChargeNotification) {
+    if (__DEV__ && payload.type) {
       console.warn(`[push] no route mapped yet for notification type "${payload.type}"`);
     }
     return;
   }
 
-  if (!navigationRef.isReady()) {
-    return;
-  }
-
-  try {
-    if (routeName === 'Boletos') {
-      navigationRef.navigate('Boletos');
-    }
-  } catch (error) {
-    if (__DEV__) {
-      console.warn('[push] failed to navigate from notification tap', error);
-    }
-  }
+  pendingChargeNavigation = chargeId != null ? { kind: 'detail', chargeId } : { kind: 'list' };
+  chargeTicket = ++navigationTicket;
+  flushPendingDeepLinks();
 };

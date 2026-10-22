@@ -26,11 +26,13 @@ export interface RegisterDeviceTokenResponse {
  */
 export interface PushNotificationDeepLinkData {
   type?: 'thread' | 'charge' | string;
-  id?: string;
+  /** Charge id when `type` is `charge`. FCM data values are often numeric strings. */
+  id?: string | number;
   /**
    * Family-chat bell rows use `kind: 'message'` and `conversation_id`
    * (`docs/api/v1/communication.md`). FCM data values are often strings.
-   * `type: 'charge'` still opens the Boletos tab.
+   * `type: 'charge'` opens that charge when `id` is present, otherwise the boletos list.
+   * An existing `charge_id` on the payload (index signature) also identifies the charge.
    */
   kind?: string;
   conversation_id?: number | string;
