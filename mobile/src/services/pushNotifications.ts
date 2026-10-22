@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { createNavigationContainerRef } from '@react-navigation/native';
+import { MainTabParamList } from '../navigation/types';
 import { request } from './api';
 import { DeviceTokenPlatform, PushNotificationDeepLinkData, RegisterDeviceTokenResponse } from '../types/pushNotifications';
 
@@ -9,7 +10,7 @@ import { DeviceTokenPlatform, PushNotificationDeepLinkData, RegisterDeviceTokenR
  * notification tap can navigate without a screen having to pass its own `navigation`
  * prop down to a listener that lives outside the render tree.
  */
-export const navigationRef = createNavigationContainerRef();
+export const navigationRef = createNavigationContainerRef<MainTabParamList>();
 
 /**
  * Foreground presentation — without this, expo-notifications shows nothing while the
@@ -95,18 +96,95 @@ export const registerDeviceToken = async (): Promise<void> => {
 };
 
 /**
- * Routes not yet built (e.g. a message thread or a charge detail screen — see
- * `mobile/src/navigation/MainTabs.tsx`) have no mapping here on purpose: navigating
- * to an unregistered route name throws. Extend this map as those screens ship instead
- * of guessing their eventual names.
+ * `type: 'charge'` opens the Boletos tab. Message taps use `kind: 'message'` and are queued
+ * until MainTabs is mounted — a cold start can arrive before the guardian gate is ready.
  */
-const DEEP_LINK_ROUTES: Partial<Record<string, string>> = {
+const DEEP_LINK_ROUTES: Partial<Record<string, keyof MainTabParamList>> = {
   charge: 'Boletos',
+};
+
+let mainTabsReady = false;
+let pendingConversationId: number | null = null;
+let flushingMessageNavigation = false;
+
+/** Positive integer, or a numeric string (FCM data values are often strings). */
+const parseConversationId = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isSafeInteger(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === 'string' && /^[0-9]+$/.test(value.trim())) {
+    const parsed = Number(value.trim());
+    if (Number.isSafeInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
+};
+
+export const clearPendingMessageDeepLink = (): void => {
+  pendingConversationId = null;
+};
+
+/** Called from MainTabs. A school/child switch remounts the tabs and flushes again. */
+export const setMainTabsNavigationReady = (ready: boolean): void => {
+  mainTabsReady = ready;
+  if (ready) {
+    flushPendingMessageNavigation();
+  }
+};
+
+/**
+ * Opens the queued thread only when the container is ready and the authenticated tab tree
+ * is mounted. A failed navigate is swallowed so a tap cannot crash the app.
+ */
+export const flushPendingMessageNavigation = (): void => {
+  if (
+    flushingMessageNavigation ||
+    pendingConversationId == null ||
+    !mainTabsReady ||
+    !navigationRef.isReady()
+  ) {
+    return;
+  }
+
+  const routeNames = navigationRef.getRootState()?.routeNames;
+  if (!routeNames?.includes('Messages')) {
+    return;
+  }
+
+  const conversationId = pendingConversationId;
+  flushingMessageNavigation = true;
+  try {
+    navigationRef.navigate('Messages', {
+      screen: 'Thread',
+      params: { conversationId },
+      initial: false,
+    });
+    pendingConversationId = null;
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[push] failed to open message thread', error);
+    }
+  } finally {
+    flushingMessageNavigation = false;
+  }
 };
 
 /** Navigates from a tapped notification's `data` payload — no-ops if unmapped or not ready. */
 export const navigateFromNotificationData = (data: unknown): void => {
-  const payload = data as PushNotificationDeepLinkData | undefined;
+  const payload = (data ?? undefined) as PushNotificationDeepLinkData | undefined;
+
+  if (payload?.kind === 'message') {
+    const conversationId = parseConversationId(payload.conversation_id);
+    if (conversationId != null) {
+      pendingConversationId = conversationId;
+      flushPendingMessageNavigation();
+    }
+    return;
+  }
+
   const routeName = payload?.type ? DEEP_LINK_ROUTES[payload.type] : undefined;
 
   if (!routeName) {
@@ -121,7 +199,9 @@ export const navigateFromNotificationData = (data: unknown): void => {
   }
 
   try {
-    navigationRef.navigate(routeName as never);
+    if (routeName === 'Boletos') {
+      navigationRef.navigate('Boletos');
+    }
   } catch (error) {
     if (__DEV__) {
       console.warn('[push] failed to navigate from notification tap', error);
