@@ -5,10 +5,11 @@ module Billing
   # for them, and the amount their contract says the family pays. One class per page, each closed
   # with a subtotal, and the whole report with a grand total.
   #
-  # The amount is the same rule the dashboard totals with (`Contract::EXPECTED_MONTHLY_CENTS_SQL`
-  # over `Contract.active`), so a class subtotal can be added up against the number on the front
-  # page. A child with several active contracts is the sum of them, exactly as the dashboard
-  # counts them.
+  # The amount is what the contract AGREES the family pays — after a scholarship or discount band,
+  # or at the negotiated figure (`Billing::ContractTuitionAmounts`, the rule the dashboard totals
+  # with over `Contract.active`) — so a class subtotal can be added up against the number on the
+  # front page. A child with several active contracts is the sum of them, exactly as the
+  # dashboard counts them.
   #
   # A child with no active contract is still listed — as "not contracted" and worth nothing to the
   # total — because the gap is what a school reading this wants to see. A child with no class goes
@@ -106,24 +107,27 @@ module Billing
       rows.filter_map { |row| row.payer_guardian_id || guardians.first&.id }.uniq
     end
 
-    # Active contracts of the children being reported, with the amount computed by the shared SQL
-    # expression rather than restated here.
+    Row = Struct.new(:student_id, :payer_guardian_id, :signature_status, :expected_cents, :plan_name)
+
+    # Active contracts of the children being reported, each with the amount it agrees to, resolved
+    # by the shared rule rather than restated here. Plan and discount are preloaded so a long roll
+    # is not a query per contract.
     def contract_rows
       @contract_rows ||= begin
         ids = students.map(&:id)
 
         contracts.active
                  .where(school_id: school.id, student_id: ids)
-                 .left_joins(:billing_plan)
-                 .select(
-                   "contracts.id, contracts.student_id, contracts.payer_guardian_id",
-                   "contracts.signature_status",
-                   "#{Contract::EXPECTED_MONTHLY_CENTS_SQL} AS expected_cents",
-                   "billing_plans.name AS plan_name"
-                 )
+                 .includes(:billing_plan, :plan_discount)
                  .order(:id)
+                 .map { |contract| row_for_contract(contract) }
                  .group_by(&:student_id)
       end
+    end
+
+    def row_for_contract(contract)
+      Row.new(contract.student_id, contract.payer_guardian_id, contract.signature_status,
+              ContractTuitionAmounts.for(contract).total_amount_cents, contract.billing_plan&.name)
     end
 
     def row_for(entry)

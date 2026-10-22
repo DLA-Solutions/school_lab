@@ -104,6 +104,25 @@ RSpec.describe Billing::RenderExpectedPaymentsReportService do
       expect(text).not_to include("Sem contrato")
     end
 
+    it "is the agreed amount after a scholarship or discount band, not the table price" do
+      plan = create(:billing_plan, school: school, base_amount_cents: 100_000)
+      ana = student_in(fifth, "Ana Souza")
+      bia = student_in(fifth, "Bia Lima")
+      contract_for(pedro, cents: nil, billing_plan: plan,
+                          plan_discount: create(:plan_discount, school: school, percent: 20))
+      contract_for(ana, cents: nil, billing_plan: plan,
+                        plan_discount: create(:plan_discount, school: school, name: "Bolsa integral",
+                                                              percent: 100))
+      contract_for(bia, cents: 70_000, billing_plan: plan)
+
+      dashboard = Dashboards::SchoolMetricsService.call(school: school)
+                                                  .data.dig(:average_ticket, :total_monthly_cents)
+
+      expect(dashboard).to eq(150_000)
+      expect(text).to include("R$ 800,00", "R$ 0,00", "R$ 700,00", "Total geral: R$ 1.500,00")
+      expect(text).not_to include("R$ 1.000,00")
+    end
+
     it "adds up a child's several active contracts, as the dashboard does" do
       contract_for(pedro, cents: 80_000)
       contract_for(pedro, cents: 20_000)
