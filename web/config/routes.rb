@@ -339,6 +339,11 @@ Rails.application.routes.draw do
             end
             resources :payments, only: %i[index show]
             resource :summary, only: :show, controller: "summary"
+            namespace :reports do
+              # A printable report rather than a record, so a singular resource: there is one per
+              # school and set of filters, and nothing to index into.
+              resource :expected_payments, only: :show, controller: "expected_payments"
+            end
           end
 
           resources :documents do

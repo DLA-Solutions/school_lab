@@ -980,8 +980,11 @@ const ptBR = {
   'dashboard.kpi.didacticMaterial': 'Material didático',
   'dashboard.kpi.sinceJanuary': 'desde 1º de janeiro',
   'dashboard.kpi.versus': 'vs. {month}',
-  'dashboard.kpi.enrolled': '{count} aluno(s) matriculado(s)',
   'dashboard.kpi.new': 'novo',
+  'dashboard.kpi.averageTicketCaption':
+    '{count} aluno(s) · média dos valores contratados, já com bolsas e descontos',
+  'dashboard.kpi.averageTicketPunctuality': 'Com desconto pontualidade ({percent})',
+  'dashboard.kpi.averageTicketPunctualityNoPercent': 'Com desconto pontualidade',
 
   'dashboard.income.title': 'Entradas da escola ao longo do ano',
   'dashboard.studentsByClass.title': 'Alunos por turma',
@@ -989,6 +992,18 @@ const ptBR = {
   'dashboard.studentsByClass.empty.description':
     'Assim que houver alunos nas turmas, a distribuição aparece aqui.',
   'dashboard.studentsByClass.unassigned': 'Sem turma',
+  'dashboard.expectedPayments.action': 'Novo relatório',
+  'dashboard.expectedPayments.title': 'Valores previstos por turma',
+  'dashboard.expectedPayments.description':
+    'Gera uma lista por turma com os alunos, seus responsáveis e o valor mensal previsto de cada um conforme o contrato.',
+  'dashboard.expectedPayments.allClasses': 'Todas as turmas',
+  'dashboard.expectedPayments.signatureStatus': 'Assinatura',
+  'dashboard.expectedPayments.expectedAmount': 'Valor previsto (mensal)',
+  'dashboard.expectedPayments.totalsHint':
+    'Os subtotais por turma e o total geral só aparecem com a coluna de valor previsto.',
+  'dashboard.expectedPayments.generate': 'Gerar PDF',
+  'dashboard.expectedPayments.generating': 'Gerando...',
+  'dashboard.expectedPayments.error': 'Não foi possível gerar o relatório. Verifique sua conexão.',
   'dashboard.welcome.title': 'Bem-vindo ao School Lab',
   'dashboard.welcome.description':
     'Os indicadores da escola aparecem aqui quando sua conta tem permissão para ver finanças ou pessoas.',

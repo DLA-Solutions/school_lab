@@ -970,8 +970,11 @@ const enUS: Messages = {
   'dashboard.kpi.didacticMaterial': 'Textbooks',
   'dashboard.kpi.sinceJanuary': 'since 1 January',
   'dashboard.kpi.versus': 'vs. {month}',
-  'dashboard.kpi.enrolled': '{count} student(s) enrolled',
   'dashboard.kpi.new': 'new',
+  'dashboard.kpi.averageTicketCaption':
+    '{count} student(s) · average of the agreed contract amounts, after scholarships and discounts',
+  'dashboard.kpi.averageTicketPunctuality': 'With punctuality discount ({percent})',
+  'dashboard.kpi.averageTicketPunctualityNoPercent': 'With punctuality discount',
 
   'dashboard.income.title': "The school's income across the year",
   'dashboard.studentsByClass.title': 'Students by class',
@@ -979,6 +982,18 @@ const enUS: Messages = {
   'dashboard.studentsByClass.empty.description':
     'Once there are students in the classes, the spread shows up here.',
   'dashboard.studentsByClass.unassigned': 'No class',
+  'dashboard.expectedPayments.action': 'New report',
+  'dashboard.expectedPayments.title': 'Expected payments by class',
+  'dashboard.expectedPayments.description':
+    "Generates a list per class with the students, their guardians and each one's expected monthly amount under their contract.",
+  'dashboard.expectedPayments.allClasses': 'All classes',
+  'dashboard.expectedPayments.signatureStatus': 'Signature',
+  'dashboard.expectedPayments.expectedAmount': 'Expected amount (monthly)',
+  'dashboard.expectedPayments.totalsHint':
+    'Class subtotals and the grand total are only drawn with the expected amount column.',
+  'dashboard.expectedPayments.generate': 'Generate PDF',
+  'dashboard.expectedPayments.generating': 'Generating...',
+  'dashboard.expectedPayments.error': 'Could not generate the report. Check your connection.',
   'dashboard.welcome.title': 'Welcome to School Lab',
   'dashboard.welcome.description':
     'School indicators appear here when your account can view billing or people data.',

@@ -165,6 +165,22 @@ pt-BR:
       attendance: "Frequência"
     guardians:
       title: "Relação de responsáveis"
+    currency:
+      unit: "R$"
+      separator: ","
+      delimiter: "."
+      format: "%u %n"
+    expected_payments:
+      title: "Valores previstos por turma"
+      not_contracted: "Sem contrato"
+      payer_mark: "(pagador)"
+      subtotal: "Subtotal da turma"
+      total: "Total geral"
+      summary: "%{students} estudante(s), %{uncontracted} sem contrato"
+      signature_status:
+        pending_signature: "Aguardando assinatura"
+        signed: "Assinado"
+        cancelled: "Cancelado"
     students:
       title: "Relação de estudantes"
       status:
@@ -213,6 +229,7 @@ pt-BR:
       not_your_lesson: "Você não leciona esta matéria nesta turma."
       period_outside_class_year: "Este bimestre não pertence ao ano letivo da turma."
       not_your_student: "Você não leciona para a turma deste estudante."
+      invalid_report_status: "Situação inválida. Use active, transferred ou all."
       report_unsupported_characters: "O relatório traz caracteres que a fonte do PDF não desenha. Verifique os nomes cadastrados."
       incident_pdf_unsupported_characters: "A ata contém caracteres que a fonte do PDF não desenha. Verifique o texto cadastrado."
       lesson_plan_pdf_unsupported_characters: "O plano de aula contém caracteres que a fonte do PDF não desenha. Verifique o texto cadastrado."
