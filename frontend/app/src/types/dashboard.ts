@@ -11,10 +11,19 @@ export interface DashboardMetric {
   is_up: boolean;
 }
 
-/** Adds what the average was derived from, so the card can explain itself. */
+/**
+ * `value` is the average of the agreed contract amounts (already net of scholarships and
+ * discounts). The `total_monthly_cents` and `students` fields are what it was derived from, and
+ * the `punctuality_*` fields restate the average as if every family earned the punctuality
+ * discount.
+ */
 export interface AverageTicketMetric extends DashboardMetric {
   total_monthly_cents: number;
   students: number;
+  punctuality_value: number;
+  punctuality_total_monthly_cents: number;
+  /** The school's configured discount, e.g. `10` or `10.0`. */
+  punctuality_percent: number;
 }
 
 export interface MonthlyIncomePoint {

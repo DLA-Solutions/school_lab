@@ -970,8 +970,11 @@ const enUS: Messages = {
   'dashboard.kpi.didacticMaterial': 'Textbooks',
   'dashboard.kpi.sinceJanuary': 'since 1 January',
   'dashboard.kpi.versus': 'vs. {month}',
-  'dashboard.kpi.enrolled': '{count} student(s) enrolled',
   'dashboard.kpi.new': 'new',
+  'dashboard.kpi.averageTicketCaption':
+    '{count} student(s) · average of the agreed contract amounts, after scholarships and discounts',
+  'dashboard.kpi.averageTicketPunctuality': 'With punctuality discount ({percent})',
+  'dashboard.kpi.averageTicketPunctualityNoPercent': 'With punctuality discount',
 
   'dashboard.income.title': "The school's income across the year",
   'dashboard.studentsByClass.title': 'Students by class',

@@ -980,8 +980,11 @@ const ptBR = {
   'dashboard.kpi.didacticMaterial': 'Material didático',
   'dashboard.kpi.sinceJanuary': 'desde 1º de janeiro',
   'dashboard.kpi.versus': 'vs. {month}',
-  'dashboard.kpi.enrolled': '{count} aluno(s) matriculado(s)',
   'dashboard.kpi.new': 'novo',
+  'dashboard.kpi.averageTicketCaption':
+    '{count} aluno(s) · média dos valores contratados, já com bolsas e descontos',
+  'dashboard.kpi.averageTicketPunctuality': 'Com desconto pontualidade ({percent})',
+  'dashboard.kpi.averageTicketPunctualityNoPercent': 'Com desconto pontualidade',
 
   'dashboard.income.title': 'Entradas da escola ao longo do ano',
   'dashboard.studentsByClass.title': 'Alunos por turma',
