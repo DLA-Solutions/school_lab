@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { HttpResponse, SCHOOL_ID, apiUrl, http, server, staffMembership } from 'test/msw';
+import {
+  HttpResponse,
+  SCHOOL_ID,
+  apiUrl,
+  guardianMembership,
+  http,
+  server,
+  staffMembership,
+} from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { Membership } from 'types/auth';
@@ -227,5 +236,68 @@ describe('Dashboard permission gating', () => {
     renderDashboard(billingMembership);
 
     expect(await screen.findByText('Erro interno do servidor.')).toBeInTheDocument();
+  });
+});
+
+describe('Dashboard expected payments report button', () => {
+  const stubDashboard = () =>
+    server.use(
+      http.get(apiUrl(DASHBOARD_PATH), () =>
+        HttpResponse.json({ data: dashboardMetrics }),
+      ),
+      http.get(apiUrl(TRANSACTIONS_PATH), () => emptyTransactions()),
+    );
+
+  it('is offered to a user with manage_billing and opens the report dialog', async () => {
+    stubDashboard();
+
+    renderDashboard(billingMembership);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Novo relatório' }));
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Valores previstos por turma' }),
+    ).toBeInTheDocument();
+  });
+
+  it('is offered to a user with manage_billing only', async () => {
+    stubDashboard();
+
+    renderDashboard(manageBillingOnlyMembership);
+
+    expect(await screen.findByRole('button', { name: 'Novo relatório' })).toBeInTheDocument();
+  });
+
+  // The API answers 403 to view_billing_summary alone, so the button would only ever fail.
+  it('is hidden from a user with view_billing_summary only', async () => {
+    stubDashboard();
+
+    renderDashboard(viewBillingSummaryMembership);
+
+    await waitFor(() => {
+      expect(screen.getByText('Receita do mês')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('button', { name: 'Novo relatório' })).not.toBeInTheDocument();
+  });
+
+  it('is hidden from a secretary without billing permissions', async () => {
+    server.use(
+      http.get(apiUrl(DASHBOARD_PATH), () =>
+        HttpResponse.json({ data: secretaryDashboardMetrics }),
+      ),
+    );
+
+    renderDashboard(staffMembership);
+
+    await waitFor(() => {
+      expect(screen.getByText('Alunos por turma')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('button', { name: 'Novo relatório' })).not.toBeInTheDocument();
+  });
+
+  it('is hidden from a guardian', () => {
+    renderDashboard(guardianMembership);
+
+    expect(screen.queryByRole('button', { name: 'Novo relatório' })).not.toBeInTheDocument();
   });
 });
