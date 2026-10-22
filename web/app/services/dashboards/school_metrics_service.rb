@@ -62,8 +62,8 @@ module Dashboards
               .count
     end
 
-    # What an enrolled child is worth per month on average: the sum of what every active contract
-    # AGREES the family pays — after a scholarship or discount band, or at the negotiated figure —
+    # What an enrolled child is worth per month on average: the sum, one contract per child, of what
+    # the contract AGREES the family pays — after a scholarship or discount band, or at the negotiated figure —
     # over the active students. It is the contract, not the plan's list price and not the month's
     # charges, so it is the same before and after the month's boletos are raised.
     #
