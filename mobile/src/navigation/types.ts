@@ -3,6 +3,14 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 export type MessagesStackParamList = {
   Inbox: undefined;
   Thread: { conversationId: number };
+  Announcements: undefined;
+  AnnouncementDetail: {
+    id: number;
+    schoolId: number;
+    title: string;
+    body: string;
+    publishedAt?: string;
+  };
 };
 
 export type BoletosStackParamList = {

@@ -113,6 +113,15 @@ const MessagesScreen = ({ navigation }: Props) => {
 
   return (
     <View style={styles.screen}>
+      <View style={styles.announcementsWrap}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate('Announcements')}
+          style={({ pressed }) => [styles.announcementsEntry, pressed && styles.rowPressed]}
+        >
+          <Text style={styles.audience}>{t('announcements.title')}</Text>
+        </Pressable>
+      </View>
       {phase === 'loading' ? (
         <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />
       ) : null}
@@ -141,6 +150,7 @@ const MessagesScreen = ({ navigation }: Props) => {
         <FlatList
           data={conversations}
           keyExtractor={(item) => String(item.id)}
+          style={styles.listFlex}
           contentContainerStyle={conversations.length === 0 ? styles.emptyList : styles.list}
           ListEmptyComponent={<EmptyState messageKey="empty.messages" />}
           refreshControl={
@@ -220,6 +230,20 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
+  },
+  announcementsWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  announcementsEntry: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  listFlex: {
+    flex: 1,
   },
   list: {
     padding: 16,

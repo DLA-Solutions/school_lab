@@ -50,3 +50,33 @@ export const formatCalendarDateBR = (value: string): string => {
     year: 'numeric',
   }).format(date);
 };
+
+/**
+ * Label for an announcement `published_at` that is already a date string.
+ * Calendar dates use `formatCalendarDateBR`. ISO timestamps use `formatDateBR`.
+ * Other human-readable strings are shown as-is. Anything else is omitted.
+ */
+export const displayPublishedAt = (value: string): string => {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return '';
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return formatCalendarDateBR(trimmed);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T/.test(trimmed)) {
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) {
+      return '';
+    }
+    return formatDateBR(trimmed);
+  }
+
+  if (/[A-Za-zÀ-ÿ]/.test(trimmed) || /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  return '';
+};
