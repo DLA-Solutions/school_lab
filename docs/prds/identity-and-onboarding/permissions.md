@@ -291,7 +291,7 @@ Provisioned per school from `SYSTEM_TEMPLATES` registry. Schools may edit these 
 | `manage_billing` | ✓ | — | — | — |
 | `manage_people` | ✓ | ✓ | partial | — |
 | `manage_enrollment` | ✓ | ✓ | — | — |
-| `manage_documents` | ✓ | ✓ | segment | — |
+| `manage_documents` | ✓ | ✓ | ✓ | — |
 | `manage_academic` | ✓ | — | ✓ | — |
 | `manage_calendar` | ✓ | ✓ | ✓ | — |
 | `approve_lesson_plans` | ✓ | — | ✓ | — |
@@ -300,7 +300,8 @@ Provisioned per school from `SYSTEM_TEMPLATES` registry. Schools may edit these 
 | `view_billing_summary` | ✓ | — | — | — |
 
 **Legend:** partial = `scope_kind: partial` on `manage_people`; segment = `scope_kind: segment`
-on `manage_documents`; if teaches = coordination template with `also_teaches: true` on
+is allowed on `manage_documents` but no system template uses it by default (coordination holds
+`manage_documents` with `full` scope, `[product decision]` for BR-ARC14 document inactivation); if teaches = coordination template with `also_teaches: true` on
 `staff_profiles`.
 
 ---

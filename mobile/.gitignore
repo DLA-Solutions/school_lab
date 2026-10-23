@@ -35,6 +35,12 @@ yarn-error.*
 .env.*
 !.env.example
 
+# Firebase client config for the guardian app (API keys).
+# Same project as FCM_PROJECT_ID. A development build reads these locally.
+# See docs/guidelines/mobile/README.md.
+google-services.json
+GoogleService-Info.plist
+
 # typescript
 *.tsbuildinfo
 

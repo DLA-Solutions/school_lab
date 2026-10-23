@@ -25,8 +25,20 @@ class DocumentPolicy < ApplicationPolicy
     staff_with?(:manage_documents) && record.school_id == school_id
   end
 
+  # Class-level gate so a user without `manage_documents` gets `403` before any record lookup
+  # (the scope would otherwise answer `404` for them).
+  def manage?
+    staff_with?(:manage_documents)
+  end
+
+  # "Deleting" only inactivates (Discard) — the row and the stored file stay (BR-ARC14).
   def destroy?
     update?
+  end
+
+  # Staff may list inactivated documents (`inactive=true`); no guardian ever does.
+  def list_inactive?
+    staff_with?(:manage_documents)
   end
 
   # School compliance files (BC5) are staff-only. `index?` cannot be reused: it also admits
@@ -49,6 +61,7 @@ class DocumentPolicy < ApplicationPolicy
 
   def guardian_can_read?
     return false unless guardian_member? && record.school_id == school_id
+    return false if record.discarded?
     return false unless Document::GUARDIAN_VISIBLE_STATUSES.include?(record.status)
 
     linked_student_document? || own_guardian_document?
@@ -65,6 +78,14 @@ class DocumentPolicy < ApplicationPolicy
   end
 
   class Scope < Scope
+    # Inactive documents are kept for the student's history but only staff with
+    # `manage_documents` can list them, and only through this explicit method.
+    def resolve_inactive
+      return scope.none unless Current.school && staff_with?(:manage_documents)
+
+      scope.discarded.where(school_id: Current.school.id)
+    end
+
     def resolve
       return scope.none unless Current.school
 

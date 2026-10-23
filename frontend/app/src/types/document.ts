@@ -5,7 +5,10 @@ export interface SchoolDocument {
   documentable_type: 'School' | 'Guardian' | 'Student';
   documentable_id: number;
   document_type: string;
-  /** `pending` on upload; staff moves it to `approved` or `rejected`. */
+  /**
+   * Guardian uploads are created `approved` (BR-ARC18); `pending` only remains for entries the
+   * school files for review, which staff moves to `approved` or `rejected`.
+   */
   status: 'pending' | 'approved' | 'rejected';
   rejection_reason: string | null;
   reviewed_at: string | null;
@@ -16,6 +19,13 @@ export interface SchoolDocument {
   byte_size: number | null;
   /** Path to the Active Storage blob, relative to the API host. */
   file_url: string | null;
+  /**
+   * When staff inactivated the document (BR-ARC14); `null` while active. Inactive documents are
+   * kept in the student's history and only listed with the `inactive` filter.
+   */
+  discarded_at: string | null;
+  /** The inactivating user's e-mail (users have no display name); `null` while active. */
+  discarded_by_name: string | null;
 }
 
 export interface DocumentListMeta {

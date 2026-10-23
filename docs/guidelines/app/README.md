@@ -1,23 +1,3 @@
 # App Guidelines (Mobile)
 
-Granular standards for `mobile/`.
-
-> Status: placeholder. **React Native** is the decided mobile stack (`docs/web-stack.md`).
-> Expand as `mobile/` grows.
-
-## Source of truth
-
-- Stack: `docs/web-stack.md`, `docs/api/README.md`, `docs/modeling/002-api-auth.md`.
-- Agent-facing rule: `.cursor/rules/mobile/mobile.mdc`.
-
-## Principles (already decided)
-
-- Consumes the versioned REST API (`/api/v1`) with JWT; **never** re-implements business rules.
-- Business behavior stays in parity with `web/` via the shared API.
-- MVP surface: communication (messages with images), push notifications, boletos, academic
-  lookups for parents; messaging + attendance for teachers.
-
-## To document once the stack is confirmed
-
-- Navigation, state management, API client + auth/token refresh, push (FCM) handling,
-  image upload flow, offline expectations, testing.
+Standards for `mobile/` live in [`docs/guidelines/mobile/README.md`](../mobile/README.md).

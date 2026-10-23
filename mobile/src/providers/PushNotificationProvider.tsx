@@ -1,31 +1,68 @@
 import { PropsWithChildren, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { useAuth } from './AuthContext';
-import { navigateFromNotificationData, registerDeviceToken } from '../services/pushNotifications';
+import { useGuardianContext } from './GuardianContext';
+import {
+  clearPendingChargeDeepLink,
+  clearPendingMessageDeepLink,
+  clearPendingRoutineDeepLink,
+  navigateFromNotificationData,
+  registerDeviceToken,
+  resetPostedFcmToken,
+  subscribeAndroidFcmTokenRefresh,
+  subscribeFcmTokenRefreshOnActive,
+} from '../services/pushNotifications';
+
+const canRegisterPush = (isAuthenticated: boolean, gate: string): boolean =>
+  isAuthenticated && (gate === 'ready' || gate === 'needs_choice' || gate === 'no_child');
 
 /**
- * Registers this device's push token once the user is authenticated (not before —
- * `POST /me/device_tokens` requires an authenticated `Current.user`), and wires
- * foreground display plus tap-to-navigate handling for background and cold-start
- * opens. Mount inside `AuthProvider` (it reads `useAuth`), wrapping `RootNavigator`.
+ * Registers this device's FCM token once a guardian session can use the app, and wires
+ * foreground display plus tap-to-navigate handling. Mount inside `AuthProvider` and
+ * `GuardianContextProvider`. Teachers and staff (`no_guardian`) are not registered.
  */
 const PushNotificationProvider = ({ children }: PropsWithChildren) => {
   const { isAuthenticated } = useAuth();
-  const registeredRef = useRef(false);
+  const { gate } = useGuardianContext();
+  const promptedRef = useRef(false);
+  const authenticatedRef = useRef(false);
+  const sessionRef = useRef(false);
 
-  // Register once per authenticated session; re-arms on the next login after a logout.
+  const sessionActive = canRegisterPush(isAuthenticated, gate);
+  sessionRef.current = sessionActive;
+
   useEffect(() => {
     if (!isAuthenticated) {
-      registeredRef.current = false;
+      promptedRef.current = false;
+      resetPostedFcmToken();
       return;
     }
 
-    if (registeredRef.current) {
+    if (!sessionActive || promptedRef.current) {
       return;
     }
-    registeredRef.current = true;
+    promptedRef.current = true;
+    void registerDeviceToken({ prompt: true });
+  }, [isAuthenticated, sessionActive]);
 
-    registerDeviceToken();
+  useEffect(() => subscribeAndroidFcmTokenRefresh(() => sessionRef.current), []);
+
+  useEffect(() => subscribeFcmTokenRefreshOnActive(() => sessionRef.current), []);
+
+  // Drop queued message, charge, and routine deep links only after a real logout. The first
+  // paint is unauthenticated while the session restores, and that must not discard a cold-start tap.
+  useEffect(() => {
+    if (isAuthenticated) {
+      authenticatedRef.current = true;
+      return;
+    }
+
+    if (authenticatedRef.current) {
+      authenticatedRef.current = false;
+      clearPendingMessageDeepLink();
+      clearPendingChargeDeepLink();
+      clearPendingRoutineDeepLink();
+    }
   }, [isAuthenticated]);
 
   useEffect(() => {

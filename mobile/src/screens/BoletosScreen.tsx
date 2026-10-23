@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -9,237 +9,205 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { useAuth } from '../providers/AuthContext';
-import { fetchOpenCharges, fetchChargeHistory } from '../services/charges';
-import { Charge, ChargeHistoryItem } from '../types/charges';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import ChargeListItem from '../components/charges/ChargeListItem';
+import EmptyState from '../components/EmptyState';
+import { t } from '../i18n';
+import { BoletosStackParamList } from '../navigation/types';
+import { useGuardianContext } from '../providers/GuardianContext';
+import { ApiError } from '../services/api';
+import { fetchOpenCharges } from '../services/charges';
+import { colors } from '../theme/colors';
+import { Charge } from '../types/charges';
 
-type Tab = 'open' | 'history';
+type Props = NativeStackScreenProps<BoletosStackParamList, 'List'>;
 
-const BoletosScreen = () => {
-  const { user } = useAuth();
-  const schoolId = user?.memberships?.[0]?.school_id;
+type ListPhase = 'loading' | 'ready' | 'error' | 'offline';
 
-  const [activeTab, setActiveTab] = useState<Tab>('open');
-  const [openCharges, setOpenCharges] = useState<Charge[]>([]);
-  const [chargeHistory, setChargeHistory] = useState<ChargeHistoryItem[]>([]);
-  const [loading, setLoading] = useState(false);
+const listedCharges = (rows: Charge[]): Charge[] =>
+  rows.filter((row) => row != null && typeof row.id === 'number' && Number.isSafeInteger(row.id));
+
+const BoletosScreen = ({ navigation }: Props) => {
+  const { activeSchoolId, activeStudentId, generation } = useGuardianContext();
+  const [phase, setPhase] = useState<ListPhase>('loading');
+  const [charges, setCharges] = useState<Charge[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const requestSeq = useRef(0);
 
-  const fetchData = useCallback(
-    async (refresh = false) => {
-      if (!schoolId) return;
+  const contextKey = `${generation}:${activeSchoolId ?? ''}:${activeStudentId ?? ''}`;
+  const contextKeyRef = useRef(contextKey);
+  contextKeyRef.current = contextKey;
+  const [seenContextKey, setSeenContextKey] = useState(contextKey);
+  if (seenContextKey !== contextKey) {
+    setSeenContextKey(contextKey);
+    setCharges([]);
+    setPhase('loading');
+    setRefreshing(false);
+  }
 
-      if (!refresh) {
-        setLoading(true);
+  const loadCharges = useCallback(
+    async (kind: 'focus' | 'refresh') => {
+      const schoolId = activeSchoolId;
+      const studentId = activeStudentId;
+      const requestContext = `${generation}:${schoolId ?? ''}:${studentId ?? ''}`;
+      const seq = ++requestSeq.current;
+
+      if (schoolId == null || studentId == null) {
+        if (contextKeyRef.current === requestContext && requestSeq.current === seq) {
+          setCharges([]);
+          setPhase('ready');
+          setRefreshing(false);
+        }
+        return;
+      }
+
+      if (kind === 'focus') {
+        setCharges([]);
+        setPhase('loading');
+        setRefreshing(false);
       } else {
         setRefreshing(true);
       }
-      setError(null);
+
+      const apply = (nextPhase: ListPhase, nextRows: Charge[]) => {
+        if (requestSeq.current !== seq || contextKeyRef.current !== requestContext) {
+          return;
+        }
+        setCharges(nextRows);
+        setPhase(nextPhase);
+        setRefreshing(false);
+      };
 
       try {
-        if (activeTab === 'open') {
-          const response = await fetchOpenCharges(schoolId);
-          setOpenCharges(response.data);
-        } else {
-          const response = await fetchChargeHistory(schoolId);
-          setChargeHistory(response.data);
+        const response = await fetchOpenCharges(schoolId, studentId);
+        if (!Array.isArray(response?.data)) {
+          apply('error', []);
+          return;
         }
+        apply('ready', listedCharges(response.data));
       } catch (err) {
-        let message = 'Erro ao carregar boletos';
-        if (err instanceof Error) {
-          message = err.message;
+        if (err instanceof ApiError) {
+          apply('error', []);
+          return;
         }
-        setError(message);
-        console.error('Failed to fetch charges:', err);
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
+        apply('offline', []);
       }
     },
-    [schoolId, activeTab],
+    [activeSchoolId, activeStudentId, generation],
   );
 
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadCharges('focus');
 
-  const handleTabChange = (tab: Tab) => {
-    setActiveTab(tab);
-    setError(null);
+      return () => {
+        requestSeq.current += 1;
+      };
+    }, [loadCharges]),
+  );
+
+  const openDetail = (chargeId: number) => {
+    if (typeof chargeId !== 'number' || !Number.isSafeInteger(chargeId)) {
+      return;
+    }
+    navigation.navigate('Detail', { chargeId });
   };
-
-  const handleRefresh = () => {
-    void fetchData(true);
-  };
-
-  const charges = activeTab === 'open' ? openCharges : chargeHistory;
-  const isOpenTab = activeTab === 'open';
-  const emptyMessage = isOpenTab ? 'Nenhum boleto em aberto' : 'Nenhum boleto pago ainda';
-
-  const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="document-outline" size={48} color={colors.textSecondary} />
-      <Text style={styles.emptyText}>{emptyMessage}</Text>
-    </View>
-  );
-
-  const renderError = () => (
-    <View style={styles.errorContainer}>
-      <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
-      <Text style={styles.errorText}>Erro ao carregar boletos</Text>
-      <Text style={styles.errorDetail}>{error}</Text>
-      <Pressable style={styles.retryButton} onPress={handleRefresh}>
-        <Text style={styles.retryText}>Tentar novamente</Text>
-      </Pressable>
-    </View>
-  );
-
-  const renderChargeList = () => (
-    <FlatList
-      data={charges}
-      keyExtractor={(item) => item.id.toString()}
-      renderItem={({ item }) => <ChargeListItem charge={item} />}
-      scrollEnabled={false}
-      contentContainerStyle={styles.listContent}
-      ListEmptyComponent={renderEmpty}
-    />
-  );
 
   return (
-    <View style={styles.container}>
-      {/* Tab Selector */}
-      <View style={styles.tabContainer}>
-        <Pressable
-          style={[styles.tab, activeTab === 'open' && styles.tabActive]}
-          onPress={() => handleTabChange('open')}
-        >
-          <Text style={[styles.tabLabel, activeTab === 'open' && styles.tabLabelActive]}>
-            Em aberto
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.tab, activeTab === 'history' && styles.tabActive]}
-          onPress={() => handleTabChange('history')}
-        >
-          <Text style={[styles.tabLabel, activeTab === 'history' && styles.tabLabelActive]}>
-            Pagos
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Content */}
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : error ? (
+    <View style={styles.screen}>
+      {phase === 'loading' ? (
+        <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />
+      ) : null}
+      {phase === 'error' || phase === 'offline' ? (
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          contentContainerStyle={styles.status}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                void loadCharges('refresh');
+              }}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         >
-          {renderError()}
+          <Text style={styles.errorText}>
+            {phase === 'offline' ? t('boletos.networkError') : t('boletos.loadError')}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              void loadCharges('focus');
+            }}
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryLabel}>{t('boletos.retry')}</Text>
+          </Pressable>
         </ScrollView>
-      ) : (
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        >
-          {renderChargeList()}
-        </ScrollView>
-      )}
+      ) : null}
+      {phase === 'ready' ? (
+        <FlatList
+          data={charges}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={charges.length === 0 ? styles.emptyList : styles.list}
+          ListEmptyComponent={<EmptyState messageKey="empty.boletos" />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                void loadCharges('refresh');
+              }}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+          renderItem={({ item }) => <ChargeListItem charge={item} onPress={openDetail} />}
+        />
+      ) : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  tabContainer: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  tab: {
+  loading: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
   },
-  tabActive: {
-    borderBottomColor: colors.primary,
-  },
-  tabLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  tabLabelActive: {
-    color: colors.primary,
-  },
-  scrollContent: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+  status: {
     flexGrow: 1,
-  },
-  listContent: {
-    paddingBottom: 16,
-  },
-  loadingContainer: {
-    flex: 1,
+    backgroundColor: colors.background,
+    padding: 20,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 48,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 20,
   },
   errorText: {
+    color: colors.error,
     fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginTop: 16,
-  },
-  errorDetail: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 8,
-    textAlign: 'center',
   },
   retryButton: {
-    marginTop: 20,
+    marginTop: 16,
+    alignSelf: 'flex-start',
     paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
     borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  retryText: {
-    color: '#fff',
-    fontSize: 15,
+  retryLabel: {
+    color: colors.primary,
+    fontSize: 16,
     fontWeight: '600',
+  },
+  list: {
+    padding: 16,
+  },
+  emptyList: {
+    flexGrow: 1,
   },
 });
 

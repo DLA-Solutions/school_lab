@@ -12,6 +12,9 @@ module Api
       around_action :with_requested_locale
       before_action :authenticate_user!
       before_action :ensure_user_active!
+      # Re-declared here so it runs after authentication: the declaration pulled in by AuditContext
+      # runs first, when `Current.user` is still nil, and audits would lose their actor.
+      before_action :set_audit_user
 
       rescue_from Pundit::NotAuthorizedError, with: :render_forbidden
       rescue_from ActiveRecord::RecordNotFound, with: :render_not_found

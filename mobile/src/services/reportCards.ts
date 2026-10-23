@@ -10,6 +10,8 @@ import {
 interface ReportCardListParams {
   studentId?: number;
   academicPeriodId?: number;
+  /** Pagy `limit` query. Omitted unless the caller sets it (max 100 on the API). */
+  limit?: number;
 }
 
 /**
@@ -18,7 +20,7 @@ interface ReportCardListParams {
  */
 export const fetchReportCards = async (
   schoolId: number,
-  { studentId, academicPeriodId }: ReportCardListParams = {},
+  { studentId, academicPeriodId, limit }: ReportCardListParams = {},
 ): Promise<ReportCardListResponse> => {
   const query = new URLSearchParams();
   if (studentId) {
@@ -26,6 +28,9 @@ export const fetchReportCards = async (
   }
   if (academicPeriodId) {
     query.set('academic_period_id', String(academicPeriodId));
+  }
+  if (typeof limit === 'number' && Number.isFinite(limit)) {
+    query.set('limit', String(limit));
   }
   const suffix = query.toString() ? `?${query.toString()}` : '';
 
@@ -94,23 +99,14 @@ export const fetchReportCardPdfDataUri = async (
   }
 
   if (!response.ok) {
-    let message = 'Não foi possível baixar o boletim.';
-    try {
-      const body = (await response.json()) as { error?: { message?: string } };
-      if (body?.error?.message) {
-        message = body.error.message;
-      }
-    } catch {
-      // No JSON error body (e.g. a bare 404) — keep the generic message.
-    }
-    throw new Error(message);
+    throw new Error('report_card_pdf_failed');
   }
 
   const blob = await response.blob();
 
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Não foi possível processar o boletim.'));
+    reader.onerror = () => reject(new Error('report_card_pdf_failed'));
     reader.onload = () => resolve(reader.result as string);
     reader.readAsDataURL(blob);
   });

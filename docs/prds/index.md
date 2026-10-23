@@ -138,7 +138,7 @@ Historical records and cross-cutting PRDs. **Normative billing scope** is
 | PRD | Layer | Status | Capabilities | Modeling | API |
 |-----|-------|--------|--------------|----------|-----|
 | [`layer-web-spa.md`](layer-web-spa.md) | `frontend/app` design system + MVP menus | draft | N/A (presentation) | — | — |
-| [`layer-mobile-app.md`](layer-mobile-app.md) | `mobile/` guardian + teacher MVP | draft | N/A (presentation) | — | — |
+| [`layer-mobile-app.md`](layer-mobile-app.md) | `mobile/` guardian-only iOS and Android | validated | N/A (presentation) | — | — |
 
 ## Reference
 

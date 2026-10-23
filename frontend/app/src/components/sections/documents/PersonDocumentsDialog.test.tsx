@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { HttpResponse, SCHOOL_ID, apiUrl, http, server } from 'test/msw';
+import { HttpResponse, SCHOOL_ID, apiUrl, http, server, staffMembership } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
 import { setAccessToken } from 'services/tokenStore';
 import { FamilyDocument, SchoolDocument } from 'types/document';
@@ -15,13 +15,20 @@ const user = userEvent.setup({ delay: null });
 /** Stands in for any owner; the dialog only needs a type, an id and a heading. */
 const guardian = { id: 7, name: 'Maria Silva' };
 
+/** Secretaria, coordenação and direção hold `manage_documents`; the default fixture does not. */
+const managerMembership = {
+  ...staffMembership,
+  permissions: ['manage_people', 'manage_documents'],
+  permission_sources: { manage_people: 'template', manage_documents: 'template' },
+};
+
 const storedDocument: SchoolDocument = {
   id: 31,
   school_id: SCHOOL_ID,
   documentable_type: 'Guardian',
   documentable_id: guardian.id,
   document_type: 'rg',
-  status: 'pending',
+  status: 'approved',
   rejection_reason: null,
   reviewed_at: null,
   created_at: '2026-08-08T12:00:00Z',
@@ -30,11 +37,25 @@ const storedDocument: SchoolDocument = {
   content_type: 'application/pdf',
   byte_size: 20480,
   file_url: '/rails/active_storage/blobs/abc/rg-maria.pdf',
+  discarded_at: null,
+  discarded_by_name: null,
+};
+
+const inactiveDocument: SchoolDocument = {
+  ...storedDocument,
+  id: 41,
+  filename: 'rg-antigo.pdf',
+  file_url: '/rails/active_storage/blobs/abc/rg-antigo.pdf',
+  discarded_at: '2026-09-15T12:00:00Z',
+  discarded_by_name: 'secretaria@example.com',
 };
 
 const emptyList = { data: [], meta: { page: 1, per_page: 25, total: 0 } };
 
-const renderDialog = (documentableType: DocumentableType = 'Guardian') => {
+const renderDialog = (
+  documentableType: DocumentableType = 'Guardian',
+  { canManage = false }: { canManage?: boolean } = {},
+) => {
   const onClose = vi.fn();
 
   renderWithTheme(
@@ -46,6 +67,7 @@ const renderDialog = (documentableType: DocumentableType = 'Guardian') => {
       title={guardian.name}
       onClose={onClose}
     />,
+    { memberships: [canManage ? managerMembership : staffMembership] },
   );
 
   return { onClose };
@@ -312,33 +334,184 @@ describe('PersonDocumentsDialog', () => {
     );
   });
 
-  it('removes a document and refreshes', async () => {
-    authenticate();
+  describe('inactivating a document (BR-ARC14)', () => {
+    const listOf = (...documents: SchoolDocument[]) => ({
+      data: documents,
+      meta: { page: 1, per_page: 25, total: documents.length },
+    });
 
-    let deleted: number | null = null;
-    let listCalls = 0;
+    it('asks for confirmation, explaining the file is kept, then inactivates and refreshes', async () => {
+      authenticate();
 
-    server.use(
-      http.get(apiUrl(DOCUMENTS_PATH), () => {
-        listCalls += 1;
-        return HttpResponse.json(
-          listCalls === 1
-            ? { data: [storedDocument], meta: { page: 1, per_page: 25, total: 1 } }
-            : emptyList,
+      let inactivated: string | null = null;
+      let listCalls = 0;
+
+      server.use(
+        http.get(apiUrl(DOCUMENTS_PATH), () => {
+          listCalls += 1;
+          return HttpResponse.json(listCalls === 1 ? listOf(storedDocument) : emptyList);
+        }),
+        http.delete(apiUrl(`${DOCUMENTS_PATH}/:id`), ({ params }) => {
+          inactivated = String(params.id);
+          return new HttpResponse(null, { status: 204 });
+        }),
+      );
+
+      renderDialog('Guardian', { canManage: true });
+
+      const item = (await screen.findByText('rg-maria.pdf')).closest('li') as HTMLElement;
+      await user.click(within(item).getByRole('button', { name: /inativar rg-maria\.pdf/i }));
+
+      // Nothing is sent until the user confirms, and the wording says the file is not erased.
+      const confirm = await screen.findByRole('dialog', { name: /inativar documento/i });
+      expect(inactivated).toBeNull();
+      expect(within(confirm).getByText(/não é apagado/i)).toBeInTheDocument();
+      expect(within(confirm).getByText(/histórico do aluno/i)).toBeInTheDocument();
+
+      await user.click(within(confirm).getByRole('button', { name: /^inativar documento$/i }));
+
+      await waitFor(() => expect(inactivated).toBe(String(storedDocument.id)));
+      expect(await screen.findByText(/nenhum documento enviado/i)).toBeInTheDocument();
+    });
+
+    it('does nothing when the confirmation is cancelled', async () => {
+      authenticate();
+
+      let deleteCalls = 0;
+      server.use(
+        http.get(apiUrl(DOCUMENTS_PATH), () => HttpResponse.json(listOf(storedDocument))),
+        http.delete(apiUrl(`${DOCUMENTS_PATH}/:id`), () => {
+          deleteCalls += 1;
+          return new HttpResponse(null, { status: 204 });
+        }),
+      );
+
+      renderDialog('Guardian', { canManage: true });
+
+      await user.click(await screen.findByRole('button', { name: /inativar rg-maria\.pdf/i }));
+      const confirm = await screen.findByRole('dialog', { name: /inativar documento/i });
+      await user.click(within(confirm).getByRole('button', { name: /cancelar/i }));
+
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: /inativar documento/i }),
+        ).not.toBeInTheDocument(),
+      );
+      expect(deleteCalls).toBe(0);
+      expect(screen.getByText('rg-maria.pdf')).toBeInTheDocument();
+    });
+
+    it('shows the API’s refusal when the document cannot be inactivated', async () => {
+      authenticate();
+
+      server.use(
+        http.get(apiUrl(DOCUMENTS_PATH), () => HttpResponse.json(listOf(storedDocument))),
+        http.delete(apiUrl(`${DOCUMENTS_PATH}/:id`), () =>
+          HttpResponse.json(
+            { error: { code: 'not_found', message: 'Recurso não encontrado.', details: {} } },
+            { status: 404 },
+          ),
+        ),
+      );
+
+      renderDialog('Guardian', { canManage: true });
+
+      await user.click(await screen.findByRole('button', { name: /inativar rg-maria\.pdf/i }));
+      const confirm = await screen.findByRole('dialog', { name: /inativar documento/i });
+      await user.click(within(confirm).getByRole('button', { name: /^inativar documento$/i }));
+
+      expect(await screen.findByText(/recurso não encontrado/i)).toBeInTheDocument();
+      expect(screen.getByText('rg-maria.pdf')).toBeInTheDocument();
+    });
+
+    it('offers neither the action nor the inactive tab without manage_documents', async () => {
+      authenticate();
+
+      const queries: string[] = [];
+      server.use(
+        http.get(apiUrl(DOCUMENTS_PATH), ({ request }) => {
+          queries.push(new URL(request.url).search);
+          return HttpResponse.json(listOf(storedDocument));
+        }),
+      );
+
+      renderDialog('Guardian', { canManage: false });
+
+      expect(await screen.findByText('rg-maria.pdf')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /inativar/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /remover/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+      expect(queries.every((query) => !query.includes('inactive'))).toBe(true);
+    });
+
+    it.each([
+      ['Guardian', 'guardian_id'],
+      ['Student', 'documentable_type'],
+    ] as const)(
+      'lists the inactive documents of a %s with who inactivated them and when',
+      async (documentableType, ownerParam) => {
+        authenticate();
+
+        const queries: URLSearchParams[] = [];
+        server.use(
+          http.get(apiUrl(DOCUMENTS_PATH), ({ request }) => {
+            const query = new URL(request.url).searchParams;
+            queries.push(query);
+            return HttpResponse.json(
+              query.get('inactive') === 'true' ? listOf(inactiveDocument) : listOf(storedDocument),
+            );
+          }),
         );
-      }),
-      http.delete(apiUrl(`${DOCUMENTS_PATH}/${storedDocument.id}`), ({ params }) => {
-        deleted = Number(params.id ?? storedDocument.id);
-        return new HttpResponse(null, { status: 204 });
-      }),
+
+        renderDialog(documentableType, { canManage: true });
+
+        expect(await screen.findByText('rg-maria.pdf')).toBeInTheDocument();
+        await user.click(screen.getByRole('tab', { name: /inativos/i }));
+
+        const item = (await screen.findByText('rg-antigo.pdf')).closest('li') as HTMLElement;
+        expect(screen.queryByText('rg-maria.pdf')).not.toBeInTheDocument();
+
+        // The inactive query still carries the owner filter the active one used.
+        const inactiveQuery = queries.find((query) => query.get('inactive') === 'true');
+        expect(inactiveQuery?.has(ownerParam)).toBe(true);
+
+        expect(
+          within(item).getByText(/inativado por secretaria@example\.com em /i),
+        ).toBeInTheDocument();
+        expect(within(item).getByText('Inativo')).toBeInTheDocument();
+
+        // History stays reachable, but a second inactivation is not offered, nor is a new upload.
+        expect(within(item).getByRole('link', { name: 'rg-antigo.pdf' })).toHaveAttribute(
+          'href',
+          expect.stringContaining(inactiveDocument.file_url as string),
+        );
+        expect(within(item).queryByRole('button', { name: /inativar/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /enviar arquivo/i })).not.toBeInTheDocument();
+      },
     );
 
-    renderDialog();
+    it('says so when there is no inactive document, and comes back to the active ones', async () => {
+      authenticate();
 
-    const item = (await screen.findByText('rg-maria.pdf')).closest('li') as HTMLElement;
-    await user.click(within(item).getByRole('button', { name: /remover/i }));
+      server.use(
+        http.get(apiUrl(DOCUMENTS_PATH), ({ request }) =>
+          HttpResponse.json(
+            new URL(request.url).searchParams.get('inactive') === 'true'
+              ? emptyList
+              : listOf(storedDocument),
+          ),
+        ),
+      );
 
-    await waitFor(() => expect(deleted).toBe(storedDocument.id));
-    expect(await screen.findByText(/nenhum documento enviado/i)).toBeInTheDocument();
+      renderDialog('Student', { canManage: true });
+
+      await screen.findByText('rg-maria.pdf');
+      await user.click(screen.getByRole('tab', { name: /inativos/i }));
+      expect(await screen.findByText(/nenhum documento inativo/i)).toBeInTheDocument();
+
+      await user.click(screen.getByRole('tab', { name: /^ativos$/i }));
+      expect(await screen.findByText('rg-maria.pdf')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /enviar arquivo/i })).toBeInTheDocument();
+    });
   });
 });

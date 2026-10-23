@@ -181,12 +181,14 @@ describe('visibleSitemap audience filtering', () => {
       'my-pickups',
       'communication',
       'my-atas',
+      'my-daily-routine',
       'my-preceptorship',
       'my-report-cards',
       'my-tax-declarations',
       'my-requests',
       'my-documents',
     ]);
+    expect(ids).not.toContain('daily-routine');
   });
 
   it('hides guardian-only items from staff memberships', () => {
@@ -199,6 +201,31 @@ describe('visibleSitemap audience filtering', () => {
     expect(ids).not.toContain('my-documents');
     expect(ids).not.toContain('my-charges');
     expect(ids).not.toContain('my-atas');
+    expect(ids).not.toContain('my-daily-routine');
+    expect(ids).toContain('daily-routine');
+  });
+
+  it('keeps infant routine recording on the staff menu and the read-only page on the guardian menu', () => {
+    const guardianIds = visibleSitemap(guardianMembership).map((item) => item.id);
+    const staffIds = visibleSitemap(staffMembership).map((item) => item.id);
+
+    expect(guardianIds).toContain('my-daily-routine');
+    expect(guardianIds).not.toContain('daily-routine');
+    expect(staffIds).toContain('daily-routine');
+    expect(staffIds).not.toContain('my-daily-routine');
+    expect(routeAudienceForPath(paths.myDailyRoutine)).toBe('guardian');
+    expect(routeAudienceForPath(paths.dailyRoutine)).toBe('staff');
+    expect(routeModuleKeyForPath(paths.myDailyRoutine)).toBe('academic');
+    expect(menuItemModuleKey(sitemap.find((item) => item.id === 'my-daily-routine')!)).toBe(
+      'academic',
+    );
+
+    const withoutAcademic = {
+      ...guardianMembership,
+      enabled_modules: ['communication', 'billing', 'documents'] as SchoolModuleKey[],
+    };
+
+    expect(visibleSitemap(withoutAcademic).map((item) => item.id)).not.toContain('my-daily-routine');
   });
 
   it('gates Meus documentos on the documents module and keeps it guardian-only', () => {

@@ -25,3 +25,58 @@ export const formatDateBR = (isoDate: string): string => {
   });
   return formatter.format(date);
 };
+
+/**
+ * Format a calendar date `YYYY-MM-DD` in pt-BR from its year/month/day parts.
+ * `new Date('YYYY-MM-DD')` is UTC midnight and can show the previous day in America/Sao_Paulo.
+ */
+export const formatCalendarDateBR = (value: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return '';
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+};
+
+/**
+ * Label for an announcement `published_at` that is already a date string.
+ * Calendar dates use `formatCalendarDateBR`. ISO timestamps use `formatDateBR`.
+ * Other human-readable strings are shown as-is. Anything else is omitted.
+ */
+export const displayPublishedAt = (value: string): string => {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return '';
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return formatCalendarDateBR(trimmed);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T/.test(trimmed)) {
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) {
+      return '';
+    }
+    return formatDateBR(trimmed);
+  }
+
+  if (/[A-Za-zÀ-ÿ]/.test(trimmed) || /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  return '';
+};

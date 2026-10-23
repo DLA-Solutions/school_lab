@@ -26,6 +26,12 @@ docker-compose.override.yml
 *.key
 .certs/
 
+# Firebase client app config (API keys). Same project as FCM_PROJECT_ID.
+# Guardian copies live under mobile/ and stay out of git.
+# See docs/guidelines/mobile/README.md.
+google-services.json
+GoogleService-Info.plist
+
 frontend/node_modules/*
 app/node_modules/*
 

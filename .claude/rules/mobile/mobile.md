@@ -4,12 +4,14 @@
 
 # mobile/ — Mobile (React Native)
 
-Stack locked in `docs/web-stack.md`. Consumes `/api/v1` — see `docs/api/README.md` and `docs/modeling/002-api-auth.md`.
+Guardian-only iOS and Android. Standards: `docs/guidelines/mobile/README.md`.
+Consumes `/api/v1` — see `docs/api/README.md` and `docs/modeling/002-api-auth.md`.
 
 **Agent routing:** Feature work in `mobile/` is owned by **frontend-implementer** (rule `agent-routing`). API changes go to **rails-implementer**.
 
-- JWT access in memory; refresh token in Keychain/Keystore (not localStorage).
+- One active `membership.id` with role `guardian`. Staff and teacher memberships never build a menu.
+- Access token in memory; refresh token in `expo-secure-store` (Keychain/Keystore, not `localStorage`).
 - Silent refresh before access expiry; retry once on 401.
-- Never re-implements business rules — parity with the web SPA (`frontend/app`) via shared API.
-- MVP: boletos (guardian), messages, attendance (teacher), push (FCM).
-- Granular standards in `docs/guidelines/app/`.
+- Never re-implements business rules — the API is the source of truth.
+- Four tabs: Início, Mensagens, Boletos, Filho. No teacher attendance.
+- pt-BR via i18n. The visible role label is Responsável.

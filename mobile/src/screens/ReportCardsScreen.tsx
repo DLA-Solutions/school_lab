@@ -1,342 +1,150 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  SectionList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { useAuth } from '../providers/AuthContext';
-import { fetchGuardianStudents, fetchReportCards } from '../services/reportCards';
-import { GuardianStudent, ReportCardListItem as ReportCardListItemData } from '../types/reportCards';
+import { forwardRef, useImperativeHandle, useState } from 'react';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 import ReportCardListItem from '../components/reportCards/ReportCardListItem';
+import { t } from '../i18n';
+import { useGuardianContext } from '../providers/GuardianContext';
+import { fetchReportCards } from '../services/reportCards';
+import { colors } from '../theme/colors';
+import { ReportCardListItem as ReportCardListItemData } from '../types/reportCards';
+import { isPositiveId } from '../utils/ids';
+import { SectionFailure } from '../utils/sectionFailure';
+import ChildSectionFrame from './child/ChildSectionFrame';
+import { ChildSectionHandle, SectionPhase, useChildSection } from './child/useChildSection';
 import ReportCardDetailScreen from './ReportCardDetailScreen';
 
-interface ReportCardSection {
-  title: string;
-  data: ReportCardListItemData[];
+const REPORT_CARD_LIMIT = 100;
+
+/**
+ * Display guard. The request already passes the active child's `student_id`.
+ * Drop any other student if one is ever present.
+ */
+export const reportCardsForStudent = (
+  rows: ReportCardListItemData[],
+  studentId: number,
+): ReportCardListItemData[] =>
+  rows.filter(
+    (row) => !!row && isPositiveId(row.publication_id) && row.student_id === studentId,
+  );
+
+const loadReportCards = async (schoolId: number, studentId: number): Promise<ReportCardListItemData[]> => {
+  const response = await fetchReportCards(schoolId, { studentId, limit: REPORT_CARD_LIMIT });
+  if (!Array.isArray(response?.data)) {
+    throw new SectionFailure();
+  }
+  return reportCardsForStudent(response.data, studentId);
+};
+
+interface ReportCardGroup {
+  periodId: number;
+  items: ReportCardListItemData[];
 }
 
-const ReportCardsScreen = () => {
-  const { user } = useAuth();
-  const schoolId = user?.memberships?.[0]?.school_id;
+/** Keeps API order. Period blocks follow the first row of each period. */
+const groupByPeriod = (items: ReportCardListItemData[]): ReportCardGroup[] => {
+  const groups: ReportCardGroup[] = [];
+  const indexByPeriod = new Map<number, number>();
 
-  const [students, setStudents] = useState<GuardianStudent[]>([]);
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
-
-  const [items, setItems] = useState<ReportCardListItemData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [selectedPublicationId, setSelectedPublicationId] = useState<number | null>(null);
-
-  // Best-effort — the list/detail payloads only carry `student_id`, so this resolves it to a
-  // name for the filter chips and each row. If it fails, rows fall back to "Aluno #<id>".
-  useEffect(() => {
-    if (!schoolId) {
+  items.forEach((item) => {
+    const existing = indexByPeriod.get(item.academic_period_id);
+    if (existing === undefined) {
+      indexByPeriod.set(item.academic_period_id, groups.length);
+      groups.push({ periodId: item.academic_period_id, items: [item] });
       return;
     }
+    groups[existing].items.push(item);
+  });
 
-    let cancelled = false;
+  return groups;
+};
 
-    fetchGuardianStudents(schoolId)
-      .then((response) => {
-        if (!cancelled) {
-          setStudents(response.data);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setStudents([]);
-        }
-      });
+/**
+ * Released report cards for the active child, rendered as rows inside the Filho scroll.
+ * Not a VirtualizedList — the parent screen owns the vertical scroll.
+ */
+const ReportCardsScreen = forwardRef<ChildSectionHandle>(function ReportCardsScreen(_props, ref) {
+  const { activeSchoolId, activeStudentId, activeStudentName, generation } = useGuardianContext();
+  const { phase, rows, reload } = useChildSection(loadReportCards);
+  useImperativeHandle(ref, () => ({ reload }), [reload]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [schoolId]);
+  const contextKey = `${generation}:${activeSchoolId ?? ''}:${activeStudentId ?? ''}`;
+  const [seenContextKey, setSeenContextKey] = useState(contextKey);
+  const [selectedPublicationId, setSelectedPublicationId] = useState<number | null>(null);
+  if (seenContextKey !== contextKey) {
+    setSeenContextKey(contextKey);
+    setSelectedPublicationId(null);
+  }
 
-  const fetchData = useCallback(
-    async (refresh = false) => {
-      if (!schoolId) return;
-
-      if (!refresh) {
-        setLoading(true);
-      } else {
-        setRefreshing(true);
-      }
-      setError(null);
-
-      try {
-        const response = await fetchReportCards(schoolId, {
-          studentId: selectedStudentId ?? undefined,
-        });
-        setItems(response.data);
-      } catch (err) {
-        let message = 'Erro ao carregar boletins';
-        if (err instanceof Error) {
-          message = err.message;
-        }
-        setError(message);
-        console.error('Failed to fetch report cards:', err);
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    [schoolId, selectedStudentId],
-  );
-
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
-
-  const handleRefresh = () => {
-    void fetchData(true);
-  };
-
-  const studentName = useCallback(
-    (id: number) => students.find((student) => student.id === id)?.name ?? `Aluno #${id}`,
-    [students],
-  );
-
-  // Grouped by academic period — the API gives us `academic_period_id` only (no name) on
-  // guardian-scoped routes, so the section label mirrors the web SPA's guardian report cards
-  // page ("Período #<id>"). The full period name is available once a publication's detail is
-  // opened, since the released snapshot payload carries it.
-  const sections = useMemo<ReportCardSection[]>(() => {
-    const byPeriod = new Map<number, ReportCardListItemData[]>();
-    items.forEach((item) => {
-      const bucket = byPeriod.get(item.academic_period_id) ?? [];
-      bucket.push(item);
-      byPeriod.set(item.academic_period_id, bucket);
-    });
-
-    return Array.from(byPeriod.entries()).map(([periodId, data]) => ({
-      title: `Período #${periodId}`,
-      data,
-    }));
-  }, [items]);
-
-  const selectedStudentName = selectedPublicationId
-    ? studentName(items.find((item) => item.publication_id === selectedPublicationId)?.student_id ?? 0)
-    : '';
-
-  const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="school-outline" size={48} color={colors.textSecondary} />
-      <Text style={styles.emptyText}>Nenhum boletim disponível</Text>
-    </View>
-  );
-
-  const renderError = () => (
-    <View style={styles.errorContainer}>
-      <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
-      <Text style={styles.errorText}>Erro ao carregar boletins</Text>
-      <Text style={styles.errorDetail}>{error}</Text>
-      <Pressable style={styles.retryButton} onPress={handleRefresh}>
-        <Text style={styles.retryText}>Tentar novamente</Text>
-      </Pressable>
-    </View>
-  );
+  const visible = activeStudentId != null ? reportCardsForStudent(rows, activeStudentId) : [];
+  const shownPhase: SectionPhase = phase === 'ready' && visible.length === 0 ? 'empty' : phase;
+  const groups = groupByPeriod(visible);
+  const studentName = activeStudentName ?? '';
 
   return (
-    <View style={styles.container}>
-      {students.length > 1 && (
-        <View style={styles.filterContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterContent}
-          >
-            <Pressable
-              style={[styles.filterChip, selectedStudentId === null && styles.filterChipActive]}
-              onPress={() => setSelectedStudentId(null)}
-            >
-              <Text
-                style={[styles.filterChipText, selectedStudentId === null && styles.filterChipTextActive]}
-              >
-                Todos
-              </Text>
-            </Pressable>
-            {students.map((student) => (
-              <Pressable
-                key={student.id}
-                style={[styles.filterChip, selectedStudentId === student.id && styles.filterChipActive]}
-                onPress={() => setSelectedStudentId(student.id)}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    selectedStudentId === student.id && styles.filterChipTextActive,
-                  ]}
-                >
-                  {student.name}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : error ? (
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        >
-          {renderError()}
-        </ScrollView>
-      ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => item.publication_id.toString()}
-          renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{section.title}</Text>}
-          renderItem={({ item }) =>
-            schoolId ? (
-              <ReportCardListItem
-                item={item}
-                schoolId={schoolId}
-                studentName={studentName(item.student_id)}
-                onPress={(pressedItem) => setSelectedPublicationId(pressedItem.publication_id)}
-              />
-            ) : null
-          }
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={renderEmpty}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        />
-      )}
+    <>
+      <ChildSectionFrame
+        titleKey="child.reportCards.title"
+        phase={shownPhase}
+        emptyKey="child.reportCards.empty"
+        notFoundKey="child.notFound"
+        loadErrorKey="child.reportCards.loadError"
+        networkErrorKey="child.reportCards.networkError"
+        retryKey="child.retry"
+        onRetry={() => {
+          void reload('focus');
+        }}
+      >
+        {groups.map((group) => (
+          <View key={group.periodId}>
+            <Text style={styles.periodHeader}>
+              {t('reportCards.periodPrefix')}
+              {group.periodId}
+            </Text>
+            {group.items.map((item) =>
+              activeSchoolId != null && item.student_id === activeStudentId ? (
+                <ReportCardListItem
+                  key={item.publication_id}
+                  item={item}
+                  schoolId={activeSchoolId}
+                  studentName={studentName}
+                  onPress={(pressed) => {
+                    if (pressed.student_id === activeStudentId) {
+                      setSelectedPublicationId(pressed.publication_id);
+                    }
+                  }}
+                />
+              ) : null,
+            )}
+          </View>
+        ))}
+      </ChildSectionFrame>
 
       <Modal
         visible={selectedPublicationId !== null}
         animationType="slide"
         onRequestClose={() => setSelectedPublicationId(null)}
       >
-        {selectedPublicationId !== null && schoolId && (
+        {selectedPublicationId !== null && activeSchoolId != null && activeStudentId != null ? (
           <ReportCardDetailScreen
-            schoolId={schoolId}
+            schoolId={activeSchoolId}
             publicationId={selectedPublicationId}
-            studentName={selectedStudentName}
+            studentId={activeStudentId}
+            studentName={studentName}
             onClose={() => setSelectedPublicationId(null)}
           />
-        )}
+        ) : null}
       </Modal>
-    </View>
+    </>
   );
-};
+});
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  filterContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  filterContent: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 8,
-    flexDirection: 'row',
-  },
-  filterChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceAlt,
-    marginRight: 8,
-  },
-  filterChipActive: {
-    backgroundColor: colors.primary,
-  },
-  filterChipText: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  filterChipTextActive: {
-    color: '#fff',
-  },
-  sectionHeader: {
+  periodHeader: {
     color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    backgroundColor: colors.background,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-    flexGrow: 1,
-  },
-  scrollContent: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexGrow: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 48,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: colors.textSecondary,
     marginTop: 16,
-    textAlign: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginTop: 16,
-  },
-  errorDetail: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  retryButton: {
-    marginTop: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-  },
-  retryText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
   },
 });
 
