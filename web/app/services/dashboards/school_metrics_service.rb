@@ -62,16 +62,29 @@ module Dashboards
               .count
     end
 
-    # What an enrolled child is worth per month on average: the tuition raised that month over
-    # the students it was raised for. Before the month's charges exist there is nothing to
-    # average, so it falls back to what the active contracts say the school expects to bill.
+    # What an enrolled child is worth per month on average: the sum, one contract per child, of what
+    # the contract AGREES the family pays — after a scholarship or discount band, or at the negotiated figure —
+    # over the active students. It is the contract, not the plan's list price and not the month's
+    # charges, so it is the same before and after the month's boletos are raised.
+    #
+    # `punctuality_*` is the same sum if every family earned the punctuality discount: the
+    # discount is taken contract by contract (rounded to the cent, as the contract shows it) and
+    # then added up, never applied to the grand total.
+    #
+    # There is no history of what contracts said in earlier months, so `previous` is what the
+    # school actually billed for tuition the month before (per contract, from the charges) when
+    # any exists, and the current figure otherwise — an unchanged ticket, 0%, rather than a
+    # comparison invented from nothing.
     def average_ticket_metric
-      current = average_ticket_for(reference_month) || expected_average_ticket
+      current = average_of(agreed_monthly_cents)
       previous = average_ticket_for(reference_month.prev_month) || current
 
       metric(current, previous).merge(
-        total_monthly_cents: active_contracts_monthly_cents,
-        students: active_students_count
+        total_monthly_cents: agreed_monthly_cents,
+        students: active_students_count,
+        punctuality_value: average_of(punctuality_monthly_cents),
+        punctuality_total_monthly_cents: punctuality_monthly_cents,
+        punctuality_percent: punctuality_percent.to_f
       )
     end
 
@@ -85,21 +98,48 @@ module Dashboards
       (charges.sum(:total_amount_cents).to_f / students).round
     end
 
-    def expected_average_ticket
+    def average_of(total_cents)
       students = active_students_count
       return 0 if students.zero?
 
-      (active_contracts_monthly_cents.to_f / students).round
+      (total_cents.to_f / students).round
     end
 
     def active_students_count
       @active_students_count ||= school.students.kept.where(status: "active").count
     end
 
-    def active_contracts_monthly_cents
-      school.contracts.active
-            .left_joins(:billing_plan)
-            .sum("COALESCE(contracts.negotiated_amount_cents, billing_plans.base_amount_cents, 0)")
+    # The tuition each active student's contract agrees to — the one definition
+    # (`Billing::ContractTuitionAmounts`) that contracts and charge generation also use. One
+    # contract per child (`Billing::ExpectedTuitionContracts`, shared with the expected-payments
+    # report), so a reissued or duplicated contract is not counted twice.
+    def agreed_cents_per_contract
+      @agreed_cents_per_contract ||=
+        Billing::ExpectedTuitionContracts.chosen_by_student(candidate_contracts).values.map do |choice|
+          Billing::ContractTuitionAmounts.for(choice.contract).total_amount_cents
+        end
+    end
+
+    def candidate_contracts
+      school.contracts
+            .joins(:student).merge(Student.kept.where(status: "active"))
+            .includes(:billing_plan, :plan_discount)
+    end
+
+    def agreed_monthly_cents
+      @agreed_monthly_cents ||= agreed_cents_per_contract.sum
+    end
+
+    def punctuality_monthly_cents
+      @punctuality_monthly_cents ||= agreed_cents_per_contract.sum do |cents|
+        cents - Billing::ContractTuitionAmounts.punctuality_discount_cents(cents, punctuality_percent)
+      end
+    end
+
+    # The school's own percentage; the platform default where none is configured.
+    def punctuality_percent
+      @punctuality_percent ||= school.school_billing_settings&.early_payment_discount_percent ||
+                               SchoolBillingSettings::DEFAULT_EARLY_PAYMENT_DISCOUNT_PERCENT
     end
 
     # Tuition raised for the reference month, against the month before it.

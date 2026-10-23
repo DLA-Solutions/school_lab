@@ -17,6 +17,12 @@ class Document < ApplicationRecord
   # Filed by the system, never picked by a guardian or staff: the signed copy of a contract
   # that the e-signature provider returned. Deliberately not in GUARDIAN_DOCUMENT_TYPES.
   SIGNED_CONTRACT_TYPE = "signed_contract"
+  # The school's own regulatory files (BC5 "Compliance"): a closed catalog, always attached to the
+  # School itself. Labels live under `documents.compliance_types.<key>` in the locale files.
+  COMPLIANCE_DOCUMENT_TYPES = %w[
+    sanitary_inspection fire_department_certificate municipal_education_council_resolution
+    state_education_council_resolution pest_control water_tank_cleaning first_aid_certificate
+  ].freeze
 
   belongs_to :school
   belongs_to :documentable, polymorphic: true
@@ -32,7 +38,12 @@ class Document < ApplicationRecord
   validates :contract_id, uniqueness: true, allow_nil: true
   validate :contract_belongs_to_school
   validate :documentable_belongs_to_school
+  validate :compliance_type_belongs_to_school
   validate :file_attached
+
+  # School-level compliance files: School documentable plus a catalog type. Callers still bind
+  # the query to a school (`policy_scope`), as with every tenant query.
+  scope :compliance, -> { where(documentable_type: "School", document_type: COMPLIANCE_DOCUMENT_TYPES) }
 
   # Everything the school holds about one guardian: files attached to the guardian and files
   # attached to a child still linked to them (what a parent sends through "Meus documentos").
@@ -61,6 +72,14 @@ class Document < ApplicationRecord
     else
       errors.add(:documentable, :invalid)
     end
+  end
+
+  # A compliance type on a student's or guardian's file would be a school-level certificate
+  # reachable from a family surface; keep the two worlds apart whichever endpoint wrote it.
+  def compliance_type_belongs_to_school
+    return unless COMPLIANCE_DOCUMENT_TYPES.include?(document_type)
+
+    errors.add(:documentable_type, :invalid) unless documentable_type == "School"
   end
 
   def contract_belongs_to_school

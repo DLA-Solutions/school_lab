@@ -107,10 +107,22 @@ module People
           pdf.text I18n.t("reports.row_count", count: rows.size), size: 8, color: "666666"
           pdf.move_down 8
 
-          draw_table(pdf, rows)
+          draw_table(pdf, table_rows(school_class, rows))
         end
+
+        draw_closing(pdf, groups)
       end.render
     end
+
+    # Hooks for a register that sums or annotates what it lists. A plain register leaves them as
+    # they are.
+    #
+    # `table_rows` is what is drawn under a cohort's heading — the rows themselves, plus any
+    # footer. `style_table` touches the table after the shared styling. `draw_closing` writes
+    # after the last cohort, on its page.
+    def table_rows(_school_class, rows) = rows
+    def style_table(_table); end
+    def draw_closing(_pdf, _groups); end
 
     def draw_heading(pdf)
       pdf.text school.name, size: 14, style: :bold
@@ -135,6 +147,7 @@ module People
         table.cells.size = 8
         table.cells.padding = [ 4, 6 ]
         table.cells.borders = [ :bottom ]
+        style_table(table)
       end
     end
   end

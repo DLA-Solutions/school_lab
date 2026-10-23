@@ -28,6 +28,10 @@ RSpec.describe "Api::V1::Schools::Documents", type: :request do
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :documentable_type, in: :query, type: :string, required: false
       parameter name: :documentable_id, in: :query, type: :integer, required: false
+      parameter name: :inactive, in: :query, type: :boolean, required: false,
+                description: "true lists only the inactivated documents (staff with manage_documents; " \
+                             "403 otherwise). Works with the owner filter and with guardian_id. Rows carry " \
+                             "discarded_at and discarded_by_name."
       parameter name: :guardian_id, in: :query, type: :integer, required: false,
                 description: "Everything about one guardian: their own files plus those of linked children. " \
                              "Cannot be combined with documentable_type/documentable_id. Rows carry " \
@@ -51,6 +55,7 @@ RSpec.describe "Api::V1::Schools::Documents", type: :request do
       let(:guardian_id) { nil }
       let(:documentable_type) { nil }
       let(:documentable_id) { nil }
+      let(:inactive) { nil }
 
       response "200", "without guardian_id keeps the shape and the owner filter" do
         let(:documentable_type) { "Guardian" }
@@ -71,6 +76,7 @@ RSpec.describe "Api::V1::Schools::Documents", type: :request do
           expect(rows.keys).to contain_exactly(own_document.id, child_document.id)
           expect(rows.fetch(child_document.id)).to include(
             "document_type" => "guardian_identity", "status" => "pending", "student_id" => child.id,
+            "discarded_at" => nil, "discarded_by_name" => nil,
             "student_name" => "Linked Child", "uploaded_by_name" => "Mother Silva",
             "uploaded_by_kind" => "guardian"
           )
@@ -165,6 +171,90 @@ RSpec.describe "Api::V1::Schools::Documents", type: :request do
           error = JSON.parse(response.body).fetch("error")
           expect(error["code"]).to eq("validation_error")
           expect(error["details"]).to have_key("guardian_id")
+        end
+      end
+
+      response "200", "inactive=true lists only inactivated documents of the owner, with who and when" do
+        let(:documentable_type) { "Student" }
+        let(:documentable_id) { child.id }
+        let(:inactive) { true }
+
+        before { child_document.update!(discarded_by: school_admin) && child_document.discard }
+
+        run_test! do |response|
+          rows = JSON.parse(response.body).fetch("data")
+          expect(rows.map { |r| r["id"] }).to contain_exactly(child_document.id)
+          expect(rows.first).to include(
+            "discarded_by_name" => school_admin.email, "file_url" => be_present
+          ).and(include("discarded_at" => be_present))
+        end
+      end
+
+      response "200", "inactive=true with guardian_id lists the family view of inactivated documents" do
+        let(:guardian_id) { mother.id }
+        let(:inactive) { true }
+
+        before { child_document.discard }
+
+        run_test! do |response|
+          rows = JSON.parse(response.body).fetch("data")
+          expect(rows.map { |r| r["id"] }).to contain_exactly(child_document.id)
+          expect(rows.first).to include("student_name" => "Linked Child", "uploaded_by_name" => "Mother Silva")
+        end
+      end
+
+      response "200", "coordination lists inactive documents too" do
+        let(:coordinator) { create(:user) }
+        let(:Authorization) { auth_headers_for(coordinator)["Authorization"] }
+        let(:documentable_type) { "Student" }
+        let(:documentable_id) { child.id }
+        let(:inactive) { true }
+
+        before do
+          membership = create(:membership, :staff, user: coordinator, school: school)
+          template = create_system_templates_for(school).find { |t| t.system_key == "coordination" }
+          create(:staff_profile, membership: membership, school: school, role_template: template)
+          child_document.update!(discarded_by: school_admin)
+          child_document.discard
+        end
+
+        run_test! do |response|
+          rows = JSON.parse(response.body).fetch("data")
+          expect(rows.map { |r| r["id"] }).to contain_exactly(child_document.id)
+          expect(rows.first).to include("discarded_by_name" => school_admin.email)
+        end
+      end
+
+      response "200", "the default list keeps hiding inactivated documents" do
+        let(:documentable_type) { "Student" }
+        let(:documentable_id) { child.id }
+
+        before { child_document.discard }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).fetch("data")).to be_empty
+        end
+      end
+
+      response "200", "inactive=true never returns inactivated documents of another school" do
+        let!(:foreign_inactive) { create(:document).tap(&:discard) }
+        let(:inactive) { true }
+
+        run_test! do |response|
+          ids = JSON.parse(response.body).fetch("data").map { |r| r["id"] }
+          expect(ids).not_to include(foreign_inactive.id)
+        end
+      end
+
+      response "403", "guardians cannot ask for inactive documents" do
+        let(:Authorization) { auth_headers_for(guardian_user)["Authorization"] }
+        let(:inactive) { true }
+
+        before { child_document.discard }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("forbidden")
+          expect(response.body).not_to include("file_url")
         end
       end
 
@@ -266,7 +356,112 @@ RSpec.describe "Api::V1::Schools::Documents", type: :request do
 
         run_test! do
           expect(document.reload).to be_discarded
+          expect(document.discarded_by).to eq(school_admin)
         end
+      end
+
+      response "204", "inactivating keeps the row and the stored file (never deleted)" do
+        let!(:document) { create(:document, :approved, school: school, documentable: student) }
+        let(:id) { document.id }
+
+        run_test! do
+          blob = document.file.blob
+
+          expect(Document.unscoped.find_by(id: document.id)).to be_present
+          expect(ActiveStorage::Attachment.where(record_type: "Document", record_id: document.id, name: "file")).to exist
+          expect(ActiveStorage::Blob.find_by(id: blob.id)).to be_present
+          expect(blob.service.exist?(blob.key)).to be(true)
+          expect(ActiveStorage::PurgeJob).not_to have_been_enqueued
+        end
+      end
+
+      response "204", "inactivation is audited with who did it and when" do
+        let!(:document) { create(:document, :approved, school: school, documentable: student) }
+        let(:id) { document.id }
+
+        run_test! do
+          audit = document.audits.where(action: "update").find { |a| a.audited_changes.key?("discarded_at") }
+          expect(audit).to be_present
+          expect(audit.user).to eq(school_admin)
+          expect(document.audits.where(action: "update").flat_map { |a| a.audited_changes.keys })
+            .to include("discarded_by_id")
+        end
+      end
+
+      response "204", "a secretary may inactivate" do
+        let(:secretary) { create(:user) }
+        let!(:document) { create(:document, school: school, documentable: student) }
+        let(:id) { document.id }
+        let(:Authorization) { auth_headers_for(secretary)["Authorization"] }
+
+        before do
+          membership = create(:membership, :staff, user: secretary, school: school)
+          template = create_system_templates_for(school).find { |t| t.system_key == "secretary" }
+          create(:staff_profile, membership: membership, school: school, role_template: template)
+        end
+
+        run_test! do
+          expect(document.reload).to be_discarded
+          expect(document.discarded_by).to eq(secretary)
+        end
+      end
+
+      response "403", "a guardian cannot inactivate, even a document of their own child" do
+        let(:Authorization) { auth_headers_for(guardian_user)["Authorization"] }
+        let!(:guardian) { create(:guardian, school: school, user: guardian_user) }
+        let!(:link) { create(:student_guardian, school: school, student: student, guardian: guardian) }
+        let!(:document) do
+          create(:document, :approved, school: school, documentable: student, uploaded_by: guardian_user)
+        end
+        let(:id) { document.id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("forbidden")
+          expect(document.reload).not_to be_discarded
+        end
+      end
+
+      response "403", "a teacher cannot inactivate" do
+        let(:teacher_user) { create(:user) }
+        let!(:document) { create(:document, school: school, documentable: student) }
+        let(:id) { document.id }
+        let(:Authorization) { auth_headers_for(teacher_user)["Authorization"] }
+
+        before do
+          membership = create(:membership, :staff, user: teacher_user, school: school)
+          template = create_system_templates_for(school).find { |t| t.system_key == "teacher" }
+          create(:staff_profile, membership: membership, school: school, role_template: template)
+        end
+
+        run_test! do
+          expect(document.reload).not_to be_discarded
+        end
+      end
+
+      response "204", "coordination (holds manage_documents) may inactivate" do
+        let(:coordinator) { create(:user) }
+        let!(:document) { create(:document, school: school, documentable: student) }
+        let(:id) { document.id }
+        let(:Authorization) { auth_headers_for(coordinator)["Authorization"] }
+
+        before do
+          membership = create(:membership, :staff, user: coordinator, school: school)
+          template = create_system_templates_for(school).find { |t| t.system_key == "coordination" }
+          create(:staff_profile, membership: membership, school: school, role_template: template)
+        end
+
+        run_test! do
+          expect(document.reload).to be_discarded
+          expect(document.discarded_by).to eq(coordinator)
+          expect(document.file).to be_attached
+        end
+      end
+
+      response "404", "an already inactive document" do
+        let!(:document) { create(:document, school: school, documentable: student).tap(&:discard) }
+        let(:id) { document.id }
+
+        run_test!
       end
 
       response "404", "document of another school" do
@@ -275,6 +470,7 @@ RSpec.describe "Api::V1::Schools::Documents", type: :request do
 
         run_test! do
           expect(document.reload).not_to be_discarded
+          expect(document.file).to be_attached
         end
       end
     end

@@ -36,6 +36,10 @@ class Contract < ApplicationRecord
   validates :negotiated_amount_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 
   scope :active, -> { kept.where(status: "active") }
+  # The contracts a school counts on for monthly tuition: in force and not called off before being
+  # signed. Which of one child's several is the one that stands is
+  # `Billing::ExpectedTuitionContracts`.
+  scope :expected_tuition, -> { active.where.not(signature_status: "cancelled") }
   scope :signed, -> { kept.where(signature_status: "signed") }
   scope :pending_signature, -> { kept.where(signature_status: "pending_signature") }
   scope :signature_cancelled, -> { kept.where(signature_status: "cancelled") }

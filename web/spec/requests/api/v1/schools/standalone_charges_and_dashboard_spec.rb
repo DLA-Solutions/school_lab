@@ -396,5 +396,20 @@ RSpec.describe "Standalone boletos, batch issuing and the dashboard", type: :req
       expect(data["monthly_revenue"]["value"]).to eq(80_000)
       expect(data["didactic_material"]["value"]).to eq(30_000)
     end
+
+    it "reports the average ticket from the agreed contract amounts, with the punctuality view" do
+      link(mother)
+      create(:contract, school: school, student: student, billing_plan: plan,
+                        payer_guardian: mother, negotiated_amount_cents: 80_000)
+
+      get dashboard_path, params: { month: "2026-09" }, headers: headers
+
+      expect(response.parsed_body.dig("data", "average_ticket")).to eq(
+        "value" => 80_000, "previous" => 80_000, "change_percent" => 0.0, "is_up" => true,
+        "total_monthly_cents" => 80_000, "students" => 1,
+        "punctuality_value" => 72_000, "punctuality_total_monthly_cents" => 72_000,
+        "punctuality_percent" => 10.0
+      )
+    end
   end
 end

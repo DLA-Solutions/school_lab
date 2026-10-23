@@ -53,14 +53,15 @@ PRD: [`archive.md`](../../prds/documents-and-archive/archive.md) UC-DA09, BR-ARC
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/me/documents` | Documents of every linked child, shared across co-guardians; `?student_id=` optional |
+| `GET` | `/me/documents` | Documents of every linked child, shared across co-guardians; `?student_id=` and `?document_type=` optional (unknown type matches nothing) |
 | `POST` | `/me/documents` | Multipart upload: `student_id`, `document_type`, `file`, optional `title` |
 
 `document_type` for guardians, in display order: `address_proof`, `school_transcript` ("Histórico
 escolar"), `guardian_identity` ("RG e CPF dos responsáveis"; identity data, shared by both parents
 like every family document), `vaccination_card`, `medical_report`, `school_transfer`, `other`. Any
 other value is `422`. Uploads bind to the child (not the parent) so father and mother see the
-same documents; they start `pending` and stay visible while staff review. Errors: `404` child not
+same documents; they are accepted automatically (created `approved`, no review queue, BR-ARC18).
+Errors: `404` child not
 linked / other school, `422` invalid type, file, or non-enrolled child, `401`/`403` otherwise.
 
 **Implemented contract (`web/`)**
@@ -103,7 +104,11 @@ One document per contract: provider replays or re-runs never duplicate it. Staff
 `GET /documents` (including the `guardian_id` filter below) and can discard it with
 `DELETE /documents/:id`; a discarded copy is not re-filed. `approve`/`reject` answer `409` because
 the row is already `approved`. Backfill for contracts signed earlier: `bin/rails
-signature:backfill_signed_documents[school_id]` (idempotent; `school_id` optional).
+signature:backfill_signed_documents[school_id]` (idempotent; `school_id` optional). The daily
+signature sweep also files any signed contract that has its signed file on record but no document
+(a discarded document counts as existing), and filing retries with backoff while the provider has
+not yet published the signed PDF. Use `GET /me/documents?document_type=signed_contract` to list
+only signed contracts.
 
 ---
 
@@ -127,8 +132,25 @@ Sending `guardian_id` together with `documentable_type` or `documentable_id` ret
 as the guardian "Meus documentos" rows (the base `Document` fields plus `student_id`, `student_name`,
 `uploaded_by_name`, `uploaded_by_kind`); the extra fields are `null` for documents attached to the
 guardian itself. Responses to the other queries are unchanged and do not carry the extra fields.
-Staff approve, reject or delete these rows through the existing `POST /documents/:id/approve`,
-`POST /documents/:id/reject` and `DELETE /documents/:id`.
+Staff inactivate these rows through the existing `DELETE /documents/:id` (see below). Guardian
+uploads are already `approved`, so `approve`/`reject` answer `409` for them.
+
+### Inactivating documents (BR-ARC14, AC-DA15)
+
+`DELETE /api/v1/schools/:school_id/documents/:id` **inactivates** the document (Discard); it never
+removes the database row nor the stored file. `204` on success. Requires `manage_documents`
+(director, secretary and coordination system templates; a school can grant it to others): any other authenticated
+user (guardian, teacher, staff without the permission) gets `403`; a document of another school,
+unknown, or already inactive gets `404`. The change is audited (`discarded_at`, `discarded_by_id`,
+actor user).
+
+Inactive documents are hidden from guardians everywhere (`GET /me/documents`, show, family list) and
+from default staff listings. Staff with `manage_documents` list them with `inactive=true` on
+`GET /documents`, combinable with the owner filter (`documentable_type`+`documentable_id`) and with
+`guardian_id` (family view); the list then contains **only** inactive documents. A guardian sending
+`inactive=true` gets `403`. Every `Document` row now carries `discarded_at` (ISO 8601, `null` while
+active) and `discarded_by_name` (the inactivating user's e-mail, `null` while active), since users
+have no display name. `file_url` still works for inactive rows so staff can open the history.
 
 ---
 
@@ -187,6 +209,113 @@ Guardian attempts to work the staff lifecycle return `403`.
 | `POST` | `/document_types` | Configure types |
 
 Default seed: enrollment form, guardian ID, medical authorization, transfer certificate, report card.
+
+---
+
+## Compliance
+
+Staff with `manage_documents` only; school-level files only (BC5). PRD:
+[`compliance.md`](../../prds/documents-and-archive/compliance.md). Files are `documents` rows with
+`documentable_type = "School"`, `documentable_id = :school_id`, `status = approved`. Requires the
+`documents` module enabled for the school (`403 module_disabled` otherwise).
+
+Base: `/api/v1/schools/:school_id/compliance_documents`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/compliance_documents` | List kept files, newest first (`document_type`, `page`); catalog in `meta.types` |
+| `POST` | `/compliance_documents` | Multipart: `document_type`, `file`, optional `title` (accepted, not stored) |
+| `GET` | `/compliance_documents/:id` | Metadata with file URL |
+| `DELETE` | `/compliance_documents/:id` | Discard (`204`); sets `discarded_at` and `discarded_by_id` |
+
+There is no separate `types` endpoint: the closed catalog travels in the list `meta`, so the SPA can
+render a type with no file yet in the same request.
+
+`document_type` ∈ `sanitary_inspection`, `fire_department_certificate`,
+`municipal_education_council_resolution`, `state_education_council_resolution`, `pest_control`,
+`water_tank_cleaning`, `first_aid_certificate` (labels from `documents.compliance_types.<key>`,
+`Accept-Language` aware: pt-BR default, `en`).
+
+### `GET /compliance_documents`
+
+Pagy params `page`/`per_page`. The `document_type` filter does not narrow `meta.types`; an unknown
+value returns an empty list.
+
+```json
+{
+  "data": [
+    {
+      "id": 41,
+      "document_type": "pest_control",
+      "document_type_label": "Dedetização",
+      "status": "approved",
+      "uploaded_by_id": 7,
+      "filename": "dedetizacao-2026.pdf",
+      "content_type": "application/pdf",
+      "byte_size": 183204,
+      "file_url": "/rails/active_storage/blobs/redirect/<signed_id>/dedetizacao-2026.pdf",
+      "created_at": "2026-10-21T19:07:58.908-03:00",
+      "updated_at": "2026-10-21T19:07:59.355-03:00"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 25,
+    "total": 1,
+    "types": [
+      { "key": "sanitary_inspection", "label": "Vigilância sanitária" },
+      { "key": "fire_department_certificate", "label": "Certificado dos bombeiros" },
+      { "key": "municipal_education_council_resolution", "label": "Resolução do Conselho Municipal de Educação" },
+      { "key": "state_education_council_resolution", "label": "Resolução do Conselho Estadual de Educação" },
+      { "key": "pest_control", "label": "Dedetização" },
+      { "key": "water_tank_cleaning", "label": "Limpeza da caixa d'água" },
+      { "key": "first_aid_certificate", "label": "Certificado de primeiros socorros" }
+    ]
+  }
+}
+```
+
+Each row is the same object as `data` below. Several files per type are kept (renewals); order is
+`created_at` descending.
+
+### `POST /compliance_documents`
+
+`multipart/form-data` with flat fields `document_type`, `file`, and optional `title` (the `documents`
+table has no title column, so it is ignored, as in "Meus documentos"). `file` is a PDF, JPEG or PNG
+up to 10 MB, checked on the bytes (the same limits as the guardian upload). `201`:
+
+```json
+{ "data": { "id": 41, "document_type": "pest_control", "document_type_label": "Dedetização",
+            "status": "approved", "uploaded_by_id": 7, "filename": "dedetizacao-2026.pdf",
+            "content_type": "application/pdf", "byte_size": 183204, "file_url": "/rails/active_storage/...",
+            "created_at": "...", "updated_at": "..." } }
+```
+
+### `GET /compliance_documents/:id`
+
+`200` with the same `{ "data": { ... } }` object. Another school's id, a student's file, a
+non-catalog document and a discarded file are all `404`.
+
+### Errors
+
+Standard envelope `{ "error": { "code", "message", "details" } }`.
+
+| Status | `error.code` | Condition |
+|--------|--------------|-----------|
+| 401 | `unauthorized` | No or invalid token |
+| 403 | `forbidden` | Guardian, or staff without `manage_documents` |
+| 403 | `module_disabled` | School has the `documents` module off |
+| 404 | `not_found` | Unknown school for the user, cross-school id, non-compliance or discarded id |
+| 422 | `validation_error` | Unknown `document_type` (`details.document_type`), missing/invalid `file` (`details.file`) |
+| 422 | `unsupported_media_type` | File bytes are not PDF/JPEG/PNG |
+| 422 | `file_too_large` | File over 10 MB |
+
+### Isolation from the archive
+
+Guardian surfaces (`/me/documents`, `GET /documents`, the policy scope) only ever resolve `Student`
+and `Guardian` owners, so compliance files never reach a family. The staff archive
+(`POST /documents`) refuses a compliance `document_type` unless the owner is the School
+(`422`, `details.documentable_type`).
 
 ---
 
@@ -304,4 +433,4 @@ UC-07 in fintech-first PRD marked **deprecated** — behaviour preserved until W
 
 ## OpenAPI tags
 
-`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`, `Minutes`
+`Documents`, `Archive`, `Guardian Requests`, `Guardian Me`, `Minutes`, `Compliance`

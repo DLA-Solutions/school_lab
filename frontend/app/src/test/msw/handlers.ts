@@ -577,6 +577,23 @@ export const jsonError = (
 ) => HttpResponse.json({ error: { code, message, details } }, { status });
 
 /** Pagy-style envelope: `page` / `per_page` off the query string, `total` before slicing. */
+/** The closed compliance catalogue the API ships in the list `meta.types`, in display order. */
+export const COMPLIANCE_TYPES = [
+  { key: 'sanitary_inspection', label: 'Vigilância sanitária' },
+  { key: 'fire_department_certificate', label: 'Certificado dos bombeiros' },
+  {
+    key: 'municipal_education_council_resolution',
+    label: 'Resolução do Conselho Municipal de Educação',
+  },
+  {
+    key: 'state_education_council_resolution',
+    label: 'Resolução do Conselho Estadual de Educação',
+  },
+  { key: 'pest_control', label: 'Dedetização' },
+  { key: 'water_tank_cleaning', label: "Limpeza da caixa d'água" },
+  { key: 'first_aid_certificate', label: 'Certificado de primeiros socorros' },
+];
+
 export const paginated = <T>(rows: T[], url: URL) => {
   const page = Number(url.searchParams.get('page') ?? 1);
   const perPage = Number(url.searchParams.get('per_page') ?? 25);
@@ -1282,7 +1299,9 @@ export const handlers = [
       return jsonError(404, 'not_found', 'Recurso não encontrado.');
     }
 
-    const studentId = new URL(request.url).searchParams.get('student_id');
+    const searchParams = new URL(request.url).searchParams;
+    const studentId = searchParams.get('student_id');
+    const documentType = searchParams.get('document_type');
     const documents = [
       {
         id: 1,
@@ -1290,7 +1309,7 @@ export const handlers = [
         documentable_type: 'Student',
         documentable_id: 1,
         document_type: 'vaccination_card',
-        status: 'pending',
+        status: 'approved',
         rejection_reason: null,
         reviewed_at: null,
         created_at: '2026-08-10T12:00:00Z',
@@ -1299,14 +1318,53 @@ export const handlers = [
         content_type: 'application/pdf',
         byte_size: 120_000,
         file_url: '/rails/active_storage/blobs/redirect/signed/cartao-vacina.pdf',
+        discarded_at: null,
+        discarded_by_name: null,
         student_id: 1,
         student_name: 'Pedro Silva',
         uploaded_by_name: 'Maria Silva',
         uploaded_by_kind: 'guardian',
       },
-    ].filter((document) => !studentId || String(document.student_id) === studentId);
+    ]
+      .filter((document) => !studentId || String(document.student_id) === studentId)
+      .filter((document) => !documentType || document.document_type === documentType);
 
     return paginated(documents, new URL(request.url));
+  }),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/compliance_documents'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const url = new URL(request.url);
+    const documentType = url.searchParams.get('document_type');
+    const documents = [
+      {
+        id: 41,
+        document_type: 'pest_control',
+        document_type_label: 'Dedetização',
+        status: 'approved',
+        uploaded_by_id: 1,
+        filename: 'dedetizacao-2026.pdf',
+        content_type: 'application/pdf',
+        byte_size: 183_204,
+        file_url: '/rails/active_storage/blobs/redirect/signed/dedetizacao-2026.pdf',
+        created_at: '2026-10-21T19:07:58.908-03:00',
+        updated_at: '2026-10-21T19:07:59.355-03:00',
+      },
+    ].filter((document) => !documentType || document.document_type === documentType);
+    const page = Number(url.searchParams.get('page') ?? 1);
+    const perPage = Number(url.searchParams.get('per_page') ?? 25);
+
+    return HttpResponse.json({
+      data: documents.slice((page - 1) * perPage, page * perPage),
+      meta: { page, per_page: perPage, total: documents.length, types: COMPLIANCE_TYPES },
+    });
   }),
 
   http.get(apiUrl('/api/v1/schools/:schoolId/documents'), ({ request, params }) => {
@@ -1344,6 +1402,8 @@ export const handlers = [
             content_type: 'application/pdf',
             byte_size: 20480,
             file_url: '/rails/active_storage/blobs/redirect/signed/rg-responsavel.pdf',
+            discarded_at: null,
+            discarded_by_name: null,
             student_id: null,
             student_name: null,
             uploaded_by_name: null,
@@ -1355,7 +1415,7 @@ export const handlers = [
             documentable_type: 'Student',
             documentable_id: 1,
             document_type: 'school_transcript',
-            status: 'pending',
+            status: 'approved',
             rejection_reason: null,
             reviewed_at: null,
             created_at: '2026-08-10T12:00:00Z',
@@ -1364,6 +1424,8 @@ export const handlers = [
             content_type: 'application/pdf',
             byte_size: 90000,
             file_url: '/rails/active_storage/blobs/redirect/signed/historico.pdf',
+            discarded_at: null,
+            discarded_by_name: null,
             student_id: 1,
             student_name: 'Pedro Silva',
             uploaded_by_name: 'Maria Silva',
@@ -1372,7 +1434,21 @@ export const handlers = [
         ]
       : [];
 
-    return paginated(documents, url);
+    // `inactive=true` lists only the inactivated documents, which the default fixture has none of.
+    return paginated(url.searchParams.get('inactive') === 'true' ? [] : documents, url);
+  }),
+
+  // Inactivation keeps the row and the file; the API answers 204 with no body.
+  http.delete(apiUrl('/api/v1/schools/:schoolId/documents/:id'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return new HttpResponse(null, { status: 204 });
   }),
 
   http.post(apiUrl('/api/v1/schools/:schoolId/me/documents'), async ({ request, params }) => {
@@ -1400,7 +1476,7 @@ export const handlers = [
           documentable_type: 'Student',
           documentable_id: studentId,
           document_type: field('document_type'),
-          status: 'pending',
+          status: 'approved',
           rejection_reason: null,
           reviewed_at: null,
           created_at: '2026-08-11T12:00:00Z',
@@ -1409,6 +1485,8 @@ export const handlers = [
           content_type: hasFile ? 'application/pdf' : null,
           byte_size: hasFile ? body.length : null,
           file_url: '/rails/active_storage/blobs/redirect/signed/new.pdf',
+          discarded_at: null,
+          discarded_by_name: null,
           student_id: studentId,
           student_name: 'Pedro Silva',
           uploaded_by_name: 'Maria Silva',

@@ -69,16 +69,26 @@ export const documentTypeKey = (value: string) =>
     ...SYSTEM_DOCUMENT_TYPES,
   ].find((type) => type.value === value)?.label ?? null;
 
+/** Listing options shared by the staff queries. */
+export interface DocumentListOptions {
+  page?: number;
+  /**
+   * `true` lists only the inactivated documents (BR-ARC14). The API answers 403 for it without
+   * `manage_documents`, so callers only ask when the user holds that permission.
+   */
+  inactive?: boolean;
+}
+
 /** GET /api/v1/schools/:school_id/documents, narrowed to one owner. */
 export const listPersonDocuments = (
   schoolId: number,
   documentableType: DocumentableType,
   documentableId: number,
-  page = 1,
+  { page = 1, inactive = false }: DocumentListOptions = {},
 ) =>
   request<DocumentListResponse>(
     `${collectionPath(schoolId)}?documentable_type=${documentableType}` +
-      `&documentable_id=${documentableId}&page=${page}`,
+      `&documentable_id=${documentableId}&page=${page}${inactive ? '&inactive=true' : ''}`,
   );
 
 /**
@@ -86,9 +96,14 @@ export const listPersonDocuments = (
  * child-bound ones of their linked students. The API refuses this filter combined with
  * `documentable_*`, so the two queries stay separate.
  */
-export const listGuardianDocuments = (schoolId: number, guardianId: number, page = 1) =>
+export const listGuardianDocuments = (
+  schoolId: number,
+  guardianId: number,
+  { page = 1, inactive = false }: DocumentListOptions = {},
+) =>
   request<FamilyDocumentListResponse>(
-    `${collectionPath(schoolId)}?guardian_id=${guardianId}&page=${page}`,
+    `${collectionPath(schoolId)}?guardian_id=${guardianId}&page=${page}` +
+      `${inactive ? '&inactive=true' : ''}`,
   );
 
 /**
@@ -115,8 +130,12 @@ export const uploadPersonDocument = async (
   return response.data;
 };
 
-/** DELETE /api/v1/schools/:school_id/documents/:id — soft delete, like every discard here. */
-export const deleteDocument = (schoolId: number, id: number) =>
+/**
+ * DELETE /api/v1/schools/:school_id/documents/:id — **inactivates** the document (BR-ARC14): the
+ * row and the stored file are kept in the student's history, and only staff with
+ * `manage_documents` may do it (403 otherwise; 404 when already inactive).
+ */
+export const inactivateDocument = (schoolId: number, id: number) =>
   request<null>(`${collectionPath(schoolId)}/${id}`, { method: 'DELETE' });
 
 /** The blueprint returns `file_url` host-relative; `apiAssetUrl` puts the API origin back on. */
@@ -129,13 +148,21 @@ const minePath = (schoolId: number) => `/api/v1/schools/${schoolId}/me/documents
 export const GUARDIAN_DOCUMENT_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'] as const;
 export const GUARDIAN_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
 
-/** GET /api/v1/schools/:school_id/me/documents, optionally narrowed to one linked child. */
+/**
+ * GET /api/v1/schools/:school_id/me/documents, optionally narrowed to one linked child and/or one
+ * document type (an empty `documentType` means every type and is not sent).
+ */
 export const listMyDocuments = (
   schoolId: number,
-  { studentId, page = 1 }: { studentId?: number | null; page?: number } = {},
+  {
+    studentId,
+    documentType,
+    page = 1,
+  }: { studentId?: number | null; documentType?: string; page?: number } = {},
 ) => {
   const params = new URLSearchParams();
   if (studentId) params.set('student_id', String(studentId));
+  if (documentType) params.set('document_type', documentType);
   if (page > 1) params.set('page', String(page));
 
   const encoded = params.toString();

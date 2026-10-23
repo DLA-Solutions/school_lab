@@ -52,6 +52,116 @@ See [`fintech-first.md`](fintech-first.md) for request/response examples:
 
 ---
 
+## Expected payments by class report (implemented)
+
+A printable PDF for the school dashboard's "Novo relatório" button: per class, each child, their
+guardians and the monthly amount their contract expects, with a subtotal per class and a grand
+total. Not paginated; there is no JSON body on success.
+
+| | |
+|---|---|
+| Request | `GET /api/v1/schools/:school_id/billing/reports/expected_payments` |
+| Auth | Bearer JWT, staff membership of `:school_id` |
+| Permission | `manage_billing` (`ExpectedPaymentsReportPolicy#show?`). `view_billing_summary` alone is **not** enough: that permission unlocks dashboard aggregates, this report exposes each family's figure |
+| Module gate | `billing` module must be enabled (`403 module_disabled` otherwise) |
+
+Query params (all optional):
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `school_class_id` | A class of this school. Another school's class, or a discarded class, is `404` | every class |
+| `status` | Student status: `active`, `transferred` or `all`. Discarded students are never listed | `active` |
+| `columns` | Comma-separated keys, drawn in the report's own order; unknown keys are dropped | `student,guardians,expected_amount` |
+
+Column keys: `student` (Estudante), `guardians` (Responsáveis, the payer marked "(pagador)"),
+`plan` (Plano), `signature_status` (Assinatura), `expected_amount` (Valor previsto (mensal)).
+Subtotal and grand total are drawn only when `expected_amount` is selected. Guardian CPF is never
+printed, whatever `columns` asks for.
+
+Success: `200`, `Content-Type: application/pdf`, `Content-Disposition: attachment`, filename
+`valores-previstos-<school-name-parameterized>-<YYYY-MM-DD>.pdf`. A caller should save the
+response as a blob (the SPA's students/guardians reports do the same).
+
+Errors (standard `{ error: { code, message, details } }` envelope):
+
+- `401` — no/invalid token.
+- `403 forbidden` — guardian, or staff without `manage_billing`; `403 module_disabled`.
+- `404 not_found` — school the caller does not belong to, or a `school_class_id` outside it.
+- `422 validation_error` — unknown `status`, or a name the PDF font cannot draw.
+
+### Expected amount rule
+
+One definition, shared with the dashboard's `average_ticket.total_monthly_cents` and with charge
+generation and the contract template (`Billing::ContractTuitionAmounts`): what the contract
+**agrees the family pays** per month, not the plan's list price.
+
+```
+Contract.expected_tuition (kept, status = active, signature_status != cancelled)
+one contract per child (see below), then
+amount = plan_discount present and plan has a price -> plan price less the discount band
+                                                       (100% "Bolsa integral" = 0)
+         otherwise                                  -> COALESCE(negotiated_amount_cents,
+                                                                billing_plan.base_amount_cents, 0)
+```
+
+- **One contract per child, never a sum.** Each report row is one child and shows only that
+  child's own agreed figure; nothing is added across children or across a child's contracts. The
+  rule lives in `Billing::ExpectedTuitionContracts` and is shared with the dashboard, so the
+  report's grand total equals `average_ticket.total_monthly_cents`:
+  1. contracts with `signature_status = cancelled` (called off before signing, usually reissued)
+     are not agreements and never count;
+  2. if a child still has several eligible contracts, the one whose `starts_on`..`ends_on` window
+     covers today counts (an absent bound is open); otherwise any of them; among those left, the
+     most recent (highest id);
+  3. a child left with more than one eligible contract is **flagged**, not hidden: the amount is
+     printed with `*` and a footnote at the end says how many students have more than one active
+     contract. The school should end or discard the duplicate (charge generation still bills
+     every `Contract.active`).
+- Punctuality (early-payment) discounts are **not** in this amount; the dashboard shows them
+  separately (see below).
+- A child with no active contract is listed as "Sem contrato" and adds nothing to the total.
+- Students without a class (or whose class was discarded) are printed last under "Sem turma".
+- Contracts awaiting signature (`pending_signature`) count like signed ones, as the dashboard
+  counts them; contracts whose signature was cancelled do not. Use the `signature_status` column
+  to see them.
+- Money is formatted in BRL (`R$ 1.234,56`) inside the PDF only. Any future JSON form of this
+  report must carry `amount_cents` as integer cents.
+
+---
+
+## School dashboard: average ticket (implemented)
+
+`GET /api/v1/schools/:school_id/dashboard` (`?month=YYYY-MM`). The billing block
+(`average_ticket`, `monthly_revenue`, ...) is returned only to staff with the dashboard billing
+permission. `average_ticket` is the **agreed** ticket: what the active contracts say families pay,
+after scholarships (bolsa), discount bands and negotiated amounts, in integer cents.
+
+```json
+"average_ticket": {
+  "value": 80000,
+  "previous": 80000,
+  "change_percent": 0.0,
+  "is_up": true,
+  "total_monthly_cents": 80000,
+  "students": 1,
+  "punctuality_value": 72000,
+  "punctuality_total_monthly_cents": 72000,
+  "punctuality_percent": 10.0
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `total_monthly_cents` | Sum, over **active, non-discarded students**, of each student's one counted contract's agreed monthly tuition (rules above: signature-cancelled contracts excluded, one contract per student, never summed). Contracts that are not `active` or are discarded, contracts of students who are discarded or no longer `active`, and other schools' contracts are excluded |
+| `students` | Active, non-discarded students |
+| `value` | `total_monthly_cents / students`, rounded to the cent; `0` with no students. Always contract-based, whether or not the month's charges exist yet |
+| `punctuality_total_monthly_cents` | The same sum if **every** family earns the punctuality discount. The discount is computed **per contract** and rounded to the cent (the same rounding as the contract template's `contrato.pontualidade.desconto`), then summed - it is not applied to the grand total. It stacks on the already-agreed amount (a 20% band then 10% punctuality is 72% of the table price) |
+| `punctuality_value` | `punctuality_total_monthly_cents / students`; `0` with no students |
+| `punctuality_percent` | The percentage actually applied: the school's `school_billing_settings.early_payment_discount_percent`, **or 10.0 when the school has not configured one** (platform default, `SchoolBillingSettings::DEFAULT_EARLY_PAYMENT_DISCOUNT_PERCENT`) |
+| `previous`, `change_percent`, `is_up` | Contracts have no history, so `previous` is the average tuition **charged** per contract in the month before the reference month when that month has tuition charges, and equal to `value` (0%, `is_up: true`) otherwise. `change_percent` is `0.0` when `previous` is `0` |
+
+---
+
 ## Planned extensions (W2–W6)
 
 ### Charges & contracts

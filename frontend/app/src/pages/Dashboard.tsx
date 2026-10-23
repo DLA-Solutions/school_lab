@@ -1,6 +1,10 @@
 import { useState } from 'react';
+import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
 import { EmptyState, ErrorBanner } from 'design-system';
+import IconifyIcon from 'components/base/IconifyIcon';
+import ExpectedPaymentsReportDialog from 'components/sections/dashboard/ExpectedPaymentsReportDialog';
 import KPIs from 'components/sections/dashboard/kpi/KPIs';
 import StudentsByClass from 'components/sections/dashboard/students-by-class/StudentsByClass';
 import SchoolIncome from 'components/sections/dashboard/completed-task/CompletedTask';
@@ -26,12 +30,17 @@ const Dashboard = () => {
   const canManageLedger =
     school !== null && membershipHasPermission(school, 'manage_billing');
 
+  // The report lists each family's figure, so `view_billing_summary` alone (which the API refuses
+  // with 403) does not offer it.
+  const canGenerateReport = school !== null && membershipHasPermission(school, 'manage_billing');
+
   const canViewPeopleMetrics =
     school !== null && membershipHasPermission(school, 'manage_people');
 
   const hasStaffContent = !guardianSchool && (canViewBillingSummary || canViewPeopleMetrics);
 
   const [month, setMonth] = useState(currentMonth);
+  const [reportOpen, setReportOpen] = useState(false);
   const { metrics, loading, error, accessDenied, reload } = useDashboardMetrics(
     month,
     hasStaffContent,
@@ -53,6 +62,28 @@ const Dashboard = () => {
 
   return (
     <Grid container spacing={{ xs: 2.5, sm: 3, lg: 3.75 }}>
+      {canGenerateReport && school && (
+        <Grid size={12}>
+          <Stack direction="row" justifyContent="flex-end">
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setReportOpen(true)}
+              startIcon={<IconifyIcon icon="mingcute:file-export-line" />}
+            >
+              {t('dashboard.expectedPayments.action')}
+            </Button>
+          </Stack>
+
+          <ExpectedPaymentsReportDialog
+            key={String(reportOpen)}
+            open={reportOpen}
+            schoolId={school.school_id}
+            onClose={() => setReportOpen(false)}
+          />
+        </Grid>
+      )}
+
       {error && !accessDenied && (
         <Grid size={12}>
           <ErrorBanner message={error} />

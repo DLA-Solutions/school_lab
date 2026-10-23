@@ -31,6 +31,8 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :student_id, in: :query, type: :integer, required: false
+      parameter name: :document_type, in: :query, type: :string, required: false,
+                description: "Only documents of this type (e.g. signed_contract); an unknown type matches nothing"
 
       # The signed copy of a contract is filed by the system once the provider returns it, so it
       # has no uploader and no review. Every guardian linked to the child sees it.
@@ -96,6 +98,46 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
           run_test! do |response|
             expect(response.body).not_to include("signed_contract")
           end
+        end
+      end
+
+      response "200", "an inactivated document disappears from every linked guardian's list and from show" do
+        let!(:kept_document) { create(:document, :approved, school: school, documentable: linked_student) }
+        let!(:inactive_document) do
+          create(:document, :approved, school: school, documentable: linked_student).tap do |doc|
+            doc.update!(discarded_by: create(:user))
+            doc.discard
+          end
+        end
+
+        run_test! do |first_response|
+          ids = JSON.parse(first_response.body).fetch("data").map { |row| row["id"] }
+          expect(ids).to contain_exactly(kept_document.id)
+
+          get "/api/v1/schools/#{school.id}/me/documents", headers: auth_headers_for(co_guardian_user)
+          expect(JSON.parse(response.body).fetch("data").map { |row| row["id"] }).to contain_exactly(kept_document.id)
+
+          get "/api/v1/schools/#{school.id}/me/documents?student_id=#{linked_student.id}",
+              headers: auth_headers_for(guardian_user)
+          expect(JSON.parse(response.body).fetch("data").map { |row| row["id"] }).to contain_exactly(kept_document.id)
+
+          get "/api/v1/schools/#{school.id}/documents/#{inactive_document.id}",
+              headers: auth_headers_for(guardian_user)
+          expect(response).to have_http_status(:not_found)
+
+          get "/api/v1/schools/#{school.id}/documents?inactive=true", headers: auth_headers_for(guardian_user)
+          expect(response).to have_http_status(:forbidden)
+          expect(response.body).not_to include("file_url")
+        end
+      end
+
+      response "200", "an inactivated document of another family is invisible too" do
+        let!(:stranger_inactive) do
+          create(:document, :approved, school: school, documentable: unlinked_student).tap(&:discard)
+        end
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).fetch("data")).to be_empty
         end
       end
 
@@ -179,6 +221,30 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
         end
       end
 
+      response "200", "filters by document type, never widening beyond the guardian's own family" do
+        let!(:contract_doc) do
+          create(:document, :approved, school: school, documentable: linked_student,
+                                       document_type: Document::SIGNED_CONTRACT_TYPE)
+        end
+        let!(:address_doc) do
+          create(:document, :approved, school: school, documentable: linked_student, document_type: "address_proof")
+        end
+        let!(:stranger_contract_doc) do
+          create(:document, :approved, school: school, documentable: unlinked_student,
+                                       document_type: Document::SIGNED_CONTRACT_TYPE)
+        end
+        let(:document_type) { Document::SIGNED_CONTRACT_TYPE }
+
+        run_test! do |first_response|
+          ids = JSON.parse(first_response.body).fetch("data").map { |r| r["id"] }
+          expect(ids).to contain_exactly(contract_doc.id)
+
+          get "/api/v1/schools/#{school.id}/me/documents?document_type=made_up",
+              headers: auth_headers_for(guardian_user)
+          expect(JSON.parse(response.body).fetch("data")).to be_empty
+        end
+      end
+
       response "404", "filter by a child outside the family" do
         let(:student_id) { unlinked_student.id }
 
@@ -216,7 +282,7 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
           run_test! do |response|
             data = JSON.parse(response.body).fetch("data")
             expect(data).to include(
-              "document_type" => type, "status" => "pending", "documentable_type" => "Student",
+              "document_type" => type, "status" => "approved", "documentable_type" => "Student",
               "documentable_id" => linked_student.id, "student_id" => linked_student.id,
               "student_name" => "Linked Child", "uploaded_by_name" => "Mother Silva",
               "uploaded_by_kind" => "guardian", "filename" => "sample.pdf"
@@ -237,7 +303,7 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
 
           get "/api/v1/schools/#{school.id}/me/documents", headers: auth_headers_for(co_guardian_user)
           row = JSON.parse(response.body).fetch("data").find { |r| r["id"] == created["id"] }
-          expect(row).to include("status" => "pending", "uploaded_by_name" => "Mother Silva")
+          expect(row).to include("status" => "approved", "uploaded_by_name" => "Mother Silva")
 
           get row["file_url"]
           expect(response).to have_http_status(:redirect)
@@ -297,7 +363,7 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
         end
       end
 
-      response "422", "child no longer enrolled" do
+      response "409", "child no longer enrolled" do
         before { linked_student.update!(status: "transferred") }
 
         run_test! do |response|

@@ -28,7 +28,7 @@ RSpec.describe Contracts::ReconcileSignatureService do
 
       expect do
         described_class.call(contract: contract)
-      end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id).once
+      end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id).at_least(:once)
 
       expect(contract.reload.signed_document_url).to eq(file_url)
     end
@@ -42,12 +42,17 @@ RSpec.describe Contracts::ReconcileSignatureService do
       end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id)
     end
 
-    it "does not enqueue it when the provider has no signed file yet" do
+    # The job is what keeps asking until the provider has built the signed PDF; nothing is
+    # recorded in the meantime.
+    it "leaves the address blank when the provider has no signed file yet, with the job left to retry" do
       stub_status("signed", signed_file_url: nil)
 
       expect do
         described_class.call(contract: contract)
-      end.not_to have_enqueued_job(Documents::AttachSignedContractJob)
+      end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id).once
+
+      expect(contract.reload).to be_signed
+      expect(contract.signed_document_url).to be_blank
     end
 
     it "does not enqueue it for a contract nobody has signed" do

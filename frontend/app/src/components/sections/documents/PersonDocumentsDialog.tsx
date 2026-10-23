@@ -12,20 +12,24 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconifyIcon from 'components/base/IconifyIcon';
-import { EmptyState, ErrorBanner, SemanticChip } from 'design-system';
+import { ConfirmDialog, EmptyState, ErrorBanner, SemanticChip } from 'design-system';
 import { ApiError } from 'services/api';
 import { useTranslation } from 'providers/I18nContext';
+import useCurrentSchool from 'providers/useCurrentSchool';
+import { membershipHasPermission } from 'utils/onboarding/access';
 import type { MessageKey } from 'locales';
 import {
   DocumentableType,
   PERSONAL_DOCUMENT_TYPES,
-  deleteDocument,
   documentDownloadUrl,
   documentTypeKey,
+  inactivateDocument,
   listGuardianDocuments,
   listPersonDocuments,
   uploadPersonDocument,
@@ -48,11 +52,10 @@ export interface PersonDocumentsDialogProps {
   onClose: () => void;
 }
 
-const STATUS_LABELS: Record<SchoolDocument['status'], string> = {
-  pending: 'Pendente',
-  approved: 'Aprovado',
-  rejected: 'Rejeitado',
-};
+/** Inactivating (the product's "delete") is allowed to `manage_documents` only (BR-ARC14). */
+const MANAGE_DOCUMENTS = 'manage_documents';
+
+type DocumentsView = 'active' | 'inactive';
 
 // `SemanticChip` speaks in intent, not in the API's status vocabulary.
 const STATUS_VARIANTS: Record<SchoolDocument['status'], 'warning' | 'success' | 'error'> = {
@@ -89,7 +92,9 @@ const PersonDocumentsDialog = ({
   emptyDescription,
   onClose,
 }: PersonDocumentsDialogProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const school = useCurrentSchool();
+  const canManage = school ? membershipHasPermission(school, MANAGE_DOCUMENTS) : false;
   const resolvedEmptyDescription = emptyDescription ?? t('documents.empty.default');
   // A type the API carries that this build does not know keeps its raw value: better an
   // unfamiliar word than an empty cell.
@@ -116,8 +121,13 @@ const PersonDocumentsDialog = ({
   const [error, setError] = useState('');
   const [documentType, setDocumentType] = useState<string>(documentTypes[0].value);
   const [uploading, setUploading] = useState(false);
-  const [removingId, setRemovingId] = useState<number | null>(null);
+  const [view, setView] = useState<DocumentsView>('active');
+  const [pendingInactivation, setPendingInactivation] = useState<SchoolDocument | null>(null);
+  const [inactivating, setInactivating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Without `manage_documents` the API answers 403 to `inactive=true`, so it is never requested.
+  const showingInactive = canManage && view === 'inactive';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -128,20 +138,18 @@ const PersonDocumentsDialog = ({
       // reads the whole picture here; students and collaborators keep the per-owner query.
       const response =
         documentableType === 'Guardian'
-          ? await listGuardianDocuments(schoolId, documentableId)
-          : await listPersonDocuments(schoolId, documentableType, documentableId);
+          ? await listGuardianDocuments(schoolId, documentableId, { inactive: showingInactive })
+          : await listPersonDocuments(schoolId, documentableType, documentableId, {
+              inactive: showingInactive,
+            });
       setDocuments(response.data);
     } catch (err) {
       setDocuments([]);
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível carregar os documentos. Verifique sua conexão.',
-      );
+      setError(err instanceof ApiError ? err.message : t('documents.error.load'));
     } finally {
       setLoading(false);
     }
-  }, [schoolId, documentableType, documentableId]);
+  }, [schoolId, documentableType, documentableId, showingInactive, t]);
 
   useEffect(() => {
     load();
@@ -168,83 +176,118 @@ const PersonDocumentsDialog = ({
       if (err instanceof ApiError) {
         // The API reports a missing or unreadable file under `details.file`.
         const fileError = Array.isArray(err.details.file) ? String(err.details.file[0]) : null;
-        setError(fileError ? `Arquivo ${fileError}.` : err.message);
+        setError(fileError ? t('documents.error.file', { detail: fileError }) : err.message);
       } else {
-        setError('Não foi possível enviar o arquivo. Verifique sua conexão.');
+        setError(t('documents.error.upload'));
       }
     } finally {
       setUploading(false);
     }
   };
 
-  const handleRemove = async (document: SchoolDocument) => {
-    setRemovingId(document.id);
+  // The file is never removed: the API inactivates the document and keeps it in the history.
+  const handleConfirmInactivation = async () => {
+    if (!pendingInactivation) {
+      return;
+    }
+
+    setInactivating(true);
     setError('');
 
     try {
-      await deleteDocument(schoolId, document.id);
+      await inactivateDocument(schoolId, pendingInactivation.id);
+      setPendingInactivation(null);
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível remover o documento.');
+      setPendingInactivation(null);
+      setError(err instanceof ApiError ? err.message : t('documents.error.inactivate'));
     } finally {
-      setRemovingId(null);
+      setInactivating(false);
     }
+  };
+
+  const inactivationLabel = (document: SchoolDocument) => {
+    if (!document.discarded_at) {
+      return '';
+    }
+
+    const date = new Date(document.discarded_at).toLocaleDateString(locale);
+
+    return document.discarded_by_name
+      ? t('documents.inactive.by', { name: document.discarded_by_name, date })
+      : t('documents.inactive.on', { date });
   };
 
   return (
     <Dialog open={open} onClose={uploading ? undefined : onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        Documentos pessoais
+        {t('documents.title')}
         <Typography variant="body2" color="text.secondary">
           {subtitle ? `${title} — ${subtitle}` : title}
         </Typography>
       </DialogTitle>
       <DialogContent>
         <Stack direction="column" gap={2.5} pt={0.5}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} alignItems="stretch">
-            <TextField
-              id="document-type"
-              label="Tipo de documento"
-              value={documentType}
-              onChange={(e) => setDocumentType(e.target.value)}
-              disabled={uploading}
-              variant="filled"
-              select
-              fullWidth
+          {canManage && (
+            <Tabs
+              value={view}
+              onChange={(_, value: DocumentsView) => {
+                // A message about the previous list does not belong to the one being opened.
+                setError('');
+                setView(value);
+              }}
             >
-              {documentTypes.map((type) => (
-                <MenuItem key={type.value} value={type.value}>
-                  {typeLabel(type.value)}
-                </MenuItem>
-              ))}
-            </TextField>
-            <Button
-              variant="contained"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              startIcon={
-                uploading ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : (
-                  <IconifyIcon icon="mingcute:upload-2-line" />
-                )
-              }
-              sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
-            >
-              {uploading ? 'Enviando...' : 'Enviar arquivo'}
-            </Button>
-            {/* The styled Button is the control users see; the native input stays hidden and is
+              <Tab value="active" label={t('documents.tab.active')} />
+              <Tab value="inactive" label={t('documents.tab.inactive')} />
+            </Tabs>
+          )}
+
+          {!showingInactive && (
+            <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} alignItems="stretch">
+              <TextField
+                id="document-type"
+                label={t('documents.field.type')}
+                value={documentType}
+                onChange={(e) => setDocumentType(e.target.value)}
+                disabled={uploading}
+                variant="filled"
+                select
+                fullWidth
+              >
+                {documentTypes.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>
+                    {typeLabel(type.value)}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Button
+                variant="contained"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                startIcon={
+                  uploading ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <IconifyIcon icon="mingcute:upload-2-line" />
+                  )
+                }
+                sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+              >
+                {uploading ? t('documents.uploading') : t('documents.upload')}
+              </Button>
+              {/* The styled Button is the control users see; the native input stays hidden and is
                 triggered through the ref, which is what actually opens the file picker. */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,application/pdf"
-              onChange={handleFileSelected}
-              hidden
-              aria-hidden="true"
-              tabIndex={-1}
-            />
-          </Stack>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleFileSelected}
+                hidden
+                aria-hidden="true"
+                tabIndex={-1}
+              />
+            </Stack>
+          )}
 
           {error && <ErrorBanner message={error} />}
 
@@ -253,34 +296,43 @@ const PersonDocumentsDialog = ({
               <CircularProgress size={24} />
             </Stack>
           ) : documents.length === 0 ? (
-            <EmptyState title={t('documents.empty.title')} description={resolvedEmptyDescription} />
+            <EmptyState
+              title={
+                showingInactive ? t('documents.inactive.empty.title') : t('documents.empty.title')
+              }
+              description={
+                showingInactive
+                  ? t('documents.inactive.empty.description')
+                  : resolvedEmptyDescription
+              }
+            />
           ) : (
             <List disablePadding>
               {documents.map((document) => {
                 const url = documentDownloadUrl(document);
+                const fileName = document.filename ?? t('documents.fileFallback');
 
                 return (
                   <ListItem
                     key={document.id}
                     disableGutters
                     secondaryAction={
-                      <Tooltip title="Remover">
-                        <span>
-                          <IconButton
-                            edge="end"
-                            size="small"
-                            aria-label={`Remover ${document.filename ?? 'documento'}`}
-                            onClick={() => handleRemove(document)}
-                            disabled={removingId === document.id}
-                          >
-                            {removingId === document.id ? (
-                              <CircularProgress size={16} />
-                            ) : (
+                      // Inactive rows are history: they can still be opened, never inactivated
+                      // again. The action itself is for `manage_documents` only.
+                      canManage && !showingInactive ? (
+                        <Tooltip title={t('documents.inactivate')}>
+                          <span>
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              aria-label={t('documents.inactivate.label', { file: fileName })}
+                              onClick={() => setPendingInactivation(document)}
+                            >
                               <IconifyIcon icon="mingcute:delete-2-line" />
-                            )}
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      ) : undefined
                     }
                   >
                     <ListItemText
@@ -297,17 +349,19 @@ const PersonDocumentsDialog = ({
                               rel="noopener"
                               variant="body2"
                             >
-                              {document.filename ?? 'documento'}
+                              {fileName}
                             </Link>
                           ) : (
-                            <Typography variant="body2">
-                              {document.filename ?? 'documento'}
-                            </Typography>
+                            <Typography variant="body2">{fileName}</Typography>
                           )}
-                          <SemanticChip
-                            variant={STATUS_VARIANTS[document.status]}
-                            label={STATUS_LABELS[document.status]}
-                          />
+                          {showingInactive ? (
+                            <SemanticChip variant="warning" label={t('documents.inactive.chip')} />
+                          ) : (
+                            <SemanticChip
+                              variant={STATUS_VARIANTS[document.status]}
+                              label={t(`documents.status.${document.status}`)}
+                            />
+                          )}
                         </Stack>
                       }
                       secondary={
@@ -316,6 +370,16 @@ const PersonDocumentsDialog = ({
                             {typeLabel(document.document_type)}
                             {document.byte_size ? ` — ${formatBytes(document.byte_size)}` : ''}
                           </Typography>
+                          {showingInactive && document.discarded_at && (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              component="span"
+                              display="block"
+                            >
+                              {inactivationLabel(document)}
+                            </Typography>
+                          )}
                           {isChildBound(document) && (
                             <Typography
                               variant="caption"
@@ -343,9 +407,24 @@ const PersonDocumentsDialog = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="inherit" disabled={uploading}>
-          Fechar
+          {t('common.close')}
         </Button>
       </DialogActions>
+
+      <ConfirmDialog
+        open={Boolean(pendingInactivation)}
+        title={t('documents.inactivate.title')}
+        message={t('documents.inactivate.message', {
+          file: pendingInactivation?.filename ?? t('documents.fileFallback'),
+        })}
+        confirmLabel={
+          inactivating ? t('documents.inactivate.confirming') : t('documents.inactivate.confirm')
+        }
+        cancelLabel={t('common.cancel')}
+        destructive
+        onConfirm={handleConfirmInactivation}
+        onCancel={() => (inactivating ? undefined : setPendingInactivation(null))}
+      />
     </Dialog>
   );
 };

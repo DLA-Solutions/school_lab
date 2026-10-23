@@ -16,7 +16,6 @@ import {
   InfoBanner,
   PageHeader,
   SectionCard,
-  SemanticChip,
   SuccessBanner,
 } from 'design-system';
 import type { MessageKey } from 'locales';
@@ -33,16 +32,10 @@ import {
   uploadMyDocument,
 } from 'services/documentsApi';
 import { listMyStudents } from 'services/studentsApi';
-import { GuardianDocument, SchoolDocument } from 'types/document';
+import { GuardianDocument } from 'types/document';
 import { Student } from 'types/student';
 
 const PAGE_SIZE = 25;
-
-const STATUS_VARIANT: Record<SchoolDocument['status'], 'warning' | 'success' | 'error'> = {
-  pending: 'warning',
-  approved: 'success',
-  rejected: 'error',
-};
 
 /** Browsers differ on what `accept` matches, so both the MIME types and the extensions are given. */
 const ACCEPT = [...GUARDIAN_DOCUMENT_MIME_TYPES, '.pdf', '.jpg', '.jpeg', '.png'].join(',');
@@ -82,6 +75,7 @@ const MyDocuments = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [filterStudentId, setFilterStudentId] = useState('');
+  const [filterDocumentType, setFilterDocumentType] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -104,6 +98,7 @@ const MyDocuments = () => {
     try {
       const response = await listMyDocuments(schoolId, {
         studentId: filterStudentId ? Number(filterStudentId) : null,
+        documentType: filterDocumentType || undefined,
         page: page + 1,
       });
       setRows(response.data);
@@ -115,7 +110,7 @@ const MyDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, filterStudentId, page, t]);
+  }, [schoolId, filterStudentId, filterDocumentType, page, t]);
 
   useEffect(() => {
     load();
@@ -323,28 +318,6 @@ const MyDocuments = () => {
         },
       },
       {
-        field: 'status',
-        headerName: t('myDocuments.column.status'),
-        flex: 1,
-        minWidth: 190,
-        sortable: false,
-        renderCell: ({ row }) => (
-          <Stack direction="column" alignItems="flex-start" gap={0.5} py={1}>
-            <SemanticChip
-              variant={STATUS_VARIANT[row.status]}
-              label={t(`myDocuments.status.${row.status}`)}
-            />
-            {row.status === 'rejected' && row.rejection_reason && (
-              // The school's reason, so a refused family reads what to fix rather than
-              // telephoning to ask.
-              <Typography variant="caption" color="text.secondary">
-                {t('myDocuments.rejectionReason', { reason: row.rejection_reason })}
-              </Typography>
-            )}
-          </Stack>
-        ),
-      },
-      {
         field: 'file_url',
         headerName: t('common.actions'),
         width: 120,
@@ -373,6 +346,8 @@ const MyDocuments = () => {
     ],
     [t, locale],
   );
+
+  const filtered = Boolean(filterStudentId || filterDocumentType);
 
   if (!school) {
     return (
@@ -515,13 +490,36 @@ const MyDocuments = () => {
             {t('myDocuments.list.title')}
           </Typography>
 
-          {students.length > 1 && (
+          <Stack direction="row" gap={1.5} flexWrap="wrap">
+            {students.length > 1 && (
+              <TextField
+                id="my-document-filter"
+                label={t('myDocuments.filter.student')}
+                value={filterStudentId}
+                onChange={(event) => {
+                  setFilterStudentId(event.target.value);
+                  setPage(0);
+                }}
+                variant="filled"
+                size="small"
+                select
+                sx={{ minWidth: 220 }}
+              >
+                <MenuItem value="">{t('myDocuments.filter.all')}</MenuItem>
+                {students.map((student) => (
+                  <MenuItem key={student.id} value={String(student.id)}>
+                    {student.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+
             <TextField
-              id="my-document-filter"
-              label={t('myDocuments.filter.student')}
-              value={filterStudentId}
+              id="my-document-type-filter"
+              label={t('myDocuments.filter.type')}
+              value={filterDocumentType}
               onChange={(event) => {
-                setFilterStudentId(event.target.value);
+                setFilterDocumentType(event.target.value);
                 setPage(0);
               }}
               variant="filled"
@@ -529,20 +527,22 @@ const MyDocuments = () => {
               select
               sx={{ minWidth: 220 }}
             >
-              <MenuItem value="">{t('myDocuments.filter.all')}</MenuItem>
-              {students.map((student) => (
-                <MenuItem key={student.id} value={String(student.id)}>
-                  {student.name}
+              <MenuItem value="">{t('myDocuments.filter.allTypes')}</MenuItem>
+              {[...GUARDIAN_DOCUMENT_TYPES, ...SYSTEM_DOCUMENT_TYPES].map((type) => (
+                <MenuItem key={type.value} value={type.value}>
+                  {t(type.label as MessageKey)}
                 </MenuItem>
               ))}
             </TextField>
-          )}
+          </Stack>
         </Stack>
 
         {!loading && rows.length === 0 ? (
           <EmptyState
-            title={t('myDocuments.empty.title')}
-            description={t('myDocuments.empty.description')}
+            title={t(filtered ? 'myDocuments.empty.filtered.title' : 'myDocuments.empty.title')}
+            description={t(
+              filtered ? 'myDocuments.empty.filtered.description' : 'myDocuments.empty.description',
+            )}
             headingLevel={3}
           />
         ) : (
