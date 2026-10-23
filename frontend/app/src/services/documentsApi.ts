@@ -148,13 +148,21 @@ const minePath = (schoolId: number) => `/api/v1/schools/${schoolId}/me/documents
 export const GUARDIAN_DOCUMENT_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'] as const;
 export const GUARDIAN_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
 
-/** GET /api/v1/schools/:school_id/me/documents, optionally narrowed to one linked child. */
+/**
+ * GET /api/v1/schools/:school_id/me/documents, optionally narrowed to one linked child and/or one
+ * document type (an empty `documentType` means every type and is not sent).
+ */
 export const listMyDocuments = (
   schoolId: number,
-  { studentId, page = 1 }: { studentId?: number | null; page?: number } = {},
+  {
+    studentId,
+    documentType,
+    page = 1,
+  }: { studentId?: number | null; documentType?: string; page?: number } = {},
 ) => {
   const params = new URLSearchParams();
   if (studentId) params.set('student_id', String(studentId));
+  if (documentType) params.set('document_type', documentType);
   if (page > 1) params.set('page', String(page));
 
   const encoded = params.toString();

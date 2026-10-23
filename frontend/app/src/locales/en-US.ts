@@ -545,6 +545,8 @@ const enUS: Messages = {
   'myDocuments.list.title': 'Documents sent',
   'myDocuments.filter.student': 'Filter by student',
   'myDocuments.filter.all': 'All students',
+  'myDocuments.filter.type': 'Filter by type',
+  'myDocuments.filter.allTypes': 'All types',
   'myDocuments.column.type': 'Type',
   'myDocuments.column.student': 'Student',
   'myDocuments.column.file': 'File',
@@ -557,6 +559,8 @@ const enUS: Messages = {
   'myDocuments.empty.title': 'No documents sent',
   'myDocuments.empty.description':
     'Documents you send appear here. The student’s other guardian sees them too.',
+  'myDocuments.empty.filtered.title': 'No documents found',
+  'myDocuments.empty.filtered.description': 'No document matches the chosen filter.',
   'myDocuments.loadError': 'Could not load the documents.',
   'myDocuments.noAccess.description': 'You do not have access to this school’s documents.',
   'myDocuments.type.address_proof': 'Proof of address',

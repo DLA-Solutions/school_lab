@@ -1299,7 +1299,9 @@ export const handlers = [
       return jsonError(404, 'not_found', 'Recurso não encontrado.');
     }
 
-    const studentId = new URL(request.url).searchParams.get('student_id');
+    const searchParams = new URL(request.url).searchParams;
+    const studentId = searchParams.get('student_id');
+    const documentType = searchParams.get('document_type');
     const documents = [
       {
         id: 1,
@@ -1323,7 +1325,9 @@ export const handlers = [
         uploaded_by_name: 'Maria Silva',
         uploaded_by_kind: 'guardian',
       },
-    ].filter((document) => !studentId || String(document.student_id) === studentId);
+    ]
+      .filter((document) => !studentId || String(document.student_id) === studentId)
+      .filter((document) => !documentType || document.document_type === documentType);
 
     return paginated(documents, new URL(request.url));
   }),

@@ -110,8 +110,17 @@ const stub = ({
       }),
     ),
     http.get(apiUrl(`${BASE}/documents`), ({ request }) => {
-      listQueries.push(new URL(request.url).search);
-      return HttpResponse.json({ data: rows, meta: { page: 1, per_page: 25, total: rows.length } });
+      const url = new URL(request.url);
+      listQueries.push(url.search);
+      const documentType = url.searchParams.get('document_type');
+      const visible = documentType
+        ? rows.filter((row) => row.document_type === documentType)
+        : rows;
+
+      return HttpResponse.json({
+        data: visible,
+        meta: { page: 1, per_page: 25, total: visible.length },
+      });
     }),
     http.post(apiUrl(`${BASE}/documents`), async ({ request }) => {
       sent.push(parseMultipart(new TextDecoder('latin1').decode(await request.arrayBuffer())));
@@ -281,6 +290,60 @@ describe('A guardian’s documents', () => {
     await waitFor(() =>
       expect(listQueries.some((query) => query.includes('student_id=10'))).toBe(true),
     );
+  });
+
+  describe('filtering by document type', () => {
+    it('offers the filter even with one child, listing the guardian and system types', async () => {
+      stub();
+      renderPage();
+
+      await screen.findByText('cartao-vacina.pdf');
+      await user.click(screen.getByLabelText(/filtrar por tipo/i));
+
+      expect(await screen.findByRole('option', { name: 'Todos os tipos' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Contrato assinado' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Cartão de vacina' })).toBeInTheDocument();
+    });
+
+    it('sends document_type and shows only the signed contract, then drops it on all types', async () => {
+      const { listQueries } = stub({ rows: [mother, father, signedContract] });
+      renderPage();
+
+      await screen.findByText('cartao-vacina.pdf');
+      expect(listQueries.every((query) => !query.includes('document_type'))).toBe(true);
+
+      await user.click(screen.getByLabelText(/filtrar por tipo/i));
+      await user.click(await screen.findByRole('option', { name: 'Contrato assinado' }));
+
+      await waitFor(() =>
+        expect(listQueries.some((query) => query.includes('document_type=signed_contract'))).toBe(
+          true,
+        ),
+      );
+      expect(await screen.findByText('contrato-assinado-pedro-silva.pdf')).toBeInTheDocument();
+      await waitFor(() => expect(screen.queryByText('cartao-vacina.pdf')).not.toBeInTheDocument());
+      expect(screen.queryByText('comprovante-endereco.png')).not.toBeInTheDocument();
+
+      const before = listQueries.length;
+      await user.click(screen.getByLabelText(/filtrar por tipo/i));
+      await user.click(await screen.findByRole('option', { name: 'Todos os tipos' }));
+
+      expect(await screen.findByText('cartao-vacina.pdf')).toBeInTheDocument();
+      expect(listQueries.length).toBeGreaterThan(before);
+      expect(listQueries[listQueries.length - 1]).not.toContain('document_type');
+    });
+
+    it('says nothing matched, rather than that nothing was sent, when the filter is empty', async () => {
+      stub({ rows: [mother] });
+      renderPage();
+
+      await screen.findByText('cartao-vacina.pdf');
+      await user.click(screen.getByLabelText(/filtrar por tipo/i));
+      await user.click(await screen.findByRole('option', { name: 'Contrato assinado' }));
+
+      expect(await screen.findByText('Nenhum documento encontrado')).toBeInTheDocument();
+      expect(screen.queryByText('Nenhum documento enviado')).not.toBeInTheDocument();
+    });
   });
 
   describe('sending a document', () => {
