@@ -31,6 +31,8 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :student_id, in: :query, type: :integer, required: false
+      parameter name: :document_type, in: :query, type: :string, required: false,
+                description: "Only documents of this type (e.g. signed_contract); an unknown type matches nothing"
 
       # The signed copy of a contract is filed by the system once the provider returns it, so it
       # has no uploader and no review. Every guardian linked to the child sees it.
@@ -216,6 +218,30 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
         run_test! do |response|
           ids = JSON.parse(response.body).fetch("data").map { |r| r["id"] }
           expect(ids).to contain_exactly(second_doc.id)
+        end
+      end
+
+      response "200", "filters by document type, never widening beyond the guardian's own family" do
+        let!(:contract_doc) do
+          create(:document, :approved, school: school, documentable: linked_student,
+                                       document_type: Document::SIGNED_CONTRACT_TYPE)
+        end
+        let!(:address_doc) do
+          create(:document, :approved, school: school, documentable: linked_student, document_type: "address_proof")
+        end
+        let!(:stranger_contract_doc) do
+          create(:document, :approved, school: school, documentable: unlinked_student,
+                                       document_type: Document::SIGNED_CONTRACT_TYPE)
+        end
+        let(:document_type) { Document::SIGNED_CONTRACT_TYPE }
+
+        run_test! do |first_response|
+          ids = JSON.parse(first_response.body).fetch("data").map { |r| r["id"] }
+          expect(ids).to contain_exactly(contract_doc.id)
+
+          get "/api/v1/schools/#{school.id}/me/documents?document_type=made_up",
+              headers: auth_headers_for(guardian_user)
+          expect(JSON.parse(response.body).fetch("data")).to be_empty
         end
       end
 

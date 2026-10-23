@@ -53,7 +53,7 @@ PRD: [`archive.md`](../../prds/documents-and-archive/archive.md) UC-DA09, BR-ARC
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/me/documents` | Documents of every linked child, shared across co-guardians; `?student_id=` optional |
+| `GET` | `/me/documents` | Documents of every linked child, shared across co-guardians; `?student_id=` and `?document_type=` optional (unknown type matches nothing) |
 | `POST` | `/me/documents` | Multipart upload: `student_id`, `document_type`, `file`, optional `title` |
 
 `document_type` for guardians, in display order: `address_proof`, `school_transcript` ("Histórico
@@ -104,7 +104,11 @@ One document per contract: provider replays or re-runs never duplicate it. Staff
 `GET /documents` (including the `guardian_id` filter below) and can discard it with
 `DELETE /documents/:id`; a discarded copy is not re-filed. `approve`/`reject` answer `409` because
 the row is already `approved`. Backfill for contracts signed earlier: `bin/rails
-signature:backfill_signed_documents[school_id]` (idempotent; `school_id` optional).
+signature:backfill_signed_documents[school_id]` (idempotent; `school_id` optional). The daily
+signature sweep also files any signed contract that has its signed file on record but no document
+(a discarded document counts as existing), and filing retries with backoff while the provider has
+not yet published the signed PDF. Use `GET /me/documents?document_type=signed_contract` to list
+only signed contracts.
 
 ---
 

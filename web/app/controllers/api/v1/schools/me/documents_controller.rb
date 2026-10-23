@@ -14,6 +14,7 @@ module Api
                         .includes(:documentable, file_attachment: :blob, uploaded_by: :guardians)
                         .order(created_at: :desc)
             documents = filter_by_student(documents)
+            documents = filter_by_document_type(documents)
             pagy, records = pagy(documents)
 
             render json: {
@@ -48,6 +49,13 @@ module Api
 
             student = Current.guardian.students.kept.where(school_id: Current.school.id).find(params[:student_id])
             scope.where(documentable_type: "Student", documentable_id: student.id)
+          end
+
+          # An unknown type simply matches nothing; the filter narrows what policy_scope allows.
+          def filter_by_document_type(scope)
+            return scope if params[:document_type].blank?
+
+            scope.where(document_type: params[:document_type].to_s)
           end
 
           def create_params
