@@ -60,7 +60,8 @@ PRD: [`archive.md`](../../prds/documents-and-archive/archive.md) UC-DA09, BR-ARC
 escolar"), `guardian_identity` ("RG e CPF dos responsáveis"; identity data, shared by both parents
 like every family document), `vaccination_card`, `medical_report`, `school_transfer`, `other`. Any
 other value is `422`. Uploads bind to the child (not the parent) so father and mother see the
-same documents; they start `pending` and stay visible while staff review. Errors: `404` child not
+same documents; they are accepted automatically (created `approved`, no review queue, BR-ARC18).
+Errors: `404` child not
 linked / other school, `422` invalid type, file, or non-enrolled child, `401`/`403` otherwise.
 
 **Implemented contract (`web/`)**
@@ -127,8 +128,25 @@ Sending `guardian_id` together with `documentable_type` or `documentable_id` ret
 as the guardian "Meus documentos" rows (the base `Document` fields plus `student_id`, `student_name`,
 `uploaded_by_name`, `uploaded_by_kind`); the extra fields are `null` for documents attached to the
 guardian itself. Responses to the other queries are unchanged and do not carry the extra fields.
-Staff approve, reject or delete these rows through the existing `POST /documents/:id/approve`,
-`POST /documents/:id/reject` and `DELETE /documents/:id`.
+Staff inactivate these rows through the existing `DELETE /documents/:id` (see below). Guardian
+uploads are already `approved`, so `approve`/`reject` answer `409` for them.
+
+### Inactivating documents (BR-ARC14, AC-DA15)
+
+`DELETE /api/v1/schools/:school_id/documents/:id` **inactivates** the document (Discard); it never
+removes the database row nor the stored file. `204` on success. Requires `manage_documents`
+(director, secretary and coordination system templates; a school can grant it to others): any other authenticated
+user (guardian, teacher, staff without the permission) gets `403`; a document of another school,
+unknown, or already inactive gets `404`. The change is audited (`discarded_at`, `discarded_by_id`,
+actor user).
+
+Inactive documents are hidden from guardians everywhere (`GET /me/documents`, show, family list) and
+from default staff listings. Staff with `manage_documents` list them with `inactive=true` on
+`GET /documents`, combinable with the owner filter (`documentable_type`+`documentable_id`) and with
+`guardian_id` (family view); the list then contains **only** inactive documents. A guardian sending
+`inactive=true` gets `403`. Every `Document` row now carries `discarded_at` (ISO 8601, `null` while
+active) and `discarded_by_name` (the inactivating user's e-mail, `null` while active), since users
+have no display name. `file_url` still works for inactive rows so staff can open the history.
 
 ---
 

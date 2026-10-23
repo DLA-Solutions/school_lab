@@ -4786,6 +4786,15 @@
             }
           },
           {
+            "name": "inactive",
+            "in": "query",
+            "required": false,
+            "description": "true lists only the inactivated documents (staff with manage_documents; 403 otherwise). Works with the owner filter and with guardian_id. Rows carry discarded_at and discarded_by_name.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "guardian_id",
             "in": "query",
             "required": false,
@@ -4797,7 +4806,7 @@
         ],
         "responses": {
           "200": {
-            "description": "an unknown guardian_id matches nothing"
+            "description": "inactive=true never returns inactivated documents of another school"
           },
           "422": {
             "description": "guardian_id cannot be combined with the owner filter"
@@ -4934,7 +4943,10 @@
         ],
         "responses": {
           "204": {
-            "description": "staff discards a document a parent sent for a child"
+            "description": "coordination (holds manage_documents) may inactivate"
+          },
+          "403": {
+            "description": "a teacher cannot inactivate"
           },
           "404": {
             "description": "document of another school"

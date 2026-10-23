@@ -99,6 +99,46 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
         end
       end
 
+      response "200", "an inactivated document disappears from every linked guardian's list and from show" do
+        let!(:kept_document) { create(:document, :approved, school: school, documentable: linked_student) }
+        let!(:inactive_document) do
+          create(:document, :approved, school: school, documentable: linked_student).tap do |doc|
+            doc.update!(discarded_by: create(:user))
+            doc.discard
+          end
+        end
+
+        run_test! do |first_response|
+          ids = JSON.parse(first_response.body).fetch("data").map { |row| row["id"] }
+          expect(ids).to contain_exactly(kept_document.id)
+
+          get "/api/v1/schools/#{school.id}/me/documents", headers: auth_headers_for(co_guardian_user)
+          expect(JSON.parse(response.body).fetch("data").map { |row| row["id"] }).to contain_exactly(kept_document.id)
+
+          get "/api/v1/schools/#{school.id}/me/documents?student_id=#{linked_student.id}",
+              headers: auth_headers_for(guardian_user)
+          expect(JSON.parse(response.body).fetch("data").map { |row| row["id"] }).to contain_exactly(kept_document.id)
+
+          get "/api/v1/schools/#{school.id}/documents/#{inactive_document.id}",
+              headers: auth_headers_for(guardian_user)
+          expect(response).to have_http_status(:not_found)
+
+          get "/api/v1/schools/#{school.id}/documents?inactive=true", headers: auth_headers_for(guardian_user)
+          expect(response).to have_http_status(:forbidden)
+          expect(response.body).not_to include("file_url")
+        end
+      end
+
+      response "200", "an inactivated document of another family is invisible too" do
+        let!(:stranger_inactive) do
+          create(:document, :approved, school: school, documentable: unlinked_student).tap(&:discard)
+        end
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).fetch("data")).to be_empty
+        end
+      end
+
       response "200", "linked children documents only" do
         let!(:linked_document) do
           create(:document, :approved, school: school, documentable: linked_student)
@@ -216,7 +256,7 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
           run_test! do |response|
             data = JSON.parse(response.body).fetch("data")
             expect(data).to include(
-              "document_type" => type, "status" => "pending", "documentable_type" => "Student",
+              "document_type" => type, "status" => "approved", "documentable_type" => "Student",
               "documentable_id" => linked_student.id, "student_id" => linked_student.id,
               "student_name" => "Linked Child", "uploaded_by_name" => "Mother Silva",
               "uploaded_by_kind" => "guardian", "filename" => "sample.pdf"
@@ -237,7 +277,7 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
 
           get "/api/v1/schools/#{school.id}/me/documents", headers: auth_headers_for(co_guardian_user)
           row = JSON.parse(response.body).fetch("data").find { |r| r["id"] == created["id"] }
-          expect(row).to include("status" => "pending", "uploaded_by_name" => "Mother Silva")
+          expect(row).to include("status" => "approved", "uploaded_by_name" => "Mother Silva")
 
           get row["file_url"]
           expect(response).to have_http_status(:redirect)

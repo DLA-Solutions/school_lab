@@ -3,7 +3,8 @@
 module Documents
   # "Meus documentos": a guardian sending a document about one of their children. The document
   # belongs to the child, not to the parent who sent it, so every other kept guardian of that
-  # child sees the same list. It starts `pending` and stays visible while staff review it.
+  # child sees the same list. It is accepted automatically: created `approved`, with no review queue
+  # (staff inactivate a wrong one instead, see DiscardDocumentService).
   #
   # Kept apart from CreateDocumentService on purpose: staff pick any documentable and any type,
   # while a guardian may only reach children linked to them and only the closed type list.
@@ -31,15 +32,21 @@ module Documents
       document = school.documents.build(
         document_type: params[:document_type],
         documentable: student,
-        uploaded_by: actor
+        uploaded_by: actor,
+        reviewed_at: Time.current
       )
       document.file.attach(file)
 
-      if document.save
-        ResponseService.success(data: document)
-      else
-        ResponseService.failure(code: :validation_error, details: document.errors.to_hash)
+      # A parent's upload is accepted on the spot (BR-ARC18): no review queue. The state machine
+      # still owns the transition, so it is stored and approved in one transaction.
+      ActiveRecord::Base.transaction do
+        document.save!
+        document.approve!
       end
+
+      ResponseService.success(data: document)
+    rescue ActiveRecord::RecordInvalid => e
+      ResponseService.failure(code: :validation_error, details: e.record.errors.to_hash)
     end
 
     private

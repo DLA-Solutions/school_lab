@@ -9,7 +9,9 @@ module Api
 
           return render_conflicting_filters if guardian_filter? && documentable_filter?
 
-          documents = policy_scope(Document).includes(file_attachment: :blob).order(created_at: :desc)
+          authorize Document, :list_inactive? if inactive_filter?
+
+          documents = listed_documents.includes(file_attachment: :blob).order(created_at: :desc)
           documents = guardian_filter? ? filter_by_guardian(documents) : filter_by_documentable(documents)
           pagy, records = pagy(documents)
 
@@ -55,6 +57,7 @@ module Api
         end
 
         def destroy
+          authorize Document, :manage?
           document = policy_scope(Document).find(params[:id])
           authorize document
 
@@ -88,6 +91,18 @@ module Api
         end
 
         private
+
+        # Default listings hide inactivated documents. `inactive=true` (staff with
+        # `manage_documents` only) lists just the inactivated ones, for the student's history.
+        def listed_documents
+          return policy_scope(Document) unless inactive_filter?
+
+          DocumentPolicy::Scope.new(pundit_user, Document).resolve_inactive.includes(:discarded_by)
+        end
+
+        def inactive_filter?
+          ActiveModel::Type::Boolean.new.cast(params[:inactive]) == true
+        end
 
         def guardian_filter?
           params[:guardian_id].present?

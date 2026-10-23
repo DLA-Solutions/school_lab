@@ -5,6 +5,14 @@ class DocumentBlueprint < Blueprinter::Base
 
   fields :school_id, :document_type, :status, :rejection_reason, :reviewed_at, :created_at, :updated_at
 
+  # Set only on inactivated documents, which guardians never receive. Users carry no display
+  # name, so the inactivating user is identified by e-mail (same as the other `*_by_name` fields).
+  field :discarded_at
+
+  field :discarded_by_name do |document|
+    document.discarded_by&.email
+  end
+
   field :documentable_type
   field :documentable_id
 
