@@ -133,4 +133,83 @@ RSpec.describe Signatures::ReconcilePendingContractsJob do
     expect(broken.reload.signature_status).to eq("pending_signature")
     expect(other.reload).to be_signed
   end
+
+  # Contracts signed before the signed copy was filed into "Meus documentos" have the address on
+  # record but no document, and nothing else would ever file them.
+  describe "filing signed contracts that never got their document" do
+    let(:file_url) { "https://autentique.example/doc-1/assinado.pdf" }
+
+    def signed_contract(**overrides)
+      create(:contract, school: school, student: student, signature_status: "signed", signed_at: 1.day.ago,
+                        provider_document_id: "doc-1", sent_at: 2.days.ago, signed_document_url: file_url,
+                        **overrides)
+    end
+
+    it "enqueues the filing for a signed contract that has its file on record but no document" do
+      contract = signed_contract
+
+      expect do
+        described_class.perform_now
+      end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id).once
+    end
+
+    it "does not look back only 90 days for them" do
+      contract = signed_contract(sent_at: 1.year.ago)
+
+      expect do
+        described_class.perform_now
+      end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id)
+    end
+
+    it "skips a contract that already has its document" do
+      contract = signed_contract
+      create(:document, :approved, school: school, documentable: student, contract: contract,
+                                   document_type: Document::SIGNED_CONTRACT_TYPE)
+
+      expect do
+        described_class.perform_now
+      end.not_to have_enqueued_job(Documents::AttachSignedContractJob)
+    end
+
+    it "does not refile a document staff discarded" do
+      contract = signed_contract
+      create(:document, :approved, school: school, documentable: student, contract: contract,
+                                   document_type: Document::SIGNED_CONTRACT_TYPE).discard
+
+      expect do
+        described_class.perform_now
+      end.not_to have_enqueued_job(Documents::AttachSignedContractJob)
+    end
+
+    it "ignores a contract that is not signed or is discarded" do
+      signed_contract(signature_status: "pending_signature", signed_at: nil, provider_document_id: nil)
+      signed_contract.discard
+
+      expect do
+        described_class.perform_now
+      end.not_to have_enqueued_job(Documents::AttachSignedContractJob)
+    end
+
+    it "files each school's contract under its own school" do
+      other_school = create(:school)
+      other_student = create(:student, school: other_school, school_class: create(:school_class, school: other_school))
+      theirs = create(:contract, school: other_school, student: other_student, signature_status: "signed",
+                                 signed_at: 1.day.ago, provider_document_id: "doc-9", signed_document_url: file_url)
+      mine = signed_contract
+
+      expect do
+        described_class.perform_now
+      end.to have_enqueued_job(Documents::AttachSignedContractJob).with(mine.id, school.id)
+         .and have_enqueued_job(Documents::AttachSignedContractJob).with(theirs.id, other_school.id)
+    end
+
+    it "ends with exactly one document however many times the sweep runs" do
+      contract = signed_contract
+      stub_request(:get, file_url).to_return(status: 200, body: "%PDF-1.4 signed bytes")
+
+      2.times { perform_enqueued_jobs { described_class.perform_now } }
+
+      expect(Document.where(contract_id: contract.id).count).to eq(1)
+    end
+  end
 end

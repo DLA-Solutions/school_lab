@@ -27,16 +27,45 @@ module Signatures
         end
       end
 
+      unfiled = enqueue_unfiled_signed_contracts
+
       Rails.logger.info(
         {
           event: "signature.sweep.completed",
           signed: reconciled,
+          unfiled_enqueued: unfiled,
           failures: failures
         }.to_json
       )
     end
 
     private
+
+    # Contracts signed before the signed copy was filed into "Meus documentos" (or whose filing
+    # never completed): the provider's file address is on record but no document exists. A
+    # discarded document still counts as existing — staff discarding it is a decision, not a gap —
+    # so `Document` is not filtered by `kept` here.
+    #
+    # Deliberately not bounded by LOOKBACK: that window exists to stop re-asking the provider about
+    # abandoned, unsigned documents. These are signed, and filing is a one-off per contract that
+    # stops being selected as soon as the document exists. The filing itself runs in
+    # `Documents::AttachSignedContractJob` so one unreachable file cannot stall the sweep.
+    def enqueue_unfiled_signed_contracts
+      count = 0
+
+      unfiled_signed_contracts.find_each do |contract|
+        ::Documents::AttachSignedContractJob.perform_later(contract.id, contract.school_id)
+        count += 1
+      end
+
+      count
+    end
+
+    def unfiled_signed_contracts
+      Contract.kept.signed
+              .where.not(signed_document_url: nil)
+              .where.not(id: Document.where.not(contract_id: nil).select(:contract_id))
+    end
 
     # What was actually handed to a provider and still has something to learn: either it is
     # waiting on the family, or it was signed before we started recording where the signed file
