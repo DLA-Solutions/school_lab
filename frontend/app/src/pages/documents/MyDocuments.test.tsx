@@ -23,7 +23,8 @@ const document_ = (overrides: Partial<GuardianDocument> = {}): GuardianDocument 
   documentable_type: 'Student',
   documentable_id: 9,
   document_type: 'vaccination_card',
-  status: 'pending',
+  // A guardian upload is accepted automatically (BR-ARC18): it is born approved.
+  status: 'approved',
   rejection_reason: null,
   reviewed_at: null,
   created_at: '2026-08-10T12:00:00Z',
@@ -32,6 +33,8 @@ const document_ = (overrides: Partial<GuardianDocument> = {}): GuardianDocument 
   content_type: 'application/pdf',
   byte_size: 120_000,
   file_url: 'http://localhost:3000/rails/active_storage/blobs/redirect/signed/cartao-vacina.pdf',
+  discarded_at: null,
+  discarded_by_name: null,
   student_id: 9,
   student_name: 'Pedro Silva',
   uploaded_by_name: 'Maria Silva',
@@ -174,7 +177,7 @@ const apiError =
     HttpResponse.json({ error: { code, message: 'Mensagem do servidor.', details } }, { status });
 
 describe('A guardian’s documents', () => {
-  it('lists the documents of both parents, with who sent each and where it stands', async () => {
+  it('lists the documents of both parents, with who sent each, and no status column', async () => {
     stub();
     renderPage();
 
@@ -185,9 +188,13 @@ describe('A guardian’s documents', () => {
     // Sent by school staff: there is no parent name, so the column says who it was.
     expect(screen.getByText('Escola')).toBeInTheDocument();
 
-    expect(screen.getAllByText('Em análise')).toHaveLength(2);
-    expect(screen.getByText('Recusado')).toBeInTheDocument();
-    expect(screen.getByText(/arquivo ilegível/i)).toBeInTheDocument();
+    // Uploads are accepted on arrival, so the parents' screen has no status column or chips,
+    // whatever status the row carries (a school-filed row here is even `rejected`).
+    expect(screen.queryByRole('columnheader', { name: /situação/i })).not.toBeInTheDocument();
+    for (const label of ['Aprovado', 'Em análise', 'Recusado']) {
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    }
+    expect(screen.queryByText(/arquivo ilegível/i)).not.toBeInTheDocument();
 
     expect(screen.getAllByText('Pedro Silva').length).toBeGreaterThan(0);
     expect(screen.getByText('Cartão de vacina')).toBeInTheDocument();
@@ -202,7 +209,6 @@ describe('A guardian’s documents', () => {
     expect(await screen.findByText('contrato-assinado-pedro-silva.pdf')).toBeInTheDocument();
     expect(screen.getByText('Contrato assinado')).toBeInTheDocument();
     expect(screen.getByText('Assinatura eletrônica')).toBeInTheDocument();
-    expect(screen.getByText('Aprovado')).toBeInTheDocument();
 
     const link = screen.getByRole('link', { name: /abrir contrato-assinado-pedro-silva\.pdf/i });
     expect(link).toHaveAttribute('href', signedContract.file_url);
@@ -293,7 +299,11 @@ describe('A guardian’s documents', () => {
       expect(sent[0].fields).not.toHaveProperty('title');
 
       expect(await screen.findByText(/documento enviado\./i)).toBeInTheDocument();
+      // Accepted on arrival: the notice promises no review, and the list never asks for inactive
+      // documents (the API hides them from guardians anyway).
+      expect(screen.queryByText(/vai analisar/i)).not.toBeInTheDocument();
       await waitFor(() => expect(listQueries.length).toBeGreaterThanOrEqual(2));
+      expect(listQueries.every((query) => !query.includes('inactive'))).toBe(true);
     });
 
     it('offers the guardian document kinds in the API order', async () => {

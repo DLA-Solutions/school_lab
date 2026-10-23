@@ -16,7 +16,6 @@ import {
   InfoBanner,
   PageHeader,
   SectionCard,
-  SemanticChip,
   SuccessBanner,
 } from 'design-system';
 import type { MessageKey } from 'locales';
@@ -33,16 +32,10 @@ import {
   uploadMyDocument,
 } from 'services/documentsApi';
 import { listMyStudents } from 'services/studentsApi';
-import { GuardianDocument, SchoolDocument } from 'types/document';
+import { GuardianDocument } from 'types/document';
 import { Student } from 'types/student';
 
 const PAGE_SIZE = 25;
-
-const STATUS_VARIANT: Record<SchoolDocument['status'], 'warning' | 'success' | 'error'> = {
-  pending: 'warning',
-  approved: 'success',
-  rejected: 'error',
-};
 
 /** Browsers differ on what `accept` matches, so both the MIME types and the extensions are given. */
 const ACCEPT = [...GUARDIAN_DOCUMENT_MIME_TYPES, '.pdf', '.jpg', '.jpeg', '.png'].join(',');
@@ -321,28 +314,6 @@ const MyDocuments = () => {
             ? t('myDocuments.sentBy.school')
             : (row.uploaded_by_name ?? t('common.none'));
         },
-      },
-      {
-        field: 'status',
-        headerName: t('myDocuments.column.status'),
-        flex: 1,
-        minWidth: 190,
-        sortable: false,
-        renderCell: ({ row }) => (
-          <Stack direction="column" alignItems="flex-start" gap={0.5} py={1}>
-            <SemanticChip
-              variant={STATUS_VARIANT[row.status]}
-              label={t(`myDocuments.status.${row.status}`)}
-            />
-            {row.status === 'rejected' && row.rejection_reason && (
-              // The school's reason, so a refused family reads what to fix rather than
-              // telephoning to ask.
-              <Typography variant="caption" color="text.secondary">
-                {t('myDocuments.rejectionReason', { reason: row.rejection_reason })}
-              </Typography>
-            )}
-          </Stack>
-        ),
       },
       {
         field: 'file_url',
