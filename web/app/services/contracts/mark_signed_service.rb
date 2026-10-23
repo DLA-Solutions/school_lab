@@ -2,7 +2,7 @@
 
 module Contracts
   # Records that a contract was signed and kicks off guardian access provisioning and the
-  # school-side notification (and filing the signed copy, when its address is already known).
+  # school-side notification, and filing the signed copy into the student's documents.
   #
   # Every path that marks a contract signed — Autentique webhook, reconciliation sweep, or a
   # school marking it by hand — goes through here so both fire once, on the transition to signed,
@@ -34,12 +34,12 @@ module Contracts
       enqueue_signed_document
     end
 
-    # The signed file's address usually lands a moment after the signature itself (the reconcile
-    # path records it right after this), and that recording enqueues the same job. This covers the
-    # other order: the address was already known when the contract was marked signed.
+    # Always enqueued on the transition, even when the signed file's address is not on record yet:
+    # the provider builds the signed PDF asynchronously, and the webhook's `document.finished`
+    # fallback marks the contract signed without ever having read an address. The job re-asks the
+    # provider with a bounded backoff until the address shows up, so filing does not wait for the
+    # nightly sweep. It only fires on pending -> signed (see `call`), so it cannot loop.
     def enqueue_signed_document
-      return if contract.signed_document_url.blank?
-
       Documents::AttachSignedContractJob.perform_later(contract.id, contract.school_id)
     end
   end

@@ -551,6 +551,8 @@ const ptBR = {
   'myDocuments.list.title': 'Documentos enviados',
   'myDocuments.filter.student': 'Filtrar por aluno',
   'myDocuments.filter.all': 'Todos os alunos',
+  'myDocuments.filter.type': 'Filtrar por tipo',
+  'myDocuments.filter.allTypes': 'Todos os tipos',
   'myDocuments.column.type': 'Tipo',
   'myDocuments.column.student': 'Aluno',
   'myDocuments.column.file': 'Arquivo',
@@ -563,6 +565,8 @@ const ptBR = {
   'myDocuments.empty.title': 'Nenhum documento enviado',
   'myDocuments.empty.description':
     'Os documentos que você enviar aparecem aqui. O outro responsável do aluno também os vê.',
+  'myDocuments.empty.filtered.title': 'Nenhum documento encontrado',
+  'myDocuments.empty.filtered.description': 'Nenhum documento corresponde ao filtro escolhido.',
   'myDocuments.loadError': 'Não foi possível carregar os documentos.',
   'myDocuments.noAccess.description': 'Você não tem acesso aos documentos desta escola.',
   'myDocuments.type.address_proof': 'Comprovante de endereço',

@@ -75,6 +75,7 @@ const MyDocuments = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [filterStudentId, setFilterStudentId] = useState('');
+  const [filterDocumentType, setFilterDocumentType] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -97,6 +98,7 @@ const MyDocuments = () => {
     try {
       const response = await listMyDocuments(schoolId, {
         studentId: filterStudentId ? Number(filterStudentId) : null,
+        documentType: filterDocumentType || undefined,
         page: page + 1,
       });
       setRows(response.data);
@@ -108,7 +110,7 @@ const MyDocuments = () => {
     } finally {
       setLoading(false);
     }
-  }, [schoolId, filterStudentId, page, t]);
+  }, [schoolId, filterStudentId, filterDocumentType, page, t]);
 
   useEffect(() => {
     load();
@@ -345,6 +347,8 @@ const MyDocuments = () => {
     [t, locale],
   );
 
+  const filtered = Boolean(filterStudentId || filterDocumentType);
+
   if (!school) {
     return (
       <Stack direction="column" gap={3.5}>
@@ -486,13 +490,36 @@ const MyDocuments = () => {
             {t('myDocuments.list.title')}
           </Typography>
 
-          {students.length > 1 && (
+          <Stack direction="row" gap={1.5} flexWrap="wrap">
+            {students.length > 1 && (
+              <TextField
+                id="my-document-filter"
+                label={t('myDocuments.filter.student')}
+                value={filterStudentId}
+                onChange={(event) => {
+                  setFilterStudentId(event.target.value);
+                  setPage(0);
+                }}
+                variant="filled"
+                size="small"
+                select
+                sx={{ minWidth: 220 }}
+              >
+                <MenuItem value="">{t('myDocuments.filter.all')}</MenuItem>
+                {students.map((student) => (
+                  <MenuItem key={student.id} value={String(student.id)}>
+                    {student.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+
             <TextField
-              id="my-document-filter"
-              label={t('myDocuments.filter.student')}
-              value={filterStudentId}
+              id="my-document-type-filter"
+              label={t('myDocuments.filter.type')}
+              value={filterDocumentType}
               onChange={(event) => {
-                setFilterStudentId(event.target.value);
+                setFilterDocumentType(event.target.value);
                 setPage(0);
               }}
               variant="filled"
@@ -500,20 +527,22 @@ const MyDocuments = () => {
               select
               sx={{ minWidth: 220 }}
             >
-              <MenuItem value="">{t('myDocuments.filter.all')}</MenuItem>
-              {students.map((student) => (
-                <MenuItem key={student.id} value={String(student.id)}>
-                  {student.name}
+              <MenuItem value="">{t('myDocuments.filter.allTypes')}</MenuItem>
+              {[...GUARDIAN_DOCUMENT_TYPES, ...SYSTEM_DOCUMENT_TYPES].map((type) => (
+                <MenuItem key={type.value} value={type.value}>
+                  {t(type.label as MessageKey)}
                 </MenuItem>
               ))}
             </TextField>
-          )}
+          </Stack>
         </Stack>
 
         {!loading && rows.length === 0 ? (
           <EmptyState
-            title={t('myDocuments.empty.title')}
-            description={t('myDocuments.empty.description')}
+            title={t(filtered ? 'myDocuments.empty.filtered.title' : 'myDocuments.empty.title')}
+            description={t(
+              filtered ? 'myDocuments.empty.filtered.description' : 'myDocuments.empty.description',
+            )}
             headingLevel={3}
           />
         ) : (

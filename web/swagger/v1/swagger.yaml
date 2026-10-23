@@ -5796,11 +5796,20 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "name": "document_type",
+            "in": "query",
+            "required": false,
+            "description": "Only documents of this type (e.g. signed_contract); an unknown type matches nothing",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "filters by child"
+            "description": "filters by document type, never widening beyond the guardian's own family"
           },
           "404": {
             "description": "filter by a child outside the family"
@@ -5838,6 +5847,9 @@
           },
           "422": {
             "description": "file larger than 10 MB"
+          },
+          "409": {
+            "description": "child no longer enrolled"
           },
           "401": {
             "description": "unauthenticated"

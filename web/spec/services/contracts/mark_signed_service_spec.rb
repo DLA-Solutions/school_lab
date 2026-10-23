@@ -48,11 +48,11 @@ RSpec.describe Contracts::MarkSignedService do
       end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id)
     end
 
-    # The reconcile path records the address right after marking signed, and that is what enqueues.
-    it "waits for the address when it is not on record yet" do
+    # The job re-asks the provider until the address shows up, so filing never waits for the sweep.
+    it "enqueues it even when the address is not on record yet" do
       expect do
         described_class.call(contract: contract)
-      end.not_to have_enqueued_job(Documents::AttachSignedContractJob)
+      end.to have_enqueued_job(Documents::AttachSignedContractJob).with(contract.id, school.id)
     end
 
     it "does not enqueue it again when the contract was already signed" do
