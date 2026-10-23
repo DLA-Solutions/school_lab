@@ -73,6 +73,7 @@ module SchoolLab
         default_name: "Coordenação",
         permissions: [
           { key: "manage_people", scope_kind: "partial" },
+          { key: "manage_documents", scope_kind: "full" },
           { key: "manage_academic", scope_kind: "full" },
           { key: "approve_lesson_plans", scope_kind: "full" },
           { key: "moderate_messages", scope_kind: "full" },
