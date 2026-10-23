@@ -148,8 +148,13 @@ injection into P2 generated documents. MVP stores metadata only — no PDF gener
 
 BR-ARC14
 
-**Soft delete:** entries use Discard; discarded entries hidden from search and guardian view;
-retained for audit until retention job (P2) or legal hold.
+**Inactivation, not deletion** `[product decision]`: "deleting" a document in the product means
+**inactivating** it (Discard). Neither the database row nor the blob in cloud storage is ever
+removed by this action — the document stays in the student's history. An inactive document is hidden
+from every guardian and from default staff listings; staff with `manage_documents` (secretaria,
+coordenação, direção) can list it explicitly (`inactive` filter) with who inactivated it and when
+(`discarded_by`, `discarded_at`). Inactivation is audited. Physical removal only happens through
+the retention job (P2) or a legal request, never through this action.
 
 BR-ARC15
 
@@ -184,11 +189,13 @@ other family document, `guardian_identity` is bound to the child and shared by a
 
 BR-ARC18
 
-**Guardian-uploaded documents start `pending`** and stay visible to the child's guardians and to
-staff with `manage_archive`/`manage_documents` while staff review them (approve/reject, UC-DA02).
-A rejected document disappears from the guardian list and shows the rejection reason to staff only.
-Only students enrolled (`Student#enrolled?`) accept new guardian uploads; a guardian whose
-children are all non-enrolled has no portal access anyway.
+**Guardian-uploaded documents are accepted automatically** `[product decision]`: a guardian upload
+is created `approved` — there is no review queue for it, and it is immediately visible to the
+child's guardians and to staff with `manage_archive`/`manage_documents`. Quality control happens
+after the fact: staff inactivate a wrong or illegible document (BR-ARC14) instead of rejecting it.
+Approve/reject (UC-DA02) remains only for entries that staff themselves file as
+`guardian_after_review`. Only students enrolled (`Student#enrolled?`) accept new guardian uploads;
+a guardian whose children are all non-enrolled has no portal access anyway.
 
 BR-ARC19
 
@@ -197,8 +204,8 @@ separate menu item for family documents. The "documents" action on the school's 
 for that guardian, the union of (a) documents attached to the guardian and (b) documents attached to
 any kept student linked to that guardian through a kept `student_guardians` row, same school only.
 Each row identifies the child and the sender (`student_id`, `student_name`, `uploaded_by_name`,
-`uploaded_by_kind`). Staff with `manage_documents` approve, reject or discard those rows through the
-usual document actions (UC-DA02). Authorization is unchanged; a guardian id from another school
+`uploaded_by_kind`). Staff with `manage_documents` inactivate those rows (BR-ARC14) through the
+usual document actions. Authorization is unchanged; a guardian id from another school
 matches nothing.
 
 BR-ARC20
@@ -309,8 +316,8 @@ Flow
    (BR-ARC16, BR-ARC18). Unlinked or other-school student → `404`.
 2. Validate `document_type` against the guardian list and the file against BR-ARC07.
 3. Store blob; create the entry with `uploaded_by` = guardian's user, bound to the student,
-   `review_status: pending` (BR-ARC18).
-4. Emit `DocumentStored`; staff see it in the archive/review queue and, per BR-ARC19, from the
+   already `approved` (BR-ARC18).
+4. Emit `DocumentStored`; staff see it in the archive and, per BR-ARC19, from the
    guardian row of any linked guardian; every co-guardian sees it in their own "Meus documentos".
 
 ---
@@ -528,7 +535,7 @@ AC-DA10
 
 AC-DA11
 
-- [ ] Given guardian A (mother) linked to student S, When she uploads a PDF of type `address_proof`, Then the entry is bound to S with status `pending`, and guardian B (father) linked to S lists and downloads it in `GET /me/documents`
+- [ ] Given guardian A (mother) linked to student S, When she uploads a PDF of type `address_proof`, Then the entry is bound to S with status `approved`, and guardian B (father) linked to S lists and downloads it in `GET /me/documents`
 - Source: `[product decision]` — BR-ARC16
 
 AC-DA12
@@ -545,6 +552,12 @@ AC-DA14
 
 - [ ] Given a guardian opens "Meus documentos" in the school SPA, When they pick a child, a type from the select and a file, Then the document appears in the list for both parents with its type, date and who sent it
 - Source: `[product decision]` — BR-ARC16
+
+AC-DA15
+
+- [ ] Given staff with `manage_documents` inactivates a guardian-uploaded document, When the action completes, Then the row and the stored file still exist, the document is gone from the guardians' `GET /me/documents`, and staff still list it with the `inactive` filter showing who inactivated it and when
+- [ ] Given a guardian, teacher or staff without `manage_documents`, When they try to inactivate a document, Then `403`
+- Source: `[product decision]` — BR-ARC14, BR-ARC18
 
 ---
 
