@@ -337,7 +337,7 @@ RSpec.describe "Api::V1::Schools::Me::Documents", type: :request do
         end
       end
 
-      response "422", "child no longer enrolled" do
+      response "409", "child no longer enrolled" do
         before { linked_student.update!(status: "transferred") }
 
         run_test! do |response|
