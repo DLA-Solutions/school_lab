@@ -68,4 +68,48 @@ RSpec.describe Document, type: :model do
   it "does not offer signed_contract as a guardian upload type" do
     expect(described_class::GUARDIAN_DOCUMENT_TYPES).not_to include("signed_contract")
   end
+
+  describe "compliance catalog (BC5)" do
+    let(:school) { create(:school) }
+
+    it "lists the seven stable keys" do
+      expect(described_class::COMPLIANCE_DOCUMENT_TYPES).to eq(
+        %w[sanitary_inspection fire_department_certificate municipal_education_council_resolution
+           state_education_council_resolution pest_control water_tank_cleaning first_aid_certificate]
+      )
+    end
+
+    it "has a label in both locales for every key" do
+      %i[pt-BR en].each do |locale|
+        described_class::COMPLIANCE_DOCUMENT_TYPES.each do |key|
+          expect(I18n.exists?("documents.compliance_types.#{key}", locale)).to be(true)
+        end
+      end
+    end
+
+    it "accepts a compliance type owned by the school" do
+      expect(build(:document, school: school, documentable: school, document_type: "pest_control")).to be_valid
+    end
+
+    it "rejects a compliance type owned by a student, guardian or teacher" do
+      [ create(:student, school: school), create(:guardian, school: school), create(:teacher, school: school) ].each do |owner|
+        document = build(:document, school: school, documentable: owner, document_type: "sanitary_inspection")
+
+        expect(document).not_to be_valid
+        expect(document.errors).to be_added(:documentable_type, :invalid)
+      end
+    end
+
+    it "keeps free-form types open on the school" do
+      expect(build(:document, school: school, documentable: school, document_type: "lease_agreement")).to be_valid
+    end
+
+    it "scopes compliance files to School owners with a catalog type" do
+      file = create(:document, school: school, documentable: school, document_type: "pest_control")
+      create(:document, school: school, documentable: school, document_type: "lease_agreement")
+      create(:document, school: school, documentable: create(:student, school: school))
+
+      expect(described_class.compliance).to contain_exactly(file)
+    end
+  end
 end

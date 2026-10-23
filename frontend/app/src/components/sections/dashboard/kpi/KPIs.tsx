@@ -1,5 +1,6 @@
 import Grid from '@mui/material/Grid';
-import { DashboardMetric, DashboardMetrics } from 'types/dashboard';
+import { AverageTicketMetric, DashboardMetric, DashboardMetrics } from 'types/dashboard';
+import { MessageKey } from 'locales';
 import { formatCents } from 'utils/money';
 import { formatMonth, previousMonth } from 'utils/month';
 import { useTranslation } from 'providers/I18nContext';
@@ -27,6 +28,31 @@ const rateLabel = (metric: DashboardMetric | undefined, newLabel: string) => {
   }
 
   return `${Math.abs(metric.change_percent).toFixed(1)}%`;
+};
+
+const percentFormatter = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+
+/** 10 → "10%", 7.5 → "7,5%". */
+const formatPercent = (percent: number) => `${percentFormatter.format(percent)}%`;
+
+/**
+ * The average ticket if every family earned the punctuality discount. Absent from an older
+ * response, in which case the card shows the agreed average alone rather than a NaN.
+ */
+const punctualityFigure = (
+  metric: AverageTicketMetric | undefined,
+  t: (key: MessageKey, values?: Record<string, string | number>) => string,
+) => {
+  if (!metric || !Number.isFinite(metric.punctuality_value)) {
+    return undefined;
+  }
+  const label = Number.isFinite(metric.punctuality_percent)
+    ? t('dashboard.kpi.averageTicketPunctuality', {
+        percent: formatPercent(metric.punctuality_percent),
+      })
+    : t('dashboard.kpi.averageTicketPunctualityNoPercent');
+
+  return { label, value: formatCents(metric.punctuality_value) };
 };
 
 /**
@@ -70,7 +96,10 @@ const KPIs = ({ metrics, loading, month, onMonthChange }: KPIsProps) => {
         value={formatCents(metrics?.average_ticket?.value ?? 0)}
         rate={rateLabel(metrics?.average_ticket, t('dashboard.kpi.new'))}
         isUp={metrics?.average_ticket?.is_up ?? true}
-        caption={t('dashboard.kpi.enrolled', { count: metrics?.average_ticket?.students ?? 0 })}
+        caption={t('dashboard.kpi.averageTicketCaption', {
+          count: metrics?.average_ticket?.students ?? 0,
+        })}
+        secondary={punctualityFigure(metrics?.average_ticket, t)}
         loading={loading}
       />
 

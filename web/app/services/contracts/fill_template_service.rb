@@ -232,9 +232,7 @@ module Contracts
     end
 
     def punctuality_discount_cents
-      return 0 if punctuality_percent.blank?
-
-      (punctuality_reference_cents * punctuality_percent.to_d / 100).round
+      Billing::ContractTuitionAmounts.punctuality_discount_cents(punctuality_reference_cents, punctuality_percent)
     end
 
     # What is owed in full: whatever this family's tuition already is, before punctuality.

@@ -22,6 +22,7 @@ Menu
 
 Documentos
 
+- Compliance (menu próprio, implementado — `prds/documents-and-archive/compliance.md`): vigilância sanitária, certificado dos bombeiros, resolução do conselho municipal e estadual de educação, dedetização, limpeza da caixa d'água, certificado de primeiros socorros
 - Documentos da unidade: Vigilância sanitária, Resolução de funcionamento, Bombeiros, alvará de funcionamento, regimento interno, projeto pedagógico, edital de matrículas
 - Atas de conselho de classe
 - Atas de resultados finais

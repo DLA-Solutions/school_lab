@@ -497,6 +497,39 @@ const ptBR = {
     'Gere a declaração anual dos pagamentos elegíveis e baixe o PDF oficial.',
   'nav.requests': 'Solicitações',
   'nav.myRequests': 'Meus pedidos',
+  'compliance.intro':
+    'Guarde aqui os documentos regulatórios da escola para tê-los à mão em auditorias e fiscalizações. Cada tipo aceita vários arquivos; o mais recente aparece primeiro.',
+  'compliance.loading': 'Carregando documentos...',
+  'compliance.loadError': 'Não foi possível carregar os documentos de compliance.',
+  'compliance.noAccess.description':
+    'Seu perfil não tem permissão para gerenciar os documentos de compliance desta escola.',
+  'compliance.moduleDisabled.description':
+    'O módulo de documentos não está ativo para esta escola.',
+  'compliance.empty': 'Nenhum arquivo enviado',
+  'compliance.upload': 'Enviar arquivo',
+  'compliance.uploading': 'Enviando...',
+  'compliance.uploadLabel': 'Enviar arquivo de {type}',
+  'compliance.file.help': 'PDF, JPEG ou PNG, até 10 MB.',
+  'compliance.open': 'Abrir',
+  'compliance.openLabel': 'Abrir {file}',
+  'compliance.remove': 'Remover',
+  'compliance.removeLabel': 'Remover {file}',
+  'compliance.removeTitle': 'Remover arquivo',
+  'compliance.removeMessage':
+    'Remover "{file}"? Ele deixa de aparecer na lista, mas a escola o mantém arquivado conforme a política de retenção.',
+  'compliance.sentOn': 'Enviado em {date}',
+  'compliance.uploaded': 'Arquivo enviado em "{type}".',
+  'compliance.removed': 'Arquivo removido.',
+  'compliance.error.unsupportedMediaType': 'Envie um arquivo PDF, JPEG ou PNG.',
+  'compliance.error.fileTooLarge': 'O arquivo é grande demais. O limite é de 10 MB.',
+  'compliance.error.validation': 'Não foi possível enviar: confira o tipo e o arquivo.',
+  'compliance.error.forbidden': 'Você não tem permissão para alterar os documentos de compliance.',
+  'compliance.error.moduleDisabled': 'O módulo de documentos não está ativo para esta escola.',
+  'compliance.error.notFound':
+    'Este arquivo não foi encontrado. Atualize a página e tente de novo.',
+  'compliance.error.generic': 'Não foi possível enviar o arquivo.',
+  'compliance.error.removeGeneric': 'Não foi possível remover o arquivo.',
+  'nav.compliance': 'Compliance',
   'nav.myDocuments': 'Meus documentos',
   'dashboard.guardian.link.myDocuments': 'Meus documentos',
   'dashboard.guardian.link.myDocumentsDescription':
@@ -943,8 +976,11 @@ const ptBR = {
   'dashboard.kpi.didacticMaterial': 'Material didático',
   'dashboard.kpi.sinceJanuary': 'desde 1º de janeiro',
   'dashboard.kpi.versus': 'vs. {month}',
-  'dashboard.kpi.enrolled': '{count} aluno(s) matriculado(s)',
   'dashboard.kpi.new': 'novo',
+  'dashboard.kpi.averageTicketCaption':
+    '{count} aluno(s) · média dos valores contratados, já com bolsas e descontos',
+  'dashboard.kpi.averageTicketPunctuality': 'Com desconto pontualidade ({percent})',
+  'dashboard.kpi.averageTicketPunctualityNoPercent': 'Com desconto pontualidade',
 
   'dashboard.income.title': 'Entradas da escola ao longo do ano',
   'dashboard.studentsByClass.title': 'Alunos por turma',
@@ -952,6 +988,18 @@ const ptBR = {
   'dashboard.studentsByClass.empty.description':
     'Assim que houver alunos nas turmas, a distribuição aparece aqui.',
   'dashboard.studentsByClass.unassigned': 'Sem turma',
+  'dashboard.expectedPayments.action': 'Novo relatório',
+  'dashboard.expectedPayments.title': 'Valores previstos por turma',
+  'dashboard.expectedPayments.description':
+    'Gera uma lista por turma com os alunos, seus responsáveis e o valor mensal previsto de cada um conforme o contrato.',
+  'dashboard.expectedPayments.allClasses': 'Todas as turmas',
+  'dashboard.expectedPayments.signatureStatus': 'Assinatura',
+  'dashboard.expectedPayments.expectedAmount': 'Valor previsto (mensal)',
+  'dashboard.expectedPayments.totalsHint':
+    'Os subtotais por turma e o total geral só aparecem com a coluna de valor previsto.',
+  'dashboard.expectedPayments.generate': 'Gerar PDF',
+  'dashboard.expectedPayments.generating': 'Gerando...',
+  'dashboard.expectedPayments.error': 'Não foi possível gerar o relatório. Verifique sua conexão.',
   'dashboard.welcome.title': 'Bem-vindo ao School Lab',
   'dashboard.welcome.description':
     'Os indicadores da escola aparecem aqui quando sua conta tem permissão para ver finanças ou pessoas.',

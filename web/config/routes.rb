@@ -339,6 +339,11 @@ Rails.application.routes.draw do
             end
             resources :payments, only: %i[index show]
             resource :summary, only: :show, controller: "summary"
+            namespace :reports do
+              # A printable report rather than a record, so a singular resource: there is one per
+              # school and set of filters, and nothing to index into.
+              resource :expected_payments, only: :show, controller: "expected_payments"
+            end
           end
 
           resources :documents do
@@ -347,6 +352,9 @@ Rails.application.routes.draw do
               post :reject
             end
           end
+
+          # "Compliance" (BC5): the school's own regulatory files, stored as School documents.
+          resources :compliance_documents, only: %i[index show create destroy]
 
           # Solicitações: what guardians have asked the school for. Worked as one queue, so the
           # state changes are members rather than a status field anyone can write.

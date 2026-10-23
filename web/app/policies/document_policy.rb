@@ -41,6 +41,14 @@ class DocumentPolicy < ApplicationPolicy
     staff_with?(:manage_documents)
   end
 
+  # School compliance files (BC5) are staff-only. `index?` cannot be reused: it also admits
+  # guardians, who must get a 403 here, not an empty list.
+  def manage_compliance?
+    return false unless staff_with?(:manage_documents)
+
+    record.is_a?(Class) || record.school_id == school_id
+  end
+
   def approve?
     update?
   end
