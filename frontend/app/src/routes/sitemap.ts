@@ -29,6 +29,13 @@ export interface MenuItem {
    */
   ownerOnly?: boolean;
   /**
+   * When set, the entry is visible to the school's owner **or** to staff holding one of these
+   * role-template `system_key`s (e.g. `director`) — and hidden from everyone else. `ownerOnly`
+   * cannot express this (it is an AND with the owner flag) and `includeSystemKeys` would drop the
+   * owner, who does not carry a director template.
+   */
+  ownerOrSystemKeys?: string[];
+  /**
    * Which profile context may see this entry. Defaults to `staff` when omitted.
    * Permission keys narrow staff/teacher access; they never turn a staff route into a guardian route.
    */
@@ -62,6 +69,9 @@ export interface MenuItem {
 
 /** Role templates that may use Atas da Escola (`docs/prds/documents-and-archive/livro-ata.md`). */
 export const MINUTES_SYSTEM_KEYS = ['director', 'coordination', 'secretary'] as const;
+
+/** Role templates that may manage the school's Banco Inter credentials, besides the owner. */
+export const INTER_CREDENTIALS_SYSTEM_KEYS = ['director'] as const;
 
 const sitemap: MenuItem[] = [
   {
@@ -382,6 +392,18 @@ const sitemap: MenuItem[] = [
     icon: 'mingcute:settings-3-line',
     audience: 'staff',
     requiredPermission: 'manage_billing',
+    section: 'billing',
+  },
+  {
+    // Banco Inter API credentials for the bank_slip instrument. They authorise charging in the
+    // school's name, so they sit with the owner and the direção rather than with billing staff at
+    // large; `manage_billing` alone does not show the entry.
+    id: 'inter-credentials',
+    subheader: 'nav.interCredentials',
+    path: paths.interCredentials,
+    icon: 'mingcute:bank-line',
+    audience: 'staff',
+    ownerOrSystemKeys: [...INTER_CREDENTIALS_SYSTEM_KEYS],
     section: 'billing',
   },
   {

@@ -7,7 +7,12 @@ import { AuthContext, AuthContextValue } from 'providers/AuthContext';
 import { ActiveMembershipContext } from 'providers/ActiveMembershipContext';
 import { guardianMembership, staffMembership, staffUser } from 'test/msw';
 import paths from './paths';
-import { RequireRouteAudience, RequireRouteModule, RequireTeacherRole } from './guards';
+import {
+  RequireOwnerOrDirector,
+  RequireRouteAudience,
+  RequireRouteModule,
+  RequireTeacherRole,
+} from './guards';
 
 const billingStaffAuth: AuthContextValue = {
   user: {
@@ -324,5 +329,59 @@ describe('RequireTeacherRole', () => {
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.queryByText('My health profile page')).not.toBeInTheDocument();
+  });
+});
+
+// Banco Inter credentials: owner or direção. The nav entry is hidden for everyone else, but a
+// deep link must be bounced as well.
+describe('RequireOwnerOrDirector', () => {
+  const renderInterGuardedRoute = (membership: typeof staffMembership) =>
+    renderWithTheme(
+      <MemoryRouter initialEntries={[paths.interCredentials]}>
+        <AuthContext.Provider
+          value={{ ...billingStaffAuth, user: { ...staffUser, memberships: [membership] } }}
+        >
+          <ActiveMembershipContext.Provider
+            value={activeMembershipValueFor([membership], membership.id)}
+          >
+            <Routes>
+              <Route
+                path={paths.interCredentials}
+                element={
+                  <RequireOwnerOrDirector>
+                    <div>Inter credentials page</div>
+                  </RequireOwnerOrDirector>
+                }
+              />
+              <Route path={paths.dashboard} element={<div>Dashboard</div>} />
+            </Routes>
+          </ActiveMembershipContext.Provider>
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+
+  it('lets the school owner in', () => {
+    renderInterGuardedRoute({ ...staffMembership, is_owner: true });
+
+    expect(screen.getByText('Inter credentials page')).toBeInTheDocument();
+  });
+
+  it('lets the direção in', () => {
+    renderInterGuardedRoute({
+      ...staffMembership,
+      role_template: { id: 102, name: 'Direção', system_key: 'director', is_system: true },
+    });
+
+    expect(screen.getByText('Inter credentials page')).toBeInTheDocument();
+  });
+
+  it('redirects other staff deep-linking to the route', () => {
+    renderInterGuardedRoute({
+      ...staffMembership,
+      permissions: ['manage_billing'],
+    });
+
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.queryByText('Inter credentials page')).not.toBeInTheDocument();
   });
 });
