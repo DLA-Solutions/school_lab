@@ -89,7 +89,10 @@ const BankCredentialsCard = ({ schoolId }: BankCredentialsCardProps) => {
     load();
   }, [load]);
 
-  const active = credentials.find((credential) => credential.active) ?? null;
+  // Banco Inter shares the bank_slip slot, so "active" here means active *Cora* — an Inter
+  // credential on file must not make this card claim Cora is configured.
+  const active =
+    credentials.find((credential) => credential.active && credential.provider === 'cora') ?? null;
   const canSubmit = Boolean(clientId.trim()) && Boolean(certificate) && Boolean(privateKey);
 
   const handleUpload = async () => {
