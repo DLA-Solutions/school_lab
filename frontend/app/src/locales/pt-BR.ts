@@ -673,6 +673,7 @@ const ptBR = {
   'nav.plans': 'Planos',
   'nav.platformSubscription': 'Assinatura School Lab',
   'nav.billingSettings': 'Configurações financeiras',
+  'nav.interCredentials': 'Banco Inter',
   'nav.contract': 'Contrato',
   'nav.signatureCredentials': 'Assinatura eletrônica',
   'signature.title': 'Integração Autentique (contratos)',
@@ -734,6 +735,42 @@ const ptBR = {
   'bankCredentials.uploaded': 'Credenciais enviadas e validadas com sucesso.',
   'bankCredentials.connectionError':
     'Não foi possível enviar as credenciais. Verifique sua conexão.',
+  'interCredentials.title': 'Credenciais do Banco Inter',
+  'interCredentials.integration': 'Integração Banco Inter (boleto e Pix)',
+  'interCredentials.active': 'Ativa',
+  'interCredentials.notConfigured': 'Não configurada',
+  'interCredentials.fingerprint': 'Impressão digital do certificado',
+  'interCredentials.validUntil': 'Certificado válido até',
+  'interCredentials.none':
+    'Esta escola ainda não tem credenciais do Banco Inter. Sem elas, os boletos não podem ser emitidos pelo Inter.',
+  'interCredentials.help.title': 'Onde obter as credenciais no Internet Banking do Inter',
+  'interCredentials.help.step1': 'Acesse Soluções para sua empresa e escolha Nova integração.',
+  'interCredentials.help.step2':
+    'Marque os escopos boleto-cobranca.read e boleto-cobranca.write.',
+  'interCredentials.help.step3': 'Baixe o certificado (.crt) e a chave privada (.key).',
+  'interCredentials.help.step4': 'Copie o Client ID e o Client Secret.',
+  'interCredentials.help.storage':
+    'O Client Secret, o certificado e a chave são guardados criptografados e nunca devolvidos pela API. Um certificado vencido, ou uma chave que não corresponda a ele, é recusado aqui.',
+  'interCredentials.replaceWarning':
+    'Hoje o provedor de boletos ativo é {provider}. Enviar as credenciais do Inter substitui essa configuração: os novos boletos passam a ser emitidos pelo Banco Inter.',
+  'interCredentials.confirm.title': 'Substituir o provedor de boletos?',
+  'interCredentials.confirm.message':
+    'A configuração ativa de {provider} será substituída pelo Banco Inter. Os novos boletos deixam de ser emitidos por {provider}. Deseja continuar?',
+  'interCredentials.confirm.action': 'Substituir e enviar',
+  'interCredentials.field.clientId': 'Client ID',
+  'interCredentials.field.clientSecret': 'Client Secret',
+  'interCredentials.field.certificate': 'Certificado',
+  'interCredentials.field.privateKey': 'Chave privada',
+  'interCredentials.certificate': 'Certificado (.crt, .pem)',
+  'interCredentials.privateKey': 'Chave privada (.key, .pem)',
+  'interCredentials.noFile': 'Nenhum arquivo selecionado',
+  'interCredentials.send': 'Enviar credenciais',
+  'interCredentials.sending': 'Enviando...',
+  'interCredentials.uploaded': 'Credenciais do Banco Inter enviadas e validadas com sucesso.',
+  'interCredentials.connectionError':
+    'Não foi possível enviar as credenciais. Verifique sua conexão.',
+  'interCredentials.noAccess.description':
+    'As credenciais do Banco Inter estão disponíveis apenas para o proprietário e a direção da escola.',
   'charges.title': 'Boletos',
   'charges.noAccess.title': 'Sem acesso a esta área',
   'charges.noAccess.description':
