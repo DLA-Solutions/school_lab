@@ -271,7 +271,8 @@ describe('LessonPlans page — admin view (BR-SY10)', () => {
     stubAdmin();
     renderPage(staffMembership);
 
-    await screen.findByText(/dias letivos/i);
+    // Exact title: the read-only hint below it also contains the words "dias letivos".
+    await screen.findByText('Dias letivos');
     expect(screen.queryByRole('button', { name: /salvar alterações/i })).not.toBeInTheDocument();
     expect(screen.getByText(/apenas quem administra/i)).toBeInTheDocument();
   });
