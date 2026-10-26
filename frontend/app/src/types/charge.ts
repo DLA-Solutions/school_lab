@@ -36,6 +36,8 @@ export interface Charge {
 export interface OneOffChargePayload {
   guardian_id?: number | null;
   contract_id?: number | null;
+  /** What the charge is for. The API rejects a one-off without one. */
+  billing_purpose_id: number;
   total_amount_cents: number;
   due_date: string;
   description?: string | null;

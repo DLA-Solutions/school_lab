@@ -140,14 +140,113 @@ describe('Charges', () => {
     );
     await user.click(await screen.findByRole('option', { name: /Maria Silva/ }));
 
+    // The API will not take a one-off without saying what it is for.
+    await user.click(await within(dialog).findByRole('combobox', { name: /Finalidade da cobran\u00e7a/ }));
+    await user.click(await screen.findByRole('option', { name: 'Matr\u00edcula' }));
+
     await user.type(dialog.querySelector('#charge-amount')!, '7500');
     await user.type(dialog.querySelector('#charge-due-date')!, '2026-09-15');
     await user.click(within(dialog).getByRole('button', { name: 'Gerar boleto' }));
 
     await waitFor(() => expect(body).toBeDefined());
     expect(body).toMatchObject({
-      charge: { guardian_id: 7, contract_id: null, total_amount_cents: 7_500 },
+      charge: {
+        guardian_id: 7,
+        contract_id: null,
+        billing_purpose_id: 2,
+        total_amount_cents: 7_500,
+      },
     });
+  });
+
+  it('asks for the purpose before sending the one-off', async () => {
+    let posted = false;
+
+    server.use(
+      ...listingHandlers(),
+      http.post(apiUrl(CHARGES_PATH), () => {
+        posted = true;
+
+        return HttpResponse.json({ data: standaloneCharge }, { status: 201 });
+      }),
+    );
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Novo boleto avulso' }));
+    const dialog = await screen.findByRole('dialog');
+
+    await user.type(
+      within(dialog).getByRole('combobox', { name: /Respons\u00e1vel que receber\u00e1 o boleto/ }),
+      'Maria',
+    );
+    await user.click(await screen.findByRole('option', { name: /Maria Silva/ }));
+    await user.type(dialog.querySelector('#charge-amount')!, '7500');
+    await user.type(dialog.querySelector('#charge-due-date')!, '2026-09-15');
+    await user.click(within(dialog).getByRole('button', { name: 'Gerar boleto' }));
+
+    expect(await within(dialog).findByText('Selecione a finalidade da cobran\u00e7a.')).toBeInTheDocument();
+    expect(posted).toBe(false);
+  });
+
+  it('shows the API message for a rejected field instead of the generic one', async () => {
+    server.use(
+      ...listingHandlers(),
+      http.post(apiUrl(CHARGES_PATH), () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'validation_error',
+              message: 'Dados inv\u00e1lidos.',
+              details: { due_date: ['O vencimento n\u00e3o pode estar no passado.'] },
+            },
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Novo boleto avulso' }));
+    const dialog = await screen.findByRole('dialog');
+
+    await user.type(
+      within(dialog).getByRole('combobox', { name: /Respons\u00e1vel que receber\u00e1 o boleto/ }),
+      'Maria',
+    );
+    await user.click(await screen.findByRole('option', { name: /Maria Silva/ }));
+    await user.click(await within(dialog).findByRole('combobox', { name: /Finalidade da cobran\u00e7a/ }));
+    await user.click(await screen.findByRole('option', { name: 'Mensalidade' }));
+    await user.type(dialog.querySelector('#charge-amount')!, '7500');
+    await user.type(dialog.querySelector('#charge-due-date')!, '2026-09-15');
+    await user.click(within(dialog).getByRole('button', { name: 'Gerar boleto' }));
+
+    expect(
+      await within(dialog).findByText('O vencimento n\u00e3o pode estar no passado.'),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByText('Dados inv\u00e1lidos.')).not.toBeInTheDocument();
+  });
+
+  it('says so when the purposes cannot be loaded', async () => {
+    server.use(
+      ...listingHandlers(),
+      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/billing/purposes`), () =>
+        HttpResponse.json(
+          { error: { code: 'internal_error', message: 'Erro', details: {} } },
+          { status: 500 },
+        ),
+      ),
+    );
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Novo boleto avulso' }));
+    const dialog = await screen.findByRole('dialog');
+
+    expect(
+      await within(dialog).findByText(/N\u00e3o foi poss\u00edvel carregar as finalidades/),
+    ).toBeInTheDocument();
   });
   // One box over the payer's name and CPF: a secretary types what they have in front of them.
   it('searches the listing by name or CPF, and filters by status', async () => {
@@ -300,6 +399,8 @@ describe('Charges', () => {
       'Maria',
     );
     await user.click(await screen.findByRole('option', { name: /Maria Silva/ }));
+    await user.click(await within(dialog).findByRole('combobox', { name: /Finalidade da cobran\u00e7a/ }));
+    await user.click(await screen.findByRole('option', { name: 'Mensalidade' }));
     await user.type(dialog.querySelector('#charge-amount')!, '7500');
     await user.type(dialog.querySelector('#charge-due-date')!, '2026-09-15');
     await user.click(within(dialog).getByRole('button', { name: 'Gerar boleto' }));

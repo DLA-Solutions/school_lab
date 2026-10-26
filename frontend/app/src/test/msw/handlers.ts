@@ -1,5 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { AuthUser, Membership } from 'types/auth';
+import { BillingPurpose } from 'types/billingPurpose';
 import { API_BASE_URL } from 'services/api';
 
 /**
@@ -722,6 +723,12 @@ export const sampleMinutesEntryDetail = {
     },
   ],
 };
+
+/** `GET .../billing/purposes` — the defaults the API provisions on first read. */
+export const billingPurposes: BillingPurpose[] = [
+  { id: 1, code: 'tuition', name: 'Mensalidade', tax_declaration_eligible: false },
+  { id: 2, code: 'enrollment', name: 'Matrícula', tax_declaration_eligible: false },
+];
 
 export const handlers = [
   http.post(apiUrl('/api/v1/auth/login'), async ({ request }) => {
@@ -1950,6 +1957,14 @@ export const handlers = [
       });
     },
   ),
+
+  http.get(apiUrl('/api/v1/schools/:schoolId/billing/purposes'), ({ request }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    return HttpResponse.json({ data: billingPurposes });
+  }),
 
   http.get(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_settings'), ({ request, params }) => {
     if (!hasFreshToken(request)) {
