@@ -819,6 +819,12 @@ const ptBR = {
   'charges.boleto.download': 'Baixar PDF',
   'charges.boleto.openInTab': 'Abrir no navegador',
   'charges.boleto.error': 'Não foi possível carregar o boleto.',
+  'charges.boleto.unavailable':
+    'Este boleto não está disponível para visualização agora. Ele pode já ter sido pago ou cancelado, ou ainda estar sendo registrado no banco.',
+  'charges.boleto.providerError':
+    'O banco não conseguiu entregar o boleto. Use o Pix ou a linha digitável, ou fale com a escola.',
+  'charges.boleto.providerUnavailable':
+    'O banco está indisponível no momento. Tente de novo em instantes.',
   'charges.boleto.openAction': 'Abrir boleto de {name}',
   'charges.cancelAction': 'Cancelar boleto de {name}',
   'charges.cancelTitle': 'Cancelar este boleto?',

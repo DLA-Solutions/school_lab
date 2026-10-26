@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -11,14 +11,42 @@ import Typography from '@mui/material/Typography';
 import { ErrorBanner } from 'design-system';
 import IconifyIcon from 'components/base/IconifyIcon';
 import { useTranslation } from 'providers/I18nContext';
+import { ApiError } from 'services/api';
 import downloadBlob from 'utils/downloadBlob';
 import type { Charge } from 'types/charge';
+import type { MessageKey } from 'locales';
 
 interface BoletoPreviewDialogProps {
   open: boolean;
   charge: Charge | null;
   onClose: () => void;
+  /**
+   * Supplies the PDF instead of fetching `charge.boleto_url` from the bank — for a boleto that has
+   * no public URL and is relayed by the API behind the bearer token (Banco Inter, guardian side).
+   * Called once per open (and on retry), so it must not be wrapped in anything that re-fires it.
+   * A rejection with an `ApiError` is mapped to a specific message by its `code`.
+   */
+  loadBlob?: () => Promise<Blob>;
 }
+
+/** Why a relayed PDF failed, and whether trying again can help. */
+const describeFailure = (
+  err: unknown,
+): { messageKey: MessageKey; retryable: boolean } => {
+  switch (err instanceof ApiError ? err.code : null) {
+    // Paid/cancelled, not registered yet or no PDF: asking again changes nothing.
+    case 'boleto_pdf_unavailable':
+      return { messageKey: 'charges.boleto.unavailable', retryable: false };
+    // The bank refused or answered with something that is not a PDF: not the client's to retry.
+    case 'boleto_pdf_provider_error':
+      return { messageKey: 'charges.boleto.providerError', retryable: false };
+    // A bank timeout or outage is transient.
+    case 'boleto_pdf_provider_unavailable':
+      return { messageKey: 'charges.boleto.providerUnavailable', retryable: true };
+    default:
+      return { messageKey: 'charges.boleto.error', retryable: true };
+  }
+};
 
 /**
  * The boleto itself, read without leaving the listing.
@@ -30,41 +58,82 @@ interface BoletoPreviewDialogProps {
  *
  * A failure here is not fatal — the bank's own URL still opens in a tab — so the error state
  * offers that rather than leaving the secretary with nothing.
+ *
+ * With `loadBlob` the file comes from the caller instead — the guardian's Inter boleto, which only
+ * the API can fetch. The preview, download and release behaviour is the same; the error state then
+ * speaks to the API's reasons and withholds "try again" where it cannot help.
  */
-const BoletoPreviewDialog = ({ open, charge, onClose }: BoletoPreviewDialogProps) => {
+const BoletoPreviewDialog = ({ open, charge, onClose, loadBlob }: BoletoPreviewDialogProps) => {
   const { t } = useTranslation();
 
   const [fileUrl, setFileUrl] = useState('');
   const [blob, setBlob] = useState<Blob | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [retryable, setRetryable] = useState(true);
 
+  // The loader is read through a ref so a caller passing a fresh closure on every render cannot
+  // re-fire it: each run costs a bank request on the guardian side.
+  const loadBlobRef = useRef(loadBlob);
+  // Bumped on close and on every new load, so a response that lands late is dropped, not shown.
+  const attempt = useRef(0);
+
+  useEffect(() => {
+    loadBlobRef.current = loadBlob;
+  }, [loadBlob]);
+
+  const relayed = loadBlob !== undefined;
   const boletoUrl = charge?.boleto_url ?? null;
   // Names the file after the charge it settles, so a folder of these stays legible.
   const filename = charge ? `boleto-${charge.id}.pdf` : 'boleto.pdf';
 
   const load = useCallback(async () => {
-    if (!boletoUrl) {
+    const loader = loadBlobRef.current;
+
+    if (!loader && !boletoUrl) {
       return;
     }
 
+    attempt.current += 1;
+    const current = attempt.current;
+
     setLoading(true);
     setError('');
+    setRetryable(true);
 
     try {
-      const response = await fetch(boletoUrl);
+      let file: Blob;
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      if (loader) {
+        file = await loader();
+      } else {
+        const response = await fetch(boletoUrl as string);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        file = await response.blob();
       }
 
-      const file = await response.blob();
+      if (current !== attempt.current) {
+        return;
+      }
+
       setBlob(file);
       setFileUrl(URL.createObjectURL(file));
-    } catch {
-      setError(t('charges.boleto.error'));
+    } catch (err) {
+      if (current !== attempt.current) {
+        return;
+      }
+
+      const failure = describeFailure(err);
+      setError(t(failure.messageKey));
+      setRetryable(failure.retryable);
     } finally {
-      setLoading(false);
+      if (current === attempt.current) {
+        setLoading(false);
+      }
     }
   }, [boletoUrl, t]);
 
@@ -79,7 +148,13 @@ const BoletoPreviewDialog = ({ open, charge, onClose }: BoletoPreviewDialogProps
   // The object URL holds the whole file in memory until it is revoked, and a secretary opens one
   // boleto after another. Revoking as the dialog closes keeps that to a single file at a time.
   useEffect(() => {
-    if (open || !fileUrl) {
+    if (open) {
+      return;
+    }
+
+    attempt.current += 1;
+
+    if (!fileUrl) {
       return;
     }
 
@@ -101,7 +176,13 @@ const BoletoPreviewDialog = ({ open, charge, onClose }: BoletoPreviewDialogProps
       </DialogTitle>
 
       <DialogContent dividers>
-        {error && <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />}
+        {error && (
+          <ErrorBanner
+            message={error}
+            onRetry={retryable ? load : undefined}
+            retryLabel={t('common.tryAgain')}
+          />
+        )}
 
         {loading && (
           <Stack alignItems="center" py={6}>
@@ -132,7 +213,7 @@ const BoletoPreviewDialog = ({ open, charge, onClose }: BoletoPreviewDialogProps
         </Button>
         {/* The fetch can fail where the file itself is reachable — an offline moment, a proxy in
             the way. The bank's own URL still works then, so the way out stays on screen. */}
-        {error && boletoUrl && (
+        {error && boletoUrl && !relayed && (
           <Button component="a" href={boletoUrl} target="_blank" rel="noopener">
             {t('charges.boleto.openInTab')}
           </Button>

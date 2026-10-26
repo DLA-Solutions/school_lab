@@ -808,6 +808,12 @@ const enUS: Messages = {
   'charges.boleto.download': 'Download PDF',
   'charges.boleto.openInTab': 'Open in browser',
   'charges.boleto.error': 'The boleto could not be loaded.',
+  'charges.boleto.unavailable':
+    'This boleto cannot be previewed right now. It may already be paid or cancelled, or the bank may still be registering it.',
+  'charges.boleto.providerError':
+    'The bank could not deliver the boleto. Use the Pix code or the digitable line, or contact the school.',
+  'charges.boleto.providerUnavailable':
+    'The bank is unavailable at the moment. Try again shortly.',
   'charges.boleto.openAction': "Open {name}'s boleto",
   'charges.cancelAction': 'Cancel boleto for {name}',
   'charges.cancelTitle': 'Cancel this boleto?',
