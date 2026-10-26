@@ -135,6 +135,22 @@ describe('ChargeBatchDialog', () => {
     expect((body as { due_date: string }).due_date).toMatch(/-05$/);
   });
 
+  // The grid cell is a flex row: name and CPF must live in one wrapper, or they sit side by side.
+  it('stacks the payer CPF under the payer name in the same cell', async () => {
+    server.use(http.get(apiUrl(BATCHES_PATH), () => HttpResponse.json({ data: billable })));
+
+    renderDialog();
+
+    const row = (await screen.findByText('Bruno Costa')).closest(
+      '[role="row"]',
+    ) as HTMLElement;
+    const name = within(row).getByText('Carla Costa');
+    const cpf = within(row).getByText(/^CPF /);
+
+    expect(name.parentElement).toBe(cpf.parentElement);
+    expect(name.parentElement?.children).toHaveLength(2);
+  });
+
   it('unticks everything at once from the header checkbox', async () => {
     server.use(http.get(apiUrl(BATCHES_PATH), () => HttpResponse.json({ data: billable })));
 

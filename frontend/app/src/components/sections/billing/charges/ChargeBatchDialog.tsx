@@ -168,28 +168,30 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         field: 'student_name',
         headerName: t('common.student'),
         flex: 1,
-        minWidth: 140,
+        minWidth: 160,
         renderCell: ({ row }: GridRenderCellParams<BillableRow>) => (
-          <>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="body2">{row.student_name || '—'}</Typography>
+          <Box sx={{ minWidth: 0 }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+              <Typography variant="body2" noWrap title={row.student_name || undefined}>
+                {row.student_name || '—'}
+              </Typography>
               {row.without_contract && (
                 <SemanticChip variant="warning" label={t('charges.batch.withoutContract')} />
               )}
             </Stack>
             {row.already_charged && (
-              <Typography variant="caption" color="text.secondary" display="block">
+              <Typography variant="caption" color="text.secondary" noWrap display="block">
                 {t('charges.batch.alreadyBilled')}
               </Typography>
             )}
-          </>
+          </Box>
         ),
       },
       {
         field: 'payer',
         headerName: t('charges.column.billedTo'),
         flex: 1,
-        minWidth: 160,
+        minWidth: 200,
         sortable: false,
         renderCell: ({ row }: GridRenderCellParams<BillableRow>) =>
           row.without_contract ? (
@@ -197,12 +199,16 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
               —
             </Typography>
           ) : row.payer ? (
-            <>
-              <Typography variant="body2">{row.payer.name}</Typography>
-              <Typography variant="caption" color="text.secondary" display="block">
+            // The grid cell is a flex row, so the two lines need their own column wrapper — as bare
+            // siblings the CPF would sit beside the name and collide with it.
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="body2" noWrap title={row.payer.name}>
+                {row.payer.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" noWrap display="block">
                 CPF {formatCpf(row.payer.cpf)}
               </Typography>
-            </>
+            </Box>
           ) : (
             <Typography variant="body2" color="error.main">
               {t('charges.batch.noPayer')}
@@ -212,7 +218,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
       {
         field: 'monthly_amount_cents',
         headerName: t('charges.batch.monthly'),
-        width: 120,
+        width: 130,
         align: 'right',
         headerAlign: 'right',
         renderCell: ({ value }: GridRenderCellParams<BillableRow, number>) => (
@@ -222,7 +228,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
       {
         field: 'due_day',
         headerName: t('charges.batch.dueDay'),
-        width: 100,
+        width: 110,
         align: 'right',
         headerAlign: 'right',
         renderCell: ({ row, value }: GridRenderCellParams<BillableRow, number | null>) => (
@@ -234,7 +240,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
   );
 
   return (
-    <Dialog open={open} onClose={issuing ? undefined : onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={issuing ? undefined : onClose} maxWidth="lg" fullWidth>
       <DialogTitle>{t('charges.batch.title')}</DialogTitle>
       <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
         <DialogContent>
@@ -286,7 +292,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                   headingLevel={3}
                 />
               ) : (
-                <Box sx={{ height: 340, width: 1 }}>
+                <Box sx={{ height: 380, width: 1 }}>
                   <DataTable
                     rows={rows}
                     columns={columns}
@@ -297,6 +303,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                     isRowSelectable={({ row }) => isBillable(row)}
                     hideFooter
                     density="compact"
+                    rowHeight={56}
                     localeText={{
                       noRowsLabel: t('charges.batch.empty.title'),
                       checkboxSelectionSelectAllRows: t('charges.batch.selectAll'),
