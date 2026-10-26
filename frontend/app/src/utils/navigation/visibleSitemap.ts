@@ -20,6 +20,7 @@ const SITEMAP_MODULE_BY_ID: Partial<Record<string, SchoolModuleKey>> = {
   charges: 'billing',
   plans: 'billing',
   'billing-settings': 'billing',
+  'inter-credentials': 'billing',
   'service-invoices': 'billing',
   'contract-template': 'billing',
   'my-charges': 'billing',
@@ -41,6 +42,7 @@ const ROUTE_MODULE_BY_PATH: Partial<Record<string, SchoolModuleKey>> = {
   [paths.charges]: 'billing',
   [paths.plans]: 'billing',
   [paths.billingSettings]: 'billing',
+  [paths.interCredentials]: 'billing',
   [paths.serviceInvoices]: 'billing',
   [paths.contractTemplate]: 'billing',
   [paths.students]: 'academic',
@@ -108,6 +110,7 @@ const ROUTE_AUDIENCE_BY_PATH: Partial<Record<string, RouteAudience>> = {
   [paths.charges]: 'staff',
   [paths.plans]: 'staff',
   [paths.billingSettings]: 'staff',
+  [paths.interCredentials]: 'staff',
   [paths.serviceInvoices]: 'staff',
   [paths.contractTemplate]: 'staff',
   [paths.signatureCredentials]: 'staff',
@@ -146,6 +149,19 @@ export const visibleMenuItems = (membership: Membership | null, items: MenuItem[
     // audience bucket (e.g. `teacher` collapsing into `staff`).
     if (item.excludeRoles && membership !== null && item.excludeRoles.includes(membership.role)) {
       return false;
+    }
+
+    // Owner *or* one of these role templates — everyone else is out. Checked on its own because
+    // `ownerOnly` (AND) and `includeSystemKeys` (drops the owner) cannot say "either".
+    if (item.ownerOrSystemKeys) {
+      const systemKey = membership?.role_template?.system_key ?? null;
+      const allowed =
+        membership?.is_owner === true ||
+        (systemKey !== null && item.ownerOrSystemKeys.includes(systemKey));
+
+      if (!allowed) {
+        return false;
+      }
     }
 
     // The inverse: only these roles see the entry, even though others in the same audience

@@ -60,6 +60,20 @@ describe('BankCredentialsCard', () => {
     expect(screen.getByText('31/12/2027')).toBeInTheDocument();
   });
 
+  // Banco Inter shares the bank_slip slot: its credential must not read as Cora being configured.
+  it('does not report Cora as active when another provider holds the slot', async () => {
+    server.use(
+      http.get(apiUrl(PATH), () =>
+        HttpResponse.json({ data: [{ ...credential, provider: 'inter' }] }),
+      ),
+    );
+
+    renderCard();
+
+    expect(await screen.findByText(/não configurada/i)).toBeInTheDocument();
+    expect(screen.queryByText('client-live-001')).not.toBeInTheDocument();
+  });
+
   it('uploads the certificate and the private key', async () => {
     let received: string | undefined;
     server.use(

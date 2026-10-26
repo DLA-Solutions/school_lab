@@ -15,6 +15,7 @@ import {
   RequireOwnerOnboardingComplete,
   RequireRouteAudience,
   RequireRouteModule,
+  RequireOwnerOrDirector,
   RequireSchoolOwner,
   RequireTeacherRole,
 } from './guards';
@@ -60,6 +61,7 @@ const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
 const ServiceInvoices = lazy(() => import('pages/billing/ServiceInvoices'));
 const ContractTemplatePage = lazy(() => import('pages/billing/ContractTemplatePage'));
 const PlatformSubscriptionPage = lazy(() => import('pages/subscription/PlatformSubscription'));
+const InterCredentialsPage = lazy(() => import('pages/billing/InterCredentials'));
 const SignatureCredentialsPage = lazy(() => import('pages/settings/SignatureCredentials'));
 const MyTaxDeclarations = lazy(() => import('pages/billing/MyTaxDeclarations'));
 const MyCharges = lazy(() => import('pages/billing/MyCharges'));
@@ -221,6 +223,16 @@ const router = createBrowserRouter(
             {
               path: paths.billingSettings,
               element: <BillingSettings />,
+            },
+            {
+              // Owner or direção: the credentials charge in the school's name, so the guard is
+              // here as well as on the nav entry — a hidden link is not an access rule.
+              path: paths.interCredentials,
+              element: (
+                <RequireOwnerOrDirector>
+                  <InterCredentialsPage />
+                </RequireOwnerOrDirector>
+              ),
             },
             {
               path: paths.serviceInvoices,

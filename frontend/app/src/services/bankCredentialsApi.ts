@@ -10,15 +10,18 @@ export const listBankCredentials = async (schoolId: number): Promise<SchoolPayme
   return response.data;
 };
 
-/** POST /api/v1/schools/:school_id/bank_credentials — upload Cora mTLS credentials. */
+/** POST /api/v1/schools/:school_id/bank_credentials — upload mTLS credentials (Cora by default, or Banco Inter). */
 export const uploadBankCredentials = async (
   schoolId: number,
   payload: UploadBankCredentialsPayload,
 ): Promise<SchoolPaymentProvider> => {
   const formData = new FormData();
-  formData.append('provider', 'cora');
+  formData.append('provider', payload.provider ?? 'cora');
   formData.append('instrument', 'bank_slip');
   formData.append('client_id', payload.client_id);
+  if (payload.client_secret) {
+    formData.append('client_secret', payload.client_secret);
+  }
   formData.append('certificate', payload.certificate);
   formData.append('private_key', payload.private_key);
 

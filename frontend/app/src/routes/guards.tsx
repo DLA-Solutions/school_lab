@@ -13,6 +13,7 @@ import {
   routeModuleKeyForPath,
 } from 'utils/navigation/visibleSitemap';
 import paths from './paths';
+import { INTER_CREDENTIALS_SYSTEM_KEYS } from './sitemap';
 
 /** Blocks owner-only flows (permission overrides) from non-owners hitting the URL directly. */
 export const RequireSchoolOwner = ({ children }: PropsWithChildren) => {
@@ -26,6 +27,32 @@ export const RequireSchoolOwner = ({ children }: PropsWithChildren) => {
 
   if (!school?.is_owner) {
     return <Navigate to={paths.users} state={{ from: location.pathname }} replace />;
+  }
+
+  return children;
+};
+
+/**
+ * Banco Inter credentials: the school's owner or the direção. A hidden menu entry is not an access
+ * rule on its own — the API enforces the real boundary, this keeps everyone else off a page that
+ * could only answer them 403.
+ */
+export const RequireOwnerOrDirector = ({ children }: PropsWithChildren) => {
+  const { status } = useAuth();
+  const school = useCurrentSchool();
+  const location = useLocation();
+
+  if (status === 'loading') {
+    return <Splash />;
+  }
+
+  const systemKey = school?.role_template?.system_key ?? null;
+  const allowed =
+    school?.is_owner === true ||
+    (systemKey !== null && (INTER_CREDENTIALS_SYSTEM_KEYS as readonly string[]).includes(systemKey));
+
+  if (!allowed) {
+    return <Navigate to={paths.dashboard} state={{ from: location.pathname }} replace />;
   }
 
   return children;

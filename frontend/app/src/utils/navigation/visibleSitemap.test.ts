@@ -434,3 +434,59 @@ describe('visibleSitemap Atas da Escola entry', () => {
     expect(routeModuleKeyForPath(paths.schoolMinutes)).toBe('documents');
   });
 });
+
+// Banco Inter credentials charge in the school's name: the owner and the direção see the entry;
+// the rest of the staff do not, whatever billing permissions they hold.
+describe('visibleSitemap Banco Inter credentials entry', () => {
+  const withKey = (systemKey: string | null, overrides = {}) => ({
+    ...staffMembership,
+    permissions: ['manage_billing', 'manage_people', 'manage_school_settings'],
+    role_template: systemKey
+      ? { id: 900, name: systemKey, system_key: systemKey, is_system: true }
+      : null,
+    ...overrides,
+  });
+  const idsFor = (membership: Parameters<typeof visibleSitemap>[0]) =>
+    visibleSitemap(membership).map((item) => item.id);
+
+  it('shows it to the school owner, who carries no director template', () => {
+    expect(idsFor(withKey('secretary', { is_owner: true }))).toContain('inter-credentials');
+    expect(idsFor(withKey(null, { is_owner: true }))).toContain('inter-credentials');
+  });
+
+  it('shows it to the direção', () => {
+    expect(idsFor(withKey('director'))).toContain('inter-credentials');
+  });
+
+  it.each(['secretary', 'coordination', null])(
+    'hides it from non-owner staff with template %s even holding every billing permission',
+    (systemKey) => {
+      expect(idsFor(withKey(systemKey))).not.toContain('inter-credentials');
+      expect(idsFor(withKey(systemKey, { is_owner: null }))).not.toContain('inter-credentials');
+    },
+  );
+
+  it('hides it from a teacher and from a guardian', () => {
+    expect(idsFor(withKey('secretary', { role: 'teacher' }))).not.toContain('inter-credentials');
+    expect(idsFor(guardianMembership)).not.toContain('inter-credentials');
+  });
+
+  it('sits in the billing section and follows the billing module', () => {
+    const item = sitemap.find((entry) => entry.id === 'inter-credentials');
+
+    expect(item?.section).toBe('billing');
+    expect(item?.path).toBe(paths.interCredentials);
+    expect(
+      idsFor(
+        withKey('director', {
+          enabled_modules: ['communication', 'academic', 'documents'] as SchoolModuleKey[],
+        }),
+      ),
+    ).not.toContain('inter-credentials');
+  });
+
+  it('maps the route for deep-link guards', () => {
+    expect(routeAudienceForPath(paths.interCredentials)).toBe('staff');
+    expect(routeModuleKeyForPath(paths.interCredentials)).toBe('billing');
+  });
+});

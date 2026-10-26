@@ -66,6 +66,8 @@ export default {
   charges: '/boletos',
   plans: '/planos',
   billingSettings: '/financeiro/configuracoes',
+  // Banco Inter API credentials — owner and direção only.
+  interCredentials: '/financeiro/inter',
   serviceInvoices: '/nfse',
   contractTemplate: '/contrato',
   signatureCredentials: '/assinatura-eletronica',
