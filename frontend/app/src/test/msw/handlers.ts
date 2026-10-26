@@ -312,6 +312,8 @@ export const myOpenCharges = [
     payment_methods: {
       boleto_url: 'https://provider.example/boleto/101.pdf',
       pix_copy_paste: '00020126580014br.gov.bcb.pix101',
+      digitable_line: '23793.38128 60000.000003 00000.000101 1 93480000085000',
+      boleto_pdf_available: false,
     },
     paid_at: null,
   },
@@ -329,6 +331,8 @@ export const myOpenCharges = [
     payment_methods: {
       boleto_url: 'https://provider.example/boleto/102.pdf',
       pix_copy_paste: '00020126580014br.gov.bcb.pix102',
+      digitable_line: '23793.38128 60000.000003 00000.000102 1 93480000085000',
+      boleto_pdf_available: false,
     },
     paid_at: null,
   },
@@ -346,6 +350,8 @@ export const myOpenCharges = [
     payment_methods: {
       boleto_url: 'https://provider.example/boleto/104.pdf',
       pix_copy_paste: '00020126580014br.gov.bcb.pix104',
+      digitable_line: '23793.38128 60000.000003 00000.000104 1 93480000085000',
+      boleto_pdf_available: false,
     },
     paid_at: null,
   },
@@ -367,6 +373,8 @@ export const myPaidCharges = [
     payment_methods: {
       boleto_url: 'https://provider.example/boleto/88.pdf',
       pix_copy_paste: '00020126580014br.gov.bcb.pix88',
+      digitable_line: '23793.38128 60000.000003 00000.00088 1 93480000085000',
+      boleto_pdf_available: false,
     },
     paid_at: '2025-12-08T14:30:00Z',
   },
@@ -1353,10 +1361,40 @@ export const handlers = [
       payment_methods: {
         boleto_url: `${charge.payment_methods.boleto_url}?reissued=1`,
         pix_copy_paste: `${charge.payment_methods.pix_copy_paste}-reissued`,
+        digitable_line: charge.payment_methods.digitable_line,
+        boleto_pdf_available: charge.payment_methods.boleto_pdf_available,
       },
     };
 
     return HttpResponse.json({ data: updated });
+  }),
+
+  // Banco Inter's boleto, relayed by the API. The fixtures are Cora-style (hosted link, no PDF),
+  // so the default answer is the 409 a charge without a PDF gets; specs that need a PDF override.
+  http.get(apiUrl('/api/v1/schools/:schoolId/me/charges/:id/boleto_pdf'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    const charge = myCharges.find((row) => row.id === Number(params.id));
+    if (!charge) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    if (!charge.payment_methods.boleto_pdf_available) {
+      return jsonError(409, 'boleto_pdf_unavailable', 'O boleto não está disponível.');
+    }
+
+    return new HttpResponse('%PDF-1.4', {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="boleto-${charge.id}.pdf"`,
+      },
+    });
   }),
 
   http.get(apiUrl('/api/v1/schools/:schoolId/me/students'), ({ request, params }) => {
