@@ -679,6 +679,7 @@ const ptBR = {
   'myCharges.filter.mode.range': 'Período',
   'myCharges.filter.month': 'Mês',
   'myCharges.filter.allMonths': 'Todos os meses',
+  'myCharges.filter.monthNeedsYear': 'Escolha um ano para filtrar por mês.',
   'myCharges.filter.allYears': 'Todos os anos',
   'myCharges.filter.rangeInvalid': 'A data inicial não pode ser depois da data final.',
   'myCharges.filter.clear': 'Limpar filtros',
@@ -858,6 +859,10 @@ const ptBR = {
   'charges.form.noContractHelp':
     'Este responsável não tem contrato. O boleto sai assim mesmo, sem vínculo com um aluno.',
   'charges.form.contractOption': '{student} — {amount}/mês',
+  'charges.form.purpose': 'Finalidade da cobrança',
+  'charges.form.purposeRequired': 'Selecione a finalidade da cobrança.',
+  'charges.form.purposeLoading': 'Carregando finalidades...',
+  'charges.form.purposeLoadError': 'Não foi possível carregar as finalidades. Feche e abra o formulário para tentar de novo.',
   'charges.form.amountRequired': 'Informe o valor do boleto.',
   'charges.form.dueDate': 'Vencimento',
   'charges.form.dueDateRequired': 'Informe a data de vencimento.',

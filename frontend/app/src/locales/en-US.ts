@@ -672,6 +672,7 @@ const enUS: Messages = {
   'myCharges.filter.mode.range': 'Period',
   'myCharges.filter.month': 'Month',
   'myCharges.filter.allMonths': 'All months',
+  'myCharges.filter.monthNeedsYear': 'Choose a year to filter by month.',
   'myCharges.filter.allYears': 'All years',
   'myCharges.filter.rangeInvalid': 'The start date cannot be after the end date.',
   'myCharges.filter.clear': 'Clear filters',
@@ -847,6 +848,10 @@ const enUS: Messages = {
   'charges.form.noContractHelp':
     'This guardian has no contract. The boleto still goes out, tied to no student.',
   'charges.form.contractOption': '{student} — {amount}/month',
+  'charges.form.purpose': 'Charge purpose',
+  'charges.form.purposeRequired': 'Choose what the charge is for.',
+  'charges.form.purposeLoading': 'Loading purposes...',
+  'charges.form.purposeLoadError': 'Could not load the purposes. Close and reopen the form to try again.',
   'charges.form.amountRequired': 'Enter the amount.',
   'charges.form.dueDate': 'Due date',
   'charges.form.dueDateRequired': 'Enter the due date.',

@@ -7,12 +7,15 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
+import FormLabel from '@mui/material/FormLabel';
 import Link from '@mui/material/Link';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
+import type { Theme } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
-import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButton, { toggleButtonClasses } from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
@@ -118,6 +121,51 @@ const CODE_BOX_SX = {
 } as const;
 
 type CopiedCode = 'pix' | 'digitableLine';
+
+/** Ties the mode toggle to its visible label, so the group keeps an accessible name. */
+const MODE_LABEL_ID = 'my-charges-mode-label';
+
+/**
+ * The mode toggle reads as one of the filter controls and as the primary Button: its selected
+ * segment takes the same brand gradient and label as `containedPrimary`, and its frame takes the
+ * text fields' border so the row matches. Every colour is a palette token; none is a literal.
+ */
+const modeToggleSx = (theme: Theme) => {
+  const palette = (theme.vars || theme).palette;
+  const primaryFill = `linear-gradient(128.49deg, ${palette.gradients.primary.main} 19.86%, ${palette.gradients.primary.state} 68.34%)`;
+
+  return {
+    // Same box as the small filled TextFields beside it (35px tall, 4px radius). sx multiplies a
+    // bare `borderRadius` by the theme's shape, so `1` is the theme's 4px.
+    height: 35,
+    border: 1,
+    borderStyle: 'solid',
+    borderColor: palette.neutral.darker,
+    ...theme.applyStyles('dark', { borderColor: palette.neutral.dark }),
+    borderRadius: 1,
+    background: palette.background.paper,
+    overflow: 'hidden',
+
+    [`& .${toggleButtonClasses.root}`]: {
+      border: 0,
+      borderRadius: 0,
+      color: palette.text.secondary,
+      letterSpacing: 0.5,
+      fontWeight: 500,
+      textTransform: 'none',
+      px: 1.75,
+      '&:hover': {
+        color: palette.text.primary,
+      },
+    },
+    [`& .${toggleButtonClasses.selected}, & .${toggleButtonClasses.selected}:hover`]: {
+      // White is the label the primary Button uses on this gradient; waiver W3 in
+      // docs/guidelines/web-ui/accessibility.md covers the same pairing.
+      background: primaryFill,
+      color: palette.common.white,
+    },
+  };
+};
 
 /** Past years a family may still look up, and one year ahead for boletos issued in advance. */
 const YEARS_BACK = 4;
@@ -653,20 +701,27 @@ const MyCharges = () => {
               </TextField>
             )}
 
-            <ToggleButtonGroup
-              exclusive
-              size="small"
-              value={filterMode}
-              aria-label={t('myCharges.filter.mode')}
-              onChange={(_event, next: FilterMode | null) => {
-                if (next && next !== filterMode) {
-                  changeMode(next);
-                }
-              }}
-            >
-              <ToggleButton value="month">{t('myCharges.filter.mode.month')}</ToggleButton>
-              <ToggleButton value="range">{t('myCharges.filter.mode.range')}</ToggleButton>
-            </ToggleButtonGroup>
+            <Stack direction="column" gap={0.75} alignItems="flex-start" sx={{ minWidth: 0 }}>
+              {/* The label slot every TextField gets above its field, so the toggle lines up with them. */}
+              <FormLabel id={MODE_LABEL_ID} component="span">
+                {t('myCharges.filter.mode')}
+              </FormLabel>
+              <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={filterMode}
+                aria-labelledby={MODE_LABEL_ID}
+                onChange={(_event, next: FilterMode | null) => {
+                  if (next && next !== filterMode) {
+                    changeMode(next);
+                  }
+                }}
+                sx={modeToggleSx}
+              >
+                <ToggleButton value="month">{t('myCharges.filter.mode.month')}</ToggleButton>
+                <ToggleButton value="range">{t('myCharges.filter.mode.range')}</ToggleButton>
+              </ToggleButtonGroup>
+            </Stack>
 
             {filterMode === 'month' ? (
               <>
@@ -696,24 +751,34 @@ const MyCharges = () => {
                   ))}
                 </TextField>
 
-                <TextField
-                  id="my-charges-month"
-                  label={t('myCharges.filter.month')}
-                  value={month}
-                  onChange={(event) => changeFilter(() => setMonth(event.target.value))}
-                  variant="filled"
-                  size="small"
-                  select
-                  disabled={!year}
-                  sx={{ minWidth: 160 }}
+                {/* Disabled until a year is picked: the API only takes a month inside a year. */}
+                <Tooltip
+                  title={t('myCharges.filter.monthNeedsYear')}
+                  disableHoverListener={Boolean(year)}
+                  disableFocusListener
+                  disableTouchListener
                 >
-                  <MenuItem value="">{t('myCharges.filter.allMonths')}</MenuItem>
-                  {monthOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  <Box component="span" sx={{ display: 'flex' }}>
+                    <TextField
+                      id="my-charges-month"
+                      label={t('myCharges.filter.month')}
+                      value={month}
+                      onChange={(event) => changeFilter(() => setMonth(event.target.value))}
+                      variant="filled"
+                      size="small"
+                      select
+                      disabled={!year}
+                      sx={{ minWidth: 160 }}
+                    >
+                      <MenuItem value="">{t('myCharges.filter.allMonths')}</MenuItem>
+                      {monthOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+                </Tooltip>
               </>
             ) : (
               <>

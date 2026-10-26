@@ -216,6 +216,24 @@ describe('MyCharges', () => {
     expect(query.has('from') || query.has('to')).toBe(false);
   });
 
+  it('names the filter-mode toggle with its visible label', async () => {
+    renderPage();
+
+    await screen.findAllByText('R$ 850,00');
+    expect(screen.getByRole('group', { name: 'Filtrar vencimento por' })).toBeInTheDocument();
+  });
+
+  it('explains why the month stays disabled until a year is picked', async () => {
+    renderPage();
+
+    await screen.findAllByText('R$ 850,00');
+    await user.hover(screen.getByLabelText(/^mês$/i));
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Escolha um ano para filtrar por mês.',
+    );
+  });
+
   it('sends just the year for a whole calendar year', async () => {
     const queries = recordListQueries();
     renderPage();
