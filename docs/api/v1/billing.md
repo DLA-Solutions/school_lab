@@ -46,9 +46,157 @@ See [`fintech-first.md`](fintech-first.md) for request/response examples:
 - `GET/POST /schools/:id/billing/charges`
 - `POST /billing/charges/:id/issue`, `/reissue`, `/cancel`
 - `GET /billing/summary`
-- `GET /schools/:id/me/charges` (guardian)
+- `GET /schools/:id/me/charges` (guardian) — unified list, see [Guardian charges list](#guardian-charges-list-implemented)
 - `school_payment_providers`, `school_billing_settings`
 - Webhooks: `POST /webhooks/:provider/:token`
+
+---
+
+## Guardian charges list (implemented)
+
+`GET /api/v1/schools/:school_id/me/charges` — the single "Meus boletos" list for the logged-in
+guardian (`role: guardian` membership). It returns every boleto issued to that guardian: open,
+overdue **and** paid, each carrying a `status` tag. Cancelled and soft-deleted charges never
+appear. Family isolation is enforced by Pundit (`policy_scope(Charge)`): another guardian's
+charges are simply absent, and a linked-child filter for someone else's child is `404`.
+
+### Status semantics
+
+| `status` | Meaning | `paid_at` | Payment actions |
+|----------|---------|-----------|-----------------|
+| `pending` | Issued, not paid, not yet past due plus the school's grace window | `null` | `payment_methods` usable |
+| `overdue` | Not paid and past due plus grace; flagged by the daily sweep (06:30 America/Sao_Paulo), `total_amount_cents` already includes the late fee | `null` | `payment_methods` usable (reissue allowed) |
+| `paid` | Settled by the bank's webhook ("baixa") | ISO 8601 UTC, the bank's payment time | Not meaningful — clients must hide pay actions |
+
+The API sends machine codes only; labels such as "Pago", "Em aberto" and "Atrasado" belong to
+client i18n.
+
+Status changes only server-side: the provider webhook settles a boleto (`pending`/`overdue` ->
+`paid`), the daily sweep turns `pending` into `overdue`. `paid` is terminal — a repeated, late or
+stale webhook never moves a paid boleto back.
+
+### Query parameters
+
+All optional. Invalid values return `422` with the standard error envelope
+(`error.code: "validation_error"`, `error.details.<param>: [message]`; every problem is reported
+at once).
+
+| Param | Values | Notes |
+|-------|--------|-------|
+| `status` | `all`, or a comma list / repeated param of `paid`, `pending`, `overdue` | **Opt-in to the unified list.** See "Backward compatibility". `cancelled` is rejected |
+| `student_id` | linked child id | Unlinked child -> `404 not_found` |
+| `month` | `1`-`12` | Filters by **`due_date`** in that calendar month. Requires `year` |
+| `year` | 4 digits, e.g. `2026` | Alone: the whole calendar year. With `month`: that month |
+| `from` | ISO date `YYYY-MM-DD` | Inclusive lower bound on `due_date` |
+| `to` | ISO date `YYYY-MM-DD` | Inclusive upper bound on `due_date`; must be `>= from` |
+| `order` | `asc` \| `desc` | By `due_date` (ties by `id`); undated charges last. Default `desc` with `status`, `asc` without |
+| `page`, `limit` | integers | Pagy; default `limit` 25, max 100 |
+
+**Filter precedence:** `month`/`year` and `from`/`to` are two ways to express the same thing and
+are **mutually exclusive** — sending both is `422` (keys `from`/`to`). `status`, `student_id` and
+the period filters combine with AND. Every period filter works on `due_date`, not on the payment
+date. A "month" picker in the client sends `month`+`year`; a range picker sends `from`/`to`.
+
+### Backward compatibility (`status` omitted)
+
+Without `status` the endpoint behaves exactly as before the unified list shipped: only `pending`
+and `overdue` charges, oldest due date first. This keeps already-installed mobile builds
+(`fetchOpenCharges`) from suddenly listing paid boletos as "open". New clients **must send
+`status=all`** (or an explicit list) to get the unified list. The period filters apply in both
+modes.
+
+`GET /me/charges/history` is unchanged (paid only, `updated_at` desc, view without `due_date` and
+`payment_methods`, `source: "platform"`). It stays for the mobile history screen; web clients
+should use `status=paid` on this endpoint instead and treat `/history` as legacy.
+
+### Response
+
+```http
+GET /api/v1/schools/7/me/charges?status=all&month=8&year=2026
+```
+
+```json
+{
+  "data": [
+    {
+      "id": 214,
+      "billing_period": "2026-08-01",
+      "total_amount_cents": 85000,
+      "late_fee_amount_cents": 0,
+      "due_date": "2026-08-10",
+      "status": "paid",
+      "paid_at": "2026-08-07T14:30:12.000Z",
+      "kind": "tuition",
+      "description": null,
+      "boleto_url": "https://provider.example/boleto/abc",
+      "billing_purpose_id": null,
+      "billing_purpose_code": null,
+      "tax_declaration_eligible": false,
+      "contract_id": 31,
+      "student": { "id": 12, "name": "Pedro Silva" },
+      "interest_rate_percent": 1.0,
+      "payment_methods": {
+        "boleto_url": "https://provider.example/boleto/abc",
+        "pix_copy_paste": "00020126580014br.gov.bcb.pix..."
+      }
+    },
+    {
+      "id": 198,
+      "billing_period": "2026-08-01",
+      "total_amount_cents": 87500,
+      "late_fee_amount_cents": 2500,
+      "due_date": "2026-08-01",
+      "status": "overdue",
+      "paid_at": null,
+      "kind": "one_off",
+      "description": "Excursion",
+      "boleto_url": "https://provider.example/boleto/def",
+      "billing_purpose_id": 4,
+      "billing_purpose_code": "field_trip",
+      "tax_declaration_eligible": false,
+      "contract_id": null,
+      "student": null,
+      "interest_rate_percent": 1.0,
+      "payment_methods": { "boleto_url": "https://provider.example/boleto/def", "pix_copy_paste": null }
+    }
+  ],
+  "meta": { "page": 1, "per_page": 25, "total": 2 }
+}
+```
+
+Field notes:
+
+- Money is integer cents (`total_amount_cents`); dates are ISO; `paid_at` is a UTC timestamp.
+- `student` is `null` on a one-off charge raised outside any contract; `description` is free text
+  set by the school (mostly one-offs).
+- `interest_rate_percent` is the school's monthly mora rate, or `null` when unset.
+- For `paid` rows `payment_methods`/`boleto_url` may still hold the old slip data; do not offer
+  payment.
+- `meta.total` counts the filtered result, not the family's lifetime charges.
+
+### Examples
+
+| Goal | Request |
+|------|---------|
+| Everything, newest first | `?status=all` |
+| Only what is still owed | `?status=pending,overdue` |
+| Paid in a given month (by due date) | `?status=paid&month=3&year=2026` |
+| 2026 school calendar year | `?status=all&year=2026` |
+| Custom range | `?status=all&from=2026-02-01&to=2026-06-30` |
+| One child | `?status=all&student_id=12` |
+
+Errors: `401` unauthenticated; `403` non-guardian role; `404` unlinked `student_id` (or a school
+the user has no guardian membership in); `422` invalid filter.
+
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Invalid data.",
+    "details": { "month": ["Use a month from 1 to 12."] }
+  }
+}
+```
 
 ---
 
