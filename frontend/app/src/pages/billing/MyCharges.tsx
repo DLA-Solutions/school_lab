@@ -841,7 +841,7 @@ const MyCharges = () => {
 
                   {generating && !generationStalled && (
                     <Stack direction="row" gap={1.5} alignItems="center">
-                      <CircularProgress size={20} aria-hidden />
+                      <CircularProgress size={20} aria-hidden sx={{ flexShrink: 0 }} />
                       <Box role="status">
                         <Typography variant="body2">
                           {t('myCharges.payment.generating.title')}
