@@ -26,8 +26,17 @@ class ChargeBlueprint < Blueprinter::Base
   view :guardian do
     excludes :original_amount_cents, :discount_amount_cents, :guardian, :applied_discounts
 
-    field :interest_rate_percent do |charge|
-      Billing::SchoolSettings.for(charge.school).interest_rate_percent&.to_f
+    # Settled instant; nil until the charge is paid. Same column the history view exposes.
+    field :paid_at
+
+    # A listing renders one school's charges, so it passes the rate once (`interest_rate_percent:`
+    # render option) instead of re-reading the school settings for every row.
+    field :interest_rate_percent do |charge, options|
+      if options.key?(:interest_rate_percent)
+        options[:interest_rate_percent]
+      else
+        Billing::SchoolSettings.for(charge.school).interest_rate_percent&.to_f
+      end
     end
 
     field :payment_methods do |charge|
@@ -41,8 +50,6 @@ class ChargeBlueprint < Blueprinter::Base
   view :guardian_history do
     include_view :guardian
     excludes :payment_methods, :due_date
-
-    field :paid_at
 
     field :source do |_charge|
       "platform"

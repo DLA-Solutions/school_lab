@@ -5,20 +5,21 @@ module Api
     module Schools
       module Me
         class ChargesController < BaseController
+          # Unified family list (paid, pending, overdue) when `status` is sent; without it, the
+          # legacy open-boletos list. Filters are validated by Billing::FilterGuardianChargesService.
           def index
             authorize Charge
 
-            charges = filter_charges_by_student(
-              policy_scope(Charge).open
-                                  .includes(contract: :student)
-                                  .order(due_date: :asc)
-            )
-            pagy, records = pagy(charges)
+            scope = filter_charges_by_student(policy_scope(Charge).includes(contract: :student))
+            result = ::Billing::FilterGuardianChargesService.call(scope: scope, params: list_filter_params)
+            render_service_result(result) do |charges|
+              pagy, records = pagy(charges)
 
-            render json: {
-              data: ChargeBlueprint.render_as_hash(records, view: :guardian),
-              meta: { page: pagy.page, per_page: pagy.limit, total: pagy.count }
-            }
+              render json: {
+                data: ChargeBlueprint.render_as_hash(records, view: :guardian, **list_render_options),
+                meta: { page: pagy.page, per_page: pagy.limit, total: pagy.count }
+              }
+            end
           end
 
           def history
@@ -55,6 +56,15 @@ module Api
           end
 
           private
+
+          def list_filter_params
+            params.slice(:status, :month, :year, :from, :to, :order)
+                  .permit(:status, :month, :year, :from, :to, :order, status: []).to_h
+          end
+
+          def list_render_options
+            { interest_rate_percent: ::Billing::SchoolSettings.for(Current.school).interest_rate_percent&.to_f }
+          end
 
           def filter_charges_by_student(scope)
             return scope if params[:student_id].blank?

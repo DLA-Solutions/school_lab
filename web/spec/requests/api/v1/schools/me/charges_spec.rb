@@ -31,27 +31,222 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
   path "/api/v1/schools/{school_id}/me/charges" do
     parameter name: :school_id, in: :path, type: :integer
 
-    get "List open charges" do
+    get "List the family's boletos (open, overdue and paid)" do
+      description "Without `status` returns the legacy open list (pending + overdue, oldest due date " \
+                  "first). With `status` returns the unified list, newest due date first."
       tags "Guardian Me"
       produces "application/json"
       security [ bearer_auth: [] ]
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :student_id, in: :query, type: :integer, required: false,
                 description: "Optional linked child filter"
+      parameter name: :status, in: :query, type: :string, required: false,
+                description: "`all`, or a comma separated list of paid, pending, overdue"
+      parameter name: :month, in: :query, type: :integer, required: false,
+                description: "1-12; requires `year`; filters by due date"
+      parameter name: :year, in: :query, type: :integer, required: false,
+                description: "Four-digit year; alone it covers the whole year"
+      parameter name: :from, in: :query, type: :string, required: false,
+                description: "ISO date, inclusive lower bound on the due date; excludes month/year"
+      parameter name: :to, in: :query, type: :string, required: false,
+                description: "ISO date, inclusive upper bound on the due date; excludes month/year"
+      parameter name: :order, in: :query, type: :string, required: false,
+                description: "asc or desc by due date (default desc with `status`, asc without)"
+      parameter name: :page, in: :query, type: :integer, required: false
+      parameter name: :limit, in: :query, type: :integer, required: false
 
-      response "200", "family open charges only" do
+      def ids_of(response)
+        JSON.parse(response.body).fetch("data").map { |row| row["id"] }
+      end
+
+      response "200", "without status: family open charges only, oldest due date first" do
         let!(:charge_c1) do
-          create(:charge, :issued, school: school, contract: contract, guardian: guardian)
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian,
+                                   due_date: 20.days.from_now.to_date)
+        end
+        let!(:charge_overdue) do
+          create(:charge, :overdue, :issued, school: school, contract: contract, guardian: guardian)
+        end
+        let!(:charge_paid) do
+          create(:charge, :paid, :issued, school: school, contract: contract, guardian: guardian)
         end
         let!(:charge_c2) do
           create(:charge, school: school, contract: other_contract, guardian: other_guardian)
         end
 
         run_test! do |response|
-          body = JSON.parse(response.body)
-          ids = body.fetch("data").map { |row| row["id"] }
-          expect(ids).to contain_exactly(charge_c1.id)
-          expect(ids).not_to include(charge_c2.id)
+          expect(ids_of(response)).to eq([ charge_overdue.id, charge_c1.id ])
+        end
+      end
+
+      response "200", "status=all: every non-cancelled boleto of the family, tagged by status" do
+        let(:status) { "all" }
+        let!(:charge_pending) do
+          create(:charge, :issued, school: school, contract: contract, guardian: guardian,
+                                   due_date: Date.new(2099, 3, 10))
+        end
+        let!(:charge_overdue) do
+          create(:charge, :overdue, :issued, school: school, contract: contract, guardian: guardian,
+                                             due_date: Date.new(2020, 1, 10))
+        end
+        let!(:charge_paid) do
+          create(:charge, :paid, :issued, school: school, contract: contract, guardian: guardian,
+                                          due_date: Date.new(2020, 2, 10))
+        end
+        let!(:charge_cancelled) do
+          create(:charge, :cancelled, school: school, contract: contract, guardian: guardian)
+        end
+        let!(:charge_discarded) do
+          create(:charge, school: school, contract: contract, guardian: guardian).tap(&:discard)
+        end
+        let!(:charge_other_family) do
+          create(:charge, :paid, school: school, contract: other_contract, guardian: other_guardian)
+        end
+
+        run_test! do |response|
+          rows = JSON.parse(response.body).fetch("data")
+          expect(rows.map { |row| row["id"] }).to eq([ charge_pending.id, charge_paid.id, charge_overdue.id ])
+          expect(rows.map { |row| row["status"] }).to eq(%w[pending paid overdue])
+
+          paid_row = rows.find { |row| row["id"] == charge_paid.id }
+          expect(paid_row["paid_at"]).to be_present
+          expect(paid_row).to include("due_date" => "2020-02-10", "kind" => "tuition",
+                                      "total_amount_cents" => charge_paid.total_amount_cents,
+                                      "interest_rate_percent" => 1.0)
+          expect(paid_row["student"]).to eq("id" => student.id, "name" => "Pedro Silva")
+          expect(paid_row).to have_key("payment_methods")
+          expect(paid_row).not_to have_key("guardian")
+
+          open_rows = rows - [ paid_row ]
+          expect(open_rows.map { |row| row["paid_at"] }).to all(be_nil)
+          expect(open_rows.first.dig("payment_methods", "boleto_url")).to be_present
+        end
+      end
+
+      response "200", "status=paid returns only paid charges" do
+        let(:status) { "paid" }
+        let!(:charge_pending) { create(:charge, :issued, school: school, contract: contract, guardian: guardian) }
+        let!(:charge_paid) { create(:charge, :paid, :issued, school: school, contract: contract, guardian: guardian) }
+
+        run_test! do |response|
+          expect(ids_of(response)).to eq([ charge_paid.id ])
+        end
+      end
+
+      response "200", "status=pending,overdue returns the open charges" do
+        let(:status) { "pending,overdue" }
+        let!(:charge_pending) { create(:charge, :issued, school: school, contract: contract, guardian: guardian) }
+        let!(:charge_overdue) do
+          create(:charge, :overdue, :issued, school: school, contract: contract, guardian: guardian)
+        end
+        let!(:charge_paid) { create(:charge, :paid, :issued, school: school, contract: contract, guardian: guardian) }
+
+        run_test! do |response|
+          expect(ids_of(response)).to contain_exactly(charge_pending.id, charge_overdue.id)
+        end
+      end
+
+      response "200", "status=overdue returns only overdue charges" do
+        let(:status) { "overdue" }
+        let!(:charge_pending) { create(:charge, :issued, school: school, contract: contract, guardian: guardian) }
+        let!(:charge_overdue) do
+          create(:charge, :overdue, :issued, school: school, contract: contract, guardian: guardian)
+        end
+
+        run_test! do |response|
+          expect(ids_of(response)).to eq([ charge_overdue.id ])
+        end
+      end
+
+      response "200", "month and year keep due dates inside that calendar month" do
+        let(:status) { "all" }
+        let(:month) { 4 }
+        let(:year) { 2026 }
+        let!(:march) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 3, 31))
+        end
+        let!(:april_first) do
+          create(:charge, :paid, school: school, contract: contract, guardian: guardian,
+                                 due_date: Date.new(2026, 4, 1))
+        end
+        let!(:april_last) do
+          create(:charge, :overdue, school: school, contract: contract, guardian: guardian,
+                                    due_date: Date.new(2026, 4, 30))
+        end
+        let!(:may) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 5, 1))
+        end
+
+        run_test! do |response|
+          expect(ids_of(response)).to eq([ april_last.id, april_first.id ])
+        end
+      end
+
+      response "200", "year alone covers the whole calendar year" do
+        let(:status) { "all" }
+        let(:year) { 2026 }
+        let!(:last_year) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2025, 12, 31))
+        end
+        let!(:this_year) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 12, 31))
+        end
+
+        run_test! do |response|
+          expect(ids_of(response)).to eq([ this_year.id ])
+        end
+      end
+
+      response "200", "from and to are inclusive bounds on the due date" do
+        let(:status) { "all" }
+        let(:from) { "2026-04-10" }
+        let(:to) { "2026-05-10" }
+        let!(:before_range) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 4, 9))
+        end
+        let!(:at_start) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 4, 10))
+        end
+        let!(:at_end) do
+          create(:charge, :paid, school: school, contract: contract, guardian: guardian,
+                                 due_date: Date.new(2026, 5, 10))
+        end
+        let!(:after_range) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 5, 11))
+        end
+
+        run_test! do |response|
+          expect(ids_of(response)).to eq([ at_end.id, at_start.id ])
+        end
+      end
+
+      response "200", "order=asc reverses the unified default" do
+        let(:status) { "all" }
+        let(:order) { "asc" }
+        let!(:early) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 1, 10))
+        end
+        let!(:late) do
+          create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 2, 10))
+        end
+
+        run_test! do |response|
+          expect(ids_of(response)).to eq([ early.id, late.id ])
+        end
+      end
+
+      response "200", "filters by linked student_id across all statuses" do
+        let(:status) { "all" }
+        let(:student_id) { student.id }
+        let!(:charge_pedro) do
+          create(:charge, :paid, :issued, school: school, contract: contract, guardian: guardian)
+        end
+        let!(:charge_ana) do
+          create(:charge, :paid, :issued, school: school, contract: second_contract, guardian: guardian)
+        end
+
+        run_test! do |response|
+          expect(ids_of(response)).to eq([ charge_pedro.id ])
         end
       end
 
@@ -65,10 +260,111 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
         end
 
         run_test! do |response|
-          body = JSON.parse(response.body)
-          ids = body.fetch("data").map { |row| row["id"] }
+          ids = ids_of(response)
           expect(ids).to contain_exactly(charge_pedro.id)
           expect(ids).not_to include(charge_ana.id)
+        end
+      end
+
+      response "200", "paginates and reports the unfiltered total in meta" do
+        let(:status) { "all" }
+        let(:limit) { 2 }
+        let(:page) { 2 }
+        let!(:charges) do
+          Array.new(5) do |index|
+            create(:charge, school: school, contract: contract, guardian: guardian,
+                            due_date: Date.new(2026, 1, 1) + index.days)
+          end
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body["meta"]).to eq("page" => 2, "per_page" => 2, "total" => 5)
+          expect(body["data"].map { |row| row["id"] }).to eq([ charges[2].id, charges[1].id ])
+        end
+      end
+
+      response "200", "never lists another family's or another school's charges" do
+        let(:status) { "all" }
+        let(:other_school) { create(:school) }
+        let!(:own_charge) { create(:charge, :paid, school: school, contract: contract, guardian: guardian) }
+        let!(:sibling_family_charge) do
+          create(:charge, :paid, school: school, contract: other_contract, guardian: other_guardian)
+        end
+        let!(:other_school_charge) { create(:charge, :paid, school: other_school) }
+
+        run_test! do |response|
+          expect(ids_of(response)).to eq([ own_charge.id ])
+        end
+      end
+
+      response "422", "invalid status" do
+        let(:status) { "paid,bogus" }
+
+        run_test! do |response|
+          error = JSON.parse(response.body).fetch("error")
+          expect(error["code"]).to eq("validation_error")
+          expect(error["details"]).to have_key("status")
+        end
+      end
+
+      response "422", "month without year" do
+        let(:month) { 4 }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "details")).to have_key("year")
+        end
+      end
+
+      response "422", "month out of range" do
+        let(:month) { 13 }
+        let(:year) { 2026 }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "details")).to have_key("month")
+        end
+      end
+
+      response "422", "malformed date" do
+        let(:from) { "10/04/2026" }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "details")).to have_key("from")
+        end
+      end
+
+      response "422", "from after to" do
+        let(:from) { "2026-05-02" }
+        let(:to) { "2026-05-01" }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "details")).to have_key("to")
+        end
+      end
+
+      response "422", "month/year combined with from/to" do
+        let(:month) { 4 }
+        let(:year) { 2026 }
+        let(:from) { "2026-04-01" }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "details")).to have_key("from")
+        end
+      end
+
+      response "422", "invalid order" do
+        let(:order) { "sideways" }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "details")).to have_key("order")
+        end
+      end
+
+      response "401", "unauthenticated" do
+        let(:Authorization) { nil }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("unauthorized")
         end
       end
 
