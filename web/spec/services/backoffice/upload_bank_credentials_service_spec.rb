@@ -60,17 +60,59 @@ RSpec.describe Backoffice::UploadBankCredentialsService do
     expect(configs.active.pluck(:id)).to eq([ result.data.id ])
   end
 
-  # Isolates "does this service correctly persist client_secret" from "is inter currently
-  # gated" (covered by Registry/Gateways::BankSlip::Registry specs) — stub api_selectable?
-  # just for inter so this test does not depend on the registry flipping it live.
-  it "persists client_secret, round-tripping through encryption, when the provider is selectable" do
-    allow(Gateways::BankSlip::Registry).to receive(:api_selectable?).and_call_original
-    allow(Gateways::BankSlip::Registry).to receive(:api_selectable?).with("inter").and_return(true)
+  it "persists client_secret for inter, round-tripping through encryption" do
+    result = upload(client_id: "inter-client-001", provider: "inter", client_secret: "inter-secret-001")
+
+    expect(result).to be_success
+    expect(result.data.provider).to eq("inter")
+    expect(result.data.client_secret).to eq("inter-secret-001")
+    expect(result.data.reload.client_secret).to eq("inter-secret-001")
+  end
+
+  it "requires client_secret for inter and stores nothing without it" do
+    result = nil
+
+    expect { result = upload(provider: "inter", client_secret: nil) }
+      .not_to change(SchoolPaymentProvider, :count)
+
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:validation_error)
+    expect(result.details).to have_key(:client_secret)
+  end
+
+  it "does not require client_secret for cora" do
+    expect(upload(provider: "cora", client_secret: nil)).to be_success
+  end
+
+  it "keeps the active cora configuration when an inter upload is invalid" do
+    cora = create(:school_payment_provider, :cora, :active, school: school)
+
+    upload(provider: "inter", client_secret: nil)
+
+    expect(cora.reload).to be_active
+  end
+
+  it "replaces an active cora configuration with inter, leaving exactly one active" do
+    cora = create(:school_payment_provider, :cora, :active, school: school)
 
     result = upload(client_id: "inter-client-001", provider: "inter", client_secret: "inter-secret-001")
 
     expect(result).to be_success
-    expect(result.data.client_secret).to eq("inter-secret-001")
-    expect(result.data.reload.client_secret).to eq("inter-secret-001")
+    expect(cora.reload).not_to be_active
+    expect(school.school_payment_providers.active.where(instrument: "bank_slip").pluck(:id))
+      .to eq([ result.data.id ])
+    expect(Gateways::BankSlip::Registry.active_config(school: school).provider).to eq("inter")
+  end
+
+  # The bank issues a `.crt` and a `.key` pair; files saved on Windows carry CRLF line endings.
+  it "accepts an inter certificate and key saved with CRLF line endings" do
+    result = described_class.call(
+      school: school, actor: actor, provider: "inter", instrument: "bank_slip",
+      client_id: "inter-client-001", client_secret: "inter-secret-001",
+      certificate_io: StringIO.new(pair[:certificate_pem].gsub("\n", "\r\n")),
+      private_key_io: StringIO.new(pair[:private_key_pem].gsub("\n", "\r\n"))
+    )
+
+    expect(result).to be_success
   end
 end

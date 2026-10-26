@@ -3138,7 +3138,8 @@
                   "provider": {
                     "type": "string",
                     "enum": [
-                      "cora"
+                      "cora",
+                      "inter"
                     ],
                     "description": "Payment provider the credentials belong to"
                   },
@@ -3156,17 +3157,17 @@
                   },
                   "client_secret": {
                     "type": "string",
-                    "description": "Client secret issued by the provider, when its OAuth flow needs one. Not required by any provider the API currently accepts (cora); accepted and passed through harmlessly if sent."
+                    "description": "Client secret issued by the provider. Required for inter (422 validation_error with details.client_secret when missing); not used by cora, which accepts and stores it harmlessly if sent. Never returned by the API."
                   },
                   "certificate": {
                     "type": "string",
                     "format": "binary",
-                    "description": "mTLS client certificate, PEM encoded"
+                    "description": "mTLS client certificate, PEM encoded (for inter, the .crt file issued by the bank)"
                   },
                   "private_key": {
                     "type": "string",
                     "format": "binary",
-                    "description": "Private key matching the certificate, PEM encoded"
+                    "description": "Private key matching the certificate, PEM encoded (for inter, the .key file issued by the bank)"
                   }
                 }
               }

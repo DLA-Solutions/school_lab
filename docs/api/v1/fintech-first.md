@@ -87,11 +87,33 @@ Base: `/api/v1/schools/:school_id/bank_credentials` — backs `school_payment_pr
 
 | Method | Path | Notes |
 |--------|------|-------|
-| `GET` | `/bank_credentials` | List configured providers per `instrument`; never returns PEM material |
-| `POST` | `/bank_credentials` | Upload mTLS certificate + private key (multipart: `certificate`, `private_key`) with `provider`, `instrument`, `client_id` |
+| `GET` | `/bank_credentials` | List configured providers per `instrument`; never returns PEM material or `client_secret` |
+| `POST` | `/bank_credentials` | Upload mTLS certificate + private key (multipart: `certificate`, `private_key`) with `provider`, `instrument`, `client_id` and, for `inter`, `client_secret` |
+
+**Who may call:** platform backoffice operators and the school's own staff holding
+`manage_billing` — the school owner and the `director` ("Direção") role template. Secretary,
+coordination, teacher and guardian get `403`; a user with no membership in the school gets `403`
+and an unknown school `404`.
+
+**Providers** (`provider`, `instrument = bank_slip`): `cora`, `inter` (Banco Inter, Cobrança
+Bolepix API). `fake` is rejected with `422` (`details.provider`).
+
+| Field | `cora` | `inter` |
+|-------|--------|---------|
+| `client_id` | required | required |
+| `client_secret` | not used (accepted, ignored) | **required** — `422 validation_error`, `details.client_secret` when missing |
+| `certificate` | required, PEM | required, PEM (the `.crt` issued by Inter) |
+| `private_key` | required, PEM, must match certificate | required, PEM (the `.key` issued by Inter) |
+
+Certificate and key are held in memory and never written to temp files; they, and `client_secret`,
+are encrypted at rest and never returned. The `201` body is the new row's metadata
+(`provider`, `active: true`, `certificate_fingerprint`, `certificate_expires_at`, ...) — the
+client reads `provider` to know which provider is now active.
 
 Uploading an active configuration for the same `(school_id, instrument)`
-replaces the previous active row (partial unique index on `active = true`). The
+replaces the previous active row **whatever its provider** (e.g. uploading `inter` credentials
+deactivates the active `cora` row; partial unique index on `active = true`). A failed upload
+(`422`) leaves the previous active row untouched. The
 `webhook_endpoint_token` is generated server-side and is what the provider webhook URL
 carries.
 
