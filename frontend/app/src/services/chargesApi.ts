@@ -119,8 +119,9 @@ export const createOneOffCharge = async (
 };
 
 /**
- * GET .../billing/charge_batches — every active contract with the amount it bills, and whether
- * the period is already covered. What the school picks from before issuing a month in one pass.
+ * GET .../billing/charge_batches — one row per enrolled student: the contract they would be
+ * billed under and its amount, whether the period is already covered, or `without_contract` for a
+ * student who has none. What the school picks from before issuing a month in one pass.
  */
 export const listBillableContracts = async (
   schoolId: number,

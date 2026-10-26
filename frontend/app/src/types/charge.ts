@@ -41,15 +41,24 @@ export interface OneOffChargePayload {
   description?: string | null;
 }
 
-/** A row of `GET .../billing/charge_batches` — one active contract, ready to be billed. */
+/**
+ * A row of `GET .../billing/charge_batches` — one per enrolled student, ordered by name. Most rows
+ * carry the student's standing contract, ready to be billed; a student with no contract comes back
+ * flagged `without_contract`, with every contract-derived field empty, so the school can see who
+ * is missing a contract rather than wondering why they are absent.
+ */
 export interface BillableContract {
-  contract_id: number;
-  student_name: string | null;
+  /** Null on a `without_contract` row — there is nothing to bill. */
+  contract_id: number | null;
+  student_id: number;
+  student_name: string;
   payer: { id: number; name: string; cpf: string } | null;
-  monthly_amount_cents: number;
+  monthly_amount_cents: number | null;
   due_day: number | null;
   /** The period already has a tuition charge for this contract; billing again would duplicate it. */
   already_charged: boolean;
+  /** The student is enrolled but has no contract yet; the row can be shown but never selected. */
+  without_contract: boolean;
 }
 
 export interface ChargeBatchPayload {
@@ -63,7 +72,9 @@ export interface ChargeBatchPayload {
 export interface ChargeBatchResult {
   created_charges: Charge[];
   created_count: number;
-  /** Already billed for the period, so left alone. */
+  /** Only contracts the period already has a charge for, so left alone. */
   skipped_contract_ids: number[];
+  /** The school's contracts that cannot be billed: student not enrolled, or not the standing contract. */
+  ineligible_contract_ids: number[];
   contract_ids_without_payer: number[];
 }

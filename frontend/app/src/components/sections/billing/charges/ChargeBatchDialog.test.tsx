@@ -22,29 +22,47 @@ const user = userEvent.setup({ delay: null });
 const billable: BillableContract[] = [
   {
     contract_id: 91,
+    student_id: 1,
     student_name: 'Pedro Silva',
     payer: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
     monthly_amount_cents: 85_000,
     due_day: 10,
     already_charged: false,
+    without_contract: false,
   },
   {
     contract_id: 92,
+    student_id: 2,
     student_name: 'Ana Silva',
     payer: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
     monthly_amount_cents: 60_000,
     due_day: 5,
     already_charged: false,
+    without_contract: false,
   },
   {
     contract_id: 93,
+    student_id: 3,
     student_name: 'Bruno Costa',
     payer: { id: 8, name: 'Carla Costa', cpf: '98765432100' },
     monthly_amount_cents: 70_000,
     due_day: 10,
     already_charged: true,
+    without_contract: false,
   },
 ];
+
+// Enrolled, but no contract yet: listed so the school sees who is missing one, never billable.
+const withoutContract: BillableContract = {
+  contract_id: null,
+  student_id: 4,
+  student_name: 'Carlos Lima',
+  payer: null,
+  monthly_amount_cents: null,
+  due_day: null,
+  already_charged: false,
+  without_contract: true,
+};
 
 const renderDialog = (onIssued = vi.fn()) => {
   setAccessToken(FRESH_ACCESS_TOKEN, ACCESS_EXPIRES_AT);
@@ -97,6 +115,7 @@ describe('ChargeBatchDialog', () => {
               created_charges: [],
               created_count: 2,
               skipped_contract_ids: [],
+              ineligible_contract_ids: [],
               contract_ids_without_payer: [],
             },
           },
@@ -129,5 +148,75 @@ describe('ChargeBatchDialog', () => {
 
     // Nothing selected means nothing to send, so the action closes itself off.
     expect(screen.getByRole('button', { name: 'Emitir 0 boleto(s)' })).toBeDisabled();
+  });
+
+  describe('student without a contract', () => {
+    const withMissing = [...billable, withoutContract];
+
+    it('shows the student flagged, with no amount, due day or payer, and a hint', async () => {
+      server.use(http.get(apiUrl(BATCHES_PATH), () => HttpResponse.json({ data: withMissing })));
+
+      renderDialog();
+
+      const row = (await screen.findByText('Carlos Lima')).closest('[role="row"]') as HTMLElement;
+
+      expect(within(row).getByText('Sem contrato')).toBeInTheDocument();
+      expect(within(row).queryByText(/R\$/)).not.toBeInTheDocument();
+      expect(within(row).queryByText('Sem respons\u00e1vel financeiro')).not.toBeInTheDocument();
+      expect(screen.getByText(/Alunos sem contrato n\u00e3o podem receber boleto/)).toBeInTheDocument();
+    });
+
+    it('cannot be ticked, and stays out of the default selection and the totals', async () => {
+      server.use(http.get(apiUrl(BATCHES_PATH), () => HttpResponse.json({ data: withMissing })));
+
+      renderDialog();
+
+      const row = (await screen.findByText('Carlos Lima')).closest('[role="row"]') as HTMLElement;
+
+      expect(within(row).getByRole('checkbox')).toBeDisabled();
+      // Same two billable contracts as before; the missing-contract student adds nothing.
+      await screen.findByText(/2 contrato\(s\) selecionado\(s\)/);
+      expect(screen.getByText(/R\$\s?1\.450,00/)).toBeInTheDocument();
+    });
+
+    it('is not picked up by the header checkbox and never reaches the request', async () => {
+      let body: unknown;
+
+      server.use(
+        http.get(apiUrl(BATCHES_PATH), () => HttpResponse.json({ data: withMissing })),
+        http.post(apiUrl(BATCHES_PATH), async ({ request }) => {
+          body = await request.json();
+
+          return HttpResponse.json(
+            {
+              data: {
+                created_charges: [],
+                created_count: 2,
+                skipped_contract_ids: [],
+                ineligible_contract_ids: [],
+                contract_ids_without_payer: [],
+              },
+            },
+            { status: 201 },
+          );
+        }),
+      );
+
+      const onIssued = renderDialog();
+
+      const toggleAll = await screen.findByRole('checkbox', {
+        name: 'Selecionar todos os contratos',
+      });
+
+      // Untick, then tick everything again: select-all must still skip the missing contract.
+      await user.click(toggleAll);
+      await user.click(toggleAll);
+
+      await screen.findByText(/2 contrato\(s\) selecionado\(s\)/);
+      await user.click(screen.getByRole('button', { name: 'Emitir 2 boleto(s)' }));
+
+      await waitFor(() => expect(onIssued).toHaveBeenCalled());
+      expect((body as { contract_ids: number[] }).contract_ids).toEqual([91, 92]);
+    });
   });
 });
