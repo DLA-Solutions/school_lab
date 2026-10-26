@@ -759,12 +759,14 @@ const Charges = () => {
           onClose={() => setBatchOpen(false)}
           onIssued={(result) => {
             const skipped = result.skipped_contract_ids.length;
+            const ineligible = result.ineligible_contract_ids.length;
             const withoutPayer = result.contract_ids_without_payer.length;
 
             setNotice(
               [
                 t('charges.batch.issued', { count: result.created_count }),
                 skipped > 0 ? t('charges.batch.skipped', { count: skipped }) : '',
+                ineligible > 0 ? t('charges.batch.ineligible', { count: ineligible }) : '',
                 withoutPayer > 0 ? t('charges.batch.withoutPayer', { count: withoutPayer }) : '',
               ]
                 .filter(Boolean)

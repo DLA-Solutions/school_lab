@@ -149,6 +149,58 @@ describe('Charges', () => {
       charge: { guardian_id: 7, contract_id: null, total_amount_cents: 7_500 },
     });
   });
+  it('reports each outcome of a bulk issue on its own, ineligible contracts included', async () => {
+    const BATCHES_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/charge_batches`;
+
+    server.use(
+      ...listingHandlers(),
+      http.get(apiUrl(BATCHES_PATH), () =>
+        HttpResponse.json({
+          data: [
+            {
+              contract_id: 91,
+              student_id: 1,
+              student_name: 'Pedro Silva',
+              payer: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
+              monthly_amount_cents: 85_000,
+              due_day: 10,
+              already_charged: false,
+              without_contract: false,
+            },
+          ],
+          meta: { billing_period: '2026-09' },
+        }),
+      ),
+      http.post(apiUrl(BATCHES_PATH), () =>
+        HttpResponse.json(
+          {
+            data: {
+              created_charges: [],
+              created_count: 1,
+              skipped_contract_ids: [93, 94],
+              ineligible_contract_ids: [95],
+              contract_ids_without_payer: [96],
+            },
+          },
+          { status: 201 },
+        ),
+      ),
+    );
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Emitir em massa' }));
+
+    const dialog = await screen.findByRole('dialog');
+
+    await user.click(await within(dialog).findByRole('button', { name: 'Emitir 1 boleto(s)' }));
+
+    expect(await screen.findByText(/1 boleto\(s\) gerado\(s\)/)).toBeInTheDocument();
+    expect(screen.getByText(/2 já tinha\(m\) cobrança nesta competência/)).toBeInTheDocument();
+    expect(screen.getByText(/1 contrato\(s\) não elegível\(is\) para cobrança/)).toBeInTheDocument();
+    expect(screen.getByText(/1 sem responsável financeiro/)).toBeInTheDocument();
+  });
+
   // One box over the payer's name and CPF: a secretary types what they have in front of them.
   it('searches the listing by name or CPF, and filters by status', async () => {
     const requests: URL[] = [];
