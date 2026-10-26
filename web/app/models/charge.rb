@@ -35,6 +35,18 @@ class Charge < ApplicationRecord
 
   scope :open, -> { kept.where(status: %w[pending overdue]) }
   scope :one_off, -> { kept.where(kind: "one_off") }
+  scope :with_status, ->(statuses) { where(status: statuses) }
+  # Both bounds are inclusive and optional; a charge with no due date never matches a bound.
+  scope :due_between, lambda { |from = nil, to = nil|
+    relation = all
+    relation = relation.where(due_date: from..) if from
+    relation = relation.where(due_date: ..to) if to
+    relation
+  }
+  # Newest due date first; undated charges sink to the end instead of leading a descending list.
+  scope :by_due_date, lambda { |direction = :desc|
+    order(arel_table[:due_date].public_send(direction == :asc ? :asc : :desc).nulls_last, id: direction)
+  }
 
   def current_issuance
     charge_issuances.where.not(status: "cancelled").order(created_at: :desc).first
