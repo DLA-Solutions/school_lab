@@ -68,6 +68,7 @@ const Grades = () => {
   const [book, setBook] = useState<GradeBook | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [optionsError, setOptionsError] = useState('');
 
   // Held apart from the book: the input shows what was typed, the book holds what was saved.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -92,6 +93,8 @@ const Grades = () => {
     }
 
     const loadOptions = async () => {
+      setOptionsError('');
+
       try {
         const [classesResponse, subjectsResponse] = await Promise.all([
           listSchoolClasses(schoolId, { mine: isTeacher }),
@@ -99,14 +102,15 @@ const Grades = () => {
         ]);
         setClasses(classesResponse.data);
         setSubjects(subjectsResponse.data);
-      } catch {
+      } catch (err) {
         setClasses([]);
         setSubjects([]);
+        setOptionsError(err instanceof ApiError ? err.message : t('grades.optionsLoadError'));
       }
     };
 
     loadOptions();
-  }, [schoolId, isTeacher]);
+  }, [schoolId, isTeacher, t]);
 
   const load = useCallback(async () => {
     if (!schoolId || !classId || !subjectId) {
@@ -337,6 +341,7 @@ const Grades = () => {
         </TextField>
       </Stack>
 
+      {optionsError && <ErrorBanner message={optionsError} />}
       {error && <ErrorBanner message={error} />}
       {previewError && <ErrorBanner message={previewError} />}
 
