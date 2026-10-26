@@ -12,7 +12,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid';
-import { DataTable, EmptyState, ErrorBanner } from 'design-system';
+import { DataTable, EmptyState, ErrorBanner, SemanticChip } from 'design-system';
 import { ApiError } from 'services/api';
 import { createChargeBatch, listBillableContracts } from 'services/chargesApi';
 import { BillableContract, ChargeBatchResult } from 'types/charge';
@@ -29,6 +29,7 @@ interface ChargeBatchDialogProps {
   onIssued: (result: ChargeBatchResult) => void;
 }
 
+/** Keyed by student: a student without a contract has no `contract_id` to key the row by. */
 type BillableRow = BillableContract & { id: number };
 
 /**
@@ -37,7 +38,8 @@ type BillableRow = BillableContract & { id: number };
  * the period and, when the school wants every slip on the same day, a single due date.
  *
  * A contract the period already covers is shown but cannot be selected: billing it again would
- * hand the family a second boleto for the same month.
+ * hand the family a second boleto for the same month. The same goes for an enrolled student with
+ * no contract — listed so the school sees who is missing one, but there is nothing to bill.
  */
 /**
  * The school bills on the 5th, so that is where the batch starts — following the period rather
@@ -45,6 +47,9 @@ type BillableRow = BillableContract & { id: number };
  * whose 5th falls badly is a real case.
  */
 const fifthOf = (period: string) => `${period}-05`;
+
+/** Only a row with a contract the period has not billed yet can go into the batch. */
+const isBillable = (row: BillableContract) => !row.without_contract && !row.already_charged;
 
 const emptySelection = (): GridRowSelectionModel => ({
   type: 'include',
@@ -75,13 +80,12 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
 
     try {
       const data = await listBillableContracts(schoolId, period);
-      const mapped = data.map((row) => ({ ...row, id: row.contract_id }));
+      const mapped = data.map((row) => ({ ...row, id: row.student_id }));
       setRows(mapped);
-      // Everything the period does not cover yet starts ticked: billing the whole month is what
-      // this screen is for, and unticking a few is less work than ticking a hundred.
-      setSelected(
-        includeSelection(mapped.filter((row) => !row.already_charged).map((row) => row.contract_id)),
-      );
+      // Everything billable the period does not cover yet starts ticked: billing the whole month
+      // is what this screen is for, and unticking a few is less work than ticking a hundred.
+      // Students without a contract are never ticked — there is nothing to bill.
+      setSelected(includeSelection(mapped.filter(isBillable).map((row) => row.student_id)));
     } catch (err) {
       setRows([]);
       setSelected(emptySelection());
@@ -101,14 +105,29 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
     load();
   }, [open, load]);
 
-  const selectedIds = useMemo(() => selectionIds(selected), [selected]);
+  // The grid selects by student; what goes to the API is the contract of each ticked, billable row.
+  const selectedRows = useMemo(() => {
+    const studentIds = new Set(selectionIds(selected));
+
+    return rows.filter((row) => studentIds.has(row.student_id) && isBillable(row));
+  }, [rows, selected]);
+
+  const selectedIds = useMemo(
+    () =>
+      selectedRows
+        .map((row) => row.contract_id)
+        .filter((id): id is number => id !== null),
+    [selectedRows],
+  );
 
   const totalCents = useMemo(
-    () =>
-      rows
-        .filter((row) => selectedIds.includes(row.contract_id))
-        .reduce((sum, row) => sum + row.monthly_amount_cents, 0),
-    [rows, selectedIds],
+    () => selectedRows.reduce((sum, row) => sum + (row.monthly_amount_cents ?? 0), 0),
+    [selectedRows],
+  );
+
+  const withoutContractCount = useMemo(
+    () => rows.filter((row) => row.without_contract).length,
+    [rows],
   );
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -152,7 +171,12 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         minWidth: 140,
         renderCell: ({ row }: GridRenderCellParams<BillableRow>) => (
           <>
-            <Typography variant="body2">{row.student_name ?? '—'}</Typography>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography variant="body2">{row.student_name || '—'}</Typography>
+              {row.without_contract && (
+                <SemanticChip variant="warning" label={t('charges.batch.withoutContract')} />
+              )}
+            </Stack>
             {row.already_charged && (
               <Typography variant="caption" color="text.secondary" display="block">
                 {t('charges.batch.alreadyBilled')}
@@ -168,7 +192,11 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         minWidth: 160,
         sortable: false,
         renderCell: ({ row }: GridRenderCellParams<BillableRow>) =>
-          row.payer ? (
+          row.without_contract ? (
+            <Typography variant="body2" color="text.secondary">
+              —
+            </Typography>
+          ) : row.payer ? (
             <>
               <Typography variant="body2">{row.payer.name}</Typography>
               <Typography variant="caption" color="text.secondary" display="block">
@@ -188,7 +216,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         align: 'right',
         headerAlign: 'right',
         renderCell: ({ value }: GridRenderCellParams<BillableRow, number>) => (
-          <Typography variant="body2">{formatCents(value ?? 0)}</Typography>
+          <Typography variant="body2">{value == null ? '—' : formatCents(value)}</Typography>
         ),
       },
       {
@@ -197,8 +225,8 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         width: 100,
         align: 'right',
         headerAlign: 'right',
-        renderCell: ({ value }: GridRenderCellParams<BillableRow, number | null>) => (
-          <Typography variant="body2">{value ?? 10}</Typography>
+        renderCell: ({ row, value }: GridRenderCellParams<BillableRow, number | null>) => (
+          <Typography variant="body2">{row.without_contract ? '—' : (value ?? 10)}</Typography>
         ),
       },
     ],
@@ -266,7 +294,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                     disableRowSelectionOnClick
                     rowSelectionModel={selected}
                     onRowSelectionModelChange={setSelected}
-                    isRowSelectable={({ row }) => !row.already_charged}
+                    isRowSelectable={({ row }) => isBillable(row)}
                     hideFooter
                     density="compact"
                     localeText={{
@@ -280,6 +308,12 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                 </Box>
               )}
             </Grid>
+
+            {withoutContractCount > 0 && (
+              <Grid size={12}>
+                <Alert severity="warning">{t('charges.batch.withoutContractHint')}</Alert>
+              </Grid>
+            )}
 
             {selectedIds.length > 0 && (
               <Grid size={12}>

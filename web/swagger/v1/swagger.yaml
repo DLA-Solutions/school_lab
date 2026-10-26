@@ -6445,75 +6445,247 @@
       }
     },
     "/api/v1/schools/{school_id}/billing/charge_batches": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
       "get": {
-        "summary": "List charge batches",
+        "summary": "List what can be issued in one pass: one row per enrolled student",
         "tags": [
           "Billing"
         ],
-        "operationId": "api_v1_schools_billing_charge_batches_index",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "description": "One row per enrolled student (kept, status active), ordered by student name. A row carries the contract that stands for the child (active, signature not cancelled, window covering today else highest id) and the amount it bills. An enrolled student with no eligible contract appears with `without_contract: true`, `contract_id: null` and null payer/amount/due day; such a row is never billable.",
         "parameters": [
           {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
+            "name": "Authorization",
+            "in": "header",
             "schema": {
               "type": "string"
-            },
-            "description": "School the resource belongs to"
+            }
+          },
+          {
+            "name": "billing_period",
+            "in": "query",
+            "required": false,
+            "description": "YYYY-MM or a date; defaults to the current month",
+            "example": "2026-09",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "ok"
+            "description": "one row per enrolled student",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "contract_id",
+                          "student_id",
+                          "student_name",
+                          "payer",
+                          "monthly_amount_cents",
+                          "due_day",
+                          "already_charged",
+                          "without_contract"
+                        ],
+                        "properties": {
+                          "contract_id": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "student_id": {
+                            "type": "integer"
+                          },
+                          "student_name": {
+                            "type": "string"
+                          },
+                          "payer": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "cpf": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "monthly_amount_cents": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "due_day": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "already_charged": {
+                            "type": "boolean"
+                          },
+                          "without_contract": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "billing_period": {
+                          "type": "string",
+                          "example": "2026-09-01"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "not authenticated"
           },
-          "403": {
-            "description": "not allowed"
+          "422": {
+            "description": "invalid billing period"
           }
-        },
-        "x-generated": true,
+        }
+      },
+      "post": {
+        "summary": "Issue the selected contracts' boletos for a month",
+        "tags": [
+          "Billing"
+        ],
         "security": [
           {
             "bearer_auth": []
           }
-        ]
-      },
-      "post": {
-        "summary": "Create charge batches",
-        "tags": [
-          "Billing"
         ],
-        "operationId": "api_v1_schools_billing_charge_batches_create",
+        "description": "Bills only the standing contract of each enrolled student. `skipped_contract_ids` means the period already has a charge for that contract; `ineligible_contract_ids` are the school's contracts that may not be billed (student not enrolled, or not the contract standing for the child); `contract_ids_without_payer` have no guardian to name on the boleto.",
         "parameters": [
           {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
+            "name": "Authorization",
+            "in": "header",
             "schema": {
               "type": "string"
-            },
-            "description": "School the resource belongs to"
+            }
           }
         ],
         "responses": {
           "201": {
-            "description": "created"
+            "description": "charges created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "created_charges",
+                        "created_count",
+                        "skipped_contract_ids",
+                        "ineligible_contract_ids",
+                        "contract_ids_without_payer"
+                      ],
+                      "properties": {
+                        "created_charges": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "created_count": {
+                          "type": "integer"
+                        },
+                        "skipped_contract_ids": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        },
+                        "ineligible_contract_ids": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        },
+                        "contract_ids_without_payer": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "not authenticated"
           },
-          "403": {
-            "description": "not allowed"
+          "422": {
+            "description": "no contracts selected"
           }
         },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "contract_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "billing_period": {
+                    "type": "string",
+                    "example": "2026-09"
+                  },
+                  "due_date": {
+                    "type": "string",
+                    "format": "date",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "contract_ids",
+                  "billing_period"
+                ]
+              }
+            }
           }
-        ]
+        }
       }
     },
     "/api/v1/schools/{school_id}/billing/charge_generations": {

@@ -59,4 +59,79 @@ RSpec.describe Billing::BulkGenerateChargesService do
       expect(charge.applied_discounts).to be_empty
     end
   end
+
+  context "when a child has more than one active contract" do
+    let!(:newer_contract) do
+      create(:contract, school: school, student: student, billing_plan: billing_plan,
+                        payer_guardian: guardian, negotiated_amount_cents: 90_000, due_day: 10)
+    end
+
+    subject(:result) do
+      described_class.call(
+        school: school, contract_ids: [ contract.id, newer_contract.id ],
+        billing_period: billing_period, actor: create(:user)
+      )
+    end
+
+    it "raises one charge, on the contract that stands for the child, and reports the other as skipped" do
+      expect { result }.to change(Charge, :count).by(1)
+
+      expect(result.data.fetch(:created_charges).sole.contract_id).to eq(newer_contract.id)
+      expect(result.data.fetch(:created_charges).sole.total_amount_cents).to eq(90_000)
+      expect(result.data.fetch(:ineligible_contract_ids)).to eq([ contract.id ])
+      expect(result.data.fetch(:skipped_contract_ids)).to be_empty
+    end
+
+    it "bills nothing for a non-standing contract sent on its own" do
+      outcome = described_class.call(school: school, contract_ids: [ contract.id ],
+                                     billing_period: billing_period, actor: create(:user))
+
+      expect(outcome.data.fetch(:created_charges)).to be_empty
+      expect(outcome.data.fetch(:ineligible_contract_ids)).to eq([ contract.id ])
+      expect(outcome.data.fetch(:skipped_contract_ids)).to be_empty
+    end
+  end
+
+  context "when the student is no longer enrolled" do
+    it "does not bill a transferred student" do
+      student.update!(status: "transferred")
+
+      expect { result }.not_to change(Charge, :count)
+      expect(result.data.fetch(:ineligible_contract_ids)).to eq([ contract.id ])
+      expect(result.data.fetch(:skipped_contract_ids)).to be_empty
+    end
+
+    it "does not bill a discarded student" do
+      student.discard
+
+      expect { result }.not_to change(Charge, :count)
+      expect(result.data.fetch(:ineligible_contract_ids)).to eq([ contract.id ])
+    end
+  end
+
+  context "when a contract belongs to another school" do
+    it "neither bills nor reports it" do
+      other = create(:school)
+      foreign = create(:contract, school: other, student: create(:student, school: other),
+                                  billing_plan: create(:billing_plan, school: other))
+
+      outcome = described_class.call(school: school, contract_ids: [ foreign.id ],
+                                     billing_period: billing_period, actor: create(:user))
+
+      expect(outcome.data.fetch(:created_charges)).to be_empty
+      expect(outcome.data.fetch(:skipped_contract_ids)).to be_empty
+      expect(outcome.data.fetch(:ineligible_contract_ids)).to be_empty
+    end
+  end
+
+  context "when the period already has a charge for the contract" do
+    it "reports it as skipped, not ineligible" do
+      create(:charge, school: school, contract: contract, guardian: guardian,
+                      kind: "tuition", billing_period: Date.new(2026, 8, 1))
+
+      expect { result }.not_to change(Charge, :count)
+      expect(result.data.fetch(:skipped_contract_ids)).to eq([ contract.id ])
+      expect(result.data.fetch(:ineligible_contract_ids)).to be_empty
+    end
+  end
 end
