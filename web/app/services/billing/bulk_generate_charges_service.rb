@@ -3,6 +3,9 @@
 module Billing
   # Raises the month's tuition for a set of contracts the school picked by hand, at each
   # contract's own monthly amount, and hands every one of them to the bank in the same pass.
+  # Only the standing contract of an enrolled child is billed (`BulkBillableContracts`); any other
+  # id the client sends is reported as ineligible, so a child never gets two boletos. A contract
+  # the period already covers is reported as skipped — a different reason, a different list.
   #
   # `GenerateChargesService` sweeps every active contract on a schedule. This is the same work
   # driven from a screen: the school selects the contracts, names the period, and optionally
@@ -43,6 +46,7 @@ module Billing
           requested: contract_ids.size,
           created: created.size,
           skipped: skipped.size,
+          ineligible: ineligible_contract_ids.size,
           without_payer: without_payer.size,
           actor_id: actor&.id
         }.to_json
@@ -52,6 +56,7 @@ module Billing
         data: {
           created_charges: created,
           skipped_contract_ids: skipped,
+          ineligible_contract_ids: ineligible_contract_ids,
           contract_ids_without_payer: without_payer
         }
       )
@@ -61,12 +66,24 @@ module Billing
 
     attr_reader :school, :contract_ids, :billing_period, :due_date, :actor
 
+    # Only what the screen would have offered: the standing contract of each enrolled child.
+    def billable_contracts
+      @billable_contracts ||= Billing::BulkBillableContracts.for(school.contracts)
+    end
+
+    # Ids the school's own contracts match but that may not be billed — a child no longer
+    # enrolled, or a contract that is not the one standing for its child (so two ids for the same
+    # child still raise one boleto). Ids that are not the school's are not echoed back.
+    def ineligible_contract_ids
+      @ineligible_contract_ids ||= school.contracts.where(id: contract_ids).pluck(:id) -
+                                   billable_contracts.where(id: contract_ids).pluck(:id)
+    end
+
     def contracts
       # `payer` walks the student's guardians, so they are preloaded rather than fetched per row.
-      @contracts ||= school.contracts.active
-                           .where(id: contract_ids)
-                           .includes(:billing_plan, :plan_discount, :payer_guardian,
-                                     student: { student_guardians: :guardian })
+      @contracts ||= billable_contracts.where(id: contract_ids)
+                                       .includes(:billing_plan, :plan_discount, :payer_guardian,
+                                                 student: { student_guardians: :guardian })
     end
 
     # The charge and its hand-off to the bank go together: a charge saved without an issuance
