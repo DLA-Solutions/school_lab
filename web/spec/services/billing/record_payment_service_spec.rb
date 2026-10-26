@@ -22,6 +22,27 @@ RSpec.describe Billing::RecordPaymentService do
     expect(result.data).to be_a(Payment)
   end
 
+  it "stamps the charge with the bank's payment time, not the processing time" do
+    described_class.call(charge: charge, remote_payment: remote_payment)
+
+    expect(charge.reload.paid_at).to eq(remote_payment.paid_at)
+  end
+
+  it "keeps the original paid_at when a later payment arrives for an already paid charge" do
+    described_class.call(charge: charge, remote_payment: remote_payment)
+    later = Gateways::BankSlip::ValueObjects::RemotePayment.new(
+      provider_payment_id: "txn-record-2",
+      paid_amount_cents: 100,
+      paid_at: Time.current.change(usec: 0),
+      payment_method: "pix"
+    )
+
+    result = described_class.call(charge: charge.reload, remote_payment: later)
+
+    expect(result).to be_success
+    expect(charge.reload.paid_at).to eq(remote_payment.paid_at)
+  end
+
   it "persists no payment when the charge cannot transition to paid" do
     cancelled_charge = create(:charge, :cancelled, school: school)
 

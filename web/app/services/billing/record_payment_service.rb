@@ -27,7 +27,7 @@ module Billing
           status: "confirmed"
         )
 
-        charge.pay! unless charge.paid?
+        settle_charge!(payment)
       end
 
       enqueue_service_invoice_if_enabled(payment)
@@ -40,6 +40,15 @@ module Billing
     private
 
     attr_reader :charge, :remote_payment
+
+    # AASM stamps `paid_at` with the moment we processed the webhook; the guardian should see the
+    # day the bank actually received the money, which can be earlier after an outage or retry.
+    def settle_charge!(payment)
+      return if charge.paid?
+
+      charge.pay!
+      charge.update!(paid_at: payment.paid_at) if payment.paid_at
+    end
 
     def enqueue_service_invoice_if_enabled(payment)
       settings = charge.school.school_fiscal_setting
