@@ -153,7 +153,7 @@ POST /api/v1/schools/:school_id/billing/charges/:id/reissue
 Workflow:
 
 1. Write `spec/requests/api/v1/*_spec.rb` with rswag DSL.
-2. Run `rake rswag:specs:swaggerize` → `swagger/v1/swagger.yaml`.
+2. Run `rake swagger:build` (swaggerize, then add an `x-generated` stub for every route no spec describes; `rake rswag:specs:swaggerize` alone drops the stubs and fails `spec/swagger_coverage_spec.rb`) → `swagger/v1/swagger.yaml`.
 3. Commit generated YAML; optional copy to `docs/api/` for review without running Rails.
 
 OpenAPI **tags** currently emitted in `swagger/v1/swagger.yaml`: `Auth`, `Backoffice`,

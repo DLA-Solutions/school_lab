@@ -51,7 +51,7 @@ Use during `review-api`. Check only what the diff touches.
 - [ ] New/changed endpoints have request specs under `spec/requests/api/v1/`
 - [ ] rswag blocks (`path`, `parameter`, `response`, `schema`) match actual behavior
 - [ ] OpenAPI tag is one of: `Auth`, `Me`, `Schools`, `Billing`, `People`, `Documents`, `Communication`, `Academic`, `Backoffice`
-- [ ] `swagger/v1/swagger.yaml` updated (or reviewer notes to run `rake rswag:specs:swaggerize`)
+- [ ] `swagger/v1/swagger.yaml` updated (or reviewer notes to run `rake swagger:build`)
 - [ ] Phase 2 skeleton routes return `501` if marked not implemented in domain doc
 
 ## Testing (request specs)

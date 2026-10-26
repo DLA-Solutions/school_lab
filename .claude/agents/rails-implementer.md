@@ -85,7 +85,7 @@ State transition (AASM):
 When implementation is complete:
 
 1. Run affected specs: `bundle exec rspec spec/<relevant paths>`
-2. If routes/responses changed: `rake rswag:specs:swaggerize`
+2. If routes/responses changed: `rake swagger:build`
 3. Fix style: `bundle exec rubocop -a` on changed files
 4. Confirm tenant isolation and authorization are covered in specs
 

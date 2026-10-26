@@ -41,7 +41,7 @@ School Lab verification layers for docs-driven delivery. Business rules are auth
 ## Definition of done (engineering)
 
 - Domain PRD acceptance criteria mapped to at least one automated spec where behaviour is shipped.
-- OpenAPI regenerated when routes change (`rake rswag:specs:swaggerize`).
+- OpenAPI regenerated when routes change (`rake swagger:build`).
 - DBML updated when schema changes (`docs/database/schema.dbml`).
 
 ## Related

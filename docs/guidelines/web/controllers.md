@@ -96,6 +96,6 @@ Minimum per endpoint:
 5. Invalid params → `422` with error payload
 6. Invalid state transition → `409` with stable `error.code` (e.g. `invalid_state_transition`)
 
-Run `rake rswag:specs:swaggerize` when routes or responses change; commit `swagger/v1/swagger.yaml`.
+Run `rake swagger:build` when routes or responses change; commit `swagger/v1/swagger.yaml`.
 
 See [`testing.md`](testing.md) for behavior-focused RSpec principles.

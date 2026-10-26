@@ -107,7 +107,7 @@ project-vs-official-doc conflicts found.
 - **Thin controllers** — parse params, `authorize`, call one service, render result.
 - **Services own business rules** — shared by the web SPA and mobile; return result objects.
 - **Pundit everywhere** — tenant (`school_id`) and family (`.../me/...`) isolation.
-- **Contract in request specs** — rswag metadata + behavior examples; run `rake rswag:specs:swaggerize`.
+- **Contract in request specs** — rswag metadata + behavior examples; run `rake swagger:build`.
 - **Error envelope** — `{ error: { code, message, details } }` with documented HTTP codes.
 - **English in code**, pt-BR only via i18n (`Accept-Language`).
 

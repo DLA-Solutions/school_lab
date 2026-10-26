@@ -46,4 +46,4 @@ Full guide: `docs/guidelines/web/controllers.md`. Rule: `web-rails`.
 
 - **rswag request specs** in `spec/requests/api/v1/` — not controller specs.
 - Always cover: authentication (`401`), authorization (`403` / cross-tenant `404`), valid and invalid params (`422`), invalid state transition (`409`).
-- Run `rake rswag:specs:swaggerize` when routes or responses change.
+- Run `rake swagger:build` when routes or responses change.

@@ -15,7 +15,7 @@ Rule: `.cursor/rules/web/testing-rspec.mdc`. Skill: `write-rspec-spec`.
 | Service | `spec/services/` | Input → result; persisted side effects |
 | Policy | `spec/policies/` | Permission by role and context |
 | Request / API | `spec/requests/` | HTTP status, JSON shape, auth, `school_id` isolation |
-| OpenAPI | rswag blocks inside request specs | Contract documentation via `rake rswag:specs:swaggerize` |
+| OpenAPI | rswag blocks inside request specs | Contract documentation via `rake swagger:build` |
 
 Factories live in `spec/factories/` (FactoryBot). Prefer `create` / `build` with real
 records over stubbed collaborators.
