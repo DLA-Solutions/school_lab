@@ -644,9 +644,19 @@ const ptBR = {
   'myCharges.detail.title': 'Detalhes do boleto',
   'myCharges.payment.title': 'Como pagar',
   'myCharges.payment.previewBoleto': 'Ver boleto',
+  'myCharges.payment.previewBoletoPdf': 'Ver boleto (PDF)',
   'myCharges.payment.pix': 'Pix copia e cola',
   'myCharges.payment.copyPix': 'Copiar código Pix',
   'myCharges.payment.pixCopied': 'Código Pix copiado',
+  'myCharges.payment.digitableLine': 'Linha digitável',
+  'myCharges.payment.copyDigitableLine': 'Copiar linha digitável',
+  'myCharges.payment.digitableLineCopied': 'Linha digitável copiada',
+  'myCharges.payment.generating.title': 'Estamos gerando o seu boleto',
+  'myCharges.payment.generating.description':
+    'O banco está registrando o boleto. O Pix e a linha digitável aparecem aqui assim que ficarem prontos — esta tela atualiza sozinha.',
+  'myCharges.payment.generating.stalled':
+    'O boleto ainda não ficou pronto no banco. Isso pode levar alguns minutos.',
+  'myCharges.payment.generating.checkAgain': 'Verificar de novo',
   'myCharges.payment.unavailable':
     'As formas de pagamento ainda não estão disponíveis para esta cobrança.',
   'myCharges.reissue': 'Segunda via',
@@ -654,6 +664,7 @@ const ptBR = {
   'myCharges.reissueSuccess': 'Segunda via emitida. Use o novo boleto ou código Pix acima.',
   'myCharges.reissueError': 'Não foi possível emitir a segunda via.',
   'myCharges.pixCopyError': 'Não foi possível copiar o código Pix.',
+  'myCharges.digitableLineCopyError': 'Não foi possível copiar a linha digitável.',
   'myCharges.noAccess.description': 'Você não tem acesso aos boletos desta escola.',
   'myCharges.empty.title': 'Nenhum boleto ainda',
   'myCharges.empty.description':
