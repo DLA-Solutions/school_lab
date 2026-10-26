@@ -10,7 +10,7 @@ module Api
           def index
             authorize Charge
 
-            scope = filter_charges_by_student(policy_scope(Charge).includes(contract: :student))
+            scope = filter_charges_by_student(policy_scope(Charge).includes(:charge_issuances, contract: :student))
             result = ::Billing::FilterGuardianChargesService.call(scope: scope, params: list_filter_params)
             render_service_result(result) do |charges|
               pagy, records = pagy(charges)
@@ -39,7 +39,7 @@ module Api
           end
 
           def show
-            charge = policy_scope(Charge).includes(contract: :student).find(params[:id])
+            charge = policy_scope(Charge).includes(:charge_issuances, contract: :student).find(params[:id])
             authorize charge
 
             render json: { data: ChargeBlueprint.render_as_hash(charge, view: :guardian) }

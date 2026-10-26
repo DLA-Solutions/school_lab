@@ -48,8 +48,20 @@ class Charge < ApplicationRecord
     order(arel_table[:due_date].public_send(direction == :asc ? :asc : :desc).nulls_last, id: direction)
   }
 
+  # Reads the preloaded association when a list eager-loaded `:charge_issuances`, so rendering
+  # many charges does not run one query each; otherwise asks the database.
   def current_issuance
-    charge_issuances.where.not(status: "cancelled").order(created_at: :desc).first
+    if charge_issuances.loaded?
+      charge_issuances.reject(&:cancelled?).max_by { |issuance| [ issuance.created_at, issuance.id ] }
+    else
+      charge_issuances.where.not(status: "cancelled").order(created_at: :desc).first
+    end
+  end
+
+  # A boleto PDF can be served only while the charge is still payable and its current issuance
+  # has a registered boleto at a provider that serves PDFs (see ChargeIssuance#boleto_pdf_available?).
+  def boleto_pdf_available?
+    kept? && (pending? || overdue?) && (current_issuance&.boleto_pdf_available? || false)
   end
 
   def sync_invoice_cache!
