@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "base64"
 require "uri"
 
 module SchoolLab
@@ -10,6 +11,9 @@ module SchoolLab
         # request is scoped explicitly — a token minted without these scopes is accepted by the
         # token endpoint but rejected by the cobrança endpoints with 403.
         SCOPE = "boleto-cobranca.read boleto-cobranca.write"
+
+        COBRANCAS_PATH = "/cobranca/v3/cobrancas"
+        PDF_MAGIC = "%PDF"
 
         def initialize(client_id:, client_secret:, certificate_pem:, private_key_pem:, token_cache:,
                        billing_urls: Configuration.current)
@@ -31,6 +35,20 @@ module SchoolLab
 
         def delete(path)
           request(:delete, path)
+        end
+
+        # `GET /cobranca/v3/cobrancas/{codigoSolicitacao}/pdf` (needs `boleto-cobranca.read`, already
+        # in SCOPE). Returns the boleto PDF as a binary String.
+        #
+        # The documented shape is a JSON object carrying the PDF as base64 under `pdf`
+        # (cross-checked against an independent reverse-engineered client only — the official
+        # developers.inter.co reference renders client-side; see docs/open-questions.md). The raw
+        # PDF body is accepted too, so a provider-side change to a plain `application/pdf`
+        # response does not break the guardian preview. Anything else, or bytes that are not a PDF,
+        # raise UnexpectedResponseError rather than serve garbage to a guardian.
+        def boleto_pdf(codigo_solicitacao)
+          body = get("#{COBRANCAS_PATH}/#{ERB::Util.url_encode(codigo_solicitacao.to_s)}/pdf")
+          decode_pdf(body)
         end
 
         private
@@ -143,6 +161,19 @@ module SchoolLab
           else
             raise UnexpectedResponseError, "Unexpected provider response (#{code})"
           end
+        end
+
+        def decode_pdf(body)
+          bytes = body.to_s.b
+          return bytes if bytes.start_with?(PDF_MAGIC)
+
+          encoded = JSON.parse(body).fetch("pdf").to_s.gsub(/\s+/, "")
+          decoded = Base64.strict_decode64(encoded)
+          return decoded if decoded.start_with?(PDF_MAGIC)
+
+          raise UnexpectedResponseError, "Provider returned a boleto document that is not a PDF"
+        rescue JSON::ParserError, KeyError, ArgumentError, TypeError
+          raise UnexpectedResponseError, "Invalid boleto PDF response from provider"
         end
 
         def safe_error_body(body)
