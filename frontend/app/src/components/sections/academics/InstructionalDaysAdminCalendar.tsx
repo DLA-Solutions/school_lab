@@ -135,8 +135,6 @@ const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDa
   );
 
   const handleDayClick = (day: Dayjs) => {
-    // eslint-disable-next-line no-console
-    console.log('handleDayClick', day.format('YYYY-MM-DD'), 'canManage', canManage);
     if (!canManage) {
       return;
     }
@@ -145,8 +143,6 @@ const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDa
     setSavedNotice('');
     setPending((current) => {
       const next = { ...current, [key]: !dayValue(key) };
-      // eslint-disable-next-line no-console
-      console.log('setPending', next);
       return next;
     });
   };
@@ -180,8 +176,6 @@ const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDa
     (props: PickersDayProps) => {
       const { day, disabled, outsideCurrentMonth, ...other } = props;
       const instructional = dayValue(day.format('YYYY-MM-DD'));
-      // eslint-disable-next-line no-console
-      console.log('AdminDay props keys', day.format('D'), Object.keys(other));
 
       return (
         <PickersDay
