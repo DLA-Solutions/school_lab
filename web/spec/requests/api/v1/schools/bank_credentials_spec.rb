@@ -97,19 +97,20 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
               },
               client_secret: {
                 type: :string,
-                description: "Client secret issued by the provider, when its OAuth flow needs one. " \
-                             "Not required by any provider the API currently accepts (cora); accepted " \
-                             "and passed through harmlessly if sent."
+                description: "Client secret issued by the provider. Required for inter (422 " \
+                             "validation_error with details.client_secret when missing); not used by " \
+                             "cora, which accepts and stores it harmlessly if sent. Never returned by " \
+                             "the API."
               },
               certificate: {
                 type: :string,
                 format: :binary,
-                description: "mTLS client certificate, PEM encoded"
+                description: "mTLS client certificate, PEM encoded (for inter, the .crt file issued by the bank)"
               },
               private_key: {
                 type: :string,
                 format: :binary,
-                description: "Private key matching the certificate, PEM encoded"
+                description: "Private key matching the certificate, PEM encoded (for inter, the .key file issued by the bank)"
               }
             }
           }
@@ -140,16 +141,20 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
       it "offers only the providers the API accepts" do
         published = upload_body.dig(:content, "multipart/form-data", :schema, :properties, :provider, :enum)
 
-        expect(published).to include("cora")
+        expect(published).to include("cora", "inter")
         expect(published).not_to include("fake")
       end
 
-      it "requires the credentials every offered provider needs" do
+      # The form marks required only what every offered provider needs; `client_secret` is
+      # provider-specific (inter) and is therefore documented as optional in the schema.
+      it "marks as required only the credentials every offered provider needs" do
         needed = Gateways::BankSlip::Registry::API_SELECTABLE_PROVIDERS.map do |provider|
           SchoolPaymentProvider::REQUIRED_CREDENTIALS.fetch(provider)
         end
+        common = needed.reduce(:&)
 
-        expect(needed.uniq).to eq([ %i[client_id certificate_pem private_key_pem] ])
+        expect(common).to match_array(%i[client_id certificate_pem private_key_pem])
+        expect(needed.flatten.uniq - common).to eq([ :client_secret ])
       end
 
       response "201", "valid certificate pair uploaded" do
@@ -169,9 +174,8 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
         end
       end
 
-      # `client_secret` is only needed by providers with an OAuth flow (e.g. inter, not yet
-      # API-selectable). Cora doesn't use it, so an upload that sends it anyway must still
-      # succeed and behave exactly like one that omits it — the field is accepted and ignored.
+      # `client_secret` is only needed by providers with an OAuth flow (inter). Cora doesn't
+      # use it, so an upload that sends it anyway must still succeed and behave exactly like one that omits it — the field is accepted and ignored.
       response "201", "accepts client_secret for a provider that doesn't need it" do
         let(:provider) { "cora" }
         let(:instrument) { "bank_slip" }
@@ -186,6 +190,59 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
           expect(body["active"]).to be(true)
           expect(body.keys).not_to include("client_secret")
           expect(SchoolPaymentProvider.find(body["id"]).client_secret).to eq("unused-secret-value")
+        end
+      end
+
+      response "201", "inter credentials uploaded with client_secret" do
+        let(:provider) { "inter" }
+        let(:instrument) { "bank_slip" }
+        let(:client_id) { "inter-client-001" }
+        let(:client_secret) { "inter-secret-001" }
+        let(:certificate) { uploaded_pem(pair[:certificate_pem], "inter.crt") }
+        let(:private_key) { uploaded_pem(pair[:private_key_pem], "inter.key") }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["provider"]).to eq("inter")
+          expect(body["active"]).to be(true)
+          expect(body.keys).not_to include("client_secret", "certificate_pem", "private_key_pem")
+          expect(response.body).not_to include("inter-secret-001")
+          expect(SchoolPaymentProvider.find(body["id"]).client_secret).to eq("inter-secret-001")
+        end
+      end
+
+      response "201", "inter replaces the active cora configuration" do
+        let(:provider) { "inter" }
+        let(:instrument) { "bank_slip" }
+        let(:client_id) { "inter-client-001" }
+        let(:client_secret) { "inter-secret-001" }
+        let(:certificate) { uploaded_pem(pair[:certificate_pem], "inter.crt") }
+        let(:private_key) { uploaded_pem(pair[:private_key_pem], "inter.key") }
+        let!(:cora) { create(:school_payment_provider, :cora, :active, school: school) }
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          active = SchoolPaymentProvider.where(school: school, instrument: "bank_slip").active
+
+          expect(body["provider"]).to eq("inter")
+          expect(active.pluck(:id)).to eq([ body["id"] ])
+          expect(cora.reload).not_to be_active
+        end
+      end
+
+      response "422", "inter without client_secret" do
+        let(:provider) { "inter" }
+        let(:instrument) { "bank_slip" }
+        let(:client_id) { "inter-client-001" }
+        let(:certificate) { uploaded_pem(pair[:certificate_pem], "inter.crt") }
+        let(:private_key) { uploaded_pem(pair[:private_key_pem], "inter.key") }
+        let!(:cora) { create(:school_payment_provider, :cora, :active, school: school) }
+
+        run_test! do |response|
+          body = JSON.parse(response.body)
+          expect(body.dig("error", "code")).to eq("validation_error")
+          expect(body.dig("error", "details")).to have_key("client_secret")
+          expect(cora.reload).to be_active
         end
       end
 
@@ -286,6 +343,84 @@ RSpec.describe "Api::V1::Schools::BankCredentials", type: :request do
 
         run_test!
       end
+    end
+  end
+
+  # Who may upload Inter credentials: the school owner and a director (both hold manage_billing),
+  # and nobody else in the school.
+  describe "inter upload by role" do
+    let(:school_params) do
+      lambda do |name|
+        {
+          provider: "inter", instrument: "bank_slip", client_id: "inter-client-001",
+          client_secret: "inter-secret-001",
+          certificate: uploaded_pem(pair[:certificate_pem], "#{name}.crt"),
+          private_key: uploaded_pem(pair[:private_key_pem], "#{name}.key")
+        }
+      end
+    end
+
+    def upload_as(user, target_school: school)
+      post "/api/v1/schools/#{target_school.id}/bank_credentials",
+           params: school_params.call("inter"), headers: auth_headers_for(user)
+    end
+
+    it "lets the school owner upload" do
+      upload_as(school_admin)
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig("data", "provider")).to eq("inter")
+      expect(SchoolPaymentProvider.last.uploaded_by_id).to eq(school_admin.id)
+    end
+
+    it "lets a director (non-owner staff) upload" do
+      director = create(:user)
+      create(:membership, :director, user: director, school: school)
+
+      upload_as(director)
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig("data", "active")).to be(true)
+    end
+
+    it "refuses a secretary" do
+      secretary = create(:user)
+      membership = create(:membership, :staff, user: secretary, school: school)
+      template = create_system_templates_for(school).find { |t| t.system_key == "secretary" }
+      create(:staff_profile, membership: membership, school: school, role_template: template)
+
+      expect { upload_as(secretary) }.not_to change(SchoolPaymentProvider, :count)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "refuses a teacher" do
+      expect { upload_as(teacher_user) }.not_to change(SchoolPaymentProvider, :count)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "refuses a guardian" do
+      expect { upload_as(guardian_user) }.not_to change(SchoolPaymentProvider, :count)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "answers 404 for a school that does not exist" do
+      post "/api/v1/schools/0/bank_credentials", params: school_params.call("inter"),
+                                                 headers: auth_headers_for(school_admin)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "does not let another school's owner upload for this school" do
+      other_school = create(:school)
+      other_owner = create(:user)
+      create(:membership, :school_admin, user: other_owner, school: other_school)
+
+      expect { upload_as(other_owner) }.not_to change(SchoolPaymentProvider, :count)
+
+      expect(response).to have_http_status(:forbidden)
     end
   end
 

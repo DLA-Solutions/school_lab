@@ -15,10 +15,9 @@ module Gateways
       # — seeds and factories create rows with it — but it reports success and fabricates a boleto
       # that collects nothing, so letting a caller point a school at it would silently stop that
       # school from being paid. Listed explicitly instead of derived from ADAPTERS: a new adapter
-      # is not offered to callers until someone decides it collects real money. `inter` is
-      # registered (credentials can be uploaded and validated) but deliberately not selectable
-      # yet — no go-live sign-off for this PR.
-      API_SELECTABLE_PROVIDERS = %w[cora].freeze
+      # is not offered to callers until someone decides it collects real money. `inter` was
+      # added once the school-facing credentials upload was requested explicitly.
+      API_SELECTABLE_PROVIDERS = %w[cora inter].freeze
 
       class UnknownProviderError < Gateways::BankSlip::Error; end
 

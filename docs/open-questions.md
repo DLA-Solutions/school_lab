@@ -229,10 +229,12 @@ in `docs/prds/fintech-first.md` (Open items).
       reminders are the bank's native behaviour until phase 2. **Future channel:** email via
       `Billing::CollectionReguaNotifier` and `notification_schedule`. WhatsApp/SMS out of
       MVP.
-- [x] **Banco Inter bank-slip adapter — registered, not yet go-live (Oct 2026):** second
-      `Gateways::BankSlip` adapter alongside Cora, added to `Registry::ADAPTERS` but
-      deliberately **not** added to `Registry::API_SELECTABLE_PROVIDERS` — no school may be
-      pointed at it yet; that is a one-line follow-up once sign-off happens. Implemented in
+- [x] **Banco Inter bank-slip adapter — credentials upload enabled (Oct 2026):** second
+      `Gateways::BankSlip` adapter alongside Cora, in `Registry::ADAPTERS`. Initially held back
+      from `Registry::API_SELECTABLE_PROVIDERS`; it was added there when school owners/directors
+      were asked to upload Inter credentials (`POST /bank_credentials`, `client_secret` required
+      for `inter`). Uploading supersedes the school's active bank-slip configuration, including
+      Cora. Implemented in
       `Gateways::BankSlip::Inter::Adapter` (`web/app/services/gateways/bank_slip/inter/`) and
       `SchoolLab::Integrations::Inter` (`web/lib/school_lab/integrations/inter/`).
   - **Asynchronous issuance (decided):** Inter's `POST /cobranca/v3/cobrancas` only returns
