@@ -34,8 +34,10 @@ import ChargeBatchDialog from 'components/sections/billing/charges/ChargeBatchDi
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { cancelCharge, createOneOffCharge, listCharges } from 'services/chargesApi';
+import { listBillingPurposes } from 'services/billingPurposesApi';
 import { listContracts } from 'services/contractsApi';
 import { listGuardians } from 'services/guardiansApi';
+import { BillingPurpose } from 'types/billingPurpose';
 import { Charge } from 'types/charge';
 import { Contract } from 'types/contract';
 import { Guardian } from 'types/guardian';
@@ -93,6 +95,30 @@ const formatDate = (value: string | null, locale: string) => {
   return locale === 'en-US' ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
 };
 
+/**
+ * The API answers a rejected form with `details` keyed by field (or `base` for the form as a
+ * whole), each holding a list of messages. `base` wins because it is about the whole charge; any
+ * field message beats the generic "invalid data" that comes with the envelope.
+ */
+const firstDetailMessage = (details: Record<string, unknown>): string | null => {
+  const firstOf = (value: unknown) =>
+    Array.isArray(value) && typeof value[0] === 'string' ? value[0] : null;
+
+  const base = firstOf(details.base);
+  if (base) {
+    return base;
+  }
+
+  for (const value of Object.values(details)) {
+    const message = firstOf(value);
+    if (message) {
+      return message;
+    }
+  }
+
+  return null;
+};
+
 /** Name and CPF in one line, which is how a payer is recognised in a list of them. */
 const guardianLabel = (guardian: Guardian) => `${guardian.name} — ${formatCpf(guardian.cpf)}`;
 
@@ -138,6 +164,10 @@ const Charges = () => {
   const [payer, setPayer] = useState<Guardian | null>(null);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [contractId, setContractId] = useState('');
+  const [purposes, setPurposes] = useState<BillingPurpose[]>([]);
+  const [purposesLoading, setPurposesLoading] = useState(false);
+  const [purposesError, setPurposesError] = useState(false);
+  const [purposeId, setPurposeId] = useState('');
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [description, setDescription] = useState('');
@@ -249,6 +279,42 @@ const Charges = () => {
     };
   }, [schoolId, formOpen, debouncedPayerSearch]);
 
+  // What the charge is for is required by the API, so the options are fetched each time the form
+  // opens: a failed load would otherwise leave a form that can never be submitted.
+  useEffect(() => {
+    if (!schoolId || !formOpen) {
+      return;
+    }
+
+    let current = true;
+    setPurposesLoading(true);
+    setPurposesError(false);
+
+    const loadPurposes = async () => {
+      try {
+        const response = await listBillingPurposes(schoolId);
+        if (current) {
+          setPurposes(response);
+        }
+      } catch {
+        if (current) {
+          setPurposes([]);
+          setPurposesError(true);
+        }
+      } finally {
+        if (current) {
+          setPurposesLoading(false);
+        }
+      }
+    };
+
+    loadPurposes();
+
+    return () => {
+      current = false;
+    };
+  }, [schoolId, formOpen]);
+
   // Their contracts are what a charge can hang off; a payer with none can still be billed.
   useEffect(() => {
     if (!schoolId || !payer) {
@@ -272,6 +338,7 @@ const Charges = () => {
     setPayerSearch('');
     setPayer(null);
     setContractId('');
+    setPurposeId('');
     setAmount('');
     setDueDate('');
     setDescription('');
@@ -292,6 +359,10 @@ const Charges = () => {
       setFormError(t('charges.form.payerRequired'));
       return;
     }
+    if (!purposeId) {
+      setFormError(t('charges.form.purposeRequired'));
+      return;
+    }
     if (!cents) {
       setFormError(t('charges.form.amountRequired'));
       return;
@@ -308,6 +379,7 @@ const Charges = () => {
       const created = await createOneOffCharge(schoolId, {
         guardian_id: payer.id,
         contract_id: contractId ? Number(contractId) : null,
+        billing_purpose_id: Number(purposeId),
         total_amount_cents: cents,
         due_date: dueDate,
         description: description.trim() || null,
@@ -321,8 +393,7 @@ const Charges = () => {
       load();
     } catch (err) {
       if (err instanceof ApiError) {
-        const base = err.details.base;
-        setFormError(Array.isArray(base) && typeof base[0] === 'string' ? base[0] : err.message);
+        setFormError(firstDetailMessage(err.details) ?? err.message);
       } else {
         setFormError(t('charges.form.error'));
       }
@@ -660,6 +731,35 @@ const Charges = () => {
                         student: contract.student_name ?? `#${contract.id}`,
                         amount: formatCents(contract.negotiated_amount_cents),
                       })}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid size={12}>
+                {/* Required by the API: it records what the boleto is for, and later decides
+                    whether it counts on a tax declaration. */}
+                <TextField
+                  id="charge-purpose"
+                  label={t('charges.form.purpose')}
+                  value={purposeId}
+                  onChange={(e) => setPurposeId(e.target.value)}
+                  variant="filled"
+                  select
+                  fullWidth
+                  required
+                  disabled={purposesLoading || purposesError}
+                  error={purposesError}
+                  helperText={
+                    purposesError
+                      ? t('charges.form.purposeLoadError')
+                      : purposesLoading
+                        ? t('charges.form.purposeLoading')
+                        : ' '
+                  }
+                >
+                  {purposes.map((purpose) => (
+                    <MenuItem key={purpose.id} value={String(purpose.id)}>
+                      {purpose.name}
                     </MenuItem>
                   ))}
                 </TextField>
