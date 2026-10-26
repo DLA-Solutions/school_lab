@@ -20,4 +20,4 @@ Full guide: `docs/guidelines/web/serializers.md`. API: `docs/api/README.md`. Rul
 
 ## Testing
 
-- rswag request specs are the contract; run `rake rswag:specs:swaggerize` when shape changes.
+- rswag request specs are the contract; run `rake swagger:build` when shape changes.

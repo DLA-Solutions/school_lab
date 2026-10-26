@@ -36,7 +36,7 @@ and architecture) — it does not repeat it.
 
 ## Cross-cutting
 
-- **API docs** — rswag request specs; `rake rswag:specs:swaggerize`.
+- **API docs** — rswag request specs; `rake swagger:build`.
 - **i18n** — keys in English, strings in `config/locales/pt-BR.yml`; no hardcoded Portuguese.
 - **Design principles** — `docs/guidelines/process/design-principles.md`; rule `design-principles`.
 

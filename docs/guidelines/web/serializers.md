@@ -85,7 +85,7 @@ Error responses use the standard envelope — **not** blueprints:
 
 - **Request specs (rswag)** are the contract test — assert JSON keys and types in response.
 - Do not unit-test blueprints in isolation unless a view has non-trivial formatting logic.
-- When routes or response shape change, run `rake rswag:specs:swaggerize` and commit OpenAPI.
+- When routes or response shape change, run `rake swagger:build` and commit OpenAPI.
 
 ## Anti-patterns
 
