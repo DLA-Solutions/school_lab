@@ -368,6 +368,20 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
         end
       end
 
+      response "404", "a guardian of another school cannot list this school's charges" do
+        let(:status) { "all" }
+        let(:other_school) { create(:school) }
+        let(:outsider_user) { create(:user) }
+        let!(:outsider_membership) { create(:membership, user: outsider_user, school: other_school, role: "guardian") }
+        let!(:outsider) { create(:guardian, school: other_school, user: outsider_user) }
+        let!(:charge) { create(:charge, :paid, school: school, contract: contract, guardian: guardian) }
+        let(:Authorization) { auth_headers_for(outsider_user)["Authorization"] }
+
+        run_test! do |response|
+          expect(response.body).not_to include(charge.id.to_s)
+        end
+      end
+
       response "404", "unlinked student_id filter" do
         let(:student_id) { unlinked_student.id }
 
