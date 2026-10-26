@@ -668,6 +668,7 @@ const ptBR = {
   'myCharges.filter.mode.range': 'Período',
   'myCharges.filter.month': 'Mês',
   'myCharges.filter.allMonths': 'Todos os meses',
+  'myCharges.filter.monthNeedsYear': 'Escolha um ano para filtrar por mês.',
   'myCharges.filter.allYears': 'Todos os anos',
   'myCharges.filter.rangeInvalid': 'A data inicial não pode ser depois da data final.',
   'myCharges.filter.clear': 'Limpar filtros',

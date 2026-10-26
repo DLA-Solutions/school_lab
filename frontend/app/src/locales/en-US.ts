@@ -661,6 +661,7 @@ const enUS: Messages = {
   'myCharges.filter.mode.range': 'Period',
   'myCharges.filter.month': 'Month',
   'myCharges.filter.allMonths': 'All months',
+  'myCharges.filter.monthNeedsYear': 'Choose a year to filter by month.',
   'myCharges.filter.allYears': 'All years',
   'myCharges.filter.rangeInvalid': 'The start date cannot be after the end date.',
   'myCharges.filter.clear': 'Clear filters',
