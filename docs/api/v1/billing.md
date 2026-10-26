@@ -45,6 +45,7 @@ See [`fintech-first.md`](fintech-first.md) for request/response examples:
 
 - `GET/POST /schools/:id/billing/charges`
 - `POST /billing/charges/:id/issue`, `/reissue`, `/cancel`
+- `GET/POST /schools/:id/billing/charge_batches` — bulk issuance, see [Bulk issuance](#bulk-issuance-charge_batches-implemented)
 - `GET /billing/summary`
 - `GET /schools/:id/me/charges` (guardian) — unified list, see [Guardian charges list](#guardian-charges-list-implemented)
 - `school_payment_providers`, `school_billing_settings`
@@ -307,6 +308,89 @@ after scholarships (bolsa), discount bands and negotiated amounts, in integer ce
 | `punctuality_value` | `punctuality_total_monthly_cents / students`; `0` with no students |
 | `punctuality_percent` | The percentage actually applied: the school's `school_billing_settings.early_payment_discount_percent`, **or 10.0 when the school has not configured one** (platform default, `SchoolBillingSettings::DEFAULT_EARLY_PAYMENT_DISCOUNT_PERCENT`) |
 | `previous`, `change_percent`, `is_up` | Contracts have no history, so `previous` is the average tuition **charged** per contract in the month before the reference month when that month has tuition charges, and equal to `value` (0%, `is_up: true`) otherwise. `change_percent` is `0.0` when `previous` is `0` |
+
+---
+
+## Bulk issuance (`charge_batches`, implemented)
+
+The "emissão em massa" screen: the school picks which children to bill for a month and issues
+the boletos in one pass. Roles: whoever may `generate` charges (school staff); wrong role `403`,
+no token `401`. Tenancy is per school — another school's contracts and students never appear.
+
+**One boleto per child.** Both endpoints share `Billing::BulkBillableContracts`: only students
+that are enrolled (`discarded_at IS NULL` and `status = "active"`) are offered, each with the single
+contract chosen by `Billing::ExpectedTuitionContracts` (active, signature not `cancelled`; the one
+whose `starts_on..ends_on` covers today, else the highest id). Reissues, renewals and duplicates
+never produce a second row or a second boleto.
+
+### `GET /api/v1/schools/:school_id/billing/charge_batches?billing_period=YYYY-MM`
+
+`billing_period` defaults to the current month; invalid values return `422`. Rows are ordered by
+student name (case-insensitive).
+
+```json
+{
+  "data": [
+    {
+      "contract_id": 41,
+      "student_id": 12,
+      "student_name": "Ana Souza",
+      "payer": { "id": 7, "name": "Maria Silva", "cpf": "12345678909" },
+      "monthly_amount_cents": 85000,
+      "due_day": 10,
+      "already_charged": false,
+      "without_contract": false
+    },
+    {
+      "contract_id": null,
+      "student_id": 19,
+      "student_name": "Bruno Lima",
+      "payer": null,
+      "monthly_amount_cents": null,
+      "due_day": null,
+      "already_charged": false,
+      "without_contract": true
+    }
+  ],
+  "meta": { "billing_period": "2026-09-01" }
+}
+```
+
+- `monthly_amount_cents` is the contract's own amount (`negotiated_amount_cents`, else the plan's
+  `base_amount_cents`, else `0`).
+- `already_charged` is `true` when the chosen contract already has a tuition charge for the period
+  (the row is shown but must not be selected).
+- `without_contract: true` marks an **enrolled student with no eligible contract** (none active, or
+  only cancelled-signature ones). The row exists so the school notices the gap; it has no
+  `contract_id` and can never be billed.
+- Students who are transferred, not `active` or discarded are never listed.
+
+### `POST /api/v1/schools/:school_id/billing/charge_batches`
+
+Body: `{ "contract_ids": [41], "billing_period": "2026-09", "due_date": "2026-09-20" }`
+(`due_date` optional; without it each contract's `due_day` applies). Empty `contract_ids` or an
+invalid period returns `422`. Response `201`:
+
+```json
+{
+  "data": {
+    "created_charges": [ { "id": 301, "...": "ChargeBlueprint" } ],
+    "created_count": 1,
+    "skipped_contract_ids": [],
+    "ineligible_contract_ids": [],
+    "contract_ids_without_payer": []
+  }
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `skipped_contract_ids` | Billable contracts whose period already has a charge (idempotent re-run / concurrent operator) |
+| `ineligible_contract_ids` | The school's contracts that may not be billed: student not enrolled, or not the contract standing for the child. At most one contract per child is ever billed, even if several ids are sent |
+| `contract_ids_without_payer` | Billable contracts with no guardian to name on the boleto |
+
+Ids that do not belong to the school are ignored and not echoed in any list. `ineligible_contract_ids`
+was added after the first release; before it, ids now reported here were silently dropped.
 
 ---
 
