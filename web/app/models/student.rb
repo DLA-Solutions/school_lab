@@ -30,6 +30,9 @@ class Student < ApplicationRecord
 
   validates :name, presence: true
   validates :status, inclusion: { in: STATUSES }
+
+  # The class-level twin of `#enrolled?`: on the roll and not transferred out.
+  scope :enrolled, -> { kept.where(status: "active") }
   validates :birth_date, presence: true
   # RG is optional: not every family has one to hand at enrolment, and the document a school
   # actually identifies a student by is the CPF. Contracts that interpolate `{{aluno.rg}}` render
