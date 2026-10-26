@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import {
@@ -405,6 +405,8 @@ describe('MyCharges', () => {
             payment_methods: {
               boleto_url: `${charge?.payment_methods.boleto_url}?reissued=1`,
               pix_copy_paste: `${charge?.payment_methods.pix_copy_paste}-reissued`,
+              digitable_line: charge?.payment_methods.digitable_line,
+              boleto_pdf_available: false,
             },
           },
         });
@@ -549,5 +551,394 @@ describe('MyCharges', () => {
 
     expect(await screen.findByRole('button', { name: /baixar nfs-e/i })).toBeInTheDocument();
     expect(invoicePages).toEqual(['1', '2']);
+  });
+});
+
+const PIX = '00020126580014br.gov.bcb.pix0000000000';
+const LINE = '23793.38128 60000.000003 00000.000400 1 93480000085000';
+
+/** Banco Inter's side of the contract: no hosted link, the PDF only through the API. */
+const interMethods = {
+  boleto_url: null,
+  pix_copy_paste: PIX,
+  digitable_line: LINE,
+  boleto_pdf_available: true,
+};
+
+const nothingYet = {
+  boleto_url: null,
+  pix_copy_paste: null,
+  digitable_line: null,
+  boleto_pdf_available: false,
+};
+
+const POLL_MS = 20_000;
+const POLL_CAP = 30;
+
+describe('MyCharges payment methods', () => {
+  const objectUrls: Blob[] = [];
+  const detailRequests: string[] = [];
+  const pdfRequests: Headers[] = [];
+
+  /** The detail of charge 101 as the API would answer it, whatever it holds. */
+  const answerDetailWith = (paymentMethods: Record<string, unknown>, status = 'pending') =>
+    server.use(
+      http.get(apiUrl(`${BASE}/charges/:id`), ({ params }) => {
+        detailRequests.push(String(params.id));
+
+        return HttpResponse.json({
+          data: { ...myOpenCharges[0], status, payment_methods: paymentMethods },
+        });
+      }),
+    );
+
+  let unmountPage: () => void = () => {};
+
+  const openFirstDetail = async () => {
+    ({ unmount: unmountPage } = renderPage());
+
+    await screen.findAllByText('R$ 850,00');
+    await user.click(screen.getAllByRole('button', { name: /ver e pagar/i })[0]);
+
+    return screen.findByRole('dialog');
+  };
+
+  const answerPdfWith = (response: () => Response) =>
+    server.use(
+      http.get(apiUrl(`${BASE}/charges/:id/boleto_pdf`), ({ request }) => {
+        pdfRequests.push(request.headers);
+
+        return response();
+      }),
+    );
+
+  const pdfResponse = () =>
+    new HttpResponse('%PDF-1.4', { headers: { 'Content-Type': 'application/pdf' } });
+
+  beforeEach(() => {
+    objectUrls.length = 0;
+    detailRequests.length = 0;
+    pdfRequests.length = 0;
+
+    // jsdom has no object URLs; the frame is pointed at one and a download is a click on one.
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: (blob: Blob) => {
+        objectUrls.push(blob);
+        return `blob:mock/${objectUrls.length}`;
+      },
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  describe('copying what to pay with', () => {
+    it('shows the Pix code and the linha digitavel, each with its own copy button', async () => {
+      answerDetailWith(interMethods);
+      const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
+      const dialog = await openFirstDetail();
+
+      expect(await within(dialog).findByText(PIX)).toBeInTheDocument();
+      expect(within(dialog).getByText('Linha digitável')).toBeInTheDocument();
+      expect(within(dialog).getByText(LINE)).toBeInTheDocument();
+
+      await user.click(within(dialog).getByRole('button', { name: 'Copiar código Pix' }));
+      expect(writeText).toHaveBeenLastCalledWith(PIX);
+      expect(
+        await within(dialog).findByRole('button', { name: 'Código Pix copiado' }),
+      ).toBeInTheDocument();
+
+      // The line goes to the clipboard exactly as it is shown, dots and spaces included.
+      await user.click(within(dialog).getByRole('button', { name: 'Copiar linha digitável' }));
+      expect(writeText).toHaveBeenLastCalledWith(LINE);
+      expect(
+        await within(dialog).findByRole('button', { name: 'Linha digitável copiada' }),
+      ).toBeInTheDocument();
+    });
+
+    it('says so when the clipboard refuses the linha digitavel', async () => {
+      answerDetailWith(interMethods);
+      vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('denied'));
+
+      const dialog = await openFirstDetail();
+      await user.click(await within(dialog).findByRole('button', { name: 'Copiar linha digitável' }));
+
+      expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+        'Não foi possível copiar a linha digitável.',
+      );
+    });
+
+    it('shows a linha digitavel without a Pix code, and the other way round', async () => {
+      answerDetailWith({ ...nothingYet, digitable_line: LINE });
+      const first = await openFirstDetail();
+
+      expect(await within(first).findByText(LINE)).toBeInTheDocument();
+      expect(within(first).queryByText('Pix copia e cola')).not.toBeInTheDocument();
+      expect(within(first).queryByText(/estamos gerando/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('the hosted boleto (Cora)', () => {
+    it('keeps the preview and the link out to the provider, without a PDF button', async () => {
+      answerDetailWith({ ...nothingYet, boleto_url: 'https://provider.example/boleto/101.pdf' });
+
+      const dialog = await openFirstDetail();
+
+      expect(await within(dialog).findByRole('button', { name: 'Ver boleto' })).toBeInTheDocument();
+      expect(within(dialog).getByRole('link', { name: 'Abrir' })).toHaveAttribute(
+        'href',
+        'https://provider.example/boleto/101.pdf',
+      );
+      expect(
+        within(dialog).queryByRole('button', { name: 'Ver boleto (PDF)' }),
+      ).not.toBeInTheDocument();
+      // A link is something to pay with: neither "being generated" nor "nothing to pay with".
+      expect(within(dialog).queryByText(/estamos gerando/i)).not.toBeInTheDocument();
+      expect(within(dialog).queryByText(/ainda não estão disponíveis/i)).not.toBeInTheDocument();
+    });
+
+    it('never asks the API for a PDF it does not have', async () => {
+      answerDetailWith({ ...nothingYet, boleto_url: 'https://provider.example/boleto/101.pdf' });
+      answerPdfWith(pdfResponse);
+
+      const dialog = await openFirstDetail();
+      await within(dialog).findByRole('button', { name: 'Ver boleto' });
+
+      expect(pdfRequests).toHaveLength(0);
+    });
+  });
+
+  describe('the boleto PDF (Banco Inter)', () => {
+    it('opens the PDF through the authenticated API, only once the guardian asks', async () => {
+      answerDetailWith(interMethods);
+      answerPdfWith(pdfResponse);
+
+      const dialog = await openFirstDetail();
+      const open = await within(dialog).findByRole('button', { name: 'Ver boleto (PDF)' });
+      expect(pdfRequests).toHaveLength(0);
+
+      await user.click(open);
+
+      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
+        'src',
+        'blob:mock/1',
+      );
+      expect(pdfRequests).toHaveLength(1);
+      // A bare frame could not send this; the fetch has to.
+      expect(pdfRequests[0].get('Authorization')).toBe('Bearer fresh-access-token');
+    });
+
+    it('downloads the file it drew without asking the bank again', async () => {
+      answerDetailWith(interMethods);
+      answerPdfWith(pdfResponse);
+      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      const dialog = await openFirstDetail();
+      await user.click(await within(dialog).findByRole('button', { name: 'Ver boleto (PDF)' }));
+      await screen.findByTitle('Pré-visualização do boleto');
+
+      await user.click(screen.getByRole('button', { name: 'Baixar PDF' }));
+
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(pdfRequests).toHaveLength(1);
+    });
+
+    it('does not offer the PDF while the API says it is not available', async () => {
+      answerDetailWith({ ...interMethods, boleto_pdf_available: false });
+
+      const dialog = await openFirstDetail();
+      await within(dialog).findByText(PIX);
+
+      expect(
+        within(dialog).queryByRole('button', { name: 'Ver boleto (PDF)' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('explains a 409 as not available and offers no retry', async () => {
+      answerDetailWith(interMethods);
+      answerPdfWith(() => jsonError(409, 'boleto_pdf_unavailable', 'indisponível'));
+
+      const dialog = await openFirstDetail();
+      await user.click(await within(dialog).findByRole('button', { name: 'Ver boleto (PDF)' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Este boleto não está disponível para visualização agora.',
+      );
+      expect(screen.queryByRole('button', { name: 'Tentar de novo' })).not.toBeInTheDocument();
+      expect(pdfRequests).toHaveLength(1);
+    });
+
+    it('reports a 502 from the bank without retrying on its own', async () => {
+      answerDetailWith(interMethods);
+      answerPdfWith(() => jsonError(502, 'boleto_pdf_provider_error', 'rejeitado'));
+
+      const dialog = await openFirstDetail();
+      await user.click(await within(dialog).findByRole('button', { name: 'Ver boleto (PDF)' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'O banco não conseguiu entregar o boleto.',
+      );
+      expect(screen.queryByRole('button', { name: 'Tentar de novo' })).not.toBeInTheDocument();
+      expect(pdfRequests).toHaveLength(1);
+    });
+
+    it('offers a retry on a 503 and shows the boleto when the bank answers', async () => {
+      answerDetailWith(interMethods);
+      answerPdfWith(() => jsonError(503, 'boleto_pdf_provider_unavailable', 'fora do ar'));
+
+      const dialog = await openFirstDetail();
+      await user.click(await within(dialog).findByRole('button', { name: 'Ver boleto (PDF)' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('O banco está indisponível');
+
+      answerPdfWith(pdfResponse);
+      await user.click(screen.getByRole('button', { name: 'Tentar de novo' }));
+
+      expect(await screen.findByTitle('Pré-visualização do boleto')).toBeInTheDocument();
+      expect(pdfRequests).toHaveLength(2);
+    });
+  });
+
+  describe('while the bank is still generating the boleto', () => {
+    beforeEach(() => {
+      // Testing Library drains its async helpers with a `setTimeout(0)`; a clock that never moves
+      // on its own would hang every `findBy`, so it ticks with real time and is pushed by hand.
+      vi.useFakeTimers({
+        toFake: ['Date', 'setTimeout', 'clearTimeout'],
+        now: new Date('2026-08-04T12:00:00Z'),
+        shouldAdvanceTime: true,
+      });
+    });
+
+    const advance = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
+
+    it('shows a generating state instead of "nothing to pay with"', async () => {
+      answerDetailWith(nothingYet);
+
+      const dialog = await openFirstDetail();
+
+      expect(await within(dialog).findByText('Estamos gerando o seu boleto')).toBeInTheDocument();
+      expect(within(dialog).queryByText(/ainda não estão disponíveis/i)).not.toBeInTheDocument();
+      expect(within(dialog).queryByRole('button', { name: /copiar/i })).not.toBeInTheDocument();
+    });
+
+    it('asks again on a timer and swaps in the Pix, the linha and the PDF once they arrive', async () => {
+      answerDetailWith(nothingYet);
+      const dialog = await openFirstDetail();
+      await within(dialog).findByText('Estamos gerando o seu boleto');
+      expect(detailRequests).toHaveLength(1);
+
+      await advance(POLL_MS);
+      expect(detailRequests).toHaveLength(2);
+      expect(within(dialog).getByText('Estamos gerando o seu boleto')).toBeInTheDocument();
+
+      answerDetailWith(interMethods);
+      await advance(POLL_MS);
+
+      expect(await within(dialog).findByText(PIX)).toBeInTheDocument();
+      expect(within(dialog).getByText(LINE)).toBeInTheDocument();
+      expect(within(dialog).getByRole('button', { name: 'Ver boleto (PDF)' })).toBeInTheDocument();
+      expect(within(dialog).queryByText('Estamos gerando o seu boleto')).not.toBeInTheDocument();
+
+      // Data is in: nothing keeps asking.
+      const settled = detailRequests.length;
+      await advance(POLL_MS * 5);
+      expect(detailRequests).toHaveLength(settled);
+    });
+
+    it('stops asking when the detail is closed', async () => {
+      answerDetailWith(nothingYet);
+      const dialog = await openFirstDetail();
+      await within(dialog).findByText('Estamos gerando o seu boleto');
+
+      await user.click(within(dialog).getByRole('button', { name: 'Fechar' }));
+      await advance(POLL_MS * 5);
+
+      expect(detailRequests).toHaveLength(1);
+    });
+
+    it('stops asking when the page goes away', async () => {
+      answerDetailWith(nothingYet);
+      const dialog = await openFirstDetail();
+      await within(dialog).findByText('Estamos gerando o seu boleto');
+
+      unmountPage();
+      await advance(POLL_MS * 5);
+
+      expect(detailRequests).toHaveLength(1);
+    });
+
+    it('never has two requests in flight', async () => {
+      let release: () => void = () => {};
+      let inFlight = 0;
+      let peak = 0;
+      let calls = 0;
+
+      server.use(
+        http.get(apiUrl(`${BASE}/charges/:id`), async () => {
+          calls += 1;
+          if (calls > 1) {
+            inFlight += 1;
+            peak = Math.max(peak, inFlight);
+            await new Promise<void>((done) => {
+              release = done;
+            });
+            inFlight -= 1;
+          }
+
+          return HttpResponse.json({
+            data: { ...myOpenCharges[0], payment_methods: nothingYet },
+          });
+        }),
+      );
+
+      const dialog = await openFirstDetail();
+      await within(dialog).findByText('Estamos gerando o seu boleto');
+
+      await advance(POLL_MS * 4);
+      expect(calls).toBe(2);
+      expect(peak).toBe(1);
+
+      release();
+      await advance(POLL_MS);
+      expect(calls).toBe(3);
+    });
+
+    it('gives up after a cap and lets the guardian check again by hand', async () => {
+      answerDetailWith(nothingYet);
+      const dialog = await openFirstDetail();
+      await within(dialog).findByText('Estamos gerando o seu boleto');
+
+      for (let attempt = 0; attempt < POLL_CAP; attempt += 1) {
+        await advance(POLL_MS);
+      }
+
+      expect(detailRequests).toHaveLength(1 + POLL_CAP);
+      expect(await within(dialog).findByText(/ainda não ficou pronto no banco/i)).toBeInTheDocument();
+
+      await advance(POLL_MS * 5);
+      expect(detailRequests).toHaveLength(1 + POLL_CAP);
+
+      answerDetailWith(interMethods);
+      await user.click(within(dialog).getByRole('button', { name: 'Verificar de novo' }));
+      await advance(POLL_MS);
+
+      expect(await within(dialog).findByText(PIX)).toBeInTheDocument();
+    });
+
+    it('does not wait on a charge that is already paid', async () => {
+      answerDetailWith(nothingYet, 'paid');
+
+      const dialog = await openFirstDetail();
+      await within(dialog).findByText(/detalhes do boleto/i);
+      await advance(POLL_MS * 3);
+
+      expect(within(dialog).queryByText(/estamos gerando/i)).not.toBeInTheDocument();
+      expect(detailRequests).toHaveLength(1);
+    });
   });
 });

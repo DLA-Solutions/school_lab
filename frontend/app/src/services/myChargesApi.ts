@@ -1,6 +1,6 @@
 import { Paginated } from 'types/academics';
 import { MyCharge } from 'types/myCharge';
-import { request } from './api';
+import { request, requestBlob } from './api';
 
 const basePath = (schoolId: number) => `/api/v1/schools/${schoolId}/me/charges`;
 
@@ -81,3 +81,17 @@ export const reissueMyCharge = async (schoolId: number, id: number): Promise<MyC
 
   return response.data;
 };
+
+/**
+ * GET .../me/charges/:id/boleto_pdf — the boleto PDF of a Banco Inter charge, relayed by the API.
+ *
+ * Fetched as a blob through the authenticated layer because the endpoint needs the bearer token,
+ * which a bare `<iframe src>` or `<a href>` cannot send. Call it only when the charge's
+ * `payment_methods.boleto_pdf_available` is true: each call costs one bank request and nothing is
+ * cached server-side, so the caller keeps the blob for both the preview and the download.
+ *
+ * Failures throw `ApiError` carrying the API's `error.code` — `boleto_pdf_unavailable` (409),
+ * `boleto_pdf_provider_error` (502, not retryable) or `boleto_pdf_provider_unavailable` (503).
+ */
+export const fetchMyChargeBoletoPdf = (schoolId: number, id: number): Promise<Blob> =>
+  requestBlob(`${basePath(schoolId)}/${id}/boleto_pdf`);

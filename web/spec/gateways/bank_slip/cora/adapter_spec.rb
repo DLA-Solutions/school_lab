@@ -276,6 +276,7 @@ RSpec.describe Gateways::BankSlip::Cora::Adapter do
       expect(caps.cancellation).to be(true)
       expect(caps.fine_and_interest).to be(true)
       expect(caps.past_due_reissue).to be(false)
+      expect(caps.boleto_pdf).to be(false)
     end
   end
 

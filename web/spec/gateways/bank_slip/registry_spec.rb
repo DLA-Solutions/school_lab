@@ -69,4 +69,23 @@ RSpec.describe Gateways::BankSlip::Registry do
   it "requires an explicit provider — there is no default adapter" do
     expect { described_class.resolve(school: school) }.to raise_error(ArgumentError, /provider/)
   end
+
+  describe ".boleto_pdf?" do
+    it "agrees with the capabilities each registered adapter reports" do
+      pair = OpensslCertificateHelper.generate_certificate_pair
+      create(:school_payment_provider, :inter, school: school,
+                                               certificate_pem: pair[:certificate_pem],
+                                               private_key_pem: pair[:private_key_pem])
+      adapters = {
+        "fake" => Gateways::BankSlip::Fake.new(school: school),
+        "inter" => Gateways::BankSlip::Inter::Adapter.new(school: school, client: Object.new)
+      }
+
+      adapters.each do |provider, adapter|
+        expect(described_class.boleto_pdf?(provider)).to eq(adapter.capabilities.boleto_pdf)
+      end
+      expect(described_class.boleto_pdf?("cora")).to be(false)
+      expect(described_class.boleto_pdf?("unknown")).to be(false)
+    end
+  end
 end

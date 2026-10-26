@@ -19,6 +19,12 @@ class ChargePolicy < ApplicationPolicy
     show?
   end
 
+  # The PDF carries the payer's name, CPF and address, so it is the guardian who owns the charge
+  # only — unlike `show?`, no staff access through this route.
+  def boleto_pdf?
+    guardian_member? && record.school_id == school_id && record.guardian_id == Current.guardian.id
+  end
+
   def generate?
     staff_with?(:manage_billing)
   end
