@@ -296,7 +296,7 @@ export const sampleSchools = [
   },
 ];
 
-/** Guardian open charges — mirrors `ChargeBlueprint` `:guardian` view. */
+/** Guardian pending/overdue charges — mirrors `ChargeBlueprint` `:guardian` view. */
 export const myOpenCharges = [
   {
     id: 101,
@@ -313,6 +313,7 @@ export const myOpenCharges = [
       boleto_url: 'https://provider.example/boleto/101.pdf',
       pix_copy_paste: '00020126580014br.gov.bcb.pix101',
     },
+    paid_at: null,
   },
   {
     id: 102,
@@ -329,6 +330,7 @@ export const myOpenCharges = [
       boleto_url: 'https://provider.example/boleto/102.pdf',
       pix_copy_paste: '00020126580014br.gov.bcb.pix102',
     },
+    paid_at: null,
   },
   {
     id: 104,
@@ -345,10 +347,39 @@ export const myOpenCharges = [
       boleto_url: 'https://provider.example/boleto/104.pdf',
       pix_copy_paste: '00020126580014br.gov.bcb.pix104',
     },
+    paid_at: null,
   },
 ];
 
-/** Guardian paid history — mirrors `ChargeBlueprint` `:guardian_history` view. */
+/** Guardian paid charges — same `:guardian` view; `due_date` and `payment_methods` survive settlement. */
+export const myPaidCharges = [
+  {
+    id: 88,
+    billing_period: '2025-12',
+    total_amount_cents: 80_000,
+    due_date: '2025-12-10',
+    status: 'paid',
+    kind: 'tuition',
+    description: null,
+    contract_id: 1,
+    student: { id: 1, name: 'Pedro Silva' },
+    interest_rate_percent: 1.0,
+    payment_methods: {
+      boleto_url: 'https://provider.example/boleto/88.pdf',
+      pix_copy_paste: '00020126580014br.gov.bcb.pix88',
+    },
+    paid_at: '2025-12-08T14:30:00Z',
+  },
+];
+
+/** Every status the guardian can see in the unified list, in no particular order. */
+export const myCharges = [...myOpenCharges, ...myPaidCharges];
+
+/**
+ * Guardian paid history — mirrors `ChargeBlueprint` `:guardian_history` view. `/me/charges`
+ * no longer calls this shape (see `myCharges` above); kept only for `/me/charges/history`,
+ * which stays alive solely because `mobile/` still reads it directly.
+ */
 export const myChargeHistory = [
   {
     id: 88,
@@ -456,7 +487,10 @@ export const serviceInvoicesFixture = [
   },
 ];
 
-/** Default open-charges list used by `api.test.ts`. */
+/**
+ * Default `/me/charges` list used by `api.test.ts`'s generic pagination assertions. Those specs
+ * send no `status`, which is the legacy open-only contract (pending + overdue, oldest due first).
+ */
 export const charges = myOpenCharges;
 
 export const reportCardConfig = {
@@ -1193,13 +1227,46 @@ export const handlers = [
     }
 
     const url = new URL(request.url);
-    const studentId = url.searchParams.get('student_id');
-    let rows = myOpenCharges;
+    const query = url.searchParams;
+    const studentId = query.get('student_id');
+    const statusParam = query.get('status');
+    const month = query.get('month');
+    const year = query.get('year');
+    const from = query.get('from');
+    const to = query.get('to');
+    const problems: Record<string, string[]> = {};
+
+    // Same validation the real endpoint runs: every problem is reported at once.
+    const allowedStatuses = ['pending', 'overdue', 'paid'];
+    const requested =
+      statusParam === null || statusParam === 'all' ? null : statusParam.split(',').filter(Boolean);
+    if (requested?.some((value) => !allowedStatuses.includes(value))) {
+      problems.status = ['Use all, pending, overdue or paid.'];
+    }
+    if (month !== null && (!/^\d+$/.test(month) || Number(month) < 1 || Number(month) > 12)) {
+      problems.month = ['Use a month from 1 to 12.'];
+    } else if (month !== null && year === null) {
+      problems.year = ['Is required when month is sent.'];
+    }
+    if (year !== null && !/^\d{4}$/.test(year)) {
+      problems.year = ['Use a 4-digit year.'];
+    }
+    if ((month !== null || year !== null) && (from !== null || to !== null)) {
+      problems.from = ['Cannot be combined with month and year.'];
+    }
+    if (from !== null && to !== null && from > to) {
+      problems.to = ['Must be on or after from.'];
+    }
+    if (Object.keys(problems).length > 0) {
+      return jsonError(422, 'validation_error', 'Dados inválidos.', problems);
+    }
+
+    // Omitted `status` is the legacy open-only list (oldest due date first) kept for `mobile/`.
+    const statuses = statusParam === null ? ['pending', 'overdue'] : (requested ?? allowedStatuses);
+    let rows = myCharges.filter((row) => statuses.includes(row.status));
 
     if (studentId) {
-      const linkedStudentIds = new Set(
-        [...myOpenCharges, ...myChargeHistory].map((row) => row.student?.id).filter(Boolean),
-      );
+      const linkedStudentIds = new Set(myCharges.map((row) => row.student?.id).filter(Boolean));
       // The API 404s when the filter names a child this guardian is not linked to.
       if (!linkedStudentIds.has(Number(studentId))) {
         return jsonError(404, 'not_found', 'Recurso não encontrado.');
@@ -1207,6 +1274,25 @@ export const handlers = [
 
       rows = rows.filter((row) => row.student?.id === Number(studentId));
     }
+
+    if (year !== null) {
+      const prefix = month === null ? `${year}-` : `${year}-${month.padStart(2, '0')}-`;
+      rows = rows.filter((row) => row.due_date?.startsWith(prefix));
+    }
+    if (from !== null) {
+      rows = rows.filter((row) => row.due_date !== null && row.due_date >= from);
+    }
+    if (to !== null) {
+      rows = rows.filter((row) => row.due_date !== null && row.due_date <= to);
+    }
+
+    const order = query.get('order') ?? (statusParam === null ? 'asc' : 'desc');
+    const direction = order === 'asc' ? 1 : -1;
+    rows = [...rows].sort(
+      (left, right) =>
+        direction *
+        ((left.due_date ?? '').localeCompare(right.due_date ?? '') || left.id - right.id),
+    );
 
     return paginated(rows, url);
   }),
@@ -1240,7 +1326,7 @@ export const handlers = [
       return jsonError(404, 'not_found', 'Recurso não encontrado.');
     }
 
-    const charge = myOpenCharges.find((row) => row.id === Number(params.id));
+    const charge = myCharges.find((row) => row.id === Number(params.id));
     if (!charge) {
       return jsonError(404, 'not_found', 'Recurso não encontrado.');
     }
