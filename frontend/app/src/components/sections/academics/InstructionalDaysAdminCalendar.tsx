@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import 'dayjs/locale/pt-br';
 import dayjs, { Dayjs } from 'dayjs';
 import Box from '@mui/material/Box';
@@ -26,6 +26,38 @@ export interface InstructionalDaysAdminCalendarProps {
   canManage: boolean;
 }
 
+// Day-state lookup reaches the calendar's day slot through context so the slot component keeps a
+// stable identity: a slot rebuilt on every state change makes React remount every day cell, which
+// drops keyboard focus (and any in-flight click target) each time a day is toggled or a month loads.
+const DayValueContext = createContext<(key: string) => boolean>(() => false);
+
+// `disabled` here only ever means "outside the active year's bounds" (minDate/maxDate on the
+// calendar) — every in-bounds day stays clickable, whichever of the two states it is in.
+const AdminDay = (props: PickersDayProps) => {
+  const { day, disabled, outsideCurrentMonth, ...other } = props;
+  const dayValue = useContext(DayValueContext);
+  const instructional = dayValue(day.format('YYYY-MM-DD'));
+
+  return (
+    <PickersDay
+      {...other}
+      day={day}
+      disabled={disabled}
+      outsideCurrentMonth={outsideCurrentMonth}
+      sx={
+        instructional && !outsideCurrentMonth
+          ? {
+              bgcolor: 'success.main',
+              color: 'success.contrastText',
+              fontWeight: 600,
+              '&:hover': { bgcolor: 'success.dark' },
+            }
+          : undefined
+      }
+    />
+  );
+};
+
 /**
  * BR-SY10 / UC-SY05 — the admin's day-by-day marking screen for the active school year.
  *
@@ -33,7 +65,10 @@ export interface InstructionalDaysAdminCalendarProps {
  * only ever asks for the month it is currently showing, and only ever writes the days someone
  * actually clicked — everything else stays exactly as it was.
  */
-const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDaysAdminCalendarProps) => {
+const InstructionalDaysAdminCalendar = ({
+  schoolId,
+  canManage,
+}: InstructionalDaysAdminCalendarProps) => {
   const { t, locale } = useTranslation();
 
   const [year, setYear] = useState<SchoolYear | null>(null);
@@ -135,8 +170,6 @@ const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDa
   );
 
   const handleDayClick = (day: Dayjs) => {
-    // eslint-disable-next-line no-console
-    console.log('handleDayClick', day.format('YYYY-MM-DD'), 'canManage', canManage);
     if (!canManage) {
       return;
     }
@@ -145,8 +178,6 @@ const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDa
     setSavedNotice('');
     setPending((current) => {
       const next = { ...current, [key]: !dayValue(key) };
-      // eslint-disable-next-line no-console
-      console.log('setPending', next);
       return next;
     });
   };
@@ -162,7 +193,10 @@ const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDa
     setSaveError('');
 
     try {
-      const days = Object.entries(pending).map(([date, instructional]) => ({ date, instructional }));
+      const days = Object.entries(pending).map(([date, instructional]) => ({
+        date,
+        instructional,
+      }));
       await upsertInstructionalDays(schoolId, year.id, days);
       setBaseline((current) => ({ ...current, ...pending }));
       setPending({});
@@ -173,37 +207,6 @@ const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDa
       setSaving(false);
     }
   };
-
-  // `disabled` here only ever means "outside the active year's bounds" (minDate/maxDate below) —
-  // every in-bounds day stays clickable, whichever of the two states it is in.
-  const AdminDay = useCallback(
-    (props: PickersDayProps) => {
-      const { day, disabled, outsideCurrentMonth, ...other } = props;
-      const instructional = dayValue(day.format('YYYY-MM-DD'));
-      // eslint-disable-next-line no-console
-      console.log('AdminDay props keys', day.format('D'), Object.keys(other));
-
-      return (
-        <PickersDay
-          {...other}
-          day={day}
-          disabled={disabled}
-          outsideCurrentMonth={outsideCurrentMonth}
-          sx={
-            instructional && !outsideCurrentMonth
-              ? {
-                  bgcolor: 'success.main',
-                  color: 'success.contrastText',
-                  fontWeight: 600,
-                  '&:hover': { bgcolor: 'success.dark' },
-                }
-              : undefined
-          }
-        />
-      );
-    },
-    [dayValue],
-  );
 
   if (yearLoading) {
     return (
@@ -254,20 +257,22 @@ const InstructionalDaysAdminCalendar = ({ schoolId, canManage }: InstructionalDa
         {saveError && <ErrorBanner message={saveError} />}
         {savedNotice && <SuccessBanner message={savedNotice} />}
 
-        <LocalizationProvider
-          dateAdapter={AdapterDayjs}
-          adapterLocale={locale === 'en-US' ? 'en' : 'pt-br'}
-        >
-          <DateCalendar
-            referenceDate={dayjs(year.starts_on)}
-            minDate={dayjs(year.starts_on)}
-            maxDate={dayjs(year.ends_on)}
-            loading={loading}
-            onMonthChange={(month) => setViewMonth(month as Dayjs)}
-            onChange={(day) => handleDayClick(day as Dayjs)}
-            slots={{ day: AdminDay }}
-          />
-        </LocalizationProvider>
+        <DayValueContext.Provider value={dayValue}>
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale={locale === 'en-US' ? 'en' : 'pt-br'}
+          >
+            <DateCalendar
+              referenceDate={dayjs(year.starts_on)}
+              minDate={dayjs(year.starts_on)}
+              maxDate={dayjs(year.ends_on)}
+              loading={loading}
+              onMonthChange={(month) => setViewMonth(month as Dayjs)}
+              onChange={(day) => handleDayClick(day as Dayjs)}
+              slots={{ day: AdminDay }}
+            />
+          </LocalizationProvider>
+        </DayValueContext.Provider>
 
         <Stack direction="row" gap={2.5} alignItems="center" flexWrap="wrap">
           <Stack direction="row" gap={1} alignItems="center">

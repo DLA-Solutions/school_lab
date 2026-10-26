@@ -150,7 +150,7 @@ describe('DailyRoutine page', () => {
     await screen.findByText('Maria Silva');
 
     const poopButton = screen.getByRole('button', {
-      name: /Maria Silva fez cocô — 0 vez\(es\)/i,
+      name: 'Registrar cocô de Maria Silva (0)',
     });
     await user.click(poopButton);
 

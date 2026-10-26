@@ -130,8 +130,13 @@ describe('DrawerItems permission gating', () => {
       'href',
       '/assinatura',
     );
+    // Nothing gated on `manage_billing` leaks in through `manage_school_settings`...
     expect(screen.queryByRole('link', { name: 'Boletos' })).not.toBeInTheDocument();
-    expect(screen.queryByText('Financeiro')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Planos' })).not.toBeInTheDocument();
+    // ...but this membership is the owner/direção, who also get the owner-or-direção Banco Inter
+    // entry, so the Financeiro section exists with that entry alone.
+    expect(screen.getByText('Financeiro')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Banco Inter' })).toBeInTheDocument();
   });
 
   it('hides School Lab subscription from manage_billing-only staff', () => {
