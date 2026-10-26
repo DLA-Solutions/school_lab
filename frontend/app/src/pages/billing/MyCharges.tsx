@@ -7,12 +7,15 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
+import FormLabel from '@mui/material/FormLabel';
 import Link from '@mui/material/Link';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
+import type { Theme } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
-import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButton, { toggleButtonClasses } from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
@@ -32,6 +35,7 @@ import { ApiError } from 'services/api';
 import {
   MyChargeListStatus,
   MyChargesPeriod,
+  fetchMyChargeBoletoPdf,
   getMyCharge,
   listMyCharges,
   reissueMyCharge,
@@ -79,6 +83,89 @@ const formatTimestamp = (iso: string | null, locale: string) =>
   iso ? new Date(iso).toLocaleDateString(locale === 'en-US' ? 'en-US' : 'pt-BR') : '—';
 
 type FilterMode = 'month' | 'range';
+
+/**
+ * Banco Inter issues asynchronously: a charge can sit with no Pix, no linha digitável and no PDF
+ * for a while after it is issued (the API keeps re-reading the bank for roughly 43 minutes). The
+ * open detail asks again on this cadence and gives up after the attempt cap — about ten minutes —
+ * leaving a manual "check again" instead of polling a charge that may never get data.
+ */
+const GENERATION_POLL_MS = 20_000;
+const GENERATION_POLL_MAX_ATTEMPTS = 30;
+
+/**
+ * True while a payable charge has nothing to pay with yet. A hosted link (Cora), the Pix code, the
+ * linha digitável or an available PDF each count as data, so a charge that already has one never
+ * waits.
+ */
+const isGeneratingBoleto = (charge: MyCharge) => {
+  const methods = charge.payment_methods;
+
+  return (
+    (charge.status === 'pending' || charge.status === 'overdue') &&
+    !methods.boleto_url &&
+    !methods.pix_copy_paste &&
+    !methods.digitable_line &&
+    !methods.boleto_pdf_available
+  );
+};
+
+/** A copyable payment code shown in a box: wraps instead of widening the dialog. */
+const CODE_BOX_SX = {
+  p: 1.5,
+  borderRadius: 1,
+  bgcolor: 'action.hover',
+  fontFamily: 'monospace',
+  fontSize: '0.75rem',
+  overflowWrap: 'anywhere',
+} as const;
+
+type CopiedCode = 'pix' | 'digitableLine';
+
+/** Ties the mode toggle to its visible label, so the group keeps an accessible name. */
+const MODE_LABEL_ID = 'my-charges-mode-label';
+
+/**
+ * The mode toggle reads as one of the filter controls and as the primary Button: its selected
+ * segment takes the same brand gradient and label as `containedPrimary`, and its frame takes the
+ * text fields' border so the row matches. Every colour is a palette token; none is a literal.
+ */
+const modeToggleSx = (theme: Theme) => {
+  const palette = (theme.vars || theme).palette;
+  const primaryFill = `linear-gradient(128.49deg, ${palette.gradients.primary.main} 19.86%, ${palette.gradients.primary.state} 68.34%)`;
+
+  return {
+    // Same box as the small filled TextFields beside it (35px tall, 4px radius). sx multiplies a
+    // bare `borderRadius` by the theme's shape, so `1` is the theme's 4px.
+    height: 35,
+    border: 1,
+    borderStyle: 'solid',
+    borderColor: palette.neutral.darker,
+    ...theme.applyStyles('dark', { borderColor: palette.neutral.dark }),
+    borderRadius: 1,
+    background: palette.background.paper,
+    overflow: 'hidden',
+
+    [`& .${toggleButtonClasses.root}`]: {
+      border: 0,
+      borderRadius: 0,
+      color: palette.text.secondary,
+      letterSpacing: 0.5,
+      fontWeight: 500,
+      textTransform: 'none',
+      px: 1.75,
+      '&:hover': {
+        color: palette.text.primary,
+      },
+    },
+    [`& .${toggleButtonClasses.selected}, & .${toggleButtonClasses.selected}:hover`]: {
+      // White is the label the primary Button uses on this gradient; waiver W3 in
+      // docs/guidelines/web-ui/accessibility.md covers the same pairing.
+      background: primaryFill,
+      color: palette.common.white,
+    },
+  };
+};
 
 /** Past years a family may still look up, and one year ahead for boletos issued in advance. */
 const YEARS_BACK = 4;
@@ -184,7 +271,8 @@ const MyCharges = () => {
   const [detailError, setDetailError] = useState('');
   const [reissuing, setReissuing] = useState(false);
   const [previewing, setPreviewing] = useState<MyCharge | null>(null);
-  const [pixCopied, setPixCopied] = useState(false);
+  const [copied, setCopied] = useState<CopiedCode | null>(null);
+  const [generationStalled, setGenerationStalled] = useState(false);
 
   const latestRequest = useRef(0);
 
@@ -294,7 +382,8 @@ const MyCharges = () => {
     setDetail(null);
     setDetailLoading(true);
     setDetailError('');
-    setPixCopied(false);
+    setCopied(null);
+    setGenerationStalled(false);
 
     try {
       setDetail(await getMyCharge(schoolId, id));
@@ -308,7 +397,8 @@ const MyCharges = () => {
   const closeDetail = () => {
     setDetail(null);
     setDetailError('');
-    setPixCopied(false);
+    setCopied(null);
+    setGenerationStalled(false);
   };
 
   const handleReissue = async () => {
@@ -323,6 +413,8 @@ const MyCharges = () => {
     try {
       const updated = await reissueMyCharge(schoolId, detail.id);
       setDetail(updated);
+      // A fresh issuance starts the wait over, whether or not the last one had given up.
+      setGenerationStalled(false);
       setNotice(t('myCharges.reissueSuccess'));
       await load();
     } catch (err) {
@@ -332,14 +424,71 @@ const MyCharges = () => {
     }
   };
 
-  const copyPix = async (pix: string) => {
+  const copyCode = async (code: CopiedCode, value: string) => {
     try {
-      await navigator.clipboard.writeText(pix);
-      setPixCopied(true);
+      await navigator.clipboard.writeText(value);
+      setCopied(code);
     } catch {
-      setDetailError(t('myCharges.pixCopyError'));
+      setDetailError(
+        t(code === 'pix' ? 'myCharges.pixCopyError' : 'myCharges.digitableLineCopyError'),
+      );
     }
   };
+
+  const generating = detail !== null && !detailLoading && isGeneratingBoleto(detail);
+  const generatingChargeId = generating ? detail.id : null;
+
+  // While the bank is still producing the boleto, ask for the charge again until it has data.
+  // One request at a time: the next timer is armed only after the previous answer lands, and every
+  // exit — data arriving, the dialog closing, another charge opening, unmount — clears the timer
+  // and discards a late answer, so nothing keeps polling in the background.
+  useEffect(() => {
+    if (!schoolId || generatingChargeId === null || generationStalled) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+
+    const schedule = () => {
+      timer = setTimeout(async () => {
+        attempts += 1;
+
+        try {
+          const fresh = await getMyCharge(schoolId, generatingChargeId);
+          if (cancelled) {
+            return;
+          }
+          setDetail(fresh);
+
+          // Data arrived: the effect is torn down by the re-render, nothing more to arm.
+          if (!isGeneratingBoleto(fresh)) {
+            return;
+          }
+        } catch {
+          // A failed poll is not worth interrupting the guardian for; the next attempt retries.
+          if (cancelled) {
+            return;
+          }
+        }
+
+        if (attempts >= GENERATION_POLL_MAX_ATTEMPTS) {
+          setGenerationStalled(true);
+          return;
+        }
+
+        schedule();
+      }, GENERATION_POLL_MS);
+    };
+
+    schedule();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [schoolId, generatingChargeId, generationStalled]);
 
   const invoiceForCharge = (chargeId: number) =>
     invoices.find(
@@ -552,20 +701,27 @@ const MyCharges = () => {
               </TextField>
             )}
 
-            <ToggleButtonGroup
-              exclusive
-              size="small"
-              value={filterMode}
-              aria-label={t('myCharges.filter.mode')}
-              onChange={(_event, next: FilterMode | null) => {
-                if (next && next !== filterMode) {
-                  changeMode(next);
-                }
-              }}
-            >
-              <ToggleButton value="month">{t('myCharges.filter.mode.month')}</ToggleButton>
-              <ToggleButton value="range">{t('myCharges.filter.mode.range')}</ToggleButton>
-            </ToggleButtonGroup>
+            <Stack direction="column" gap={0.75} alignItems="flex-start" sx={{ minWidth: 0 }}>
+              {/* The label slot every TextField gets above its field, so the toggle lines up with them. */}
+              <FormLabel id={MODE_LABEL_ID} component="span">
+                {t('myCharges.filter.mode')}
+              </FormLabel>
+              <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={filterMode}
+                aria-labelledby={MODE_LABEL_ID}
+                onChange={(_event, next: FilterMode | null) => {
+                  if (next && next !== filterMode) {
+                    changeMode(next);
+                  }
+                }}
+                sx={modeToggleSx}
+              >
+                <ToggleButton value="month">{t('myCharges.filter.mode.month')}</ToggleButton>
+                <ToggleButton value="range">{t('myCharges.filter.mode.range')}</ToggleButton>
+              </ToggleButtonGroup>
+            </Stack>
 
             {filterMode === 'month' ? (
               <>
@@ -595,24 +751,34 @@ const MyCharges = () => {
                   ))}
                 </TextField>
 
-                <TextField
-                  id="my-charges-month"
-                  label={t('myCharges.filter.month')}
-                  value={month}
-                  onChange={(event) => changeFilter(() => setMonth(event.target.value))}
-                  variant="filled"
-                  size="small"
-                  select
-                  disabled={!year}
-                  sx={{ minWidth: 160 }}
+                {/* Disabled until a year is picked: the API only takes a month inside a year. */}
+                <Tooltip
+                  title={t('myCharges.filter.monthNeedsYear')}
+                  disableHoverListener={Boolean(year)}
+                  disableFocusListener
+                  disableTouchListener
                 >
-                  <MenuItem value="">{t('myCharges.filter.allMonths')}</MenuItem>
-                  {monthOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  <Box component="span" sx={{ display: 'flex' }}>
+                    <TextField
+                      id="my-charges-month"
+                      label={t('myCharges.filter.month')}
+                      value={month}
+                      onChange={(event) => changeFilter(() => setMonth(event.target.value))}
+                      variant="filled"
+                      size="small"
+                      select
+                      disabled={!year}
+                      sx={{ minWidth: 160 }}
+                    >
+                      <MenuItem value="">{t('myCharges.filter.allMonths')}</MenuItem>
+                      {monthOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+                </Tooltip>
               </>
             ) : (
               <>
@@ -738,7 +904,37 @@ const MyCharges = () => {
 
                   <Typography variant="subtitle2">{t('myCharges.payment.title')}</Typography>
 
-                  {detail.payment_methods.boleto_url && (
+                  {generating && !generationStalled && (
+                    <Stack direction="row" gap={1.5} alignItems="center">
+                      <CircularProgress size={20} aria-hidden sx={{ flexShrink: 0 }} />
+                      <Box role="status">
+                        <Typography variant="body2">
+                          {t('myCharges.payment.generating.title')}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('myCharges.payment.generating.description')}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  )}
+
+                  {generating && generationStalled && (
+                    <Stack direction="column" gap={1} alignItems="flex-start">
+                      <Typography variant="body2" color="text.secondary">
+                        {t('myCharges.payment.generating.stalled')}
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setGenerationStalled(false)}
+                      >
+                        {t('myCharges.payment.generating.checkAgain')}
+                      </Button>
+                    </Stack>
+                  )}
+
+                  {(detail.payment_methods.boleto_url ||
+                    detail.payment_methods.boleto_pdf_available) && (
                     <Stack direction="row" gap={1} flexWrap="wrap">
                       <Button
                         variant="outlined"
@@ -746,17 +942,25 @@ const MyCharges = () => {
                         startIcon={<IconifyIcon icon="mingcute:file-line" />}
                         onClick={() => setPreviewing(detail)}
                       >
-                        {t('myCharges.payment.previewBoleto')}
+                        {detail.payment_methods.boleto_pdf_available
+                          ? t('myCharges.payment.previewBoletoPdf')
+                          : t('myCharges.payment.previewBoleto')}
                       </Button>
-                      <Link href={detail.payment_methods.boleto_url} target="_blank" rel="noopener">
-                        <Button
-                          variant="text"
-                          size="small"
-                          startIcon={<IconifyIcon icon="mingcute:external-link-line" />}
+                      {detail.payment_methods.boleto_url && (
+                        <Link
+                          href={detail.payment_methods.boleto_url}
+                          target="_blank"
+                          rel="noopener"
                         >
-                          {t('charges.open')}
-                        </Button>
-                      </Link>
+                          <Button
+                            variant="text"
+                            size="small"
+                            startIcon={<IconifyIcon icon="mingcute:external-link-line" />}
+                          >
+                            {t('charges.open')}
+                          </Button>
+                        </Link>
+                      )}
                     </Stack>
                   )}
 
@@ -765,26 +969,15 @@ const MyCharges = () => {
                       <Typography variant="body2" color="text.secondary">
                         {t('myCharges.payment.pix')}
                       </Typography>
-                      <Box
-                        sx={{
-                          p: 1.5,
-                          borderRadius: 1,
-                          bgcolor: 'action.hover',
-                          fontFamily: 'monospace',
-                          fontSize: '0.75rem',
-                          wordBreak: 'break-all',
-                        }}
-                      >
-                        {detail.payment_methods.pix_copy_paste}
-                      </Box>
+                      <Box sx={CODE_BOX_SX}>{detail.payment_methods.pix_copy_paste}</Box>
                       <Box>
                         <Button
                           variant="outlined"
                           size="small"
                           startIcon={<IconifyIcon icon="mingcute:copy-2-line" />}
-                          onClick={() => copyPix(detail.payment_methods.pix_copy_paste!)}
+                          onClick={() => copyCode('pix', detail.payment_methods.pix_copy_paste!)}
                         >
-                          {pixCopied
+                          {copied === 'pix'
                             ? t('myCharges.payment.pixCopied')
                             : t('myCharges.payment.copyPix')}
                         </Button>
@@ -792,11 +985,40 @@ const MyCharges = () => {
                     </Stack>
                   )}
 
-                  {!detail.payment_methods.boleto_url && !detail.payment_methods.pix_copy_paste && (
-                    <Typography variant="body2" color="text.secondary">
-                      {t('myCharges.payment.unavailable')}
-                    </Typography>
+                  {detail.payment_methods.digitable_line && (
+                    <Stack direction="column" gap={1}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('myCharges.payment.digitableLine')}
+                      </Typography>
+                      <Box sx={CODE_BOX_SX}>{detail.payment_methods.digitable_line}</Box>
+                      <Box>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<IconifyIcon icon="mingcute:copy-2-line" />}
+                          onClick={() =>
+                            // As shown, dots and spaces included: bank apps accept the formatted
+                            // line, and what the guardian reads on screen is what lands in the app.
+                            copyCode('digitableLine', detail.payment_methods.digitable_line!)
+                          }
+                        >
+                          {copied === 'digitableLine'
+                            ? t('myCharges.payment.digitableLineCopied')
+                            : t('myCharges.payment.copyDigitableLine')}
+                        </Button>
+                      </Box>
+                    </Stack>
                   )}
+
+                  {!generating &&
+                    !detail.payment_methods.boleto_url &&
+                    !detail.payment_methods.boleto_pdf_available &&
+                    !detail.payment_methods.pix_copy_paste &&
+                    !detail.payment_methods.digitable_line && (
+                      <Typography variant="body2" color="text.secondary">
+                        {t('myCharges.payment.unavailable')}
+                      </Typography>
+                    )}
                 </>
               )}
             </Stack>
@@ -818,6 +1040,13 @@ const MyCharges = () => {
         open={previewing !== null}
         charge={previewing ? toPreviewCharge(previewing) : null}
         onClose={() => setPreviewing(null)}
+        // An Inter boleto has no public URL: the API relays the PDF behind the bearer token. A
+        // hosted one (Cora) keeps going straight to the bank through `boleto_url`.
+        loadBlob={
+          previewing?.payment_methods.boleto_pdf_available && schoolId
+            ? () => fetchMyChargeBoletoPdf(schoolId, previewing.id)
+            : undefined
+        }
       />
     </Stack>
   );

@@ -644,9 +644,19 @@ const ptBR = {
   'myCharges.detail.title': 'Detalhes do boleto',
   'myCharges.payment.title': 'Como pagar',
   'myCharges.payment.previewBoleto': 'Ver boleto',
+  'myCharges.payment.previewBoletoPdf': 'Ver boleto (PDF)',
   'myCharges.payment.pix': 'Pix copia e cola',
   'myCharges.payment.copyPix': 'Copiar código Pix',
   'myCharges.payment.pixCopied': 'Código Pix copiado',
+  'myCharges.payment.digitableLine': 'Linha digitável',
+  'myCharges.payment.copyDigitableLine': 'Copiar linha digitável',
+  'myCharges.payment.digitableLineCopied': 'Linha digitável copiada',
+  'myCharges.payment.generating.title': 'Estamos gerando o seu boleto',
+  'myCharges.payment.generating.description':
+    'O banco está registrando o boleto. O Pix e a linha digitável aparecem aqui assim que ficarem prontos — esta tela atualiza sozinha.',
+  'myCharges.payment.generating.stalled':
+    'O boleto ainda não ficou pronto no banco. Isso pode levar alguns minutos.',
+  'myCharges.payment.generating.checkAgain': 'Verificar de novo',
   'myCharges.payment.unavailable':
     'As formas de pagamento ainda não estão disponíveis para esta cobrança.',
   'myCharges.reissue': 'Segunda via',
@@ -654,6 +664,7 @@ const ptBR = {
   'myCharges.reissueSuccess': 'Segunda via emitida. Use o novo boleto ou código Pix acima.',
   'myCharges.reissueError': 'Não foi possível emitir a segunda via.',
   'myCharges.pixCopyError': 'Não foi possível copiar o código Pix.',
+  'myCharges.digitableLineCopyError': 'Não foi possível copiar a linha digitável.',
   'myCharges.noAccess.description': 'Você não tem acesso aos boletos desta escola.',
   'myCharges.empty.title': 'Nenhum boleto ainda',
   'myCharges.empty.description':
@@ -668,6 +679,7 @@ const ptBR = {
   'myCharges.filter.mode.range': 'Período',
   'myCharges.filter.month': 'Mês',
   'myCharges.filter.allMonths': 'Todos os meses',
+  'myCharges.filter.monthNeedsYear': 'Escolha um ano para filtrar por mês.',
   'myCharges.filter.allYears': 'Todos os anos',
   'myCharges.filter.rangeInvalid': 'A data inicial não pode ser depois da data final.',
   'myCharges.filter.clear': 'Limpar filtros',
@@ -819,6 +831,12 @@ const ptBR = {
   'charges.boleto.download': 'Baixar PDF',
   'charges.boleto.openInTab': 'Abrir no navegador',
   'charges.boleto.error': 'Não foi possível carregar o boleto.',
+  'charges.boleto.unavailable':
+    'Este boleto não está disponível para visualização agora. Ele pode já ter sido pago ou cancelado, ou ainda estar sendo registrado no banco.',
+  'charges.boleto.providerError':
+    'O banco não conseguiu entregar o boleto. Use o Pix ou a linha digitável, ou fale com a escola.',
+  'charges.boleto.providerUnavailable':
+    'O banco está indisponível no momento. Tente de novo em instantes.',
   'charges.boleto.openAction': 'Abrir boleto de {name}',
   'charges.cancelAction': 'Cancelar boleto de {name}',
   'charges.cancelTitle': 'Cancelar este boleto?',
@@ -841,6 +859,10 @@ const ptBR = {
   'charges.form.noContractHelp':
     'Este responsável não tem contrato. O boleto sai assim mesmo, sem vínculo com um aluno.',
   'charges.form.contractOption': '{student} — {amount}/mês',
+  'charges.form.purpose': 'Finalidade da cobrança',
+  'charges.form.purposeRequired': 'Selecione a finalidade da cobrança.',
+  'charges.form.purposeLoading': 'Carregando finalidades...',
+  'charges.form.purposeLoadError': 'Não foi possível carregar as finalidades. Feche e abra o formulário para tentar de novo.',
   'charges.form.amountRequired': 'Informe o valor do boleto.',
   'charges.form.dueDate': 'Vencimento',
   'charges.form.dueDateRequired': 'Informe a data de vencimento.',

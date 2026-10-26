@@ -29,4 +29,12 @@ RSpec.describe Gateways::BankSlip::Fake do
 
     expect(second.provider_invoice_id).to eq(first.provider_invoice_id)
   end
+
+  it "serves a PDF for an issued invoice and rejects an unknown one" do
+    issuance = adapter.issue(issue_request)
+
+    expect(adapter.boleto_pdf(provider_invoice_id: issuance.provider_invoice_id)).to start_with("%PDF")
+    expect(adapter.capabilities.boleto_pdf).to be(true)
+    expect { adapter.boleto_pdf(provider_invoice_id: "missing") }.to raise_error(Gateways::BankSlip::ProviderError)
+  end
 end

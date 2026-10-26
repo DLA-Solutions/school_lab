@@ -638,15 +638,26 @@ const enUS: Messages = {
   'myCharges.detail.title': 'Boleto details',
   'myCharges.payment.title': 'How to pay',
   'myCharges.payment.previewBoleto': 'Preview boleto',
+  'myCharges.payment.previewBoletoPdf': 'View boleto (PDF)',
   'myCharges.payment.pix': 'Pix copy and paste',
   'myCharges.payment.copyPix': 'Copy Pix code',
   'myCharges.payment.pixCopied': 'Pix code copied',
+  'myCharges.payment.digitableLine': 'Digitable line',
+  'myCharges.payment.copyDigitableLine': 'Copy digitable line',
+  'myCharges.payment.digitableLineCopied': 'Digitable line copied',
+  'myCharges.payment.generating.title': 'We are generating your boleto',
+  'myCharges.payment.generating.description':
+    'The bank is registering the boleto. The Pix code and the digitable line appear here as soon as they are ready — this screen updates by itself.',
+  'myCharges.payment.generating.stalled':
+    'The boleto is not ready at the bank yet. This can take a few minutes.',
+  'myCharges.payment.generating.checkAgain': 'Check again',
   'myCharges.payment.unavailable': 'Payment methods are not available for this charge yet.',
   'myCharges.reissue': 'Second copy',
   'myCharges.reissuing': 'Issuing…',
   'myCharges.reissueSuccess': 'Second copy issued. Use the new boleto or Pix code above.',
   'myCharges.reissueError': 'Could not issue the second copy.',
   'myCharges.pixCopyError': 'Could not copy the Pix code.',
+  'myCharges.digitableLineCopyError': 'Could not copy the digitable line.',
   'myCharges.noAccess.description': 'You do not have access to this school’s boletos.',
   'myCharges.empty.title': 'No boletos yet',
   'myCharges.empty.description':
@@ -661,6 +672,7 @@ const enUS: Messages = {
   'myCharges.filter.mode.range': 'Period',
   'myCharges.filter.month': 'Month',
   'myCharges.filter.allMonths': 'All months',
+  'myCharges.filter.monthNeedsYear': 'Choose a year to filter by month.',
   'myCharges.filter.allYears': 'All years',
   'myCharges.filter.rangeInvalid': 'The start date cannot be after the end date.',
   'myCharges.filter.clear': 'Clear filters',
@@ -808,6 +820,12 @@ const enUS: Messages = {
   'charges.boleto.download': 'Download PDF',
   'charges.boleto.openInTab': 'Open in browser',
   'charges.boleto.error': 'The boleto could not be loaded.',
+  'charges.boleto.unavailable':
+    'This boleto cannot be previewed right now. It may already be paid or cancelled, or the bank may still be registering it.',
+  'charges.boleto.providerError':
+    'The bank could not deliver the boleto. Use the Pix code or the digitable line, or contact the school.',
+  'charges.boleto.providerUnavailable':
+    'The bank is unavailable at the moment. Try again shortly.',
   'charges.boleto.openAction': "Open {name}'s boleto",
   'charges.cancelAction': 'Cancel boleto for {name}',
   'charges.cancelTitle': 'Cancel this boleto?',
@@ -830,6 +848,10 @@ const enUS: Messages = {
   'charges.form.noContractHelp':
     'This guardian has no contract. The boleto still goes out, tied to no student.',
   'charges.form.contractOption': '{student} — {amount}/month',
+  'charges.form.purpose': 'Charge purpose',
+  'charges.form.purposeRequired': 'Choose what the charge is for.',
+  'charges.form.purposeLoading': 'Loading purposes...',
+  'charges.form.purposeLoadError': 'Could not load the purposes. Close and reopen the form to try again.',
   'charges.form.amountRequired': 'Enter the amount.',
   'charges.form.dueDate': 'Due date',
   'charges.form.dueDateRequired': 'Enter the due date.',

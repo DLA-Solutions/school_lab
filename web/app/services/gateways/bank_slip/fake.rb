@@ -7,6 +7,8 @@ module Gateways
 
       PROVIDER = "fake"
 
+      FAKE_PDF = "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n".b.freeze
+
       def initialize(school:)
         @school = school
         @issued = {}
@@ -99,6 +101,11 @@ module Gateways
         )
         @invoices[provider_invoice_id] = updated
         updated
+      end
+
+      def boleto_pdf(provider_invoice_id:)
+        fetch_invoice(provider_invoice_id: provider_invoice_id)
+        FAKE_PDF
       end
 
       def seed_open_invoice!(issuance:, charge:)

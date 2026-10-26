@@ -62,6 +62,19 @@ RSpec.describe Billing::IssueChargeService do
     expect(issuance.pix_emv).to be_nil
   end
 
+  it "enqueues the presentation follow-up when the provider returned no boleto/Pix yet (Inter)" do
+    pending_issuance_result = Gateways::BankSlip::ValueObjects::Issuance.new(
+      provider_invoice_id: "inter-req-123", status: "draft", amount_cents: charge.total_amount_cents
+    )
+    allow(adapter).to receive(:issue).and_return(pending_issuance_result)
+
+    expect { result }.to have_enqueued_job(Billing::SyncIssuancePresentationJob)
+  end
+
+  it "does not enqueue the presentation follow-up when the provider already returned the boleto" do
+    expect { result }.not_to have_enqueued_job(Billing::SyncIssuancePresentationJob)
+  end
+
   it "passes the persisted idempotency key to the adapter" do
     result
 

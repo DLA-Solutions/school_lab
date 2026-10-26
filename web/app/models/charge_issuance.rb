@@ -14,6 +14,13 @@ class ChargeIssuance < ApplicationRecord
 
   before_validation :snapshot_from_charge, on: :create
 
+  # The provider can produce a PDF and the boleto is already registered there: an issued
+  # issuance with a provider id and a linha digitavel (Inter only has one once the boleto exists).
+  def boleto_pdf_available?
+    issued? && provider_invoice_id.present? && digitable_line.present? &&
+      Gateways::BankSlip::Registry.boleto_pdf?(provider)
+  end
+
   def self.find_by_provider_invoice_id!(provider_invoice_id)
     find_by!(provider_invoice_id: provider_invoice_id)
   end

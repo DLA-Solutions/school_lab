@@ -169,6 +169,62 @@ RSpec.describe SchoolLab::Integrations::Inter::Client do
     expect(primary_cache.fetch { "freshly-minted" }).to eq("primary-token")
   end
 
+  describe "#boleto_pdf" do
+    let(:pdf_bytes) { "%PDF-1.4\n%\xE2\xE3\xCF\xD3\nfake boleto".b }
+    let(:pdf_path) { "/cobranca/v3/cobrancas/req-1/pdf" }
+
+    it "decodes the base64 `pdf` field of the JSON response" do
+      stub_inter_api(:get, pdf_path, status: 200,
+                                     body: { pdf: Base64.strict_encode64(pdf_bytes) }.to_json,
+                                     headers: { "Content-Type" => "application/json" })
+
+      expect(client.boleto_pdf("req-1")).to eq(pdf_bytes)
+    end
+
+    it "accepts a raw PDF body" do
+      stub_inter_api(:get, pdf_path, status: 200, body: pdf_bytes,
+                                     headers: { "Content-Type" => "application/pdf" })
+
+      expect(client.boleto_pdf("req-1")).to eq(pdf_bytes)
+    end
+
+    it "raises UnexpectedResponseError when the JSON has no pdf field" do
+      stub_inter_api(:get, pdf_path, status: 200, body: { other: "x" }.to_json)
+
+      expect { client.boleto_pdf("req-1") }
+        .to raise_error(SchoolLab::Integrations::Inter::UnexpectedResponseError)
+    end
+
+    it "raises UnexpectedResponseError when the base64 is not valid" do
+      stub_inter_api(:get, pdf_path, status: 200, body: { pdf: "%%%not-base64" }.to_json)
+
+      expect { client.boleto_pdf("req-1") }
+        .to raise_error(SchoolLab::Integrations::Inter::UnexpectedResponseError)
+    end
+
+    it "raises UnexpectedResponseError when the decoded bytes are not a PDF" do
+      stub_inter_api(:get, pdf_path, status: 200, body: { pdf: Base64.strict_encode64("<html>") }.to_json)
+
+      expect { client.boleto_pdf("req-1") }
+        .to raise_error(SchoolLab::Integrations::Inter::UnexpectedResponseError)
+    end
+
+    it "maps a 404 from the provider to UnexpectedResponseError and a 5xx to TransientError" do
+      stub_inter_api(:get, pdf_path, status: 404, body: "{}")
+      expect { client.boleto_pdf("req-1") }
+        .to raise_error(SchoolLab::Integrations::Inter::UnexpectedResponseError)
+
+      stub_inter_api(:get, pdf_path, status: 503, body: "")
+      expect { client.boleto_pdf("req-1") }.to raise_error(SchoolLab::Integrations::Inter::TransientError)
+    end
+
+    it "url-encodes the request id so it cannot alter the path" do
+      stub_inter_api(:get, "/cobranca/v3/cobrancas/a%2Fb/pdf", status: 200, body: pdf_bytes)
+
+      expect(client.boleto_pdf("a/b")).to eq(pdf_bytes)
+    end
+  end
+
   it "does not include secrets in raised errors" do
     stub_inter_api(:get, "/cobranca/v3/secret", status: 403, body: "forbidden")
 

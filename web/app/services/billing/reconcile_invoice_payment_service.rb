@@ -34,23 +34,11 @@ module Billing
 
     attr_reader :webhook_event
 
-    # Closes the loop on Inter's asynchronous issuance: adapter#issue leaves boleto/Pix fields
-    # nil on the ChargeIssuance, and they only arrive once this reconciliation re-fetch runs.
-    # Independent of payment status — runs whether the invoice is still open, late, or paid.
-    # Short-circuits immediately for every other provider (Cora/Fake already populate these at
-    # issue time), so this is purely additive.
+    # Closes the loop on Inter's asynchronous issuance when a webhook beats the follow-up job
+    # (Billing::SyncIssuancePresentationJob): independent of payment status, and a no-op for
+    # providers whose issuance already carries these fields.
     def backfill_presentation_fields!(issuance, invoice)
-      return if issuance.digitable_line.present?
-      return unless invoice.respond_to?(:digitable_line) && invoice.digitable_line.present?
-
-      issuance.update!(
-        boleto_url: invoice.boleto_url,
-        digitable_line: invoice.digitable_line,
-        barcode: invoice.barcode,
-        our_number: invoice.our_number,
-        pix_emv: invoice.pix_emv
-      )
-      issuance.charge.sync_invoice_cache!
+      Billing::BackfillIssuancePresentationService.call(issuance: issuance, invoice: invoice)
     end
 
     def adapter

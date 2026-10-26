@@ -49,6 +49,12 @@ module Gateways
           ResponseParser.parse_invoice(JSON.parse(response))
         end
 
+        # Inter has no hosted boleto URL: the PDF only comes from its own authenticated (mTLS +
+        # OAuth) `GET .../{codigoSolicitacao}/pdf`, so the API fetches the bytes and streams them.
+        def boleto_pdf(provider_invoice_id:)
+          with_port_errors { client.boleto_pdf(provider_invoice_id) }
+        end
+
         # NOTE: the collection-listing shape for `GET /cobranca/v3/cobrancas` (no id) was not
         # part of the single-resource endpoints confirmed for this PR. `dataInicial`/`dataFinal`
         # and a paginated `cobrancas` array are confirmed via an independent third-party
@@ -76,7 +82,8 @@ module Gateways
             native_notifications: true,
             cancellation: true,
             fine_and_interest: true,
-            past_due_reissue: false
+            past_due_reissue: false,
+            boleto_pdf: true
           )
         end
 

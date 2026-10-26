@@ -428,6 +428,47 @@ RSpec.describe "Api::V1::Schools::Me::Charges", type: :request do
         end
       end
 
+      response "200", "exposes the linha digitavel, Pix and PDF availability of an Inter boleto" do
+        let!(:charge_c1) do
+          create(:charge, school: school, contract: contract, guardian: guardian).tap do |charge|
+            create(:charge_issuance, :issued, charge: charge, school: school, provider: "inter",
+                                              boleto_url: nil,
+                                              digitable_line: "23793.38128 60000.000003 00000.000400 1 93480000085000",
+                                              pix_emv: "00020126580014br.gov.bcb.pix0136abc")
+            charge.sync_invoice_cache!
+          end
+        end
+        let(:id) { charge_c1.id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("data", "payment_methods")).to eq(
+            "boleto_url" => nil,
+            "pix_copy_paste" => "00020126580014br.gov.bcb.pix0136abc",
+            "digitable_line" => "23793.38128 60000.000003 00000.000400 1 93480000085000",
+            "boleto_pdf_available" => true
+          )
+        end
+      end
+
+      response "200", "leaves the boleto fields empty until Inter has produced the boleto" do
+        let!(:charge_c1) do
+          create(:charge, school: school, contract: contract, guardian: guardian).tap do |charge|
+            create(:charge_issuance, :issued, charge: charge, school: school, provider: "inter",
+                                              boleto_url: nil, digitable_line: nil, barcode: nil,
+                                              our_number: nil, pix_emv: nil)
+            charge.sync_invoice_cache!
+          end
+        end
+        let(:id) { charge_c1.id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("data", "payment_methods")).to eq(
+            "boleto_url" => nil, "pix_copy_paste" => nil, "digitable_line" => nil,
+            "boleto_pdf_available" => false
+          )
+        end
+      end
+
       response "200", "includes mora interest rate from school settings" do
         let!(:charge_c1) do
           create(:charge, :overdue, :issued, school: school, contract: contract, guardian: guardian)

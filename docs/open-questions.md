@@ -282,6 +282,36 @@ in `docs/prds/fintech-first.md` (Open items).
     `"boleto"`/`"pix"` payment_method strings by analogy with Inter's confirmed
     `formasRecebimento` vocabulary on the same resource; not independently verified against a
     real settled cobrança.
+  - **Boleto PDF (`GET /cobranca/v3/cobrancas/{codigoSolicitacao}/pdf`) — path and shape not
+    firsthand-confirmed:** implemented in `SchoolLab::Integrations::Inter::Client#boleto_pdf` and
+    exposed as `Adapter#boleto_pdf` / `Capabilities#boleto_pdf`, served to guardians by
+    `GET /me/charges/:id/boleto_pdf`. developers.inter.co renders client-side and could not be
+    fetched, so the shape rests on one independent, reverse-engineered client
+    (`lourenzoavelar/mcp-banco-inter`: `GET /cobranca/v3/cobrancas/${codigoSolicitacao}/pdf`, the
+    PDF read from `response.data.pdf` and base64-decoded) plus Packagist client READMEs that list
+    "Recuperar boleto em PDF" under Cobrança V3 without shape details. The client accepts the JSON
+    `{ "pdf": "<base64>" }` shape and, defensively, a raw `%PDF` body; anything else (or bytes
+    that are not a PDF) raises `UnexpectedResponseError` → port `ProviderError` → API `502
+    boleto_pdf_provider_error`. The OAuth scope is assumed to be `boleto-cobranca.read`, already
+    requested (`Client::SCOPE`). **Verify against an Inter sandbox/production call before
+    go-live**, together with the existing Inter validation items above.
+  - **Post-issuance follow-up (decided):** Inter's webhook fires on status changes (payment,
+    cancellation), not when the boleto becomes ready, so relying on it left Pix/linha digitável
+    empty after issuing. `Billing::SyncIssuancePresentationJob` now re-reads the invoice ~10 s
+    after issuing (only when `issue` returned no boleto, i.e. Inter) and retries on a bounded
+    schedule (30 s, 2 min, 10 min, 30 min — six runs, ~43 min) via
+    `Billing::SyncIssuancePresentationService`; the webhook path still backfills too (shared
+    `Billing::BackfillIssuancePresentationService`, fills only blank columns). For issuances that
+    predate this, run `bin/rails billing:backfill_issuance_presentation`. Whether Inter returns
+    `boleto`/`pix` objects while the cobrança is still `EM_PROCESSAMENTO` is unverified; if it
+    never does within the window, the job logs `billing.sync_issuance_presentation.gave_up` and
+    the guardian sees `null` fields until the next webhook or the backfill task.
+  - **LGPD — boleto PDF is not stored (open: retention if caching is wanted):** the PDF carries
+    the guardian's name, CPF and address (children's-data context, same family isolation as the
+    charge). The endpoint fetches it per request, streams it with `Cache-Control: private,
+    no-store`, and keeps nothing (no Active Storage, no `Rails.cache`). Caching or archiving it
+    (to save provider calls or keep a record) needs a retention window and an access-audit
+    decision first — not decided; each preview currently costs one Inter API call.
 
 ### Annual tax declarations — release blockers
 

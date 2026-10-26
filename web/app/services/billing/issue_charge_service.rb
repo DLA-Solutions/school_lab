@@ -24,6 +24,7 @@ module Billing
       )
       result = adapter.issue(request)
       persist_success!(issuance, result)
+      enqueue_presentation_sync(issuance)
 
       ResponseService.success(data: issuance.reload)
     rescue Gateways::BankSlip::TransientError
@@ -83,6 +84,15 @@ module Billing
         issuance.issue! if issuance.may_issue?
         charge.sync_invoice_cache!
       end
+    end
+
+    # Asynchronous providers (Banco Inter) answer `issue` with a request id only; Cora/Fake
+    # return every presentation field, so for them nothing is enqueued. Runs after the
+    # transaction in persist_success! has committed.
+    def enqueue_presentation_sync(issuance)
+      return if issuance.digitable_line.present?
+
+      Billing::SyncIssuancePresentationJob.enqueue_for(issuance)
     end
 
     def handle_permanent_failure!(issuance, error)

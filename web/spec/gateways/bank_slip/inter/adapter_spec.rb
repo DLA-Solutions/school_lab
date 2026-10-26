@@ -234,6 +234,41 @@ RSpec.describe Gateways::BankSlip::Inter::Adapter do
       expect(caps.cancellation).to be(true)
       expect(caps.fine_and_interest).to be(true)
       expect(caps.past_due_reissue).to be(false)
+      expect(caps.boleto_pdf).to be(true)
+    end
+  end
+
+  describe "#boleto_pdf" do
+    let(:pdf_bytes) { "%PDF-1.4\nfake inter boleto".b }
+    let(:pdf_url) { "#{cobrancas_path}/uuid-123/pdf" }
+
+    it "returns the decoded PDF bytes fetched with the request id" do
+      stub_request(:get, pdf_url)
+        .to_return(status: 200, body: { pdf: Base64.strict_encode64(pdf_bytes) }.to_json,
+                   headers: { "Content-Type" => "application/json" })
+
+      expect(adapter.boleto_pdf(provider_invoice_id: "uuid-123")).to eq(pdf_bytes)
+    end
+
+    it "maps a malformed provider response to a ProviderError" do
+      stub_request(:get, pdf_url).to_return(status: 200, body: "not json and not a pdf")
+
+      expect { adapter.boleto_pdf(provider_invoice_id: "uuid-123") }
+        .to raise_error(Gateways::BankSlip::ProviderError)
+    end
+
+    it "maps a provider outage to a TransientError" do
+      stub_request(:get, pdf_url).to_return(status: 503, body: "")
+
+      expect { adapter.boleto_pdf(provider_invoice_id: "uuid-123") }
+        .to raise_error(Gateways::BankSlip::TransientError)
+    end
+
+    it "maps a rejected token/scope to an AuthenticationError" do
+      stub_request(:get, pdf_url).to_return(status: 403, body: "")
+
+      expect { adapter.boleto_pdf(provider_invoice_id: "uuid-123") }
+        .to raise_error(Gateways::BankSlip::AuthenticationError)
     end
   end
 

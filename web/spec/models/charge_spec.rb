@@ -96,6 +96,74 @@ RSpec.describe Charge, type: :model do
     end
   end
 
+  describe "#current_issuance with preloaded issuances" do
+    it "picks the same issuance without querying" do
+      charge = create(:charge, school: school, contract: contract, guardian: guardian)
+      create(:charge_issuance, :issued, charge: charge, school: school, provider_invoice_id: "inv-old",
+                                        created_at: 2.days.ago).cancel!
+      current = create(:charge_issuance, :issued, charge: charge, school: school,
+                                                  provider_invoice_id: "inv-current", created_at: 1.day.ago)
+      preloaded = described_class.includes(:charge_issuances).find(charge.id)
+
+      queries = []
+      callback = ->(*, payload) { queries << payload[:sql] unless payload[:name] == "SCHEMA" }
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        expect(preloaded.current_issuance).to eq(current)
+      end
+
+      expect(queries).to be_empty
+    end
+  end
+
+  describe "#boleto_pdf_available?" do
+    let(:charge) { create(:charge, school: school, contract: contract, guardian: guardian) }
+
+    def issue(provider:, **fields)
+      create(:charge_issuance, :issued, charge: charge, school: school, provider: provider, **fields)
+    end
+
+    it "is true for a payable charge whose Inter boleto is registered" do
+      issue(provider: "inter")
+
+      expect(charge).to be_boleto_pdf_available
+    end
+
+    it "is false while Inter has not produced the boleto yet" do
+      issue(provider: "inter", digitable_line: nil, pix_emv: nil)
+
+      expect(charge).not_to be_boleto_pdf_available
+    end
+
+    it "is false for a provider that serves a hosted boleto_url instead (Cora)" do
+      issue(provider: "cora")
+
+      expect(charge).not_to be_boleto_pdf_available
+    end
+
+    it "is false once the charge is paid, cancelled or discarded" do
+      issue(provider: "inter")
+      expect(charge).to be_boleto_pdf_available
+
+      charge.pay!
+      expect(charge).not_to be_boleto_pdf_available
+    end
+
+    it "is false for a cancelled charge and a discarded one" do
+      issue(provider: "inter")
+      charge.cancel!
+      expect(charge).not_to be_boleto_pdf_available
+
+      other = create(:charge, school: school, contract: contract, guardian: guardian)
+      create(:charge_issuance, :issued, charge: other, school: school, provider: "inter")
+      other.discard
+      expect(other).not_to be_boleto_pdf_available
+    end
+
+    it "is false without any issuance" do
+      expect(charge).not_to be_boleto_pdf_available
+    end
+  end
+
   describe "historical invoice lookup" do
     it "resolves a cancelled issuance provider_invoice_id to the charge" do
       charge = create(:charge, school: school, contract: contract, guardian: guardian)
