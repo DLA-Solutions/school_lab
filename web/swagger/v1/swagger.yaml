@@ -11172,6 +11172,70 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/me/charges/{id}/boleto_pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "The guardian's own boleto as a PDF (providers that only serve it through an authenticated API)",
+        "description": "Streams the boleto PDF fetched from the bank. Available only while `payment_methods.boleto_pdf_available` is true on the charge. Never stored; responses are `private, no-store`.",
+        "tags": [
+          "Guardian Me"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "the PDF of the guardian's own Inter boleto"
+          },
+          "401": {
+            "description": "unauthenticated"
+          },
+          "403": {
+            "description": "non-guardian role"
+          },
+          "404": {
+            "description": "a discarded charge"
+          },
+          "409": {
+            "description": "the provider serves a hosted boleto_url instead of a PDF (Cora)"
+          },
+          "502": {
+            "description": "the bank rejected the credentials or scope"
+          },
+          "503": {
+            "description": "the bank is temporarily unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/me/charges/{id}/reissue": {
       "parameters": [
         {
