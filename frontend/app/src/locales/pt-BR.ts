@@ -636,8 +636,6 @@ const ptBR = {
     'Os pedidos que você fizer aparecem aqui, com a resposta da escola.',
   'myRequests.noAccess.description': 'Você não tem acesso aos pedidos desta escola.',
 
-  'myCharges.tab.open': 'Em aberto',
-  'myCharges.tab.history': 'Histórico',
   'myCharges.loadError': 'Não foi possível carregar os seus boletos.',
   'myCharges.detailError': 'Não foi possível carregar este boleto.',
   'myCharges.viewDetail': 'Ver e pagar',
@@ -657,11 +655,22 @@ const ptBR = {
   'myCharges.reissueError': 'Não foi possível emitir a segunda via.',
   'myCharges.pixCopyError': 'Não foi possível copiar o código Pix.',
   'myCharges.noAccess.description': 'Você não tem acesso aos boletos desta escola.',
-  'myCharges.empty.open.title': 'Nenhum boleto em aberto',
-  'myCharges.empty.open.description':
+  'myCharges.empty.title': 'Nenhum boleto ainda',
+  'myCharges.empty.description':
     'Quando a escola emitir um boleto para a sua família, ele aparece aqui.',
-  'myCharges.empty.history.title': 'Nenhum pagamento ainda',
-  'myCharges.empty.history.description': 'Os boletos pagos pela plataforma aparecem aqui.',
+  'myCharges.filter.dueDateFrom': 'Vencimento de',
+  'myCharges.filter.dueDateTo': 'Vencimento até',
+  'myCharges.status.pending': 'Em aberto',
+  'myCharges.status.overdue': 'Atrasado',
+  'myCharges.status.paid': 'Pago',
+  'myCharges.filter.mode': 'Filtrar vencimento por',
+  'myCharges.filter.mode.month': 'Mês/ano',
+  'myCharges.filter.mode.range': 'Período',
+  'myCharges.filter.month': 'Mês',
+  'myCharges.filter.allMonths': 'Todos os meses',
+  'myCharges.filter.allYears': 'Todos os anos',
+  'myCharges.filter.rangeInvalid': 'A data inicial não pode ser depois da data final.',
+  'myCharges.filter.clear': 'Limpar filtros',
 
   'dashboard.guardian.link.myCharges': 'Meus boletos',
   'dashboard.guardian.link.myChargesDescription':

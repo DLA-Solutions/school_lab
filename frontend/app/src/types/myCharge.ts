@@ -1,4 +1,4 @@
-/** Mirrors `ChargeBlueprint` guardian views (`:guardian`, `:guardian_history`). */
+/** Mirrors `ChargeBlueprint`'s `:guardian` view — `GET /me/charges`, `/me/charges/:id`, `/me/charges/:id/reissue`. */
 
 export interface MyChargeStudent {
   id: number;
@@ -10,7 +10,7 @@ export interface MyChargePaymentMethods {
   pix_copy_paste: string | null;
 }
 
-/** Open charge or detail — `GET /me/charges`, `GET /me/charges/:id`. */
+/** A guardian's boleto, any status — `GET /me/charges` returns a single ascending list of these. */
 export interface MyCharge {
   id: number;
   billing_period: string | null;
@@ -24,19 +24,6 @@ export interface MyCharge {
   /** Monthly mora rate from school settings; null when unset. */
   interest_rate_percent: number | null;
   payment_methods: MyChargePaymentMethods;
-}
-
-/** Paid charge row — `GET /me/charges/history`. */
-export interface MyChargeHistory {
-  id: number;
-  billing_period: string | null;
-  total_amount_cents: number;
-  status: 'paid';
-  kind: 'tuition' | 'one_off';
-  description: string | null;
-  contract_id: number | null;
-  student: MyChargeStudent | null;
-  paid_at: string;
-  source: 'platform';
-  interest_rate_percent: number | null;
+  /** Null until the charge is paid; populated once it settles. */
+  paid_at: string | null;
 }

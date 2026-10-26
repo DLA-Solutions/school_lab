@@ -5567,7 +5567,8 @@
         }
       ],
       "get": {
-        "summary": "List open charges",
+        "summary": "List the family's boletos (open, overdue and paid)",
+        "description": "Without `status` returns the legacy open list (pending + overdue, oldest due date first). With `status` returns the unified list, newest due date first.",
         "tags": [
           "Guardian Me"
         ],
@@ -5592,11 +5593,87 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "`all`, or a comma separated list of paid, pending, overdue",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": false,
+            "description": "1-12; requires `year`; filters by due date",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "description": "Four-digit year; alone it covers the whole year",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "ISO date, inclusive lower bound on the due date; excludes month/year",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "ISO date, inclusive upper bound on the due date; excludes month/year",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "description": "asc or desc by due date (default desc with `status`, asc without)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "filters by linked student_id"
+            "description": "never lists another family's or another school's charges"
+          },
+          "422": {
+            "description": "invalid order"
+          },
+          "401": {
+            "description": "unauthenticated"
           },
           "404": {
             "description": "unlinked student_id filter"

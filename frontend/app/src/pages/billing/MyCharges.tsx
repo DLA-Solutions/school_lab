@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -10,9 +10,9 @@ import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import IconifyIcon from 'components/base/IconifyIcon';
@@ -30,29 +30,29 @@ import { useTranslation } from 'providers/I18nContext';
 import { useGuardianSchool } from 'providers/useGuardianSchool';
 import { ApiError } from 'services/api';
 import {
+  MyChargeListStatus,
+  MyChargesPeriod,
   getMyCharge,
-  listMyChargeHistory,
-  listMyOpenCharges,
+  listMyCharges,
   reissueMyCharge,
 } from 'services/myChargesApi';
 import { downloadMyServiceInvoicePdf, listMyServiceInvoices } from 'services/serviceInvoicesApi';
 import { listMyStudents } from 'services/studentsApi';
 import { Charge } from 'types/charge';
-import { MyCharge, MyChargeHistory } from 'types/myCharge';
+import { MyCharge } from 'types/myCharge';
 import { ServiceInvoice } from 'types/serviceInvoice';
 import { Student } from 'types/student';
 import { formatCents } from 'utils/money';
 import { downloadBlob } from 'utils/downloadBlob';
 import type { MessageKey } from 'locales';
 
-type TabValue = 'open' | 'history';
-
 /** Pagy's default. The API ignores a client page size, so the grid asks for the same 25. */
 const PAGE_SIZE = 25;
 
 /**
- * Invoices are ordered differently from paid charges. A miscounted total must not walk forever:
- * 20 pages is 500 notes at the default size.
+ * Invoices and charges are separate paginated lists. Matching only invoice page 1 would hide
+ * Baixar NFS-e once a charge's note sits further down. Stop when every charge on this page has
+ * been seen, the invoice list runs out, or the cap is hit.
  */
 const INVOICE_PAGE_CAP = 20;
 
@@ -74,15 +74,29 @@ const formatDate = (iso: string | null, locale: string) => {
   return locale === 'en-US' ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
 };
 
-const chargeLabel = (charge: MyCharge | MyChargeHistory, t: (key: MessageKey) => string) =>
+/** Timestamp (`paid_at`) → locale date in the viewer's timezone; ISO dates use `formatDate`. */
+const formatTimestamp = (iso: string | null, locale: string) =>
+  iso ? new Date(iso).toLocaleDateString(locale === 'en-US' ? 'en-US' : 'pt-BR') : '—';
+
+type FilterMode = 'month' | 'range';
+
+/** Past years a family may still look up, and one year ahead for boletos issued in advance. */
+const YEARS_BACK = 4;
+const YEARS_AHEAD = 1;
+
+/** Guardian-facing tag: the staff-side "Vencido" reads as "Atrasado" to a family. */
+const statusLabel = (status: MyCharge['status'], t: (key: MessageKey) => string) =>
+  status === 'cancelled' ? t('charges.status.cancelled') : t(`myCharges.status.${status}`);
+
+const chargeLabel = (charge: MyCharge, t: (key: MessageKey) => string) =>
   charge.kind === 'one_off'
     ? (charge.description ?? t('charges.kind.oneOff'))
     : (charge.student?.name ?? t('charges.kind.tuition'));
 
 /**
  * Paid boletos and NFS-e are separate paginated lists. Matching only invoice page 1 would hide
- * Baixar NFS-e once a charge's note sits further down. Stop when every charge on this history
- * page has been seen, the invoice list runs out, or the cap is hit.
+ * Baixar NFS-e once a charge's note sits further down. Stop when every charge on this page has
+ * been seen, the invoice list runs out, or the cap is hit.
  */
 const invoicesCoveringCharges = async (schoolId: number, chargeIds: number[]) => {
   const pending = new Set(chargeIds);
@@ -136,25 +150,30 @@ const toPreviewCharge = (charge: MyCharge): Charge => ({
 });
 
 /**
- * The guardian's boletos: what is still open, what was already paid, and how to pay or reissue.
- *
- * Open and history are separate tabs because they answer different questions — what do I owe now,
- * versus what did I already settle — and mixing them would bury paid rows among debts.
+ * The guardian's boletos: every status — pending, overdue, paid — in one list (latest due date
+ * first, as the API orders it), narrowed server-side by status, child, and a due-date window
+ * chosen either as month/year or as a from/to range. The two window shapes are exclusive
+ * on the API, so switching mode clears the other one. A paid row only shows what was settled —
+ * the API still returns its old slip data, which is never offered for payment.
  */
 const MyCharges = () => {
   const { t, locale } = useTranslation();
   const school = useGuardianSchool();
   const schoolId = school?.school_id ?? null;
 
-  const [tab, setTab] = useState<TabValue>('open');
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [filterMode, setFilterMode] = useState<FilterMode>('month');
+  const [year, setYear] = useState('');
+  const [month, setMonth] = useState('');
+  const [dueDateFrom, setDueDateFrom] = useState('');
+  const [dueDateTo, setDueDateTo] = useState('');
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
 
-  const [openRows, setOpenRows] = useState<MyCharge[]>([]);
-  const [historyRows, setHistoryRows] = useState<MyChargeHistory[]>([]);
-  const [historyInvoices, setHistoryInvoices] = useState<ServiceInvoice[]>([]);
+  const [rows, setRows] = useState<MyCharge[]>([]);
+  const [invoices, setInvoices] = useState<ServiceInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -167,11 +186,37 @@ const MyCharges = () => {
   const [previewing, setPreviewing] = useState<MyCharge | null>(null);
   const [pixCopied, setPixCopied] = useState(false);
 
+  const latestRequest = useRef(0);
+
+  const rangeInvalid =
+    filterMode === 'range' && dueDateFrom && dueDateTo && dueDateFrom > dueDateTo;
+
+  const period = useMemo<MyChargesPeriod | undefined>(() => {
+    if (filterMode === 'month') {
+      // A month without a year is not a valid API filter; the month select stays disabled then.
+      return year
+        ? { kind: 'month', year: Number(year), month: month ? Number(month) : undefined }
+        : undefined;
+    }
+
+    return dueDateFrom || dueDateTo
+      ? { kind: 'range', from: dueDateFrom || undefined, to: dueDateTo || undefined }
+      : undefined;
+  }, [filterMode, year, month, dueDateFrom, dueDateTo]);
+
   const load = useCallback(async () => {
     if (!schoolId) {
       return;
     }
 
+    // An inverted range is blocked inline; asking the API would only come back as a 422.
+    if (rangeInvalid) {
+      setLoading(false);
+      return;
+    }
+
+    const requestId = latestRequest.current + 1;
+    latestRequest.current = requestId;
     setLoading(true);
     setError('');
 
@@ -179,39 +224,37 @@ const MyCharges = () => {
     const apiPage = page + 1;
 
     try {
-      if (tab === 'open') {
-        const response = await listMyOpenCharges({
-          schoolId,
-          studentId: studentFilter,
-          page: apiPage,
-        });
-        setOpenRows(response.data);
-        setTotal(response.meta.total);
-        setHistoryInvoices([]);
-      } else {
-        const historyResponse = await listMyChargeHistory({
-          schoolId,
-          studentId: studentFilter,
-          page: apiPage,
-        });
-        const invoices = await invoicesCoveringCharges(
-          schoolId,
-          historyResponse.data.map((row) => row.id),
-        );
-        setHistoryRows(historyResponse.data);
-        setTotal(historyResponse.meta.total);
-        setHistoryInvoices(invoices);
+      const response = await listMyCharges({
+        schoolId,
+        studentId: studentFilter,
+        status: statusFilter ? [statusFilter as MyChargeListStatus] : 'all',
+        period,
+        page: apiPage,
+      });
+      const matchedInvoices = await invoicesCoveringCharges(
+        schoolId,
+        response.data.filter((row) => row.status === 'paid').map((row) => row.id),
+      );
+      if (requestId !== latestRequest.current) {
+        return;
       }
+      setRows(response.data);
+      setTotal(response.meta.total);
+      setInvoices(matchedInvoices);
     } catch (err) {
-      setOpenRows([]);
-      setHistoryRows([]);
-      setHistoryInvoices([]);
+      if (requestId !== latestRequest.current) {
+        return;
+      }
+      setRows([]);
+      setInvoices([]);
       setTotal(0);
       setError(err instanceof ApiError ? err.message : t('myCharges.loadError'));
     } finally {
-      setLoading(false);
+      if (requestId === latestRequest.current) {
+        setLoading(false);
+      }
     }
-  }, [schoolId, tab, studentId, page, t]);
+  }, [schoolId, studentId, statusFilter, period, rangeInvalid, page, t]);
 
   useEffect(() => {
     load();
@@ -234,13 +277,12 @@ const MyCharges = () => {
     loadStudents();
   }, [schoolId]);
 
-  // A different tab or child is a different list; page 4 of the previous one is not this list.
+  // A different filter is a different list; page 4 of the previous one is not this list.
   const resetListing = () => {
     setPage(0);
     setLoading(true);
-    setOpenRows([]);
-    setHistoryRows([]);
-    setHistoryInvoices([]);
+    setRows([]);
+    setInvoices([]);
     setTotal(0);
   };
 
@@ -300,11 +342,9 @@ const MyCharges = () => {
   };
 
   const invoiceForCharge = (chargeId: number) =>
-    historyInvoices.find(
+    invoices.find(
       (invoice) =>
-        invoice.charge_id === chargeId &&
-        invoice.status === 'authorized' &&
-        invoice.pdf_available,
+        invoice.charge_id === chargeId && invoice.status === 'authorized' && invoice.pdf_available,
     ) ?? null;
 
   const downloadInvoice = async (invoice: ServiceInvoice) => {
@@ -325,14 +365,14 @@ const MyCharges = () => {
     }
   };
 
-  const openColumns: GridColDef<MyCharge>[] = [
+  const columns: GridColDef<MyCharge>[] = [
     {
       field: 'status',
       headerName: t('common.status'),
       width: 130,
       sortable: false,
       renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
-        <SemanticChip variant={STATUS_VARIANT[row.status]} label={t(`charges.status.${row.status}`)} />
+        <SemanticChip variant={STATUS_VARIANT[row.status]} label={statusLabel(row.status, t)} />
       ),
     },
     {
@@ -347,65 +387,22 @@ const MyCharges = () => {
     {
       field: 'due_date',
       headerName: t('charges.column.due'),
-      width: 140,
+      width: 120,
       sortable: false,
       renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
         <Typography variant="body2">{formatDate(row.due_date, locale)}</Typography>
       ),
     },
     {
-      field: 'label',
-      headerName: t('common.student'),
-      flex: 1,
-      minWidth: 160,
-      sortable: false,
-      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
-        <Typography variant="body2" color="text.secondary">
-          {chargeLabel(row, t)}
-        </Typography>
-      ),
-    },
-    {
-      field: 'pay',
-      headerName: t('common.actions'),
-      width: 160,
-      sortable: false,
-      filterable: false,
-      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
-        <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>
-          {t('myCharges.viewDetail')}
-        </Button>
-      ),
-    },
-  ];
-
-  const historyColumns: GridColDef<MyChargeHistory>[] = [
-    {
-      field: 'status',
-      headerName: t('common.status'),
-      width: 130,
-      sortable: false,
-      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => (
-        <SemanticChip variant={STATUS_VARIANT[row.status]} label={t(`charges.status.${row.status}`)} />
-      ),
-    },
-    {
-      field: 'total_amount_cents',
-      headerName: t('common.amount'),
-      width: 130,
-      sortable: false,
-      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => (
-        <Typography variant="body2">{formatCents(row.total_amount_cents)}</Typography>
-      ),
-    },
-    {
       field: 'paid_at',
       headerName: t('myCharges.paidAt'),
-      width: 160,
+      width: 140,
       sortable: false,
-      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => (
+      // Pending and overdue rows have nothing to show here yet; paid is the only status that
+      // ever populates it, but the column stays so a paid row never loses when it settled.
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
         <Typography variant="body2" color="text.secondary">
-          {new Date(row.paid_at).toLocaleDateString(locale === 'en-US' ? 'en-US' : 'pt-BR')}
+          {formatTimestamp(row.paid_at, locale)}
         </Typography>
       ),
     },
@@ -415,37 +412,40 @@ const MyCharges = () => {
       flex: 1,
       minWidth: 160,
       sortable: false,
-      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => (
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
         <Typography variant="body2" color="text.secondary">
           {chargeLabel(row, t)}
         </Typography>
       ),
     },
     {
-      field: 'invoice',
+      field: 'actions',
       headerName: t('common.actions'),
-      width: 200,
+      width: 260,
       sortable: false,
       filterable: false,
-      renderCell: ({ row }: GridRenderCellParams<MyChargeHistory>) => {
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => {
         const invoice = invoiceForCharge(row.id);
 
-        if (!invoice) {
-          return null;
-        }
-
         return (
-          <Button
-            size="small"
-            variant="outlined"
-            disabled={downloadingInvoiceId === invoice.id}
-            startIcon={<IconifyIcon icon="mingcute:file-line" />}
-            onClick={() => downloadInvoice(invoice)}
-          >
-            {downloadingInvoiceId === invoice.id
-              ? t('myCharges.invoiceDownloading')
-              : t('myCharges.downloadInvoice')}
-          </Button>
+          <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap" py={0.5}>
+            <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>
+              {row.status === 'paid' ? t('common.view') : t('myCharges.viewDetail')}
+            </Button>
+            {invoice && (
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={downloadingInvoiceId === invoice.id}
+                startIcon={<IconifyIcon icon="mingcute:file-line" />}
+                onClick={() => downloadInvoice(invoice)}
+              >
+                {downloadingInvoiceId === invoice.id
+                  ? t('myCharges.invoiceDownloading')
+                  : t('myCharges.downloadInvoice')}
+              </Button>
+            )}
+          </Stack>
         );
       },
     },
@@ -466,8 +466,45 @@ const MyCharges = () => {
     );
   }
 
-  const rows = tab === 'open' ? openRows : historyRows;
-  const columns = tab === 'open' ? openColumns : historyColumns;
+  const hasActiveFilters = Boolean(
+    studentId || statusFilter || year || month || dueDateFrom || dueDateTo,
+  );
+
+  const changeFilter = (apply: () => void) => {
+    apply();
+    resetListing();
+  };
+
+  const changeMode = (next: FilterMode) =>
+    changeFilter(() => {
+      // The API rejects month/year together with from/to, so only one window survives a switch.
+      setFilterMode(next);
+      setYear('');
+      setMonth('');
+      setDueDateFrom('');
+      setDueDateTo('');
+    });
+
+  const clearFilters = () =>
+    changeFilter(() => {
+      setStudentId('');
+      setStatusFilter('');
+      setYear('');
+      setMonth('');
+      setDueDateFrom('');
+      setDueDateTo('');
+    });
+
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from(
+    { length: YEARS_BACK + YEARS_AHEAD + 1 },
+    (_, index) => currentYear + YEARS_AHEAD - index,
+  );
+  const monthOptions = Array.from({ length: 12 }, (_, index) => {
+    const name = new Date(2000, index, 1).toLocaleDateString(locale, { month: 'long' });
+
+    return { value: String(index + 1), label: name.charAt(0).toUpperCase() + name.slice(1) };
+  });
 
   return (
     <Stack direction="column" gap={3.5}>
@@ -478,27 +515,29 @@ const MyCharges = () => {
 
       <SectionCard padding={0}>
         <Box px={3.5} pt={3.5}>
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={2} flexWrap="wrap">
-            <Tabs
-              value={tab}
-              onChange={(_, value: TabValue) => {
-                setTab(value);
-                resetListing();
-              }}
+          <Stack direction="row" gap={1.5} alignItems="flex-start" flexWrap="wrap">
+            <TextField
+              id="my-charges-status"
+              label={t('common.status')}
+              value={statusFilter}
+              onChange={(event) => changeFilter(() => setStatusFilter(event.target.value))}
+              variant="filled"
+              size="small"
+              select
+              sx={{ minWidth: 160 }}
             >
-              <Tab value="open" label={t('myCharges.tab.open')} />
-              <Tab value="history" label={t('myCharges.tab.history')} />
-            </Tabs>
+              <MenuItem value="">{t('charges.filter.all')}</MenuItem>
+              <MenuItem value="pending">{t('myCharges.status.pending')}</MenuItem>
+              <MenuItem value="overdue">{t('myCharges.status.overdue')}</MenuItem>
+              <MenuItem value="paid">{t('myCharges.status.paid')}</MenuItem>
+            </TextField>
 
             {students.length > 1 && (
               <TextField
                 id="my-charges-child"
                 label={t('guardians.charges.child')}
                 value={studentId}
-                onChange={(event) => {
-                  setStudentId(event.target.value);
-                  resetListing();
-                }}
+                onChange={(event) => changeFilter(() => setStudentId(event.target.value))}
                 variant="filled"
                 size="small"
                 select
@@ -512,16 +551,113 @@ const MyCharges = () => {
                 ))}
               </TextField>
             )}
+
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              value={filterMode}
+              aria-label={t('myCharges.filter.mode')}
+              onChange={(_event, next: FilterMode | null) => {
+                if (next && next !== filterMode) {
+                  changeMode(next);
+                }
+              }}
+            >
+              <ToggleButton value="month">{t('myCharges.filter.mode.month')}</ToggleButton>
+              <ToggleButton value="range">{t('myCharges.filter.mode.range')}</ToggleButton>
+            </ToggleButtonGroup>
+
+            {filterMode === 'month' ? (
+              <>
+                <TextField
+                  id="my-charges-year"
+                  label={t('common.year')}
+                  value={year}
+                  onChange={(event) =>
+                    changeFilter(() => {
+                      setYear(event.target.value);
+                      // A month only means something inside a year.
+                      if (!event.target.value) {
+                        setMonth('');
+                      }
+                    })
+                  }
+                  variant="filled"
+                  size="small"
+                  select
+                  sx={{ minWidth: 140 }}
+                >
+                  <MenuItem value="">{t('myCharges.filter.allYears')}</MenuItem>
+                  {yearOptions.map((option) => (
+                    <MenuItem key={option} value={String(option)}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField
+                  id="my-charges-month"
+                  label={t('myCharges.filter.month')}
+                  value={month}
+                  onChange={(event) => changeFilter(() => setMonth(event.target.value))}
+                  variant="filled"
+                  size="small"
+                  select
+                  disabled={!year}
+                  sx={{ minWidth: 160 }}
+                >
+                  <MenuItem value="">{t('myCharges.filter.allMonths')}</MenuItem>
+                  {monthOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </>
+            ) : (
+              <>
+                <TextField
+                  id="my-charges-due-date-from"
+                  label={t('myCharges.filter.dueDateFrom')}
+                  type="date"
+                  value={dueDateFrom}
+                  onChange={(event) => changeFilter(() => setDueDateFrom(event.target.value))}
+                  variant="filled"
+                  size="small"
+                  error={Boolean(rangeInvalid)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+
+                <TextField
+                  id="my-charges-due-date-to"
+                  label={t('myCharges.filter.dueDateTo')}
+                  type="date"
+                  value={dueDateTo}
+                  onChange={(event) => changeFilter(() => setDueDateTo(event.target.value))}
+                  variant="filled"
+                  size="small"
+                  error={Boolean(rangeInvalid)}
+                  helperText={rangeInvalid ? t('myCharges.filter.rangeInvalid') : undefined}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+              </>
+            )}
+
+            {hasActiveFilters && (
+              <Button variant="text" size="small" onClick={clearFilters} sx={{ mt: 0.75 }}>
+                {t('myCharges.filter.clear')}
+              </Button>
+            )}
           </Stack>
         </Box>
 
-        {!loading && rows.length === 0 && !error ? (
+        {rangeInvalid ? null : !loading && rows.length === 0 && !error ? (
           <EmptyState
-            title={tab === 'open' ? t('myCharges.empty.open.title') : t('myCharges.empty.history.title')}
+            title={hasActiveFilters ? t('charges.emptySearch.title') : t('myCharges.empty.title')}
             description={
-              tab === 'open'
-                ? t('myCharges.empty.open.description')
-                : t('myCharges.empty.history.description')
+              hasActiveFilters
+                ? t('charges.emptySearch.description')
+                : t('myCharges.empty.description')
             }
             headingLevel={3}
           />
@@ -548,7 +684,11 @@ const MyCharges = () => {
         <DialogTitle>{t('myCharges.detail.title')}</DialogTitle>
         <DialogContent dividers>
           {detailError && (
-            <ErrorBanner message={detailError} onRetry={() => detail && openDetail(detail.id)} retryLabel={t('common.tryAgain')} />
+            <ErrorBanner
+              message={detailError}
+              onRetry={() => detail && openDetail(detail.id)}
+              retryLabel={t('common.tryAgain')}
+            />
           )}
 
           {detailLoading && (
@@ -562,14 +702,21 @@ const MyCharges = () => {
               <Stack direction="row" gap={1.5} alignItems="center" flexWrap="wrap">
                 <SemanticChip
                   variant={STATUS_VARIANT[detail.status]}
-                  label={t(`charges.status.${detail.status}`)}
+                  label={statusLabel(detail.status, t)}
                 />
-                <Typography variant="subtitle1">{formatCents(detail.total_amount_cents)}</Typography>
+                <Typography variant="subtitle1">
+                  {formatCents(detail.total_amount_cents)}
+                </Typography>
               </Stack>
 
               <Typography variant="body2" color="text.secondary">
                 {t('charges.column.due')} {formatDate(detail.due_date, locale)}
               </Typography>
+              {detail.paid_at && (
+                <Typography variant="body2" color="text.secondary">
+                  {t('myCharges.paidAt')} {formatTimestamp(detail.paid_at, locale)}
+                </Typography>
+              )}
               <Typography variant="body2" color="text.secondary">
                 {chargeLabel(detail, t)}
               </Typography>
@@ -577,71 +724,80 @@ const MyCharges = () => {
               {detail.interest_rate_percent !== null && (
                 <Typography variant="body2" color="text.secondary">
                   {t('myCharges.interestRate', {
-                    rate: String(detail.interest_rate_percent).replace('.', locale === 'en-US' ? '.' : ','),
+                    rate: String(detail.interest_rate_percent).replace(
+                      '.',
+                      locale === 'en-US' ? '.' : ',',
+                    ),
                   })}
                 </Typography>
               )}
 
-              <Divider />
+              {detail.status !== 'paid' && (
+                <>
+                  <Divider />
 
-              <Typography variant="subtitle2">{t('myCharges.payment.title')}</Typography>
+                  <Typography variant="subtitle2">{t('myCharges.payment.title')}</Typography>
 
-              {detail.payment_methods.boleto_url && (
-                <Stack direction="row" gap={1} flexWrap="wrap">
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<IconifyIcon icon="mingcute:file-line" />}
-                    onClick={() => setPreviewing(detail)}
-                  >
-                    {t('myCharges.payment.previewBoleto')}
-                  </Button>
-                  <Link href={detail.payment_methods.boleto_url} target="_blank" rel="noopener">
-                    <Button
-                      variant="text"
-                      size="small"
-                      startIcon={<IconifyIcon icon="mingcute:external-link-line" />}
-                    >
-                      {t('charges.open')}
-                    </Button>
-                  </Link>
-                </Stack>
-              )}
+                  {detail.payment_methods.boleto_url && (
+                    <Stack direction="row" gap={1} flexWrap="wrap">
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<IconifyIcon icon="mingcute:file-line" />}
+                        onClick={() => setPreviewing(detail)}
+                      >
+                        {t('myCharges.payment.previewBoleto')}
+                      </Button>
+                      <Link href={detail.payment_methods.boleto_url} target="_blank" rel="noopener">
+                        <Button
+                          variant="text"
+                          size="small"
+                          startIcon={<IconifyIcon icon="mingcute:external-link-line" />}
+                        >
+                          {t('charges.open')}
+                        </Button>
+                      </Link>
+                    </Stack>
+                  )}
 
-              {detail.payment_methods.pix_copy_paste && (
-                <Stack direction="column" gap={1}>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('myCharges.payment.pix')}
-                  </Typography>
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 1,
-                      bgcolor: 'action.hover',
-                      fontFamily: 'monospace',
-                      fontSize: '0.75rem',
-                      wordBreak: 'break-all',
-                    }}
-                  >
-                    {detail.payment_methods.pix_copy_paste}
-                  </Box>
-                  <Box>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<IconifyIcon icon="mingcute:copy-2-line" />}
-                      onClick={() => copyPix(detail.payment_methods.pix_copy_paste!)}
-                    >
-                      {pixCopied ? t('myCharges.payment.pixCopied') : t('myCharges.payment.copyPix')}
-                    </Button>
-                  </Box>
-                </Stack>
-              )}
+                  {detail.payment_methods.pix_copy_paste && (
+                    <Stack direction="column" gap={1}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('myCharges.payment.pix')}
+                      </Typography>
+                      <Box
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 1,
+                          bgcolor: 'action.hover',
+                          fontFamily: 'monospace',
+                          fontSize: '0.75rem',
+                          wordBreak: 'break-all',
+                        }}
+                      >
+                        {detail.payment_methods.pix_copy_paste}
+                      </Box>
+                      <Box>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<IconifyIcon icon="mingcute:copy-2-line" />}
+                          onClick={() => copyPix(detail.payment_methods.pix_copy_paste!)}
+                        >
+                          {pixCopied
+                            ? t('myCharges.payment.pixCopied')
+                            : t('myCharges.payment.copyPix')}
+                        </Button>
+                      </Box>
+                    </Stack>
+                  )}
 
-              {!detail.payment_methods.boleto_url && !detail.payment_methods.pix_copy_paste && (
-                <Typography variant="body2" color="text.secondary">
-                  {t('myCharges.payment.unavailable')}
-                </Typography>
+                  {!detail.payment_methods.boleto_url && !detail.payment_methods.pix_copy_paste && (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('myCharges.payment.unavailable')}
+                    </Typography>
+                  )}
+                </>
               )}
             </Stack>
           )}

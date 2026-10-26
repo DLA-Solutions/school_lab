@@ -271,8 +271,8 @@ Family-scoped — Pundit ensures only the logged-in guardian's charges.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/charges` | Open charges (`pending`, `overdue`) |
-| `GET` | `/charges/history` | Paid charges on the platform (`source: platform`) |
+| `GET` | `/charges` | Family boleto list. Unified (`paid`/`pending`/`overdue`, filters) with `status`; legacy open-only without it — contract in [`billing.md`](billing.md#guardian-charges-list-implemented) |
+| `GET` | `/charges/history` | Legacy: paid charges on the platform (`source: platform`); prefer `GET /charges?status=paid` |
 | `GET` | `/charges/:id` | Detail + payment methods + `interest_rate_percent` (monthly mora rate; null when unset) |
 | `POST` | `/charges/:id/reissue` | Second copy boleto/Pix |
 | `GET` | `/payments` | Payment history |
@@ -280,6 +280,9 @@ Family-scoped — Pundit ensures only the logged-in guardian's charges.
 | `GET` | `/documents` | Children's enrollment/KYC docs |
 
 ### `GET /me/charges` response (example)
+
+Simplified legacy (open-only) shape; the full unified contract and field list is in
+[`billing.md`](billing.md#guardian-charges-list-implemented).
 
 ```json
 {

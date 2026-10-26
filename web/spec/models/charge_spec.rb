@@ -19,6 +19,36 @@ RSpec.describe Charge, type: :model do
     end
   end
 
+  describe "listing scopes" do
+    let!(:early) do
+      create(:charge, school: school, contract: contract, guardian: guardian, due_date: Date.new(2026, 3, 10))
+    end
+    let!(:late) do
+      create(:charge, :paid, school: school, contract: contract, guardian: guardian,
+                             due_date: Date.new(2026, 5, 10))
+    end
+    let!(:undated) do
+      create(:charge, school: school, contract: contract, guardian: guardian, due_date: nil)
+    end
+
+    it "filters by one or several statuses" do
+      expect(described_class.with_status("paid")).to contain_exactly(late)
+      expect(described_class.with_status(%w[paid pending])).to contain_exactly(early, late, undated)
+    end
+
+    it "bounds the due date inclusively and ignores a missing bound" do
+      expect(described_class.due_between(Date.new(2026, 3, 10), Date.new(2026, 5, 10))).to contain_exactly(early, late)
+      expect(described_class.due_between(Date.new(2026, 3, 11), nil)).to contain_exactly(late)
+      expect(described_class.due_between(nil, Date.new(2026, 3, 10))).to contain_exactly(early)
+      expect(described_class.due_between).to contain_exactly(early, late, undated)
+    end
+
+    it "orders by due date with undated charges last in both directions" do
+      expect(described_class.by_due_date.to_a).to eq([ late, early, undated ])
+      expect(described_class.by_due_date(:asc).to_a).to eq([ early, late, undated ])
+    end
+  end
+
   describe "database constraints" do
     it "rejects negative total_amount_cents" do
       charge = build(:charge, school: school, contract: contract, guardian: guardian,

@@ -58,6 +58,24 @@ RSpec.describe Billing::ReconcileInvoicePaymentService do
     expect(Payment.last.payment_method).to eq("boleto")
   end
 
+  it "does not regress a paid charge when a later event finds the invoice still open" do
+    adapter.settle_invoice!(provider_invoice_id: issuance.provider_invoice_id)
+    described_class.call(webhook_event: webhook_event, adapter: adapter)
+    paid_at = charge.reload.paid_at
+
+    stale_adapter = Gateways::BankSlip::Fake.new(school: school)
+    stale_adapter.seed_open_invoice!(issuance: issuance, charge: charge)
+    stale_event = create(:webhook_event, school: school, provider: "fake",
+                                         provider_resource_id: issuance.provider_invoice_id)
+
+    expect do
+      expect(described_class.call(webhook_event: stale_event, adapter: stale_adapter)).to be_success
+    end.not_to change(Payment, :count)
+
+    expect(charge.reload).to be_paid
+    expect(charge.paid_at).to eq(paid_at)
+  end
+
   it "is idempotent per webhook event" do
     adapter.settle_invoice!(provider_invoice_id: issuance.provider_invoice_id)
     described_class.call(webhook_event: webhook_event, adapter: adapter)

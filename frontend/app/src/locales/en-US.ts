@@ -630,8 +630,6 @@ const enUS: Messages = {
   'myRequests.empty.description': "Requests you send appear here, with the school's answer.",
   'myRequests.noAccess.description': 'You do not have access to this school’s requests.',
 
-  'myCharges.tab.open': 'Open',
-  'myCharges.tab.history': 'History',
   'myCharges.loadError': 'Could not load your boletos.',
   'myCharges.detailError': 'Could not load this boleto.',
   'myCharges.viewDetail': 'View and pay',
@@ -650,11 +648,22 @@ const enUS: Messages = {
   'myCharges.reissueError': 'Could not issue the second copy.',
   'myCharges.pixCopyError': 'Could not copy the Pix code.',
   'myCharges.noAccess.description': 'You do not have access to this school’s boletos.',
-  'myCharges.empty.open.title': 'No open boletos',
-  'myCharges.empty.open.description':
+  'myCharges.empty.title': 'No boletos yet',
+  'myCharges.empty.description':
     'When the school issues a boleto for your family, it appears here.',
-  'myCharges.empty.history.title': 'No payments yet',
-  'myCharges.empty.history.description': 'Boletos you pay through the platform appear here.',
+  'myCharges.filter.dueDateFrom': 'Due from',
+  'myCharges.filter.dueDateTo': 'Due to',
+  'myCharges.status.pending': 'Open',
+  'myCharges.status.overdue': 'Overdue',
+  'myCharges.status.paid': 'Paid',
+  'myCharges.filter.mode': 'Filter due date by',
+  'myCharges.filter.mode.month': 'Month/year',
+  'myCharges.filter.mode.range': 'Period',
+  'myCharges.filter.month': 'Month',
+  'myCharges.filter.allMonths': 'All months',
+  'myCharges.filter.allYears': 'All years',
+  'myCharges.filter.rangeInvalid': 'The start date cannot be after the end date.',
+  'myCharges.filter.clear': 'Clear filters',
 
   'dashboard.guardian.link.myCharges': 'My boletos',
   'dashboard.guardian.link.myChargesDescription':
