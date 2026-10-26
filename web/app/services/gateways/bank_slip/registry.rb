@@ -19,6 +19,12 @@ module Gateways
       # added once the school-facing credentials upload was requested explicitly.
       API_SELECTABLE_PROVIDERS = %w[cora inter].freeze
 
+      # Providers whose adapter reports `capabilities.boleto_pdf`. Kept here so callers that only
+      # hold a ChargeIssuance (a serializer rendering a list, say) can ask without building an
+      # adapter — which would load credentials and open an mTLS client. A spec keeps this list in
+      # step with the adapters' own `capabilities`.
+      BOLETO_PDF_PROVIDERS = %w[inter fake].freeze
+
       class UnknownProviderError < Gateways::BankSlip::Error; end
 
       class << self
@@ -33,6 +39,10 @@ module Gateways
 
         def registered?(provider)
           ADAPTERS.key?(provider)
+        end
+
+        def boleto_pdf?(provider)
+          BOLETO_PDF_PROVIDERS.include?(provider)
         end
 
         def api_selectable?(provider)

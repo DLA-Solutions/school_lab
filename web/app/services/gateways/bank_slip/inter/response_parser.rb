@@ -41,8 +41,8 @@ module Gateways
             provider_invoice_id: cobranca.fetch("codigoSolicitacao"),
             status: normalize_status(cobranca.fetch("situacao")),
             amount_cents: coerce_amount_cents(cobranca.fetch("valorNominal")),
-            # Inter has no direct boleto PDF/URL field in this response — only a separate
-            # base64 `GET .../pdf` endpoint, which is out of scope for this PR.
+            # Inter has no hosted boleto URL — the PDF is served on demand through
+            # Adapter#boleto_pdf (`capabilities.boleto_pdf`), not stored as a URL.
             boleto_url: nil,
             digitable_line: boleto["linhaDigitavel"],
             barcode: boleto["codigoBarras"],
