@@ -137,7 +137,9 @@ GET /api/v1/schools/7/me/charges?status=all&month=8&year=2026
       "interest_rate_percent": 1.0,
       "payment_methods": {
         "boleto_url": "https://provider.example/boleto/abc",
-        "pix_copy_paste": "00020126580014br.gov.bcb.pix..."
+        "pix_copy_paste": "00020126580014br.gov.bcb.pix...",
+        "digitable_line": "23793.38128 60000.000003 00000.000400 1 93480000085000",
+        "boleto_pdf_available": false
       }
     },
     {
@@ -157,7 +159,12 @@ GET /api/v1/schools/7/me/charges?status=all&month=8&year=2026
       "contract_id": null,
       "student": null,
       "interest_rate_percent": 1.0,
-      "payment_methods": { "boleto_url": "https://provider.example/boleto/def", "pix_copy_paste": null }
+      "payment_methods": {
+        "boleto_url": "https://provider.example/boleto/def",
+        "pix_copy_paste": null,
+        "digitable_line": null,
+        "boleto_pdf_available": false
+      }
     }
   ],
   "meta": { "page": 1, "per_page": 25, "total": 2 }
@@ -172,6 +179,47 @@ Field notes:
 - `interest_rate_percent` is the school's monthly mora rate, or `null` when unset.
 - For `paid` rows `payment_methods`/`boleto_url` may still hold the old slip data; do not offer
   payment.
+- `payment_methods` (also on `GET /me/charges/:id` and the reissue response; absent from
+  `/history`) is always an object with exactly these four keys:
+
+  | Key | Type | Meaning |
+  |-----|------|---------|
+  | `boleto_url` | string \| null | Provider-hosted boleto link (Cora). Always `null` for Banco Inter, which has no hosted link: use `boleto_pdf_available` + the PDF endpoint below. |
+  | `pix_copy_paste` | string \| null | Pix "copia e cola" (EMV). `null` until the provider has produced it. |
+  | `digitable_line` | string \| null | Boleto "linha digitável" (formatted, with dots/spaces). `null` until the provider has produced it. |
+  | `boleto_pdf_available` | boolean | `true` only when the charge is `pending`/`overdue`, not discarded, and its current issuance has a registered boleto at a provider that serves PDFs through the API (Banco Inter). Show the preview only when `true`. Never `null`. |
+
+  **Banco Inter issues asynchronously.** Right after a charge is issued the three data fields can
+  still be `null` / `false`. The API re-reads Inter by itself about 10 s after issuing and
+  retries up to six times over roughly 43 minutes (a webhook also fills them); clients should
+  show a "boleto being generated" state and refetch the charge (for example every 15–30 s while
+  `digitable_line` and `pix_copy_paste` are `null`). Cora/Fake charges always have all three
+  immediately.
+
+### Boleto PDF preview (Banco Inter)
+
+`GET /api/v1/schools/:school_id/me/charges/:id/boleto_pdf` — streams the boleto PDF of the
+logged-in guardian's own charge. Inter's PDF requires mTLS + OAuth, so the SPA cannot fetch it
+from the bank: the API fetches it per request and relays the bytes. Nothing is stored.
+
+- Auth: `Authorization: Bearer <access token>`, `role: guardian` membership of `:school_id`.
+- Success: `200`, `Content-Type: application/pdf`, `Content-Disposition: inline;
+  filename="boleto-<charge id>.pdf"`, `Cache-Control: private, no-store`. Fetch it with the auth
+  header (a bare `<iframe src>` cannot send it): request as a blob and use
+  `URL.createObjectURL`.
+- Only call it when `payment_methods.boleto_pdf_available` is `true`.
+
+| Status | `error.code` | When |
+|--------|--------------|------|
+| `401` | `unauthorized` | Missing/invalid token |
+| `403` | `forbidden` | Membership role is not `guardian` |
+| `404` | `not_found` | Another family's charge, another school, discarded, or unknown id (existence is never leaked) |
+| `409` | `boleto_pdf_unavailable` | Charge is paid/cancelled, the bank has not registered the boleto yet, the provider serves no PDF (Cora: use `boleto_url`), or the school's active bank is no longer the issuing one |
+| `502` | `boleto_pdf_provider_error` | The bank rejected the request (credentials/scope) or returned something that is not a PDF. Not retryable by the client |
+| `503` | `boleto_pdf_provider_unavailable` | Bank timeout/outage (transient). Offer a retry |
+
+Error bodies use the standard envelope (`{ "error": { "code", "message", "details" } }`), with
+`message` in pt-BR.
 - `meta.total` counts the filtered result, not the family's lifetime charges.
 
 ### Examples
