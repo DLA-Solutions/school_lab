@@ -14,6 +14,7 @@ import { ApiError } from 'services/api';
 import {
   listFiscalCredentials,
   provisionFiscalCredentials,
+  registerFiscalApiKey,
   uploadFiscalCertificate,
 } from 'services/fiscalCredentialsApi';
 import { FiscalCredential } from 'types/fiscalCredential';
@@ -36,6 +37,18 @@ const toMessages = (details: Record<string, unknown>) =>
     (Array.isArray(messages) ? messages : []).map((message) => `${field}: ${message}`),
   );
 
+const toApiMessages = (error: ApiError) => {
+  const providerMessage = error.details.message;
+
+  if (error.code === 'provider_error' && typeof providerMessage === 'string' && providerMessage) {
+    return [providerMessage];
+  }
+
+  const messages = toMessages(error.details);
+
+  return messages.length > 0 ? messages : [error.message];
+};
+
 /**
  * Spedy credentials and A1 certificate upload for NFS-e.
  *
@@ -53,6 +66,10 @@ const FiscalCredentialsCard = ({ schoolId }: FiscalCredentialsCardProps) => {
   const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [provisioning, setProvisioning] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [companyId, setCompanyId] = useState('');
+  const [needsCompanyId, setNeedsCompanyId] = useState(false);
+  const [savingKey, setSavingKey] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -72,6 +89,7 @@ const FiscalCredentialsCard = ({ schoolId }: FiscalCredentialsCardProps) => {
 
   const active = credentials.find((credential) => credential.active) ?? null;
   const canUpload = Boolean(certificate) && Boolean(password.trim());
+  const canSaveKey = Boolean(apiKey.trim());
 
   const handleProvision = async () => {
     setProvisioning(true);
@@ -91,6 +109,43 @@ const FiscalCredentialsCard = ({ schoolId }: FiscalCredentialsCardProps) => {
       }
     } finally {
       setProvisioning(false);
+    }
+  };
+
+  const handleSaveKey = async () => {
+    if (!canSaveKey) {
+      return;
+    }
+
+    setSavingKey(true);
+    setErrors([]);
+    setNotice('');
+
+    try {
+      const trimmedCompanyId = companyId.trim();
+
+      await registerFiscalApiKey(schoolId, {
+        api_key: apiKey.trim(),
+        ...(needsCompanyId && trimmedCompanyId ? { company_id: trimmedCompanyId } : {}),
+      });
+
+      setNotice(t('fiscalCredentials.keySaved'));
+      setApiKey('');
+      setCompanyId('');
+      setNeedsCompanyId(false);
+      await load();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.code === 'fiscal_configuration_incomplete') {
+          setNeedsCompanyId(true);
+        }
+
+        setErrors(toApiMessages(error));
+      } else {
+        setErrors([t('fiscalCredentials.connectionError')]);
+      }
+    } finally {
+      setSavingKey(false);
     }
   };
 
@@ -189,6 +244,52 @@ const FiscalCredentialsCard = ({ schoolId }: FiscalCredentialsCardProps) => {
         {errors.map((message) => (
           <ErrorBanner key={message} message={message} />
         ))}
+
+        <Stack direction="column" gap={1.5}>
+          <Typography variant="subtitle2">{t('fiscalCredentials.keyTitle')}</Typography>
+          <TextField
+            id="fiscal-credentials-api-key"
+            label={t('fiscalCredentials.apiKey')}
+            helperText={active ? t('fiscalCredentials.apiKeyReplace') : t('fiscalCredentials.apiKeyHelp')}
+            type="password"
+            value={apiKey}
+            onChange={(event) => {
+              setApiKey(event.target.value);
+              setErrors([]);
+              setNotice('');
+            }}
+            disabled={savingKey}
+            slotProps={{ htmlInput: { autoComplete: 'new-password' } }}
+            variant="filled"
+            fullWidth
+          />
+          {needsCompanyId ? (
+            <TextField
+              id="fiscal-credentials-company-id"
+              label={t('fiscalCredentials.companyId')}
+              helperText={t('fiscalCredentials.companyIdHelp')}
+              value={companyId}
+              onChange={(event) => {
+                setCompanyId(event.target.value);
+                setErrors([]);
+              }}
+              disabled={savingKey}
+              variant="filled"
+              fullWidth
+            />
+          ) : null}
+          <Stack direction="row" justifyContent="flex-end">
+            <Button
+              type="button"
+              variant="contained"
+              onClick={handleSaveKey}
+              disabled={!canSaveKey || savingKey}
+              startIcon={savingKey ? <CircularProgress size={16} color="inherit" /> : null}
+            >
+              {savingKey ? t('fiscalCredentials.savingKey') : t('fiscalCredentials.saveKey')}
+            </Button>
+          </Stack>
+        </Stack>
 
         {!active ? (
           <Stack direction="row" justifyContent="flex-end">

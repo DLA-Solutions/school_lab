@@ -128,4 +128,105 @@ describe('FiscalCredentialsCard', () => {
 
     expect(await screen.findByText('password: em branco')).toBeInTheDocument();
   });
+
+  describe('existing Spedy API key', () => {
+    const tokenField = () => screen.getByLabelText(/token \(api key\) do spedy/i);
+    const saveButton = () => screen.getByRole('button', { name: /salvar token/i });
+
+    it('keeps the save button disabled while the token is blank', async () => {
+      server.use(http.get(apiUrl(PATH), () => HttpResponse.json({ data: [] })));
+
+      renderCard();
+      await screen.findByText(/não configurada/i);
+
+      expect(saveButton()).toBeDisabled();
+
+      await user.type(tokenField(), '   ');
+      expect(saveButton()).toBeDisabled();
+
+      await user.type(tokenField(), 'spedy-token');
+      expect(saveButton()).toBeEnabled();
+    });
+
+    it('registers the key, clears the field and reloads the credentials', async () => {
+      let received: unknown;
+
+      server.use(
+        http.get(apiUrl(PATH), () =>
+          HttpResponse.json({ data: fiscalCredentialsBySchool[SCHOOL_ID] ?? [] }),
+        ),
+        http.post(apiUrl(PATH), async ({ request }) => {
+          received = await request.json();
+          fiscalCredentialsBySchool[SCHOOL_ID] = [activeCredential];
+          return HttpResponse.json({ data: activeCredential }, { status: 201 });
+        }),
+      );
+
+      renderCard();
+      await screen.findByText(/não configurada/i);
+      await user.type(tokenField(), 'spedy-token');
+      await user.click(saveButton());
+
+      expect(await screen.findByText(/token do spedy salvo/i)).toBeInTheDocument();
+      expect(received).toEqual({ api_key: 'spedy-token' });
+      expect(await screen.findByText('spedy')).toBeInTheDocument();
+      expect(tokenField()).toHaveValue('');
+      expect(screen.queryByDisplayValue('spedy-token')).not.toBeInTheDocument();
+      expect(screen.getByText(/substitui o token atual/i)).toBeInTheDocument();
+    });
+
+    it('shows the provider message when Spedy rejects the key', async () => {
+      server.use(
+        http.get(apiUrl(PATH), () => HttpResponse.json({ data: [] })),
+        http.post(apiUrl(PATH), () =>
+          jsonError(422, 'provider_error', 'Erro no provedor', {
+            message: 'Token inválido no Spedy',
+          }),
+        ),
+      );
+
+      renderCard();
+      await screen.findByText(/não configurada/i);
+      await user.type(tokenField(), 'bad-token');
+      await user.click(saveButton());
+
+      expect(await screen.findByText('Token inválido no Spedy')).toBeInTheDocument();
+      expect(screen.queryByLabelText(/id da empresa no spedy/i)).not.toBeInTheDocument();
+    });
+
+    it('reveals the company id field when it cannot be determined and retries with it', async () => {
+      const bodies: unknown[] = [];
+
+      server.use(
+        http.get(apiUrl(PATH), () => HttpResponse.json({ data: [] })),
+        http.post(apiUrl(PATH), async ({ request }) => {
+          const body = (await request.json()) as { company_id?: string };
+          bodies.push(body);
+
+          return body.company_id
+            ? HttpResponse.json({ data: activeCredential }, { status: 201 })
+            : jsonError(422, 'fiscal_configuration_incomplete', 'Configuração fiscal incompleta', {});
+        }),
+      );
+
+      renderCard();
+      await screen.findByText(/não configurada/i);
+      expect(screen.queryByLabelText(/id da empresa no spedy/i)).not.toBeInTheDocument();
+
+      await user.type(tokenField(), 'spedy-token');
+      await user.click(saveButton());
+
+      const companyField = await screen.findByLabelText(/id da empresa no spedy/i);
+      expect(tokenField()).toHaveValue('spedy-token');
+
+      await user.type(companyField, 'company-123');
+      await user.click(saveButton());
+
+      expect(await screen.findByText(/token do spedy salvo/i)).toBeInTheDocument();
+      expect(bodies).toEqual([
+        { api_key: 'spedy-token' },
+        { api_key: 'spedy-token', company_id: 'company-123' },
+      ]);
+    });
+  });
 });

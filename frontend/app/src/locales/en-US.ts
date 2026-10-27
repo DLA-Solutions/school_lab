@@ -951,9 +951,9 @@ const enUS: Messages = {
   'fiscalCredentials.provider': 'Provider',
   'fiscalCredentials.registeredAt': 'Provisioned on',
   'fiscalCredentials.none':
-    'No active Spedy credentials. Provision the school on Spedy before uploading the certificate.',
+    'No active Spedy credentials. Enter the token (API key) of an existing Spedy account or provision the school on Spedy before uploading the certificate.',
   'fiscalCredentials.help':
-    'The A1 certificate (.pfx) is sent to Spedy — the API key is stored securely and is never shown here.',
+    'You can enter the token (API key) of an existing Spedy account or provision a new company. The A1 certificate (.pfx) is sent to Spedy — the API key is stored securely and is never shown here.',
   'fiscalCredentials.certificate': 'A1 certificate (.pfx)',
   'fiscalCredentials.password': 'Certificate password',
   'fiscalCredentials.noFile': 'No file selected',
@@ -963,6 +963,15 @@ const enUS: Messages = {
   'fiscalCredentials.send': 'Upload certificate',
   'fiscalCredentials.sending': 'Uploading…',
   'fiscalCredentials.uploaded': 'Certificate uploaded to Spedy.',
+  'fiscalCredentials.keyTitle': 'Use an existing Spedy account',
+  'fiscalCredentials.apiKey': 'Spedy token (API key)',
+  'fiscalCredentials.apiKeyHelp': 'Paste the token from your Spedy account. It is stored securely and cannot be retrieved later.',
+  'fiscalCredentials.apiKeyReplace': 'Entering a new token replaces the current one. The token in use is never shown.',
+  'fiscalCredentials.companyId': 'Spedy company ID',
+  'fiscalCredentials.companyIdHelp': 'The company could not be determined from the token. Enter the Spedy company ID and try again.',
+  'fiscalCredentials.saveKey': 'Save token',
+  'fiscalCredentials.savingKey': 'Saving…',
+  'fiscalCredentials.keySaved': 'Spedy token saved.',
   'fiscalCredentials.connectionError': 'Could not complete the operation. Check your connection.',
 
   'nav.serviceInvoices': 'NFS-e',

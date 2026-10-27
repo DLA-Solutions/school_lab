@@ -962,9 +962,9 @@ const ptBR = {
   'fiscalCredentials.provider': 'Provedor',
   'fiscalCredentials.registeredAt': 'Provisionada em',
   'fiscalCredentials.none':
-    'Nenhuma credencial Spedy ativa. Provisione a escola no Spedy antes de enviar o certificado.',
+    'Nenhuma credencial Spedy ativa. Informe o token (API key) de uma conta Spedy existente ou provisione a escola no Spedy antes de enviar o certificado.',
   'fiscalCredentials.help':
-    'O certificado A1 (.pfx) é enviado ao Spedy — a chave da API fica armazenada de forma segura e não é exibida aqui.',
+    'Você pode informar o token (API key) de uma conta Spedy existente ou provisionar uma nova empresa. O certificado A1 (.pfx) é enviado ao Spedy — a chave da API fica armazenada de forma segura e nunca é exibida aqui.',
   'fiscalCredentials.certificate': 'Certificado A1 (.pfx)',
   'fiscalCredentials.password': 'Senha do certificado',
   'fiscalCredentials.noFile': 'Nenhum arquivo selecionado',
@@ -974,6 +974,15 @@ const ptBR = {
   'fiscalCredentials.send': 'Enviar certificado',
   'fiscalCredentials.sending': 'Enviando…',
   'fiscalCredentials.uploaded': 'Certificado enviado ao Spedy.',
+  'fiscalCredentials.keyTitle': 'Usar uma conta Spedy existente',
+  'fiscalCredentials.apiKey': 'Token (API key) do Spedy',
+  'fiscalCredentials.apiKeyHelp': 'Cole o token da sua conta Spedy. Ele é gravado de forma segura e não pode ser consultado depois.',
+  'fiscalCredentials.apiKeyReplace': 'Informar um novo token substitui o token atual. O token em uso não é exibido.',
+  'fiscalCredentials.companyId': 'ID da empresa no Spedy',
+  'fiscalCredentials.companyIdHelp': 'Não foi possível identificar a empresa a partir do token. Informe o ID da empresa no Spedy e tente novamente.',
+  'fiscalCredentials.saveKey': 'Salvar token',
+  'fiscalCredentials.savingKey': 'Salvando…',
+  'fiscalCredentials.keySaved': 'Token do Spedy salvo.',
   'fiscalCredentials.connectionError':
     'Não foi possível concluir a operação. Verifique sua conexão.',
 
