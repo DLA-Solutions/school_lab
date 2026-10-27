@@ -110,6 +110,15 @@ const isGeneratingBoleto = (charge: MyCharge) => {
   );
 };
 
+/**
+ * True when the guardian has a boleto to look at: a hosted file (Cora `boleto_url`) or a PDF the
+ * API relays (Inter `boleto_pdf_available`). A cancelled charge never offers one, and a charge
+ * still being generated has neither yet, so neither gets a button that would open an empty dialog.
+ */
+const hasViewableBoleto = (charge: MyCharge) =>
+  charge.status !== 'cancelled' &&
+  Boolean(charge.payment_methods.boleto_url || charge.payment_methods.boleto_pdf_available);
+
 /** A copyable payment code shown in a box: wraps instead of widening the dialog. */
 const CODE_BOX_SX = {
   p: 1.5,
@@ -581,6 +590,19 @@ const MyCharges = () => {
             <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>
               {row.status === 'paid' ? t('common.view') : t('myCharges.viewDetail')}
             </Button>
+            {/* Straight to the PDF popup, no detail first. Only rows with a boleto to show. */}
+            {hasViewableBoleto(row) && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<IconifyIcon icon="mingcute:file-line" />}
+                onClick={() => setPreviewing(row)}
+              >
+                {row.payment_methods.boleto_pdf_available
+                  ? t('myCharges.payment.previewBoletoPdf')
+                  : t('myCharges.payment.previewBoleto')}
+              </Button>
+            )}
             {invoice && (
               <Button
                 size="small"
@@ -933,8 +955,7 @@ const MyCharges = () => {
                     </Stack>
                   )}
 
-                  {(detail.payment_methods.boleto_url ||
-                    detail.payment_methods.boleto_pdf_available) && (
+                  {hasViewableBoleto(detail) && (
                     <Stack direction="row" gap={1} flexWrap="wrap">
                       <Button
                         variant="outlined"
