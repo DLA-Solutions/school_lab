@@ -16,3 +16,10 @@ export interface UploadFiscalCertificatePayload {
   certificate: File;
   password: string;
 }
+
+/** POST /billing/fiscal_credentials with `api_key` — registers an existing Spedy token (write-only). */
+export interface RegisterFiscalApiKeyPayload {
+  api_key: string;
+  /** Only needed when the API cannot determine the Spedy company id from the key. */
+  company_id?: string;
+}
