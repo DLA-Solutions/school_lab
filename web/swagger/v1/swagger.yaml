@@ -7821,6 +7821,72 @@
       }
     },
     "/api/v1/schools/{school_id}/billing/fiscal_credentials": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Register an existing Spedy api_key, or provision a new Spedy company when api_key is omitted",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "provisions a company when api_key is omitted"
+          },
+          "401": {
+            "description": "not authenticated"
+          },
+          "403": {
+            "description": "forbidden for guardian"
+          },
+          "404": {
+            "description": "not found for another school"
+          },
+          "422": {
+            "description": "company id cannot be determined"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "api_key": {
+                    "type": "string",
+                    "description": "Existing Spedy company API key (never returned)"
+                  },
+                  "company_id": {
+                    "type": "string",
+                    "description": "Optional Spedy company id; discovered when omitted"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "summary": "List fiscal credentials",
         "tags": [
@@ -7841,41 +7907,6 @@
         "responses": {
           "200": {
             "description": "ok"
-          },
-          "401": {
-            "description": "not authenticated"
-          },
-          "403": {
-            "description": "not allowed"
-          }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
-      },
-      "post": {
-        "summary": "Create fiscal credentials",
-        "tags": [
-          "Billing"
-        ],
-        "operationId": "api_v1_schools_billing_fiscal_credentials_create",
-        "parameters": [
-          {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "created"
           },
           "401": {
             "description": "not authenticated"

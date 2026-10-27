@@ -36,6 +36,10 @@ online, reissue second copy, and view **forward-only** payment history — with 
 | `POST /me/charges/:id/reissue` | **implemented** | Second copy |
 | `GET /me/charges/history` | **implemented** | `source: platform` only |
 | `GET /me/payments` | **implemented** | Payment facts |
+| `GET /me/charges/:id/boleto_pdf` | **implemented** | Relays the provider PDF (Banco Inter); hosted boletos use `boleto_url` |
+| `GET /me/service_invoices` + `/:id/pdf` | **implemented** | Family-scoped NFS-e list and PDF ([`invoices.md`](invoices.md)) |
+| Boleto PDF preview popup per row (web) | **implemented** | Preview + download; no re-issuing from the row |
+| "Nota fiscal" column per row (web) | **implemented** | NFS-e issued automatically after settlement |
 | Multi-child household filtering | **partial** | Optional `student_id` query — identity owns UX |
 | Card/Pix checkout in app | **planned** | [`payments.md`](payments.md) |
 | Mobile app parity | **planned** | API contract-ready per fintech-first |
@@ -81,6 +85,22 @@ BR-G07
 
 Guardian sees student name on charge via `student_guardians` link — never other students in
 family not linked. **Implemented.**
+
+BR-G08
+
+The guardian list shows each boleto already issued by staff as a read-only **PDF preview in a
+popup with a download button**. The guardian never issues a boleto from the list; rows with no
+viewable boleto (still generating, settled without a hosted URL, cancelled) show no preview
+action. **Implemented** (web).
+
+BR-G09
+
+Each list row has a **Nota fiscal** column. The NFS-e is never requested by the guardian: it is
+issued automatically by the platform through Spedy after the boleto settlement is recorded
+([`invoices.md`](invoices.md), `RecordPaymentService` → `IssueServiceInvoiceJob`) when the school's
+fiscal settings are enabled. The column shows the authorized document's PDF download, an
+"issuing" state while Spedy/the municipality is still processing, and no fiscal internals
+(rejected/failed) to the family. **Implemented** (web).
 
 ---
 
@@ -151,7 +171,7 @@ Implemented routes per [`fintech-first.md`](../../api/v1/fintech-first.md):
 | Surface | MVP | Notes |
 |---------|-----|-------|
 | Web SPA (`frontend/app`) | yes | Partner validation |
-| Mobile (`mobile/`) | planned | Same API contract; MSW until screens ship |
+| Mobile (`mobile/`) | planned | Same API contract; boleto PDF preview and Nota fiscal column not built yet |
 | Magic link per charge | no | Future alternative to Devise account — fintech-first open item closed |
 
 ---

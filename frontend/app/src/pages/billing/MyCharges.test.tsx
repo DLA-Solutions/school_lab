@@ -10,6 +10,7 @@ import {
   http,
   jsonError,
   myOpenCharges,
+  myPaidCharges,
   server,
 } from 'test/msw';
 import { renderWithTheme } from 'test/renderWithTheme';
@@ -554,6 +555,174 @@ describe('MyCharges', () => {
   });
 });
 
+const invoiceOf = (overrides: Record<string, unknown>) => ({
+  id: 501,
+  status: 'authorized',
+  integration_id: 'pay-9001',
+  provider: 'fake',
+  provider_document_id: 'fake-si-001',
+  invoice_number: '12345',
+  verification_code: 'ABCD1234',
+  access_key: null,
+  payment_id: 9001,
+  charge_id: 88,
+  authorized_at: '2025-12-08T15:00:00Z',
+  enqueued_at: '2025-12-08T14:35:00Z',
+  failed_at: null,
+  pdf_available: true,
+  ...overrides,
+});
+
+describe('MyCharges Nota fiscal column', () => {
+  const paidRow = myPaidCharges[0];
+
+  /** Lists one paid charge (88) and answers the family's invoices with whatever is given. */
+  const renderPaidWith = async (invoices: unknown[]) => {
+    server.use(
+      http.get(apiUrl(`${BASE}/charges`), () =>
+        HttpResponse.json({ data: [paidRow], meta: { page: 1, per_page: 25, total: 1 } }),
+      ),
+      http.get(apiUrl(`${BASE}/service_invoices`), () =>
+        HttpResponse.json({
+          data: invoices,
+          meta: { page: 1, per_page: 25, total: invoices.length },
+        }),
+      ),
+    );
+    renderPage();
+    await screen.findByText('R$ 800,00');
+
+    return bodyRows()[0].querySelector<HTMLElement>('[data-field="invoice"]') as HTMLElement;
+  };
+
+  beforeEach(() => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: () => 'blob:mock/nfse',
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('is its own column, between the paid date and the actions', async () => {
+    renderPage();
+    await screen.findAllByText('R$ 850,00');
+
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent);
+    expect(headers.indexOf('Nota fiscal')).toBeGreaterThan(-1);
+    expect(headers.indexOf('Nota fiscal')).toBe(headers.indexOf('Ações') - 1);
+
+    // The download moved out of the actions cell.
+    const actions = bodyRows()[3].querySelector('[data-field="actions"]') as HTMLElement;
+    expect(within(actions).queryByRole('button', { name: /baixar nfs-e/i })).toBeNull();
+  });
+
+  it('downloads the authorized NFS-e as nfse-<number>.pdf through the guardian endpoint', async () => {
+    const pdfRequests: string[] = [];
+    server.use(
+      http.get(apiUrl(`${BASE}/service_invoices/:id/pdf`), ({ params }) => {
+        pdfRequests.push(String(params.id));
+
+        return new HttpResponse('%PDF-nfse', { headers: { 'Content-Type': 'application/pdf' } });
+      }),
+    );
+    const downloads: string[] = [];
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      downloads.push(this.download);
+    });
+
+    renderPage();
+    await screen.findAllByText('R$ 850,00');
+    const cell = bodyRows()[3].querySelector('[data-field="invoice"]') as HTMLElement;
+    await user.click(await within(cell).findByRole('button', { name: /baixar nfs-e/i }));
+
+    await waitFor(() => expect(downloads).toEqual(['nfse-12345.pdf']));
+    expect(pdfRequests).toEqual(['501']);
+  });
+
+  it('shows the API message when the NFS-e download fails', async () => {
+    server.use(
+      http.get(apiUrl(`${BASE}/service_invoices/:id/pdf`), () =>
+        jsonError(409, 'service_invoice_pdf_unavailable', 'A NFS-e ainda não tem PDF.'),
+      ),
+    );
+
+    renderPage();
+    await screen.findAllByText('R$ 850,00');
+    const cell = bodyRows()[3].querySelector('[data-field="invoice"]') as HTMLElement;
+    await user.click(await within(cell).findByRole('button', { name: /baixar nfs-e/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('A NFS-e ainda não tem PDF.');
+  });
+
+  it('shows a dash on every unpaid row, even when a note is already in flight for it', async () => {
+    renderPage();
+    await screen.findAllByText('R$ 850,00');
+
+    // Fixture: charge 101 (pending) has an enqueued invoice; it still reads as "—".
+    for (const row of bodyRows().slice(0, 3)) {
+      const cell = row.querySelector('[data-field="invoice"]') as HTMLElement;
+      expect(cell).toHaveTextContent('—');
+      expect(within(cell).queryByRole('button')).toBeNull();
+      expect(within(cell).queryByText('Em emissão')).toBeNull();
+    }
+  });
+
+  it.each([
+    ['pending', { status: 'pending', pdf_available: false, authorized_at: null }],
+    ['enqueued', { status: 'enqueued', pdf_available: false, authorized_at: null }],
+    ['authorized while the PDF is still being attached', { pdf_available: false }],
+  ])('shows an issuing chip for a %s note', async (_label, overrides) => {
+    const cell = await renderPaidWith([invoiceOf(overrides)]);
+
+    expect(within(cell).getByText('Em emissão')).toBeInTheDocument();
+    expect(within(cell).queryByRole('button')).toBeNull();
+  });
+
+  it.each(['rejected', 'failed', 'canceled'])(
+    'does not surface a %s note to the guardian',
+    async (status) => {
+      const cell = await renderPaidWith([
+        invoiceOf({ status, pdf_available: false, authorized_at: null }),
+      ]);
+
+      expect(cell).toHaveTextContent('—');
+      expect(within(cell).queryByRole('button')).toBeNull();
+      expect(within(cell).queryByText('Em emissão')).toBeNull();
+    },
+  );
+
+  it('shows a dash for a paid boleto that has no note yet', async () => {
+    const cell = await renderPaidWith([]);
+
+    expect(cell).toHaveTextContent('—');
+    expect(within(cell).queryByRole('button')).toBeNull();
+  });
+
+  it('prefers the authorized note over a newer failed one for the same boleto', async () => {
+    const cell = await renderPaidWith([
+      invoiceOf({ id: 700, status: 'failed', pdf_available: false, invoice_number: null }),
+      invoiceOf({ id: 501 }),
+    ]);
+
+    expect(within(cell).getByRole('button', { name: /baixar nfs-e/i })).toBeInTheDocument();
+  });
+
+  it('otherwise follows the most recent note', async () => {
+    const newerPending = await renderPaidWith([
+      invoiceOf({ id: 600, status: 'failed', pdf_available: false, authorized_at: null }),
+      invoiceOf({ id: 700, status: 'pending', pdf_available: false, authorized_at: null }),
+    ]);
+
+    expect(within(newerPending).getByText('Em emissão')).toBeInTheDocument();
+  });
+});
+
 const PIX = '00020126580014br.gov.bcb.pix0000000000';
 const LINE = '23793.38128 60000.000003 00000.000400 1 93480000085000';
 
@@ -800,6 +969,133 @@ describe('MyCharges payment methods', () => {
 
       expect(await screen.findByTitle('Pré-visualização do boleto')).toBeInTheDocument();
       expect(pdfRequests).toHaveLength(2);
+    });
+  });
+
+  describe('previewing the boleto straight from the row', () => {
+    const rowOf = (id: number, overrides: Record<string, unknown> = {}) => ({
+      ...myOpenCharges[0],
+      id,
+      ...overrides,
+    });
+
+    /** Replaces the listing, newest due date first as the API would send it. */
+    const answerListWith = (rows: unknown[]) =>
+      server.use(
+        http.get(apiUrl(`${BASE}/charges`), () =>
+          HttpResponse.json({
+            data: rows,
+            meta: { page: 1, per_page: 25, total: rows.length },
+          }),
+        ),
+      );
+
+    const renderList = async () => {
+      renderPage();
+      await screen.findAllByText('R$ 850,00');
+    };
+
+    it('opens the hosted (Cora) boleto in the popup without opening the detail', async () => {
+      answerListWith([rowOf(101)]);
+      const hostedRequests: string[] = [];
+      server.use(
+        http.get('https://provider.example/boleto/101.pdf', ({ request }) => {
+          hostedRequests.push(request.url);
+
+          return pdfResponse();
+        }),
+      );
+
+      await renderList();
+      await user.click(within(bodyRows()[0]).getByRole('button', { name: 'Ver boleto' }));
+
+      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
+        'src',
+        'blob:mock/1',
+      );
+      expect(hostedRequests).toEqual(['https://provider.example/boleto/101.pdf']);
+      // Only the boleto popup is open; the detail dialog was never asked for.
+      expect(screen.getAllByRole('dialog')).toHaveLength(1);
+      expect(detailRequests).toHaveLength(0);
+      expect(pdfRequests).toHaveLength(0);
+      expect(screen.getByRole('button', { name: 'Baixar PDF' })).toBeEnabled();
+    });
+
+    it('opens the Inter PDF through the authenticated API and downloads the same file', async () => {
+      answerListWith([rowOf(101, { payment_methods: interMethods })]);
+      answerPdfWith(pdfResponse);
+      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+      await renderList();
+      await user.click(within(bodyRows()[0]).getByRole('button', { name: 'Ver boleto (PDF)' }));
+
+      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
+        'src',
+        'blob:mock/1',
+      );
+      expect(pdfRequests).toHaveLength(1);
+      expect(pdfRequests[0].get('Authorization')).toBe('Bearer fresh-access-token');
+      expect(detailRequests).toHaveLength(0);
+
+      await user.click(screen.getByRole('button', { name: 'Baixar PDF' }));
+
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(pdfRequests).toHaveLength(1);
+    });
+
+    it('offers no preview where there is no boleto to show', async () => {
+      answerListWith([
+        rowOf(101, { payment_methods: nothingYet }),
+        rowOf(102, {
+          status: 'paid',
+          paid_at: '2026-08-01T10:00:00Z',
+          payment_methods: nothingYet,
+        }),
+        rowOf(103, { status: 'cancelled', payment_methods: interMethods }),
+        rowOf(104),
+      ]);
+
+      await renderList();
+      const rows = bodyRows();
+
+      for (const row of rows.slice(0, 3)) {
+        expect(within(row).queryByRole('button', { name: /^ver boleto/i })).not.toBeInTheDocument();
+        // The detail entry point stays on every row.
+        expect(within(row).getAllByRole('button').length).toBeGreaterThan(0);
+      }
+      expect(within(rows[3]).getByRole('button', { name: 'Ver boleto' })).toBeInTheDocument();
+    });
+
+    it('never shows the previous boleto when another one is opened after closing', async () => {
+      answerListWith([
+        rowOf(101, { payment_methods: interMethods }),
+        rowOf(102, { payment_methods: interMethods }),
+      ]);
+      const requested: string[] = [];
+      server.use(
+        http.get(apiUrl(`${BASE}/charges/:id/boleto_pdf`), ({ params }) => {
+          requested.push(String(params.id));
+
+          return pdfResponse();
+        }),
+      );
+
+      await renderList();
+      await user.click(within(bodyRows()[0]).getByRole('button', { name: 'Ver boleto (PDF)' }));
+      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
+        'src',
+        'blob:mock/1',
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Fechar' }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+      await user.click(within(bodyRows()[1]).getByRole('button', { name: 'Ver boleto (PDF)' }));
+      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
+        'src',
+        'blob:mock/2',
+      );
+      expect(requested).toEqual(['101', '102']);
     });
   });
 
