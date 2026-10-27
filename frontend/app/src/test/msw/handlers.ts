@@ -2528,6 +2528,20 @@ export const handlers = [
 
   /* ----------------------------------------- instructional days admin (BR-SY10) ---------------- */
 
+  // Plain listing, newest first. Empty by default — the billing school-year filters opt into a
+  // real list with `server.use(...)` rather than relying on one existing implicitly.
+  http.get(apiUrl('/api/v1/schools/:schoolId/school_years'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return HttpResponse.json({ data: [] });
+  }),
+
   http.get(apiUrl('/api/v1/schools/:schoolId/school_years/active'), ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();

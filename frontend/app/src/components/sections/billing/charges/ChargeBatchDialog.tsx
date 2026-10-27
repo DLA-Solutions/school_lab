@@ -11,15 +11,18 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import MenuItem from '@mui/material/MenuItem';
 import { GridColDef, GridRenderCellParams, GridRowSelectionModel } from '@mui/x-data-grid';
 import { DataTable, EmptyState, ErrorBanner, SemanticChip } from 'design-system';
 import { ApiError } from 'services/api';
 import { createChargeBatch, listBillableContracts } from 'services/chargesApi';
-import { BillableContract, ChargeBatchResult } from 'types/charge';
+import { getActiveSchoolYear, listSchoolYears, SchoolYear } from 'services/schoolYearsApi';
+import { BillableContract, BillableGap, ChargeBatchResult } from 'types/charge';
 import { formatCpf } from 'utils/documentNumber';
 import { formatCents } from 'utils/money';
 import { currentMonth } from 'utils/month';
 import { useTranslation } from 'providers/I18nContext';
+import type { MessageKey } from 'locales';
 
 interface ChargeBatchDialogProps {
   open: boolean;
@@ -48,8 +51,36 @@ type BillableRow = BillableContract & { id: number };
  */
 const fifthOf = (period: string) => `${period}-05`;
 
-/** Only a row with a contract the period has not billed yet can go into the batch. */
-const isBillable = (row: BillableContract) => !row.without_contract && !row.already_charged;
+/**
+ * The "every year" option. A MUI `Select` hides the chosen item's label when the value is an
+ * empty string (unless `displayEmpty` is set), so the unfiltered state needs a real sentinel
+ * rather than `''` — same trick `STATUS_FILTERS` uses on the charges listing itself.
+ */
+const ALL_SCHOOL_YEARS = 'all';
+
+/**
+ * Only a row with a standing (active, signed) contract the period has not billed yet can go into
+ * the batch. `without_contract` and `tags` are both ways of having no such contract — a tagged
+ * row still has `contract_id: null`, so checking that directly covers both without needing to
+ * know which one applies.
+ */
+const isBillable = (row: BillableContract) => row.contract_id !== null && !row.already_charged;
+
+/** A row with neither a contract nor the history that would explain the gap (`without_contract`
+ * or `tags`) never happens — every row either bills, or says why not. */
+const hasNoContractData = (row: BillableContract) => row.contract_id === null;
+
+const TAG_LABELS: Record<BillableGap, MessageKey> = {
+  cancelled: 'charges.tag.cancelled',
+  pending_signature: 'charges.tag.pendingSignature',
+};
+
+/** `cancelled` reads as the more serious gap (nothing stands in for the student); a contract
+ * still awaiting signature is a softer, in-progress state. */
+const TAG_VARIANTS: Record<BillableGap, 'error' | 'warning'> = {
+  cancelled: 'error',
+  pending_signature: 'warning',
+};
 
 const emptySelection = (): GridRowSelectionModel => ({
   type: 'include',
@@ -68,23 +99,63 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
   const { t } = useTranslation();
   const [period, setPeriod] = useState(currentMonth);
   const [dueDate, setDueDate] = useState(() => fifthOf(currentMonth()));
+  const [schoolYears, setSchoolYears] = useState<SchoolYear[]>([]);
+  const [schoolYearId, setSchoolYearId] = useState(ALL_SCHOOL_YEARS);
   const [rows, setRows] = useState<BillableRow[]>([]);
   const [selected, setSelected] = useState<GridRowSelectionModel>(emptySelection);
   const [loading, setLoading] = useState(false);
   const [issuing, setIssuing] = useState(false);
   const [error, setError] = useState('');
 
+  // The current school year is the common case for billing, so the filter starts there; staff
+  // can still fall back to every year from the dropdown.
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    let current = true;
+
+    const loadSchoolYears = async () => {
+      try {
+        const [years, active] = await Promise.all([
+          listSchoolYears(schoolId),
+          getActiveSchoolYear(schoolId),
+        ]);
+        if (current) {
+          setSchoolYears(years);
+          setSchoolYearId(active ? String(active.id) : ALL_SCHOOL_YEARS);
+        }
+      } catch {
+        if (current) {
+          setSchoolYears([]);
+        }
+      }
+    };
+
+    loadSchoolYears();
+
+    return () => {
+      current = false;
+    };
+  }, [open, schoolId]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
 
     try {
-      const data = await listBillableContracts(schoolId, period);
+      const data = await listBillableContracts(
+        schoolId,
+        period,
+        schoolYearId === ALL_SCHOOL_YEARS ? null : Number(schoolYearId),
+      );
       const mapped = data.map((row) => ({ ...row, id: row.student_id }));
       setRows(mapped);
       // Everything billable the period does not cover yet starts ticked: billing the whole month
       // is what this screen is for, and unticking a few is less work than ticking a hundred.
-      // Students without a contract are never ticked — there is nothing to bill.
+      // A student with nothing billable — no contract, or only a cancelled/unsigned one — is
+      // never ticked: there is nothing of theirs to bill.
       setSelected(includeSelection(mapped.filter(isBillable).map((row) => row.student_id)));
     } catch (err) {
       setRows([]);
@@ -95,7 +166,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
     } finally {
       setLoading(false);
     }
-  }, [schoolId, period, t]);
+  }, [schoolId, period, schoolYearId, t]);
 
   useEffect(() => {
     if (!open) {
@@ -129,6 +200,8 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
     () => rows.filter((row) => row.without_contract).length,
     [rows],
   );
+
+  const taggedCount = useMemo(() => rows.filter((row) => row.tags.length > 0).length, [rows]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -178,6 +251,9 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
               {row.without_contract && (
                 <SemanticChip variant="warning" label={t('charges.batch.withoutContract')} />
               )}
+              {row.tags.map((tag) => (
+                <SemanticChip key={tag} variant={TAG_VARIANTS[tag]} label={t(TAG_LABELS[tag])} />
+              ))}
             </Stack>
             {row.already_charged && (
               <Typography variant="caption" color="text.secondary" noWrap display="block">
@@ -194,7 +270,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         minWidth: 200,
         sortable: false,
         renderCell: ({ row }: GridRenderCellParams<BillableRow>) =>
-          row.without_contract ? (
+          hasNoContractData(row) ? (
             <Typography variant="body2" color="text.secondary">
               —
             </Typography>
@@ -232,7 +308,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
         align: 'right',
         headerAlign: 'right',
         renderCell: ({ row, value }: GridRenderCellParams<BillableRow, number | null>) => (
-          <Typography variant="body2">{row.without_contract ? '—' : (value ?? 10)}</Typography>
+          <Typography variant="body2">{hasNoContractData(row) ? '—' : (value ?? 10)}</Typography>
         ),
       },
     ],
@@ -245,7 +321,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
       <Stack component="form" onSubmit={handleSubmit} direction="column" noValidate>
         <DialogContent>
           <Grid container spacing={2.5} pt={0.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 id="batch-period"
                 label={t('charges.batch.period')}
@@ -266,7 +342,7 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                 helperText={t('charges.batch.periodHelp')}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 id="batch-due-date"
                 label={t('charges.batch.dueDate')}
@@ -278,6 +354,24 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                 slotProps={{ inputLabel: { shrink: true } }}
                 helperText={t('charges.batch.dueDateHelp')}
               />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField
+                id="batch-school-year"
+                label={t('charges.schoolYearFilter.label')}
+                value={schoolYearId}
+                onChange={(e) => setSchoolYearId(e.target.value)}
+                variant="filled"
+                select
+                fullWidth
+              >
+                <MenuItem value={ALL_SCHOOL_YEARS}>{t('charges.schoolYearFilter.all')}</MenuItem>
+                {schoolYears.map((year) => (
+                  <MenuItem key={year.id} value={String(year.id)}>
+                    {year.name}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
 
             <Grid size={12}>
@@ -319,6 +413,14 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
             {withoutContractCount > 0 && (
               <Grid size={12}>
                 <Alert severity="warning">{t('charges.batch.withoutContractHint')}</Alert>
+              </Grid>
+            )}
+
+            {taggedCount > 0 && (
+              <Grid size={12}>
+                <Alert severity="warning">
+                  {t('charges.batch.taggedHint', { count: taggedCount })}
+                </Alert>
               </Grid>
             )}
 

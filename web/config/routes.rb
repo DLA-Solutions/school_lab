@@ -330,6 +330,8 @@ Rails.application.routes.draw do
             resources :charge_generations, only: :create
             # Picking contracts by hand and billing the lot in one pass.
             resources :charge_batches, only: %i[index create]
+            # The avulso flow's student picker — read-only eligibility listing.
+            resources :billable_students, only: :index
             resources :transactions, only: %i[index create update destroy]
             resources :charges, only: %i[index show create destroy] do
               member do

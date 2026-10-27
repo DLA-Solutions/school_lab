@@ -20,7 +20,8 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
 
   def contract_for(child, **attributes)
     create(:contract, { school: school, student: child, billing_plan: plan,
-                        payer_guardian: guardian, negotiated_amount_cents: 85_000 }.merge(attributes))
+                        payer_guardian: guardian, negotiated_amount_cents: 85_000,
+                        signature_status: "signed" }.merge(attributes))
   end
 
   def row_ids
@@ -45,7 +46,7 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
       expect(response.parsed_body["data"].first).to include(
         "contract_id" => contract.id, "student_id" => student.id, "student_name" => "Ana Souza",
         "monthly_amount_cents" => 85_000, "due_day" => 10, "already_charged" => false,
-        "without_contract" => false
+        "without_contract" => false, "tags" => []
       )
       expect(response.parsed_body["data"].first["payer"]).to include("id" => guardian.id)
     end
@@ -150,7 +151,7 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
       expect(row_ids).to eq([ ana.id, bia.id, zeca.id ])
     end
 
-    it "lists an enrolled student with no eligible contract as a row that cannot be billed" do
+    it "tags a cancelled-signature contract instead of marking the student without a contract" do
       enrol(student)
       contract_for(student, signature_status: "cancelled")
       other = enrol(create(:student, school: school, name: "Bruno"))
@@ -163,9 +164,77 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
       expect(rows.first).to eq(
         "contract_id" => nil, "student_id" => student.id, "student_name" => "Ana Souza",
         "payer" => nil, "monthly_amount_cents" => nil, "due_day" => nil,
-        "already_charged" => false, "without_contract" => true
+        "already_charged" => false, "without_contract" => false, "tags" => [ "cancelled" ]
       )
       expect(rows.last["without_contract"]).to be(false)
+    end
+
+    it "tags an active contract still pending signature, with contract_id null" do
+      enrol(student)
+      contract_for(student, signature_status: "pending_signature")
+
+      get batches_path, params: { billing_period: "2026-09" }, headers: headers
+
+      row = response.parsed_body["data"].sole
+      expect(row).to include("contract_id" => nil, "without_contract" => false,
+                             "tags" => [ "pending_signature" ])
+    end
+
+    it "applies both tags when a cancelled contract and an unsigned replacement coexist" do
+      enrol(student)
+      contract_for(student, signature_status: "cancelled")
+      contract_for(student, signature_status: "pending_signature")
+
+      get batches_path, params: { billing_period: "2026-09" }, headers: headers
+
+      row = response.parsed_body["data"].sole
+      expect(row).to include("contract_id" => nil, "without_contract" => false,
+                             "tags" => [ "cancelled", "pending_signature" ])
+    end
+
+    it "reports an active, signed contract as billable with no tags" do
+      contract = contract_for(enrol(student))
+
+      get batches_path, params: { billing_period: "2026-09" }, headers: headers
+
+      row = response.parsed_body["data"].sole
+      expect(row).to include("contract_id" => contract.id, "without_contract" => false, "tags" => [])
+    end
+
+    it "marks a student with no contract at all as without_contract, with no tags" do
+      enrol(student)
+
+      get batches_path, params: { billing_period: "2026-09" }, headers: headers
+
+      row = response.parsed_body["data"].sole
+      expect(row).to include("contract_id" => nil, "without_contract" => true, "tags" => [])
+    end
+
+    it "filters students by the school year's calendar year" do
+      enrol(student)
+      current_year_contract = contract_for(student)
+
+      next_year_class = create(:school_class, school: school, year: 2027)
+      future_student = create(:student, school: school, school_class: next_year_class, name: "Beto")
+      enrol(future_student)
+      contract_for(future_student)
+
+      school_year = create(:school_year, school: school, starts_on: Date.new(2026, 2, 1))
+
+      get batches_path, params: { billing_period: "2026-09", school_year_id: school_year.id }, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(row_ids).to eq([ current_year_contract.id ])
+      expect(response.parsed_body.dig("meta", "school_year_id")).to eq(school_year.id)
+    end
+
+    it "404s for a school_year_id belonging to another school" do
+      foreign_school_year = create(:school_year, school: create(:school))
+
+      get batches_path, params: { billing_period: "2026-09", school_year_id: foreign_school_year.id },
+                        headers: headers
+
+      expect(response).to have_http_status(:not_found)
     end
 
     it "lists a student with no contract at all, but not a transferred or discarded one" do
@@ -277,6 +346,7 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
 
     let(:school_id) { school.id }
     let(:Authorization) { auth_headers_for(staff_user)["Authorization"] }
+    let(:school_year_id) { nil }
 
     get "List what can be issued in one pass: one row per enrolled student" do
       tags "Billing"
@@ -290,6 +360,8 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :billing_period, in: :query, type: :string, required: false,
                 description: "YYYY-MM or a date; defaults to the current month", example: "2026-09"
+      parameter name: :school_year_id, in: :query, type: :integer, required: false,
+                description: "Scopes the roster to the cohorts taught in this school year's calendar year"
 
       response "200", "one row per enrolled student" do
         schema type: :object,
@@ -300,7 +372,7 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
                    items: {
                      type: :object,
                      required: %w[contract_id student_id student_name payer monthly_amount_cents due_day
-                                  already_charged without_contract],
+                                  already_charged without_contract tags],
                      properties: {
                        contract_id: { type: :integer, nullable: true },
                        student_id: { type: :integer },
@@ -313,11 +385,18 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
                        monthly_amount_cents: { type: :integer, nullable: true },
                        due_day: { type: :integer, nullable: true },
                        already_charged: { type: :boolean },
-                       without_contract: { type: :boolean }
+                       without_contract: { type: :boolean },
+                       tags: { type: :array, items: { type: :string } }
                      }
                    }
                  },
-                 meta: { type: :object, properties: { billing_period: { type: :string, example: "2026-09-01" } } }
+                 meta: {
+                   type: :object,
+                   properties: {
+                     billing_period: { type: :string, example: "2026-09-01" },
+                     school_year_id: { type: :integer, nullable: true }
+                   }
+                 }
                }
 
         let(:billing_period) { "2026-09" }

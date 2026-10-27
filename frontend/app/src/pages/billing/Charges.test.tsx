@@ -276,6 +276,139 @@ describe('Charges', () => {
     ).toBeInTheDocument();
   });
 
+  describe('picking a student before the payer', () => {
+    const BILLABLE_STUDENTS_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/billable_students`;
+
+    const pedroRow = {
+      student_id: 10,
+      student_name: 'Pedro Silva',
+      contract_id: 55,
+      payer: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
+      without_contract: false,
+      tags: [],
+    };
+
+    // Has contract history, but nothing billable right now \u2014 shown in the picker, never
+    // selectable there.
+    const diana = {
+      student_id: 11,
+      student_name: 'Diana Rocha',
+      contract_id: null,
+      payer: null,
+      without_contract: false,
+      tags: ['cancelled'],
+    };
+
+    const pedroContract = {
+      id: 55,
+      student_name: 'Pedro Silva',
+      negotiated_amount_cents: 85_000,
+    };
+
+    it('resolves the payer and contract from the picked student, feeding the existing fields', async () => {
+      let body: unknown;
+
+      server.use(
+        // These three override `listingHandlers()`'s own GUARDIANS_PATH/CONTRACTS_PATH defaults
+        // below \u2014 msw resolves same-route handlers in registration order, so the override has to
+        // come first.
+        http.get(apiUrl(BILLABLE_STUDENTS_PATH), () =>
+          HttpResponse.json({ data: [pedroRow, diana] }),
+        ),
+        http.get(apiUrl(GUARDIANS_PATH), () =>
+          // The picker resolves the family, not a free-text search \u2014 the contract's own payer
+          // comes back as the single guardian on file, whatever the query.
+          HttpResponse.json({ data: [maria], meta: { page: 1, per_page: 25, total: 1 } }),
+        ),
+        http.get(apiUrl(CONTRACTS_PATH), () =>
+          HttpResponse.json({ data: [pedroContract], meta: { page: 1, per_page: 25, total: 1 } }),
+        ),
+        http.post(apiUrl(CHARGES_PATH), async ({ request }) => {
+          body = await request.json();
+
+          return HttpResponse.json({ data: standaloneCharge }, { status: 201 });
+        }),
+        ...listingHandlers(),
+      );
+
+      renderPage();
+
+      await user.click(await screen.findByRole('button', { name: 'Novo boleto avulso' }));
+      const dialog = await screen.findByRole('dialog', { name: 'Novo boleto avulso' });
+
+      await user.click(within(dialog).getByRole('button', { name: 'Selecionar aluno' }));
+
+      const picker = await screen.findByRole('dialog', { name: 'Selecionar aluno' });
+      // Diana has contract history but nothing billable \u2014 listed, with her tag, never offered a
+      // select action.
+      const dianaRow = (await within(picker).findByText('Diana Rocha')).closest(
+        '[role="row"]',
+      ) as HTMLElement;
+      expect(within(dianaRow).getByText('Contrato cancelado')).toBeInTheDocument();
+      expect(
+        within(dianaRow).queryByRole('button', { name: /Selecionar/ }),
+      ).not.toBeInTheDocument();
+
+      await user.click(within(picker).getByRole('button', { name: 'Selecionar Pedro Silva' }));
+
+      // Back on the form: the student is named, the payer and contract came from them. The payer
+      // field is an Autocomplete input \u2014 its selection lives in `.value`, not text content.
+      expect(await within(dialog).findByText('Aluno: Pedro Silva')).toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          (within(dialog).getByRole('combobox', { name: /Respons\u00e1vel/ }) as HTMLInputElement)
+            .value,
+        ).toContain('Maria Silva'),
+      );
+      await waitFor(() =>
+        expect(within(dialog).getByRole('combobox', { name: /Contrato/ })).toHaveTextContent(
+          'Pedro Silva',
+        ),
+      );
+
+      await user.click(within(dialog).getByRole('combobox', { name: /Finalidade da cobran\u00e7a/ }));
+      await user.click(await screen.findByRole('option', { name: 'Mensalidade' }));
+      await user.type(dialog.querySelector('#charge-amount')!, '7500');
+      await user.type(dialog.querySelector('#charge-due-date')!, '2026-09-15');
+      await user.click(within(dialog).getByRole('button', { name: 'Gerar boleto' }));
+
+      await waitFor(() => expect(body).toBeDefined());
+      expect(body).toMatchObject({
+        charge: { guardian_id: 7, contract_id: 55 },
+      });
+    });
+
+    it('returns to searching a guardian directly when the picker is skipped', async () => {
+      server.use(
+        ...listingHandlers(),
+        http.get(apiUrl(BILLABLE_STUDENTS_PATH), () => HttpResponse.json({ data: [pedroRow] })),
+      );
+
+      renderPage();
+
+      await user.click(await screen.findByRole('button', { name: 'Novo boleto avulso' }));
+      const dialog = await screen.findByRole('dialog', { name: 'Novo boleto avulso' });
+
+      await user.click(within(dialog).getByRole('button', { name: 'Selecionar aluno' }));
+      const picker = await screen.findByRole('dialog', { name: 'Selecionar aluno' });
+
+      await user.click(within(picker).getByRole('button', { name: 'Cobrar sem selecionar aluno' }));
+
+      // The picker is gone, the student field is back to its initial, unselected state, and the
+      // payer combobox is the free-text search again. The dialog unmounts after its exit
+      // transition, so this has to wait rather than check synchronously.
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog', { name: 'Selecionar aluno' })).not.toBeInTheDocument(),
+      );
+      expect(within(dialog).getByRole('button', { name: 'Selecionar aluno' })).toBeInTheDocument();
+      await user.type(
+        within(dialog).getByRole('combobox', { name: /Respons\u00e1vel que receber\u00e1 o boleto/ }),
+        'Maria',
+      );
+      expect(await screen.findByRole('option', { name: /Maria Silva/ })).toBeInTheDocument();
+    });
+  });
+
   it('reports each outcome of a bulk issue on its own, ineligible contracts included', async () => {
     const BATCHES_PATH = `/api/v1/schools/${SCHOOL_ID}/billing/charge_batches`;
 
@@ -293,6 +426,7 @@ describe('Charges', () => {
               due_day: 10,
               already_charged: false,
               without_contract: false,
+              tags: [],
             },
           ],
           meta: { billing_period: '2026-09' },

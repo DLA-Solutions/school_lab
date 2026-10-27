@@ -83,12 +83,14 @@ RSpec.describe "Standalone boletos, batch issuing and the dashboard", type: :req
     let!(:first_contract) do
       link(mother)
       create(:contract, school: school, student: student, billing_plan: plan,
-                        payer_guardian: mother, negotiated_amount_cents: 85_000, due_day: 10)
+                        payer_guardian: mother, negotiated_amount_cents: 85_000, due_day: 10,
+                        signature_status: "signed")
     end
     let!(:second_contract) do
       link(mother, sibling)
       create(:contract, school: school, student: sibling, billing_plan: plan,
-                        payer_guardian: mother, negotiated_amount_cents: 60_000, due_day: 5)
+                        payer_guardian: mother, negotiated_amount_cents: 60_000, due_day: 5,
+                        signature_status: "signed")
     end
 
     it "offers every active contract with the amount it bills" do

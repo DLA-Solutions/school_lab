@@ -865,6 +865,32 @@ const enUS: Messages = {
   'charges.batch.withoutPayer': '{count} without a paying guardian.',
   'charges.batch.withoutContract': 'No contract',
   'charges.batch.withoutContractHint': 'Students without a contract cannot be issued a boleto. Create the student\'s contract to include them in the batch.',
+  'charges.batch.taggedHint':
+    '{count} student(s) have a cancelled contract or one still awaiting signature, and cannot be issued a boleto until there is an active, signed contract.',
+
+  'charges.schoolYearFilter.label': 'School year',
+  'charges.schoolYearFilter.all': 'Every year',
+
+  'charges.tag.cancelled': 'Contract cancelled',
+  'charges.tag.pendingSignature': 'Awaiting signature',
+
+  'charges.studentPicker.title': 'Select student',
+  'charges.studentPicker.description':
+    'Choose the student to automatically fill in the paying guardian and the contract.',
+  'charges.studentPicker.empty.title': 'No students found',
+  'charges.studentPicker.empty.description': 'No enrolled student matches this school year.',
+  'charges.studentPicker.loadError': 'Could not load the students.',
+  'charges.studentPicker.select': 'Select',
+  'charges.studentPicker.selectAction': 'Select {student}',
+  'charges.studentPicker.ineligibleHint':
+    'Students without an active, signed contract cannot be selected here. Use "Bill without selecting a student" to bill the guardian directly.',
+  'charges.studentPicker.skip': 'Bill without selecting a student',
+
+  'charges.form.selectStudent': 'Select student',
+  'charges.form.selectStudentHelp':
+    'Optional: choose the student to automatically fill in the payer and the contract.',
+  'charges.form.selectedStudent': 'Student: {name}',
+  'charges.form.changeStudent': 'Change',
 
   'billingSettings.title': 'Billing settings',
   'billingSettings.description':

@@ -52,13 +52,24 @@ export interface OneOffChargePayload {
 }
 
 /**
+ * Why a row has no billable contract even though the student has contract history. Both can
+ * apply together — an old contract was cancelled and its replacement is still unsigned — so this
+ * is a list, not a single reason. Empty on a billable row and on a pure `without_contract` row
+ * (no contract history at all); the two never overlap.
+ */
+export type BillableGap = 'cancelled' | 'pending_signature';
+
+/**
  * A row of `GET .../billing/charge_batches` — one per enrolled student, ordered by name. Most rows
- * carry the student's standing contract, ready to be billed; a student with no contract comes back
- * flagged `without_contract`, with every contract-derived field empty, so the school can see who
- * is missing a contract rather than wondering why they are absent.
+ * carry the student's standing contract (active and signed), ready to be billed. A student whose
+ * only contract history is a cancelled or still-unsigned one comes back with `contract_id: null`
+ * and `tags` naming why; a student with no contract at all comes back flagged `without_contract`,
+ * with empty `tags` — distinct from the tagged case, which has history. Either way every
+ * contract-derived field is empty, so the school can see who is missing a billable contract rather
+ * than wondering why they are absent.
  */
 export interface BillableContract {
-  /** Null on a `without_contract` row — there is nothing to bill. */
+  /** Null on a `without_contract` row or a tagged row — neither has anything to bill. */
   contract_id: number | null;
   student_id: number;
   student_name: string;
@@ -67,8 +78,25 @@ export interface BillableContract {
   due_day: number | null;
   /** The period already has a tuition charge for this contract; billing again would duplicate it. */
   already_charged: boolean;
-  /** The student is enrolled but has no contract yet; the row can be shown but never selected. */
+  /** The student is enrolled but has no contract at all; the row can be shown but never selected. */
   without_contract: boolean;
+  /** Why this student has no billable contract despite having contract history. See `BillableGap`. */
+  tags: BillableGap[];
+}
+
+/**
+ * A row of `GET .../billing/billable_students` — the avulso flow's student-picker step. Same
+ * eligibility and tag rules as `BillableContract`, period-agnostic: no amount, due day or
+ * already-charged flag, since this listing is not scoped to one billing period.
+ */
+export interface BillableStudent {
+  student_id: number;
+  student_name: string;
+  /** Null unless the student has a standing (active and signed) contract — only then selectable. */
+  contract_id: number | null;
+  payer: { id: number; name: string; cpf: string } | null;
+  without_contract: boolean;
+  tags: BillableGap[];
 }
 
 export interface ChargeBatchPayload {
