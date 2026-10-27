@@ -7,20 +7,22 @@ module Backoffice
   # The key is proven against Spedy before it is stored: a company-scoped key can list (or fetch)
   # only its own company, so a successful call both validates the key and tells us the company id
   # that webhooks, settings and certificate uploads are keyed by. The key is never logged, echoed
-  # or placed in an error detail.
+  # or placed in an error detail. The key is checked against the school's own `base_url` when one
+  # is supplied (stored in `settings`), otherwise against the default / ENV Spedy URL.
   class RegisterSpedyApiKeyService < ApplicationService
     MAX_API_KEY_LENGTH = 512
 
-    def initialize(school:, actor:, api_key:, company_id: nil, client: nil)
+    def initialize(school:, actor:, api_key:, company_id: nil, base_url: nil, client: nil)
       @school = school
       @actor = actor
       @api_key = api_key.to_s.strip
       @company_id = company_id.to_s.strip.presence
+      @base_url = SchoolLab::Integrations::Spedy::Configuration.normalize_base_url(base_url)
       @client = client
     end
 
     def call
-      invalid = validate_api_key
+      invalid = validate_api_key || validate_base_url
       return invalid if invalid
 
       resolved_id = resolve_company_id
@@ -38,7 +40,7 @@ module Backoffice
 
     private
 
-    attr_reader :school, :actor, :api_key, :company_id
+    attr_reader :school, :actor, :api_key, :company_id, :base_url
 
     def validate_api_key
       if api_key.blank?
@@ -46,6 +48,13 @@ module Backoffice
       elsif api_key.length > MAX_API_KEY_LENGTH || api_key.match?(/\s/)
         ResponseService.failure(code: :validation_error, details: { api_key: [ "invalid" ] })
       end
+    end
+
+    # A blank base URL means the platform default; anything else must be an https URL.
+    def validate_base_url
+      return if base_url.nil? || SchoolLab::Integrations::Spedy::Configuration.valid_base_url?(base_url)
+
+      ResponseService.failure(code: :validation_error, details: { base_url: [ "invalid" ] })
     end
 
     # Returns the company id, or a failure ResponseService.
@@ -101,7 +110,7 @@ module Backoffice
           provider: "spedy",
           active: true,
           api_key: api_key,
-          settings: { spedy_company_id: resolved_id },
+          settings: { spedy_company_id: resolved_id, base_url: base_url }.compact,
           uploaded_at: Time.current,
           uploaded_by: actor
         )
@@ -115,7 +124,7 @@ module Backoffice
     end
 
     def client
-      @client ||= SchoolLab::Integrations::Spedy::Client.new(api_key: api_key)
+      @client ||= Gateways::ServiceInvoice::Spedy::ClientFactory.build(api_key: api_key, base_url: base_url)
     end
   end
 end

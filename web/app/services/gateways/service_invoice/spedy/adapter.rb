@@ -74,7 +74,7 @@ module Gateways
 
         def build_client(school)
           config = Registry.active_config(school: school)
-          SchoolLab::Integrations::Spedy::Client.new(api_key: config.api_key)
+          ClientFactory.for_config(config)
         end
       end
     end

@@ -28,7 +28,7 @@ module Billing
     def client
       @client ||= begin
         config = Gateways::ServiceInvoice::Registry.active_config(school: school)
-        SchoolLab::Integrations::Spedy::Client.new(api_key: config.api_key)
+        Gateways::ServiceInvoice::Spedy::ClientFactory.for_config(config)
       end
     end
   end
