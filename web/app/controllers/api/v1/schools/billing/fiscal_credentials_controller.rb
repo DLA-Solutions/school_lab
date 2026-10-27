@@ -17,10 +17,7 @@ module Api
           def create
             authorize SchoolPaymentProvider
 
-            result = Backoffice::ProvisionSpedyCompanyService.call(
-              school: Current.school,
-              actor: Current.user
-            )
+            result = params.key?(:api_key) ? register_api_key : provision_company
             render_service_result(result, success_status: :created) do |record|
               render json: { data: SchoolPaymentProviderBlueprint.render_as_hash(record) }, status: :created
             end
@@ -38,6 +35,25 @@ module Api
             render_service_result(result) do |record|
               render json: { data: SchoolPaymentProviderBlueprint.render_as_hash(record) }
             end
+          end
+
+          private
+
+          def provision_company
+            Backoffice::ProvisionSpedyCompanyService.call(school: Current.school, actor: Current.user)
+          end
+
+          def register_api_key
+            Backoffice::RegisterSpedyApiKeyService.call(
+              school: Current.school,
+              actor: Current.user,
+              api_key: credential_params[:api_key],
+              company_id: credential_params[:company_id]
+            )
+          end
+
+          def credential_params
+            params.permit(:api_key, :company_id)
           end
         end
       end
