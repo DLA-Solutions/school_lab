@@ -17,6 +17,17 @@ module SchoolLab
           get("/v1/service-invoices/cities", params: params)
         end
 
+        def list_companies(page: nil, page_size: nil)
+          params = {}
+          params[:page] = page if page
+          params[:pageSize] = page_size if page_size
+          get("/v1/companies", params: params)
+        end
+
+        def fetch_company(company_id:)
+          get("/v1/companies/#{company_id}")
+        end
+
         def create_company(body:)
           post("/v1/companies", body: body.to_json)
         end
