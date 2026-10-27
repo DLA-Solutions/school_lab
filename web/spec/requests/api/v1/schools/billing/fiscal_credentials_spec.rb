@@ -3,7 +3,7 @@
 require "swagger_helper"
 
 RSpec.describe "Api::V1::Schools::Billing::FiscalCredentials", type: :request do
-  let(:base_url) { "https://spedy.test" }
+  let(:base_url) { "https://spedy.test/v1" }
   let(:school) { create(:school) }
   let(:other_school) { create(:school) }
   let(:school_admin) { create(:user) }
@@ -31,14 +31,18 @@ RSpec.describe "Api::V1::Schools::Billing::FiscalCredentials", type: :request do
         type: :object,
         properties: {
           api_key: { type: :string, description: "Existing Spedy company API key (never returned)" },
-          company_id: { type: :string, description: "Optional Spedy company id; discovered when omitted" }
+          company_id: { type: :string, description: "Optional Spedy company id; discovered when omitted" },
+          base_url: {
+            type: :string,
+            description: "Optional https Spedy API base URL for this school (including /v1); blank = default"
+          }
         }
       }
 
       let(:payload) { { api_key: api_key } }
 
       def stub_companies(status: 200, body: { items: [ { id: "company-1" } ] }.to_json)
-        stub_request(:get, "#{base_url}/v1/companies")
+        stub_request(:get, "#{base_url}/companies")
           .with(headers: { "X-Api-Key" => api_key })
           .to_return(status: status, body: body)
       end
@@ -58,11 +62,37 @@ RSpec.describe "Api::V1::Schools::Billing::FiscalCredentials", type: :request do
         end
       end
 
+      response "201", "registers the key against a per-school base_url and exposes it" do
+        let(:payload) { { api_key: api_key, base_url: "https://sandbox.spedy.test/v1" } }
+
+        before do
+          stub_request(:get, "https://sandbox.spedy.test/v1/companies")
+            .with(headers: { "X-Api-Key" => api_key })
+            .to_return(status: 200, body: { items: [ { id: "company-1" } ] }.to_json)
+        end
+
+        run_test! do |response|
+          body = JSON.parse(response.body).fetch("data")
+          expect(body["base_url"]).to eq("https://sandbox.spedy.test/v1")
+          expect(response.body).not_to include(api_key)
+          expect(school.school_payment_providers.find(body.fetch("id")).settings)
+            .to include("base_url" => "https://sandbox.spedy.test/v1")
+        end
+      end
+
+      response "201", "exposes the default base_url when none was supplied" do
+        before { stub_companies }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("data", "base_url")).to eq(base_url)
+        end
+      end
+
       response "201", "uses a supplied company_id after confirming it" do
         let(:payload) { { api_key: api_key, company_id: "company-7" } }
 
         before do
-          stub_request(:get, "#{base_url}/v1/companies/company-7").to_return(status: 200, body: { id: "company-7" }.to_json)
+          stub_request(:get, "#{base_url}/companies/company-7").to_return(status: 200, body: { id: "company-7" }.to_json)
         end
 
         run_test! do |response|
@@ -127,6 +157,17 @@ RSpec.describe "Api::V1::Schools::Billing::FiscalCredentials", type: :request do
           error = JSON.parse(response.body).fetch("error")
           expect(error["code"]).to eq("validation_error")
           expect(error.dig("details", "api_key")).to eq([ "blank" ])
+        end
+      end
+
+      response "422", "invalid base_url" do
+        let(:payload) { { api_key: api_key, base_url: "http://insecure.spedy.test/v1" } }
+
+        run_test! do |response|
+          error = JSON.parse(response.body).fetch("error")
+          expect(error["code"]).to eq("validation_error")
+          expect(error.dig("details", "base_url")).to eq([ "invalid" ])
+          expect(SchoolPaymentProvider.where(school: school)).to be_empty
         end
       end
 
