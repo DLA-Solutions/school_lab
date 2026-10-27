@@ -1,5 +1,6 @@
 import {
   BillableContract,
+  BillableStudent,
   Charge,
   ChargeBatchPayload,
   ChargeBatchResult,
@@ -10,6 +11,8 @@ import { request, requestBlob } from './api';
 
 const path = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/charges`;
 const batchPath = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/charge_batches`;
+const billableStudentsPath = (schoolId: number) =>
+  `/api/v1/schools/${schoolId}/billing/billable_students`;
 
 export interface ListChargesParams {
   schoolId: number;
@@ -135,16 +138,47 @@ export const createOneOffCharge = async (
 
 /**
  * GET .../billing/charge_batches — one row per enrolled student: the contract they would be
- * billed under and its amount, whether the period is already covered, or `without_contract` for a
- * student who has none. What the school picks from before issuing a month in one pass.
+ * billed under and its amount, whether the period is already covered, or `without_contract` /
+ * `tags` for a student with no billable (active and signed) contract. What the school picks from
+ * before issuing a month in one pass.
+ *
+ * `schoolYearId` narrows the enrolled students to that year's cohort — omit it for every year.
  */
 export const listBillableContracts = async (
   schoolId: number,
   billingPeriod: string,
+  schoolYearId?: number | null,
 ): Promise<BillableContract[]> => {
   const query = new URLSearchParams({ billing_period: billingPeriod });
+  if (schoolYearId) {
+    query.set('school_year_id', String(schoolYearId));
+  }
   const response = await request<{ data: BillableContract[] }>(
     `${batchPath(schoolId)}?${query}`,
+  );
+
+  return response.data;
+};
+
+/**
+ * GET .../billing/billable_students — the avulso (one-off) flow's student-picker step: one row
+ * per enrolled student, period-agnostic (no amount or due day, which only make sense once a
+ * billing period is chosen). Backs picking a student first, then resolving the payer from their
+ * standing contract or their own guardians.
+ *
+ * `schoolYearId` narrows to that year's cohort — omit it for every year.
+ */
+export const listBillableStudents = async (
+  schoolId: number,
+  schoolYearId?: number | null,
+): Promise<BillableStudent[]> => {
+  const query = new URLSearchParams();
+  if (schoolYearId) {
+    query.set('school_year_id', String(schoolYearId));
+  }
+  const suffix = query.toString() ? `?${query}` : '';
+  const response = await request<{ data: BillableStudent[] }>(
+    `${billableStudentsPath(schoolId)}${suffix}`,
   );
 
   return response.data;

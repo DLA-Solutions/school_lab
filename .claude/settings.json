@@ -7,7 +7,13 @@
       "Bash(docker info *)",
       "Bash(npm -v)",
       "Bash(git fetch *)",
-      "Bash(gh pr *)"
+      "Bash(gh pr *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Wire per-school Spedy base URL through services and gateways *)",
+      "Bash(git commit -m 'Expose base_url in fiscal credentials API contract *)",
+      "Bash(git commit -m 'Remove Banco Cora credentials UI from financial settings *)",
+      "Bash(git commit -m 'Remove NFS-e fiscal settings configuration from financial settings *)",
+      "Bash(npm run *)"
     ]
   }
 }

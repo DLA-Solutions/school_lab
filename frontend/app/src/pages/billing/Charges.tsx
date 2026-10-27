@@ -31,6 +31,7 @@ import {
 } from 'design-system';
 import BoletoPreviewDialog from 'components/sections/billing/charges/BoletoPreviewDialog';
 import ChargeBatchDialog from 'components/sections/billing/charges/ChargeBatchDialog';
+import StudentPickerDialog from 'components/sections/billing/charges/StudentPickerDialog';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
 import { cancelCharge, createOneOffCharge, fetchChargeBoletoPdf, listCharges } from 'services/chargesApi';
@@ -38,7 +39,7 @@ import { listBillingPurposes } from 'services/billingPurposesApi';
 import { listContracts } from 'services/contractsApi';
 import { listGuardians } from 'services/guardiansApi';
 import { BillingPurpose } from 'types/billingPurpose';
-import { Charge } from 'types/charge';
+import { BillableStudent, Charge } from 'types/charge';
 import { Contract } from 'types/contract';
 import { Guardian } from 'types/guardian';
 import { formatCpf } from 'utils/documentNumber';
@@ -161,6 +162,14 @@ const Charges = () => {
 
   const [formOpen, setFormOpen] = useState(false);
   const [batchOpen, setBatchOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // Set once a student is picked first: the payer search then scopes to this family instead of
+  // the whole school, and the contract comes pre-named from their standing contract.
+  const [selectedStudent, setSelectedStudent] = useState<{
+    id: number;
+    name: string;
+    payerId: number | null;
+  } | null>(null);
   const [notice, setNotice] = useState('');
   // The bank is asked for the boleto in a background job, so a charge is created before it has
   // one. Without waiting for it the row lands with an empty Boleto column and stays that way
@@ -264,9 +273,10 @@ const Charges = () => {
     setPage(0);
   }, [statusFilter, debouncedSearch]);
 
-  // Finding the payer by name or CPF is the first step of raising a one-off charge.
+  // Finding the payer by name or CPF is how a one-off charge starts when no student was picked
+  // first. Once a student is picked, the search below takes over instead.
   useEffect(() => {
-    if (!schoolId || !formOpen) {
+    if (!schoolId || !formOpen || selectedStudent) {
       return;
     }
 
@@ -295,7 +305,48 @@ const Charges = () => {
     return () => {
       current = false;
     };
-  }, [schoolId, formOpen, debouncedPayerSearch]);
+  }, [schoolId, formOpen, selectedStudent, debouncedPayerSearch]);
+
+  // A student was picked first: the payer resolves from their own family rather than a
+  // school-wide search — the contract's own payer when the contract names one, or the single
+  // guardian on file, leaving the field open for staff to pick among the family's few guardians
+  // otherwise.
+  useEffect(() => {
+    if (!schoolId || !formOpen || !selectedStudent) {
+      return;
+    }
+
+    let current = true;
+    setGuardiansLoading(true);
+
+    const loadFamily = async () => {
+      try {
+        const response = await listGuardians({ schoolId, studentId: selectedStudent.id });
+        if (!current) {
+          return;
+        }
+
+        setGuardians(response.data);
+        const contractPayer = response.data.find((g) => g.id === selectedStudent.payerId);
+        setPayer(contractPayer ?? (response.data.length === 1 ? response.data[0] : null));
+      } catch {
+        if (current) {
+          setGuardians([]);
+          setPayer(null);
+        }
+      } finally {
+        if (current) {
+          setGuardiansLoading(false);
+        }
+      }
+    };
+
+    loadFamily();
+
+    return () => {
+      current = false;
+    };
+  }, [schoolId, formOpen, selectedStudent]);
 
   // What the charge is for is required by the API, so the options are fetched each time the form
   // opens: a failed load would otherwise leave a form that can never be submitted.
@@ -353,6 +404,7 @@ const Charges = () => {
   }, [schoolId, payer]);
 
   const openForm = () => {
+    setSelectedStudent(null);
     setPayerSearch('');
     setPayer(null);
     setContractId('');
@@ -362,6 +414,26 @@ const Charges = () => {
     setDescription('');
     setFormError('');
     setFormOpen(true);
+  };
+
+  // A row from the student picker always carries a standing (active, signed) contract — that is
+  // what makes it selectable there — so its contract is named straight away; the payer effect
+  // above resolves who pays from the family this student belongs to.
+  const handleStudentSelected = (row: BillableStudent) => {
+    setSelectedStudent({ id: row.student_id, name: row.student_name, payerId: row.payer?.id ?? null });
+    setContractId(row.contract_id ? String(row.contract_id) : '');
+    setPickerOpen(false);
+  };
+
+  // The way out of the picker for a charge unrelated to any enrolled student, or for a payer the
+  // picker's listing does not cover — the avulso flow has always allowed billing a guardian
+  // directly, with no student or contract named at all.
+  const handleSkipPicker = () => {
+    setSelectedStudent(null);
+    setPayer(null);
+    setContractId('');
+    setPayerSearch('');
+    setPickerOpen(false);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -692,8 +764,33 @@ const Charges = () => {
           <DialogContent>
             <Grid container spacing={2.5} pt={0.5}>
               <Grid size={12}>
+                {/* Picking the student first resolves the payer from their own family instead of
+                    a school-wide search — optional, since plenty of one-off charges answer to no
+                    student at all. */}
+                {selectedStudent ? (
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+                    <Typography variant="body2">
+                      {t('charges.form.selectedStudent', { name: selectedStudent.name })}
+                    </Typography>
+                    <Button size="small" onClick={() => setPickerOpen(true)}>
+                      {t('charges.form.changeStudent')}
+                    </Button>
+                  </Stack>
+                ) : (
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('charges.form.selectStudentHelp')}
+                    </Typography>
+                    <Button size="small" variant="outlined" onClick={() => setPickerOpen(true)}>
+                      {t('charges.form.selectStudent')}
+                    </Button>
+                  </Stack>
+                )}
+              </Grid>
+              <Grid size={12}>
                 {/* Type part of a name or a CPF and pick from what comes back — one field for
-                    what used to be a search box and a separate select. */}
+                    what used to be a search box and a separate select. Scoped to the picked
+                    student's own family once one is chosen, instead of the whole school. */}
                 <Autocomplete
                   id="charge-payer"
                   options={guardians}
@@ -709,7 +806,11 @@ const Charges = () => {
                   // would drop rows it deliberately returned.
                   filterOptions={(options) => options}
                   loading={guardiansLoading}
-                  noOptionsText={payerSearch ? t('charges.form.noGuardianFound') : t('charges.form.typeToSearch')}
+                  noOptionsText={
+                    selectedStudent || payerSearch
+                      ? t('charges.form.noGuardianFound')
+                      : t('charges.form.typeToSearch')
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -877,6 +978,16 @@ const Charges = () => {
             : undefined
         }
       />
+
+      {schoolId && (
+        <StudentPickerDialog
+          open={pickerOpen}
+          schoolId={schoolId}
+          onClose={() => setPickerOpen(false)}
+          onSelect={handleStudentSelected}
+          onSkip={handleSkipPicker}
+        />
+      )}
 
       {schoolId && (
         <ChargeBatchDialog

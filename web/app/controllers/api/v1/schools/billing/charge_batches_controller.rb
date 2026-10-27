@@ -8,15 +8,25 @@ module Api
         # contract per enrolled student, with the amount it bills and whether the period is
         # already covered — and `create` raises and dispatches the selected ones.
         class ChargeBatchesController < BaseController
+          include ::Billing::SchoolYearScoping
+
           def index
             authorize Charge, :generate?
 
             period = normalized_period
             return render_invalid_period if period.blank?
 
+            calendar_year = billing_school_year_calendar_year
+            students = enrolled_students_for_billing(calendar_year).to_a.sort_by { |s| s.name.to_s.downcase }
+            contracts = policy_scope(Contract).where(student_id: students.map(&:id))
+                                              .includes(:billing_plan, :payer_guardian,
+                                                        student: { student_guardians: :guardian })
+            rows = ::Billing::StrictBillableStudents.rows_for(students, contracts)
+            charged_ids = already_charged_ids(period, rows)
+
             render json: {
-              data: rows(period),
-              meta: { billing_period: period.to_s }
+              data: rows.map { |row| serialize_row(row, charged_ids) },
+              meta: { billing_period: period.to_s, school_year_id: params[:school_year_id].presence&.to_i }
             }
           end
 
@@ -46,68 +56,49 @@ module Api
 
           private
 
-          # One row per enrolled student, by name: the contract that stands for the child, or a
-          # row flagged `without_contract` when none does so the school notices the gap.
-          def rows(period)
-            charged_ids = already_charged_ids(period)
-            built = contracts.map { |contract| billable_row(contract, charged_ids) } +
-                    students_without_contract.map { |student| without_contract_row(student) }
+          def serialize_row(row, charged_ids)
+            return without_contract_row(row) if row.contract.blank?
 
-            built.sort_by { |row| [ row[:student_name].to_s.downcase, row[:contract_id].to_i ] }
-          end
-
-          def billable_contracts
-            @billable_contracts ||= ::Billing::BulkBillableContracts.for(policy_scope(Contract))
-          end
-
-          def contracts
-            @contracts ||= billable_contracts.includes(:billing_plan, :payer_guardian,
-                                                       student: { student_guardians: :guardian })
-                                             .to_a
-          end
-
-          def students_without_contract
-            ::Billing::BulkBillableContracts.students_without_contract(Current.school.students, billable_contracts)
-          end
-
-          # One query for the whole batch: which of these contracts the period already covers.
-          def already_charged_ids(period)
-            @already_charged_ids ||= Charge.kept
-                                           .where(school_id: Current.school.id, kind: "tuition",
-                                                  billing_period: period,
-                                                  contract_id: contracts.map(&:id))
-                                           .pluck(:contract_id)
-                                           .to_set
-          end
-
-          def billable_row(contract, charged_ids)
+            contract = row.contract
             payer = contract.payer
 
             {
               contract_id: contract.id,
-              student_id: contract.student_id,
-              student_name: contract.student&.name,
+              student_id: row.student.id,
+              student_name: row.student.name,
               payer: payer && { id: payer.id, name: payer.name, cpf: payer.cpf },
               monthly_amount_cents: contract.negotiated_amount_cents ||
                 contract.billing_plan&.base_amount_cents || 0,
               due_day: contract.due_day,
               already_charged: charged_ids.include?(contract.id),
-              without_contract: false
+              without_contract: false,
+              tags: []
             }
           end
 
-          # Never billable: there is no contract to raise a charge against.
-          def without_contract_row(student)
+          def without_contract_row(row)
             {
               contract_id: nil,
-              student_id: student.id,
-              student_name: student.name,
+              student_id: row.student.id,
+              student_name: row.student.name,
               payer: nil,
               monthly_amount_cents: nil,
               due_day: nil,
               already_charged: false,
-              without_contract: true
+              without_contract: row.without_contract?,
+              tags: row.tags
             }
+          end
+
+          # One query for the whole batch: which of these chosen contracts the period already covers.
+          def already_charged_ids(period, rows)
+            contract_ids = rows.filter_map { |row| row.contract&.id }
+
+            Charge.kept
+                  .where(school_id: Current.school.id, kind: "tuition", billing_period: period,
+                         contract_id: contract_ids)
+                  .pluck(:contract_id)
+                  .to_set
           end
 
           def normalized_period

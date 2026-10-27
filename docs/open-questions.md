@@ -313,6 +313,32 @@ in `docs/prds/fintech-first.md` (Open items).
     (to save provider calls or keep a record) needs a retention window and an access-audit
     decision first — not decided; each preview currently costs one Inter API call.
 
+### Strict billable-contract eligibility for bulk emission and avulso student picker (Oct 2026)
+
+**Decided directly with the product owner (no dedicated PRD section yet — implemented ahead of
+documentation; revisit when `billing/boletos.md` or a new `charges.md`-style PRD is written for
+the bulk emission / avulso flows):**
+
+- On the bulk emission listing (`GET .../billing/charge_batches`) and a new avulso/one-off student
+  picker (`GET .../billing/billable_students`), a student is billable only when they have a
+  contract that is both `status: "active"` **and** `signature_status: "signed"` — stricter than
+  the shared `Contract.expected_tuition` scope (which still accepts `pending_signature` and backs
+  the dashboard average-ticket and expected-payments report, intentionally left unchanged).
+- Students who don't qualify still appear, tagged `"cancelled"` / `"pending_signature"` / both, so
+  staff see why; `without_contract: true` is reserved for "nothing to tag" (no contract at all, or
+  only `ended`/`suspended` ones). New shared picker: `Billing::StrictBillableStudents`.
+- Both endpoints accept an optional `school_year_id`, scoping students to that school year.
+- **Schema drift found while implementing:** `docs/database/schema.dbml`'s "005 — Students &
+  enrollments" domain (`enrollments`, `classes`, `class_assignments`, each with a
+  `school_year_id` FK) was never migrated. The live schema instead has `school_classes` with a
+  bare integer `year` column (no FK to `school_years`) and `students.school_class_id` as a direct
+  reference — no `enrollments`/`class_assignments` tables exist. `school_year_id` on the two new
+  params is bridged to `school_classes.year` via the calendar year the named `SchoolYear` starts
+  in (`starts_on.year`), the same mapping `SchoolYear.for_calendar_year` already uses elsewhere.
+  This is a pre-existing doc/implementation gap, not something this change introduced — flagging
+  so the 005 domain's DBML either gets migrated for real or is reconciled with what's actually
+  built (`school_classes`/`students.school_class_id`).
+
 ### Annual tax declarations — release blockers
 
 PRD and API/model contract:

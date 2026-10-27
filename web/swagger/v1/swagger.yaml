@@ -6444,6 +6444,129 @@
         }
       }
     },
+    "/api/v1/schools/{school_id}/billing/billable_students": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List enrolled students for the avulso (one-off) charge flow's student picker",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "description": "One row per enrolled student (kept, status active), ordered by student name. A row carries the contract that stands for the child (active, signed) when one does, or `tags` explaining why none does (\"cancelled\", \"pending_signature\", both, or neither when the student has no contract at all — `without_contract: true`). Unlike the bulk charge batches listing, this endpoint never carries `monthly_amount_cents`, `due_day`, or `already_charged` — those depend on a billing period that has not been chosen yet in the avulso flow.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "school_year_id",
+            "in": "query",
+            "required": false,
+            "description": "Scopes the roster to the cohorts taught in this school year's calendar year",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "one row per enrolled student",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "student_id",
+                          "student_name",
+                          "contract_id",
+                          "payer",
+                          "without_contract",
+                          "tags"
+                        ],
+                        "properties": {
+                          "student_id": {
+                            "type": "integer"
+                          },
+                          "student_name": {
+                            "type": "string"
+                          },
+                          "contract_id": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "payer": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "cpf": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "without_contract": {
+                            "type": "boolean"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "school_year_id": {
+                          "type": "integer",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "not authenticated"
+          }
+        }
+      }
+    },
     "/api/v1/schools/{school_id}/billing/charge_batches": {
       "parameters": [
         {
@@ -6483,6 +6606,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "school_year_id",
+            "in": "query",
+            "required": false,
+            "description": "Scopes the roster to the cohorts taught in this school year's calendar year",
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -6509,7 +6641,8 @@
                           "monthly_amount_cents",
                           "due_day",
                           "already_charged",
-                          "without_contract"
+                          "without_contract",
+                          "tags"
                         ],
                         "properties": {
                           "contract_id": {
@@ -6551,6 +6684,12 @@
                           },
                           "without_contract": {
                             "type": "boolean"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
                           }
                         }
                       }
@@ -6561,6 +6700,10 @@
                         "billing_period": {
                           "type": "string",
                           "example": "2026-09-01"
+                        },
+                        "school_year_id": {
+                          "type": "integer",
+                          "nullable": true
                         }
                       }
                     }

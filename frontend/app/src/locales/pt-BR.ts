@@ -875,6 +875,32 @@ const ptBR = {
   'charges.batch.withoutPayer': '{count} sem responsável financeiro.',
   'charges.batch.withoutContract': 'Sem contrato',
   'charges.batch.withoutContractHint': 'Alunos sem contrato não podem receber boleto. Crie o contrato do aluno para incluí-lo na emissão.',
+  'charges.batch.taggedHint':
+    '{count} aluno(s) têm um contrato cancelado ou ainda aguardando assinatura, e não podem receber boleto até que haja um contrato ativo e assinado.',
+
+  'charges.schoolYearFilter.label': 'Ano letivo',
+  'charges.schoolYearFilter.all': 'Todos os anos',
+
+  'charges.tag.cancelled': 'Contrato cancelado',
+  'charges.tag.pendingSignature': 'Aguardando assinatura',
+
+  'charges.studentPicker.title': 'Selecionar aluno',
+  'charges.studentPicker.description':
+    'Escolha o aluno para preencher automaticamente o responsável financeiro e o contrato.',
+  'charges.studentPicker.empty.title': 'Nenhum aluno encontrado',
+  'charges.studentPicker.empty.description': 'Nenhum aluno matriculado corresponde a este ano letivo.',
+  'charges.studentPicker.loadError': 'Não foi possível carregar os alunos.',
+  'charges.studentPicker.select': 'Selecionar',
+  'charges.studentPicker.selectAction': 'Selecionar {student}',
+  'charges.studentPicker.ineligibleHint':
+    'Alunos sem contrato ativo e assinado não podem ser selecionados aqui. Use "Cobrar sem selecionar aluno" para cobrar diretamente o responsável.',
+  'charges.studentPicker.skip': 'Cobrar sem selecionar aluno',
+
+  'charges.form.selectStudent': 'Selecionar aluno',
+  'charges.form.selectStudentHelp':
+    'Opcional: escolha o aluno para preencher automaticamente o responsável e o contrato.',
+  'charges.form.selectedStudent': 'Aluno: {name}',
+  'charges.form.changeStudent': 'Trocar',
 
   'billingSettings.title': 'Configurações financeiras',
   'billingSettings.description':
