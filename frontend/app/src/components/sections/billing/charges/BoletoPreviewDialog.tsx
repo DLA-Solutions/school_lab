@@ -29,6 +29,18 @@ interface BoletoPreviewDialogProps {
   loadBlob?: () => Promise<Blob>;
 }
 
+/** A copyable payment code shown in a box: wraps instead of widening the dialog. */
+const CODE_BOX_SX = {
+  p: 1.5,
+  borderRadius: 1,
+  bgcolor: 'action.hover',
+  fontFamily: 'monospace',
+  fontSize: '0.75rem',
+  overflowWrap: 'anywhere',
+} as const;
+
+type CopiedCode = 'pix' | 'digitableLine';
+
 /** Why a relayed PDF failed, and whether trying again can help. */
 const describeFailure = (
   err: unknown,
@@ -62,6 +74,10 @@ const describeFailure = (
  * With `loadBlob` the file comes from the caller instead — the guardian's Inter boleto, which only
  * the API can fetch. The preview, download and release behaviour is the same; the error state then
  * speaks to the API's reasons and withholds "try again" where it cannot help.
+ *
+ * Under the file sit the Pix "copia e cola" and the linha digitável, when the charge carries them,
+ * each with a copy button — the same data the guardian sees. A charge whose boleto the bank is
+ * still producing may have only the codes, and then there is no frame and nothing to download.
  */
 const BoletoPreviewDialog = ({ open, charge, onClose, loadBlob }: BoletoPreviewDialogProps) => {
   const { t } = useTranslation();
@@ -71,6 +87,8 @@ const BoletoPreviewDialog = ({ open, charge, onClose, loadBlob }: BoletoPreviewD
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [retryable, setRetryable] = useState(true);
+  const [copied, setCopied] = useState<CopiedCode | null>(null);
+  const [copyError, setCopyError] = useState('');
 
   // The loader is read through a ref so a caller passing a fresh closure on every render cannot
   // re-fire it: each run costs a bank request on the guardian side.
@@ -84,6 +102,9 @@ const BoletoPreviewDialog = ({ open, charge, onClose, loadBlob }: BoletoPreviewD
 
   const relayed = loadBlob !== undefined;
   const boletoUrl = charge?.boleto_url ?? null;
+  const pixCopyPaste = charge?.payment_methods.pix_copy_paste ?? null;
+  const digitableLine = charge?.payment_methods.digitable_line ?? null;
+  const hasFile = relayed || boletoUrl !== null;
   // Names the file after the charge it settles, so a folder of these stays legible.
   const filename = charge ? `boleto-${charge.id}.pdf` : 'boleto.pdf';
 
@@ -145,6 +166,26 @@ const BoletoPreviewDialog = ({ open, charge, onClose, loadBlob }: BoletoPreviewD
     load();
   }, [open, load]);
 
+  // What was copied or refused belongs to the charge on screen, not to the next one opened.
+  useEffect(() => {
+    setCopied(null);
+    setCopyError('');
+  }, [open, charge?.id]);
+
+  const copyCode = async (code: CopiedCode, value: string) => {
+    setCopyError('');
+
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(code);
+    } catch {
+      setCopied(null);
+      setCopyError(
+        t(code === 'pix' ? 'myCharges.pixCopyError' : 'myCharges.digitableLineCopyError'),
+      );
+    }
+  };
+
   // The object URL holds the whole file in memory until it is revoked, and a secretary opens one
   // boleto after another. Revoking as the dialog closes keeps that to a single file at a time.
   useEffect(() => {
@@ -190,6 +231,8 @@ const BoletoPreviewDialog = ({ open, charge, onClose, loadBlob }: BoletoPreviewD
           </Stack>
         )}
 
+        {copyError && <ErrorBanner message={copyError} />}
+
         {!loading && fileUrl && (
           <Box
             component="iframe"
@@ -205,6 +248,47 @@ const BoletoPreviewDialog = ({ open, charge, onClose, loadBlob }: BoletoPreviewD
             }}
           />
         )}
+
+        {pixCopyPaste && (
+          <Stack direction="column" gap={1} mt={hasFile ? 2 : 0}>
+            <Typography variant="body2" color="text.secondary">
+              {t('myCharges.payment.pix')}
+            </Typography>
+            <Box sx={CODE_BOX_SX}>{pixCopyPaste}</Box>
+            <Box>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<IconifyIcon icon="mingcute:copy-2-line" />}
+                onClick={() => copyCode('pix', pixCopyPaste)}
+              >
+                {copied === 'pix' ? t('myCharges.payment.pixCopied') : t('myCharges.payment.copyPix')}
+              </Button>
+            </Box>
+          </Stack>
+        )}
+
+        {digitableLine && (
+          <Stack direction="column" gap={1} mt={hasFile || pixCopyPaste ? 2 : 0}>
+            <Typography variant="body2" color="text.secondary">
+              {t('myCharges.payment.digitableLine')}
+            </Typography>
+            <Box sx={CODE_BOX_SX}>{digitableLine}</Box>
+            <Box>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<IconifyIcon icon="mingcute:copy-2-line" />}
+                // As shown, dots and spaces included: bank apps accept the formatted line.
+                onClick={() => copyCode('digitableLine', digitableLine)}
+              >
+                {copied === 'digitableLine'
+                  ? t('myCharges.payment.digitableLineCopied')
+                  : t('myCharges.payment.copyDigitableLine')}
+              </Button>
+            </Box>
+          </Stack>
+        )}
       </DialogContent>
 
       <DialogActions>
@@ -218,14 +302,16 @@ const BoletoPreviewDialog = ({ open, charge, onClose, loadBlob }: BoletoPreviewD
             {t('charges.boleto.openInTab')}
           </Button>
         )}
-        <Button
-          variant="contained"
-          onClick={() => blob && downloadBlob(blob, filename)}
-          disabled={!blob}
-          startIcon={<IconifyIcon icon="mingcute:download-2-line" />}
-        >
-          {t('charges.boleto.download')}
-        </Button>
+        {hasFile && (
+          <Button
+            variant="contained"
+            onClick={() => blob && downloadBlob(blob, filename)}
+            disabled={!blob}
+            startIcon={<IconifyIcon icon="mingcute:download-2-line" />}
+          >
+            {t('charges.boleto.download')}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

@@ -78,15 +78,37 @@ RSpec.describe ChargePolicy do
                .boleto_pdf?).to be(false)
     end
 
-    it "denies staff, even with billing permission" do
-      staff = create(:user)
-      staff_membership = create(:membership, :school_admin, user: staff, school: school)
-      Current.user = staff
-      Current.membership = staff_membership
-      Current.guardian = nil
-      Current.effective_permission_keys = nil
+    context "with school staff" do
+      let(:staff) { create(:user) }
+      let(:staff_membership) { create(:membership, :school_admin, user: staff, school: school) }
 
-      expect(described_class.new(staff, build(:charge, school: school, guardian: guardian)).boleto_pdf?).to be(false)
+      before do
+        Current.user = staff
+        Current.membership = staff_membership
+        Current.guardian = nil
+        Current.effective_permission_keys = nil
+      end
+
+      it "permits staff with billing permission for a charge of the same school" do
+        expect(described_class.new(staff, build(:charge, school: school, guardian: guardian)).boleto_pdf?).to be(true)
+      end
+
+      it "denies staff for a charge from another school" do
+        other_school = create(:school)
+        other_guardian = create(:guardian, school: other_school)
+
+        expect(described_class.new(staff, build(:charge, school: other_school, guardian: other_guardian))
+                 .boleto_pdf?).to be(false)
+      end
+
+      it "denies staff without billing permission" do
+        teacher = create(:user)
+        Current.user = teacher
+        Current.membership = create(:membership, user: teacher, school: school, role: "teacher")
+
+        expect(described_class.new(teacher, build(:charge, school: school, guardian: guardian)).boleto_pdf?)
+          .to be(false)
+      end
     end
   end
 end

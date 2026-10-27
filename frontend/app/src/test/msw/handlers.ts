@@ -1404,6 +1404,25 @@ export const handlers = [
     });
   }),
 
+  // Staff side of the same relay: `GET .../billing/charges/:id/boleto_pdf`. The school's charge
+  // fixtures live in each spec, so this answers a PDF for any id; specs override it for failures.
+  http.get(apiUrl('/api/v1/schools/:schoolId/billing/charges/:id/boleto_pdf'), ({ request, params }) => {
+    if (!hasFreshToken(request)) {
+      return expiredToken();
+    }
+
+    if (params.schoolId !== String(SCHOOL_ID)) {
+      return jsonError(404, 'not_found', 'Recurso não encontrado.');
+    }
+
+    return new HttpResponse('%PDF-1.4', {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="boleto-${params.id}.pdf"`,
+      },
+    });
+  }),
+
   http.get(apiUrl('/api/v1/schools/:schoolId/me/students'), ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();

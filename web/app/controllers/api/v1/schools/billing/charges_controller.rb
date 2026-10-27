@@ -8,7 +8,7 @@ module Api
           def index
             authorize Charge
 
-            charges = policy_scope(Charge).includes(:guardian, :applied_discounts, contract: :student)
+            charges = policy_scope(Charge).includes(:guardian, :applied_discounts, :charge_issuances, contract: :student)
                                           .order(due_date: :desc)
             charges = apply_filters(charges)
             pagy, records = pagy(charges)
@@ -20,7 +20,7 @@ module Api
           end
 
           def show
-            charge = policy_scope(Charge).includes(:guardian, :applied_discounts, contract: :student)
+            charge = policy_scope(Charge).includes(:guardian, :applied_discounts, :charge_issuances, contract: :student)
                                          .find(params[:id])
             authorize charge
 
@@ -66,6 +66,21 @@ module Api
             result = ::Billing::ReissueChargeService.call(charge: charge)
             render_service_result(result) do |updated|
               render json: { data: ChargeBlueprint.render_as_hash(updated) }
+            end
+          end
+
+          # Streams the boleto PDF for providers that only serve it through an authenticated API
+          # (Banco Inter) so the school can preview what the payer receives. The SPA cannot call
+          # the provider (mTLS + OAuth); nothing is stored and the response is uncacheable.
+          def boleto_pdf
+            authorize Charge, :index?
+            charge = policy_scope(Charge).includes(:charge_issuances).find(params[:id])
+            authorize charge, :boleto_pdf?
+
+            result = ::Billing::FetchBoletoPdfService.call(charge: charge)
+            render_service_result(result) do |pdf|
+              response.headers["Cache-Control"] = "private, no-store"
+              send_data pdf.content, filename: pdf.filename, type: "application/pdf", disposition: "inline"
             end
           end
 

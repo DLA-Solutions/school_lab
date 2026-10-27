@@ -19,10 +19,11 @@ class ChargePolicy < ApplicationPolicy
     show?
   end
 
-  # The PDF carries the payer's name, CPF and address, so it is the guardian who owns the charge
-  # only — unlike `show?`, no staff access through this route.
+  # The PDF carries the payer's name, CPF and address: the guardian who owns the charge, or school
+  # staff with billing permission in the same school (who already see the payer's CPF in the
+  # listing). Same boundary as `show?`; cross-school and cross-family stay out via `Scope`.
   def boleto_pdf?
-    guardian_member? && record.school_id == school_id && record.guardian_id == Current.guardian.id
+    show?
   end
 
   def generate?

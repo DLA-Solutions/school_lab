@@ -45,6 +45,51 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
         end
       end
 
+      response "200", "exposes the same payment_methods the guardian sees (Inter has no boleto_url)" do
+        let!(:charge) do
+          create(:charge, school: school, contract: contract, guardian: guardian).tap do |record|
+            create(:charge_issuance, :issued, charge: record, school: school, provider: "inter",
+                                              boleto_url: nil,
+                                              digitable_line: "23793.38128 60000.000003 00000.000400 1 93480000085000",
+                                              pix_emv: "00020126580014br.gov.bcb.pix0136abc")
+            record.sync_invoice_cache!
+          end
+        end
+
+        run_test! do |response|
+          record = JSON.parse(response.body).fetch("data").find { |item| item["id"] == charge.id }
+
+          expect(record["payment_methods"]).to eq({
+            "boleto_url" => nil,
+            "pix_copy_paste" => "00020126580014br.gov.bcb.pix0136abc",
+            "digitable_line" => "23793.38128 60000.000003 00000.000400 1 93480000085000",
+            "boleto_pdf_available" => true
+          })
+        end
+      end
+
+      response "200", "lists payment_methods without one issuance query per charge" do
+        let!(:charges) do
+          Array.new(3) do
+            create(:charge, school: school, contract: contract, guardian: guardian).tap do |record|
+              create(:charge_issuance, :issued, charge: record, school: school, provider: "inter")
+            end
+          end
+        end
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).fetch("data").size).to eq(3)
+          issuance_selects = []
+          callback = lambda do |*, payload|
+            issuance_selects << payload[:sql] if payload[:sql].match?(/FROM "charge_issuances"/)
+          end
+          ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+            get "/api/v1/schools/#{school_id}/billing/charges", headers: { "Authorization" => self.Authorization }
+          end
+          expect(issuance_selects.size).to eq(1)
+        end
+      end
+
       response "403", "billing module disabled" do
         before do
           Schools::SeedSchoolModulesService.call(school: school, overrides: { billing: false })
@@ -104,6 +149,63 @@ RSpec.describe "Api::V1::Schools::Billing::Charges", type: :request do
   path "/api/v1/schools/{school_id}/billing/charges/{id}" do
     parameter name: :school_id, in: :path, type: :integer
     parameter name: :id, in: :path, type: :integer
+
+    get "Show charge" do
+      tags "Billing"
+      produces "application/json"
+      security [ bearer_auth: [] ]
+      parameter name: "Authorization", in: :header, type: :string
+
+      response "200", "exposes the same payment_methods the guardian sees" do
+        let!(:charge) do
+          create(:charge, school: school, contract: contract, guardian: guardian).tap do |record|
+            create(:charge_issuance, :issued, charge: record, school: school, provider: "inter",
+                                              boleto_url: nil,
+                                              digitable_line: "23793.38128 60000.000003 00000.000400 1 93480000085000",
+                                              pix_emv: "00020126580014br.gov.bcb.pix0136abc")
+            record.sync_invoice_cache!
+          end
+        end
+        let(:id) { charge.id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("data", "payment_methods")).to eq({
+            "boleto_url" => nil,
+            "pix_copy_paste" => "00020126580014br.gov.bcb.pix0136abc",
+            "digitable_line" => "23793.38128 60000.000003 00000.000400 1 93480000085000",
+            "boleto_pdf_available" => true
+          })
+        end
+      end
+
+      response "200", "keeps the four payment_methods keys empty until the bank produced the boleto" do
+        let!(:charge) do
+          create(:charge, school: school, contract: contract, guardian: guardian).tap do |record|
+            create(:charge_issuance, :issued, charge: record, school: school, provider: "inter",
+                                              boleto_url: nil, digitable_line: nil, barcode: nil,
+                                              our_number: nil, pix_emv: nil)
+            record.sync_invoice_cache!
+          end
+        end
+        let(:id) { charge.id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("data", "payment_methods")).to eq(
+            "boleto_url" => nil, "pix_copy_paste" => nil, "digitable_line" => nil,
+            "boleto_pdf_available" => false
+          )
+        end
+      end
+
+      response "404", "a charge of another school" do
+        let(:other_school) { create(:school) }
+        let(:id) { create(:charge, school: other_school, guardian: create(:guardian, school: other_school)).id }
+
+        run_test! do |response|
+          expect(JSON.parse(response.body).dig("error", "code")).to eq("not_found")
+        end
+      end
+    end
 
     delete "Discard charge" do
       tags "Billing"
