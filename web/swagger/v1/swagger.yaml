@@ -7929,6 +7929,10 @@
                   "company_id": {
                     "type": "string",
                     "description": "Optional Spedy company id; discovered when omitted"
+                  },
+                  "base_url": {
+                    "type": "string",
+                    "description": "Optional https Spedy API base URL for this school (including /v1); blank = default"
                   }
                 }
               }

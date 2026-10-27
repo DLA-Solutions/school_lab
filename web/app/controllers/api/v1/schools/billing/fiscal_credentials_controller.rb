@@ -48,12 +48,13 @@ module Api
               school: Current.school,
               actor: Current.user,
               api_key: credential_params[:api_key],
-              company_id: credential_params[:company_id]
+              company_id: credential_params[:company_id],
+              base_url: credential_params[:base_url]
             )
           end
 
           def credential_params
-            params.permit(:api_key, :company_id)
+            params.permit(:api_key, :company_id, :base_url)
           end
         end
       end
