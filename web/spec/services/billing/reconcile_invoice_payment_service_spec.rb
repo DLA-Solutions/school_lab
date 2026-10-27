@@ -174,6 +174,39 @@ RSpec.describe Billing::ReconcileInvoicePaymentService do
     expect(charge.pix_copy_paste).to eq(remote_invoice.pix_emv)
   end
 
+  it "records the downstream failure reason when the paid invoice cannot be recorded as a payment " \
+     "(bug fix: this failure branch used to return without calling complete_event!, leaving the " \
+     "webhook_event stuck at processed_at: nil / processing_error: nil forever)" do
+    charge.cancel! if charge.may_cancel?
+    adapter.settle_invoice!(provider_invoice_id: issuance.provider_invoice_id, payment_method: "pix")
+
+    result = described_class.call(webhook_event: webhook_event, adapter: adapter)
+
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:invalid_state_transition)
+    expect(webhook_event.reload).to have_attributes(
+      processed_at: be_present,
+      observed_status: "paid",
+      processing_error: "invalid_state_transition"
+    )
+    expect(Payment.count).to eq(0)
+  end
+
+  it "records AuthenticationError (a sibling of ValidationError/ProviderError, not a subclass) " \
+     "instead of letting it crash the job uncaught" do
+    allow(adapter).to receive(:fetch_invoice).and_raise(Gateways::BankSlip::AuthenticationError, "token expired")
+
+    result = described_class.call(webhook_event: webhook_event, adapter: adapter)
+
+    expect(result).to be_failure
+    expect(result.error_code).to eq(:authentication_error)
+    expect(webhook_event.reload).to have_attributes(
+      observed_status: "error",
+      processed_at: be_present,
+      processing_error: "token expired"
+    )
+  end
+
   it "leaves the event unprocessed when fetch_invoice raises TransientError" do
     allow(adapter).to receive(:fetch_invoice).and_raise(Gateways::BankSlip::TransientError, "timeout")
 

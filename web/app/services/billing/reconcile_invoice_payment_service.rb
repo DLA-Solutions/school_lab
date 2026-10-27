@@ -19,12 +19,18 @@ module Billing
       invoice = adapter.fetch_invoice(provider_invoice_id: issuance.provider_invoice_id)
       backfill_presentation_fields!(issuance, invoice)
       result = ReconcilePaidInvoiceService.call(charge: issuance.charge, invoice: invoice)
-      return result if result.failure?
+      if result.failure?
+        complete_event!(observed_status: invoice.status, error: failure_message(result))
+        return result
+      end
 
       complete_event!(observed_status: invoice.status)
       result
     rescue Gateways::BankSlip::TransientError
       raise
+    rescue Gateways::BankSlip::AuthenticationError => e
+      complete_event!(observed_status: "error", error: redact_error(e))
+      ResponseService.failure(code: :authentication_error, details: { message: redact_error(e) })
     rescue Gateways::BankSlip::ValidationError, Gateways::BankSlip::ProviderError => e
       complete_event!(observed_status: "error", error: redact_error(e))
       ResponseService.failure(code: :provider_error, details: { message: redact_error(e) })
@@ -67,6 +73,15 @@ module Billing
 
     def redact_error(error)
       Billing::PiiRedactor.call(error.message)
+    end
+
+    # Downstream failures (RecordPaymentService's :invalid_state_transition,
+    # ReconcilePaidInvoiceService's :provider_error for a paid invoice with no payments) carry
+    # their own message in `details[:message]` when present; fall back to the bare error_code
+    # so the webhook_event row never ends up with a populated processing_error that is just
+    # `nil`.
+    def failure_message(result)
+      result.details&.fetch(:message, nil) || result.error_code.to_s
     end
   end
 end

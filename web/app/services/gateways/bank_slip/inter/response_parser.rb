@@ -62,7 +62,7 @@ module Gateways
             status: status,
             total_amount_cents: coerce_amount_cents(cobranca.fetch("valorNominal")),
             due_date: Date.iso8601(cobranca.fetch("dataVencimento")),
-            payments: parse_payment(cobranca, status: status),
+            payments: parse_payment(cobranca, pix: pix, status: status),
             boleto_url: nil,
             digitable_line: boleto["linhaDigitavel"],
             barcode: boleto["codigoBarras"],
@@ -72,28 +72,64 @@ module Gateways
         end
 
         # Inter's GET response has no itemized payments array like Cora's — one aggregate
-        # `valorTotalRecebido` + `origemRecebimento` + `dataSituacao` on the cobrança itself.
-        # Only synthesized when the normalized status is "paid"; otherwise there is nothing
-        # collected yet.
-        def parse_payment(cobranca, status:)
+        # `valorTotalRecebido` + `origemRecebimento` + `dataSituacao` on the cobrança itself,
+        # confirmed against this adapter's test fixtures. Those three top-level keys are
+        # flagged in docs/open-questions.md as "inferred, not firsthand-confirmed" against a
+        # real Inter sandbox/production payload — a real Pix-settled cobrança may carry the
+        # paid amount/timestamp nested under `pix` instead. Fall back to a handful of
+        # plausible `pix` keys before giving up, and raise a ProviderError (never a bare
+        # KeyError) when the paid invoice genuinely carries neither, so the reconciliation
+        # service's rescue clauses record and surface it instead of crashing the job invisibly.
+        def parse_payment(cobranca, pix:, status:)
           return [] unless status == "paid"
+
+          amount = paid_amount_raw(cobranca, pix)
+          paid_at_value = paid_at_raw(cobranca, pix)
+          if amount.nil? || paid_at_value.nil?
+            raise ProviderError, missing_settlement_fields_message(cobranca, pix)
+          end
 
           [
             ValueObjects::RemotePayment.new(
-              provider_payment_id: payment_id(cobranca),
-              paid_amount_cents: coerce_amount_cents(cobranca.fetch("valorTotalRecebido")),
-              paid_at: parse_paid_at(cobranca.fetch("dataSituacao")),
-              payment_method: normalize_payment_method(cobranca["origemRecebimento"])
+              provider_payment_id: payment_id(cobranca, paid_at_value),
+              paid_amount_cents: coerce_amount_cents(amount),
+              paid_at: parse_paid_at(paid_at_value),
+              payment_method: normalize_payment_method(payment_method_raw(cobranca, pix))
             )
           ]
+        end
+
+        def paid_amount_raw(cobranca, pix)
+          cobranca["valorTotalRecebido"] || pix["valor"] || pix["valorPago"]
+        end
+
+        def paid_at_raw(cobranca, pix)
+          cobranca["dataSituacao"] || pix["dataHoraPagamento"] || pix["horario"] || pix["dataPagamento"]
+        end
+
+        # Falls back to "PIX" when the top-level field is absent but the `pix` sub-object
+        # carries any data — the strongest available signal that settlement arrived via Pix
+        # rather than boleto.
+        def payment_method_raw(cobranca, pix)
+          return cobranca["origemRecebimento"] if cobranca["origemRecebimento"].present?
+          return "PIX" if pix.present? && pix.values.any?(&:present?)
+
+          nil
+        end
+
+        def missing_settlement_fields_message(cobranca, pix)
+          "Inter cobranca reported paid status but settlement amount/timestamp are missing " \
+            "from both cobranca (keys: #{cobranca.keys.sort}) and pix (keys: #{pix.keys.sort})"
         end
 
         # There is no separate payment id in the response, unlike Cora/Fake. `provider_payment_id`
         # has a single global unique index across all providers (confirmed against
         # app/models/payment.rb and Billing::RecordPaymentService) so this provider-prefixed,
-        # status-transition-scoped id is sufficient to avoid cross-provider collisions.
-        def payment_id(cobranca)
-          "inter-#{cobranca.fetch('codigoSolicitacao')}-#{cobranca.fetch('dataSituacao')}"
+        # status-transition-scoped id is sufficient to avoid cross-provider collisions. Takes
+        # the already-resolved settlement timestamp (not a bare `cobranca.fetch`) since it may
+        # have come from the `pix` fallback in `paid_at_raw` instead of the cobrança itself.
+        def payment_id(cobranca, paid_at_value)
+          "inter-#{cobranca.fetch('codigoSolicitacao')}-#{paid_at_value}"
         end
 
         def parse_paid_at(data_situacao)
