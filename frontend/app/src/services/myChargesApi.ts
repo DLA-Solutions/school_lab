@@ -73,15 +73,6 @@ export const getMyCharge = async (schoolId: number, id: number): Promise<MyCharg
   return response.data;
 };
 
-/** POST .../me/charges/:id/reissue — second copy boleto/Pix. */
-export const reissueMyCharge = async (schoolId: number, id: number): Promise<MyCharge> => {
-  const response = await request<{ data: MyCharge }>(`${basePath(schoolId)}/${id}/reissue`, {
-    method: 'POST',
-  });
-
-  return response.data;
-};
-
 /**
  * GET .../me/charges/:id/boleto_pdf — the boleto PDF of a Banco Inter charge, relayed by the API.
  *

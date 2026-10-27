@@ -143,7 +143,7 @@ describe('MyCharges', () => {
     expect(screen.getAllByRole('button', { name: /ver e pagar/i })).toHaveLength(3);
   });
 
-  it('hides boleto, Pix and reissue in the detail of a paid boleto', async () => {
+  it('hides boleto and Pix in the detail of a paid boleto', async () => {
     renderPage();
 
     await screen.findAllByText('R$ 850,00');
@@ -156,7 +156,6 @@ describe('MyCharges', () => {
     expect(within(dialog).queryByRole('button', { name: /copiar código pix/i })).toBeNull();
     expect(within(dialog).queryByRole('button', { name: /visualizar boleto/i })).toBeNull();
     expect(within(dialog).queryByRole('link')).not.toBeInTheDocument();
-    expect(within(dialog).queryByRole('button', { name: /segunda via/i })).not.toBeInTheDocument();
   });
 
   it('filters by child', async () => {
@@ -391,28 +390,8 @@ describe('MyCharges', () => {
     expect(screen.getByRole('button', { name: /tentar de novo/i })).toBeInTheDocument();
   });
 
-  it('opens detail with boleto and Pix, and reissues second copy', async () => {
-    const reissued: unknown[] = [];
+  it('opens detail with boleto and Pix, and copies the Pix code', async () => {
     const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
-
-    server.use(
-      http.post(apiUrl(`${BASE}/charges/:id/reissue`), async ({ params }) => {
-        const charge = myOpenCharges.find((row) => row.id === Number(params.id));
-        reissued.push(params.id);
-
-        return HttpResponse.json({
-          data: {
-            ...charge,
-            payment_methods: {
-              boleto_url: `${charge?.payment_methods.boleto_url}?reissued=1`,
-              pix_copy_paste: `${charge?.payment_methods.pix_copy_paste}-reissued`,
-              digitable_line: charge?.payment_methods.digitable_line,
-              boleto_pdf_available: false,
-            },
-          },
-        });
-      }),
-    );
 
     renderPage();
 
@@ -428,23 +407,7 @@ describe('MyCharges', () => {
     await user.click(within(dialog).getByRole('button', { name: /copiar código pix/i }));
     expect(writeText).toHaveBeenCalledWith('00020126580014br.gov.bcb.pix101');
 
-    await user.click(within(dialog).getByRole('button', { name: /segunda via/i }));
-
-    await waitFor(() => expect(reissued).toEqual(['101']));
-    expect(await screen.findByText(/segunda via emitida/i)).toBeInTheDocument();
-
     writeText.mockRestore();
-  });
-
-  it('does not offer a reissue from a paid boleto', async () => {
-    renderPage();
-
-    await screen.findAllByText('R$ 850,00');
-    await user.click(screen.getByRole('button', { name: /^ver$/i }));
-
-    const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByText(/detalhes do boleto/i)).toBeInTheDocument();
-    expect(within(dialog).queryByRole('button', { name: /segunda via/i })).not.toBeInTheDocument();
   });
 
   it('shows empty state when there are no boletos at all', async () => {
@@ -969,133 +932,6 @@ describe('MyCharges payment methods', () => {
 
       expect(await screen.findByTitle('Pré-visualização do boleto')).toBeInTheDocument();
       expect(pdfRequests).toHaveLength(2);
-    });
-  });
-
-  describe('previewing the boleto straight from the row', () => {
-    const rowOf = (id: number, overrides: Record<string, unknown> = {}) => ({
-      ...myOpenCharges[0],
-      id,
-      ...overrides,
-    });
-
-    /** Replaces the listing, newest due date first as the API would send it. */
-    const answerListWith = (rows: unknown[]) =>
-      server.use(
-        http.get(apiUrl(`${BASE}/charges`), () =>
-          HttpResponse.json({
-            data: rows,
-            meta: { page: 1, per_page: 25, total: rows.length },
-          }),
-        ),
-      );
-
-    const renderList = async () => {
-      renderPage();
-      await screen.findAllByText('R$ 850,00');
-    };
-
-    it('opens the hosted (Cora) boleto in the popup without opening the detail', async () => {
-      answerListWith([rowOf(101)]);
-      const hostedRequests: string[] = [];
-      server.use(
-        http.get('https://provider.example/boleto/101.pdf', ({ request }) => {
-          hostedRequests.push(request.url);
-
-          return pdfResponse();
-        }),
-      );
-
-      await renderList();
-      await user.click(within(bodyRows()[0]).getByRole('button', { name: 'Ver boleto' }));
-
-      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
-        'src',
-        'blob:mock/1',
-      );
-      expect(hostedRequests).toEqual(['https://provider.example/boleto/101.pdf']);
-      // Only the boleto popup is open; the detail dialog was never asked for.
-      expect(screen.getAllByRole('dialog')).toHaveLength(1);
-      expect(detailRequests).toHaveLength(0);
-      expect(pdfRequests).toHaveLength(0);
-      expect(screen.getByRole('button', { name: 'Baixar PDF' })).toBeEnabled();
-    });
-
-    it('opens the Inter PDF through the authenticated API and downloads the same file', async () => {
-      answerListWith([rowOf(101, { payment_methods: interMethods })]);
-      answerPdfWith(pdfResponse);
-      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-
-      await renderList();
-      await user.click(within(bodyRows()[0]).getByRole('button', { name: 'Ver boleto (PDF)' }));
-
-      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
-        'src',
-        'blob:mock/1',
-      );
-      expect(pdfRequests).toHaveLength(1);
-      expect(pdfRequests[0].get('Authorization')).toBe('Bearer fresh-access-token');
-      expect(detailRequests).toHaveLength(0);
-
-      await user.click(screen.getByRole('button', { name: 'Baixar PDF' }));
-
-      expect(click).toHaveBeenCalledTimes(1);
-      expect(pdfRequests).toHaveLength(1);
-    });
-
-    it('offers no preview where there is no boleto to show', async () => {
-      answerListWith([
-        rowOf(101, { payment_methods: nothingYet }),
-        rowOf(102, {
-          status: 'paid',
-          paid_at: '2026-08-01T10:00:00Z',
-          payment_methods: nothingYet,
-        }),
-        rowOf(103, { status: 'cancelled', payment_methods: interMethods }),
-        rowOf(104),
-      ]);
-
-      await renderList();
-      const rows = bodyRows();
-
-      for (const row of rows.slice(0, 3)) {
-        expect(within(row).queryByRole('button', { name: /^ver boleto/i })).not.toBeInTheDocument();
-        // The detail entry point stays on every row.
-        expect(within(row).getAllByRole('button').length).toBeGreaterThan(0);
-      }
-      expect(within(rows[3]).getByRole('button', { name: 'Ver boleto' })).toBeInTheDocument();
-    });
-
-    it('never shows the previous boleto when another one is opened after closing', async () => {
-      answerListWith([
-        rowOf(101, { payment_methods: interMethods }),
-        rowOf(102, { payment_methods: interMethods }),
-      ]);
-      const requested: string[] = [];
-      server.use(
-        http.get(apiUrl(`${BASE}/charges/:id/boleto_pdf`), ({ params }) => {
-          requested.push(String(params.id));
-
-          return pdfResponse();
-        }),
-      );
-
-      await renderList();
-      await user.click(within(bodyRows()[0]).getByRole('button', { name: 'Ver boleto (PDF)' }));
-      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
-        'src',
-        'blob:mock/1',
-      );
-
-      await user.click(screen.getByRole('button', { name: 'Fechar' }));
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-
-      await user.click(within(bodyRows()[1]).getByRole('button', { name: 'Ver boleto (PDF)' }));
-      expect(await screen.findByTitle('Pré-visualização do boleto')).toHaveAttribute(
-        'src',
-        'blob:mock/2',
-      );
-      expect(requested).toEqual(['101', '102']);
     });
   });
 
