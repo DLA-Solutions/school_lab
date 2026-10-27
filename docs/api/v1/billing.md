@@ -556,7 +556,7 @@ Staff routes (under `schools/:school_id/billing`):
 | `GET` | `/fiscal_settings` | School NFS-e configuration |
 | `PATCH` | `/fiscal_settings` | Update settings; validates city against Spedy when changed |
 | `GET` | `/fiscal_credentials` | Active Spedy provider row (masked api_key) |
-| `POST` | `/fiscal_credentials` | Register Spedy api_key (supersedes previous active row) |
+| `POST` | `/fiscal_credentials` | Register an existing Spedy `api_key`, or provision a new company when omitted (supersedes previous active row) |
 | `POST` | `/fiscal_credentials/certificate` | Upload A1 certificate (.pfx) to Spedy |
 | `GET` | `/service_invoices` | Paginated staff list |
 | `GET` | `/service_invoices/:id` | Detail |
@@ -593,6 +593,33 @@ Errors:
 - `422 fiscal_configuration_incomplete` — `enabled: true` without credentials or certificate at Spedy.
 - `404 not_found` — cross-school or cross-family access.
 - `409 generation_in_progress` — not used for NFS-e (reserved).
+
+`POST /fiscal_credentials` (backoffice or staff with `manage_billing`):
+
+- With `api_key` — registers a Spedy company key the school already owns:
+
+  ```json
+  { "api_key": "<spedy company api key>", "company_id": "<optional spedy company id>" }
+  ```
+
+  The key is validated against Spedy (`GET /v1/companies`, or `GET /v1/companies/{id}` when
+  `company_id` is supplied). Without `company_id`, the company id is discovered from the list and
+  must be unambiguous (exactly one company). The new row supersedes the previous active
+  `service_invoice` row in one transaction.
+- Without the `api_key` key — unchanged: the platform provisions a new Spedy company and stores
+  the returned key.
+- `201` returns `{ "data": SchoolPaymentProvider }`; the `api_key` is never returned or logged.
+
+Errors:
+
+- `422 validation_error` — `details.api_key` (`blank` / `invalid`); `details.company_id`
+  (`invalid` when Spedy does not know the id for that key, `taken` when another school already
+  uses that company).
+- `422 provider_error` — `details.message`; Spedy rejected the key (401/403), is unreachable, or
+  answered unexpectedly.
+- `422 fiscal_configuration_incomplete` — no `company_id` supplied and the key's company list is
+  empty or ambiguous; retry with `company_id`.
+- `403 forbidden` / `404 not_found` — wrong role / cross-school.
 
 Webhook: `POST /webhooks/spedy/:token` — account-level; token matches `SPEDY_WEBHOOK_TOKEN`.
 School resolved from `spedy_company_id` or issuer CNPJ in payload.
