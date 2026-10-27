@@ -190,9 +190,57 @@ const chargeLabel = (charge: MyCharge, t: (key: MessageKey) => string) =>
     : (charge.student?.name ?? t('charges.kind.tuition'));
 
 /**
+ * What the Nota fiscal cell shows for a charge, from the invoices the API returned for it.
+ * - `download`: authorized and its PDF is attached.
+ * - `issuing`: the note exists but is not ready — pending/enqueued at Spedy, or authorized while
+ *   the webhook has not attached the PDF yet.
+ * - `none`: no invoice, or one the guardian cannot act on. `rejected`, `failed` and `canceled` are
+ *   internal fiscal outcomes the school resolves; the guardian sees a plain "—" rather than an
+ *   error they cannot fix. A paid charge with no invoice record also shows "—": the school may not
+ *   issue NFS-e at all, so promising "awaiting issuance" could stay on screen forever.
+ */
+type InvoiceCell =
+  | { kind: 'download'; invoice: ServiceInvoice }
+  | { kind: 'issuing' }
+  | { kind: 'none' };
+
+/**
+ * One invoice per charge for display. A charge can carry several (a re-issue after a failure):
+ * the authorized one wins, otherwise the most recent — the highest id, as ids grow with creation.
+ */
+const pickInvoice = (invoices: ServiceInvoice[], chargeId: number) => {
+  const candidates = invoices.filter((invoice) => invoice.charge_id === chargeId);
+
+  return (
+    [...candidates].sort((a, b) => {
+      const authorizedDelta = Number(b.status === 'authorized') - Number(a.status === 'authorized');
+
+      return authorizedDelta !== 0 ? authorizedDelta : b.id - a.id;
+    })[0] ?? null
+  );
+};
+
+const invoiceCell = (invoice: ServiceInvoice | null): InvoiceCell => {
+  if (!invoice) {
+    return { kind: 'none' };
+  }
+
+  switch (invoice.status) {
+    case 'authorized':
+      return invoice.pdf_available ? { kind: 'download', invoice } : { kind: 'issuing' };
+    case 'pending':
+    case 'enqueued':
+      return { kind: 'issuing' };
+    default:
+      return { kind: 'none' };
+  }
+};
+
+/**
  * Paid boletos and NFS-e are separate paginated lists. Matching only invoice page 1 would hide
- * Baixar NFS-e once a charge's note sits further down. Stop when every charge on this page has
- * been seen, the invoice list runs out, or the cap is hit.
+ * the Nota fiscal cell's state once a charge's note sits further down. Invoices of every status
+ * count (an in-flight note is shown as "issuing"). Stop when every charge on this page has been
+ * seen, the invoice list runs out, or the cap is hit.
  */
 const invoicesCoveringCharges = async (schoolId: number, chargeIds: number[]) => {
   const pending = new Set(chargeIds);
@@ -499,11 +547,7 @@ const MyCharges = () => {
     };
   }, [schoolId, generatingChargeId, generationStalled]);
 
-  const invoiceForCharge = (chargeId: number) =>
-    invoices.find(
-      (invoice) =>
-        invoice.charge_id === chargeId && invoice.status === 'authorized' && invoice.pdf_available,
-    ) ?? null;
+  const invoiceForCharge = (chargeId: number) => pickInvoice(invoices, chargeId);
 
   const downloadInvoice = async (invoice: ServiceInvoice) => {
     if (!schoolId) {
@@ -527,7 +571,7 @@ const MyCharges = () => {
     {
       field: 'status',
       headerName: t('common.status'),
-      width: 130,
+      width: 120,
       sortable: false,
       renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
         <SemanticChip variant={STATUS_VARIANT[row.status]} label={statusLabel(row.status, t)} />
@@ -536,7 +580,7 @@ const MyCharges = () => {
     {
       field: 'total_amount_cents',
       headerName: t('common.amount'),
-      width: 130,
+      width: 110,
       sortable: false,
       renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
         <Typography variant="body2">{formatCents(row.total_amount_cents)}</Typography>
@@ -545,7 +589,7 @@ const MyCharges = () => {
     {
       field: 'due_date',
       headerName: t('charges.column.due'),
-      width: 120,
+      width: 110,
       sortable: false,
       renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
         <Typography variant="body2">{formatDate(row.due_date, locale)}</Typography>
@@ -554,7 +598,7 @@ const MyCharges = () => {
     {
       field: 'paid_at',
       headerName: t('myCharges.paidAt'),
-      width: 140,
+      width: 120,
       sortable: false,
       // Pending and overdue rows have nothing to show here yet; paid is the only status that
       // ever populates it, but the column stays so a paid row never loses when it settled.
@@ -568,7 +612,7 @@ const MyCharges = () => {
       field: 'label',
       headerName: t('common.student'),
       flex: 1,
-      minWidth: 160,
+      minWidth: 140,
       sortable: false,
       renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
         <Typography variant="body2" color="text.secondary">
@@ -577,48 +621,70 @@ const MyCharges = () => {
       ),
     },
     {
-      field: 'actions',
-      headerName: t('common.actions'),
-      width: 260,
+      field: 'invoice',
+      headerName: t('myCharges.column.invoice'),
+      width: 160,
       sortable: false,
       filterable: false,
       renderCell: ({ row }: GridRenderCellParams<MyCharge>) => {
-        const invoice = invoiceForCharge(row.id);
+        // An NFS-e only follows a baixa, so an unpaid row is always "—" whatever the list holds.
+        const cell = invoiceCell(row.status === 'paid' ? invoiceForCharge(row.id) : null);
+
+        if (cell.kind === 'download') {
+          const { invoice } = cell;
+
+          return (
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={downloadingInvoiceId === invoice.id}
+              startIcon={<IconifyIcon icon="mingcute:file-line" />}
+              onClick={() => downloadInvoice(invoice)}
+            >
+              {downloadingInvoiceId === invoice.id
+                ? t('myCharges.invoiceDownloading')
+                : t('myCharges.downloadInvoice')}
+            </Button>
+          );
+        }
+
+        if (cell.kind === 'issuing') {
+          return <SemanticChip variant="info" label={t('myCharges.invoice.issuing')} />;
+        }
 
         return (
-          <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap" py={0.5}>
-            <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>
-              {row.status === 'paid' ? t('common.view') : t('myCharges.viewDetail')}
-            </Button>
-            {/* Straight to the PDF popup, no detail first. Only rows with a boleto to show. */}
-            {hasViewableBoleto(row) && (
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<IconifyIcon icon="mingcute:file-line" />}
-                onClick={() => setPreviewing(row)}
-              >
-                {row.payment_methods.boleto_pdf_available
-                  ? t('myCharges.payment.previewBoletoPdf')
-                  : t('myCharges.payment.previewBoleto')}
-              </Button>
-            )}
-            {invoice && (
-              <Button
-                size="small"
-                variant="outlined"
-                disabled={downloadingInvoiceId === invoice.id}
-                startIcon={<IconifyIcon icon="mingcute:file-line" />}
-                onClick={() => downloadInvoice(invoice)}
-              >
-                {downloadingInvoiceId === invoice.id
-                  ? t('myCharges.invoiceDownloading')
-                  : t('myCharges.downloadInvoice')}
-              </Button>
-            )}
-          </Stack>
+          <Typography variant="body2" color="text.secondary">
+            —
+          </Typography>
         );
       },
+    },
+    {
+      field: 'actions',
+      headerName: t('common.actions'),
+      width: 240,
+      sortable: false,
+      filterable: false,
+      renderCell: ({ row }: GridRenderCellParams<MyCharge>) => (
+        <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap" py={0.5}>
+          <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>
+            {row.status === 'paid' ? t('common.view') : t('myCharges.viewDetail')}
+          </Button>
+          {/* Straight to the PDF popup, no detail first. Only rows with a boleto to show. */}
+          {hasViewableBoleto(row) && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<IconifyIcon icon="mingcute:file-line" />}
+              onClick={() => setPreviewing(row)}
+            >
+              {row.payment_methods.boleto_pdf_available
+                ? t('myCharges.payment.previewBoletoPdf')
+                : t('myCharges.payment.previewBoleto')}
+            </Button>
+          )}
+        </Stack>
+      ),
     },
   ];
 

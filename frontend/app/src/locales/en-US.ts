@@ -992,6 +992,8 @@ const enUS: Messages = {
   'myCharges.downloadInvoice': 'Download NFS-e',
   'myCharges.invoiceDownloading': 'Downloading…',
   'myCharges.invoicePdfError': 'Could not download the NFS-e.',
+  'myCharges.column.invoice': 'Invoice (NFS-e)',
+  'myCharges.invoice.issuing': 'Issuing',
 
   'contract.preview.title': 'Contract preview',
   'contract.preview.signedTitle': 'Contract',

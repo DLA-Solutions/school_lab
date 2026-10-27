@@ -1004,6 +1004,8 @@ const ptBR = {
   'myCharges.downloadInvoice': 'Baixar NFS-e',
   'myCharges.invoiceDownloading': 'Baixando…',
   'myCharges.invoicePdfError': 'Não foi possível baixar a NFS-e.',
+  'myCharges.column.invoice': 'Nota fiscal',
+  'myCharges.invoice.issuing': 'Em emissão',
 
   'contract.preview.title': 'Pré-visualização do contrato',
   'contract.preview.signedTitle': 'Contrato',

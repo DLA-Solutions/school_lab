@@ -2210,9 +2210,8 @@ export const handlers = [
       return jsonError(404, 'not_found', 'Recurso não encontrado.');
     }
 
-    const authorized = serviceInvoicesFixture.filter((invoice) => invoice.status === 'authorized');
-
-    return paginated(authorized, new URL(request.url));
+    // The family's invoices of every status, as the API returns them; the page decides what to show.
+    return paginated(serviceInvoicesFixture, new URL(request.url));
   }),
 
   http.get(
