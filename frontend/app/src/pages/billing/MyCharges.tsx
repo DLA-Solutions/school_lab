@@ -671,19 +671,6 @@ const MyCharges = () => {
           <Button size="small" variant="outlined" onClick={() => openDetail(row.id)}>
             {row.status === 'paid' ? t('common.view') : t('myCharges.viewDetail')}
           </Button>
-          {/* Straight to the PDF popup, no detail first. Only rows with a boleto to show. */}
-          {hasViewableBoleto(row) && (
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<IconifyIcon icon="mingcute:file-line" />}
-              onClick={() => setPreviewing(row)}
-            >
-              {row.payment_methods.boleto_pdf_available
-                ? t('myCharges.payment.previewBoletoPdf')
-                : t('myCharges.payment.previewBoleto')}
-            </Button>
-          )}
         </Stack>
       ),
     },
