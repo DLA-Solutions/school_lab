@@ -659,10 +659,6 @@ const ptBR = {
   'myCharges.payment.generating.checkAgain': 'Verificar de novo',
   'myCharges.payment.unavailable':
     'As formas de pagamento ainda não estão disponíveis para esta cobrança.',
-  'myCharges.reissue': 'Segunda via',
-  'myCharges.reissuing': 'Emitindo…',
-  'myCharges.reissueSuccess': 'Segunda via emitida. Use o novo boleto ou código Pix acima.',
-  'myCharges.reissueError': 'Não foi possível emitir a segunda via.',
   'myCharges.pixCopyError': 'Não foi possível copiar o código Pix.',
   'myCharges.digitableLineCopyError': 'Não foi possível copiar a linha digitável.',
   'myCharges.noAccess.description': 'Você não tem acesso aos boletos desta escola.',

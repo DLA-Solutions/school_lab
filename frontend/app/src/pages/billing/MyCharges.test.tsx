@@ -143,7 +143,7 @@ describe('MyCharges', () => {
     expect(screen.getAllByRole('button', { name: /ver e pagar/i })).toHaveLength(3);
   });
 
-  it('hides boleto, Pix and reissue in the detail of a paid boleto', async () => {
+  it('hides boleto and Pix in the detail of a paid boleto', async () => {
     renderPage();
 
     await screen.findAllByText('R$ 850,00');
@@ -156,7 +156,6 @@ describe('MyCharges', () => {
     expect(within(dialog).queryByRole('button', { name: /copiar código pix/i })).toBeNull();
     expect(within(dialog).queryByRole('button', { name: /visualizar boleto/i })).toBeNull();
     expect(within(dialog).queryByRole('link')).not.toBeInTheDocument();
-    expect(within(dialog).queryByRole('button', { name: /segunda via/i })).not.toBeInTheDocument();
   });
 
   it('filters by child', async () => {
@@ -391,28 +390,8 @@ describe('MyCharges', () => {
     expect(screen.getByRole('button', { name: /tentar de novo/i })).toBeInTheDocument();
   });
 
-  it('opens detail with boleto and Pix, and reissues second copy', async () => {
-    const reissued: unknown[] = [];
+  it('opens detail with boleto and Pix, and copies the Pix code', async () => {
     const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
-
-    server.use(
-      http.post(apiUrl(`${BASE}/charges/:id/reissue`), async ({ params }) => {
-        const charge = myOpenCharges.find((row) => row.id === Number(params.id));
-        reissued.push(params.id);
-
-        return HttpResponse.json({
-          data: {
-            ...charge,
-            payment_methods: {
-              boleto_url: `${charge?.payment_methods.boleto_url}?reissued=1`,
-              pix_copy_paste: `${charge?.payment_methods.pix_copy_paste}-reissued`,
-              digitable_line: charge?.payment_methods.digitable_line,
-              boleto_pdf_available: false,
-            },
-          },
-        });
-      }),
-    );
 
     renderPage();
 
@@ -428,23 +407,7 @@ describe('MyCharges', () => {
     await user.click(within(dialog).getByRole('button', { name: /copiar código pix/i }));
     expect(writeText).toHaveBeenCalledWith('00020126580014br.gov.bcb.pix101');
 
-    await user.click(within(dialog).getByRole('button', { name: /segunda via/i }));
-
-    await waitFor(() => expect(reissued).toEqual(['101']));
-    expect(await screen.findByText(/segunda via emitida/i)).toBeInTheDocument();
-
     writeText.mockRestore();
-  });
-
-  it('does not offer a reissue from a paid boleto', async () => {
-    renderPage();
-
-    await screen.findAllByText('R$ 850,00');
-    await user.click(screen.getByRole('button', { name: /^ver$/i }));
-
-    const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByText(/detalhes do boleto/i)).toBeInTheDocument();
-    expect(within(dialog).queryByRole('button', { name: /segunda via/i })).not.toBeInTheDocument();
   });
 
   it('shows empty state when there are no boletos at all', async () => {

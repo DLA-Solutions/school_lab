@@ -1311,33 +1311,6 @@ export const handlers = [
     return HttpResponse.json({ data: charge });
   }),
 
-  http.post(apiUrl('/api/v1/schools/:schoolId/me/charges/:id/reissue'), ({ request, params }) => {
-    if (!hasFreshToken(request)) {
-      return expiredToken();
-    }
-
-    if (params.schoolId !== String(SCHOOL_ID)) {
-      return jsonError(404, 'not_found', 'Recurso não encontrado.');
-    }
-
-    const charge = myOpenCharges.find((row) => row.id === Number(params.id));
-    if (!charge) {
-      return jsonError(404, 'not_found', 'Recurso não encontrado.');
-    }
-
-    const updated = {
-      ...charge,
-      payment_methods: {
-        boleto_url: `${charge.payment_methods.boleto_url}?reissued=1`,
-        pix_copy_paste: `${charge.payment_methods.pix_copy_paste}-reissued`,
-        digitable_line: charge.payment_methods.digitable_line,
-        boleto_pdf_available: charge.payment_methods.boleto_pdf_available,
-      },
-    };
-
-    return HttpResponse.json({ data: updated });
-  }),
-
   // Banco Inter's boleto, relayed by the API. The fixtures are Cora-style (hosted link, no PDF),
   // so the default answer is the 409 a charge without a PDF gets; specs that need a PDF override.
   http.get(apiUrl('/api/v1/schools/:schoolId/me/charges/:id/boleto_pdf'), ({ request, params }) => {

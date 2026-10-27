@@ -27,7 +27,6 @@ import {
   PageHeader,
   SectionCard,
   SemanticChip,
-  SuccessBanner,
 } from 'design-system';
 import { useTranslation } from 'providers/I18nContext';
 import { useGuardianSchool } from 'providers/useGuardianSchool';
@@ -38,7 +37,6 @@ import {
   fetchMyChargeBoletoPdf,
   getMyCharge,
   listMyCharges,
-  reissueMyCharge,
 } from 'services/myChargesApi';
 import { downloadMyServiceInvoicePdf, listMyServiceInvoices } from 'services/serviceInvoicesApi';
 import { listMyStudents } from 'services/studentsApi';
@@ -321,13 +319,11 @@ const MyCharges = () => {
   const [invoices, setInvoices] = useState<ServiceInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
 
   const [detail, setDetail] = useState<MyCharge | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState('');
-  const [reissuing, setReissuing] = useState(false);
   const [previewing, setPreviewing] = useState<MyCharge | null>(null);
   const [copied, setCopied] = useState<CopiedCode | null>(null);
   const [generationStalled, setGenerationStalled] = useState(false);
@@ -457,29 +453,6 @@ const MyCharges = () => {
     setDetailError('');
     setCopied(null);
     setGenerationStalled(false);
-  };
-
-  const handleReissue = async () => {
-    if (!schoolId || !detail) {
-      return;
-    }
-
-    setReissuing(true);
-    setDetailError('');
-    setNotice('');
-
-    try {
-      const updated = await reissueMyCharge(schoolId, detail.id);
-      setDetail(updated);
-      // A fresh issuance starts the wait over, whether or not the last one had given up.
-      setGenerationStalled(false);
-      setNotice(t('myCharges.reissueSuccess'));
-      await load();
-    } catch (err) {
-      setDetailError(err instanceof ApiError ? err.message : t('myCharges.reissueError'));
-    } finally {
-      setReissuing(false);
-    }
   };
 
   const copyCode = async (code: CopiedCode, value: string) => {
@@ -736,7 +709,6 @@ const MyCharges = () => {
       <PageHeader title={t('nav.myCharges')} />
 
       {error && <ErrorBanner message={error} onRetry={load} retryLabel={t('common.tryAgain')} />}
-      {notice && <SuccessBanner message={notice} />}
 
       <SectionCard padding={0}>
         <Box px={3.5} pt={3.5}>
@@ -1100,11 +1072,6 @@ const MyCharges = () => {
           )}
         </DialogContent>
         <DialogActions>
-          {detail && (detail.status === 'pending' || detail.status === 'overdue') && (
-            <Button onClick={handleReissue} disabled={reissuing} variant="outlined">
-              {reissuing ? t('myCharges.reissuing') : t('myCharges.reissue')}
-            </Button>
-          )}
           <Button onClick={closeDetail} variant="contained">
             {t('common.close')}
           </Button>
