@@ -62,9 +62,6 @@ describe('BillingSettingsPage', () => {
     authenticate();
     server.use(
       http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })),
-      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
-        HttpResponse.json({ data: [] }),
-      ),
     );
 
     renderPage();
@@ -80,9 +77,6 @@ describe('BillingSettingsPage', () => {
     authenticate();
     server.use(
       http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })),
-      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
-        HttpResponse.json({ data: [] }),
-      ),
     );
 
     renderPage();
@@ -103,9 +97,6 @@ describe('BillingSettingsPage', () => {
           data: { ...settings, early_payment_discount_day: 5 },
         }),
       ),
-      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
-        HttpResponse.json({ data: [] }),
-      ),
     );
 
     renderPage();
@@ -121,9 +112,6 @@ describe('BillingSettingsPage', () => {
 
     server.use(
       http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })),
-      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
-        HttpResponse.json({ data: [] }),
-      ),
       http.patch(apiUrl(PATH), async ({ request }) => {
         patched = true;
         const body = (await request.json()) as { billing_settings: Record<string, unknown> };
@@ -188,9 +176,6 @@ describe('BillingSettingsPage', () => {
 
     server.use(
       http.get(apiUrl(PATH), () => HttpResponse.json({ data: settings })),
-      http.get(apiUrl(`/api/v1/schools/${SCHOOL_ID}/bank_credentials`), () =>
-        HttpResponse.json({ data: [] }),
-      ),
       http.patch(apiUrl(PATH), () =>
         HttpResponse.json(
           {

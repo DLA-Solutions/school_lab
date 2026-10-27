@@ -16,8 +16,7 @@ export interface SchoolPaymentProvider {
 export type BankCredentialProvider = 'cora' | 'inter';
 
 export interface UploadBankCredentialsPayload {
-  /** Defaults to `cora`, the provider the billing settings card uploads for. */
-  provider?: BankCredentialProvider;
+  provider: BankCredentialProvider;
   client_id: string;
   /** Required by Banco Inter (OAuth client credentials); Cora authenticates by certificate alone. */
   client_secret?: string;

@@ -126,4 +126,18 @@ RSpec.describe SchoolPaymentProvider, type: :model do
       expect(bank_slip_providers).to match_array(Gateways::BankSlip::Registry::ADAPTERS.keys)
     end
   end
+
+  describe "spedy base_url" do
+    it "accepts an https base_url and a blank one" do
+      expect(build(:school_payment_provider, :spedy, school: school, settings: { base_url: "https://x.spedy.test/v1" })).to be_valid
+      expect(build(:school_payment_provider, :spedy, school: school, settings: { base_url: "" })).to be_valid
+    end
+
+    it "rejects a non-https base_url" do
+      record = build(:school_payment_provider, :spedy, school: school, settings: { base_url: "http://x.spedy.test/v1" })
+
+      expect(record).not_to be_valid
+      expect(record.errors[:base_url]).to be_present
+    end
+  end
 end

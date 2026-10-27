@@ -405,44 +405,6 @@ export const myChargeHistory = [
   },
 ];
 
-export const fiscalSettingsFixture = {
-  id: 1,
-  enabled: false,
-  issuance_city_name: 'Goiânia',
-  issuance_state: 'GO',
-  spedy_city_code: 5_208_707,
-  federal_service_code: '8.01',
-  cnae_code: '8513900',
-  city_service_code: null,
-  nbs_code: null,
-  national_taxation_code: null,
-  iss_rate_percent: 5.0,
-  service_description: 'Mensalidade escolar',
-  taxation_type: 'taxationInMunicipality',
-  tax_location: 'companyMunicipality',
-  issue_type: null,
-  reform_tributaria_enabled: false,
-  provider_options_snapshot: {},
-  ibs_cbs_config: {},
-};
-
-export const supportedCitiesFixture = [
-  {
-    code: 5_208_707,
-    name: 'Goiânia',
-    state: 'GO',
-    provider: 'ISSNet',
-    provider_options: { requiredFields: ['city_service_code'] },
-  },
-  {
-    code: 3_550_308,
-    name: 'São Paulo',
-    state: 'SP',
-    provider: 'Ginfes',
-    provider_options: {},
-  },
-];
-
 export const fiscalCredentialsBySchool: Record<number, unknown[]> = {};
 
 export const bankCredentialsBySchool: Record<
@@ -2023,59 +1985,6 @@ export const handlers = [
     return HttpResponse.json({ data: billingPurposes });
   }),
 
-  http.get(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_settings'), ({ request, params }) => {
-    if (!hasFreshToken(request)) {
-      return expiredToken();
-    }
-
-    if (params.schoolId !== String(SCHOOL_ID)) {
-      return jsonError(404, 'not_found', 'Recurso não encontrado.');
-    }
-
-    return HttpResponse.json({ data: fiscalSettingsFixture });
-  }),
-
-  http.patch(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_settings'), async ({ request, params }) => {
-    if (!hasFreshToken(request)) {
-      return expiredToken();
-    }
-
-    if (params.schoolId !== String(SCHOOL_ID)) {
-      return jsonError(404, 'not_found', 'Recurso não encontrado.');
-    }
-
-    const body = (await request.json()) as { fiscal_settings?: Record<string, unknown> };
-
-    return HttpResponse.json({
-      data: {
-        ...fiscalSettingsFixture,
-        ...body.fiscal_settings,
-      },
-    });
-  }),
-
-  http.get(
-    apiUrl('/api/v1/schools/:schoolId/billing/fiscal/supported_cities'),
-    ({ request, params }) => {
-      if (!hasFreshToken(request)) {
-        return expiredToken();
-      }
-
-      if (params.schoolId !== String(SCHOOL_ID)) {
-        return jsonError(404, 'not_found', 'Recurso não encontrado.');
-      }
-
-      const url = new URL(request.url);
-      const query = (url.searchParams.get('query') ?? '').toLowerCase();
-
-      const rows = supportedCitiesFixture.filter((city) =>
-        city.name.toLowerCase().includes(query),
-      );
-
-      return HttpResponse.json({ data: rows });
-    },
-  ),
-
   http.get(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials'), ({ request, params }) => {
     if (!hasFreshToken(request)) {
       return expiredToken();
@@ -2130,35 +2039,8 @@ export const handlers = [
     return HttpResponse.json({ data: created }, { status: 201 });
   }),
 
-  http.post(apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials'), ({ request, params }) => {
-    if (!hasFreshToken(request)) {
-      return expiredToken();
-    }
-
-    if (params.schoolId !== String(SCHOOL_ID)) {
-      return jsonError(404, 'not_found', 'Recurso não encontrado.');
-    }
-
-    const schoolId = Number(params.schoolId);
-    const credential = {
-      id: 901,
-      school_id: schoolId,
-      instrument: 'service_invoice',
-      provider: 'spedy',
-      active: true,
-      client_id: '',
-      certificate_fingerprint: null,
-      certificate_expires_at: null,
-      uploaded_at: '2026-08-17T12:00:00Z',
-      uploaded_by_id: 1,
-    };
-    fiscalCredentialsBySchool[schoolId] = [credential];
-
-    return HttpResponse.json({ data: credential }, { status: 201 });
-  }),
-
   http.post(
-    apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials/certificate'),
+    apiUrl('/api/v1/schools/:schoolId/billing/fiscal_credentials'),
     async ({ request, params }) => {
       if (!hasFreshToken(request)) {
         return expiredToken();
@@ -2168,25 +2050,31 @@ export const handlers = [
         return jsonError(404, 'not_found', 'Recurso não encontrado.');
       }
 
+      const body = (await request.json()) as { api_key?: string; base_url?: string };
+
+      if (!body.api_key) {
+        return jsonError(422, 'validation_error', 'Dados inválidos.', {
+          api_key: ['não pode ficar em branco'],
+        });
+      }
+
       const schoolId = Number(params.schoolId);
-      const existing = fiscalCredentialsBySchool[schoolId]?.[0] ?? {
+      const credential = {
         id: 901,
         school_id: schoolId,
         instrument: 'service_invoice',
         provider: 'spedy',
         active: true,
         client_id: '',
+        base_url: body.base_url || 'https://api.spedy.com.br/v1',
+        certificate_fingerprint: null,
+        certificate_expires_at: null,
         uploaded_at: '2026-08-17T12:00:00Z',
         uploaded_by_id: 1,
       };
+      fiscalCredentialsBySchool[schoolId] = [credential];
 
-      return HttpResponse.json({
-        data: {
-          ...existing,
-          certificate_fingerprint: 'SHA256:FISCAL:01',
-          certificate_expires_at: '2027-06-30T23:59:59Z',
-        },
-      });
+      return HttpResponse.json({ data: credential }, { status: 201 });
     },
   ),
 

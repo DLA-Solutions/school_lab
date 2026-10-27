@@ -14,60 +14,60 @@ module SchoolLab
           params[:filterText] = query if query.present?
           params[:state] = state if state.present?
           params[:code] = code if code.present?
-          get("/v1/service-invoices/cities", params: params)
+          get("service-invoices/cities", params: params)
         end
 
         def list_companies(page: nil, page_size: nil)
           params = {}
           params[:page] = page if page
           params[:pageSize] = page_size if page_size
-          get("/v1/companies", params: params)
+          get("companies", params: params)
         end
 
         def fetch_company(company_id:)
-          get("/v1/companies/#{company_id}")
+          get("companies/#{company_id}")
         end
 
         def create_company(body:)
-          post("/v1/companies", body: body.to_json)
+          post("companies", body: body.to_json)
         end
 
         def update_company_settings(company_id:, body:)
-          put("/v1/companies/#{company_id}/settings", body: body.to_json)
+          put("companies/#{company_id}/settings", body: body.to_json)
         end
 
         def add_certificate(company_id:, file_io:, password:)
-          post_multipart("/v1/companies/#{company_id}/certificates",
+          post_multipart("companies/#{company_id}/certificates",
                          file: file_io, fields: { password: password })
         end
 
         def create_service_invoice(body:)
-          post("/v1/service-invoices", body: body.to_json)
+          post("service-invoices", body: body.to_json)
         end
 
         def fetch_service_invoice(document_id:)
-          get("/v1/service-invoices/#{document_id}")
+          get("service-invoices/#{document_id}")
         end
 
         def check_status(document_id:)
-          post("/v1/service-invoices/#{document_id}/check-status")
+          post("service-invoices/#{document_id}/check-status")
         end
 
         def cancel(document_id:, reason: nil)
           body = reason.present? ? { reason: reason }.to_json : nil
-          post("/v1/service-invoices/#{document_id}/cancel", body: body)
+          post("service-invoices/#{document_id}/cancel", body: body)
         end
 
         def download_pdf(document_id:)
-          get("/v1/service-invoices/#{document_id}/pdf", raw: true)
+          get("service-invoices/#{document_id}/pdf", raw: true)
         end
 
         def download_xml(document_id:)
-          get("/v1/service-invoices/#{document_id}/xml", raw: true)
+          get("service-invoices/#{document_id}/xml", raw: true)
         end
 
         def list_service_invoices(since:, limit: 100)
-          get("/v1/service-invoices", params: { effectiveDateStart: since.iso8601, pageSize: limit })
+          get("service-invoices", params: { effectiveDateStart: since.iso8601, pageSize: limit })
         end
 
         private

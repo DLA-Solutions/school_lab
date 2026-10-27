@@ -25,13 +25,14 @@ class SchoolPaymentProvider < ApplicationRecord
   validates :instrument, inclusion: { in: INSTRUMENTS }
   validates :provider, presence: true, inclusion: { in: REQUIRED_CREDENTIALS.keys }
   validate :required_credentials_present
+  validate :spedy_base_url_valid, if: -> { provider == "spedy" && base_url.present? }
   validate :certificate_and_key_valid, if: -> { certificate_pem.present? || private_key_pem.present? }
 
   before_validation :derive_certificate_metadata, if: -> { certificate_pem.present? }
 
   scope :active, -> { where(active: true) }
 
-  store_accessor :settings, :spedy_company_id
+  store_accessor :settings, :spedy_company_id, :base_url
 
   before_validation :ensure_webhook_endpoint_token, on: :create
 
@@ -43,6 +44,12 @@ class SchoolPaymentProvider < ApplicationRecord
 
   def ensure_webhook_endpoint_token
     self.webhook_endpoint_token ||= SecureRandom.urlsafe_base64(32)
+  end
+
+  def spedy_base_url_valid
+    return if SchoolLab::Integrations::Spedy::Configuration.valid_base_url?(base_url)
+
+    errors.add(:base_url, :invalid)
   end
 
   def required_credentials_present

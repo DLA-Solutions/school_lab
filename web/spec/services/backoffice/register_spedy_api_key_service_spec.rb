@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe Backoffice::RegisterSpedyApiKeyService do
   subject(:result) { described_class.call(school: school, actor: actor, api_key: api_key, company_id: company_id) }
 
-  let(:base_url) { "https://spedy.test" }
+  let(:base_url) { "https://spedy.test/v1" }
   let(:school) { create(:school) }
   let(:actor) { create(:user) }
   let(:api_key) { "customer-company-key" }
@@ -14,9 +14,64 @@ RSpec.describe Backoffice::RegisterSpedyApiKeyService do
 
   before do
     allow(SchoolLab::Integrations::Spedy::Configuration).to receive(:current).and_return(api_base_url: base_url)
-    stub_request(:get, "#{base_url}/v1/companies")
+    stub_request(:get, "#{base_url}/companies")
       .with(headers: { "X-Api-Key" => api_key })
       .to_return(status: 200, body: companies_body)
+  end
+
+  context "with a per-school base_url" do
+    subject(:result) do
+      described_class.call(school: school, actor: actor, api_key: api_key, base_url: custom_base_url)
+    end
+
+    let(:custom_base_url) { "https://sandbox.spedy.test/v1/" }
+
+    before do
+      stub_request(:get, "https://sandbox.spedy.test/v1/companies")
+        .with(headers: { "X-Api-Key" => api_key })
+        .to_return(status: 200, body: companies_body)
+    end
+
+    it "validates the key against that URL and stores the normalized value in settings" do
+      expect(result).to be_success
+      expect(a_request(:get, "https://sandbox.spedy.test/v1/companies")).to have_been_made.once
+      expect(a_request(:get, "#{base_url}/companies")).not_to have_been_made
+      expect(result.data.reload.settings).to include("base_url" => "https://sandbox.spedy.test/v1",
+                                                     "spedy_company_id" => "company-1")
+    end
+
+    it "does not put the key in the stored settings" do
+      expect(result.data.settings.to_s).not_to include(api_key)
+    end
+
+    context "when the URL is not https" do
+      let(:custom_base_url) { "http://sandbox.spedy.test/v1" }
+
+      it "fails with validation_error on base_url and never calls Spedy" do
+        expect(result.error_code).to eq(:validation_error)
+        expect(result.details).to eq(base_url: [ "invalid" ])
+        expect(a_request(:get, /spedy\.test/)).not_to have_been_made
+        expect(SchoolPaymentProvider.where(school: school)).to be_empty
+      end
+    end
+
+    context "when the URL is garbage" do
+      let(:custom_base_url) { "not a url" }
+
+      it "fails with validation_error on base_url" do
+        expect(result.details).to eq(base_url: [ "invalid" ])
+      end
+    end
+
+    context "when the URL is blank" do
+      let(:custom_base_url) { "  " }
+
+      it "falls back to the default URL and stores no base_url" do
+        expect(result).to be_success
+        expect(a_request(:get, "#{base_url}/companies")).to have_been_made.once
+        expect(result.data.settings).not_to have_key("base_url")
+      end
+    end
   end
 
   context "when the list holds exactly one company" do
@@ -66,7 +121,7 @@ RSpec.describe Backoffice::RegisterSpedyApiKeyService do
       let(:company_id) { "b" }
 
       before do
-        stub_request(:get, "#{base_url}/v1/companies/b").to_return(status: 200, body: { id: "b" }.to_json)
+        stub_request(:get, "#{base_url}/companies/b").to_return(status: 200, body: { id: "b" }.to_json)
       end
 
       it "uses the supplied id after confirming it with Spedy" do
@@ -80,7 +135,7 @@ RSpec.describe Backoffice::RegisterSpedyApiKeyService do
     let(:company_id) { "ghost" }
 
     before do
-      stub_request(:get, "#{base_url}/v1/companies/ghost").to_return(status: 400, body: { message: "x" }.to_json)
+      stub_request(:get, "#{base_url}/companies/ghost").to_return(status: 400, body: { message: "x" }.to_json)
     end
 
     it "fails with validation_error on company_id" do
@@ -108,7 +163,7 @@ RSpec.describe Backoffice::RegisterSpedyApiKeyService do
   end
 
   context "when Spedy rejects the key" do
-    before { stub_request(:get, "#{base_url}/v1/companies").to_return(status: 403, body: "") }
+    before { stub_request(:get, "#{base_url}/companies").to_return(status: 403, body: "") }
 
     it "fails with provider_error without echoing the key" do
       expect(result.error_code).to eq(:provider_error)
@@ -119,7 +174,7 @@ RSpec.describe Backoffice::RegisterSpedyApiKeyService do
   end
 
   context "when Spedy is unreachable" do
-    before { stub_request(:get, "#{base_url}/v1/companies").to_timeout }
+    before { stub_request(:get, "#{base_url}/companies").to_timeout }
 
     it "fails with provider_error" do
       expect(result.error_code).to eq(:provider_error)
@@ -147,7 +202,7 @@ RSpec.describe Backoffice::RegisterSpedyApiKeyService do
     end
 
     it "keeps the previous row active when the key is rejected" do
-      stub_request(:get, "#{base_url}/v1/companies").to_return(status: 401, body: "")
+      stub_request(:get, "#{base_url}/companies").to_return(status: 401, body: "")
 
       expect(result.error_code).to eq(:provider_error)
       expect(previous.reload.active).to be(true)

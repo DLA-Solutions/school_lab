@@ -1,8 +1,4 @@
-import {
-  FiscalCredential,
-  RegisterFiscalApiKeyPayload,
-  UploadFiscalCertificatePayload,
-} from 'types/fiscalCredential';
+import { FiscalCredential, RegisterFiscalApiKeyPayload } from 'types/fiscalCredential';
 import { request } from './api';
 
 const basePath = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/fiscal_credentials`;
@@ -14,16 +10,7 @@ export const listFiscalCredentials = async (schoolId: number): Promise<FiscalCre
   return response.data;
 };
 
-/** POST .../billing/fiscal_credentials — provision Spedy company for the school. */
-export const provisionFiscalCredentials = async (schoolId: number): Promise<FiscalCredential> => {
-  const response = await request<{ data: FiscalCredential }>(basePath(schoolId), {
-    method: 'POST',
-  });
-
-  return response.data;
-};
-
-/** POST .../billing/fiscal_credentials with `api_key` — register an existing Spedy token. */
+/** POST .../billing/fiscal_credentials — register the Spedy token (and optional base URL). */
 export const registerFiscalApiKey = async (
   schoolId: number,
   payload: RegisterFiscalApiKeyPayload,
@@ -31,23 +18,6 @@ export const registerFiscalApiKey = async (
   const response = await request<{ data: FiscalCredential }>(basePath(schoolId), {
     method: 'POST',
     body: payload,
-  });
-
-  return response.data;
-};
-
-/** POST .../billing/fiscal_credentials/certificate — upload A1 certificate (.pfx). */
-export const uploadFiscalCertificate = async (
-  schoolId: number,
-  payload: UploadFiscalCertificatePayload,
-): Promise<FiscalCredential> => {
-  const formData = new FormData();
-  formData.append('certificate', payload.certificate);
-  formData.append('password', payload.password);
-
-  const response = await request<{ data: FiscalCredential }>(`${basePath(schoolId)}/certificate`, {
-    method: 'POST',
-    body: formData,
   });
 
   return response.data;

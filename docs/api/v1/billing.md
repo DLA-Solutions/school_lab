@@ -627,20 +627,37 @@ Errors:
 - With `api_key` — registers a Spedy company key the school already owns:
 
   ```json
-  { "api_key": "<spedy company api key>", "company_id": "<optional spedy company id>" }
+  {
+    "api_key": "<spedy company api key>",
+    "company_id": "<optional spedy company id>",
+    "base_url": "<optional https Spedy API base URL, e.g. https://api.spedy.com.br/v1>"
+  }
   ```
 
-  The key is validated against Spedy (`GET /v1/companies`, or `GET /v1/companies/{id}` when
+  `api_key` is the school's production Spedy company key; it is sent to Spedy as the `X-Api-Key`
+  header. `base_url` is optional: blank or absent means the default `https://api.spedy.com.br/v1`
+  (the platform default can be overridden with `SPEDY_API_BASE_URL`). A supplied value must be an
+  `https` URL (no credentials, query, `localhost` or IP literal) and includes the API version
+  segment (`/v1`); a trailing slash is ignored. It is stored per school in
+  `school_payment_providers.settings["base_url"]` and used for every later Spedy call for that
+  school (certificate upload, company settings, NFS-e issuance and polling). Provisioning with the
+  platform key (no `api_key`) always uses the default / env URL.
+
+  The key is validated against Spedy at `{base_url}/companies` (or `{base_url}/companies/{id}` when
   `company_id` is supplied). Without `company_id`, the company id is discovered from the list and
   must be unambiguous (exactly one company). The new row supersedes the previous active
   `service_invoice` row in one transaction.
 - Without the `api_key` key — unchanged: the platform provisions a new Spedy company and stores
   the returned key.
 - `201` returns `{ "data": SchoolPaymentProvider }`; the `api_key` is never returned or logged.
+  For `provider: "spedy"` rows the object also carries `base_url` — the effective Spedy API base
+  URL (the stored override, otherwise the default). It is not a secret and is included in
+  `GET /fiscal_credentials` and `POST /fiscal_credentials/certificate` responses too.
 
 Errors:
 
-- `422 validation_error` — `details.api_key` (`blank` / `invalid`); `details.company_id`
+- `422 validation_error` — `details.api_key` (`blank` / `invalid`); `details.base_url` (`invalid` when not an `https` URL);
+  `details.company_id`
   (`invalid` when Spedy does not know the id for that key, `taken` when another school already
   uses that company).
 - `422 provider_error` — `details.message`; Spedy rejected the key (401/403), is unreachable, or
