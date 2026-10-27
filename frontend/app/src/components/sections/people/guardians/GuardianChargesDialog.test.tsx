@@ -27,6 +27,12 @@ const charge = (overrides: Partial<Charge>): Charge => ({
   kind: 'tuition',
   description: null,
   boleto_url: null,
+  payment_methods: {
+    boleto_url: null,
+    pix_copy_paste: null,
+    digitable_line: null,
+    boleto_pdf_available: false,
+  },
   contract_id: 1,
   student: { id: 1, name: 'Pedro Silva' },
   guardian: { id: 7, name: 'Maria Silva', cpf: '12345678909' },

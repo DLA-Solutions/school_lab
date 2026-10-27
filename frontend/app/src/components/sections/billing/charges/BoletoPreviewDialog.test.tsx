@@ -22,6 +22,12 @@ const charge = (overrides: Partial<Charge> = {}): Charge => ({
   kind: 'one_off',
   description: 'Avulso',
   boleto_url: BOLETO_URL,
+  payment_methods: {
+    boleto_url: BOLETO_URL,
+    pix_copy_paste: null,
+    digitable_line: null,
+    boleto_pdf_available: false,
+  },
   contract_id: null,
   student: null,
   guardian: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
@@ -366,6 +372,120 @@ describe('BoletoPreviewDialog', () => {
 
       expect(loadBlob).toHaveBeenCalledTimes(1);
       expect(objectUrls).toHaveLength(0);
+    });
+  });
+  // The popup is what a secretary reads a payer's options from: Pix and linha digitável sit under
+  // the file, each copied exactly as shown.
+  describe('payment codes', () => {
+    const PIX = '00020126580014br.gov.bcb.pix0136example-pix-code';
+    const LINE = '07790.00116 12345.678901 23456.789012 3 98760000012000';
+    const withCodes = (overrides: Partial<Charge> = {}) =>
+      charge({
+        boleto_url: null,
+        payment_methods: {
+          boleto_url: null,
+          pix_copy_paste: PIX,
+          digitable_line: LINE,
+          boleto_pdf_available: true,
+        },
+        ...overrides,
+      });
+    const file = () => new Blob(['%PDF-1.4'], { type: 'application/pdf' });
+
+    it('shows the Pix code and the linha digitavel next to the relayed PDF', async () => {
+      renderWithTheme(
+        <BoletoPreviewDialog
+          open
+          charge={withCodes()}
+          onClose={vi.fn()}
+          loadBlob={vi.fn().mockResolvedValue(file())}
+        />,
+      );
+
+      expect(await screen.findByTitle('Pré-visualização do boleto')).toBeInTheDocument();
+      expect(screen.getByText('Pix copia e cola')).toBeInTheDocument();
+      expect(screen.getByText(PIX)).toBeInTheDocument();
+      expect(screen.getByText('Linha digitável')).toBeInTheDocument();
+      expect(screen.getByText(LINE)).toBeInTheDocument();
+    });
+
+    it('copies each code as shown and confirms it', async () => {
+      const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
+      renderWithTheme(
+        <BoletoPreviewDialog
+          open
+          charge={withCodes()}
+          onClose={vi.fn()}
+          loadBlob={vi.fn().mockResolvedValue(file())}
+        />,
+      );
+
+      await user.click(await screen.findByRole('button', { name: 'Copiar código Pix' }));
+      expect(writeText).toHaveBeenLastCalledWith(PIX);
+      expect(await screen.findByRole('button', { name: 'Código Pix copiado' })).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Copiar linha digitável' }));
+      expect(writeText).toHaveBeenLastCalledWith(LINE);
+      expect(
+        await screen.findByRole('button', { name: 'Linha digitável copiada' }),
+      ).toBeInTheDocument();
+    });
+
+    it('says so when the clipboard refuses', async () => {
+      vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('denied'));
+
+      renderWithTheme(
+        <BoletoPreviewDialog
+          open
+          charge={withCodes()}
+          onClose={vi.fn()}
+          loadBlob={vi.fn().mockResolvedValue(file())}
+        />,
+      );
+
+      await user.click(await screen.findByRole('button', { name: 'Copiar linha digitável' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Não foi possível copiar a linha digitável.',
+      );
+    });
+
+    // Banco Inter produces the PDF last, so a charge can have the codes alone for a while.
+    it('shows the codes alone, with no frame, fetch or download, when there is no file', () => {
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+
+      renderWithTheme(
+        <BoletoPreviewDialog
+          open
+          charge={withCodes({
+            payment_methods: {
+              boleto_url: null,
+              pix_copy_paste: PIX,
+              digitable_line: null,
+              boleto_pdf_available: false,
+            },
+          })}
+          onClose={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByText(PIX)).toBeInTheDocument();
+      expect(screen.queryByText('Linha digitável')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Pré-visualização do boleto')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Baixar PDF' })).not.toBeInTheDocument();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('shows no code section when the charge has none', async () => {
+      stubFetch(pdf());
+
+      renderWithTheme(<BoletoPreviewDialog open charge={charge()} onClose={vi.fn()} />);
+
+      await screen.findByTitle('Pré-visualização do boleto');
+      expect(screen.queryByText('Pix copia e cola')).not.toBeInTheDocument();
+      expect(screen.queryByText('Linha digitável')).not.toBeInTheDocument();
     });
   });
 });

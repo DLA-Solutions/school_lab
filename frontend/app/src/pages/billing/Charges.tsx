@@ -33,7 +33,7 @@ import BoletoPreviewDialog from 'components/sections/billing/charges/BoletoPrevi
 import ChargeBatchDialog from 'components/sections/billing/charges/ChargeBatchDialog';
 import { useCurrentSchool } from 'providers/useCurrentSchool';
 import { ApiError } from 'services/api';
-import { cancelCharge, createOneOffCharge, listCharges } from 'services/chargesApi';
+import { cancelCharge, createOneOffCharge, fetchChargeBoletoPdf, listCharges } from 'services/chargesApi';
 import { listBillingPurposes } from 'services/billingPurposesApi';
 import { listContracts } from 'services/contractsApi';
 import { listGuardians } from 'services/guardiansApi';
@@ -79,6 +79,23 @@ const STATUS_FILTERS: { value: string; label: MessageKey; statuses: string[] }[]
   { value: 'paid', label: 'charges.filter.paid', statuses: ['paid'] },
   { value: 'cancelled', label: 'charges.filter.cancelled', statuses: ['cancelled'] },
 ];
+
+/**
+ * True once the bank has produced anything to pay with: a hosted link (Cora), the Pix code, the
+ * linha digitável or a PDF the API can relay (Banco Inter, which never has a link). Mirrors the
+ * guardian's `isGeneratingBoleto` in MyCharges, seen from the other side.
+ */
+const hasPaymentData = (charge: Charge) => {
+  const methods = charge.payment_methods;
+
+  return Boolean(
+    charge.boleto_url ||
+      methods.boleto_url ||
+      methods.pix_copy_paste ||
+      methods.digitable_line ||
+      methods.boleto_pdf_available,
+  );
+};
 
 /**
  * Split rather than `new Date`: a bare ISO date parsed as UTC shows the day before here. The
@@ -211,17 +228,18 @@ const Charges = () => {
     load();
   }, [load]);
 
-  // Waits for the boleto the background job is fetching from the bank, then stops. Bounded on
-  // purpose: an issuance that fails never produces a URL, and a page that polls forever would
+  // Waits for the boleto the background job is fetching from the bank, then stops. Banco Inter
+  // never produces a URL, so any of the link, Pix code, linha digitável or relayed PDF counts as
+  // arrived. Bounded on purpose: an issuance that fails never produces any of them, and a page that polls forever would
   // hide that rather than let the operator see the charge sitting without one.
   useEffect(() => {
     if (awaitingBoleto === null) {
       return;
     }
 
-    const arrived = charges.find((charge) => charge.id === awaitingBoleto)?.boleto_url;
+    const awaited = charges.find((charge) => charge.id === awaitingBoleto);
 
-    if (arrived) {
+    if (awaited && hasPaymentData(awaited)) {
       setAwaitingBoleto(null);
       setNotice(t('charges.boleto.ready'));
       return;
@@ -518,14 +536,15 @@ const Charges = () => {
       ),
     },
     {
-      field: 'boleto_url',
+      field: 'payment_methods',
       headerName: t('charges.column.boleto'),
       width: 100,
       sortable: false,
-      renderCell: ({ value, row }: GridRenderCellParams<Charge, string | null>) =>
-        value && row.status !== 'cancelled' ? (
+      renderCell: ({ row }: GridRenderCellParams<Charge>) =>
+        row.status !== 'cancelled' && hasPaymentData(row) ? (
           // Opens the boleto in a dialog rather than a tab: it is read to be checked or handed
-          // over, and both are quicker without losing the listing behind it.
+          // over, and both are quicker without losing the listing behind it. The dialog also
+          // carries the Pix code and the linha digitável.
           <Link
             component="button"
             type="button"
@@ -850,6 +869,13 @@ const Charges = () => {
         open={previewing !== null}
         charge={previewing}
         onClose={() => setPreviewing(null)}
+        // An Inter boleto has no public URL: the API relays the PDF behind the bearer token. A
+        // hosted one (Cora) keeps going straight to the bank through `boleto_url`.
+        loadBlob={
+          schoolId && previewing && !previewing.boleto_url && previewing.payment_methods.boleto_pdf_available
+            ? () => fetchChargeBoletoPdf(schoolId, previewing.id)
+            : undefined
+        }
       />
 
       {schoolId && (

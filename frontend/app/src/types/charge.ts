@@ -1,3 +1,5 @@
+import type { MyChargePaymentMethods } from 'types/myCharge';
+
 /** Mirrors `ChargeBlueprint` (web/app/blueprints/charge_blueprint.rb). */
 export interface AppliedDiscount {
   id: number;
@@ -18,6 +20,12 @@ export interface Charge {
   kind: 'tuition' | 'one_off';
   description: string | null;
   boleto_url: string | null;
+  /**
+   * How the payer can pay it: the hosted boleto (Cora), the Pix code, the linha digitável and
+   * whether the API can relay the boleto PDF (Banco Inter). Same shape the guardian gets. All of
+   * it can still be empty right after issuing, while the bank produces the boleto.
+   */
+  payment_methods: MyChargePaymentMethods;
   /** Null on a one-off the school raised outside any contract. */
   contract_id: number | null;
   /** Null when no contract ties the charge to a child. */

@@ -6781,7 +6781,7 @@
         ],
         "responses": {
           "200": {
-            "description": "charges expose amounts in cents when billing module enabled"
+            "description": "lists payment_methods without one issuance query per charge"
           },
           "403": {
             "description": "billing module disabled"
@@ -6843,6 +6843,34 @@
           }
         }
       ],
+      "get": {
+        "summary": "Show charge",
+        "tags": [
+          "Billing"
+        ],
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "keeps the four payment_methods keys empty until the bank produced the boleto"
+          },
+          "404": {
+            "description": "a charge of another school"
+          }
+        }
+      },
       "delete": {
         "summary": "Discard charge",
         "tags": [
@@ -6870,27 +6898,42 @@
             "description": "billing module disabled"
           }
         }
-      },
+      }
+    },
+    "/api/v1/schools/{school_id}/billing/charges/{id}/boleto_pdf": {
+      "parameters": [
+        {
+          "name": "school_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
       "get": {
-        "summary": "Show charges",
+        "summary": "A charge's boleto as a PDF for school staff (providers that only serve it through an authenticated API)",
+        "description": "Streams the boleto PDF fetched from the bank, the same file the payer sees. Available only while `payment_methods.boleto_pdf_available` is true on the charge. Never stored; responses are `private, no-store`.",
         "tags": [
           "Billing"
         ],
-        "operationId": "api_v1_schools_billing_charges_show",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
         "parameters": [
           {
-            "name": "school_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "School the resource belongs to"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
+            "name": "Authorization",
+            "in": "header",
             "schema": {
               "type": "string"
             }
@@ -6898,21 +6941,27 @@
         ],
         "responses": {
           "200": {
-            "description": "ok"
+            "description": "the PDF of the school's Inter boleto"
           },
           "401": {
-            "description": "not authenticated"
+            "description": "unauthenticated"
           },
           "403": {
-            "description": "not allowed"
+            "description": "billing module disabled"
+          },
+          "404": {
+            "description": "a discarded charge"
+          },
+          "409": {
+            "description": "the provider serves a hosted boleto_url instead of a PDF (Cora)"
+          },
+          "502": {
+            "description": "the bank answered with something that is not a PDF"
+          },
+          "503": {
+            "description": "the bank is temporarily unavailable"
           }
-        },
-        "x-generated": true,
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/schools/{school_id}/billing/charges/{id}/cancel": {

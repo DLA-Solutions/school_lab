@@ -284,6 +284,7 @@ const toPreviewCharge = (charge: MyCharge): Charge => ({
   kind: charge.kind,
   description: charge.description,
   boleto_url: charge.payment_methods.boleto_url,
+  payment_methods: charge.payment_methods,
   contract_id: charge.contract_id,
   student: charge.student,
   guardian: {

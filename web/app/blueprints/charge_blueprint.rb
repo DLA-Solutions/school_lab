@@ -21,6 +21,21 @@ class ChargeBlueprint < Blueprinter::Base
     { id: charge.guardian.id, name: charge.guardian.name, cpf: charge.guardian.cpf }
   end
 
+  # `digitable_line` and `boleto_pdf_available` come from the charge's current issuance — list
+  # endpoints eager-load `:charge_issuances` so this is not one query per row. They stay
+  # nil/false until the provider has produced the boleto (Banco Inter issues asynchronously).
+  field :payment_methods do |charge|
+    issuance = charge.current_issuance
+    issued = issuance&.issued?
+
+    {
+      boleto_url: charge.boleto_url,
+      pix_copy_paste: charge.pix_copy_paste,
+      digitable_line: (issuance.digitable_line.presence if issued),
+      boleto_pdf_available: charge.boleto_pdf_available?
+    }
+  end
+
   association :applied_discounts, blueprint: AppliedDiscountBlueprint
 
   view :guardian do
@@ -37,21 +52,6 @@ class ChargeBlueprint < Blueprinter::Base
       else
         Billing::SchoolSettings.for(charge.school).interest_rate_percent&.to_f
       end
-    end
-
-    # `digitable_line` and `boleto_pdf_available` come from the charge's current issuance — list
-    # endpoints eager-load `:charge_issuances` so this is not one query per row. They stay
-    # nil/false until the provider has produced the boleto (Banco Inter issues asynchronously).
-    field :payment_methods do |charge|
-      issuance = charge.current_issuance
-      issued = issuance&.issued?
-
-      {
-        boleto_url: charge.boleto_url,
-        pix_copy_paste: charge.pix_copy_paste,
-        digitable_line: (issuance.digitable_line.presence if issued),
-        boleto_pdf_available: charge.boleto_pdf_available?
-      }
     end
   end
 

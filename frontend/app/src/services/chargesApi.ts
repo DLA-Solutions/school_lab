@@ -6,7 +6,7 @@ import {
   OneOffChargePayload,
 } from 'types/charge';
 import { Paginated } from 'types/academics';
-import { request } from './api';
+import { request, requestBlob } from './api';
 
 const path = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/charges`;
 const batchPath = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/charge_batches`;
@@ -101,6 +101,21 @@ export const cancelCharge = async (schoolId: number, id: number): Promise<Charge
 
   return response.data;
 };
+
+/**
+ * GET .../billing/charges/:id/boleto_pdf — the boleto PDF of a Banco Inter charge, relayed by the
+ * API for the school's staff.
+ *
+ * Fetched as a blob through the authenticated layer because the endpoint needs the bearer token,
+ * which a bare `<iframe src>` or `<a href>` cannot send. Call it only when the charge's
+ * `payment_methods.boleto_pdf_available` is true: each call costs one bank request and nothing is
+ * cached server-side, so the caller keeps the blob for both the preview and the download.
+ *
+ * Failures throw `ApiError` carrying the API's `error.code` — `boleto_pdf_unavailable` (409),
+ * `boleto_pdf_provider_error` (502, not retryable) or `boleto_pdf_provider_unavailable` (503).
+ */
+export const fetchChargeBoletoPdf = (schoolId: number, id: number): Promise<Blob> =>
+  requestBlob(`${path(schoolId)}/${id}/boleto_pdf`);
 
 /**
  * POST .../billing/charges — raises a charge outside the monthly schedule. Pass a guardian to

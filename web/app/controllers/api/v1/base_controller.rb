@@ -188,8 +188,12 @@ module Api
         when :invalid_state_transition, :year_in_use, :active_year_exists, :invalid_closure_transition,
              :period_closed, :grade_launch_exists, :report_card_frozen, :publication_in_progress,
              :generation_in_progress, :not_discarded, :group_has_schools, :school_already_in_group,
-             :subscription_exists, :student_inactive
+             :subscription_exists, :student_inactive, :boleto_pdf_unavailable
           :conflict
+        when :boleto_pdf_provider_error
+          :bad_gateway
+        when :boleto_pdf_provider_unavailable
+          :service_unavailable
         when :rate_limited
           :too_many_requests
         else

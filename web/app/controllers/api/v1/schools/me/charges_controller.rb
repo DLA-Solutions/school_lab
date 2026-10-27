@@ -71,15 +71,6 @@ module Api
 
           private
 
-          def error_status_for(code)
-            case code.to_sym
-            when :boleto_pdf_unavailable then :conflict
-            when :boleto_pdf_provider_error then :bad_gateway
-            when :boleto_pdf_provider_unavailable then :service_unavailable
-            else super
-            end
-          end
-
           def list_filter_params
             params.slice(:status, :month, :year, :from, :to, :order)
                   .permit(:status, :month, :year, :from, :to, :order, status: []).to_h

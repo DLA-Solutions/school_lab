@@ -57,9 +57,36 @@ const standaloneCharge: Charge = {
   kind: 'one_off',
   description: 'Aluguel da quadra',
   boleto_url: null,
+  payment_methods: {
+    boleto_url: null,
+    pix_copy_paste: null,
+    digitable_line: null,
+    boleto_pdf_available: false,
+  },
   contract_id: null,
   student: null,
   guardian: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
+};
+
+const NO_METHODS = {
+  boleto_url: null,
+  pix_copy_paste: null,
+  digitable_line: null,
+  boleto_pdf_available: false,
+};
+
+const PIX = '00020126580014br.gov.bcb.pix0136example-pix-code';
+const LINE = '07790.00116 12345.678901 23456.789012 3 98760000012000';
+
+/** Banco Inter: no hosted URL; the Pix code, linha digitável and a PDF the API relays. */
+const interCharge: Charge = {
+  ...standaloneCharge,
+  payment_methods: {
+    boleto_url: null,
+    pix_copy_paste: PIX,
+    digitable_line: LINE,
+    boleto_pdf_available: true,
+  },
 };
 
 const staffUser: AuthUser = {
@@ -382,7 +409,11 @@ describe('Charges', () => {
   // listing behind them — so it opens in place rather than in a tab.
   it('opens the boleto without leaving the listing', async () => {
     const boletoUrl = 'https://bank.example/boleto.pdf';
-    const issued = { ...standaloneCharge, boleto_url: boletoUrl };
+    const issued = {
+      ...standaloneCharge,
+      boleto_url: boletoUrl,
+      payment_methods: { ...NO_METHODS, boleto_url: boletoUrl },
+    };
 
     server.use(
       ...listingHandlers([issued]),
@@ -410,8 +441,13 @@ describe('Charges', () => {
   // The bank is asked for the boleto in a background job, so the charge exists a moment before
   // its boleto does. Loading once leaves the column empty for good, which reads as the boleto
   // never having been generated — which is exactly what it looked like.
-  it('waits for the boleto the bank is still generating', async () => {
-    const boletoUrl = 'https://bank.example/boleto.pdf';
+  it.each([
+    ['a hosted boleto link (Cora)', { ...NO_METHODS, boleto_url: 'https://bank.example/boleto.pdf' }],
+    ['a Pix code and no link (Inter)', { ...NO_METHODS, pix_copy_paste: PIX }],
+    ['a linha digitavel and no link (Inter)', { ...NO_METHODS, digitable_line: LINE }],
+    ['a relayed PDF and no link (Inter)', { ...NO_METHODS, boleto_pdf_available: true }],
+  ])('waits for the boleto the bank is still generating until it has %s', async (_, arrived) => {
+    const boletoUrl = arrived.boleto_url;
     let created = false;
     let listingsAfterCreate = 0;
 
@@ -425,7 +461,11 @@ describe('Charges', () => {
         const issued = created && listingsAfterCreate > 1;
 
         return HttpResponse.json({
-          data: [issued ? { ...standaloneCharge, boleto_url: boletoUrl } : standaloneCharge],
+          data: [
+            issued
+              ? { ...standaloneCharge, boleto_url: boletoUrl, payment_methods: arrived }
+              : standaloneCharge,
+          ],
           meta: { page: 1, per_page: 25, total: 1 },
         });
       }),
@@ -463,6 +503,168 @@ describe('Charges', () => {
       await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }, { timeout: 8000 }),
     ).toBeInTheDocument();
     expect(listingsAfterCreate).toBeGreaterThan(1);
+  });
+
+  // Banco Inter has no hosted URL: the popup shows the PDF the API relays, with the codes beneath.
+  describe('a Banco Inter boleto, which has no hosted URL', () => {
+    const pdfPath = `${CHARGES_PATH}/${interCharge.id}/boleto_pdf`;
+
+    const stubObjectUrls = () => {
+      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock/1');
+      vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    };
+
+    it('opens the popup with the PDF from the staff endpoint, the Pix code and the linha digitavel', async () => {
+      let authorization: string | null = null;
+      let pdfRequests = 0;
+
+      server.use(
+        ...listingHandlers([interCharge]),
+        http.get(apiUrl(pdfPath), ({ request }) => {
+          pdfRequests += 1;
+          authorization = request.headers.get('Authorization');
+
+          return new HttpResponse('%PDF-1.4', { headers: { 'Content-Type': 'application/pdf' } });
+        }),
+      );
+      stubObjectUrls();
+
+      renderPage();
+
+      await user.click(await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }));
+
+      expect(await screen.findByTitle('Pré-visualização do boleto')).toBeInTheDocument();
+      expect(pdfRequests).toBe(1);
+      expect(authorization).toBe(`Bearer ${FRESH_ACCESS_TOKEN}`);
+
+      const dialog = screen.getByRole('dialog');
+      expect(within(dialog).getByText(PIX)).toBeInTheDocument();
+      expect(within(dialog).getByText(LINE)).toBeInTheDocument();
+      expect(within(dialog).getByRole('button', { name: 'Baixar PDF' })).toBeInTheDocument();
+    });
+
+    it('copies the Pix code and the linha digitavel from the popup', async () => {
+      server.use(
+        ...listingHandlers([interCharge]),
+        http.get(apiUrl(pdfPath), () => new HttpResponse('%PDF-1.4')),
+      );
+      stubObjectUrls();
+      const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
+      renderPage();
+
+      await user.click(await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }));
+      await user.click(await screen.findByRole('button', { name: 'Copiar código Pix' }));
+      expect(writeText).toHaveBeenLastCalledWith(PIX);
+      expect(await screen.findByRole('button', { name: 'Código Pix copiado' })).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Copiar linha digitável' }));
+      expect(writeText).toHaveBeenLastCalledWith(LINE);
+    });
+
+    it('reports the API reason when the relayed PDF is unavailable, keeping the codes', async () => {
+      server.use(
+        ...listingHandlers([interCharge]),
+        http.get(apiUrl(pdfPath), () =>
+          HttpResponse.json(
+            { error: { code: 'boleto_pdf_unavailable', message: 'Indisponível', details: {} } },
+            { status: 409 },
+          ),
+        ),
+      );
+
+      renderPage();
+
+      await user.click(await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Este boleto não está disponível para visualização agora.',
+      );
+      expect(screen.getByText(PIX)).toBeInTheDocument();
+    });
+
+    it('opens on the codes alone while the bank has not produced the PDF yet', async () => {
+      const pdfRequests: string[] = [];
+      server.use(
+        ...listingHandlers([
+          {
+            ...interCharge,
+            payment_methods: { ...interCharge.payment_methods, boleto_pdf_available: false },
+          },
+        ]),
+        http.get(apiUrl(pdfPath), ({ request }) => {
+          pdfRequests.push(request.url);
+
+          return new HttpResponse('%PDF-1.4');
+        }),
+      );
+
+      renderPage();
+
+      await user.click(await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }));
+
+      expect(await screen.findByText(PIX)).toBeInTheDocument();
+      expect(screen.queryByTitle('Pré-visualização do boleto')).not.toBeInTheDocument();
+      expect(pdfRequests).toEqual([]);
+    });
+  });
+
+  // A hosted (Cora) boleto still goes to the bank's own URL, never through the relayed endpoint.
+  it('previews a hosted boleto straight from the bank, not through the API relay', async () => {
+    const boletoUrl = 'https://bank.example/boleto.pdf';
+    let relayRequests = 0;
+
+    server.use(
+      ...listingHandlers([
+        {
+          ...standaloneCharge,
+          boleto_url: boletoUrl,
+          payment_methods: { ...NO_METHODS, boleto_url: boletoUrl, boleto_pdf_available: true },
+        },
+      ]),
+      http.get(boletoUrl, () =>
+        HttpResponse.arrayBuffer(new TextEncoder().encode('%PDF-1.4').buffer, {
+          headers: { 'Content-Type': 'application/pdf' },
+        }),
+      ),
+      http.get(apiUrl(`${CHARGES_PATH}/${standaloneCharge.id}/boleto_pdf`), () => {
+        relayRequests += 1;
+
+        return new HttpResponse('%PDF-1.4');
+      }),
+    );
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock/1');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }));
+
+    expect(await screen.findByTitle('Pré-visualização do boleto')).toBeInTheDocument();
+    expect(relayRequests).toBe(0);
+  });
+
+  it('offers no way to open a cancelled boleto, even one that still carries its codes', async () => {
+    server.use(...listingHandlers([{ ...interCharge, status: 'cancelled' }]));
+
+    renderPage();
+    await screen.findByText('Aluguel da quadra');
+
+    expect(screen.queryByRole('button', { name: /Abrir boleto de/ })).not.toBeInTheDocument();
+  });
+
+  it('offers a Pix-only charge, whose PDF the bank has not produced, for opening', async () => {
+    server.use(
+      ...listingHandlers([
+        { ...standaloneCharge, payment_methods: { ...NO_METHODS, pix_copy_paste: PIX } },
+      ]),
+    );
+
+    renderPage();
+
+    expect(
+      await screen.findByRole('button', { name: 'Abrir boleto de Maria Silva' }),
+    ).toBeInTheDocument();
   });
 
   it('offers nothing to open on a charge with no boleto yet', async () => {

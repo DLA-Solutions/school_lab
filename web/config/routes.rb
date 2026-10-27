@@ -335,6 +335,7 @@ Rails.application.routes.draw do
               member do
                 post :cancel
                 post :reissue
+                get :boleto_pdf
               end
             end
             resources :payments, only: %i[index show]

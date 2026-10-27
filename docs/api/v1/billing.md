@@ -43,7 +43,8 @@ contract ([`platform-and-admin.md`](platform-and-admin.md) § Cross-domain contr
 
 See [`fintech-first.md`](fintech-first.md) for request/response examples:
 
-- `GET/POST /schools/:id/billing/charges`
+- `GET/POST /schools/:id/billing/charges` — staff list/show/create/cancel/reissue also return `payment_methods`, see [Staff charges: payment methods and boleto PDF](#staff-charges-payment-methods-and-boleto-pdf-implemented)
+- `GET /schools/:id/billing/charges/:id/boleto_pdf` (staff) — same PDF the guardian previews
 - `POST /billing/charges/:id/issue`, `/reissue`, `/cancel`
 - `GET/POST /schools/:id/billing/charge_batches` — bulk issuance, see [Bulk issuance](#bulk-issuance-charge_batches-implemented)
 - `GET /billing/summary`
@@ -222,6 +223,33 @@ from the bank: the API fetches it per request and relays the bytes. Nothing is s
 Error bodies use the standard envelope (`{ "error": { "code", "message", "details" } }`), with
 `message` in pt-BR.
 - `meta.total` counts the filtered result, not the family's lifetime charges.
+
+### Staff charges: payment methods and boleto PDF (implemented)
+
+The school's charges (`GET /schools/:school_id/billing/charges`, `GET .../charges/:id`, and the
+`create`, `cancel` and `reissue` responses) carry the same `payment_methods` object, with exactly the
+same four keys and semantics as the guardian view documented above (`boleto_url`, `pix_copy_paste`,
+`digitable_line`, `boleto_pdf_available`; including the asynchronous Banco Inter behavior). The
+top-level `boleto_url` field stays as before.
+
+`GET /api/v1/schools/:school_id/billing/charges/:id/boleto_pdf` — streams the boleto PDF of any
+charge of the school so staff can preview what the payer receives. Same behavior as the guardian
+endpoint (fetched per request, never stored; `200`, `Content-Type: application/pdf`,
+`Content-Disposition: inline; filename="boleto-<charge id>.pdf"`, `Cache-Control: private, no-store`;
+fetch as a blob with the auth header). Only call it when `payment_methods.boleto_pdf_available` is
+`true`.
+
+- Auth: `Authorization: Bearer <access token>`; school staff allowed to manage billing in `:school_id`
+  and the `billing` module enabled.
+
+| Status | `error.code` | When |
+|--------|--------------|------|
+| `401` | `unauthorized` | Missing/invalid token |
+| `403` | `forbidden` / `module_disabled` | Role without billing permission (for example a guardian) / billing module off |
+| `404` | `not_found` | Another school's charge, staff of another school, discarded or unknown id |
+| `409` | `boleto_pdf_unavailable` | Same cases as the guardian endpoint |
+| `502` | `boleto_pdf_provider_error` | Same as the guardian endpoint |
+| `503` | `boleto_pdf_provider_unavailable` | Same as the guardian endpoint |
 
 ### Examples
 
