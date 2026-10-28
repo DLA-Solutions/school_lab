@@ -15,6 +15,9 @@ module SchoolLab
         COBRANCAS_PATH = "/cobranca/v3/cobrancas"
         PDF_MAGIC = "%PDF"
 
+        # Upper bound on the provider error body kept on a raised error (parsed or raw).
+        MAX_ERROR_BODY_BYTES = 16_384
+
         def initialize(client_id:, client_secret:, certificate_pem:, private_key_pem:, token_cache:,
                        billing_urls: Configuration.current)
           @client_id = client_id
@@ -153,14 +156,19 @@ module SchoolLab
           when 200..299
             body
           when 400, 422
-            raise ValidationError.new("Provider validation error", details: safe_error_body(body))
+            raise ValidationError.new("Provider validation error", details: safe_error_body(body),
+                                                                    **error_context(code, body))
           when 401, 403
-            raise AuthenticationError, "Provider authentication failed (#{code})"
+            raise AuthenticationError.new("Provider authentication failed (#{code})", **error_context(code, body))
           when 500..599
-            raise TransientError, "Provider server error (#{code})"
+            raise TransientError.new("Provider server error (#{code})", **error_context(code, body))
           else
-            raise UnexpectedResponseError, "Unexpected provider response (#{code})"
+            raise UnexpectedResponseError.new("Unexpected provider response (#{code})", **error_context(code, body))
           end
+        end
+
+        def error_context(code, body)
+          { http_status: code, provider_response: provider_response_from(body) }
         end
 
         def decode_pdf(body)
@@ -174,6 +182,23 @@ module SchoolLab
           raise UnexpectedResponseError, "Provider returned a boleto document that is not a PDF"
         rescue JSON::ParserError, KeyError, ArgumentError, TypeError
           raise UnexpectedResponseError, "Invalid boleto PDF response from provider"
+        end
+
+        # The provider body for diagnostics: parsed JSON when it parses, otherwise the raw string.
+        # Oversized bodies are cut here so an error object never pins a huge payload; the
+        # Billing serializer applies PII redaction and the final size cap before persistence.
+        def provider_response_from(body)
+          return nil if body.blank?
+          return truncate_raw(body) if body.bytesize > MAX_ERROR_BODY_BYTES
+
+          JSON.parse(body)
+        rescue JSON::ParserError
+          truncate_raw(body)
+        end
+
+        def truncate_raw(body)
+          text = body.dup.force_encoding(Encoding::UTF_8).scrub("?")
+          text.byteslice(0, MAX_ERROR_BODY_BYTES).scrub("")
         end
 
         def safe_error_body(body)

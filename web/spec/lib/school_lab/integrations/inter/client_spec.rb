@@ -126,6 +126,106 @@ RSpec.describe SchoolLab::Integrations::Inter::Client do
     expect { client.get("/cobranca/v3/forbidden") }.to raise_error(SchoolLab::Integrations::Inter::AuthenticationError)
   end
 
+  describe "provider diagnostics on non-2xx responses" do
+    def raised_error
+      yield
+    rescue SchoolLab::Integrations::Inter::Error => e
+      e
+    end
+
+    it "carries the status and parsed JSON body on a 403, keeping the message free of the body" do
+      stub_inter_api(:get, "/cobranca/v3/forbidden", status: 403,
+                                                     body: { title: "Forbidden", detail: "scope missing" }.to_json)
+
+      error = raised_error { client.get("/cobranca/v3/forbidden") }
+
+      expect(error).to be_a(SchoolLab::Integrations::Inter::AuthenticationError)
+      expect(error.http_status).to eq(403)
+      expect(error.provider_response).to eq("title" => "Forbidden", "detail" => "scope missing")
+      expect(error.message).to eq("Provider authentication failed (403)")
+    end
+
+    it "carries the status and raw body on a 401 that persists after the token retry" do
+      stub_inter_api(:get, "/cobranca/v3/unauthorized", status: 401, body: "invalid token").times(2)
+
+      error = raised_error { client.get("/cobranca/v3/unauthorized") }
+
+      expect(error).to be_a(SchoolLab::Integrations::Inter::AuthenticationError)
+      expect(error.http_status).to eq(401)
+      expect(error.provider_response).to eq("invalid token")
+    end
+
+    it "carries the status and body on a 5xx" do
+      stub_inter_api(:get, "/cobranca/v3/bad", status: 503, body: { message: "unavailable" }.to_json)
+
+      error = raised_error { client.get("/cobranca/v3/bad") }
+
+      expect(error).to be_a(SchoolLab::Integrations::Inter::TransientError)
+      expect(error.http_status).to eq(503)
+      expect(error.provider_response).to eq("message" => "unavailable")
+    end
+
+    it "carries the status and body on any other status" do
+      stub_inter_api(:get, "/cobranca/v3/missing", status: 404, body: { title: "Not found" }.to_json)
+
+      error = raised_error { client.get("/cobranca/v3/missing") }
+
+      expect(error).to be_a(SchoolLab::Integrations::Inter::UnexpectedResponseError)
+      expect(error.http_status).to eq(404)
+      expect(error.provider_response).to eq("title" => "Not found")
+    end
+
+    it "keeps details and adds status and body on validation errors" do
+      stub_inter_api(:post, "/cobranca/v3/cobrancas", status: 422, body: { violacoes: [ { campo: "x" } ] }.to_json)
+
+      error = raised_error { client.post("/cobranca/v3/cobrancas", body: "{}") }
+
+      expect(error).to be_a(SchoolLab::Integrations::Inter::ValidationError)
+      expect(error.details).to eq("violacoes" => [ { "campo" => "x" } ])
+      expect(error.http_status).to eq(422)
+      expect(error.provider_response).to eq("violacoes" => [ { "campo" => "x" } ])
+    end
+
+    it "carries the status and body when the token endpoint rejects the credentials" do
+      stub_request(:post, INTER_TEST_TOKEN_URL)
+        .to_return(status: 401, body: { error: "invalid_client", error_description: "bad credentials" }.to_json)
+
+      error = raised_error { client.get("/cobranca/v3/cobrancas/inv-1") }
+
+      expect(error).to be_a(SchoolLab::Integrations::Inter::AuthenticationError)
+      expect(error.http_status).to eq(401)
+      expect(error.provider_response).to eq("error" => "invalid_client", "error_description" => "bad credentials")
+    end
+
+    it "has no provider response for an empty body" do
+      stub_inter_api(:get, "/cobranca/v3/bad", status: 502, body: "")
+
+      error = raised_error { client.get("/cobranca/v3/bad") }
+
+      expect(error.http_status).to eq(502)
+      expect(error.provider_response).to be_nil
+    end
+
+    it "truncates an oversized non-JSON body" do
+      stub_inter_api(:get, "/cobranca/v3/bad", status: 500, body: "x" * 50_000)
+
+      error = raised_error { client.get("/cobranca/v3/bad") }
+
+      expect(error.provider_response).to be_a(String)
+      expect(error.provider_response.bytesize).to eq(described_class::MAX_ERROR_BODY_BYTES)
+    end
+
+    it "leaves the status and body empty for connection errors" do
+      stub_inter_api(:get, "/cobranca/v3/timeout").to_timeout
+
+      error = raised_error { client.get("/cobranca/v3/timeout") }
+
+      expect(error).to be_a(SchoolLab::Integrations::Inter::TransientError)
+      expect(error.http_status).to be_nil
+      expect(error.provider_response).to be_nil
+    end
+  end
+
   it "maps connection timeouts to TransientError" do
     stub_inter_api(:get, "/cobranca/v3/timeout").to_timeout
 
