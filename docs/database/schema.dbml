@@ -539,37 +539,6 @@ Table school_payment_providers {
   }
 }
 
-Table unmatched_boletos {
-  id integer [primary key, increment]
-  school_id integer [not null]
-  provider varchar [not null, note: 'Bank slip provider key, e.g. inter — only inter is imported today']
-  provider_invoice_id varchar [not null, note: 'Bank-side invoice id (Inter codigoSolicitacao)']
-  payer_cpf varchar [not null, note: 'Digits-only, as reported by the bank payer block. Never matched across schools.']
-  payer_name varchar
-  amount_cents integer [not null, note: 'Check constraint: >= 0']
-  due_date date
-  provider_status varchar [not null, note: 'Last-synced normalized bank status: draft | open | paid | late | cancelled (Gateways::BankSlip::StatusNormalizer) — refreshed on every import run while still pending']
-  paid_amount_cents integer [note: 'Set when provider_status is paid — settlement amount reported by the bank, so resolving later can create an accurate Payment']
-  paid_at timestamp [note: 'Set when provider_status is paid — bank settlement timestamp']
-  payment_method varchar [note: 'Set when provider_status is paid — pix | boleto']
-  status varchar [not null, default: 'pending', note: 'pending | resolved | dismissed — check constraint. Staff review workflow state, distinct from provider_status (the bank invoice state)']
-  resolved_at timestamp
-  resolved_by_id integer [note: 'users.id — staff who resolved or dismissed']
-  resolved_guardian_id integer [note: 'guardians.id — set only when status is resolved']
-  charge_id integer [note: 'The retroactive charges row created on resolution (source: migrated)']
-  created_at timestamp
-  updated_at timestamp
-
-  indexes {
-    (school_id, provider_invoice_id) [unique, note: 'Re-running the import never re-queues the same bank invoice']
-    (school_id, status)
-    school_id
-    resolved_by_id
-    resolved_guardian_id
-    charge_id
-  }
-}
-
 Table school_fiscal_settings {
   id integer [primary key, increment]
   school_id integer [not null, unique]
@@ -2190,10 +2159,6 @@ Ref: teachers.user_id > users.id
 Ref: billing_plans.school_id > schools.id
 Ref: school_payment_providers.school_id > schools.id
 Ref: school_payment_providers.uploaded_by_id > users.id
-Ref: unmatched_boletos.school_id > schools.id
-Ref: unmatched_boletos.resolved_by_id > users.id
-Ref: unmatched_boletos.resolved_guardian_id > guardians.id
-Ref: unmatched_boletos.charge_id > charges.id
 Ref: school_fiscal_settings.school_id > schools.id
 Ref: school_billing_settings.school_id > schools.id
 Ref: billing_purposes.school_id > schools.id

@@ -626,8 +626,8 @@ answers in implementation.
       `source: migrated` / `external_reference` deferred until import scope is defined —
       **now defined and implemented for Banco Inter**, see `docs/open-questions.md`
       ("migrated (bank-created) boleto import") for the full scope: `source`/
-      `external_reference` on `charges`, the `unmatched_boletos` staff-review queue,
-      `Billing::ImportExternalBoletosService`/`Job`, and `Billing::ResolveUnmatchedBoletoService`.
+      `external_reference` on `charges`, the import's skip-and-log handling of boletos whose payer CPF matches no
+      guardian (no `unmatched_boletos` table; the staff-review queue was retired), and `Billing::ImportExternalBoletosService`/`Job`.
       Cora is explicitly out of scope for this import.
 - [x] **Collection régua — decided:** MVP platform régua **not implemented** (stub
       notifier only). Future channel: **email** via platform mailer +

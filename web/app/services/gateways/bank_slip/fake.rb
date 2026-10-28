@@ -123,8 +123,8 @@ module Gateways
       # Simulates a boleto the school created directly at the bank — by definition it never
       # went through #issue, so it is built straight into @invoices, bypassing @issued and
       # @idempotency_index entirely (there is no Issuance, no idempotency key, nothing we
-      # ever requested). Used by specs for Billing::ImportExternalBoletosService and
-      # Billing::ResolveUnmatchedBoletoService to simulate a bank-created, migrated boleto.
+      # ever requested). Used by specs for Billing::ImportExternalBoletosService to simulate a
+      # bank-created, migrated boleto.
       def seed_invoice!(provider_invoice_id:, status:, total_amount_cents:, due_date:, payer_cpf: nil,
                         payer_name: nil, payments: [])
         @invoices[provider_invoice_id] = ValueObjects::RemoteInvoice.new(

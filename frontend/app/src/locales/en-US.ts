@@ -680,7 +680,6 @@ const enUS: Messages = {
   'nav.subjects': 'Subjects',
   'nav.jobPositions': 'Positions',
   'nav.charges': 'Boletos',
-  'nav.unmatchedBoletos': 'Unmatched boletos',
   'nav.plans': 'Plans',
   'nav.platformSubscription': 'School Lab subscription',
   'nav.billingSettings': 'Billing settings',
@@ -895,63 +894,6 @@ const enUS: Messages = {
     'Optional: choose the student to automatically fill in the payer and the contract.',
   'charges.form.selectedStudent': 'Student: {name}',
   'charges.form.changeStudent': 'Change',
-
-  // Staff review queue for boletos the school created directly in the bank's own dashboard,
-  // bypassing the platform — imported, but not yet linked to a guardian here.
-  'charges.unmatched.title': 'Unmatched boletos',
-  'charges.unmatched.infoBanner':
-    "Boletos created directly in the bank's dashboard, whose CPF matches no guardian on file at this school. Link them to the right guardian, or dismiss when one does not belong here.",
-  'charges.unmatched.noAccess.title': 'No access to this area',
-  'charges.unmatched.noAccess.description':
-    'This area is available only to users with an active school membership.',
-  'charges.unmatched.loadError': 'Could not load the unmatched boletos.',
-  'charges.unmatched.empty.title': 'No boleto pending a link',
-  'charges.unmatched.empty.description':
-    'Every boleto imported from the bank has been linked to a guardian or dismissed.',
-  'charges.unmatched.emptyFilter.title': 'No boleto in this status',
-  'charges.unmatched.emptyFilter.description': 'Switch the status filter to see other boletos.',
-  'charges.unmatched.filter.pending': 'Pending',
-  'charges.unmatched.filter.resolved': 'Linked',
-  'charges.unmatched.filter.dismissed': 'Dismissed',
-  'charges.unmatched.column.payer': 'Payer (at the bank)',
-  'charges.unmatched.column.bankStatus': "Bank's status",
-  'charges.unmatched.providerStatus.draft': 'Draft',
-  'charges.unmatched.providerStatus.open': 'Open',
-  'charges.unmatched.providerStatus.paid': 'Paid',
-  'charges.unmatched.providerStatus.late': 'Late',
-  'charges.unmatched.providerStatus.cancelled': 'Cancelled',
-  'charges.unmatched.status.pending': 'Pending',
-  'charges.unmatched.status.resolved': 'Linked',
-  'charges.unmatched.status.dismissed': 'Dismissed',
-  'charges.unmatched.link': 'Link',
-  'charges.unmatched.linkAction': "Link {payer}'s boleto",
-  'charges.unmatched.dismiss': 'Dismiss',
-  'charges.unmatched.dismissAction': "Dismiss {payer}'s boleto",
-  'charges.unmatched.dismissTitle': 'Dismiss this boleto?',
-  'charges.unmatched.dismissMessage':
-    "{payer}'s boleto, worth {amount}, will be dismissed. This cannot be undone.",
-  'charges.unmatched.dismissConfirm': 'Dismiss',
-  'charges.unmatched.dismissCancel': 'Keep it',
-  'charges.unmatched.dismissed': 'Boleto dismissed.',
-  'charges.unmatched.dismissError': 'Could not dismiss the boleto. Check your connection.',
-  'charges.unmatched.dismissConflict':
-    'Someone else already resolved or dismissed this boleto. The list was refreshed.',
-
-  'charges.unmatched.resolveDialog.title': 'Link boleto to a guardian',
-  'charges.unmatched.resolveDialog.description':
-    "The CPF the bank reported matches no guardian on file. Search for and select who should receive this boleto.",
-  'charges.unmatched.resolveDialog.guardianLabel': 'Correct guardian',
-  'charges.unmatched.resolveDialog.guardianHelp': 'Search by name or CPF.',
-  'charges.unmatched.resolveDialog.guardianCpf': 'CPF {cpf}',
-  'charges.unmatched.resolveDialog.typeToSearch': 'Type a name or a CPF',
-  'charges.unmatched.resolveDialog.noGuardianFound': 'No guardian found',
-  'charges.unmatched.resolveDialog.guardianRequired': 'Choose the guardian.',
-  'charges.unmatched.resolveDialog.submit': 'Link',
-  'charges.unmatched.resolveDialog.submitting': 'Linking...',
-  'charges.unmatched.resolveDialog.error': 'Could not link the boleto. Check your connection.',
-  'charges.unmatched.resolveDialog.notFound':
-    'Guardian not found at this school. Search again.',
-  'charges.unmatched.resolved': "Boleto linked to {name}.",
 
   // The badge on a charge imported from a bank-created boleto, wherever it shows up alongside
   // the ones the school actually issued through the platform.

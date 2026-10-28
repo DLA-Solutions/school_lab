@@ -56,7 +56,6 @@ const MyRequests = lazy(() => import('pages/requests/MyRequests'));
 const MyDocuments = lazy(() => import('pages/documents/MyDocuments'));
 const Compliance = lazy(() => import('pages/documents/Compliance'));
 const Charges = lazy(() => import('pages/billing/Charges'));
-const UnmatchedBoletos = lazy(() => import('pages/billing/UnmatchedBoletos'));
 const Plans = lazy(() => import('pages/billing/Plans'));
 const BillingSettings = lazy(() => import('pages/billing/BillingSettings'));
 const ServiceInvoices = lazy(() => import('pages/billing/ServiceInvoices'));
@@ -216,10 +215,6 @@ const router = createBrowserRouter(
             {
               path: paths.charges,
               element: <Charges />,
-            },
-            {
-              path: paths.unmatchedBoletos,
-              element: <UnmatchedBoletos />,
             },
             {
               path: paths.plans,

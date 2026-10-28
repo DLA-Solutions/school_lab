@@ -29,7 +29,6 @@ class School < ApplicationRecord
   has_many :contracts, dependent: :destroy
   has_many :charges, dependent: :destroy
   has_many :charge_issuances, dependent: :destroy
-  has_many :unmatched_boletos, dependent: :destroy
   has_many :service_invoices, dependent: :destroy
   has_many :payments, dependent: :destroy
   has_many :school_transactions, dependent: :destroy
