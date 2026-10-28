@@ -28,7 +28,9 @@ module Gateways
         def issue(request)
           body = RequestPayload.from(request).to_json
           response = with_port_errors { client.post(BASE_PATH, body: body) }
-          codigo_solicitacao = JSON.parse(response).fetch("codigoSolicitacao")
+          codigo_solicitacao = ResponseParser.parse_body(response) do |payload|
+            payload.fetch("codigoSolicitacao").to_s.presence || raise(KeyError, "codigoSolicitacao is blank")
+          end
 
           ResponseParser.parse_pending_issuance(
             codigo_solicitacao: codigo_solicitacao,
@@ -41,12 +43,12 @@ module Gateways
           with_port_errors { client.post("#{BASE_PATH}/#{provider_invoice_id}/cancelar", body: body) }
 
           response = with_port_errors { client.get("#{BASE_PATH}/#{provider_invoice_id}") }
-          ResponseParser.parse_issuance(JSON.parse(response))
+          ResponseParser.parse_body(response) { |payload| ResponseParser.parse_issuance(payload) }
         end
 
         def fetch_invoice(provider_invoice_id:)
           response = with_port_errors { client.get("#{BASE_PATH}/#{provider_invoice_id}") }
-          ResponseParser.parse_invoice(JSON.parse(response))
+          ResponseParser.parse_body(response) { |payload| ResponseParser.parse_invoice(payload) }
         end
 
         # Inter has no hosted boleto URL: the PDF only comes from its own authenticated (mTLS +
@@ -69,8 +71,9 @@ module Gateways
             tamanhoPagina: limit
           )
           response = with_port_errors { client.get("#{BASE_PATH}?#{query}") }
-          payload = JSON.parse(response)
-          Array(payload["cobrancas"]).map { |item| ResponseParser.parse_invoice(item) }
+          ResponseParser.parse_body(response) do |payload|
+            Array(payload["cobrancas"]).map { |item| ResponseParser.parse_invoice(item) }
+          end
         end
 
         # `past_due_reissue: false` is deliberate: Inter's `PATCH /cobrancas/{id}` could edit

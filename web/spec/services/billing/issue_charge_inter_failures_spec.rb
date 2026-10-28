@@ -97,4 +97,46 @@ RSpec.describe "Inter issuance failures stored on the issuance" do
         }
     end
   end
+
+  describe "malformed 2xx on issue" do
+    {
+      "a missing codigoSolicitacao" => [ '{"unexpected":"shape"}', { "unexpected" => "shape" } ],
+      "a non-JSON body" => [ "<html>bad gateway page</html>", "<html>bad gateway page</html>" ],
+      "an empty body" => [ "", nil ]
+    }.each do |label, (body, expected_response)|
+      it "marks the issuance failed with a parseable JSON last_error for #{label}" do
+        stub_request(:post, cobrancas_url).to_return(status: 200, body: body)
+
+        result = Billing::IssueChargeService.call(charge: charge)
+
+        expect(result).to be_failure
+        expect(result.error_code).to eq(:provider_error)
+        expect(issuance.status).to eq("failed")
+        expect(stored).to include("error_class" => "Gateways::BankSlip::ProviderError")
+        expect(stored["provider_response"]).to eq(expected_response) if expected_response
+        expect(stored).not_to have_key("provider_response") if expected_response.nil?
+      end
+    end
+
+    it "redacts and caps the received body, and never stores PEM or tokens" do
+      body = { "note" => "cpf 123.456.789-00 Bearer abc.def #{provider_config.private_key_pem}" }.to_json
+      stub_request(:post, cobrancas_url).to_return(status: 200, body: body)
+
+      Billing::IssueChargeService.call(charge: charge)
+
+      expect(issuance.last_error).not_to include("123.456.789-00", "BEGIN", "abc.def")
+      expect(issuance.last_error.bytesize).to be <= Billing::IssuanceErrorSerializer::MAX_BYTES
+      expect(stored["provider_response"]["note"]).to include("[CPF]", "[PEM_REDACTED]")
+    end
+
+    it "does not crash the job and leaves a failed issuance without scheduling a retry" do
+      stub_request(:post, cobrancas_url).to_return(status: 200, body: "not json")
+
+      expect { Billing::IssueChargeJob.perform_now(charge.id, school.id) }
+        .not_to change { SolidQueue::Job.where(class_name: Billing::IssueChargeJob.name).count }
+
+      expect(issuance.status).to eq("failed")
+      expect(stored["provider_response"]).to eq("not json")
+    end
+  end
 end
