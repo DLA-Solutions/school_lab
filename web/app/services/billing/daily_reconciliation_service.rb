@@ -20,9 +20,15 @@ module Billing
           provider_invoice_id: invoice.provider_invoice_id,
           school_id: config.school_id
         )
-        next unless issuance
+        charge = issuance&.charge
+        # A migrated charge (source: migrated) has no ChargeIssuance row at all — it bypassed
+        # our issuance flow entirely — so fall back to matching it by external_reference, the
+        # same bank invoice id, so it still gets ongoing paid/overdue status updates from the
+        # normal daily reconciliation run.
+        charge ||= Charge.kept.migrated.find_by(school_id: config.school_id, external_reference: invoice.provider_invoice_id)
+        next unless charge
 
-        result = ReconcilePaidInvoiceService.call(charge: issuance.charge, invoice: invoice)
+        result = ReconcilePaidInvoiceService.call(charge: charge, invoice: invoice)
         reconciled += 1 if result.success? && result.data != :not_paid
       end
 

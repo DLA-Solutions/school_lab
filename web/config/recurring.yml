@@ -26,6 +26,11 @@ production:
     queue: billing
     schedule: at 6am every day
     timezone: America/Sao_Paulo
+  billing_import_external_boletos:
+    class: Billing::ImportExternalBoletosJob
+    queue: billing
+    schedule: at 6:05am every day
+    timezone: America/Sao_Paulo
   billing_daily_fiscal_reconciliation:
     class: Billing::DailyFiscalReconciliationJob
     queue: billing
@@ -72,6 +77,11 @@ development:
     class: Billing::DailyReconciliationJob
     queue: billing
     schedule: at 6am every day
+    timezone: America/Sao_Paulo
+  billing_import_external_boletos:
+    class: Billing::ImportExternalBoletosJob
+    queue: billing
+    schedule: at 6:05am every day
     timezone: America/Sao_Paulo
   billing_daily_fiscal_reconciliation:
     class: Billing::DailyFiscalReconciliationJob
