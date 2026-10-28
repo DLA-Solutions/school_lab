@@ -377,6 +377,18 @@ const sitemap: MenuItem[] = [
     section: 'billing',
   },
   {
+    // Staff review queue for bank-created boletos a CPF match could not link to a guardian — a
+    // secondary, occasionally-checked screen rather than a daily one, so it gets its own entry
+    // beside `charges` instead of a tab inside it.
+    id: 'unmatched-boletos',
+    subheader: 'nav.unmatchedBoletos',
+    path: paths.unmatchedBoletos,
+    icon: 'mingcute:link-2-line',
+    audience: 'staff',
+    requiredPermission: 'manage_billing',
+    section: 'billing',
+  },
+  {
     id: 'plans',
     subheader: 'nav.plans',
     path: paths.plans,

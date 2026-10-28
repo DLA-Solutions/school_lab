@@ -64,6 +64,10 @@ export default {
   myTaxDeclarations: '/imposto-de-renda',
 
   charges: '/boletos',
+  // Staff review queue for bank-created boletos a CPF match could not link to a guardian
+  // (Billing::ImportExternalBoletosService) — a secondary billing view, not a tab on `charges`,
+  // matching how `interCredentials` and `serviceInvoices` sit beside it.
+  unmatchedBoletos: '/financeiro/boletos-nao-vinculados',
   plans: '/planos',
   billingSettings: '/financeiro/configuracoes',
   // Banco Inter API credentials — owner and direção only.
