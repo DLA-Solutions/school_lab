@@ -163,7 +163,7 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
       expect(rows.pluck("student_name")).to eq([ "Ana Souza", "Bruno" ])
       expect(rows.first).to eq(
         "contract_id" => nil, "student_id" => student.id, "student_name" => "Ana Souza",
-        "payer" => nil, "monthly_amount_cents" => nil, "due_day" => nil,
+        "payer" => nil, "payer_missing_reason" => nil, "monthly_amount_cents" => nil, "due_day" => nil,
         "already_charged" => false, "without_contract" => false, "tags" => [ "cancelled" ]
       )
       expect(rows.last["without_contract"]).to be(false)
@@ -208,6 +208,35 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
 
       row = response.parsed_body["data"].sole
       expect(row).to include("contract_id" => nil, "without_contract" => true, "tags" => [])
+    end
+
+    it "flags payer_missing_reason when a signed, active contract's student has no kept guardian link" do
+      loner = create(:student, school: school, name: "Loner")
+      contract = contract_for(loner, payer_guardian: nil)
+
+      get batches_path, params: { billing_period: "2026-09" }, headers: headers
+
+      row = response.parsed_body["data"].sole
+      expect(row).to include("contract_id" => contract.id, "payer" => nil,
+                             "payer_missing_reason" => "no_guardian_linked")
+    end
+
+    it "leaves payer_missing_reason null once the contract has a payer" do
+      contract = contract_for(enrol(student))
+
+      get batches_path, params: { billing_period: "2026-09" }, headers: headers
+
+      row = response.parsed_body["data"].sole
+      expect(row).to include("contract_id" => contract.id, "payer_missing_reason" => nil)
+    end
+
+    it "leaves payer_missing_reason null on a without_contract row" do
+      enrol(student)
+
+      get batches_path, params: { billing_period: "2026-09" }, headers: headers
+
+      row = response.parsed_body["data"].sole
+      expect(row).to include("without_contract" => true, "payer_missing_reason" => nil)
     end
 
     it "filters students by the school year's calendar year" do
@@ -356,7 +385,11 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
                   "A row carries the contract that stands for the child (active, signature not " \
                   "cancelled, window covering today else highest id) and the amount it bills. " \
                   "An enrolled student with no eligible contract appears with `without_contract: true`, " \
-                  "`contract_id: null` and null payer/amount/due day; such a row is never billable."
+                  "`contract_id: null` and null payer/amount/due day; such a row is never billable. " \
+                  "A billable row can still carry a null `payer` when the contract has no payer " \
+                  "guardian and the student has no kept guardian link at all — `payer_missing_reason` " \
+                  "names that as `no_guardian_linked` so staff see why, instead of a payer that just " \
+                  "silently did not resolve."
       parameter name: "Authorization", in: :header, type: :string
       parameter name: :billing_period, in: :query, type: :string, required: false,
                 description: "YYYY-MM or a date; defaults to the current month", example: "2026-09"
@@ -371,8 +404,8 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
                    type: :array,
                    items: {
                      type: :object,
-                     required: %w[contract_id student_id student_name payer monthly_amount_cents due_day
-                                  already_charged without_contract tags],
+                     required: %w[contract_id student_id student_name payer payer_missing_reason
+                                  monthly_amount_cents due_day already_charged without_contract tags],
                      properties: {
                        contract_id: { type: :integer, nullable: true },
                        student_id: { type: :integer },
@@ -381,6 +414,14 @@ RSpec.describe "Api::V1::Schools::Billing::ChargeBatches", type: :request do
                          type: :object, nullable: true,
                          properties: { id: { type: :integer }, name: { type: :string },
                                        cpf: { type: :string, nullable: true } }
+                       },
+                       payer_missing_reason: {
+                         type: :string, nullable: true,
+                         description: "Why `payer` is null for a billable row. Currently only " \
+                                      "`no_guardian_linked` (the student has no kept guardian link " \
+                                      "at all); null when a payer was resolved, and on without_contract " \
+                                      "rows where the gap is the missing contract, not the payer.",
+                         enum: [ "no_guardian_linked", nil ]
                        },
                        monthly_amount_cents: { type: :integer, nullable: true },
                        due_day: { type: :integer, nullable: true },

@@ -863,6 +863,9 @@ const ptBR = {
   'charges.batch.dueDay': 'Vence dia',
   'charges.batch.alreadyBilled': 'Já cobrado nesta competência',
   'charges.batch.noPayer': 'Sem responsável financeiro',
+  'charges.batch.noGuardianLinked': 'Sem responsável vinculado',
+  'charges.batch.noGuardianLinkedHint':
+    '{count} aluno(s) não têm nenhum responsável vinculado. Vincule um responsável ao aluno para poder emitir o boleto.',
   'charges.batch.selected': '{count} contrato(s) selecionado(s) — {amount} em boletos.',
   'charges.batch.selectAtLeastOne': 'Selecione ao menos um contrato.',
   'charges.batch.loadError': 'Não foi possível carregar os alunos e contratos.',

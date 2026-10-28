@@ -853,6 +853,9 @@ const enUS: Messages = {
   'charges.batch.dueDay': 'Due day',
   'charges.batch.alreadyBilled': 'Already billed for this period',
   'charges.batch.noPayer': 'No paying guardian',
+  'charges.batch.noGuardianLinked': 'No guardian linked',
+  'charges.batch.noGuardianLinkedHint':
+    '{count} student(s) have no guardian linked at all. Link a guardian to the student to issue the boleto.',
   'charges.batch.selected': '{count} contract(s) selected — {amount} in boletos.',
   'charges.batch.selectAtLeastOne': 'Select at least one contract.',
   'charges.batch.loadError': 'Could not load the students and contracts.',
