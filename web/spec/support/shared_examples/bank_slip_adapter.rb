@@ -47,6 +47,7 @@ RSpec.shared_examples "a bank slip adapter" do |provider_name|
     expect(invoice.total_amount_cents).to eq(85_000)
     expect(invoice.total_amount_cents).to be_a(Integer)
     expect(invoice.status).to eq("open")
+    expect(invoice).to respond_to(:payer_cpf, :payer_name)
   end
 
   it "returns cancelled status from cancel" do

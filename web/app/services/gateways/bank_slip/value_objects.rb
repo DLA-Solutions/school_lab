@@ -124,15 +124,23 @@ module Gateways
         :digitable_line,
         :barcode,
         :our_number,
-        :pix_emv
+        :pix_emv,
+        :payer_cpf,
+        :payer_name
       ) do
         # Cora never carries presentation fields here — issuance already captured them via
         # Issuance, and fetch_invoice's payload has no boleto/Pix block. Inter's single
         # GET /cobranca/v3/cobrancas/{id} response carries both the invoice status and the
         # boleto/Pix presentation in one payload, and that same GET backs fetch_invoice — so
         # its adapter passes these through here to backfill ChargeIssuance after the fact.
+        #
+        # `payer_cpf`/`payer_name` are plain, optional passthrough strings (no coercion beyond
+        # whatever the caller already normalized) — used by Billing::ImportExternalBoletosService
+        # to match a bank-created boleto to a guardian. Only Inter's ResponseParser populates
+        # them today (see docs/open-questions.md); every other provider/invoice leaves them nil.
         def initialize(provider_invoice_id:, status:, total_amount_cents:, due_date:, payments: [],
-                       boleto_url: nil, digitable_line: nil, barcode: nil, our_number: nil, pix_emv: nil)
+                       boleto_url: nil, digitable_line: nil, barcode: nil, our_number: nil, pix_emv: nil,
+                       payer_cpf: nil, payer_name: nil)
           StatusNormalizer::INTERNAL_STATUSES.include?(status.to_s) || raise(ArgumentError, "invalid status: #{status}")
 
           super(
@@ -145,7 +153,9 @@ module Gateways
             digitable_line: digitable_line,
             barcode: barcode,
             our_number: our_number,
-            pix_emv: pix_emv
+            pix_emv: pix_emv,
+            payer_cpf: payer_cpf,
+            payer_name: payer_name
           )
         end
       end

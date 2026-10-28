@@ -95,5 +95,25 @@ RSpec.describe Gateways::BankSlip::Inter::ResponseParser do
         )
       end.to raise_error(Gateways::BankSlip::ProviderError)
     end
+
+    # Bug fix coverage: the payer block (`cobranca.pagador`) is inferred by analogy with the
+    # confirmed POST request shape — see docs/open-questions.md. Must parse it when present and
+    # never raise when it is absent (nil is a legitimate, expected value here, unlike the
+    # settlement-field case above).
+    it "parses payer_cpf/payer_name when the pagador block is present" do
+      invoice = described_class.parse_invoice(
+        payload(cobranca_overrides: { "pagador" => { "cpfCnpj" => "123.456.789-01", "nome" => "Maria Silva" } })
+      )
+
+      expect(invoice.payer_cpf).to eq("12345678901")
+      expect(invoice.payer_name).to eq("Maria Silva")
+    end
+
+    it "returns nil for payer_cpf/payer_name without raising when the pagador key is absent" do
+      invoice = described_class.parse_invoice(payload)
+
+      expect(invoice.payer_cpf).to be_nil
+      expect(invoice.payer_name).to be_nil
+    end
   end
 end
