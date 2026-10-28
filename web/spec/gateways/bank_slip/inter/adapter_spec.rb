@@ -134,13 +134,47 @@ RSpec.describe Gateways::BankSlip::Inter::Adapter do
       stub_request(:post, cobrancas_path)
         .to_return(status: 422, body: { violacoes: [ { campo: "pagador.cpfCnpj" } ] }.to_json)
 
-      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ValidationError)
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ValidationError) { |error|
+        expect(error.details).to eq("violacoes" => [ { "campo" => "pagador.cpfCnpj" } ])
+        expect(error.http_status).to eq(422)
+        expect(error.provider_response).to eq("violacoes" => [ { "campo" => "pagador.cpfCnpj" } ])
+      }
+    end
+
+    it "forwards the provider status and body on authentication failures" do
+      stub_request(:post, cobrancas_path).to_return(status: 403, body: { title: "Forbidden" }.to_json)
+
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::AuthenticationError) { |error|
+        expect(error.http_status).to eq(403)
+        expect(error.provider_response).to eq("title" => "Forbidden")
+      }
+    end
+
+    it "forwards the provider status and body when the token endpoint rejects the credentials" do
+      stub_request(:post, INTER_TEST_TOKEN_URL).to_return(status: 401, body: { error: "invalid_client" }.to_json)
+
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::AuthenticationError) { |error|
+        expect(error.http_status).to eq(401)
+        expect(error.provider_response).to eq("error" => "invalid_client")
+      }
+    end
+
+    it "forwards the provider status and body on unexpected responses" do
+      stub_request(:post, cobrancas_path).to_return(status: 404, body: "not found")
+
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ProviderError) { |error|
+        expect(error.http_status).to eq(404)
+        expect(error.provider_response).to eq("not found")
+      }
     end
 
     it "raises TransientError for provider outages" do
       stub_request(:post, cobrancas_path).to_return(status: 503, body: "unavailable")
 
-      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::TransientError)
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::TransientError) { |error|
+        expect(error.http_status).to eq(503)
+        expect(error.provider_response).to eq("unavailable")
+      }
     end
 
     it "raises ProviderError when billing URLs are missing" do
