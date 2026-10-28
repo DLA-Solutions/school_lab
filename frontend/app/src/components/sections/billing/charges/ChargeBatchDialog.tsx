@@ -203,6 +203,14 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
 
   const taggedCount = useMemo(() => rows.filter((row) => row.tags.length > 0).length, [rows]);
 
+  // A billable row (has a contract) can still have no payer when the student has no kept
+  // guardian link at all — distinct from `withoutContract`/`tags`, which are about the contract,
+  // not the payer. Actionable: staff need to link a guardian to the student, not create a contract.
+  const noGuardianLinkedCount = useMemo(
+    () => rows.filter((row) => row.payer_missing_reason === 'no_guardian_linked').length,
+    [rows],
+  );
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -285,6 +293,11 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
                 CPF {formatCpf(row.payer.cpf)}
               </Typography>
             </Box>
+          ) : row.payer_missing_reason === 'no_guardian_linked' ? (
+            // The specific, actionable case: the student has no guardian link at all, so there is
+            // nothing a contract could point to. A chip, like the other row-level flags, rather
+            // than the generic text below — staff can tell this apart from an unresolved payer.
+            <SemanticChip variant="error" label={t('charges.batch.noGuardianLinked')} />
           ) : (
             <Typography variant="body2" color="error.main">
               {t('charges.batch.noPayer')}
@@ -420,6 +433,14 @@ const ChargeBatchDialog = ({ open, schoolId, onClose, onIssued }: ChargeBatchDia
               <Grid size={12}>
                 <Alert severity="warning">
                   {t('charges.batch.taggedHint', { count: taggedCount })}
+                </Alert>
+              </Grid>
+            )}
+
+            {noGuardianLinkedCount > 0 && (
+              <Grid size={12}>
+                <Alert severity="warning">
+                  {t('charges.batch.noGuardianLinkedHint', { count: noGuardianLinkedCount })}
                 </Alert>
               </Grid>
             )}

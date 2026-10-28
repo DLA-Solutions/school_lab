@@ -27,6 +27,7 @@ const billable: BillableContract[] = [
     student_id: 1,
     student_name: 'Pedro Silva',
     payer: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
+    payer_missing_reason: null,
     monthly_amount_cents: 85_000,
     due_day: 10,
     already_charged: false,
@@ -38,6 +39,7 @@ const billable: BillableContract[] = [
     student_id: 2,
     student_name: 'Ana Silva',
     payer: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
+    payer_missing_reason: null,
     monthly_amount_cents: 60_000,
     due_day: 5,
     already_charged: false,
@@ -49,6 +51,7 @@ const billable: BillableContract[] = [
     student_id: 3,
     student_name: 'Bruno Costa',
     payer: { id: 8, name: 'Carla Costa', cpf: '98765432100' },
+    payer_missing_reason: null,
     monthly_amount_cents: 70_000,
     due_day: 10,
     already_charged: true,
@@ -63,6 +66,7 @@ const withoutContract: BillableContract = {
   student_id: 4,
   student_name: 'Carlos Lima',
   payer: null,
+  payer_missing_reason: null,
   monthly_amount_cents: null,
   due_day: null,
   already_charged: false,
@@ -78,11 +82,43 @@ const tagged: BillableContract = {
   student_id: 5,
   student_name: 'Diana Rocha',
   payer: null,
+  payer_missing_reason: null,
   monthly_amount_cents: null,
   due_day: null,
   already_charged: false,
   without_contract: false,
   tags: ['cancelled', 'pending_signature'],
+};
+
+// Has a standing contract — billable — but the student has zero kept guardian links at all, so
+// the contract has nobody to point to as payer. The specific, actionable case: unlike the rows
+// above, there is a contract here; what is missing is the guardian link on the student.
+const noGuardianLinked: BillableContract = {
+  contract_id: 94,
+  student_id: 6,
+  student_name: 'Eduardo Alves',
+  payer: null,
+  payer_missing_reason: 'no_guardian_linked',
+  monthly_amount_cents: 50_000,
+  due_day: 10,
+  already_charged: false,
+  without_contract: false,
+  tags: [],
+};
+
+// A billable row can also have `payer: null` with no specific reason named — the generic,
+// non-actionable case this feature must still fall back to.
+const unexplainedNoPayer: BillableContract = {
+  contract_id: 95,
+  student_id: 7,
+  student_name: 'Fernanda Dias',
+  payer: null,
+  payer_missing_reason: null,
+  monthly_amount_cents: 45_000,
+  due_day: 10,
+  already_charged: false,
+  without_contract: false,
+  tags: [],
 };
 
 const year2025: SchoolYear = {
@@ -390,5 +426,59 @@ describe('ChargeBatchDialog', () => {
         screen.queryByText(/Alunos sem contrato não podem receber boleto/),
       ).not.toBeInTheDocument();
     });
+  });
+
+  // Billable (has a contract) but the student has no guardian link at all — distinct from
+  // `withoutContract`/tagged rows, which are about the contract. This is the specific case the
+  // backend now names so staff get an actionable message instead of the generic "no payer" one.
+  describe('a billable student with no guardian linked at all', () => {
+    const withNoGuardianLinked = [...billable, noGuardianLinked];
+
+    it('shows the specific message instead of the generic one, and the student stays selectable', async () => {
+      server.use(
+        http.get(apiUrl(BATCHES_PATH), () => HttpResponse.json({ data: withNoGuardianLinked })),
+      );
+
+      renderDialog();
+
+      const row = (await screen.findByText('Eduardo Alves')).closest(
+        '[role="row"]',
+      ) as HTMLElement;
+
+      expect(within(row).getByText('Sem responsável vinculado')).toBeInTheDocument();
+      expect(within(row).queryByText('Sem responsável financeiro')).not.toBeInTheDocument();
+      // Still has a standing contract, so — unlike `withoutContract`/tagged rows — it can be billed.
+      expect(within(row).getByRole('checkbox')).toBeEnabled();
+      expect(
+        screen.getByText(/1 aluno\(s\) não têm nenhum responsável vinculado/),
+      ).toBeInTheDocument();
+    });
+
+    it('does not show the hint when no row is missing a guardian link', async () => {
+      server.use(http.get(apiUrl(BATCHES_PATH), () => HttpResponse.json({ data: billable })));
+
+      renderDialog();
+
+      await screen.findByText('Pedro Silva');
+
+      expect(
+        screen.queryByText(/não têm nenhum responsável vinculado/),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  // `payer: null` with no specific reason named must still fall back to the generic message —
+  // the only state this dialog handled before `payer_missing_reason` existed.
+  it('falls back to the generic no-payer message when no specific reason is given', async () => {
+    server.use(
+      http.get(apiUrl(BATCHES_PATH), () => HttpResponse.json({ data: [unexplainedNoPayer] })),
+    );
+
+    renderDialog();
+
+    const row = (await screen.findByText('Fernanda Dias')).closest('[role="row"]') as HTMLElement;
+
+    expect(within(row).getByText('Sem responsável financeiro')).toBeInTheDocument();
+    expect(within(row).queryByText('Sem responsável vinculado')).not.toBeInTheDocument();
   });
 });

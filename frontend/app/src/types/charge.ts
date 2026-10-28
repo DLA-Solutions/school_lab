@@ -60,6 +60,16 @@ export interface OneOffChargePayload {
 export type BillableGap = 'cancelled' | 'pending_signature';
 
 /**
+ * Why a billable row (has a contract, `without_contract: false`) still carries a null `payer`.
+ * Today the only named reason is the student having zero kept guardian links at all; null means
+ * either the payer resolved fine or this is a `without_contract` row, where the gap is "no
+ * contract," not the payer. A string union rather than a boolean so a future reason can be added
+ * without a breaking shape change — treat an unrecognized value as "no specific reason given"
+ * rather than assuming it cannot occur.
+ */
+export type PayerMissingReason = 'no_guardian_linked' | null;
+
+/**
  * A row of `GET .../billing/charge_batches` — one per enrolled student, ordered by name. Most rows
  * carry the student's standing contract (active and signed), ready to be billed. A student whose
  * only contract history is a cancelled or still-unsigned one comes back with `contract_id: null`
@@ -74,6 +84,8 @@ export interface BillableContract {
   student_id: number;
   student_name: string;
   payer: { id: number; name: string; cpf: string } | null;
+  /** Why `payer` is null on this row. See `PayerMissingReason`. */
+  payer_missing_reason: PayerMissingReason;
   monthly_amount_cents: number | null;
   due_day: number | null;
   /** The period already has a tuition charge for this contract; billing again would duplicate it. */
