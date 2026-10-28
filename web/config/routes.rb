@@ -340,6 +340,12 @@ Rails.application.routes.draw do
                 get :boleto_pdf
               end
             end
+            resources :unmatched_boletos, only: %i[index] do
+              member do
+                post :resolve
+                post :dismiss
+              end
+            end
             resources :payments, only: %i[index show]
             resource :summary, only: :show, controller: "summary"
             namespace :reports do

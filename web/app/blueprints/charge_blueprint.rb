@@ -5,7 +5,7 @@ class ChargeBlueprint < Blueprinter::Base
 
   fields :billing_period, :original_amount_cents, :discount_amount_cents, :late_fee_amount_cents,
          :total_amount_cents, :due_date, :status, :kind, :description, :boleto_url,
-         :billing_purpose_id, :billing_purpose_code, :tax_declaration_eligible
+         :billing_purpose_id, :billing_purpose_code, :tax_declaration_eligible, :source
 
   # Null on a one-off raised outside any contract — the school bills for things no student is
   # enrolled in, and the listing says so rather than inventing a name.
@@ -58,9 +58,5 @@ class ChargeBlueprint < Blueprinter::Base
   view :guardian_history do
     include_view :guardian
     excludes :payment_methods, :due_date
-
-    field :source do |_charge|
-      "platform"
-    end
   end
 end
