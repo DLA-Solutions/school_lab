@@ -108,8 +108,56 @@ RSpec.describe Billing::IssueChargeService do
 
     issuance = charge.reload.current_issuance
     expect(issuance.status).to eq("failed")
-    expect(issuance.last_error).to be_present
+    expect(JSON.parse(issuance.last_error)).to include(
+      "error_class" => "Gateways::BankSlip::ValidationError",
+      "message" => "Provider validation error"
+    )
     expect(charge.status).to eq("pending")
+  end
+
+  it "stores the complete provider response as parseable JSON with personal data redacted" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::ValidationError.new(
+        "Provider validation error",
+        details: { "violacoes" => [ { "campo" => "pagador.cpfCnpj" } ] },
+        http_status: 422,
+        provider_response: {
+          "title" => "Dados invalidos",
+          "violacoes" => [ { "campo" => "pagador.cpfCnpj", "valor" => "123.456.789-00" } ]
+        }
+      )
+    )
+
+    expect(result).to be_failure
+    expect(result.details).to eq("violacoes" => [ { "campo" => "pagador.cpfCnpj" } ])
+
+    stored = charge.reload.current_issuance.last_error
+    expect(JSON.parse(stored)).to include(
+      "error_class" => "Gateways::BankSlip::ValidationError",
+      "http_status" => 422,
+      "provider_response" => {
+        "title" => "Dados invalidos",
+        "violacoes" => [ { "campo" => "pagador.cpfCnpj", "valor" => "[CPF]" } ]
+      }
+    )
+    expect(JSON.parse(stored)["occurred_at"]).to be_present
+    expect(stored).not_to include("123.456.789-00")
+  end
+
+  it "stores the provider status and body of a rejected authentication" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::AuthenticationError.new(
+        "Provider authentication failed (403)", http_status: 403, provider_response: { "title" => "Forbidden" }
+      )
+    )
+
+    expect(result.error_code).to eq(:provider_error)
+
+    expect(JSON.parse(charge.reload.current_issuance.last_error)).to include(
+      "error_class" => "Gateways::BankSlip::AuthenticationError",
+      "http_status" => 403,
+      "provider_response" => { "title" => "Forbidden" }
+    )
   end
 
   it "marks authentication failures as failed with a redacted error" do
@@ -123,7 +171,7 @@ RSpec.describe Billing::IssueChargeService do
 
     issuance = charge.reload.current_issuance
     expect(issuance.status).to eq("failed")
-    expect(issuance.last_error).to include("[CPF]")
+    expect(JSON.parse(issuance.last_error)["message"]).to eq("mTLS handshake failed for [CPF]")
     expect(issuance.last_error).not_to include("123.456.789-00")
   end
 
@@ -138,7 +186,10 @@ RSpec.describe Billing::IssueChargeService do
 
     issuance = charge.reload.current_issuance
     expect(issuance.status).to eq("failed")
-    expect(issuance.last_error).to be_present
+    expect(JSON.parse(issuance.last_error)).to include(
+      "error_class" => "Gateways::BankSlip::ProviderError",
+      "message" => "Unexpected provider response (418)"
+    )
   end
 
   it "marks a missing provider configuration as failed instead of losing the attempt" do
@@ -182,7 +233,10 @@ RSpec.describe Billing::IssueChargeService do
 
       issuance = charge.reload.current_issuance
       expect(issuance.status).to eq("failed")
-      expect(issuance.last_error).to be_present
+      expect(JSON.parse(issuance.last_error)).to include(
+        "error_class" => "Billing::IssueChargeService::MissingInterestRateError",
+        "message" => "interest_rate_percent is not configured for school"
+      )
     end
   end
 

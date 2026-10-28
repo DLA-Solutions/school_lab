@@ -39,7 +39,7 @@ module Billing
       issuance = charge.current_issuance
       return unless issuance
 
-      issuance.update!(last_error: Billing::PiiRedactor.call(error.message))
+      issuance.update!(last_error: Billing::IssuanceErrorSerializer.call(error))
       issuance.mark_failed! if executions >= MAX_ATTEMPTS && issuance.may_mark_failed?
     end
   end

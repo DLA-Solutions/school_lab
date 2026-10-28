@@ -72,6 +72,23 @@ RSpec.describe Billing::MonitorBillingHealthService do
     described_class.call(school: school)
   end
 
+  it "summarizes the stored JSON error as the alert reason instead of dumping it" do
+    config.update!(settings: { "certificate_alert_thresholds_sent" => [ 30 ] })
+    charge = create(:charge, school: school)
+    error = Gateways::BankSlip::ValidationError.new("Rejected", http_status: 422,
+                                                                provider_response: { "title" => "full body" })
+    create(:charge_issuance, :failed, charge: charge, school: school,
+                                      last_error: Billing::IssuanceErrorSerializer.call(error))
+
+    expect(Rails.logger).to receive(:warn).with(
+      include("billing.alert.issuance_failure")
+        .and(include("Gateways::BankSlip::ValidationError: Rejected (HTTP 422)"))
+        .and(satisfy { |line| line.exclude?("full body") })
+    )
+
+    described_class.call(school: school)
+  end
+
   it "reports unissued charges using the shared detection helper" do
     config.update!(settings: { "certificate_alert_thresholds_sent" => [ 30 ] })
     failed_charge = create(:charge, school: school, due_date: 3.days.from_now.to_date)
