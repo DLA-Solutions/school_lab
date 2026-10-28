@@ -529,12 +529,44 @@ Table school_payment_providers {
   uploaded_at timestamp
   uploaded_by_id integer
   webhook_endpoint_token varchar [not null, note: 'Secret URL segment for unsigned provider notifications; rotatable']
+  last_external_import_at timestamp [note: 'Billing::ImportExternalBoletosService watermark (bank_slip/inter only) — incremental sync resumes from here minus a lookback overlap. NULL means the one-time historical backfill has not run yet; its since anchor then falls back to MIN(uploaded_at) across all rows for this school+provider+instrument, then earliest ChargeIssuance, then school.created_at.']
   created_at timestamp
   updated_at timestamp
 
   indexes {
     (school_id, instrument) [unique, note: 'Partial: WHERE active = true — one active configuration per school and instrument']
     webhook_endpoint_token [unique]
+  }
+}
+
+Table unmatched_boletos {
+  id integer [primary key, increment]
+  school_id integer [not null]
+  provider varchar [not null, note: 'Bank slip provider key, e.g. inter — only inter is imported today']
+  provider_invoice_id varchar [not null, note: 'Bank-side invoice id (Inter codigoSolicitacao)']
+  payer_cpf varchar [not null, note: 'Digits-only, as reported by the bank payer block. Never matched across schools.']
+  payer_name varchar
+  amount_cents integer [not null, note: 'Check constraint: >= 0']
+  due_date date
+  provider_status varchar [not null, note: 'Last-synced normalized bank status: draft | open | paid | late | cancelled (Gateways::BankSlip::StatusNormalizer) — refreshed on every import run while still pending']
+  paid_amount_cents integer [note: 'Set when provider_status is paid — settlement amount reported by the bank, so resolving later can create an accurate Payment']
+  paid_at timestamp [note: 'Set when provider_status is paid — bank settlement timestamp']
+  payment_method varchar [note: 'Set when provider_status is paid — pix | boleto']
+  status varchar [not null, default: 'pending', note: 'pending | resolved | dismissed — check constraint. Staff review workflow state, distinct from provider_status (the bank invoice state)']
+  resolved_at timestamp
+  resolved_by_id integer [note: 'users.id — staff who resolved or dismissed']
+  resolved_guardian_id integer [note: 'guardians.id — set only when status is resolved']
+  charge_id integer [note: 'The retroactive charges row created on resolution (source: migrated)']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (school_id, provider_invoice_id) [unique, note: 'Re-running the import never re-queues the same bank invoice']
+    (school_id, status)
+    school_id
+    resolved_by_id
+    resolved_guardian_id
+    charge_id
   }
 }
 
@@ -732,6 +764,8 @@ Table charges {
   provider_invoice_id varchar [note: 'Cached active provider invoice id — canonical history in charge_issuances']
   boleto_url varchar [note: 'Cached last-issued boleto URL for guardian display']
   pix_copy_paste text [note: 'Cached last-issued Pix EMV for guardian display']
+  source varchar [not null, default: 'platform', note: 'platform | migrated — check constraint. platform: issued by this system (BulkGenerateChargesService / CreateOneOffChargeService). migrated: imported from a boleto the school created directly at the bank (Billing::ImportExternalBoletosService), bypassing our issuance flow.']
+  external_reference varchar [note: 'Bank-side invoice id (e.g. Inter codigoSolicitacao). Set for migrated charges (dedup key) and, where available, for platform charges too. Partial-unique per school.']
   paid_at timestamp [note: 'AASM timestamp — set on pay transition']
   overdue_at timestamp [note: 'AASM timestamp — set on mark_overdue transition']
   cancelled_at timestamp [note: 'AASM timestamp — set on cancel transition']
@@ -744,6 +778,7 @@ Table charges {
     (contract_id, billing_period) [unique, note: 'DB migration: UNIQUE WHERE discarded_at IS NULL']
     (school_id, status)
     (school_id, due_date)
+    (school_id, external_reference) [unique, note: 'WHERE external_reference IS NOT NULL — dedupes a boleto already seen, whether issued by us or imported']
     provider_invoice_id [unique, note: 'WHERE provider_invoice_id IS NOT NULL']
     contract_id
     guardian_id
@@ -2155,6 +2190,10 @@ Ref: teachers.user_id > users.id
 Ref: billing_plans.school_id > schools.id
 Ref: school_payment_providers.school_id > schools.id
 Ref: school_payment_providers.uploaded_by_id > users.id
+Ref: unmatched_boletos.school_id > schools.id
+Ref: unmatched_boletos.resolved_by_id > users.id
+Ref: unmatched_boletos.resolved_guardian_id > guardians.id
+Ref: unmatched_boletos.charge_id > charges.id
 Ref: school_fiscal_settings.school_id > schools.id
 Ref: school_billing_settings.school_id > schools.id
 Ref: billing_purposes.school_id > schools.id
