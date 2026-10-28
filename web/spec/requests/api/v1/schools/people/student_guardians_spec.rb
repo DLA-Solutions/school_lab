@@ -69,11 +69,23 @@ RSpec.describe "Api::V1::Schools::People::StudentGuardians", type: :request do
       parameter name: "Authorization", in: :header, type: :string
 
       response "204", "link discarded" do
-        let!(:link) { create(:student_guardian, school: school) }
+        let!(:student) { create(:student, school: school) }
+        let!(:link) { create(:student_guardian, school: school, student: student, relationship: "father") }
+        let!(:other_link) { create(:student_guardian, school: school, student: student, relationship: "mother") }
         let(:id) { link.id }
 
         run_test! do
           expect(link.reload).to be_discarded
+          expect(other_link.reload).not_to be_discarded
+        end
+      end
+
+      response "422", "the student's only kept guardian link cannot be unlinked" do
+        let!(:link) { create(:student_guardian, school: school) }
+        let(:id) { link.id }
+
+        run_test! do
+          expect(link.reload).not_to be_discarded
         end
       end
     end
