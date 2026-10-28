@@ -11,6 +11,8 @@ en:
   billing:
     settings:
       default_service_description: "School tuition"
+    migrated_charge:
+      description: "Boleto imported from Banco Inter"
     tax_declaration:
       pdf:
         title: "Annual payment declaration"

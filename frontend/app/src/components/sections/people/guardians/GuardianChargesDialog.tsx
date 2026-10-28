@@ -275,6 +275,12 @@ const GuardianChargesDialog = ({
                         variant={STATUS_VARIANT[charge.status]}
                         label={t(`charges.status.${charge.status}`)}
                       />
+                      {/* Staff did not issue this one — it was imported from a boleto the school
+                          created directly in the bank's own dashboard, so it needs its own mark
+                          wherever it shows up alongside the ones issued through the platform. */}
+                      {charge.source === 'migrated' && (
+                        <SemanticChip variant="info" label={t('charges.source.migratedBadge')} />
+                      )}
                       <Typography variant="body2" sx={{ minWidth: 96 }}>
                         {formatCents(charge.total_amount_cents)}
                       </Typography>

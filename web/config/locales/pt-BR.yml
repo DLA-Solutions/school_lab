@@ -12,6 +12,8 @@ pt-BR:
   billing:
     settings:
       default_service_description: "Mensalidade escolar"
+    migrated_charge:
+      description: "Boleto importado do Banco Inter"
     tax_declaration:
       pdf:
         title: "Declaração anual de pagamentos"

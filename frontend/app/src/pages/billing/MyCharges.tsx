@@ -290,6 +290,9 @@ const toPreviewCharge = (charge: MyCharge): Charge => ({
     name: charge.student?.name ?? '',
     cpf: '',
   },
+  // The preview dialog never reads `source` — it is only here to satisfy `Charge`'s shape for
+  // this synthetic, staff-preview-only object built from the guardian's own `MyCharge`.
+  source: 'platform',
 });
 
 /**

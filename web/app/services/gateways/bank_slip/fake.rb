@@ -36,7 +36,9 @@ module Gateways
           status: "open",
           total_amount_cents: request.total_amount_cents,
           due_date: request.due_date,
-          payments: []
+          payments: [],
+          payer_cpf: Gateways::BankSlip::FieldNormalizer.normalize_cpf(request.customer.document_number),
+          payer_name: request.customer.name
         )
 
         @issued[provider_invoice_id] = issuance
@@ -115,6 +117,24 @@ module Gateways
           total_amount_cents: charge.total_amount_cents,
           due_date: charge.due_date,
           payments: []
+        )
+      end
+
+      # Simulates a boleto the school created directly at the bank — by definition it never
+      # went through #issue, so it is built straight into @invoices, bypassing @issued and
+      # @idempotency_index entirely (there is no Issuance, no idempotency key, nothing we
+      # ever requested). Used by specs for Billing::ImportExternalBoletosService and
+      # Billing::ResolveUnmatchedBoletoService to simulate a bank-created, migrated boleto.
+      def seed_invoice!(provider_invoice_id:, status:, total_amount_cents:, due_date:, payer_cpf: nil,
+                        payer_name: nil, payments: [])
+        @invoices[provider_invoice_id] = ValueObjects::RemoteInvoice.new(
+          provider_invoice_id: provider_invoice_id,
+          status: status,
+          total_amount_cents: total_amount_cents,
+          due_date: due_date,
+          payments: payments,
+          payer_cpf: payer_cpf,
+          payer_name: payer_name
         )
       end
 

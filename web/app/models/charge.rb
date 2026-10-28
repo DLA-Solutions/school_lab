@@ -28,13 +28,21 @@ class Charge < ApplicationRecord
   # `tuition` comes from the monthly schedule; `one_off` is raised by hand for something else.
   KINDS = %w[tuition one_off].freeze
 
+  # `platform` is issued by this system (BulkGenerateChargesService / CreateOneOffChargeService).
+  # `migrated` is imported from a boleto the school created directly at the bank, bypassing our
+  # issuance flow (Billing::ImportExternalBoletosService / Billing::ResolveUnmatchedBoletoService).
+  SOURCES = %w[platform migrated].freeze
+
   validates :kind, inclusion: { in: KINDS }
+  validates :source, inclusion: { in: SOURCES }
+  validates :external_reference, uniqueness: { scope: :school_id }, allow_nil: true
   # The monthly schedule reads the amount and the payer off a contract, so a tuition charge
   # without one has nothing to have been generated from.
   validates :contract, presence: true, if: -> { kind == "tuition" }
 
   scope :open, -> { kept.where(status: %w[pending overdue]) }
   scope :one_off, -> { kept.where(kind: "one_off") }
+  scope :migrated, -> { where(source: "migrated") }
   scope :with_status, ->(statuses) { where(status: statuses) }
   # Both bounds are inclusive and optional; a charge with no due date never matches a bound.
   scope :due_between, lambda { |from = nil, to = nil|

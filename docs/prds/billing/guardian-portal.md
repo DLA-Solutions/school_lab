@@ -43,7 +43,7 @@ online, reissue second copy, and view **forward-only** payment history — with 
 | Multi-child household filtering | **partial** | Optional `student_id` query — identity owns UX |
 | Card/Pix checkout in app | **planned** | [`payments.md`](payments.md) |
 | Mobile app parity | **planned** | API contract-ready per fintech-first |
-| Migrated history (`source: migrated`) | **P2** | Import scope undefined |
+| Migrated history (`source: migrated`) | **implemented (Inter only)** | Bank-created boletos matched by payer CPF become real charges; unmatched CPFs queue to staff review (`unmatched_boletos`), not dropped. Cora out of scope. |
 
 ---
 
@@ -62,9 +62,11 @@ methods from active issuance. **Implemented.**
 
 BR-G03
 
-Payment history (`/me/charges/history`, `/me/payments`) returns **forward-only** platform
-settlements — `source: platform`. Migrated rows deferred ([`fintech-first.md`](../fintech-first.md)
-open items). **Implemented.**
+Payment history (`/me/charges/history`, `/me/payments`) returns platform settlements
+(`source: platform`) and, since this PR, Inter bank-created boletos matched to this
+guardian's CPF (`source: migrated`) — both integrate normally, same views, same filters.
+Scope and matching rules: [`fintech-first.md`](../fintech-first.md) open items /
+`docs/open-questions.md`. **Implemented.**
 
 BR-G04
 

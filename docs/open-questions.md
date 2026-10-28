@@ -81,7 +81,8 @@ UC-03, Open items, Positioning note).
       `notification` payload on Cora issuance and no platform mailer yet. Overdue detection
       and dashboard remain. **Future channel:** platform email via `CollectionReguaNotifier`.
 - [x] **Guardian payment history (MVP)** — forward-only paid charges on the platform
-      (`source: platform`); no CSV import, no Cora backfill in MVP.
+      (`source: platform`); no CSV import, no Cora backfill in MVP. Bank-created (Inter)
+      boleto import now ships as `source: migrated` — see the Fintech-first section below.
 
 ## MVP and scope
 
@@ -206,7 +207,36 @@ in `docs/prds/fintech-first.md` (Open items).
       rows), serving `POST /api/v1/me/device_tokens`.
 - [x] **Fintech-first — guardian payment history (MVP)** — forward-only; history returns
       `source: platform` for charges paid in this system. Storage/import for
-      `source: migrated` / `external_reference` deferred until import scope is defined.
+      `source: migrated` / `external_reference` deferred until import scope is defined —
+      **scoped and implemented for Banco Inter**, see the entry below.
+- [x] **Fintech-first — migrated (bank-created) boleto import — decided:** Inter only for
+      now (Cora explicitly out of scope this pass). A matched bank-created boleto becomes a
+      real `charges` row (`source: migrated`, `external_reference` = bank invoice id,
+      partial-unique per school) via `Billing::ImportExternalBoletosService` — it integrates
+      normally with reports/reconciliation/guardian views, it is not a read-only overlay.
+      Matching is payer CPF → kept guardian **at the same school as the polled credential**
+      (never a global CPF lookup). An unmatched CPF is queued on a new `unmatched_boletos`
+      table for staff review/linking rather than dropped; `Billing::ResolveUnmatchedBoletoService`
+      creates the retroactive charge once staff picks the right guardian, or it is dismissed.
+      One-time backfill `since` anchor: `MIN(school_payment_providers.uploaded_at)` across all
+      (active or superseded) rows for that school + `inter` + `bank_slip` — the first time
+      Inter credentials were ever uploaded, since a credential rotation would otherwise move
+      the anchor forward and silently skip months of real bank activity. Fallback if that is
+      absent: earliest `charge_issuances` row for that provider; final fallback:
+      `school.created_at`. Ongoing incremental sync tracked by a new
+      `school_payment_providers.last_external_import_at` watermark column, with a 3-day
+      lookback overlap on each run. `Billing::DailyReconciliationJob`'s existing
+      issuance-keyed matching is untouched; it was additionally taught to also settle a
+      `source: migrated` charge by `external_reference` when no `charge_issuances` row
+      matches, so a migrated charge that is still open at import time gets paid/overdue
+      status updates from the normal daily reconciliation run afterward.
+      **Open/inferred:** the Inter `GET /cobranca/v3/cobrancas` response's payer block
+      (`cobranca.pagador.cpfCnpj` / `.nome`) is inferred by analogy with the confirmed
+      `POST` request payload shape (`RequestPayload#payer_payload`) — developers.inter.co
+      renders client-side and could not be fetched to confirm the GET response carries the
+      same block back. Parsing is defensive (nil-safe) per the existing house pattern for
+      this adapter (see `Inter::ResponseParser#parse_payment`'s fallback chain); an invoice
+      with no parseable payer CPF is skipped (logged), never queued or matched.
 - [x] **Fintech-first — reissue default due date** — `today + 7 business days`
       in the school timezone, skipping weekends and Brazilian national holidays
       (`Billing::BusinessDayCalendar`).

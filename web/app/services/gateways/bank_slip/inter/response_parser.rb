@@ -56,6 +56,7 @@ module Gateways
           boleto = payload["boleto"] || {}
           pix = payload["pix"] || {}
           status = normalize_status(cobranca.fetch("situacao"))
+          payer_cpf, payer_name = parse_payer(cobranca)
 
           ValueObjects::RemoteInvoice.new(
             provider_invoice_id: cobranca.fetch("codigoSolicitacao"),
@@ -67,8 +68,25 @@ module Gateways
             digitable_line: boleto["linhaDigitavel"],
             barcode: boleto["codigoBarras"],
             our_number: boleto["nossoNumero"],
-            pix_emv: pix["pixCopiaECola"]
+            pix_emv: pix["pixCopiaECola"],
+            payer_cpf: payer_cpf,
+            payer_name: payer_name
           )
+        end
+
+        # `cobranca.pagador` on the GET response is inferred by analogy with the confirmed
+        # POST request payload shape (`RequestPayload#payer_payload` sends `pagador.cpfCnpj` /
+        # `.nome`) — developers.inter.co renders client-side and a real GET
+        # /cobranca/v3/cobrancas/{id} response could not be fetched to confirm it carries the
+        # same block back. Flagged in docs/open-questions.md as inferred, not firsthand-confirmed.
+        # Defensive like `parse_payment`'s settlement-field fallback chain above, but unlike that
+        # one a missing payer block is a legitimate, expected shape here — never raise, just nil.
+        def parse_payer(cobranca)
+          payer = cobranca["pagador"] || {}
+          payer_cpf = FieldNormalizer.normalize_cpf(payer["cpfCnpj"])
+          payer_name = payer["nome"]
+
+          [ payer_cpf, payer_name ]
         end
 
         # Inter's GET response has no itemized payments array like Cora's — one aggregate
