@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_020443) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_211710) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "pg_catalog.plpgsql"
@@ -1867,36 +1867,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_020443) do
     t.index ["teacher_id"], name: "index_teaching_assignments_on_teacher_id"
   end
 
-  create_table "unmatched_boletos", force: :cascade do |t|
-    t.integer "amount_cents", null: false
-    t.bigint "charge_id"
-    t.datetime "created_at", null: false
-    t.date "due_date"
-    t.integer "paid_amount_cents"
-    t.datetime "paid_at"
-    t.string "payer_cpf", null: false
-    t.string "payer_name"
-    t.string "payment_method"
-    t.string "provider", null: false
-    t.string "provider_invoice_id", null: false
-    t.string "provider_status", null: false
-    t.datetime "resolved_at"
-    t.bigint "resolved_by_id"
-    t.bigint "resolved_guardian_id"
-    t.bigint "school_id", null: false
-    t.string "status", default: "pending", null: false
-    t.datetime "updated_at", null: false
-    t.index ["charge_id"], name: "index_unmatched_boletos_on_charge_id"
-    t.index ["resolved_by_id"], name: "index_unmatched_boletos_on_resolved_by_id"
-    t.index ["resolved_guardian_id"], name: "index_unmatched_boletos_on_resolved_guardian_id"
-    t.index ["school_id", "provider_invoice_id"], name: "index_unmatched_boletos_on_school_id_and_provider_invoice_id", unique: true
-    t.index ["school_id", "status"], name: "index_unmatched_boletos_on_school_id_and_status"
-    t.index ["school_id"], name: "index_unmatched_boletos_on_school_id"
-    t.check_constraint "amount_cents >= 0", name: "unmatched_boletos_amount_cents_non_negative"
-    t.check_constraint "provider_status::text = ANY (ARRAY['draft'::character varying, 'open'::character varying, 'paid'::character varying, 'late'::character varying, 'cancelled'::character varying]::text[])", name: "unmatched_boletos_provider_status_allowed"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'resolved'::character varying, 'dismissed'::character varying]::text[])", name: "unmatched_boletos_status_allowed"
-  end
-
   create_table "user_identities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
@@ -2218,10 +2188,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_020443) do
   add_foreign_key "teaching_assignments", "subjects"
   add_foreign_key "teaching_assignments", "teachers"
   add_foreign_key "teaching_assignments", "users", column: "discarded_by_id"
-  add_foreign_key "unmatched_boletos", "charges"
-  add_foreign_key "unmatched_boletos", "guardians", column: "resolved_guardian_id"
-  add_foreign_key "unmatched_boletos", "schools"
-  add_foreign_key "unmatched_boletos", "users", column: "resolved_by_id"
   add_foreign_key "user_identities", "users"
   add_foreign_key "users", "users", column: "disabled_by_id"
   add_foreign_key "webhook_events", "schools"

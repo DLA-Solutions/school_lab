@@ -8,9 +8,9 @@ module Billing
   # `school_payment_providers.last_external_import_at` watermark.
   #
   # A payer CPF match against a kept guardian becomes a real Charge (source: migrated) via
-  # Billing::CreateMigratedChargeService; an unmatched CPF is queued on UnmatchedBoleto for
-  # staff review instead of dropped. See docs/open-questions.md and docs/modeling/001-fintech-first.md
-  # ("migrated (bank-created) boleto import").
+  # Billing::CreateMigratedChargeService; an unmatched CPF is skipped (counted in the summary
+  # and logged, never persisted). See docs/open-questions.md and
+  # docs/modeling/001-fintech-first.md ("migrated (bank-created) boleto import").
   class ImportExternalBoletosService < ApplicationService
     LIST_INVOICES_LIMIT = 100
     # Safety lookback on incremental runs, same reasoning as DailyReconciliationService's window
@@ -25,7 +25,7 @@ module Billing
 
     def call
       imported = 0
-      queued = 0
+      unmatched = 0
       skipped = 0
 
       adapter.list_invoices(since: since_date, limit: LIST_INVOICES_LIMIT).each do |invoice|
@@ -42,7 +42,7 @@ module Billing
 
         cpf = invoice.payer_cpf
         if cpf.blank?
-          # The bank gave us no payer identity at all — can't match, can't queue.
+          # The bank gave us no payer identity at all — nothing to match against.
           log_skipped_no_payer(invoice)
           skipped += 1
           next
@@ -57,8 +57,8 @@ module Billing
             log_import_failure(invoice, result)
           end
         else
-          upsert_unmatched_boleto!(invoice)
-          queued += 1
+          log_unmatched_payer(invoice)
+          unmatched += 1
         end
       end
 
@@ -67,7 +67,7 @@ module Billing
       ResponseService.success(data: {
                                 school_id: school.id,
                                 imported_count: imported,
-                                queued_count: queued,
+                                unmatched_count: unmatched,
                                 skipped_count: skipped
                               })
     end
@@ -117,33 +117,21 @@ module Billing
       school.created_at.to_date
     end
 
-    # Only refreshes fields while the record is still pending — a resolved/dismissed row must
-    # never be resurrected or overwritten by a later sync run.
-    def upsert_unmatched_boleto!(invoice)
-      record = UnmatchedBoleto.find_or_initialize_by(school_id: school.id, provider_invoice_id: invoice.provider_invoice_id)
-      return unless record.new_record? || record.pending?
-
-      record.provider = config.provider
-      record.payer_cpf = invoice.payer_cpf
-      record.payer_name = invoice.payer_name
-      record.amount_cents = invoice.total_amount_cents
-      record.due_date = invoice.due_date
-      record.provider_status = invoice.status
-
-      if invoice.status == "paid" && invoice.payments.present?
-        payment = invoice.payments.first
-        record.paid_amount_cents = payment.paid_amount_cents
-        record.paid_at = payment.paid_at
-        record.payment_method = payment.payment_method
-      end
-
-      record.save!
-    end
-
     def log_skipped_no_payer(invoice)
       Rails.logger.info(
         {
           event: "billing.import_external_boletos.no_payer_cpf",
+          school_id: school.id,
+          provider: config.provider,
+          provider_invoice_id: invoice.provider_invoice_id
+        }.to_json
+      )
+    end
+
+    def log_unmatched_payer(invoice)
+      Rails.logger.info(
+        {
+          event: "billing.import_external_boletos.unmatched_payer_cpf",
           school_id: school.id,
           provider: config.provider,
           provider_invoice_id: invoice.provider_invoice_id

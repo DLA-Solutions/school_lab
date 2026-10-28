@@ -3,15 +3,13 @@
 module Billing
   # Creates (or finds) the Charge for a bank-created boleto that bypassed our issuance flow —
   # the school created it directly in the bank's own dashboard, so there is no ChargeIssuance
-  # row for it. Called from both Billing::ImportExternalBoletosService (automatic CPF match)
-  # and Billing::ResolveUnmatchedBoletoService (staff picks the guardian by hand), so a retry
-  # from either caller must be a no-op rather than a duplicate.
+  # row for it. Called from Billing::ImportExternalBoletosService (automatic CPF match); a retry
+  # (e.g. the same invoice seen on a later import run) must be a no-op rather than a duplicate.
   class CreateMigratedChargeService < ApplicationService
-    def initialize(school:, guardian:, invoice:, actor: nil)
+    def initialize(school:, guardian:, invoice:)
       @school = school
       @guardian = guardian
       @invoice = invoice
-      @actor = actor
     end
 
     def call
@@ -31,7 +29,7 @@ module Billing
 
     private
 
-    attr_reader :school, :guardian, :invoice, :actor
+    attr_reader :school, :guardian, :invoice
 
     def find_existing
       Charge.find_by(school_id: school.id, external_reference: invoice.provider_invoice_id)

@@ -43,7 +43,7 @@ online, reissue second copy, and view **forward-only** payment history — with 
 | Multi-child household filtering | **partial** | Optional `student_id` query — identity owns UX |
 | Card/Pix checkout in app | **planned** | [`payments.md`](payments.md) |
 | Mobile app parity | **planned** | API contract-ready per fintech-first |
-| Migrated history (`source: migrated`) | **implemented (Inter only)** | Bank-created boletos matched by payer CPF become real charges; unmatched CPFs queue to staff review (`unmatched_boletos`), not dropped. Cora out of scope. |
+| Migrated history (`source: migrated`) | **implemented (Inter only)** | Bank-created boletos matched by payer CPF become real charges; boletos whose payer CPF matches no guardian are skipped by the import (counted and logged, not persisted; the former `unmatched_boletos` table and staff review queue were retired). Cora out of scope. |
 
 ---
 

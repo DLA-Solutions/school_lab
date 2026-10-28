@@ -51,49 +51,32 @@ RSpec.describe Billing::ImportExternalBoletosService do
   end
 
   describe "unmatched CPF" do
-    it "creates exactly one UnmatchedBoleto, not duplicated on a second run with the same data" do
+    it "skips the invoice without creating a charge, counting it as unmatched and logging it" do
       adapter.seed_invoice!(provider_invoice_id: "inv-unmatched", status: "open", total_amount_cents: 80_000,
                             due_date: 10.days.from_now.to_date, payer_cpf: "99988877766", payer_name: "Someone")
+      allow(Rails.logger).to receive(:info)
 
-      expect { described_class.call(config: config, adapter: adapter) }.to change(UnmatchedBoleto, :count).by(1)
-      expect { described_class.call(config: config, adapter: adapter) }.not_to change(UnmatchedBoleto, :count)
-      expect(UnmatchedBoleto.sole.provider_invoice_id).to eq("inv-unmatched")
+      result = described_class.call(config: config, adapter: adapter)
+
+      expect(result).to be_success
+      expect(result.data.fetch(:unmatched_count)).to eq(1)
+      expect(result.data.fetch(:imported_count)).to eq(0)
+      expect(Charge.count).to eq(0)
+      expect(Rails.logger).to have_received(:info).with(include("billing.import_external_boletos.unmatched_payer_cpf"))
     end
 
-    it "updates a still-pending UnmatchedBoleto's fields when a later run reports changed bank data" do
-      adapter.seed_invoice!(provider_invoice_id: "inv-changes", status: "open", total_amount_cents: 80_000,
-                            due_date: 10.days.from_now.to_date, payer_cpf: "99988877766", payer_name: "Someone")
+    it "imports the invoice on a later run once a guardian with that CPF exists" do
+      guardian = build(:guardian, school: school)
+      adapter.seed_invoice!(provider_invoice_id: "inv-later", status: "open", total_amount_cents: 80_000,
+                            due_date: 10.days.from_now.to_date, payer_cpf: guardian.cpf, payer_name: "Someone")
       described_class.call(config: config, adapter: adapter)
-      boleto = UnmatchedBoleto.sole
-      expect(boleto.provider_status).to eq("open")
+      expect(Charge.count).to eq(0)
 
-      paid_at = 1.day.ago.change(usec: 0)
-      adapter.seed_invoice!(provider_invoice_id: "inv-changes", status: "paid", total_amount_cents: 80_000,
-                            due_date: 10.days.from_now.to_date, payer_cpf: "99988877766", payer_name: "Someone",
-                            payments: [ payment_for(amount_cents: 80_000, paid_at: paid_at) ])
-      described_class.call(config: config, adapter: adapter)
+      guardian.save!
+      result = described_class.call(config: config, adapter: adapter)
 
-      boleto.reload
-      expect(boleto.provider_status).to eq("paid")
-      expect(boleto.paid_amount_cents).to eq(80_000)
-      expect(boleto.paid_at).to eq(paid_at)
-      expect(boleto.payment_method).to eq("pix")
-    end
-
-    it "never touches a resolved or dismissed UnmatchedBoleto on a later run" do
-      resolved = create(:unmatched_boleto, :resolved, school: school, provider_invoice_id: "inv-resolved",
-                                                       payer_cpf: "99988877766", due_date: 10.days.from_now.to_date)
-      dismissed = create(:unmatched_boleto, :dismissed, school: school, provider_invoice_id: "inv-dismissed",
-                                                         payer_cpf: "99988877766", due_date: 10.days.from_now.to_date)
-      adapter.seed_invoice!(provider_invoice_id: "inv-resolved", status: "late", total_amount_cents: 99_000,
-                            due_date: 1.day.ago.to_date, payer_cpf: "99988877766", payer_name: "Changed")
-      adapter.seed_invoice!(provider_invoice_id: "inv-dismissed", status: "paid", total_amount_cents: 99_000,
-                            due_date: 1.day.ago.to_date, payer_cpf: "99988877766", payer_name: "Changed",
-                            payments: [ payment_for(amount_cents: 99_000) ])
-
-      expect { described_class.call(config: config, adapter: adapter) }.not_to(change { resolved.reload.attributes })
-      expect(dismissed.reload.payer_name).not_to eq("Changed")
-      expect(dismissed.reload.provider_status).not_to eq("paid")
+      expect(result.data.fetch(:imported_count)).to eq(1)
+      expect(Charge.find_by(external_reference: "inv-later")).to be_present
     end
   end
 
@@ -108,8 +91,8 @@ RSpec.describe Billing::ImportExternalBoletosService do
 
       expect(result.data.fetch(:skipped_count)).to eq(1)
       expect(result.data.fetch(:imported_count)).to eq(0)
-      expect(result.data.fetch(:queued_count)).to eq(0)
-      expect(UnmatchedBoleto.count).to eq(0)
+      expect(result.data.fetch(:unmatched_count)).to eq(0)
+      expect(Charge.count).to eq(1)
     end
 
     it "never re-imports an invoice already known via Charge#external_reference" do
@@ -125,7 +108,7 @@ RSpec.describe Billing::ImportExternalBoletosService do
   end
 
   describe "draft invoices" do
-    it "skips a draft-status invoice entirely — no charge, no UnmatchedBoleto" do
+    it "skips a draft-status invoice entirely — no charge" do
       adapter.seed_invoice!(provider_invoice_id: "inv-draft", status: "draft", total_amount_cents: 80_000,
                             due_date: 10.days.from_now.to_date, payer_cpf: "99988877766", payer_name: "Someone")
 
@@ -133,7 +116,6 @@ RSpec.describe Billing::ImportExternalBoletosService do
 
       expect(result.data.fetch(:skipped_count)).to eq(1)
       expect(Charge.count).to eq(0)
-      expect(UnmatchedBoleto.count).to eq(0)
     end
   end
 
@@ -147,9 +129,8 @@ RSpec.describe Billing::ImportExternalBoletosService do
       result = described_class.call(config: config, adapter: adapter)
 
       expect(result.data.fetch(:imported_count)).to eq(0)
-      expect(result.data.fetch(:queued_count)).to eq(1)
+      expect(result.data.fetch(:unmatched_count)).to eq(1)
       expect(Charge.where(source: "migrated").count).to eq(0)
-      expect(UnmatchedBoleto.sole.school_id).to eq(school.id)
     end
   end
 

@@ -215,9 +215,13 @@ in `docs/prds/fintech-first.md` (Open items).
       partial-unique per school) via `Billing::ImportExternalBoletosService` — it integrates
       normally with reports/reconciliation/guardian views, it is not a read-only overlay.
       Matching is payer CPF → kept guardian **at the same school as the polled credential**
-      (never a global CPF lookup). An unmatched CPF is queued on a new `unmatched_boletos`
-      table for staff review/linking rather than dropped; `Billing::ResolveUnmatchedBoletoService`
-      creates the retroactive charge once staff picks the right guardian, or it is dismissed.
+      (never a global CPF lookup). A bank-created boleto whose payer CPF matches no guardian
+      at that school is **skipped** by the import — it is counted in the run summary
+      (`unmatched_count`) and logged (`billing.import_external_boletos.unmatched_payer_cpf`), but
+      not persisted or queued. The `unmatched_boletos` table and the staff review/linking
+      queue (resolve/dismiss, `/unmatched_boletos` endpoints) were retired. A skipped boleto
+      is re-evaluated only while it stays inside the 3-day incremental lookback overlap (or on
+      a fresh backfill); otherwise a guardian with that CPF must exist before it is imported.
       One-time backfill `since` anchor: `MIN(school_payment_providers.uploaded_at)` across all
       (active or superseded) rows for that school + `inter` + `bank_slip` — the first time
       Inter credentials were ever uploaded, since a credential rotation would otherwise move

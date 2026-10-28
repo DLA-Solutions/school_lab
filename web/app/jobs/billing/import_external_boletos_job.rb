@@ -3,8 +3,8 @@
 module Billing
   # Deliberately a separate job from Billing::DailyReconciliationJob: the two have different
   # semantics — DailyReconciliationJob only matches/settles existing ChargeIssuance rows,
-  # while this one creates brand-new Charge (and UnmatchedBoleto) records from boletos the
-  # school created directly at the bank. Inter only, for now (Cora out of scope — see
+  # while this one creates brand-new Charge records from boletos the school created
+  # directly at the bank. Inter only, for now (Cora out of scope — see
   # docs/open-questions.md).
   class ImportExternalBoletosJob < ApplicationJob
     queue_as :billing
