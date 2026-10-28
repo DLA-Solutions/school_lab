@@ -623,7 +623,12 @@ answers in implementation.
       caches the active invoice id and display URLs for guardian APIs.
 - [x] **Migrated payment history — decided (MVP):** forward-only; guardian history returns
       `source: platform` for charges paid in this system. Column/join table for
-      `source: migrated` / `external_reference` deferred until import scope is defined.
+      `source: migrated` / `external_reference` deferred until import scope is defined —
+      **now defined and implemented for Banco Inter**, see `docs/open-questions.md`
+      ("migrated (bank-created) boleto import") for the full scope: `source`/
+      `external_reference` on `charges`, the `unmatched_boletos` staff-review queue,
+      `Billing::ImportExternalBoletosService`/`Job`, and `Billing::ResolveUnmatchedBoletoService`.
+      Cora is explicitly out of scope for this import.
 - [x] **Collection régua — decided:** MVP platform régua **not implemented** (stub
       notifier only). Future channel: **email** via platform mailer +
       `notification_schedule`. WhatsApp/SMS out of MVP. Cora `notification` on issuance

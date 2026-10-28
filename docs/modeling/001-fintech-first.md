@@ -137,6 +137,28 @@ with a partial unique index on active rows. Each school selects a provider
  per payment instrument (MVP: `bank_slip` → Cora or `fake`); card will add rows with
  `instrument: card` without changing the bank slip port.
 
+**Migrated (bank-created) boletos:** some schools issue boletos directly in the bank's own
+ dashboard, bypassing the platform entirely — those have no `charge_issuances` row. For
+ Inter only, `Billing::ImportExternalBoletosService` lists the bank's invoices
+ (`list_invoices`) and, when an invoice's payer CPF matches a kept guardian **at the same
+ school**, creates a real `charges` row with `source: migrated` and
+ `charges.external_reference` set to the bank's invoice id (dedup key, partial-unique per
+ school — distinct from `provider_invoice_id`, which stays the platform-issuance cache).
+ `source: platform` (default) marks everything issued through `charge_issuances` as before.
+ An invoice whose payer CPF matches no guardian at that school is queued on
+ `unmatched_boletos` (unique per `(school_id, provider_invoice_id)`) instead of dropped
+ silently; a staff member resolves it by picking the right guardian
+ (`Billing::ResolveUnmatchedBoletoService`, creating the same kind of retroactive charge) or
+ dismisses it. The one-time historical backfill's `since` anchor is the earliest
+ `school_payment_providers.uploaded_at` for that school+provider+instrument (first time Inter
+ credentials were ever uploaded, not just the currently active row — credentials may have
+ rotated since); if that is somehow absent, it falls back to the earliest `charge_issuances`
+ row for that provider, then to `school.created_at`. Ongoing sync is incremental, tracked by
+ `school_payment_providers.last_external_import_at` (a new sibling job,
+ `Billing::ImportExternalBoletosJob`, distinct from `Billing::DailyReconciliationJob` — the
+ two have different semantics: one matches existing issuances, the other creates new
+ records). Cora is out of scope for this import; its adapter/fake are untouched functionally.
+
 ## Multi-tenancy (`school_id`)
 
 Every billing and school-domain table carries `school_id` **directly**, even when a parent
