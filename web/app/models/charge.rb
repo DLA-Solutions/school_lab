@@ -30,7 +30,7 @@ class Charge < ApplicationRecord
 
   # `platform` is issued by this system (BulkGenerateChargesService / CreateOneOffChargeService).
   # `migrated` is imported from a boleto the school created directly at the bank, bypassing our
-  # issuance flow (Billing::ImportExternalBoletosService / Billing::ResolveUnmatchedBoletoService).
+  # issuance flow (Billing::ImportExternalBoletosService).
   SOURCES = %w[platform migrated].freeze
 
   validates :kind, inclusion: { in: KINDS }
