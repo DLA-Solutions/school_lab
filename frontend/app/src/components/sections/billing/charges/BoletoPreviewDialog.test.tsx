@@ -31,6 +31,7 @@ const charge = (overrides: Partial<Charge> = {}): Charge => ({
   contract_id: null,
   student: null,
   guardian: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
+  source: 'platform',
   ...overrides,
 });
 

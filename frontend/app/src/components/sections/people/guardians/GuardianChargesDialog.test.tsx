@@ -36,6 +36,7 @@ const charge = (overrides: Partial<Charge>): Charge => ({
   contract_id: 1,
   student: { id: 1, name: 'Pedro Silva' },
   guardian: { id: 7, name: 'Maria Silva', cpf: '12345678909' },
+  source: 'platform',
   ...overrides,
 });
 
@@ -176,6 +177,29 @@ describe('GuardianChargesDialog', () => {
 
     await waitFor(() => expect(seen.length).toBeGreaterThan(1));
     expect(seen[1].get('page')).toBe('2');
+  });
+
+  // Staff did not issue this one — it was imported from a boleto the school created directly in
+  // the bank's own dashboard, so it needs its own mark here.
+  it('badges a charge imported from the bank, leaving a platform one alone', async () => {
+    stub([
+      charge({ id: 1, source: 'migrated' }),
+      charge({
+        id: 2,
+        billing_period: `${YEAR}-04-01`,
+        due_date: `${YEAR}-04-10`,
+        source: 'platform',
+      }),
+    ]);
+
+    renderDialog();
+    await screen.findByText('Março');
+
+    const march = screen.getByText('Março').closest('div') as HTMLElement;
+    const april = screen.getByText('Abril').closest('div') as HTMLElement;
+
+    expect(within(march).getByText('Importado do banco')).toBeInTheDocument();
+    expect(within(april).queryByText('Importado do banco')).not.toBeInTheDocument();
   });
 
   it('says so when nothing was billed in the year', async () => {
