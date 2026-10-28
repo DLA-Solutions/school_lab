@@ -34,6 +34,13 @@ export interface Charge {
   guardian: { id: number; name: string; cpf: string };
   /** Present when a plan discount band was applied at generation (school view only). */
   applied_discounts?: AppliedDiscount[];
+  /**
+   * `platform` (the default) was issued through our system; `migrated` was imported from a
+   * boleto the school created directly in the bank's own dashboard
+   * (Billing::ImportExternalBoletosService) and linked to this guardian by staff review
+   * (`UnmatchedBoleto` → `Billing::ResolveUnmatchedBoletoService`).
+   */
+  source: 'platform' | 'migrated';
 }
 
 /**
@@ -127,4 +134,38 @@ export interface ChargeBatchResult {
   /** The school's contracts that cannot be billed: student not enrolled, or not the standing contract. */
   ineligible_contract_ids: number[];
   contract_ids_without_payer: number[];
+}
+
+/** The review item's own lifecycle — distinct from `provider_status`, the bank's raw status. */
+export type UnmatchedBoletoStatus = 'pending' | 'resolved' | 'dismissed';
+
+/** Mirrors `Gateways::BankSlip::StatusNormalizer::INTERNAL_STATUSES` — the bank's own invoice status. */
+export type UnmatchedBoletoProviderStatus = 'draft' | 'open' | 'paid' | 'late' | 'cancelled';
+
+/**
+ * A bank-created boleto (so far, Banco Inter only) whose payer CPF matched no kept guardian at
+ * this school when `Billing::ImportExternalBoletosService` imported it. Mirrors
+ * `UnmatchedBoletoBlueprint` (web/app/blueprints/unmatched_boleto_blueprint.rb). Queued here
+ * instead of dropped, so staff can link it to the right guardian — which creates its migrated
+ * `Charge` — or dismiss it when it does not belong to a family here at all.
+ */
+export interface UnmatchedBoleto {
+  id: number;
+  school_id: number;
+  provider: string;
+  provider_invoice_id: string;
+  /** As reported by the bank — raw digits or formatted, never validated against a guardian here. */
+  payer_cpf: string;
+  payer_name: string | null;
+  amount_cents: number;
+  due_date: string | null;
+  provider_status: UnmatchedBoletoProviderStatus;
+  status: UnmatchedBoletoStatus;
+  /** When this row left `pending` — by a resolve or a dismiss. Null while still pending. */
+  resolved_at: string | null;
+  /** Populated once resolved; null while pending or on a dismissed row. */
+  resolved_guardian_id: number | null;
+  /** The migrated `Charge` created by resolving this row; null until then. */
+  charge_id: number | null;
+  created_at: string;
 }

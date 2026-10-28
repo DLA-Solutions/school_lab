@@ -5,6 +5,8 @@ import {
   ChargeBatchPayload,
   ChargeBatchResult,
   OneOffChargePayload,
+  UnmatchedBoleto,
+  UnmatchedBoletoStatus,
 } from 'types/charge';
 import { Paginated } from 'types/academics';
 import { request, requestBlob } from './api';
@@ -13,6 +15,8 @@ const path = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/charges`
 const batchPath = (schoolId: number) => `/api/v1/schools/${schoolId}/billing/charge_batches`;
 const billableStudentsPath = (schoolId: number) =>
   `/api/v1/schools/${schoolId}/billing/billable_students`;
+const unmatchedBoletosPath = (schoolId: number) =>
+  `/api/v1/schools/${schoolId}/billing/unmatched_boletos`;
 
 export interface ListChargesParams {
   schoolId: number;
@@ -193,6 +197,61 @@ export const createChargeBatch = async (
     method: 'POST',
     body: payload,
   });
+
+  return response.data;
+};
+
+export interface ListUnmatchedBoletosParams {
+  schoolId: number;
+  /** Defaults to `pending` on the API when omitted — the open review queue. */
+  status?: UnmatchedBoletoStatus;
+  page?: number;
+}
+
+/**
+ * GET .../billing/unmatched_boletos — the staff review queue for bank-created boletos a CPF
+ * match could not link to a guardian. Defaults to the open (`pending`) queue; pass `status` to
+ * browse what was already resolved or dismissed.
+ */
+export const listUnmatchedBoletos = ({ schoolId, status, page = 1 }: ListUnmatchedBoletosParams) => {
+  const query = new URLSearchParams({ page: String(page) });
+  if (status) {
+    query.set('status', status);
+  }
+
+  return request<Paginated<UnmatchedBoleto>>(`${unmatchedBoletosPath(schoolId)}?${query}`);
+};
+
+/**
+ * POST .../unmatched_boletos/:id/resolve — links the row to the chosen guardian, which creates
+ * its migrated `Charge` in that family's history. A `guardianId` from another school 404s; a row
+ * no longer `pending` (resolved or dismissed by someone else first) 409s.
+ */
+export const resolveUnmatchedBoleto = async (
+  schoolId: number,
+  id: number,
+  guardianId: number,
+): Promise<UnmatchedBoleto> => {
+  const response = await request<{ data: UnmatchedBoleto }>(
+    `${unmatchedBoletosPath(schoolId)}/${id}/resolve`,
+    { method: 'POST', body: { guardian_id: guardianId } },
+  );
+
+  return response.data;
+};
+
+/**
+ * POST .../unmatched_boletos/:id/dismiss — closes the row out with no charge created. Not
+ * reversible from the UI — there is no "undo dismiss" endpoint.
+ */
+export const dismissUnmatchedBoleto = async (
+  schoolId: number,
+  id: number,
+): Promise<UnmatchedBoleto> => {
+  const response = await request<{ data: UnmatchedBoleto }>(
+    `${unmatchedBoletosPath(schoolId)}/${id}/dismiss`,
+    { method: 'POST' },
+  );
 
   return response.data;
 };
