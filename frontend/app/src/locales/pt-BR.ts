@@ -687,7 +687,6 @@ const ptBR = {
   'nav.subjects': 'Matérias',
   'nav.jobPositions': 'Cargos',
   'nav.charges': 'Boletos',
-  'nav.unmatchedBoletos': 'Boletos sem vínculo',
   'nav.plans': 'Planos',
   'nav.platformSubscription': 'Assinatura School Lab',
   'nav.billingSettings': 'Configurações financeiras',
@@ -905,63 +904,6 @@ const ptBR = {
     'Opcional: escolha o aluno para preencher automaticamente o responsável e o contrato.',
   'charges.form.selectedStudent': 'Aluno: {name}',
   'charges.form.changeStudent': 'Trocar',
-
-  // Staff review queue for boletos the school created directly in the bank's own dashboard,
-  // bypassing the platform — imported, but not yet linked to a guardian here.
-  'charges.unmatched.title': 'Boletos sem vínculo',
-  'charges.unmatched.infoBanner':
-    'Boletos criados diretamente no painel do banco, sem um CPF correspondente a um responsável cadastrado nesta escola. Vincule ao responsável correto ou descarte quando não pertencer a esta escola.',
-  'charges.unmatched.noAccess.title': 'Sem acesso a esta área',
-  'charges.unmatched.noAccess.description':
-    'Esta área está disponível apenas para usuários com vínculo ativo de escola.',
-  'charges.unmatched.loadError': 'Não foi possível carregar os boletos sem vínculo.',
-  'charges.unmatched.empty.title': 'Nenhum boleto pendente de vínculo',
-  'charges.unmatched.empty.description':
-    'Todos os boletos importados do banco já foram vinculados a um responsável ou descartados.',
-  'charges.unmatched.emptyFilter.title': 'Nenhum boleto nesta situação',
-  'charges.unmatched.emptyFilter.description': 'Troque o filtro de situação para ver outros boletos.',
-  'charges.unmatched.filter.pending': 'Pendentes',
-  'charges.unmatched.filter.resolved': 'Vinculados',
-  'charges.unmatched.filter.dismissed': 'Descartados',
-  'charges.unmatched.column.payer': 'Pagador (no banco)',
-  'charges.unmatched.column.bankStatus': 'Situação no banco',
-  'charges.unmatched.providerStatus.draft': 'Rascunho',
-  'charges.unmatched.providerStatus.open': 'Em aberto',
-  'charges.unmatched.providerStatus.paid': 'Pago',
-  'charges.unmatched.providerStatus.late': 'Vencido',
-  'charges.unmatched.providerStatus.cancelled': 'Cancelado',
-  'charges.unmatched.status.pending': 'Pendente',
-  'charges.unmatched.status.resolved': 'Vinculado',
-  'charges.unmatched.status.dismissed': 'Descartado',
-  'charges.unmatched.link': 'Vincular',
-  'charges.unmatched.linkAction': 'Vincular boleto de {payer}',
-  'charges.unmatched.dismiss': 'Descartar',
-  'charges.unmatched.dismissAction': 'Descartar boleto de {payer}',
-  'charges.unmatched.dismissTitle': 'Descartar boleto?',
-  'charges.unmatched.dismissMessage':
-    'O boleto de {payer}, no valor de {amount}, será descartado. Esta ação não pode ser desfeita.',
-  'charges.unmatched.dismissConfirm': 'Descartar',
-  'charges.unmatched.dismissCancel': 'Manter',
-  'charges.unmatched.dismissed': 'Boleto descartado.',
-  'charges.unmatched.dismissError': 'Não foi possível descartar o boleto. Verifique sua conexão.',
-  'charges.unmatched.dismissConflict':
-    'Este boleto já foi resolvido ou descartado por outra pessoa. A lista foi atualizada.',
-
-  'charges.unmatched.resolveDialog.title': 'Vincular boleto a um responsável',
-  'charges.unmatched.resolveDialog.description':
-    'O CPF informado pelo banco não corresponde a nenhum responsável cadastrado. Busque e selecione quem deve receber este boleto.',
-  'charges.unmatched.resolveDialog.guardianLabel': 'Responsável correto',
-  'charges.unmatched.resolveDialog.guardianHelp': 'Busque por nome ou CPF.',
-  'charges.unmatched.resolveDialog.guardianCpf': 'CPF {cpf}',
-  'charges.unmatched.resolveDialog.typeToSearch': 'Digite para buscar',
-  'charges.unmatched.resolveDialog.noGuardianFound': 'Nenhum responsável encontrado',
-  'charges.unmatched.resolveDialog.guardianRequired': 'Selecione o responsável.',
-  'charges.unmatched.resolveDialog.submit': 'Vincular',
-  'charges.unmatched.resolveDialog.submitting': 'Vinculando...',
-  'charges.unmatched.resolveDialog.error': 'Não foi possível vincular o boleto. Verifique sua conexão.',
-  'charges.unmatched.resolveDialog.notFound':
-    'Responsável não encontrado nesta escola. Busque novamente.',
-  'charges.unmatched.resolved': 'Boleto vinculado a {name}.',
 
   // The badge on a charge imported from a bank-created boleto, wherever it shows up alongside
   // the ones the school actually issued through the platform.
