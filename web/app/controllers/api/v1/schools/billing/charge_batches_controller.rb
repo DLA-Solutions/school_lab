@@ -67,6 +67,7 @@ module Api
               student_id: row.student.id,
               student_name: row.student.name,
               payer: payer && { id: payer.id, name: payer.name, cpf: payer.cpf },
+              payer_missing_reason: payer.blank? ? "no_guardian_linked" : nil,
               monthly_amount_cents: contract.negotiated_amount_cents ||
                 contract.billing_plan&.base_amount_cents || 0,
               due_day: contract.due_day,
@@ -82,6 +83,7 @@ module Api
               student_id: row.student.id,
               student_name: row.student.name,
               payer: nil,
+              payer_missing_reason: nil,
               monthly_amount_cents: nil,
               due_day: nil,
               already_charged: false,

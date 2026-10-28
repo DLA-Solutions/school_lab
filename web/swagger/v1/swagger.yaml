@@ -6588,7 +6588,7 @@
             "bearer_auth": []
           }
         ],
-        "description": "One row per enrolled student (kept, status active), ordered by student name. A row carries the contract that stands for the child (active, signature not cancelled, window covering today else highest id) and the amount it bills. An enrolled student with no eligible contract appears with `without_contract: true`, `contract_id: null` and null payer/amount/due day; such a row is never billable.",
+        "description": "One row per enrolled student (kept, status active), ordered by student name. A row carries the contract that stands for the child (active, signature not cancelled, window covering today else highest id) and the amount it bills. An enrolled student with no eligible contract appears with `without_contract: true`, `contract_id: null` and null payer/amount/due day; such a row is never billable. A billable row can still carry a null `payer` when the contract has no payer guardian and the student has no kept guardian link at all — `payer_missing_reason` names that as `no_guardian_linked` so staff see why, instead of a payer that just silently did not resolve.",
         "parameters": [
           {
             "name": "Authorization",
@@ -6638,6 +6638,7 @@
                           "student_id",
                           "student_name",
                           "payer",
+                          "payer_missing_reason",
                           "monthly_amount_cents",
                           "due_day",
                           "already_charged",
@@ -6670,6 +6671,15 @@
                                 "nullable": true
                               }
                             }
+                          },
+                          "payer_missing_reason": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Why `payer` is null for a billable row. Currently only `no_guardian_linked` (the student has no kept guardian link at all); null when a payer was resolved, and on without_contract rows where the gap is the missing contract, not the payer.",
+                            "enum": [
+                              "no_guardian_linked",
+                              null
+                            ]
                           },
                           "monthly_amount_cents": {
                             "type": "integer",
@@ -15689,6 +15699,9 @@
         "responses": {
           "204": {
             "description": "link discarded"
+          },
+          "422": {
+            "description": "the student's only kept guardian link cannot be unlinked"
           }
         }
       }
