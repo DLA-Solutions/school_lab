@@ -233,6 +233,49 @@ RSpec.describe SchoolLab::Integrations::Inter::Client do
       .to raise_error(SchoolLab::Integrations::Inter::TransientError, /connection error/)
   end
 
+  describe "connection failures" do
+    it "keeps the public message and exposes a timeout as the root cause" do
+      stub_inter_api(:get, "/cobranca/v3/timeout").to_timeout
+
+      expect { client.get("/cobranca/v3/timeout") }
+        .to raise_error(SchoolLab::Integrations::Inter::TransientError, "Provider connection error") { |error|
+          expect(error.cause_class).to be_present
+          expect(error.cause_message).to be_present
+        }
+    end
+
+    it "exposes a TLS/mTLS rejection on the API call" do
+      stub_inter_api(:get, "/cobranca/v3/tls")
+        .to_raise(OpenSSL::SSL::SSLError.new("SSL_connect returned=1 (tlsv13 alert certificate expired)"))
+
+      expect { client.get("/cobranca/v3/tls") }
+        .to raise_error(SchoolLab::Integrations::Inter::TransientError, "Provider connection error") { |error|
+          expect(error.cause_class).to eq("OpenSSL::SSL::SSLError")
+          expect(error.cause_message).to include("certificate expired")
+          expect(error.http_status).to be_nil
+        }
+    end
+
+    it "exposes the root cause when the token request fails" do
+      stub_request(:post, INTER_TEST_TOKEN_URL).to_raise(Faraday::SSLError.new("certificate verify failed"))
+
+      expect { client.get("/cobranca/v3/cobrancas/inv-1") }
+        .to raise_error(SchoolLab::Integrations::Inter::TransientError, "Provider connection error") { |error|
+          expect(error.cause_class).to eq("Faraday::SSLError")
+          expect(error.cause_message).to eq("certificate verify failed")
+        }
+    end
+
+    it "exposes a refused connection" do
+      stub_inter_api(:get, "/cobranca/v3/refused").to_raise(Errno::ECONNREFUSED)
+
+      expect { client.get("/cobranca/v3/refused") }
+        .to raise_error(SchoolLab::Integrations::Inter::TransientError) { |error|
+          expect(error.cause_class).to eq("Errno::ECONNREFUSED")
+        }
+    end
+  end
+
   it "targets the billing URLs from ENV, not a school attribute" do
     with_inter_billing_urls(api_base_url: INTER_ALT_API_BASE_URL, token_url: INTER_ALT_TOKEN_URL) do
       stub_request(:post, INTER_ALT_TOKEN_URL)

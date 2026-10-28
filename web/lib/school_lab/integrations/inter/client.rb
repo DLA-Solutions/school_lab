@@ -69,8 +69,8 @@ module SchoolLab
           end
 
           map_response!(response)
-        rescue SchoolLab::Http::ConnectionError
-          raise TransientError, "Provider connection error"
+        rescue SchoolLab::Http::ConnectionError => error
+          raise connection_error(error)
         end
 
         def authenticated_request(method, path, body:, content_type:)
@@ -97,8 +97,8 @@ module SchoolLab
               )
             end
           end.then { |response| map_token_response!(response) }
-        rescue SchoolLab::Http::ConnectionError
-          raise TransientError, "Provider connection error"
+        rescue SchoolLab::Http::ConnectionError => error
+          raise connection_error(error)
         end
 
         # mTLS applies to the token request too — Inter authenticates the client certificate on
@@ -165,6 +165,13 @@ module SchoolLab
           else
             raise UnexpectedResponseError.new("Unexpected provider response (#{code})", **error_context(code, body))
           end
+        end
+
+        # Public message stays fixed; the root cause (TLS rejection, timeout, DNS...) rides along
+        # as structured fields.
+        def connection_error(error)
+          TransientError.new("Provider connection error", cause_class: error.cause_class,
+                                                          cause_message: error.cause_message)
         end
 
         def error_context(code, body)

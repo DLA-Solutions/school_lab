@@ -7,6 +7,9 @@ module Billing
   #   {"error_class":"Gateways::BankSlip::ValidationError","message":"...","http_status":422,
   #    "provider_response":{...},"occurred_at":"2026-10-28T12:00:00Z"}
   #
+  # Transport failures (no HTTP response) add `cause_class` / `cause_message`, the underlying
+  # exception (e.g. "OpenSSL::SSL::SSLError" / "certificate has expired").
+  #
   # Nil keys are omitted. Every string leaf (message and provider response, keys included) goes
   # through Billing::PiiRedactor BEFORE the structure is serialized, so the output stays valid
   # JSON — the redactor is never run over the JSON text itself. Request headers, tokens and
@@ -36,6 +39,8 @@ module Billing
 
       line = [ parsed["error_class"], parsed["message"] ].compact_blank.join(": ")
       line = "#{line} (HTTP #{parsed['http_status']})" if parsed["http_status"]
+      cause = [ parsed["cause_class"], parsed["cause_message"] ].compact_blank.join(": ")
+      line = "#{line} (cause: #{cause})" if cause.present?
       PiiRedactor.call(line).truncate(SUMMARY_LIMIT)
     end
 
@@ -71,6 +76,8 @@ module Billing
         "message" => clean(error.message, limit),
         "http_status" => http_status,
         "provider_response" => sanitize(response, limit, 0),
+        "cause_class" => cause_class,
+        "cause_message" => cause_message(limit),
         "occurred_at" => occurred_at.utc.iso8601
       }.compact
     end
@@ -78,6 +85,16 @@ module Billing
     def http_status
       status = error.try(:http_status)
       status if status.is_a?(Integer)
+    end
+
+    def cause_class
+      name = error.try(:cause_class).presence
+      clean(name, KEY_LIMIT) if name
+    end
+
+    def cause_message(limit)
+      text = error.try(:cause_message).presence
+      clean(text, limit) if text
     end
 
     # Port errors carry the provider body; Cora validation errors only expose `details`.

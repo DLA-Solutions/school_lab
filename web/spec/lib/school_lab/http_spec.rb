@@ -63,5 +63,43 @@ RSpec.describe SchoolLab::Http do
       expect { described_class.execute { connection.get("/timeout") } }
         .to raise_error(described_class::ConnectionError)
     end
+
+    it "wraps a TLS rejection as ConnectionError exposing the innermost cause" do
+      stub_request(:get, "#{base_url}/tls")
+        .to_raise(OpenSSL::SSL::SSLError.new("SSL_connect returned=1 (certificate has expired)"))
+
+      expect { described_class.execute { connection.get("/tls") } }
+        .to raise_error(described_class::ConnectionError) { |error|
+          expect(error.cause_class).to eq("OpenSSL::SSL::SSLError")
+          expect(error.cause_message).to include("certificate has expired")
+        }
+    end
+
+    it "wraps a bare Faraday::SSLError as ConnectionError" do
+      stub_request(:get, "#{base_url}/tls").to_raise(Faraday::SSLError.new("handshake failure"))
+
+      expect { described_class.execute { connection.get("/tls") } }
+        .to raise_error(described_class::ConnectionError) { |error|
+          expect(error.cause_class).to eq("Faraday::SSLError")
+          expect(error.cause_message).to eq("handshake failure")
+        }
+    end
+
+    it "exposes the root cause of a refused connection" do
+      stub_request(:get, "#{base_url}/refused").to_raise(Errno::ECONNREFUSED)
+
+      expect { described_class.execute { connection.get("/refused") } }
+        .to raise_error(described_class::ConnectionError) { |error|
+          expect(error.cause_class).to eq("Errno::ECONNREFUSED")
+          expect(error.cause_message).to include("Connection refused")
+        }
+    end
+
+    it "reports no cause when the error was raised bare" do
+      error = described_class::ConnectionError.new("boom")
+
+      expect(error.cause_class).to be_nil
+      expect(error.cause_message).to be_nil
+    end
   end
 end

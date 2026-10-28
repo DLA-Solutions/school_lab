@@ -19,15 +19,21 @@ module Gateways
           when SchoolLab::Integrations::Inter::UnexpectedResponseError
             raise Gateways::BankSlip::ProviderError.new(error.message, **diagnostics(error))
           when SchoolLab::Http::ConnectionError
-            raise Gateways::BankSlip::TransientError, "Provider connection error"
+            raise Gateways::BankSlip::TransientError.new("Provider connection error", **diagnostics(error))
           else
             raise error
           end
         end
 
-        # The provider's HTTP status and response body, forwarded onto the port error.
+        # The provider's HTTP status and response body (or, for transport failures, the root
+        # cause), forwarded onto the port error.
         def diagnostics(error)
-          { http_status: error.http_status, provider_response: error.provider_response }
+          if error.is_a?(SchoolLab::Http::ConnectionError)
+            { cause_class: error.cause_class, cause_message: error.cause_message }
+          else
+            { http_status: error.http_status, provider_response: error.provider_response,
+              cause_class: error.cause_class, cause_message: error.cause_message }
+          end
         end
       end
     end

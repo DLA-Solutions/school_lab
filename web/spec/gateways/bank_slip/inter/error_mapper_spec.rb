@@ -56,6 +56,37 @@ RSpec.describe Gateways::BankSlip::Inter::ErrorMapper do
     expect(error.provider_response).to be_nil
   end
 
+  it "forwards the root cause of a raw connection error" do
+    vendor = begin
+      begin
+        raise OpenSSL::SSL::SSLError, "certificate has expired"
+      rescue OpenSSL::SSL::SSLError
+        raise SchoolLab::Http::ConnectionError
+      end
+    rescue SchoolLab::Http::ConnectionError => e
+      e
+    end
+
+    error = mapped(vendor)
+
+    expect(error.message).to eq("Provider connection error")
+    expect(error.cause_class).to eq("OpenSSL::SSL::SSLError")
+    expect(error.cause_message).to eq("certificate has expired")
+  end
+
+  it "forwards the root cause carried by a vendor TransientError" do
+    vendor = SchoolLab::Integrations::Inter::TransientError.new(
+      "Provider connection error", cause_class: "Net::OpenTimeout", cause_message: "execution expired"
+    )
+
+    error = mapped(vendor)
+
+    expect(error).to be_a(Gateways::BankSlip::TransientError)
+    expect(error.message).to eq("Provider connection error")
+    expect(error.cause_class).to eq("Net::OpenTimeout")
+    expect(error.cause_message).to eq("execution expired")
+  end
+
   it "re-raises unknown errors untouched" do
     expect { described_class.map(ArgumentError.new("nope")) }.to raise_error(ArgumentError, "nope")
   end

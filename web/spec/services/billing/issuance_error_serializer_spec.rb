@@ -179,6 +179,46 @@ RSpec.describe Billing::IssuanceErrorSerializer do
     end
   end
 
+  describe "connection error root cause" do
+    let(:pem) { "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0B\n-----END PRIVATE KEY-----" }
+    let(:error) do
+      Gateways::BankSlip::TransientError.new(
+        "Provider connection error",
+        cause_class: "OpenSSL::SSL::SSLError",
+        cause_message: "certificate has expired Bearer abc.def.ghi client_id=secret-id #{pem}"
+      )
+    end
+    let(:json) { serialize(error) }
+
+    it "emits cause_class and a redacted cause_message and omits the provider keys" do
+      expect(parsed).to eq(
+        "error_class" => "Gateways::BankSlip::TransientError",
+        "message" => "Provider connection error",
+        "cause_class" => "OpenSSL::SSL::SSLError",
+        "cause_message" => "certificate has expired Bearer [REDACTED] client_id=[REDACTED] [PEM_REDACTED]",
+        "occurred_at" => "2026-10-28T12:00:00Z"
+      )
+    end
+
+    it "never lets PEM material or tokens reach the stored text" do
+      expect(json).not_to include("BEGIN PRIVATE KEY", "MIIEvQ", "abc.def.ghi", "secret-id")
+    end
+
+    it "caps a huge cause message within the size limit" do
+      huge = Gateways::BankSlip::TransientError.new("x", cause_class: "Net::OpenTimeout", cause_message: "y" * 50_000)
+
+      stored = serialize(huge)
+
+      expect(stored.bytesize).to be <= described_class::MAX_BYTES
+      expect(JSON.parse(stored)["cause_message"]).to end_with("[truncated]")
+    end
+
+    it "is summarized with the cause" do
+      expect(described_class.summary(json))
+        .to start_with("Gateways::BankSlip::TransientError: Provider connection error (cause: OpenSSL::SSL::SSLError: ")
+    end
+  end
+
   describe ".summary" do
     it "describes the stored JSON in one redacted line" do
       stored = described_class.call(
