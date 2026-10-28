@@ -29,7 +29,7 @@ module Billing
             charge_id: issuance.charge_id,
             issuance_id: issuance.id,
             correlation_id: issuance.idempotency_key,
-            reason: Billing::PiiRedactor.call(issuance.last_error)
+            reason: Billing::IssuanceErrorSerializer.summary(issuance.last_error)
           )
         )
       end

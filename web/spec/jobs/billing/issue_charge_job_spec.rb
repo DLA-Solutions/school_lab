@@ -45,6 +45,40 @@ RSpec.describe Billing::IssueChargeJob, type: :job do
     expect(charge.reload.current_issuance.status).to eq("pending")
   end
 
+  it "records the complete transient provider error as JSON on the pending issuance" do
+    allow(adapter).to receive(:issue).and_raise(
+      Gateways::BankSlip::TransientError.new(
+        "Provider server error (503)", http_status: 503,
+                                       provider_response: { "message" => "unavailable for 123.456.789-00" }
+      )
+    )
+
+    described_class.perform_now(charge.id, school.id)
+
+    stored = charge.reload.current_issuance.last_error
+    expect(JSON.parse(stored)).to include(
+      "error_class" => "Gateways::BankSlip::TransientError",
+      "message" => "Provider server error (503)",
+      "http_status" => 503,
+      "provider_response" => { "message" => "unavailable for [CPF]" }
+    )
+    expect(stored).not_to include("123.456.789-00")
+  end
+
+  it "marks the issuance failed with the same JSON shape once retries are exhausted" do
+    allow(adapter).to receive(:issue).and_raise(Gateways::BankSlip::TransientError, "Provider timeout")
+    job = described_class.new(charge.id, school.id)
+    allow(job).to receive(:executions).and_return(described_class::MAX_ATTEMPTS)
+
+    job.perform_now
+
+    issuance = charge.reload.current_issuance
+    expect(issuance.status).to eq("failed")
+    expect(JSON.parse(issuance.last_error)).to include(
+      "error_class" => "Gateways::BankSlip::TransientError", "message" => "Provider timeout"
+    )
+  end
+
   it "does not retry permanent provider failures and records them on the issuance" do
     allow(adapter).to receive(:issue).and_raise(
       Gateways::BankSlip::AuthenticationError, "Provider authentication failed (401)"
@@ -55,7 +89,10 @@ RSpec.describe Billing::IssueChargeJob, type: :job do
 
     issuance = charge.reload.current_issuance
     expect(issuance.status).to eq("failed")
-    expect(issuance.last_error).to be_present
+    expect(JSON.parse(issuance.last_error)).to include(
+      "error_class" => "Gateways::BankSlip::AuthenticationError",
+      "message" => "Provider authentication failed (401)"
+    )
   end
 
   it "does not persist jobs when charge generation rolls back" do

@@ -98,7 +98,7 @@ module Billing
     def handle_permanent_failure!(issuance, error)
       return unless issuance&.may_mark_failed?
 
-      issuance.update!(last_error: redact(error))
+      issuance.update!(last_error: Billing::IssuanceErrorSerializer.call(error))
       issuance.mark_failed!
     end
 

@@ -16,7 +16,23 @@ module Gateways
           "FALHA_EMISSAO"    => "cancelled"  # emission permanently failed at the vendor — will never become payable, closest fit is "cancelled"
         }.freeze
 
+        # Upper bound on a malformed 2xx body kept on the raised error (the Billing serializer
+        # redacts and applies its own, smaller cap before anything is persisted).
+        MAX_ERROR_BODY_BYTES = 16_384
+
         module_function
+
+        # Decodes a 2xx response body into a Hash and yields it. A body that is empty, not JSON,
+        # not a JSON object, or lacks a key the block fetches raises a permanent ProviderError
+        # carrying the received body — never a raw JSON::ParserError / KeyError, which would
+        # escape the services' `rescue Gateways::BankSlip::Error` and leave no trace. The HTTP
+        # status is not carried: the client only hands back the body of a 2xx.
+        def parse_body(body)
+          yield decode_payload(body)
+        rescue KeyError, TypeError, Date::Error => error
+          raise ProviderError.new("Malformed provider response (#{error.class}: #{error.message})",
+                                  provider_response: diagnostic_body(body))
+        end
 
         # Used only by adapter#issue: the synchronous POST /cobrancas response is just
         # `{"codigoSolicitacao": "..."}` — none of the presentation fields exist yet (see
@@ -49,6 +65,32 @@ module Gateways
             our_number: boleto["nossoNumero"],
             pix_emv: pix["pixCopiaECola"]
           )
+        end
+
+        def decode_payload(body)
+          raise ProviderError, "Empty provider response" if body.blank?
+
+          payload = JSON.parse(body.to_s)
+          return payload if payload.is_a?(Hash)
+
+          raise ProviderError.new("Provider response is not a JSON object",
+                                  provider_response: diagnostic_body(body))
+        rescue JSON::ParserError
+          raise ProviderError.new("Provider response is not valid JSON", provider_response: diagnostic_body(body))
+        end
+
+        # The received body for diagnostics: parsed JSON when it parses, otherwise the (capped)
+        # raw string; nil when empty.
+        def diagnostic_body(body)
+          text = body.to_s
+          return nil if text.blank?
+
+          text = text.dup.force_encoding(Encoding::UTF_8).scrub("?")
+          return text.byteslice(0, MAX_ERROR_BODY_BYTES).scrub("") if text.bytesize > MAX_ERROR_BODY_BYTES
+
+          JSON.parse(text)
+        rescue JSON::ParserError
+          text
         end
 
         def parse_invoice(payload)

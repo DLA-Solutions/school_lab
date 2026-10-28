@@ -134,13 +134,104 @@ RSpec.describe Gateways::BankSlip::Inter::Adapter do
       stub_request(:post, cobrancas_path)
         .to_return(status: 422, body: { violacoes: [ { campo: "pagador.cpfCnpj" } ] }.to_json)
 
-      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ValidationError)
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ValidationError) { |error|
+        expect(error.details).to eq("violacoes" => [ { "campo" => "pagador.cpfCnpj" } ])
+        expect(error.http_status).to eq(422)
+        expect(error.provider_response).to eq("violacoes" => [ { "campo" => "pagador.cpfCnpj" } ])
+      }
+    end
+
+    it "forwards the provider status and body on authentication failures" do
+      stub_request(:post, cobrancas_path).to_return(status: 403, body: { title: "Forbidden" }.to_json)
+
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::AuthenticationError) { |error|
+        expect(error.http_status).to eq(403)
+        expect(error.provider_response).to eq("title" => "Forbidden")
+      }
+    end
+
+    it "forwards the provider status and body when the token endpoint rejects the credentials" do
+      stub_request(:post, INTER_TEST_TOKEN_URL).to_return(status: 401, body: { error: "invalid_client" }.to_json)
+
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::AuthenticationError) { |error|
+        expect(error.http_status).to eq(401)
+        expect(error.provider_response).to eq("error" => "invalid_client")
+      }
+    end
+
+    it "forwards the provider status and body on unexpected responses" do
+      stub_request(:post, cobrancas_path).to_return(status: 404, body: "not found")
+
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ProviderError) { |error|
+        expect(error.http_status).to eq(404)
+        expect(error.provider_response).to eq("not found")
+      }
     end
 
     it "raises TransientError for provider outages" do
       stub_request(:post, cobrancas_path).to_return(status: 503, body: "unavailable")
 
-      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::TransientError)
+      expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::TransientError) { |error|
+        expect(error.http_status).to eq(503)
+        expect(error.provider_response).to eq("unavailable")
+      }
+    end
+
+    context "when the provider answers 2xx with a malformed body" do
+      def stub_issue_body(body)
+        stub_request(:post, cobrancas_path).to_return(status: 200, body: body)
+      end
+
+      it "raises a ProviderError carrying the body when codigoSolicitacao is missing" do
+        stub_issue_body({ outraChave: "x" }.to_json)
+
+        expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ProviderError) { |error|
+          expect(error.message).to include("Malformed provider response", "codigoSolicitacao")
+          expect(error.provider_response).to eq("outraChave" => "x")
+        }
+      end
+
+      it "raises a ProviderError when codigoSolicitacao is null or blank" do
+        stub_issue_body({ codigoSolicitacao: nil }.to_json)
+
+        expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ProviderError) { |error|
+          expect(error.provider_response).to eq("codigoSolicitacao" => nil)
+        }
+      end
+
+      it "raises a ProviderError carrying the raw text for a non-JSON body" do
+        stub_issue_body("<html>gateway hiccup</html>")
+
+        expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ProviderError) { |error|
+          expect(error.message).to eq("Provider response is not valid JSON")
+          expect(error.provider_response).to eq("<html>gateway hiccup</html>")
+        }
+      end
+
+      it "raises a ProviderError for an empty body" do
+        stub_issue_body("")
+
+        expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ProviderError) { |error|
+          expect(error.message).to eq("Empty provider response")
+          expect(error.provider_response).to be_nil
+        }
+      end
+
+      it "raises a ProviderError for JSON that is not an object" do
+        stub_issue_body("[1,2]")
+
+        expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ProviderError) { |error|
+          expect(error.provider_response).to eq([ 1, 2 ])
+        }
+      end
+
+      it "caps an oversized non-JSON body" do
+        stub_issue_body("x" * 50_000)
+
+        expect { adapter.issue(issue_request) }.to raise_error(Gateways::BankSlip::ProviderError) { |error|
+          expect(error.provider_response.bytesize).to eq(Gateways::BankSlip::Inter::ResponseParser::MAX_ERROR_BODY_BYTES)
+        }
+      end
     end
 
     it "raises ProviderError when billing URLs are missing" do
@@ -193,6 +284,56 @@ RSpec.describe Gateways::BankSlip::Inter::Adapter do
       invoice = adapter.fetch_invoice(provider_invoice_id: "uuid-123")
 
       expect(invoice.payments).to eq([])
+    end
+  end
+
+  describe "malformed 2xx responses on reads" do
+    it "fetch_invoice raises a ProviderError with the body when cobranca is missing" do
+      stub_request(:get, "#{cobrancas_path}/uuid-123").to_return(status: 200, body: { boleto: {} }.to_json)
+
+      expect { adapter.fetch_invoice(provider_invoice_id: "uuid-123") }
+        .to raise_error(Gateways::BankSlip::ProviderError) { |error|
+          expect(error.message).to include("cobranca")
+          expect(error.provider_response).to eq("boleto" => {})
+        }
+    end
+
+    it "fetch_invoice raises a ProviderError for a non-JSON body" do
+      stub_request(:get, "#{cobrancas_path}/uuid-123").to_return(status: 200, body: "oops")
+
+      expect { adapter.fetch_invoice(provider_invoice_id: "uuid-123") }
+        .to raise_error(Gateways::BankSlip::ProviderError, "Provider response is not valid JSON")
+    end
+
+    it "fetch_invoice raises a ProviderError for an unparseable due date" do
+      payload = cobranca_payload(due_date: "not-a-date")
+      stub_request(:get, "#{cobrancas_path}/uuid-123").to_return(status: 200, body: payload.to_json)
+
+      expect { adapter.fetch_invoice(provider_invoice_id: "uuid-123") }
+        .to raise_error(Gateways::BankSlip::ProviderError, /Malformed provider response/)
+    end
+
+    it "cancel raises a ProviderError when the re-fetch body is malformed" do
+      stub_request(:post, "#{cobrancas_path}/uuid-123/cancelar").to_return(status: 202, body: "")
+      stub_request(:get, "#{cobrancas_path}/uuid-123").to_return(status: 200, body: { cobranca: {} }.to_json)
+
+      expect { adapter.cancel(provider_invoice_id: "uuid-123") }
+        .to raise_error(Gateways::BankSlip::ProviderError) { |error|
+          expect(error.provider_response).to eq("cobranca" => {})
+        }
+    end
+
+    it "list_invoices raises a ProviderError for a non-JSON body and for a malformed item" do
+      stub_request(:get, %r{#{Regexp.escape(cobrancas_path)}\?}).to_return(status: 200, body: "nope")
+
+      expect { adapter.list_invoices(since: Date.new(2026, 1, 1)) }
+        .to raise_error(Gateways::BankSlip::ProviderError, "Provider response is not valid JSON")
+
+      stub_request(:get, %r{#{Regexp.escape(cobrancas_path)}\?})
+        .to_return(status: 200, body: { cobrancas: [ { boleto: {} } ] }.to_json)
+
+      expect { adapter.list_invoices(since: Date.new(2026, 1, 1)) }
+        .to raise_error(Gateways::BankSlip::ProviderError, /cobranca/)
     end
   end
 

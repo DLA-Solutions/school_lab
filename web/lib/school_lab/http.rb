@@ -5,7 +5,36 @@ require "faraday/multipart"
 
 module SchoolLab
   module Http
-    class ConnectionError < StandardError; end
+    # Raised for transport failures (DNS, refused/timed-out connection, TLS/mTLS handshake). The
+    # original exception is kept as Ruby's `cause`; `cause_class` / `cause_message` expose the
+    # innermost one (e.g. OpenSSL::SSL::SSLError "certificate has expired", Net::OpenTimeout)
+    # so callers can record why the call failed. The message is passed through untouched on
+    # purpose: redaction and size capping belong to the persisting layer
+    # (Billing::IssuanceErrorSerializer), which must redact BEFORE truncating — cutting here
+    # could split a PEM block the redactor would no longer recognise.
+    class ConnectionError < StandardError
+      MAX_CAUSE_DEPTH = 5
+
+      def cause_class
+        root_cause&.class&.name
+      end
+
+      def cause_message
+        root_cause&.message.to_s.presence
+      end
+
+      private
+
+      def root_cause
+        current = cause
+        MAX_CAUSE_DEPTH.times do
+          break unless current&.cause
+
+          current = current.cause
+        end
+        current
+      end
+    end
 
     module_function
 
@@ -31,7 +60,7 @@ module SchoolLab
 
     def execute
       yield
-    rescue Faraday::ConnectionFailed, Faraday::TimeoutError, Errno::ECONNREFUSED, SocketError
+    rescue Faraday::ConnectionFailed, Faraday::TimeoutError, Faraday::SSLError, Errno::ECONNREFUSED, SocketError
       raise ConnectionError
     end
   end
